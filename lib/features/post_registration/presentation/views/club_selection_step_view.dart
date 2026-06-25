@@ -10,6 +10,8 @@ import '../../data/models/country_model.dart';
 import '../../data/models/union_model.dart';
 import '../../data/models/local_field_model.dart';
 import '../../data/models/club_model.dart';
+import '../../data/models/club_section_model.dart';
+import '../../data/models/class_model.dart';
 import '../providers/club_selection_providers.dart';
 import '../utils/progressive_class_logo_asset.dart';
 import '../widgets/bottom_sheet_picker.dart';
@@ -21,7 +23,14 @@ import '../widgets/club_type_selector.dart';
 /// progresiva. Sin Scaffold interno, usa SacCard para contenedores.
 /// Title uses responsive font size for small phones.
 class ClubSelectionStepView extends ConsumerStatefulWidget {
-  const ClubSelectionStepView({super.key});
+  final bool isClubTransfer;
+  final String? preservedClassName;
+
+  const ClubSelectionStepView({
+    super.key,
+    this.isClubTransfer = false,
+    this.preservedClassName,
+  });
 
   @override
   ConsumerState<ClubSelectionStepView> createState() =>
@@ -46,13 +55,16 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
     final unionsAsync = ref.watch(unionsProvider);
     final localFieldsAsync = ref.watch(localFieldsProvider);
     final clubsAsync = ref.watch(clubsProvider);
-    final classesAsync = ref.watch(classesProvider);
+    final classesAsync = widget.isClubTransfer
+        ? const AsyncValue.data(<ClassModel>[])
+        : ref.watch(classesProvider);
 
     final selectedCountryId = ref.watch(selectedCountryProvider);
     final selectedUnionId = ref.watch(selectedUnionProvider);
     final selectedLocalFieldId = ref.watch(selectedLocalFieldProvider);
     final selectedClubId = ref.watch(selectedClubProvider);
-    final selectedClassId = ref.watch(selectedClassProvider);
+    final selectedClassId =
+        widget.isClubTransfer ? null : ref.watch(selectedClassProvider);
 
     final isSaving = ref.watch(isSavingStep3Provider);
 
@@ -102,12 +114,18 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
 
           // Title
           Text(
-            'post_registration.club_selection.title'.tr(),
+            (widget.isClubTransfer
+                    ? 'transfers.form.club_selection_title'
+                    : 'post_registration.club_selection.title')
+                .tr(),
             style: titleStyle,
           ),
           const SizedBox(height: 8),
           Text(
-            'post_registration.club_selection.subtitle'.tr(),
+            (widget.isClubTransfer
+                    ? 'transfers.form.club_selection_subtitle'
+                    : 'post_registration.club_selection.subtitle')
+                .tr(),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: context.sac.textSecondary,
                 ),
@@ -159,8 +177,6 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                     ref.read(selectedUnionProvider.notifier).state = null;
                     ref.read(selectedLocalFieldProvider.notifier).state = null;
                     ref.read(selectedClubProvider.notifier).state = null;
-                    ref.read(selectedClubSectionProvider.notifier).state = null;
-                    ref.read(selectedClassProvider.notifier).state = null;
                   }
                 },
               );
@@ -209,9 +225,6 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                       ref.read(selectedLocalFieldProvider.notifier).state =
                           null;
                       ref.read(selectedClubProvider.notifier).state = null;
-                      ref.read(selectedClubSectionProvider.notifier).state =
-                          null;
-                      ref.read(selectedClassProvider.notifier).state = null;
                     }
                   },
                 );
@@ -263,9 +276,6 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                       ref.read(selectedLocalFieldProvider.notifier).state =
                           picked;
                       ref.read(selectedClubProvider.notifier).state = null;
-                      ref.read(selectedClubSectionProvider.notifier).state =
-                          null;
-                      ref.read(selectedClassProvider.notifier).state = null;
                     }
                   },
                 );
@@ -329,9 +339,6 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                     );
                     if (picked != null && picked != selectedClubId) {
                       ref.read(selectedClubProvider.notifier).state = picked;
-                      ref.read(selectedClubSectionProvider.notifier).state =
-                          null;
-                      ref.read(selectedClassProvider.notifier).state = null;
                     }
                   },
                 );
@@ -368,10 +375,27 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
             // ),
             //const SizedBox(height: 12),
             const ClubTypeSelector(),
+            if (widget.isClubTransfer)
+              _buildMissingTransferSectionMessage(
+                clubSectionsAsync: ref.watch(clubSectionsProvider),
+                selectedClubSectionId: ref.watch(selectedClubSectionProvider),
+              ),
           ],
 
           // ── Clase progresiva ─────────────────────────────────────────────
-          if (ref.watch(selectedClubSectionProvider) != null) ...[
+          if (widget.isClubTransfer &&
+              ref.watch(selectedClubSectionProvider) != null) ...[
+            const SizedBox(height: 24),
+            PickerField(
+              label: 'post_registration.club_selection.progressive_class'.tr(),
+              hint: 'transfers.form.class_preserved_hint'.tr(),
+              icon: HugeIcons.strokeRoundedSchool,
+              selectedName: widget.preservedClassName ??
+                  'transfers.form.class_preserved_value'.tr(),
+              enabled: false,
+              showChevron: false,
+            ),
+          ] else if (ref.watch(selectedClubSectionProvider) != null) ...[
             const SizedBox(height: 24),
             // Row(
             //   children: [
@@ -395,15 +419,6 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                   return _buildEmptyText(
                       'post_registration.club_selection.no_classes'.tr());
                 }
-                final items = classes
-                    .map(
-                      (progressiveClass) => PickerItem(
-                        id: progressiveClass.id,
-                        name: progressiveClass.name,
-                        logoAsset: progressiveClassLogoAsset(progressiveClass),
-                      ),
-                    )
-                    .toList();
                 return PickerField(
                   label:
                       'post_registration.club_selection.progressive_class'.tr(),
@@ -412,23 +427,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                   selectedLogoAsset: selectedClassLogoAsset,
                   selectedName: selectedClassName,
                   enabled: !isSaving,
-                  onTap: () async {
-                    final picked = await showPickerSheet(
-                      context: context,
-                      title:
-                          'post_registration.club_selection.select_progressive_class'
-                              .tr(),
-                      items: items,
-                      selectedId: selectedClassId,
-                      searchHint:
-                          'post_registration.club_selection.search_class'.tr(),
-                      icon: HugeIcons.strokeRoundedSchool,
-                    );
-
-                    if (picked != null && picked != selectedClassId) {
-                      ref.read(selectedClassProvider.notifier).state = picked;
-                    }
-                  },
+                  showChevron: false,
                 );
               },
               loading: () => PickerField(
@@ -474,6 +473,25 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
           fontSize: 14,
         ),
       ),
+    );
+  }
+
+  Widget _buildMissingTransferSectionMessage({
+    required AsyncValue<List<ClubSectionModel>> clubSectionsAsync,
+    required int? selectedClubSectionId,
+  }) {
+    if (!widget.isClubTransfer || selectedClubSectionId != null) {
+      return const SizedBox.shrink();
+    }
+
+    final sections = clubSectionsAsync.valueOrNull;
+    if (sections == null || sections.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: _buildErrorText('transfers.form.no_matching_section'.tr()),
     );
   }
 }

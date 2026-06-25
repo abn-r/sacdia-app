@@ -2891,7 +2891,14 @@
       "section_id_invalid": "Ingresa un ID de sección válido",
       "reason": "Motivo",
       "reason_hint": "Explica brevemente por qué solicitas el traslado...",
-      "submit": "Enviar solicitud"
+      "submit": "Enviar solicitud",
+      "club_selection_title": "Elige tu nuevo club",
+      "club_selection_subtitle": "Selecciona el club al que quieres cambiarte. Tu tipo de club y tu clase actual se conservan.",
+      "class_preserved_hint": "Tu clase actual no cambia",
+      "class_preserved_value": "Se conserva tu clase actual",
+      "no_matching_section": "Este club no tiene una sección del mismo tipo que tu membresía actual.",
+      "no_active_membership": "Necesitas una membresía activa para solicitar cambio de club.",
+      "select_valid_club": "Selecciona un club válido para solicitar el cambio"
     }
   },
   "profile": {
@@ -3179,6 +3186,8 @@
       "deleting_account": "Eliminando cuenta...",
       "account_deleted": "Tu cuenta fue eliminada correctamente.",
       "theme_title": "Tema",
+      "change_club_tile": "Cambiar de club",
+      "change_club_subtitle": "Solicita integrarte a otro club sin cambiar tu clase",
       "select_theme_title": "Seleccionar Tema",
       "theme_light": "Claro",
       "theme_dark": "Oscuro",

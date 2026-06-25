@@ -782,8 +782,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.transferRequestDetailRoute,
         pageBuilder: (context, state) {
-          final requestIdStr = state.pathParameters['requestId']!;
-          final requestId = int.tryParse(requestIdStr) ?? 0;
+          final requestId = state.pathParameters['requestId']!;
           return _sharedAxisBuild(
             context,
             state,

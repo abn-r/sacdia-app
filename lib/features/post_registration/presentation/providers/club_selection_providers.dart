@@ -138,13 +138,12 @@ final classesProvider =
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SELECTION PROVIDERS — derive initial value from data, allow user override
+// SELECTION PROVIDERS
 //
-// Pattern: StateProvider watches its data provider so that when the data
-// loads (or reloads because a parent selection changed), the provider
-// rebuilds and returns the auto-selected value. When the user manually
-// writes a value via `.notifier`, that overrides the computed initial value
-// until the data provider itself rebuilds.
+// Location and club are user-driven cascading selections. Club type and class
+// are business-derived from age + catalog data and must not be manually
+// overridden in the app. The backend repeats that validation when completing
+// step 3, so the client keeps UX aligned but does not become the authority.
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// Provider para el país seleccionado.
@@ -187,14 +186,36 @@ final selectedClubProvider = StateProvider.autoDispose<int?>((ref) {
   return null;
 });
 
+/// Tipo de club requerido para flujos que NO deben recalcular por edad.
+///
+/// El cambio de club usa este override para conservar la sección/tipo de club
+/// asociado a la clase actual del usuario.
+final requiredClubTypeIdProvider = StateProvider.autoDispose<int?>((ref) {
+  return null;
+});
+
 /// Provider para la sección de club seleccionada.
 /// Auto-selecciona considerando:
 ///   1. Única sección disponible → se selecciona directamente.
 ///   2. Múltiples secciones + edad conocida → pre-selección por rango etario.
 ///   3. Sin datos o edad desconocida → null.
-final selectedClubSectionProvider = StateProvider.autoDispose<int?>((ref) {
-  final sections = ref.watch(clubSectionsProvider).valueOrNull;
+final selectedClubSectionProvider = Provider.autoDispose<int?>((ref) {
+  final clubId = ref.watch(selectedClubProvider);
+  if (clubId == null) return null;
+
+  final sectionsAsync = ref.watch(clubSectionsProvider);
+  if (sectionsAsync.isLoading) return null;
+
+  final sections = sectionsAsync.valueOrNull;
   if (sections == null || sections.isEmpty) return null;
+
+  final requiredClubTypeId = ref.watch(requiredClubTypeIdProvider);
+  if (requiredClubTypeId != null) {
+    return sections
+        .where((section) => section.clubTypeId == requiredClubTypeId)
+        .map((section) => section.id)
+        .firstOrNull;
+  }
 
   if (sections.length == 1) return sections.first.id;
 
@@ -225,8 +246,24 @@ final selectedClubTypeSlugProvider = Provider.autoDispose<String?>((ref) {
 ///   1. Única clase disponible → se selecciona directamente.
 ///   2. Múltiples clases + edad conocida → clase cuyo rango etario coincide.
 ///   3. Sin datos o sin coincidencia → null.
-final selectedClassProvider = StateProvider.autoDispose<int?>((ref) {
-  final classes = ref.watch(classesProvider).valueOrNull;
+final selectedClassProvider = Provider.autoDispose<int?>((ref) {
+  final clubSectionId = ref.watch(selectedClubSectionProvider);
+  if (clubSectionId == null) return null;
+
+  final clubTypeId = ref
+      .watch(clubSectionsProvider)
+      .valueOrNull
+      ?.where((section) => section.id == clubSectionId)
+      .firstOrNull
+      ?.clubTypeId;
+  if (clubTypeId == null) return null;
+
+  final classesAsync = ref.watch(classesProvider);
+  if (classesAsync.isLoading) return null;
+
+  final classes = classesAsync.valueOrNull
+      ?.where((classModel) => classModel.clubTypeId == clubTypeId)
+      .toList();
   if (classes == null || classes.isEmpty) return null;
 
   if (classes.length == 1) return classes.first.id;
@@ -246,12 +283,14 @@ final canCompleteStep3Provider = Provider.autoDispose<bool>((ref) {
   final country = ref.watch(selectedCountryProvider);
   final union = ref.watch(selectedUnionProvider);
   final localField = ref.watch(selectedLocalFieldProvider);
+  final club = ref.watch(selectedClubProvider);
   final clubSection = ref.watch(selectedClubSectionProvider);
   final clubTypeSlug = ref.watch(selectedClubTypeSlugProvider);
 
   return country != null &&
       union != null &&
       localField != null &&
+      club != null &&
       clubSection != null &&
       clubTypeSlug != null;
 });

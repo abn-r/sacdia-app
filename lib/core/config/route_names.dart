@@ -102,7 +102,8 @@ class RouteNames {
   static String certificationProgressPath(
     String certificationId,
     String enrollmentId,
-  ) => '/certification/$certificationId/progress/$enrollmentId';
+  ) =>
+      '/certification/$certificationId/progress/$enrollmentId';
   static String investitureHistoryPath(String enrollmentId) =>
       '/investiture/enrollment/$enrollmentId/history';
   static String certificateImportProcessingPath(String batchId) =>
@@ -123,7 +124,8 @@ class RouteNames {
       '/camporee/$camporeeId/register';
 
   // Traslados helpers
-  static String transferRequestDetail(int requestId) => '/transfer/$requestId';
+  static String transferRequestDetail(String requestId) =>
+      '/transfer/$requestId';
 
   // Honors evidence, completion & requirements
   static const String honorEvidence = '/honor/:honorId/evidence/:userHonorId';

@@ -41,7 +41,7 @@ final myTransferRequestsProvider =
 // ── Detail provider ───────────────────────────────────────────────────────────
 
 final transferRequestDetailProvider =
-    FutureProvider.autoDispose.family<TransferRequest, int>(
+    FutureProvider.autoDispose.family<TransferRequest, String>(
   (ref, requestId) async {
     // Cache-first: if the list is already loaded, reuse the matching item
     // instead of making a redundant network call. The list endpoint returns
@@ -101,6 +101,7 @@ class CreateTransferNotifier extends AutoDisposeNotifier<CreateTransferState> {
   CreateTransferState build() => const CreateTransferState();
 
   Future<bool> create({
+    required int fromSectionId,
     required int toSectionId,
     String? reason,
   }) async {
@@ -108,6 +109,7 @@ class CreateTransferNotifier extends AutoDisposeNotifier<CreateTransferState> {
 
     final repo = ref.read(transferRepositoryProvider);
     final result = await repo.createTransferRequest(
+      fromSectionId: fromSectionId,
       toSectionId: toSectionId,
       reason: reason,
     );

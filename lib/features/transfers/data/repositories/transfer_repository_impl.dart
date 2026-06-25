@@ -17,11 +17,13 @@ class TransferRepositoryImpl implements TransferRepository {
 
   @override
   Future<Either<Failure, TransferRequest>> createTransferRequest({
+    required int fromSectionId,
     required int toSectionId,
     String? reason,
   }) async {
     try {
       final model = await _remoteDataSource.createTransferRequest(
+        fromSectionId: fromSectionId,
         toSectionId: toSectionId,
         reason: reason,
       );
@@ -55,7 +57,7 @@ class TransferRepositoryImpl implements TransferRepository {
 
   @override
   Future<Either<Failure, TransferRequest>> getTransferRequest(
-    int requestId, {
+    String requestId, {
     RequestCancelToken? cancelToken,
   }) async {
     try {

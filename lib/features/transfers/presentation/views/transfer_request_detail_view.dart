@@ -13,7 +13,7 @@ import '../providers/transfer_providers.dart';
 
 /// Vista de detalle de una solicitud de traslado.
 class TransferRequestDetailView extends ConsumerWidget {
-  final int requestId;
+  final String requestId;
 
   const TransferRequestDetailView({super.key, required this.requestId});
 
@@ -128,8 +128,10 @@ class _DetailBody extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      tr('transfers.detail.request_number',
-                          namedArgs: {'id': '${request.id}'}),
+                      tr(
+                        'transfers.detail.request_number',
+                        namedArgs: {'id': request.id},
+                      ),
                       style: TextStyle(
                         fontSize: 12,
                         color: statusConfig.fg.withValues(alpha: 0.7),

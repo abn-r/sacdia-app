@@ -61,7 +61,7 @@
       "id": "profile_change_club",
       "category": "profile",
       "question": "¿Cómo cambio de club?",
-      "answer": "Por seguridad, el cambio de club debe ser autorizado por el director del club de destino. Pide a tu nuevo director que inicie la solicitud de transferencia desde el panel web. Una vez aprobada, tu club activo cambiará automáticamente al iniciar sesión."
+      "answer": "Desde **Configuración → Cambiar de club** selecciona el club al que deseas integrarte. Tu clase y tipo de club actual se conservan; el director del club de destino debe aprobar la solicitud antes de que el cambio quede activo."
     },
     {
       "id": "privacy_data",

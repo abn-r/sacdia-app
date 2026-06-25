@@ -28,6 +28,7 @@ import '../../../biometric/presentation/widgets/biometric_settings_section.dart'
 import '../../../settings/presentation/widgets/language_picker_tile.dart';
 import '../../../settings/presentation/widgets/sync_cache_section.dart';
 import '../../../support/presentation/widgets/support_settings_section.dart';
+import '../../../transfers/presentation/views/transfer_requests_view.dart';
 import '../../../virtual_card/presentation/views/virtual_card_view.dart';
 import 'active_sessions_view.dart';
 import 'data_export_view.dart';
@@ -714,6 +715,19 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                   context,
                   MaterialPageRoute(
                     builder: (_) => const VirtualCardView(),
+                  ),
+                ),
+              ),
+              _groupDivider(),
+              SettingTile(
+                icon: HugeIcons.strokeRoundedExchange01,
+                title: 'profile.settings.change_club_tile'.tr(),
+                subtitle: 'profile.settings.change_club_subtitle'.tr(),
+                iconColor: AppColors.primary,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const TransferRequestFormView(),
                   ),
                 ),
               ),

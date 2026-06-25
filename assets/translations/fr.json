@@ -2535,7 +2535,11 @@
     "no_folder": {
       "title": "Dossier non disponible",
       "description1": "Le dossier annuel de preuves n'a pas encore été créé pour cette section.",
-      "description2": "Contactez l'administration du terrain local pour connaître le statut."
+      "description2": "Contactez l'administration du terrain local pour connaître le statut.",
+      "available_hint": "Un modèle publié est disponible. Créez le dossier pour commencer à téléverser les preuves.",
+      "create_action": "Créer le dossier",
+      "creating": "Création du dossier…",
+      "create_success": "Dossier créé. Vous pouvez maintenant ajouter des preuves."
     },
     "error_load_title": "Erreur lors du chargement du dossier",
     "status_history": {
@@ -2891,7 +2895,14 @@
       "section_id_invalid": "Saisissez un ID de section valide",
       "reason": "Motif",
       "reason_hint": "Expliquez brièvement pourquoi vous demandez le transfert...",
-      "submit": "Envoyer la demande"
+      "submit": "Envoyer la demande",
+      "club_selection_title": "Choisissez votre nouveau club",
+      "club_selection_subtitle": "Sélectionnez le club vers lequel vous souhaitez aller. Votre type de club et votre classe actuelle sont conservés.",
+      "class_preserved_hint": "Votre classe actuelle ne change pas",
+      "class_preserved_value": "Votre classe actuelle est conservée",
+      "no_matching_section": "Ce club n’a pas de section correspondant à votre type de membre actuel.",
+      "no_active_membership": "Vous devez avoir une adhésion active pour demander un changement de club.",
+      "select_valid_club": "Sélectionnez un club valide pour demander le changement"
     }
   },
   "profile": {

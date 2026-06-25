@@ -2535,7 +2535,11 @@
     "no_folder": {
       "title": "Pasta não disponível",
       "description1": "A pasta anual de evidências ainda não foi criada para esta seção.",
-      "description2": "Entre em contato com a administração do campo local para consultar o status."
+      "description2": "Entre em contato com a administração do campo local para consultar o status.",
+      "available_hint": "Há um modelo publicado disponível. Crie a pasta para começar a enviar evidências.",
+      "create_action": "Criar pasta",
+      "creating": "Criando pasta…",
+      "create_success": "Pasta criada. Você já pode adicionar evidências."
     },
     "error_load_title": "Erro ao carregar a pasta",
     "status_history": {
@@ -2891,7 +2895,14 @@
       "section_id_invalid": "Digite um ID de seção válido",
       "reason": "Motivo",
       "reason_hint": "Explique brevemente por que você está solicitando a transferência...",
-      "submit": "Enviar solicitação"
+      "submit": "Enviar solicitação",
+      "club_selection_title": "Escolha seu novo clube",
+      "club_selection_subtitle": "Selecione o clube para o qual deseja mudar. Seu tipo de clube e sua classe atual serão mantidos.",
+      "class_preserved_hint": "Sua classe atual não muda",
+      "class_preserved_value": "Sua classe atual será mantida",
+      "no_matching_section": "Este clube não tem uma seção do mesmo tipo da sua membresia atual.",
+      "no_active_membership": "Você precisa de uma membresia ativa para solicitar mudança de clube.",
+      "select_valid_club": "Selecione um clube válido para solicitar a mudança"
     }
   },
   "profile": {

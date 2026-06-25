@@ -9,6 +9,10 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_loading.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../post_registration/presentation/providers/club_selection_providers.dart';
+import '../../../post_registration/presentation/views/club_selection_step_view.dart';
+import '../../../profile/presentation/providers/profile_providers.dart';
 import '../../domain/entities/transfer_request.dart';
 import '../providers/transfer_providers.dart';
 
@@ -385,30 +389,53 @@ class TransferRequestFormView extends ConsumerStatefulWidget {
 
 class _TransferRequestFormViewState
     extends ConsumerState<TransferRequestFormView> {
-  final _formKey = GlobalKey<FormState>();
-  final _sectionCtrl = TextEditingController();
-  final _reasonCtrl = TextEditingController();
-
-  // sectionId parsed from text field
-  int? _parsedSectionId;
-
   @override
-  void dispose() {
-    _sectionCtrl.dispose();
-    _reasonCtrl.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _resetSelection());
+  }
+
+  void _resetSelection() {
+    if (!mounted) return;
+    ref.invalidate(selectedCountryProvider);
+    ref.invalidate(selectedUnionProvider);
+    ref.invalidate(selectedLocalFieldProvider);
+    ref.invalidate(selectedClubProvider);
+    ref.invalidate(requiredClubTypeIdProvider);
+    _syncRequiredClubType();
+  }
+
+  void _syncRequiredClubType() {
+    final activeGrant =
+        ref.read(authNotifierProvider).valueOrNull?.authorization?.activeGrant;
+    final clubTypeId = activeGrant?.clubTypeId;
+    if (clubTypeId == null) return;
+    ref.read(requiredClubTypeIdProvider.notifier).state = clubTypeId;
   }
 
   Future<void> _submit() async {
-    final formState = _formKey.currentState;
-    if (formState == null || !formState.validate()) return;
-    if (_parsedSectionId == null) return;
+    final activeGrant =
+        ref.read(authNotifierProvider).valueOrNull?.authorization?.activeGrant;
+    final fromSectionId = activeGrant?.sectionId;
+    final toSectionId = ref.read(selectedClubSectionProvider);
+
+    if (fromSectionId == null || toSectionId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('transfers.form.select_valid_club'.tr()),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+      return;
+    }
 
     final notifier = ref.read(createTransferProvider.notifier);
     final success = await notifier.create(
-      toSectionId: _parsedSectionId!,
-      reason:
-          _reasonCtrl.text.trim().isNotEmpty ? _reasonCtrl.text.trim() : null,
+      fromSectionId: fromSectionId,
+      toSectionId: toSectionId,
     );
 
     if (!mounted) return;
@@ -430,7 +457,30 @@ class _TransferRequestFormViewState
   @override
   Widget build(BuildContext context) {
     final formState = ref.watch(createTransferProvider);
+    final activeGrant = ref.watch(
+      authNotifierProvider.select(
+        (value) => value.valueOrNull?.authorization?.activeGrant,
+      ),
+    );
+    final currentClassName =
+        ref.watch(profileNotifierProvider).valueOrNull?.currentClass;
+    final selectedSectionId = ref.watch(selectedClubSectionProvider);
+    final requiredClubTypeId = ref.watch(requiredClubTypeIdProvider);
     final c = context.sac;
+
+    final activeClubTypeId = activeGrant?.clubTypeId;
+    if (activeClubTypeId != null && requiredClubTypeId != activeClubTypeId) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref.read(requiredClubTypeIdProvider.notifier).state = activeClubTypeId;
+      });
+    }
+
+    final fromSectionId = activeGrant?.sectionId;
+    final canSubmit = fromSectionId != null &&
+        selectedSectionId != null &&
+        selectedSectionId != fromSectionId &&
+        !formState.isLoading;
 
     return Scaffold(
       backgroundColor: c.background,
@@ -455,175 +505,75 @@ class _TransferRequestFormViewState
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            // ── Info banner ───────────────────────────────────────────
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.statusInfoBgLight,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: AppColors.statusInfoText.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Row(
-                children: [
-                  const HugeIcon(
-                    icon: HugeIcons.strokeRoundedInformationCircle,
-                    color: AppColors.statusInfoText,
-                    size: 16,
+      body: activeGrant == null || activeClubTypeId == null
+          ? _ErrorBody(
+              message: 'transfers.form.no_active_membership'.tr(),
+              onRetry: () => ref
+                  .read(authNotifierProvider.notifier)
+                  .refreshCurrentUser(keepCurrentOnFailure: true),
+            )
+          : Column(
+              children: [
+                Expanded(
+                  child: ClubSelectionStepView(
+                    isClubTransfer: true,
+                    preservedClassName: currentClassName,
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      tr('transfers.form.info_banner'),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.statusInfoText,
-                      ),
+                ),
+                if (formState.errorMessage != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                    child: _InlineError(message: formState.errorMessage!),
+                  ),
+                SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                    child: SacButton.primary(
+                      text: tr('transfers.form.submit'),
+                      icon: HugeIcons.strokeRoundedSent,
+                      isLoading: formState.isLoading,
+                      onPressed: canSubmit ? _submit : null,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
+    );
+  }
+}
 
-            const SizedBox(height: 20),
+class _InlineError extends StatelessWidget {
+  final String message;
 
-            // ── Section ID field ──────────────────────────────────────
-            Text(
-              tr('transfers.form.section_id_label'),
-              style: TextStyle(
+  const _InlineError({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.errorLight,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          const HugeIcon(
+            icon: HugeIcons.strokeRoundedAlert02,
+            color: AppColors.error,
+            size: 16,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
                 fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: c.textSecondary,
+                color: AppColors.error,
               ),
             ),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _sectionCtrl,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                hintText: tr('transfers.form.section_id_hint'),
-                prefixIcon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedUserGroup,
-                  color: c.textTertiary,
-                  size: 20,
-                ),
-                filled: true,
-                fillColor: c.surface,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: c.border),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: c.border),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide:
-                      const BorderSide(color: AppColors.primary, width: 1.5),
-                ),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              ),
-              validator: (v) {
-                if (v == null || v.trim().isEmpty) {
-                  return tr('transfers.form.section_id_required');
-                }
-                final parsed = int.tryParse(v.trim());
-                if (parsed == null || parsed <= 0) {
-                  return tr('transfers.form.section_id_invalid');
-                }
-                _parsedSectionId = parsed;
-                return null;
-              },
-              textInputAction: TextInputAction.next,
-            ),
-
-            const SizedBox(height: 20),
-
-            // ── Reason field ──────────────────────────────────────────
-            Text(
-              '${tr('transfers.form.reason')} ${tr('common.optional')}',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: c.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _reasonCtrl,
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: tr('transfers.form.reason_hint'),
-                filled: true,
-                fillColor: c.surface,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: c.border),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: c.border),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide:
-                      const BorderSide(color: AppColors.primary, width: 1.5),
-                ),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              ),
-            ),
-
-            const SizedBox(height: 32),
-
-            // ── Error ─────────────────────────────────────────────────
-            if (formState.errorMessage != null) ...[
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.errorLight,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  children: [
-                    const HugeIcon(
-                      icon: HugeIcons.strokeRoundedAlert02,
-                      color: AppColors.error,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        formState.errorMessage!,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: AppColors.error,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-
-            // ── Submit ────────────────────────────────────────────────
-            SacButton.primary(
-              text: tr('transfers.form.submit'),
-              icon: HugeIcons.strokeRoundedSent,
-              isLoading: formState.isLoading,
-              onPressed: formState.isLoading ? null : _submit,
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

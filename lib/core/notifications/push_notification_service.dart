@@ -811,8 +811,8 @@ class PushNotificationService {
     RegExp(r'^/certification/\d+$'),
     // /club/<alphanumeric slug or UUID>
     RegExp(r'^/club/[\w\-]+$'),
-    // /transfer/<integer>
-    RegExp(r'^/transfer/\d+$'),
+    // /transfer/<uuid-or-id>
+    RegExp(r'^/transfer/[A-Za-z0-9-]+$'),
     // /units/member-of-month/<clubId>/<sectionId>
     RegExp(r'^/units/member-of-month/\d+/\d+$'),
     // /notifications (already static, included for completeness via parametric path)

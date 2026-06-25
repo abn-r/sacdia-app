@@ -30,7 +30,7 @@ extension TransferStatusX on TransferStatus {
 
 /// Entidad de dominio para una solicitud de traslado entre secciones.
 class TransferRequest extends Equatable {
-  final int id;
+  final String id;
   final int toSectionId;
   final String? toSectionName;
   final String? toClubName;

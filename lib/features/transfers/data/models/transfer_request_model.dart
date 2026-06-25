@@ -25,8 +25,9 @@ class TransferRequestModel extends TransferRequest {
   });
 
   factory TransferRequestModel.fromJson(Map<String, dynamic> json) {
-    final rawId = json['id'] ?? json['request_id'];
-    final id = rawId is int ? rawId : int.tryParse(rawId.toString()) ?? 0;
+    final id = (json['transfer_request_id'] ?? json['id'] ?? json['request_id'])
+            ?.toString() ??
+        '';
 
     final rawSectionId = json['to_section_id'] ?? json['section_id'];
     final toSectionId = rawSectionId is int
@@ -44,6 +45,7 @@ class TransferRequestModel extends TransferRequest {
     final toSectionName =
         json['to_section_name'] as String? ?? sectionNested?['name'] as String?;
     final toClubName = json['to_club_name'] as String? ??
+        (sectionNested?['clubs'] as Map?)?['name'] as String? ??
         (sectionNested?['main_club'] as Map?)?['name'] as String?;
 
     return TransferRequestModel(

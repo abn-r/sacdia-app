@@ -8,6 +8,7 @@ import '../models/transfer_request_model.dart';
 
 abstract class TransferRemoteDataSource {
   Future<TransferRequestModel> createTransferRequest({
+    required int fromSectionId,
     required int toSectionId,
     String? reason,
   });
@@ -17,7 +18,7 @@ abstract class TransferRemoteDataSource {
   });
 
   Future<TransferRequestModel> getTransferRequest(
-    int requestId, {
+    String requestId, {
     CancelToken? cancelToken,
   });
 }
@@ -55,13 +56,17 @@ class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
 
   @override
   Future<TransferRequestModel> createTransferRequest({
+    required int fromSectionId,
     required int toSectionId,
     String? reason,
   }) async {
     try {
       AppLogger.i('Creando solicitud de traslado a sección $toSectionId',
           tag: _tag);
-      final data = <String, dynamic>{'to_section_id': toSectionId};
+      final data = <String, dynamic>{
+        'from_section_id': fromSectionId,
+        'to_section_id': toSectionId,
+      };
       if (reason != null && reason.isNotEmpty) data['reason'] = reason;
 
       final response = await _dio.post(
@@ -133,7 +138,7 @@ class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
 
   @override
   Future<TransferRequestModel> getTransferRequest(
-    int requestId, {
+    String requestId, {
     CancelToken? cancelToken,
   }) async {
     try {

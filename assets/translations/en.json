@@ -2535,7 +2535,11 @@
     "no_folder": {
       "title": "Folder not available",
       "description1": "The annual evidence folder has not yet been created for this section.",
-      "description2": "Contact your local field administration to inquire about the status."
+      "description2": "Contact your local field administration to inquire about the status.",
+      "available_hint": "A published template is available. Create the folder to start uploading evidence.",
+      "create_action": "Create folder",
+      "creating": "Creating folder…",
+      "create_success": "Folder created. You can now add evidence."
     },
     "error_load_title": "Error loading folder",
     "status_history": {
@@ -2891,7 +2895,14 @@
       "section_id_invalid": "Enter a valid section ID",
       "reason": "Reason",
       "reason_hint": "Briefly explain why you are requesting the transfer...",
-      "submit": "Send request"
+      "submit": "Send request",
+      "club_selection_title": "Choose your new club",
+      "club_selection_subtitle": "Select the club you want to move to. Your club type and current class stay the same.",
+      "class_preserved_hint": "Your current class will not change",
+      "class_preserved_value": "Your current class is preserved",
+      "no_matching_section": "This club does not have a section matching your current membership type.",
+      "no_active_membership": "You need an active membership to request a club change.",
+      "select_valid_club": "Select a valid club to request the change"
     }
   },
   "profile": {
