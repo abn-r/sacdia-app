@@ -44,7 +44,7 @@ class MasterHonorBadge extends StatelessWidget {
               _HonorImage(
                 imageUrl: honor.masterImage,
                 initials: initials,
-                size: compact ? 26 : 30,
+                height: compact ? 26 : 30,
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -98,31 +98,32 @@ class _HonorImage extends StatelessWidget {
   const _HonorImage({
     required this.imageUrl,
     required this.initials,
-    required this.size,
+    required this.height,
   });
 
   final String? imageUrl;
   final String initials;
-  final double size;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
     final image = imageUrl?.trim() ?? '';
+    final width = height * 1.25;
 
     final fallback = Container(
-      width: size,
-      height: size,
+      width: width,
+      height: height,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: Theme.of(context).brightness == Brightness.dark
             ? AppColors.darkSurfaceVariant
             : AppColors.lightSurfaceVariant,
-        shape: BoxShape.circle,
+        borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
         initials,
         style: TextStyle(
-          fontSize: size * 0.4,
+          fontSize: height * 0.4,
           fontWeight: FontWeight.w700,
           color: Theme.of(context).brightness == Brightness.dark
               ? AppColors.darkText
@@ -136,14 +137,15 @@ class _HonorImage extends StatelessWidget {
     }
 
     return SizedBox(
-      width: size,
-      height: size,
-      child: ClipOval(
+      width: width,
+      height: height,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(999),
         child: CachedNetworkImage(
           imageUrl: image,
-          fit: BoxFit.cover,
-          memCacheWidth: (size * 3).round(),
-          memCacheHeight: (size * 3).round(),
+          fit: BoxFit.contain,
+          memCacheWidth: (width * 3).round(),
+          memCacheHeight: (height * 3).round(),
           errorWidget: (_, __, ___) => fallback,
           placeholder: (_, __) => fallback,
         ),

@@ -50,27 +50,14 @@ class MasterHonorRoadmapGridItem extends StatelessWidget {
     final isLocked = !item.isAwarded;
     final visualColor = isLocked ? context.sac.textTertiary : accent;
     final name = item.name;
-    final imageUrl = item.masterImage?.trim() ?? '';
-    final initials = masterHonorInitials(name);
-    final logo = imageUrl.isNotEmpty
-        ? CachedNetworkImage(
-            imageUrl: imageUrl,
-            fit: BoxFit.contain,
-            memCacheWidth: 192,
-            memCacheHeight: 192,
-            errorWidget: (_, __, ___) => MasterHonorInitialsBox(
-              initials: initials,
-              color: visualColor,
-            ),
-          )
-        : MasterHonorInitialsBox(
-            initials: initials,
-            color: visualColor,
-          );
+
+    final statusLabel = item.isAwarded
+        ? (item.displayStatusLabel ?? 'Maestría obtenida')
+        : 'Maestría en progreso';
 
     return Semantics(
       button: true,
-      label: '$name, ${item.progressPercent}% completado',
+      label: '$name, $statusLabel, ${item.progressPercent}% completado',
       child: GestureDetector(
         onTap: () => showMasterHonorDetailSheet(context, item),
         child: Column(
@@ -82,14 +69,16 @@ class MasterHonorRoadmapGridItem extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  _MutedMasterHonorLogo(
-                    muted: isLocked,
-                    child: logo,
-                  ),
-                  Positioned(
-                    top: 2,
-                    right: 2,
-                    child: _MasterHonorStatusBadge(item: item),
+                  Center(
+                    child: _MutedMasterHonorLogo(
+                      muted: isLocked,
+                      child: MasterHonorLogo(
+                        imageUrl: item.masterImage,
+                        name: name,
+                        size: 88,
+                        color: visualColor,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -154,8 +143,9 @@ class MasterHonorLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final image = imageUrl?.trim() ?? '';
+    final width = size * 1.25;
     final fallback = SizedBox(
-      width: size,
+      width: width,
       height: size,
       child: MasterHonorInitialsBox(
         initials: masterHonorInitials(name),
@@ -166,12 +156,12 @@ class MasterHonorLogo extends StatelessWidget {
     if (image.isEmpty) return fallback;
 
     return SizedBox(
-      width: size,
+      width: width,
       height: size,
       child: CachedNetworkImage(
         imageUrl: image,
         fit: BoxFit.contain,
-        memCacheWidth: (size * 3).round(),
+        memCacheWidth: (width * 3).round(),
         memCacheHeight: (size * 3).round(),
         placeholder: (_, __) => fallback,
         errorWidget: (_, __, ___) => fallback,
@@ -195,7 +185,7 @@ class MasterHonorInitialsBox extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: color.withAlpha(20),
-        shape: BoxShape.circle,
+        borderRadius: BorderRadius.circular(999),
         border: Border.all(color: color.withAlpha(60), width: 1.5),
       ),
       child: Center(
@@ -252,55 +242,6 @@ Color masterHonorAccentColor(MasterHonorRoadmap item) {
   return item.isAwarded ? AppColors.secondary : AppColors.warning;
 }
 
-class _MasterHonorStatusBadge extends StatelessWidget {
-  const _MasterHonorStatusBadge({required this.item});
-
-  final MasterHonorRoadmap item;
-
-  @override
-  Widget build(BuildContext context) {
-    final isAwarded = item.isAwarded;
-    final semanticLabel = isAwarded
-        ? (item.displayStatusLabel ?? 'Maestría obtenida')
-        : 'Maestría en progreso';
-
-    return Semantics(
-      label: semanticLabel,
-      child: Tooltip(
-        message: semanticLabel,
-        child: Container(
-          width: 22,
-          height: 22,
-          decoration: BoxDecoration(
-            color: isAwarded ? AppColors.secondary : context.sac.surface,
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: isAwarded
-                  ? Colors.white
-                  : AppColors.pendingColor.withValues(alpha: 0.65),
-              width: 1.2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.12),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: HugeIcon(
-            icon: isAwarded
-                ? HugeIcons.strokeRoundedTick02
-                : HugeIcons.strokeRoundedCircle,
-            color: isAwarded ? Colors.white : AppColors.pendingColor,
-            size: 13,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _MasterHonorDetailSheet extends StatelessWidget {
   const _MasterHonorDetailSheet({required this.item});
 
@@ -310,6 +251,8 @@ class _MasterHonorDetailSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = masterHonorAccentColor(item);
     final progress = item.progressPercent.clamp(0, 100).toDouble() / 100;
+    final detailLogoHeight =
+        (MediaQuery.sizeOf(context).width * 0.52).clamp(150.0, 230.0);
 
     return DraggableScrollableSheet(
       expand: false,
@@ -339,40 +282,33 @@ class _MasterHonorDetailSheet extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    MasterHonorLogo(
-                      imageUrl: item.masterImage,
-                      name: item.name,
-                      size: 64,
-                      color: accent,
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.name,
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
-                              color: context.sac.text,
-                              height: 1.15,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          _StatusPill(
-                            label: item.isAwarded
-                                ? (item.displayStatusLabel ?? 'Obtenida')
-                                : 'En progreso',
-                            color: accent,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                Center(
+                  child: MasterHonorLogo(
+                    imageUrl: item.masterImage,
+                    name: item.name,
+                    size: detailLogoHeight,
+                    color: accent,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  item.name,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: context.sac.text,
+                    height: 1.15,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Center(
+                  child: _StatusPill(
+                    label: item.isAwarded
+                        ? (item.displayStatusLabel ?? 'Obtenida')
+                        : 'En progreso',
+                    color: accent,
+                  ),
                 ),
                 const SizedBox(height: 18),
                 ClipRRect(

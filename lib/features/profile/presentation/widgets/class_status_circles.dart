@@ -145,14 +145,14 @@ class ClassStatusCircles extends ConsumerWidget {
             const SizedBox(height: 12),
           ],
 
-          // Fila de 6 clases — FittedBox evita overflow en pantallas angostas
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: rowLogos.map((logo) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
+          // Fila fija: todas las clases deben verse sin scroll. Cada item
+          // toma el mismo ancho y el texto puede ocupar hasta 3 líneas debajo.
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: rowLogos.map((logo) {
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
                   child: _ClassLogo(
                     className: logo.className,
                     assetPath: logo.assetPath,
@@ -162,9 +162,9 @@ class ClassStatusCircles extends ConsumerWidget {
                     fallbackProgress:
                         enrolledByName[logo.className]?.overallProgress,
                   ),
-                );
-              }).toList(),
-            ),
+                ),
+              );
+            }).toList(),
           ),
         ],
       ),
@@ -220,57 +220,58 @@ class _ClassLogo extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Stack(
-          clipBehavior: Clip.none,
-          children: [
-            // ── Círculo principal ─────────────────────────────────────────
-            Container(
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _backgroundColor(c),
-                border: Border.all(
-                  color: _borderColor(c),
-                  width: _borderWidth,
+        SizedBox(
+          height: size,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.topCenter,
+            children: [
+              // ── Círculo principal ─────────────────────────────────────────
+              Container(
+                width: size,
+                height: size,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _backgroundColor(c),
+                  border: Border.all(
+                    color: _borderColor(c),
+                    width: _borderWidth,
+                  ),
+                ),
+                child: ClipOval(
+                  child: Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: _buildImage(c),
+                  ),
                 ),
               ),
-              child: ClipOval(
-                child: Padding(
-                  padding: const EdgeInsets.all(6),
-                  child: _buildImage(c),
-                ),
-              ),
-            ),
 
-            // ── Badge de progreso (solo estado inProgress) ────────────────
-            if (state == _ClassState.inProgress)
-              Positioned(
-                bottom: -2,
-                right: -2,
-                child: _ProgressBadge(
-                  progress: progress,
-                  color: color,
+              // ── Badge de progreso (solo estado inProgress) ────────────────
+              if (state == _ClassState.inProgress)
+                Positioned(
+                  bottom: -2,
+                  right: 2,
+                  child: _ProgressBadge(
+                    progress: progress,
+                    color: color,
+                  ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
         const SizedBox(height: 4),
-        SizedBox(
-          width: size + 8,
-          child: Text(
-            translationKey != null ? translationKey!.tr() : className,
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: state == _ClassState.invested
-                  ? FontWeight.w700
-                  : FontWeight.w500,
-              color: state == _ClassState.invested ? color : c.textTertiary,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+        Text(
+          translationKey != null ? translationKey!.tr() : className,
+          style: TextStyle(
+            fontSize: 9,
+            fontWeight: state == _ClassState.invested
+                ? FontWeight.w700
+                : FontWeight.w500,
+            color: state == _ClassState.invested ? color : c.textTertiary,
           ),
+          textAlign: TextAlign.center,
+          maxLines: 3,
+          softWrap: true,
         ),
       ],
     );
