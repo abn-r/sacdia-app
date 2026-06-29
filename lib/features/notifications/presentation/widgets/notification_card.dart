@@ -2,23 +2,230 @@ import 'dart:async';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hugeicons/hugeicons.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/utils/icon_helper.dart';
 import '../../domain/entities/notification_item.dart';
 import '../providers/notifications_providers.dart';
 import 'notification_type_badge.dart';
 
-/// Card que muestra una notificación del historial.
+/// Fila de bandeja para una notificación.
 ///
-/// - Toca para marcar como leída (optimistic) si aún no fue leída.
-/// - Indicador visual de no-leída: fondo tintado + punto rojo + título bold.
-/// - Leída: fondo normal, sin punto, peso de título regular.
+/// La interacción principal es toda la fila: marca como leída de forma
+/// optimista y abre un detalle legible. El diseño prioriza escaneo rápido,
+/// targets táctiles amplios y bajo ruido visual.
 class NotificationCard extends ConsumerWidget {
   final NotificationItem notification;
 
   const NotificationCard({super.key, required this.notification});
+
+  Future<void> _showDetailsSheet(
+    BuildContext context, {
+    required bool isReadForDialog,
+  }) {
+    final c = context.sac;
+    final visual = notificationVisualConfig(
+      source: notification.source,
+      targetType: notification.targetType,
+    );
+    final createdAt = DateFormat(
+      'dd/MM/yyyy HH:mm',
+    ).format(notification.createdAt.toLocal());
+
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: c.barrierColor,
+      builder: (sheetContext) {
+        final sheetC = sheetContext.sac;
+        final bottomInset = MediaQuery.viewInsetsOf(sheetContext).bottom;
+        final maxHeight = MediaQuery.sizeOf(sheetContext).height * 0.86;
+
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(10, 0, 10, 10 + bottomInset),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: maxHeight),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: sheetC.surface,
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(color: sheetC.borderLight),
+                  boxShadow: [
+                    BoxShadow(
+                      color: sheetC.shadow.withValues(alpha: 0.20),
+                      blurRadius: 24,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(28),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Center(
+                          child: Container(
+                            width: 38,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: sheetC.textTertiary.withValues(
+                                alpha: 0.36,
+                              ),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            NotificationTypeBadge(
+                              type: notification.targetType,
+                              source: notification.source,
+                              size: 52,
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _MetaLabel(
+                                    icon: visual.icon,
+                                    text: visual.label,
+                                    color: visual.iconColor,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    notification.title,
+                                    style: Theme.of(sheetContext)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(
+                                          color: sheetC.text,
+                                          fontWeight: FontWeight.w800,
+                                          height: 1.14,
+                                          letterSpacing: -0.15,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            SizedBox(
+                              width: 48,
+                              height: 48,
+                              child: IconButton(
+                                onPressed: () => Navigator.of(
+                                  sheetContext,
+                                ).pop(),
+                                tooltip:
+                                    'notifications.inbox.detail_accept'.tr(),
+                                icon: HugeIcon(
+                                  icon: HugeIcons.strokeRoundedCancel01,
+                                  size: 20,
+                                  color: sheetC.textSecondary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 18),
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: Color.alphaBlend(
+                              visual.iconColor.withValues(alpha: 0.04),
+                              sheetC.surfaceVariant,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: sheetC.borderLight),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Text(
+                              notification.body,
+                              style: Theme.of(sheetContext)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.copyWith(
+                                    color: sheetC.text,
+                                    height: 1.52,
+                                  ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        _DetailSection(
+                          children: [
+                            _DetailRow(
+                              icon: HugeIcons.strokeRoundedLabel,
+                              label: 'notifications.inbox.detail_type'.tr(),
+                              value: visual.label,
+                            ),
+                            _DetailRow(
+                              icon: isReadForDialog
+                                  ? HugeIcons.strokeRoundedCheckmarkCircle02
+                                  : HugeIcons.strokeRoundedNotification01,
+                              label: isReadForDialog
+                                  ? 'notifications.inbox.detail_read'.tr()
+                                  : 'notifications.inbox.detail_unread'.tr(),
+                              value: createdAt,
+                            ),
+                            _DetailRow(
+                              icon: HugeIcons.strokeRoundedClock04,
+                              label: 'notifications.inbox.detail_received'.tr(),
+                              value:
+                                  '$createdAt · ${_relativeTime(notification.createdAt)}',
+                            ),
+                            if (notification.senderName != null)
+                              _DetailRow(
+                                icon: HugeIcons.strokeRoundedUser,
+                                label:
+                                    'notifications.inbox.detail_sent_by'.tr(),
+                                value: notification.senderName!,
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 18),
+                        SizedBox(
+                          height: 50,
+                          child: FilledButton(
+                            onPressed: () => Navigator.of(sheetContext).pop(),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            child: Text(
+                              'notifications.inbox.detail_accept'.tr(),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   Future<void> _handleTap(BuildContext context, WidgetRef ref) async {
     final deliveryId = notification.deliveryId;
@@ -30,221 +237,166 @@ class NotificationCard extends ConsumerWidget {
     }
 
     if (!context.mounted) return;
-    await _showDetailsDialog(
+    await _showDetailsSheet(
       context,
       isReadForDialog: notification.isRead || deliveryId != null,
     );
-  }
-
-  Future<void> _showDetailsDialog(
-    BuildContext context, {
-    required bool isReadForDialog,
-  }) {
-    final c = context.sac;
-    final createdAt =
-        DateFormat('dd/MM/yyyy HH:mm').format(notification.createdAt.toLocal());
-
-    return showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          backgroundColor: c.surface,
-          surfaceTintColor: Colors.transparent,
-          titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-          contentPadding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
-          actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          title: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              NotificationTypeBadge(type: notification.targetType, size: 36),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  notification.title,
-                  style:
-                      Theme.of(dialogContext).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: c.text,
-                          ),
-                ),
-              ),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  notification.body,
-                  style: Theme.of(dialogContext).textTheme.bodyMedium?.copyWith(
-                        color: c.text,
-                        height: 1.45,
-                      ),
-                ),
-                const SizedBox(height: 16),
-                Divider(color: c.divider),
-                const SizedBox(height: 8),
-                _DetailRow(
-                  label: 'notifications.inbox.detail_type'.tr(),
-                  value: _typeLabel(notification.targetType),
-                ),
-                _DetailRow(
-                  label: 'notifications.inbox.detail_received'.tr(),
-                  value:
-                      '$createdAt · ${_relativeTime(notification.createdAt)}',
-                ),
-                _DetailRow(
-                  label: 'notifications.inbox.detail_status'.tr(),
-                  value: isReadForDialog
-                      ? 'notifications.inbox.detail_read'.tr()
-                      : 'notifications.inbox.detail_unread'.tr(),
-                ),
-                if (notification.senderName != null)
-                  _DetailRow(
-                    label: 'notifications.inbox.detail_sent_by'.tr(),
-                    value: notification.senderName!,
-                  ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text('notifications.inbox.detail_accept'.tr()),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  String _typeLabel(NotificationTargetType type) {
-    switch (type) {
-      case NotificationTargetType.direct:
-        return 'notifications.inbox.type_direct'.tr();
-      case NotificationTargetType.broadcast:
-        return 'notifications.inbox.type_broadcast'.tr();
-      case NotificationTargetType.club:
-        return 'notifications.inbox.type_club'.tr();
-      case NotificationTargetType.sectionRole:
-        return 'notifications.inbox.type_section_role'.tr();
-      case NotificationTargetType.globalRole:
-        return 'notifications.inbox.type_global_role'.tr();
-      case NotificationTargetType.unknown:
-        return 'notifications.inbox.type_unknown'.tr();
-    }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.sac;
     final isUnread = !notification.isRead;
+    final visual = notificationVisualConfig(
+      source: notification.source,
+      targetType: notification.targetType,
+    );
+    final rowColor = isUnread
+        ? Color.alphaBlend(
+            visual.iconColor.withValues(alpha: 0.055),
+            c.surface,
+          )
+        : c.surface;
+    final borderColor =
+        isUnread ? visual.iconColor.withValues(alpha: 0.18) : c.borderLight;
 
-    // Subtle background tint for unread items.
-    final backgroundColor =
-        isUnread ? AppColors.primary.withValues(alpha: 0.05) : c.surface;
-
-    return InkWell(
-      onTap: () => _handleTap(context, ref),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          border: Border(
-            bottom: BorderSide(color: c.divider, width: 0.5),
-          ),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Badge de tipo
-            NotificationTypeBadge(type: notification.targetType),
-            const SizedBox(width: 12),
-
-            // Contenido
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Título + timestamp + punto de no-leída
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          notification.title,
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    fontWeight: isUnread
-                                        ? FontWeight.w700
-                                        : FontWeight.w500,
-                                    color: c.text,
-                                  ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _relativeTime(notification.createdAt),
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: c.textTertiary,
-                        ),
-                      ),
-                      if (isUnread) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: AppColors.error,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-
-                  const SizedBox(height: 4),
-
-                  // Cuerpo
-                  Text(
-                    notification.body,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: c.textSecondary,
-                          height: 1.4,
-                        ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-
-                  // Remitente (si está disponible)
-                  if (notification.senderName != null) ...[
-                    const SizedBox(height: 6),
-                    Row(
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+      child: Semantics(
+        button: true,
+        label: '${notification.title}. ${notification.body}',
+        child: Material(
+          color: Colors.transparent,
+          child: Ink(
+            decoration: BoxDecoration(
+              color: rowColor,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: borderColor),
+            ),
+            child: InkWell(
+              onTap: () => _handleTap(context, ref),
+              borderRadius: BorderRadius.circular(18),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 10, 12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Stack(
+                      clipBehavior: Clip.none,
                       children: [
-                        HugeIcon(
-                          icon: HugeIcons.strokeRoundedUser,
-                          size: 12,
-                          color: c.textTertiary,
+                        NotificationTypeBadge(
+                          type: notification.targetType,
+                          source: notification.source,
+                          size: 46,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          notification.senderName!,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: c.textTertiary,
+                        if (isUnread)
+                          Positioned(
+                            right: -1,
+                            top: -1,
+                            child: _UnreadDot(color: visual.iconColor),
                           ),
-                        ),
                       ],
                     ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  notification.title,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleSmall
+                                      ?.copyWith(
+                                        color: c.text,
+                                        fontWeight: isUnread
+                                            ? FontWeight.w800
+                                            : FontWeight.w600,
+                                        height: 1.22,
+                                      ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 1),
+                                child: Text(
+                                  _relativeTime(notification.createdAt),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelSmall
+                                      ?.copyWith(
+                                        color: c.textTertiary,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            notification.body,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: c.textSecondary,
+                                  height: 1.38,
+                                ),
+                          ),
+                          const SizedBox(height: 9),
+                          Wrap(
+                            spacing: 10,
+                            runSpacing: 6,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              _MetaLabel(
+                                icon: visual.icon,
+                                text: visual.label,
+                                color: visual.iconColor,
+                              ),
+                              if (isUnread)
+                                _MetaLabel(
+                                  icon: HugeIcons.strokeRoundedCircle,
+                                  text:
+                                      'notifications.inbox.detail_unread'.tr(),
+                                  color: AppColors.primaryDark,
+                                ),
+                              if (notification.senderName != null)
+                                _MetaLabel(
+                                  icon: HugeIcons.strokeRoundedUser,
+                                  text: notification.senderName!,
+                                  color: c.textTertiary,
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    SizedBox(
+                      width: 36,
+                      height: 48,
+                      child: Center(
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedArrowRight01,
+                          size: 18,
+                          color: c.textTertiary,
+                        ),
+                      ),
+                    ),
                   ],
-                ],
+                ),
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -279,11 +431,99 @@ class NotificationCard extends ConsumerWidget {
   }
 }
 
+class _UnreadDot extends StatelessWidget {
+  final Color color;
+
+  const _UnreadDot({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: context.sac.surface,
+        shape: BoxShape.circle,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(2.5),
+        child: DecoratedBox(
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          child: const SizedBox(width: 8, height: 8),
+        ),
+      ),
+    );
+  }
+}
+
+class _MetaLabel extends StatelessWidget {
+  final HugeIconData icon;
+  final String text;
+  final Color color;
+
+  const _MetaLabel({
+    required this.icon,
+    required this.text,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        HugeIcon(icon: icon, size: 13, color: color),
+        const SizedBox(width: 5),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 180),
+          child: Text(
+            text,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w700,
+                  height: 1.15,
+                ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DetailSection extends StatelessWidget {
+  final List<Widget> children;
+
+  const _DetailSection({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: c.borderLight),
+      ),
+      child: Column(
+        children: [
+          for (var index = 0; index < children.length; index++) ...[
+            children[index],
+            if (index != children.length - 1)
+              Divider(height: 1, thickness: 0.6, color: c.divider),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 class _DetailRow extends StatelessWidget {
+  final HugeIconData icon;
   final String label;
   final String value;
 
   const _DetailRow({
+    required this.icon,
     required this.label,
     required this.value,
   });
@@ -293,27 +533,39 @@ class _DetailRow extends StatelessWidget {
     final c = context.sac;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 82,
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: c.textTertiary,
-                    fontWeight: FontWeight.w600,
-                  ),
+            width: 36,
+            height: 36,
+            child: Center(
+              child: HugeIcon(icon: icon, size: 18, color: c.textSecondary),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              value,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: c.textSecondary,
-                  ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: c.textTertiary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: c.text,
+                        fontWeight: FontWeight.w600,
+                        height: 1.32,
+                      ),
+                ),
+              ],
             ),
           ),
         ],
@@ -343,7 +595,7 @@ class _NotificationCardSkeletonState extends State<NotificationCardSkeleton>
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     )..repeat(reverse: true);
-    _animation = Tween<double>(begin: 0.3, end: 0.7).animate(
+    _animation = Tween<double>(begin: 0.32, end: 0.68).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
   }
@@ -357,81 +609,111 @@ class _NotificationCardSkeletonState extends State<NotificationCardSkeleton>
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
+
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, _) {
-        final shimmerColor =
-            AppColors.lightBorder.withValues(alpha: _animation.value);
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(color: c.divider, width: 0.5),
+        final shimmerColor = Color.lerp(
+          c.borderLight,
+          c.textTertiary,
+          _animation.value * 0.22,
+        )!;
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(12, 12, 10, 12),
+            decoration: BoxDecoration(
+              color: c.surface,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: c.borderLight),
             ),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Badge placeholder
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _SkeletonBlock(
+                  width: 46,
+                  height: 46,
+                  radius: 999,
                   color: shimmerColor,
-                  borderRadius: BorderRadius.circular(11),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            height: 14,
-                            decoration: BoxDecoration(
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _SkeletonBlock(
+                              height: 15,
+                              radius: 8,
                               color: shimmerColor,
-                              borderRadius: BorderRadius.circular(4),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 40),
-                        Container(
-                          width: 40,
-                          height: 10,
-                          decoration: BoxDecoration(
+                          const SizedBox(width: 24),
+                          _SkeletonBlock(
+                            width: 44,
+                            height: 12,
+                            radius: 8,
                             color: shimmerColor,
-                            borderRadius: BorderRadius.circular(4),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: shimmerColor,
-                        borderRadius: BorderRadius.circular(4),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Container(
-                      height: 12,
-                      width: 200,
-                      decoration: BoxDecoration(
+                      const SizedBox(height: 10),
+                      _SkeletonBlock(
+                        height: 12,
+                        radius: 7,
                         color: shimmerColor,
-                        borderRadius: BorderRadius.circular(4),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 7),
+                      _SkeletonBlock(
+                        width: 190,
+                        height: 12,
+                        radius: 7,
+                        color: shimmerColor,
+                      ),
+                      const SizedBox(height: 10),
+                      _SkeletonBlock(
+                        width: 82,
+                        height: 12,
+                        radius: 7,
+                        color: shimmerColor,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
+    );
+  }
+}
+
+class _SkeletonBlock extends StatelessWidget {
+  final double? width;
+  final double height;
+  final double radius;
+  final Color color;
+
+  const _SkeletonBlock({
+    this.width,
+    required this.height,
+    required this.radius,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(radius),
+      ),
     );
   }
 }

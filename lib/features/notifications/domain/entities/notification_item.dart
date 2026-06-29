@@ -46,6 +46,7 @@ class NotificationItem extends Equatable {
   final String title;
   final String body;
   final String type;
+  final String? source;
   final NotificationTargetType targetType;
   final String? targetId;
   final String sentBy;
@@ -73,6 +74,7 @@ class NotificationItem extends Equatable {
     required this.title,
     required this.body,
     required this.type,
+    this.source,
     required this.targetType,
     this.targetId,
     required this.sentBy,
@@ -90,6 +92,7 @@ class NotificationItem extends Equatable {
     String? title,
     String? body,
     String? type,
+    String? source,
     NotificationTargetType? targetType,
     String? targetId,
     String? sentBy,
@@ -106,6 +109,7 @@ class NotificationItem extends Equatable {
       title: title ?? this.title,
       body: body ?? this.body,
       type: type ?? this.type,
+      source: source ?? this.source,
       targetType: targetType ?? this.targetType,
       targetId: targetId ?? this.targetId,
       sentBy: sentBy ?? this.sentBy,
@@ -125,6 +129,7 @@ class NotificationItem extends Equatable {
         title,
         body,
         type,
+        source,
         targetType,
         targetId,
         sentBy,

@@ -5,7 +5,7 @@ import 'package:sacdia_app/features/notifications/domain/entities/notification_i
 import 'package:sacdia_app/features/notifications/presentation/widgets/notification_card.dart';
 
 void main() {
-  testWidgets('opens a detail dialog when tapping a notification',
+  testWidgets('opens a detail sheet when tapping a notification',
       (tester) async {
     final notification = NotificationItem(
       logId: 1,

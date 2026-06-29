@@ -15,13 +15,16 @@ import '../config/route_names.dart';
 import '../realtime/feature_flags.dart';
 import '../realtime/realtime_invalidation_handler.dart';
 import '../realtime/realtime_ref.dart';
+import '../theme/sac_colors.dart';
 import '../utils/app_logger.dart';
 import '../../features/achievements/presentation/providers/achievements_providers.dart';
 import '../../features/master_honors/presentation/providers/master_honor_modal_queue_provider.dart';
 import '../../features/master_honors/presentation/providers/master_honors_providers.dart';
 import '../../features/master_honors/presentation/widgets/master_honor_change_modal.dart';
+import '../../features/notifications/domain/entities/notification_item.dart';
 import '../../features/notifications/presentation/providers/notifications_providers.dart';
 import '../../features/notifications/presentation/providers/unread_notifications_count_provider.dart';
+import '../../features/notifications/presentation/widgets/notification_type_badge.dart';
 
 /// Top-level background message handler.
 ///
@@ -424,26 +427,27 @@ class PushNotificationService {
     final context = navigatorKey?.currentContext;
     if (context == null) return;
 
-    // Show a SnackBar so the user sees the notification while using the app.
-    ScaffoldMessenger.of(context).showSnackBar(
+    final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
+    final sourceHint = _foregroundSourceHint(message);
+
+    messenger.showSnackBar(
       SnackBar(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (notification.title != null)
-              Text(
-                notification.title!,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            if (notification.body != null) Text(notification.body!),
-          ],
-        ),
-        duration: const Duration(seconds: 4),
+        key: const Key('foreground-notification-banner'),
+        duration: const Duration(seconds: 5),
         behavior: SnackBarBehavior.floating,
-        action: SnackBarAction(
-          label: 'Ver',
-          onPressed: () => _handleNotificationTap(message),
+        margin: const EdgeInsets.fromLTRB(14, 0, 14, 18),
+        padding: EdgeInsets.zero,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        dismissDirection: DismissDirection.horizontal,
+        content: _ForegroundNotificationBanner(
+          title: notification.title ?? 'Nueva notificación',
+          body: notification.body,
+          source: sourceHint,
+          onTap: () {
+            messenger.hideCurrentSnackBar();
+            _handleNotificationTap(message);
+          },
         ),
       ),
     );
@@ -725,6 +729,29 @@ class PushNotificationService {
     }
   }
 
+  String? _foregroundSourceHint(RemoteMessage message) {
+    final explicitSource = message.data['source']?.toString().trim();
+    if (explicitSource != null && explicitSource.isNotEmpty) {
+      return explicitSource;
+    }
+
+    final type = message.data['type']?.toString().trim().toLowerCase();
+    return switch (type) {
+      'activity' || 'activity_reminder' => 'activities:foreground',
+      'validation' => 'validation:foreground',
+      'transfer' || 'assignment' => 'requests:foreground',
+      'membership_request_created' => 'membership_requests:new_request',
+      'investiture' => 'investiture:foreground',
+      'member_of_month' ||
+      'member_of_month_director' =>
+        'units:member_of_month',
+      'monthly_report' ||
+      'monthly_report_reminder' =>
+        'monthly_reports:reminder',
+      _ => type,
+    };
+  }
+
   // ── Notification route allowlist ─────────────────────────────────────────
 
   /// Static shell branch routes that must switch tabs instead of stacking a page.
@@ -958,4 +985,123 @@ class PushNotificationService {
   /// Returns the token that was last successfully registered with the backend.
   Future<String?> get registeredToken =>
       _secureStorage.read(key: _tokenPrefKey);
+}
+
+class _ForegroundNotificationBanner extends StatelessWidget {
+  final String title;
+  final String? body;
+  final String? source;
+  final VoidCallback onTap;
+
+  const _ForegroundNotificationBanner({
+    required this.title,
+    required this.body,
+    required this.source,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final visual = notificationVisualConfig(
+      source: source,
+      targetType: NotificationTargetType.unknown,
+    );
+
+    return Semantics(
+      button: true,
+      label: 'Ver notificación: $title',
+      child: Material(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(12, 12, 10, 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: c.borderLight),
+              boxShadow: [
+                BoxShadow(
+                  color: c.shadow.withValues(alpha: 0.16),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                NotificationTypeBadge(
+                  type: NotificationTargetType.unknown,
+                  source: source,
+                  size: 42,
+                ),
+                const SizedBox(width: 11),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Ahora · ${visual.label}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: visual.iconColor,
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              color: c.text,
+                              fontWeight: FontWeight.w800,
+                              height: 1.16,
+                            ),
+                      ),
+                      if (body != null && body!.trim().isNotEmpty) ...[
+                        const SizedBox(height: 3),
+                        Text(
+                          body!,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: c.textSecondary,
+                                    height: 1.32,
+                                  ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                TextButton(
+                  onPressed: onTap,
+                  style: TextButton.styleFrom(
+                    foregroundColor: visual.iconColor,
+                    minimumSize: const Size(48, 48),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    backgroundColor: visual.iconColor.withValues(alpha: 0.08),
+                  ),
+                  child: const Text(
+                    'Ver',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

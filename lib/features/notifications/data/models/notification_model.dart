@@ -39,6 +39,7 @@ class NotificationModel extends Equatable {
   final String title;
   final String body;
   final String type;
+  final String? source;
   final String targetType;
   final String? targetId;
   final String sentBy;
@@ -56,6 +57,7 @@ class NotificationModel extends Equatable {
     required this.title,
     required this.body,
     required this.type,
+    this.source,
     required this.targetType,
     this.targetId,
     required this.sentBy,
@@ -94,6 +96,7 @@ class NotificationModel extends Equatable {
       title: (json['title'] as String?) ?? '',
       body: (json['body'] as String?) ?? '',
       type: (json['type'] as String?) ?? '',
+      source: json['source'] as String?,
       targetType: (json['target_type'] as String?) ?? 'all',
       targetId: json['target_id'] as String?,
       sentBy: (json['sent_by'] as String?) ?? '',
@@ -114,6 +117,7 @@ class NotificationModel extends Equatable {
       'title': title,
       'body': body,
       'type': type,
+      if (source != null) 'source': source,
       'target_type': targetType,
       'target_id': targetId,
       'sent_by': sentBy,
@@ -131,6 +135,7 @@ class NotificationModel extends Equatable {
       title: title,
       body: body,
       type: type,
+      source: source,
       targetType: NotificationTargetType.fromString(targetType),
       targetId: targetId,
       sentBy: sentBy,
@@ -150,6 +155,7 @@ class NotificationModel extends Equatable {
         title,
         body,
         type,
+        source,
         targetType,
         targetId,
         sentBy,
