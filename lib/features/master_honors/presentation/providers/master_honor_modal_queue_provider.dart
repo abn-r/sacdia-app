@@ -24,29 +24,29 @@ class MasterHonorModalEvent {
 
   String get title => switch (transition) {
         MasterHonorChangeTransition.awarded when isPlural =>
-          '¡Nuevas maestrías obtenidas!',
-        MasterHonorChangeTransition.awarded => '¡Nueva maestría obtenida!',
+          '¡Nuevas maestrías para tu banda!',
+        MasterHonorChangeTransition.awarded => '¡Nueva maestría para tu banda!',
         MasterHonorChangeTransition.recovered when isPlural =>
-          'Maestrías vigentes nuevamente',
-        MasterHonorChangeTransition.recovered => 'Maestría vigente nuevamente',
+          'Maestrías nuevamente vigentes',
+        MasterHonorChangeTransition.recovered => 'Maestría nuevamente vigente',
         MasterHonorChangeTransition.notCurrent when isPlural =>
-          'Maestrías marcadas como No vigente',
+          'Maestrías para revisar',
         MasterHonorChangeTransition.notCurrent =>
-          'Maestría marcada como No vigente',
+          'Esta maestría necesita revisión',
       };
 
   String get body => switch (transition) {
-        MasterHonorChangeTransition.awarded when isPlural => 'Has obtenido:',
+        MasterHonorChangeTransition.awarded when isPlural => 'Tu banda suma:',
         MasterHonorChangeTransition.awarded =>
-          'Has obtenido la maestría ${masterHonorNames.first}.',
+          'Tu banda suma la maestría ${masterHonorNames.first}.',
         MasterHonorChangeTransition.recovered when isPlural =>
-          'Estas maestrías vuelven a estar vigentes en tu perfil:',
+          'Estas maestrías vuelven a contar en tu camino:',
         MasterHonorChangeTransition.recovered =>
-          'La maestría ${masterHonorNames.first} vuelve a estar vigente en tu perfil.',
+          'La maestría ${masterHonorNames.first} vuelve a contar en tu camino.',
         MasterHonorChangeTransition.notCurrent when isPlural =>
-          'Las validaciones requeridas para estas maestrías cambiaron. Actualmente no cumples con los requisitos, por lo que quedaron marcadas como No vigente.',
+          'Estas maestrías necesitan ajustes para volver a estar vigentes.',
         MasterHonorChangeTransition.notCurrent =>
-          'Las validaciones requeridas para la maestría ${masterHonorNames.first} cambiaron. Actualmente no cumples con los requisitos, por lo que quedó marcada como No vigente.',
+          'La maestría ${masterHonorNames.first} necesita ajustes para volver a estar vigente.',
       };
 }
 

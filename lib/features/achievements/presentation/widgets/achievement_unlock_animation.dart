@@ -14,7 +14,7 @@ import 'achievement_badge.dart';
 /// Muestra un overlay semi-transparente con:
 /// - Badge escalando desde 0 → 1.2 → 1.0 con curva bounceOut
 /// - Burst de partículas del color del tier
-/// - Texto "¡Logro desbloqueado!" + nombre del logro
+/// - Texto "¡Nuevo logro en tu camino!" + nombre del logro
 /// - Auto-dismiss en 3 segundos o tap para cerrar
 ///
 /// Uso:
@@ -224,7 +224,7 @@ class _UnlockOverlayState extends State<_UnlockOverlay>
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            '¡Logro desbloqueado!',
+                            '¡Nuevo logro en tu camino!',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,

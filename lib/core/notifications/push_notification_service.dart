@@ -512,7 +512,7 @@ class PushNotificationService {
                 ),
               ),
               child: Semantics(
-                label: 'Logro desbloqueado',
+                label: 'Nuevo logro en tu camino',
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedAward01,
                   color: _achievementTierColor(tier),
@@ -527,7 +527,7 @@ class PushNotificationService {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Logro desbloqueado',
+                    'Nuevo logro en tu camino',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w700,
@@ -693,7 +693,10 @@ class PushNotificationService {
 
     final body = message.notification?.body;
     if (body != null && body.trim().isNotEmpty) {
-      return body.replaceFirst(RegExp(r'^Completaste:\s*'), '').trim();
+      return body
+          .replaceFirst(
+              RegExp(r'^(Completaste:|Sumaste un nuevo logro:)\s*'), '')
+          .trim();
     }
 
     return 'Nuevo logro';
