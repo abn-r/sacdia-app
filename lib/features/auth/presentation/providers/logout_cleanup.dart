@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/providers/app_bootstrap_provider.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../../../../core/constants/app_constants.dart';
+import '../../../../providers/storage_provider.dart';
 
 /// Invalida providers con estado de usuario al cerrar sesión.
 ///
@@ -34,9 +38,22 @@ void clearUserStateOnLogout(Ref ref) {
     ref.invalidate(provider);
   }
   ref.invalidate(appBootstrapProvider);
+  _clearScopedDashboardCache(ref);
 
   AppLogger.i(
     'Estado de usuario limpiado (providers invalidados)',
     tag: 'LogoutCleanup',
   );
+}
+
+void _clearScopedDashboardCache(Ref ref) {
+  final storage = ref.read(localStorageProvider);
+  final keysToRemove = storage.getKeys().where(
+        (key) => key.startsWith(AppConstants.dashboardSummaryCacheKeyPrefix),
+      );
+
+  for (final key in keysToRemove) {
+    unawaited(storage.remove(key));
+    unawaited(storage.remove('${key}_cached_at'));
+  }
 }

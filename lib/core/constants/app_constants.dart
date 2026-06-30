@@ -33,6 +33,17 @@ class AppConstants {
   static const int receiveTimeout = 15;
   static const int sendTimeout = 15;
 
+  // Cache keys for SharedPreferences-backed local cache
+  static const String catalogClubTypesCacheKey = 'catalog_club_types';
+  static const String catalogActivityTypesCacheKey = 'catalog_activity_types';
+  static const String catalogDistrictsCacheKey = 'catalog_districts';
+  static const String catalogChurchesCacheKey = 'catalog_churches';
+  static const String catalogEcclesiasticalYearsCacheKey =
+      'catalog_ecclesiastical_years';
+  static const String catalogCurrentEcclesiasticalYearCacheKey =
+      'catalog_current_ecclesiastical_year';
+  static const String dashboardSummaryCacheKeyPrefix = 'dashboard_summary';
+
   // Almacenamiento local
   static const String tokenKey = 'auth_token';
   static const String refreshTokenKey = 'auth_refresh_token';
@@ -58,6 +69,10 @@ class AppConstants {
   static const String cachedActiveRoleName = 'cached_active_role_name';
   static const String cachedActiveClubName = 'cached_active_club_name';
   static const String cachedActiveClubType = 'cached_active_club_type';
+  static const String cachedActivePermissions = 'cached_active_permissions';
+  static const String cachedActiveClubId = 'cached_active_club_id';
+  static const String cachedActiveSectionId = 'cached_active_section_id';
+  static const String cachedActiveClubTypeId = 'cached_active_club_type_id';
 
   // Biometric auth (SharedPreferences)
   // MVP: opt-in only, boolean flag + ISO-8601 enrolledAt; no biometric data stored.
