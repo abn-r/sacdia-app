@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -58,6 +61,18 @@ final getCurrentUserProvider = Provider<GetCurrentUser>((ref) {
 final signInProvider = Provider<SignIn>((ref) {
   return SignIn(ref.read(authRepositoryProvider));
 });
+
+/// Clears biometric app-lock opt-in when the authenticated session ends.
+///
+/// Current release scope: biometrics protect an existing local session; they do
+/// not replace login. Therefore the opt-in is session-scoped and must not
+/// survive logout, account deletion, or session expiration.
+Future<void> clearSessionScopedBiometricOptIn(
+  SharedPreferences prefs,
+) async {
+  await prefs.remove(AppConstants.biometricEnabledKey);
+  await prefs.remove(AppConstants.biometricEnrolledAtKey);
+}
 
 /// Provider para el caso de uso de registro
 final signUpProvider = Provider<SignUp>((ref) {
@@ -655,21 +670,23 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     final result =
         await ref.read(authRepositoryProvider).deleteAccount(password);
 
-    return result.fold(
-      (failure) {
+    return result.fold<Future<String?>>(
+      (failure) async {
         final msg = failure is AuthFailure
             ? failure.message
             : 'auth.errors.delete_account_failed'.tr();
         AppLogger.w('Delete account fallido: $msg', tag: _tag);
         return msg;
       },
-      (_) {
+      (_) async {
         AppLogger.i('Cuenta eliminada correctamente', tag: _tag);
 
         // Limpiar estado local (el datasource ya limpió tokens en deleteAccount).
         final prefs = ref.read(sharedPreferencesProvider);
         prefs.remove('cached_post_register_complete');
         prefs.remove('user_manually_logged_out');
+        await clearSessionScopedBiometricOptIn(prefs);
+        ref.invalidate(biometricProvider);
         // Limpiar claves de notif prefs para que no queden datos huérfanos.
         for (final key in const [
           'notif_push_master',
@@ -711,6 +728,8 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
 
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.remove('cached_post_register_complete');
+    unawaited(clearSessionScopedBiometricOptIn(prefs));
+    ref.invalidate(biometricProvider);
 
     state = const AsyncValue.data(null);
   }
@@ -731,20 +750,22 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
 
     final result = await ref.read(signOutProvider)(NoParams());
 
-    return result.fold(
-      (failure) {
+    return result.fold<Future<bool>>(
+      (failure) async {
         final errorMessage = failure is AuthFailure
             ? failure.message
             : 'auth.errors.sign_out_failed'.tr();
         state = AsyncValue.error(errorMessage, StackTrace.current);
         return false;
       },
-      (_) {
+      (_) async {
         state = const AsyncValue.data(null);
 
         final prefs = ref.read(sharedPreferencesProvider);
         prefs.setBool('user_manually_logged_out', true);
         prefs.remove('cached_post_register_complete');
+        await clearSessionScopedBiometricOptIn(prefs);
+        ref.invalidate(biometricProvider);
 
         // PII and active grant are stored in SecureStorage — clear all on sign-out.
         final secureStorage = ref.read(secureStorageProvider);

@@ -644,6 +644,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'auth-type',
         'refresh_token',
         'cached_post_register_complete',
+        AppConstants.biometricEnabledKey,
+        AppConstants.biometricEnrolledAtKey,
       ];
       for (final key in prefKeys) {
         await prefs.remove(key);
