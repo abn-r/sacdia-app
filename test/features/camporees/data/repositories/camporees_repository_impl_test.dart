@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/models/paginated_result.dart';
 import 'package:sacdia_app/core/network/network_info.dart';
 import 'package:sacdia_app/features/camporees/data/datasources/camporees_remote_data_source.dart';
+import 'package:sacdia_app/features/camporees/data/models/camporee_event_model.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_member_model.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_model.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_payment_model.dart';
@@ -50,10 +51,17 @@ class _StubDataSource implements CamporeesRemoteDataSource {
       throw UnimplementedError();
 
   @override
+  Future<List<CamporeeEventModel>> getCamporeeEvents(
+    int camporeeId, {
+    CancelToken? cancelToken,
+  }) =>
+      throw UnimplementedError();
+
+  @override
   Future<CamporeeMemberModel> registerMember(
     int camporeeId, {
     required String userId,
-    required String camporeeType,
+    String? camporeeType,
     String? clubName,
     int? insuranceId,
   }) =>

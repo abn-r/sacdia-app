@@ -1,30 +1,23 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
-import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/features/insurance/domain/entities/member_insurance.dart';
+import 'package:sacdia_app/features/insurance/presentation/providers/insurance_providers.dart';
+import 'package:sacdia_app/features/insurance/presentation/widgets/insurance_status_badge.dart';
 
 import '../providers/camporees_providers.dart';
 
-// Cross-feature dependency note:
-// This view intentionally does NOT import [membersNotifierProvider] from the
-// members feature. Registration is performed via a direct UUID text input,
-// keeping the camporees feature self-contained and safe for deep-link navigation.
-// If a member-picker UI is added in the future, it should either:
-//   a) Create a scoped [camporeeEligibleMembersProvider] inside this feature
-//      (preferred — avoids implicit members-feature activation), or
-//   b) Document the cross-feature dependency here with the reasons why a
-//      full members fetch is acceptable in that context.
-
-/// Vista para registrar un miembro en un camporee.
+/// Vista para seleccionar e inscribir miembros del club activo en un camporee.
 ///
-/// Solicita el UUID del usuario, el tipo de camporee (local/union),
-/// el nombre del club (opcional) y el ID de seguro (opcional).
-/// Muestra un mensaje específico si el backend responde con error de seguro.
+/// El usuario no captura UUIDs ni tipo de camporee: la lista sale de la sección
+/// activa y el backend infiere el tipo desde el endpoint de camporee local/unión.
 class CamporeeRegisterMemberView extends ConsumerStatefulWidget {
   final int camporeeId;
 
@@ -40,25 +33,20 @@ class CamporeeRegisterMemberView extends ConsumerStatefulWidget {
 
 class _CamporeeRegisterMemberViewState
     extends ConsumerState<CamporeeRegisterMemberView> {
-  final _formKey = GlobalKey<FormState>();
-  final _userIdController = TextEditingController();
-  final _clubNameController = TextEditingController();
-  final _insuranceIdController = TextEditingController();
-
-  String _camporeeType = 'local';
-
-  @override
-  void dispose() {
-    _userIdController.dispose();
-    _clubNameController.dispose();
-    _insuranceIdController.dispose();
-    super.dispose();
-  }
+  Set<String> _selectedUserIds = <String>{};
 
   @override
   Widget build(BuildContext context) {
     final registrationState =
         ref.watch(camporeeRegistrationNotifierProvider(widget.camporeeId));
+    final membersAsync = ref.watch(membersInsuranceProvider);
+    final registeredIdsAsync =
+        ref.watch(camporeeRegisteredUserIdsProvider(widget.camporeeId));
+    final registeredIds = registeredIdsAsync.valueOrNull ?? const <String>{};
+    final selectedMembers = _selectedMembers(membersAsync.valueOrNull);
+    final idsToRegister = _selectedUserIds
+        .where((userId) => !registeredIds.contains(userId))
+        .toList();
     final c = context.sac;
 
     return Scaffold(
@@ -74,245 +62,753 @@ class _CamporeeRegisterMemberViewState
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
-          child: Form(
-            key: _formKey,
-            child: Column(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const _InfoBanner(),
+              const SizedBox(height: 22),
+              if (registrationState.errorMessage != null) ...[
+                _ErrorBanner(message: registrationState.errorMessage!),
+                const SizedBox(height: 16),
+              ],
+              _SelectedMembersCard(
+                selectedIds: _selectedUserIds,
+                selectedMembers: selectedMembers,
+                onRemove: (userId) {
+                  setState(() => _selectedUserIds.remove(userId));
+                },
+              ),
+              const SizedBox(height: 14),
+              SacButton.outline(
+                text: _selectedUserIds.isEmpty
+                    ? 'camporees.register_member.select_members_button'.tr()
+                    : 'camporees.register_member.modify_selection_button'.tr(),
+                icon: HugeIcons.strokeRoundedUserGroup,
+                onPressed: () => _openMemberPicker(context),
+              ),
+              if (registeredIdsAsync.hasValue && registeredIds.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                _AlreadyRegisteredHint(count: registeredIds.length),
+              ],
+              const SizedBox(height: 28),
+              SacButton.primary(
+                text: 'camporees.register_member.register_button_count'.tr(
+                  namedArgs: {'count': idsToRegister.length.toString()},
+                ),
+                icon: HugeIcons.strokeRoundedUserAdd01,
+                isLoading: registrationState.isLoading,
+                isEnabled: idsToRegister.isNotEmpty,
+                onPressed: registrationState.isLoading || idsToRegister.isEmpty
+                    ? null
+                    : () => _submit(context, idsToRegister),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<MemberInsurance> _selectedMembers(List<MemberInsurance>? members) {
+    if (members == null || _selectedUserIds.isEmpty) return const [];
+    final byId = {for (final member in members) member.memberId: member};
+    return _selectedUserIds
+        .map((userId) => byId[userId])
+        .whereType<MemberInsurance>()
+        .toList();
+  }
+
+  Future<void> _openMemberPicker(BuildContext context) async {
+    final selected = await showModalBottomSheet<Set<String>>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _MemberPickerSheet(
+        camporeeId: widget.camporeeId,
+        initialSelectedIds: _selectedUserIds,
+      ),
+    );
+
+    if (selected != null && mounted) {
+      setState(() => _selectedUserIds = selected);
+    }
+  }
+
+  Future<void> _submit(BuildContext context, List<String> idsToRegister) async {
+    if (idsToRegister.isEmpty) {
+      _showSnack(
+        context,
+        'camporees.register_member.already_selected'.tr(),
+        AppColors.accent,
+      );
+      return;
+    }
+
+    final notifier = ref.read(
+      camporeeRegistrationNotifierProvider(widget.camporeeId).notifier,
+    );
+    notifier.reset();
+
+    final result = await notifier.registerMany(userIds: idsToRegister);
+
+    if (!context.mounted) return;
+
+    if (result.isSuccess) {
+      _showSnack(
+        context,
+        'camporees.register_member.success_many'.tr(
+          namedArgs: {'count': result.successCount.toString()},
+        ),
+        AppColors.secondary,
+      );
+      Navigator.pop(context);
+      return;
+    }
+
+    if (result.hasAnySuccess) {
+      setState(() => _selectedUserIds.clear());
+      _showSnack(
+        context,
+        'camporees.register_member.partial_success'.tr(
+          namedArgs: {
+            'success': result.successCount.toString(),
+            'failed': result.failureCount.toString(),
+          },
+        ),
+        AppColors.accent,
+      );
+    }
+  }
+
+  void _showSnack(BuildContext context, String message, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+}
+
+class _InfoBanner extends StatelessWidget {
+  const _InfoBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.accentLight,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedInformationCircle,
+            size: 19,
+            color: AppColors.accentDark,
+          ),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Text(
+              'camporees.register_member.info_banner'.tr(),
+              style: TextStyle(
+                fontSize: 12.5,
+                color: AppColors.accentDark,
+                height: 1.45,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ErrorBanner extends StatelessWidget {
+  final String message;
+
+  const _ErrorBanner({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.error.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        message,
+        style: TextStyle(fontSize: 13, color: AppColors.error),
+      ),
+    );
+  }
+}
+
+class _AlreadyRegisteredHint extends StatelessWidget {
+  final int count;
+
+  const _AlreadyRegisteredHint({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        HugeIcon(
+          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+          size: 15,
+          color: AppColors.secondary,
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            'camporees.register_member.already_registered_hint'.tr(
+              namedArgs: {'count': count.toString()},
+            ),
+            style: TextStyle(fontSize: 12, color: context.sac.textSecondary),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SelectedMembersCard extends StatelessWidget {
+  final Set<String> selectedIds;
+  final List<MemberInsurance> selectedMembers;
+  final ValueChanged<String> onRemove;
+
+  const _SelectedMembersCard({
+    required this.selectedIds,
+    required this.selectedMembers,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: c.border),
+      ),
+      child: selectedIds.isEmpty
+          ? _EmptySelection(c: c)
+          : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Info banner
-                Container(
-                  width: double.infinity,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.accentLight,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color: AppColors.accent.withValues(alpha: 0.4)),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedInformationCircle,
-                        size: 18,
-                        color: AppColors.accentDark,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'camporees.register_member.info_banner'.tr(),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.accentDark,
-                            height: 1.4,
-                          ),
+                Row(
+                  children: [
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedUserMultiple02,
+                      size: 18,
+                      color: AppColors.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'camporees.register_member.selection_title'.tr(),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: c.text,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // Error de seguro (banner especial)
-                if (registrationState.isInsuranceError &&
-                    registrationState.errorMessage != null) ...[
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: AppColors.error.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color: AppColors.error.withValues(alpha: 0.3)),
                     ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        HugeIcon(
-                          icon: HugeIcons.strokeRoundedAlert02,
-                          size: 20,
-                          color: AppColors.error,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'camporees.register_member.insurance_error_title'
-                                    .tr(),
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.error,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'camporees.register_member.insurance_error_body'
-                                    .tr(),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.error,
-                                  height: 1.4,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-
-                // Error genérico
-                if (!registrationState.isInsuranceError &&
-                    registrationState.errorMessage != null) ...[
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.error.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color: AppColors.error.withValues(alpha: 0.3)),
-                    ),
-                    child: Text(
-                      registrationState.errorMessage!,
+                    Text(
+                      'camporees.register_member.selection_count'.tr(
+                        namedArgs: {'count': selectedIds.length.toString()},
+                      ),
                       style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.error,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-
-                // ID de usuario
-                _FieldLabel(
-                    label: 'camporees.register_member.user_id_label'.tr(),
-                    required: true,
-                    icon: HugeIcons.strokeRoundedUser),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _userIdController,
-                  decoration: _inputDecoration(
-                    hintText: 'camporees.register_member.user_id_hint'.tr(),
-                    context: context,
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'camporees.register_member.user_id_required'.tr();
-                    }
-                    // Basic UUID format check
-                    final uuidRegex = RegExp(
-                      r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
-                      caseSensitive: false,
-                    );
-                    if (!uuidRegex.hasMatch(value.trim())) {
-                      return 'camporees.register_member.user_id_invalid'.tr();
-                    }
-                    return null;
-                  },
+                  ],
                 ),
+                const SizedBox(height: 12),
+                if (selectedMembers.isEmpty)
+                  Text(
+                    'camporees.register_member.selection_loading'.tr(
+                      namedArgs: {'count': selectedIds.length.toString()},
+                    ),
+                    style: TextStyle(fontSize: 12, color: c.textSecondary),
+                  )
+                else ...[
+                  ...selectedMembers.take(5).map(
+                        (member) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: _SelectedMemberTile(
+                            member: member,
+                            onRemove: () => onRemove(member.memberId),
+                          ),
+                        ),
+                      ),
+                  if (selectedIds.length > 5)
+                    Text(
+                      'camporees.register_member.selected_more'.tr(
+                        namedArgs: {
+                          'count': (selectedIds.length - 5).toString(),
+                        },
+                      ),
+                      style: TextStyle(fontSize: 12, color: c.textSecondary),
+                    ),
+                ],
+              ],
+            ),
+    );
+  }
+}
 
-                const SizedBox(height: 20),
+class _EmptySelection extends StatelessWidget {
+  final SacColors c;
 
-                // Tipo de camporee
-                _FieldLabel(
-                    label: 'camporees.register_member.camporee_type_label'.tr(),
-                    required: true,
-                    icon: HugeIcons.strokeRoundedAward01),
-                const SizedBox(height: 8),
+  const _EmptySelection({required this.c});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          width: 46,
+          height: 46,
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Center(
+            child: HugeIcon(
+              icon: HugeIcons.strokeRoundedUserGroup,
+              size: 23,
+              color: AppColors.primary,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          'camporees.register_member.selected_empty_title'.tr(),
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: c.text,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'camporees.register_member.selected_empty_subtitle'.tr(),
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 12, height: 1.4, color: c.textSecondary),
+        ),
+      ],
+    );
+  }
+}
+
+class _SelectedMemberTile extends StatelessWidget {
+  final MemberInsurance member;
+  final VoidCallback onRemove;
+
+  const _SelectedMemberTile({required this.member, required this.onRemove});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return Row(
+      children: [
+        _MemberAvatar(
+          imageUrl: member.memberPhotoUrl,
+          initials: _initials(member.memberName),
+          size: 36,
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                member.memberName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: c.text,
+                ),
+              ),
+              Text(
+                member.memberClass ?? 'camporees.register_member.no_class'.tr(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 11.5, color: c.textSecondary),
+              ),
+            ],
+          ),
+        ),
+        IconButton(
+          onPressed: onRemove,
+          icon: HugeIcon(
+            icon: HugeIcons.strokeRoundedCancel01,
+            size: 17,
+            color: c.textTertiary,
+          ),
+          constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+        ),
+      ],
+    );
+  }
+}
+
+class _MemberPickerSheet extends ConsumerStatefulWidget {
+  final int camporeeId;
+  final Set<String> initialSelectedIds;
+
+  const _MemberPickerSheet({
+    required this.camporeeId,
+    required this.initialSelectedIds,
+  });
+
+  @override
+  ConsumerState<_MemberPickerSheet> createState() => _MemberPickerSheetState();
+}
+
+class _MemberPickerSheetState extends ConsumerState<_MemberPickerSheet> {
+  late Set<String> _selectedIds;
+  final _searchController = TextEditingController();
+  String _query = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIds = {...widget.initialSelectedIds};
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final membersAsync = ref.watch(membersInsuranceProvider);
+    final registeredIdsAsync =
+        ref.watch(camporeeRegisteredUserIdsProvider(widget.camporeeId));
+    final c = context.sac;
+
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.88,
+      minChildSize: 0.55,
+      maxChildSize: 0.95,
+      builder: (context, scrollController) {
+        return Container(
+          decoration: BoxDecoration(
+            color: c.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              children: [
+                const SizedBox(height: 10),
                 Container(
+                  width: 42,
+                  height: 5,
                   decoration: BoxDecoration(
-                    border: Border.all(color: c.border),
-                    borderRadius: BorderRadius.circular(12),
-                    color: c.surface,
+                    color: c.border,
+                    borderRadius: BorderRadius.circular(100),
                   ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
                   child: Column(
                     children: [
-                      _RadioOption(
-                        value: 'local',
-                        groupValue: _camporeeType,
-                        label: 'camporees.register_member.local_label'.tr(),
-                        description:
-                            'camporees.register_member.local_description'.tr(),
-                        onChanged: (v) => setState(() => _camporeeType = v!),
+                      Text(
+                        'camporees.register_member.picker_title'.tr(),
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: c.text,
+                        ),
                       ),
-                      Divider(height: 1, color: c.border),
-                      _RadioOption(
-                        value: 'union',
-                        groupValue: _camporeeType,
-                        label: 'camporees.register_member.union_label'.tr(),
-                        description:
-                            'camporees.register_member.union_description'.tr(),
-                        onChanged: (v) => setState(() => _camporeeType = v!),
+                      const SizedBox(height: 4),
+                      Text(
+                        'camporees.register_member.picker_subtitle'.tr(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 13, color: c.textSecondary),
+                      ),
+                      const SizedBox(height: 14),
+                      TextField(
+                        controller: _searchController,
+                        onChanged: (value) => setState(() => _query = value),
+                        decoration: InputDecoration(
+                          prefixIcon: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedSearch01,
+                              size: 18,
+                              color: c.textTertiary,
+                            ),
+                          ),
+                          hintText:
+                              'camporees.register_member.search_hint'.tr(),
+                          hintStyle:
+                              TextStyle(fontSize: 13, color: c.textTertiary),
+                          filled: true,
+                          fillColor: c.surfaceVariant,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(color: c.border),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(color: c.border),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(
+                              color: AppColors.primary,
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
-
-                const SizedBox(height: 20),
-
-                // Nombre del club (opcional)
-                _FieldLabel(
-                    label: 'camporees.register_member.club_name_label'.tr(),
-                    required: false,
-                    icon: HugeIcons.strokeRoundedBuilding01),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _clubNameController,
-                  decoration: _inputDecoration(
-                    hintText: 'camporees.register_member.club_name_hint'.tr(),
-                    context: context,
+                Expanded(
+                  child: _buildList(
+                    context,
+                    scrollController,
+                    membersAsync,
+                    registeredIdsAsync,
                   ),
                 ),
-
-                const SizedBox(height: 20),
-
-                // ID de seguro (opcional)
-                _FieldLabel(
-                    label: 'camporees.register_member.insurance_id_label'.tr(),
-                    required: false,
-                    icon: HugeIcons.strokeRoundedShield01),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _insuranceIdController,
-                  keyboardType: TextInputType.number,
-                  decoration: _inputDecoration(
-                    hintText:
-                        'camporees.register_member.insurance_id_hint'.tr(),
-                    context: context,
+                Container(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                  decoration: BoxDecoration(
+                    color: c.surface,
+                    border: Border(top: BorderSide(color: c.border)),
                   ),
-                  validator: (value) {
-                    if (value != null && value.isNotEmpty) {
-                      final parsed = int.tryParse(value);
-                      if (parsed == null || parsed <= 0) {
-                        return 'camporees.register_member.insurance_id_invalid'
-                            .tr();
-                      }
+                  child: SacButton.primary(
+                    text: 'camporees.register_member.use_selection'.tr(
+                      namedArgs: {'count': _selectedIds.length.toString()},
+                    ),
+                    icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+                    onPressed: () => Navigator.pop(context, _selectedIds),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildList(
+    BuildContext context,
+    ScrollController scrollController,
+    AsyncValue<List<MemberInsurance>> membersAsync,
+    AsyncValue<Set<String>> registeredIdsAsync,
+  ) {
+    if (membersAsync.isLoading || registeredIdsAsync.isLoading) {
+      return const Center(child: SacLoading());
+    }
+
+    final error = membersAsync.whenOrNull(error: (error, _) => error) ??
+        registeredIdsAsync.whenOrNull(error: (error, _) => error);
+    if (error != null) {
+      return _PickerError(
+        message: error.toString().replaceFirst('Exception: ', ''),
+        onRetry: () {
+          ref.invalidate(membersInsuranceProvider);
+          ref.invalidate(camporeeRegisteredUserIdsProvider(widget.camporeeId));
+        },
+      );
+    }
+
+    final registeredIds = registeredIdsAsync.valueOrNull ?? const <String>{};
+    final members = _filteredMembers(membersAsync.valueOrNull ?? const []);
+
+    if (members.isEmpty) {
+      return _PickerEmpty(hasQuery: _query.trim().isNotEmpty);
+    }
+
+    return ListView.separated(
+      controller: scrollController,
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 18),
+      itemCount: members.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      itemBuilder: (context, index) {
+        final member = members[index];
+        final alreadyRegistered = registeredIds.contains(member.memberId);
+        final selected = _selectedIds.contains(member.memberId);
+
+        return _MemberPickerTile(
+          member: member,
+          selected: selected,
+          alreadyRegistered: alreadyRegistered,
+          onTap: alreadyRegistered
+              ? null
+              : () {
+                  setState(() {
+                    if (selected) {
+                      _selectedIds.remove(member.memberId);
+                    } else {
+                      _selectedIds.add(member.memberId);
                     }
-                    return null;
-                  },
+                  });
+                },
+        );
+      },
+    );
+  }
+
+  List<MemberInsurance> _filteredMembers(List<MemberInsurance> members) {
+    final query = _query.trim().toLowerCase();
+    if (query.isEmpty) return members;
+
+    return members
+        .where((member) => member.memberName.toLowerCase().contains(query))
+        .toList();
+  }
+}
+
+class _MemberPickerTile extends StatelessWidget {
+  final MemberInsurance member;
+  final bool selected;
+  final bool alreadyRegistered;
+  final VoidCallback? onTap;
+
+  const _MemberPickerTile({
+    required this.member,
+    required this.selected,
+    required this.alreadyRegistered,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return Opacity(
+      opacity: alreadyRegistered ? 0.72 : 1,
+      child: Material(
+        color: selected && !alreadyRegistered
+            ? AppColors.primary.withValues(alpha: 0.07)
+            : c.surface,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: selected && !alreadyRegistered
+                    ? AppColors.primary.withValues(alpha: 0.45)
+                    : c.border,
+                width: selected && !alreadyRegistered ? 1.3 : 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                _MemberAvatar(
+                  imageUrl: member.memberPhotoUrl,
+                  initials: _initials(member.memberName),
+                  size: 50,
                 ),
-
-                const SizedBox(height: 32),
-
-                // Botón registrar
-                SacButton.primary(
-                  text: 'camporees.register_member.register_button'.tr(),
-                  icon: HugeIcons.strokeRoundedUserAdd01,
-                  isLoading: registrationState.isLoading,
-                  onPressed: registrationState.isLoading
-                      ? null
-                      : () => _submit(context),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        member.memberName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w800,
+                          color: c.text,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          HugeIcon(
+                            icon: HugeIcons.strokeRoundedSchool,
+                            size: 13,
+                            color: c.textTertiary,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              member.memberClass ??
+                                  'camporees.register_member.no_class'.tr(),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: c.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          InsuranceStatusBadge(
+                            status: member.status,
+                            compact: true,
+                          ),
+                          if (alreadyRegistered)
+                            _MiniBadge(
+                              label:
+                                  'camporees.register_member.already_enrolled'
+                                      .tr(),
+                              color: AppColors.secondary,
+                            )
+                          else if (selected)
+                            _MiniBadge(
+                              label: 'camporees.register_member.selected'.tr(),
+                              color: AppColors.primary,
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-
-                const SizedBox(height: 16),
+                const SizedBox(width: 10),
+                _SelectionIndicator(
+                  selected: selected,
+                  alreadyRegistered: alreadyRegistered,
+                ),
               ],
             ),
           ),
@@ -320,209 +816,199 @@ class _CamporeeRegisterMemberViewState
       ),
     );
   }
-
-  InputDecoration _inputDecoration({
-    required String hintText,
-    required BuildContext context,
-  }) {
-    final c = context.sac;
-    return InputDecoration(
-      hintText: hintText,
-      hintStyle: TextStyle(fontSize: 13, color: c.textTertiary),
-      filled: true,
-      fillColor: c.surface,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: c.border),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: c.border),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: AppColors.primary, width: 1.5),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: AppColors.error),
-      ),
-    );
-  }
-
-  Future<void> _submit(BuildContext context) async {
-    final formState = _formKey.currentState;
-    if (formState == null || !formState.validate()) return;
-
-    ref
-        .read(camporeeRegistrationNotifierProvider(widget.camporeeId).notifier)
-        .reset();
-
-    final userId = _userIdController.text.trim();
-    final clubName = _clubNameController.text.trim().isEmpty
-        ? null
-        : _clubNameController.text.trim();
-    final insuranceId = _insuranceIdController.text.trim().isEmpty
-        ? null
-        : int.tryParse(_insuranceIdController.text.trim());
-
-    final success = await ref
-        .read(camporeeRegistrationNotifierProvider(widget.camporeeId).notifier)
-        .register(
-          userId: userId,
-          camporeeType: _camporeeType,
-          clubName: clubName,
-          insuranceId: insuranceId,
-        );
-
-    if (success && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('camporees.register_member.success'.tr()),
-          backgroundColor: AppColors.secondary,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
-      Navigator.pop(context);
-    }
-  }
 }
 
-// ── Field Label ────────────────────────────────────────────────────────────────
+class _SelectionIndicator extends StatelessWidget {
+  final bool selected;
+  final bool alreadyRegistered;
 
-class _FieldLabel extends StatelessWidget {
-  final String label;
-  final bool required;
-  final HugeIconData icon;
-
-  const _FieldLabel({
-    required this.label,
-    required this.required,
-    required this.icon,
+  const _SelectionIndicator({
+    required this.selected,
+    required this.alreadyRegistered,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        HugeIcon(icon: icon, size: 16, color: AppColors.primary),
-        const SizedBox(width: 6),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: context.sac.text,
-          ),
+    final active = selected || alreadyRegistered;
+    final color = alreadyRegistered ? AppColors.secondary : AppColors.primary;
+
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: active ? color.withValues(alpha: 0.12) : Colors.transparent,
+        border: Border.all(
+          color: active ? color : context.sac.border,
+          width: 1.4,
         ),
-        if (required) ...[
-          const SizedBox(width: 4),
-          Text(
-            '*',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
+      ),
+      child: active
+          ? Center(
+              child: HugeIcon(
+                icon: HugeIcons.strokeRoundedTick02,
+                size: 18,
+                color: color,
+              ),
+            )
+          : null,
+    );
+  }
+}
+
+class _MiniBadge extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _MiniBadge({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10.5,
+          fontWeight: FontWeight.w700,
+          color: color,
+        ),
+      ),
+    );
+  }
+}
+
+class _MemberAvatar extends StatelessWidget {
+  final String? imageUrl;
+  final String initials;
+  final double size;
+
+  const _MemberAvatar({
+    required this.imageUrl,
+    required this.initials,
+    required this.size,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: AppColors.primaryLight, width: 2),
+      ),
+      child: ClipOval(
+        child: imageUrl != null && imageUrl!.isNotEmpty
+            ? CachedNetworkImage(
+                imageUrl: imageUrl!,
+                fit: BoxFit.cover,
+                memCacheWidth: (size * 2).round(),
+                memCacheHeight: (size * 2).round(),
+                placeholder: (_, __) => _AvatarInitials(initials: initials),
+                errorWidget: (_, __, ___) =>
+                    _AvatarInitials(initials: initials),
+              )
+            : _AvatarInitials(initials: initials),
+      ),
+    );
+  }
+}
+
+class _AvatarInitials extends StatelessWidget {
+  final String initials;
+
+  const _AvatarInitials({required this.initials});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.primary.withValues(alpha: 0.10),
+      alignment: Alignment.center,
+      child: Text(
+        initials,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w800,
+          color: AppColors.primaryDark,
+        ),
+      ),
+    );
+  }
+}
+
+class _PickerError extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const _PickerError({required this.message, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedAlert02,
+              size: 42,
               color: AppColors.error,
             ),
-          ),
-        ] else ...[
-          const SizedBox(width: 6),
-          Text(
-            'common.optional'.tr(),
-            style: TextStyle(
-              fontSize: 12,
-              color: context.sac.textTertiary,
+            const SizedBox(height: 10),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: context.sac.textSecondary),
             ),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-// ── Radio Option ───────────────────────────────────────────────────────────────
-
-class _RadioOption extends StatelessWidget {
-  final String value;
-  final String groupValue;
-  final String label;
-  final String description;
-  final ValueChanged<String?> onChanged;
-
-  const _RadioOption({
-    required this.value,
-    required this.groupValue,
-    required this.label,
-    required this.description,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final selected = value == groupValue;
-
-    return InkWell(
-      onTap: () => onChanged(value),
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        child: Row(
-          children: [
-            // Custom radio circle (avoids deprecated groupValue API)
-            Container(
-              width: 20,
-              height: 20,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: selected ? AppColors.primary : context.sac.border,
-                  width: 2,
-                ),
-              ),
-              child: selected
-                  ? Center(
-                      child: Container(
-                        width: 10,
-                        height: 10,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    )
-                  : null,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                      color: selected ? AppColors.primary : c.text,
-                    ),
-                  ),
-                  Text(
-                    description,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: c.textTertiary,
-                    ),
-                  ),
-                ],
-              ),
+            const SizedBox(height: 14),
+            SacButton.outline(
+              text: 'common.retry'.tr(),
+              onPressed: onRetry,
             ),
           ],
         ),
       ),
     );
   }
+}
+
+class _PickerEmpty extends StatelessWidget {
+  final bool hasQuery;
+
+  const _PickerEmpty({required this.hasQuery});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Text(
+          hasQuery
+              ? 'camporees.register_member.empty_search'.tr()
+              : 'camporees.register_member.empty_members'.tr(),
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 13, color: context.sac.textSecondary),
+        ),
+      ),
+    );
+  }
+}
+
+String _initials(String name) {
+  final parts = name
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((part) => part.isNotEmpty)
+      .toList();
+  if (parts.isEmpty) return '?';
+  final first = parts.first[0].toUpperCase();
+  final last = parts.length > 1 ? parts.last[0].toUpperCase() : '';
+  return '$first$last';
 }

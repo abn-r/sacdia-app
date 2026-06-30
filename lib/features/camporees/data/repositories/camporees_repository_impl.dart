@@ -6,6 +6,7 @@ import '../../../../core/network/network_info.dart';
 import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/camporee.dart';
+import '../../domain/entities/camporee_event.dart';
 import '../../domain/entities/camporee_member.dart';
 import '../../domain/entities/camporee_payment.dart';
 import '../../domain/repositories/camporees_repository.dart';
@@ -67,10 +68,30 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
   }
 
   @override
+  Future<Either<Failure, List<CamporeeEvent>>> getCamporeeEvents(
+    int camporeeId, {
+    RequestCancelToken? cancelToken,
+  }) async {
+    try {
+      final models = await remoteDataSource.getCamporeeEvents(
+        camporeeId,
+        cancelToken: cancelToken.asDioCancelToken(),
+      );
+      return Right(models.map((m) => m.toEntity()).toList());
+    } on ServerException catch (e) {
+      return _serverFailure(e);
+    } on AuthException catch (e) {
+      return _authFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
   Future<Either<Failure, CamporeeMember>> registerMember(
     int camporeeId, {
     required String userId,
-    required String camporeeType,
+    String? camporeeType,
     String? clubName,
     int? insuranceId,
   }) async {

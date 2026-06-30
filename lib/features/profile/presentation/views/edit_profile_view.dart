@@ -121,6 +121,8 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
           ),
           IOSUiSettings(
             title: tr('profile.edit.crop_photo_title'),
+            doneButtonTitle: tr('common.done'),
+            cancelButtonTitle: tr('common.cancel'),
             aspectRatioLockEnabled: true,
             resetAspectRatioEnabled: false,
           ),

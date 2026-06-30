@@ -27,6 +27,10 @@ class RankingSkeleton extends StatefulWidget {
   factory RankingSkeleton.myRanking() =>
       const RankingSkeleton._(mode: _SkeletonMode.myRanking);
 
+  /// Skeleton con la forma del scorecard de progreso anual.
+  factory RankingSkeleton.annualProgress() =>
+      const RankingSkeleton._(mode: _SkeletonMode.annualProgress);
+
   /// Skeleton con la forma de una lista de sección.
   factory RankingSkeleton.sectionList({int count = 8}) =>
       RankingSkeleton._(mode: _SkeletonMode.sectionList, rowCount: count);
@@ -35,7 +39,7 @@ class RankingSkeleton extends StatefulWidget {
   State<RankingSkeleton> createState() => _RankingSkeletonState();
 }
 
-enum _SkeletonMode { myRanking, sectionList }
+enum _SkeletonMode { myRanking, annualProgress, sectionList }
 
 class _RankingSkeletonState extends State<RankingSkeleton>
     with SingleTickerProviderStateMixin {
@@ -96,6 +100,8 @@ class _RankingSkeletonState extends State<RankingSkeleton>
     switch (widget._mode) {
       case _SkeletonMode.myRanking:
         return _buildMyRankingSkeleton();
+      case _SkeletonMode.annualProgress:
+        return _buildAnnualProgressSkeleton();
       case _SkeletonMode.sectionList:
         return _buildSectionListSkeleton();
     }
@@ -157,6 +163,27 @@ class _RankingSkeletonState extends State<RankingSkeleton>
                 child: _SectionRowSkeleton(),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnnualProgressSkeleton() {
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 28),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _ShimmerBox(height: 188, borderRadius: AppTheme.radiusMD),
+            const SizedBox(height: 12),
+            _ShimmerBox(height: 86, borderRadius: AppTheme.radiusMD),
+            const SizedBox(height: 12),
+            _ShimmerBox(height: 330, borderRadius: AppTheme.radiusMD),
+            const SizedBox(height: 12),
+            _ShimmerBox(height: 118, borderRadius: AppTheme.radiusMD),
           ],
         ),
       ),

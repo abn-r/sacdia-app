@@ -46,6 +46,23 @@ class EvidenceFolderRepositoryImpl implements EvidenceFolderRepository {
   }
 
   @override
+  Future<Either<Failure, EvidenceFolder>> createEvidenceFolder(
+      String clubSectionId) async {
+    try {
+      final model = await remoteDataSource.createEvidenceFolder(clubSectionId);
+      return Right(model.toEntity());
+    } on NotFoundException catch (e) {
+      return Left(NotFoundFailure(message: e.message, code: e.code));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, void>> submitFolder(String folderId) async {
     try {
       await remoteDataSource.submitFolder(folderId);

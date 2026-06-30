@@ -81,6 +81,16 @@ final List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
     route: RouteNames.homeEvidences,
     requiredPermissions: {'evidence_folders:read'},
   ),
+  // Institutional camporees/campamentos — list endpoint is protected by
+  // camporees:read, so the dashboard shortcut must use the same canonical
+  // permission instead of role names.
+  _QuickAccessItemConfig(
+    labelKey: 'dashboard.quick_access.camporees',
+    icon: HugeIcons.strokeRoundedCampfire,
+    color: AppColors.warning,
+    route: RouteNames.homeCamporees,
+    requiredPermissions: {'camporees:read'},
+  ),
   // Administrative: financial records — finances:read is held by treasurer+
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.finances',

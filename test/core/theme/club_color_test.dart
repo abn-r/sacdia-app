@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/club_type.dart';
@@ -130,6 +131,30 @@ void main() {
           reason: 'Input "${entry.key}" should map to ${entry.value}',
         );
       }
+    });
+  });
+
+  group('clubBadgeColorsFromName', () {
+    test('returns the selector badge colors for known club types', () {
+      expect(
+        clubBadgeColorsFromName('Conquistadores'),
+        (AppColors.primaryLight, AppColors.primaryDark),
+      );
+      expect(
+        clubBadgeColorsFromName('Aventureros'),
+        (const Color(0xFFE0F0FA), const Color(0xFF1A6B9C)),
+      );
+      expect(
+        clubBadgeColorsFromName('Guías Mayores'),
+        (AppColors.secondaryLight, AppColors.secondaryDark),
+      );
+    });
+
+    test('falls back to primary badge colors for unknown club types', () {
+      expect(
+        clubBadgeColorsFromName('Unknown'),
+        (AppColors.primaryLight, AppColors.primaryDark),
+      );
     });
   });
 }

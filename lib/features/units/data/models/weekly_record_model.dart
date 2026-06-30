@@ -12,6 +12,7 @@ class WeeklyRecordScoreModel extends WeeklyRecordScore {
   const WeeklyRecordScoreModel({
     required super.categoryId,
     required super.categoryName,
+    super.scoringMode,
     required super.points,
     required super.maxPoints,
   });
@@ -20,6 +21,7 @@ class WeeklyRecordScoreModel extends WeeklyRecordScore {
     return WeeklyRecordScoreModel(
       categoryId: parseInt(json['category_id']) ?? 0,
       categoryName: json['category_name']?.toString() ?? '',
+      scoringMode: json['scoring_mode']?.toString() ?? 'numeric',
       points: parseInt(json['points']) ?? 0,
       maxPoints: parseInt(json['max_points']) ?? 0,
     );
@@ -51,6 +53,7 @@ class WeeklyRecordScoreModel extends WeeklyRecordScore {
 class WeeklyRecordModel extends WeeklyRecord {
   const WeeklyRecordModel({
     required super.recordId,
+    super.unitId,
     required super.userId,
     required super.week,
     required super.year,
@@ -77,6 +80,7 @@ class WeeklyRecordModel extends WeeklyRecord {
 
     return WeeklyRecordModel(
       recordId: parseInt(json['record_id']) ?? 0,
+      unitId: parseInt(json['unit_id']),
       userId: (json['user_id'] ?? users['user_id'] ?? '').toString(),
       week: parseInt(json['week']) ?? 0,
       year: parseInt(json['year']) ?? DateTime.now().year,
@@ -93,6 +97,7 @@ class WeeklyRecordModel extends WeeklyRecord {
 
   Map<String, dynamic> toJson() => {
         'record_id': recordId,
+        'unit_id': unitId,
         'user_id': userId,
         'week': week,
         'year': year,
@@ -104,6 +109,7 @@ class WeeklyRecordModel extends WeeklyRecord {
 
   WeeklyRecord toEntity() => WeeklyRecord(
         recordId: recordId,
+        unitId: unitId,
         userId: userId,
         week: week,
         year: year,

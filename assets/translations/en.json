@@ -5,6 +5,7 @@
     "cancel": "Cancel",
     "confirm": "Confirm",
     "ok": "OK",
+    "done": "Done",
     "save": "Save",
     "add": "Add",
     "edit": "Edit",
@@ -827,6 +828,7 @@
     },
     "personal_info": {
       "errors": {
+        "fetch_personal_info": "Error loading personal information",
         "update_personal_info": "Error updating personal information",
         "fetch_emergency_contacts": "Error fetching emergency contacts",
         "add_emergency_contact": "Error adding emergency contact",
@@ -1295,17 +1297,23 @@
       "empty_subtitle": "Contact your club director\nto have a unit assigned to you."
     },
     "detail": {
-      "scores_title": "Puntos del dia",
-      "read_only_scores_title": "Puntajes",
+      "scores_title": "Weekly points",
+      "read_only_scores_title": "Scores",
       "save_error_all_or_none": "All members must have a score or none at all.",
-      "save_success": "Today's points saved successfully",
+      "save_error": "Could not save this week's points.",
+      "save_success": "Weekly points saved successfully",
       "members_count": "{count} members",
-      "leader_label": "Lider: {name}",
-      "saved_today_banner": "You already recorded today's points",
+      "leader_label": "Leader: {name}",
+      "saved_today_banner": "The weekly sheet has already been saved",
       "points_total": "{total} / {max} pts",
       "category_points": "{points}/{max}",
-      "reset_button": "Reiniciar puntos",
-      "save_button": "Save today's points"
+      "reset_button": "Reset points",
+      "save_button": "Save week",
+      "assign_all_button": "Assign all",
+      "clear_button": "Clear",
+      "bulk_categories_title": "Apply one category to all",
+      "max_button": "Max",
+      "boolean_category_hint": "All or nothing"
     },
     "member_of_month": {
       "history_title": "Miembro del Mes — Historial",
@@ -1747,7 +1755,8 @@
       "fetch_enrolled_clubs": "Error fetching enrolled clubs",
       "create_payment": "Error creating payment",
       "fetch_member_payments": "Error fetching member payments",
-      "fetch_camporee_payments": "Error fetching camporee payments"
+      "fetch_camporee_payments": "Error fetching camporee payments",
+      "fetch_events": "Error fetching camporee events"
     },
     "common": {
       "free": "Free",
@@ -1757,6 +1766,8 @@
     },
     "list": {
       "title": "Camporees",
+      "subtitle": "Camps and events available for your club.",
+      "available_count": "{count} available",
       "empty": "No camporees available",
       "error_loading": "Error loading camporees"
     },
@@ -1774,7 +1785,20 @@
       "view_all_members": "View all members ({count})",
       "error_loading": "Error loading camporee",
       "insurance_ok": "Insurance OK",
-      "no_insurance": "No insurance"
+      "no_insurance": "No insurance",
+      "banner_title": "Camporee detail",
+      "location_title": "LOCATION",
+      "open_in_maps": "Open in maps",
+      "open_location_title": "Open location",
+      "map_open_error": "Could not open maps",
+      "address_copied": "Address copied",
+      "location_no_coordinates": "No coordinates registered",
+      "events_title": "Camporee events",
+      "events_subtitle": "Schedule and events registered for this camporee.",
+      "no_events_yet": "No events registered yet.",
+      "events_error": "Could not load events.",
+      "event_day": "Day {day}",
+      "event_points": "{points} pts"
     },
     "enroll_club": {
       "title": "Club enrollment",
@@ -1810,8 +1834,8 @@
       "local": "Local"
     },
     "register_member": {
-      "title": "Enroll member",
-      "info_banner": "To register a member you need their user ID. CAMPOREE type insurance is required to validate the enrollment.",
+      "title": "Enroll members",
+      "info_banner": "Select members from your section. The camporee type is defined when the event is created; you do not need to enter IDs or insurance data.",
       "insurance_error_title": "Insurance error",
       "insurance_error_body": "The member does not have an active and valid CAMPOREE type insurance. Please verify that the insurance exists, is of type CAMPOREE, is active, and covers the camporee dates.",
       "user_id_label": "User ID",
@@ -1829,7 +1853,29 @@
       "insurance_id_hint": "CAMPOREE type insurance ID (optional)",
       "insurance_id_invalid": "Enter a valid insurance ID",
       "register_button": "Register member",
-      "success": "Member registered successfully"
+      "success": "Member registered successfully",
+      "select_members_button": "Select members",
+      "modify_selection_button": "Edit selection",
+      "selection_title": "Selected members",
+      "selection_count": "{count} selected",
+      "selection_loading": "{count} members selected",
+      "selected_empty_title": "No members selected yet",
+      "selected_empty_subtitle": "Open the club list to choose one or more attendees.",
+      "selected_more": "+ {count} more members",
+      "register_button_count": "Register {count} members",
+      "success_many": "{count} members registered successfully",
+      "partial_success": "{success} registered; {failed} could not be registered.",
+      "already_selected": "The selected members were already enrolled.",
+      "already_registered_hint": "{count} members already appear enrolled or under validation.",
+      "picker_title": "Select members",
+      "picker_subtitle": "Choose attendees from the active club. Already enrolled members are marked.",
+      "search_hint": "Search by name...",
+      "empty_members": "No members are available in this section.",
+      "empty_search": "No members matched that name.",
+      "already_enrolled": "Already enrolled",
+      "selected": "Selected",
+      "use_selection": "Use selection ({count})",
+      "no_class": "No class"
     },
     "payments": {
       "title": "Payments — {name}",
@@ -2473,7 +2519,9 @@
       "delete_file": "Error deleting file",
       "upload_failed": "Upload failed",
       "folder_not_exists": "The folder does not exist yet. Operations cannot be performed without a created folder.",
-      "folder_not_loaded": "The folder is not loaded. Make sure evidenceFolderProvider has completed before invoking mutation operations."
+      "folder_not_loaded": "The folder is not loaded. Make sure evidenceFolderProvider has completed before invoking mutation operations.",
+      "create_folder": "Error creating annual evidence folder",
+      "create_folder_empty": "The folder was requested, but it is not available yet. Try refreshing."
     },
     "title": "Annual Evidence Folder",
     "section_title": "Section",
@@ -2830,8 +2878,10 @@
     },
     "status": {
       "title_pending": "Annual enrollment pending",
+      "title_submitted": "Annual enrollment submitted",
       "subtitle_pending_action": "Complete the enrollment for this year",
       "subtitle_pending_viewer": "The club has not completed the enrollment for this year",
+      "subtitle_submitted": "The enrollment was submitted and is being validated by the local field",
       "subtitle_inactive_action": "The enrollment for this year requires attention",
       "subtitle_inactive_viewer": "The club enrollment for this year is not active",
       "button_enroll": "Enroll"
@@ -3190,6 +3240,8 @@
       "deleting_account": "Deleting account...",
       "account_deleted": "Your account was deleted successfully.",
       "theme_title": "Theme",
+      "change_club_tile": "Change club",
+      "change_club_subtitle": "Request to join another club without changing your class",
       "select_theme_title": "Select Theme",
       "theme_light": "Light",
       "theme_dark": "Dark",
@@ -3329,6 +3381,7 @@
       "members": "Members",
       "club": "Club",
       "evidence_folder": "Annual Evidence Folder",
+      "camporees": "Camporees",
       "finances": "Finances",
       "units": "Units",
       "grouped_class": "Group Class",

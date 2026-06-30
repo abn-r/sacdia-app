@@ -1,16 +1,16 @@
-/// Representa la sesión de puntos diarios de una unidad.
+/// Representa la planilla semanal agregada de puntos de una unidad.
 ///
-/// Cada unidad puede tener UN solo registro de puntos por día.
+/// Cada unidad puede tener una planilla por semana ISO.
 /// La regla atómica es: si algún miembro tiene puntos > 0,
 /// TODOS los miembros deben tener puntos > 0. Si todos tienen 0,
-/// la sesión en blanco también es válida.
+/// la planilla en blanco también es válida.
 class DailyPointsSession {
   final DateTime date;
 
-  /// Mapa de memberId → puntos asignados en esta sesión.
+  /// Mapa de memberId → puntos asignados en esta planilla.
   final Map<String, int> pointsByMemberId;
 
-  /// Puntos máximos que puede tener cada miembro por sesión.
+  /// Puntos máximos que puede tener cada miembro por planilla semanal.
   final int maxPoints;
 
   const DailyPointsSession({
@@ -24,8 +24,8 @@ class DailyPointsSession {
       pointsByMemberId.isNotEmpty &&
       pointsByMemberId.values.every((p) => p > 0);
 
-  /// Retorna true si la sesión es válida para guardar:
-  /// - Todos los miembros tienen 0 (sesión en blanco), o
+  /// Retorna true si la planilla es válida para guardar:
+  /// - Todos los miembros tienen 0 (planilla en blanco), o
   /// - Todos los miembros tienen puntos > 0 (regla atómica cumplida).
   ///
   /// Es inválida si al menos uno tiene > 0 y al menos uno tiene 0.

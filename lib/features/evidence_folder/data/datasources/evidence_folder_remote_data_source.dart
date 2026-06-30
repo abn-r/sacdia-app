@@ -17,6 +17,11 @@ abstract class EvidenceFolderRemoteDataSource {
   Future<EvidenceFolderModel?> getEvidenceFolder(String clubSectionId,
       {CancelToken? cancelToken});
 
+  /// Crea la Carpeta Anual de Evidencias para la sección activa.
+  ///
+  /// Usa el endpoint de UX por [clubSectionId] para no exponer UUIDs internos.
+  Future<EvidenceFolderModel> createEvidenceFolder(String clubSectionId);
+
   /// Envía la carpeta completa a validación.
   ///
   /// [folderId] es el UUID de annual_folder_id.
@@ -103,6 +108,39 @@ class EvidenceFolderRemoteDataSourceImpl
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getEvidenceFolder', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── POST /club-sections/:sectionId/annual-folder ───────────────────────────
+
+  @override
+  Future<EvidenceFolderModel> createEvidenceFolder(String clubSectionId) async {
+    try {
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.clubSections}/$clubSectionId/annual-folder',
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final folder = await getEvidenceFolder(clubSectionId);
+        if (folder != null) return folder;
+
+        throw ServerException(
+          message: tr('evidence_folder.errors.create_folder_empty'),
+          code: response.statusCode,
+        );
+      }
+
+      throw ServerException(
+        message: tr('evidence_folder.errors.create_folder'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      if (e is DioException && e.response?.statusCode == 409) {
+        final folder = await getEvidenceFolder(clubSectionId);
+        if (folder != null) return folder;
+      }
+      AppLogger.e('Error en createEvidenceFolder', tag: _tag, error: e);
       _rethrow(e);
     }
   }

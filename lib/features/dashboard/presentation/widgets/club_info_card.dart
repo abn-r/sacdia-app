@@ -63,6 +63,7 @@ class ClubInfoCard extends ConsumerWidget {
         : userRole;
 
     final Color clubColor = clubColorFromName(resolvedClubType);
+    final (badgeBg, badgeFg) = clubBadgeColorsFromName(resolvedClubType);
     final logoAsset = clubLogoAssetFromName(resolvedClubType);
 
     return SacCard(
@@ -129,7 +130,11 @@ class ClubInfoCard extends ConsumerWidget {
                   runSpacing: 4,
                   children: [
                     if (resolvedClubType != null)
-                      SacBadge(label: resolvedClubType),
+                      SacBadge(
+                        label: resolvedClubType,
+                        backgroundColor: badgeBg,
+                        foregroundColor: badgeFg,
+                      ),
                     if (resolvedRole != null)
                       SacBadge(
                         label: resolvedRole,

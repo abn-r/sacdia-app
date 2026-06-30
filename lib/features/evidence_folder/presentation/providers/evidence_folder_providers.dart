@@ -11,6 +11,7 @@ import '../../data/datasources/evidence_folder_remote_data_source.dart';
 import '../../data/repositories/evidence_folder_repository_impl.dart';
 import '../../domain/entities/evidence_folder.dart';
 import '../../domain/repositories/evidence_folder_repository.dart';
+import '../../domain/usecases/create_evidence_folder.dart';
 import '../../domain/usecases/delete_evidence_file.dart';
 import '../../domain/usecases/get_evidence_folder.dart';
 import '../../domain/usecases/submit_section.dart';
@@ -40,6 +41,11 @@ final evidenceFolderRepositoryProvider =
 
 final getEvidenceFolderUseCaseProvider = Provider<GetEvidenceFolder>((ref) {
   return GetEvidenceFolder(ref.read(evidenceFolderRepositoryProvider));
+});
+
+final createEvidenceFolderUseCaseProvider =
+    Provider<CreateEvidenceFolder>((ref) {
+  return CreateEvidenceFolder(ref.read(evidenceFolderRepositoryProvider));
 });
 
 final submitFolderUseCaseProvider = Provider<SubmitFolder>((ref) {
@@ -94,6 +100,46 @@ final evidenceFolderProvider = FutureProvider.autoDispose
     (folder) => folder,
   );
 });
+
+// ── Folder creation state ───────────────────────────────────────────────────
+
+/// Estado para crear/inicializar la carpeta de la sección activa.
+class EvidenceFolderCreationNotifier
+    extends AutoDisposeFamilyNotifier<SectionOperationState, String> {
+  @override
+  SectionOperationState build(String clubSectionId) =>
+      const SectionOperationState();
+
+  Future<bool> createFolder() async {
+    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
+
+    final result = await ref.read(createEvidenceFolderUseCaseProvider)(
+      CreateEvidenceFolderParams(clubSectionId: arg),
+    );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+        return false;
+      },
+      (_) {
+        state = state.copyWith(isLoading: false, success: true);
+        ref.invalidate(evidenceFolderProvider(arg));
+        return true;
+      },
+    );
+  }
+
+  void reset() => state = const SectionOperationState();
+}
+
+final evidenceFolderCreationNotifierProvider = NotifierProvider.autoDispose
+    .family<EvidenceFolderCreationNotifier, SectionOperationState, String>(
+  EvidenceFolderCreationNotifier.new,
+);
 
 // ── Section operations state ──────────────────────────────────────────────────
 

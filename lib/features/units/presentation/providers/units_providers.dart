@@ -11,8 +11,10 @@ import '../../domain/entities/member_of_month.dart';
 import '../../domain/entities/scoring_category.dart';
 import '../../domain/entities/unit.dart';
 import '../../domain/entities/unit_member.dart';
+import '../../domain/entities/weekly_record.dart';
 import '../../domain/repositories/units_repository.dart';
 import '../../domain/usecases/add_unit_member.dart';
+import '../../domain/usecases/bulk_upsert_weekly_records.dart';
 import '../../domain/usecases/create_unit.dart';
 import '../../domain/usecases/create_weekly_record.dart';
 import '../../domain/usecases/delete_unit.dart';
@@ -81,6 +83,11 @@ final createWeeklyRecordUseCaseProvider = Provider<CreateWeeklyRecord>((ref) {
   return CreateWeeklyRecord(ref.read(unitsRepositoryProvider));
 });
 
+final bulkUpsertWeeklyRecordsUseCaseProvider =
+    Provider<BulkUpsertWeeklyRecords>((ref) {
+  return BulkUpsertWeeklyRecords(ref.read(unitsRepositoryProvider));
+});
+
 final updateWeeklyRecordUseCaseProvider = Provider<UpdateWeeklyRecord>((ref) {
   return UpdateWeeklyRecord(ref.read(unitsRepositoryProvider));
 });
@@ -118,7 +125,7 @@ class UnitsState {
   /// Cuando no hay categorías configuradas, se usa un único key 'default'.
   final Map<String, Map<int, int>> pendingScores;
 
-  /// Si ya se registraron los puntos del día para la unidad activa.
+  /// Si ya se guardó la planilla semanal para la unidad activa.
   final bool isSavedToday;
 
   /// Categorías de puntuación activas para el campo local del club.
@@ -136,7 +143,7 @@ class UnitsState {
   /// Si se está cargando el miembro del mes.
   final bool isLoadingMemberOfMonth;
 
-  /// Si se está guardando la sesión de puntos.
+  /// Si se está guardando la planilla semanal de puntos.
   final bool isSaving;
 
   /// Mensaje de error (null = sin error).
@@ -305,6 +312,36 @@ class UnitsNotifier extends Notifier<UnitsState> {
     );
   }
 
+  Future<void> _loadCurrentWeekScores(Unit unit) async {
+    final ctx = await ref.read(clubContextProvider.future);
+    if (ctx == null) return;
+
+    final now = DateTime.now();
+    final week = _isoWeekNumber(now);
+    final year = _isoWeekYear(now);
+
+    final result = await ref.read(getWeeklyRecordsUseCaseProvider).call(
+          GetWeeklyRecordsParams(clubId: ctx.clubId, unitId: unit.id),
+        );
+
+    result.fold(
+      (_) {},
+      (records) {
+        final currentRecords = records
+            .where((record) => record.week == week && record.year == year)
+            .toList();
+        state = state.copyWith(
+          pendingScores: _buildScoresFromCurrentWeekRecords(
+            state.members,
+            state.categories,
+            currentRecords,
+          ),
+          isSavedToday: false,
+        );
+      },
+    );
+  }
+
   // ── Miembro del Mes ──────────────────────────────────────────────────────
 
   /// Recarga el miembro del mes para la sección actual.
@@ -349,6 +386,11 @@ class UnitsNotifier extends Notifier<UnitsState> {
     if (localFieldId != null) {
       await loadCategories(localFieldId);
     }
+
+    final selected = state.selectedUnit;
+    if (selected != null) {
+      await _loadCurrentWeekScores(selected);
+    }
   }
 
   Future<void> _loadUnitDetail(Unit unit) async {
@@ -383,7 +425,7 @@ class UnitsNotifier extends Notifier<UnitsState> {
   /// Ajusta los puntos de un miembro en una categoría específica.
   ///
   /// El valor resultante se clampea entre 0 y [category.maxPoints].
-  /// Si la sesión ya fue guardada hoy, no hace nada.
+  /// Si la planilla semanal ya fue guardada, no hace nada.
   void adjustCategoryPoints(String memberId, int categoryId, int delta) {
     if (state.isSavedToday) return;
 
@@ -404,7 +446,9 @@ class UnitsNotifier extends Notifier<UnitsState> {
       ),
     );
 
-    final updated = (current + delta).clamp(0, category.maxPoints);
+    final updated = category.isBooleanFull
+        ? (delta > 0 ? category.maxPoints : 0)
+        : category.normalizePoints(current + delta);
     memberScores[categoryId] = updated;
 
     final newScores = Map<String, Map<int, int>>.from(state.pendingScores);
@@ -428,7 +472,7 @@ class UnitsNotifier extends Notifier<UnitsState> {
       ),
     );
 
-    final clamped = value.clamp(0, category.maxPoints);
+    final clamped = category.normalizePoints(value);
     final memberScores = Map<int, int>.from(
       state.pendingScores[memberId] ?? {},
     );
@@ -440,30 +484,77 @@ class UnitsNotifier extends Notifier<UnitsState> {
     state = state.copyWith(pendingScores: newScores);
   }
 
-  // ── Guardar sesión ───────────────────────────────────────────────────────
+  /// Asigna el máximo de cada categoría al miembro indicado.
+  void setAllCategoryPointsForMember(String memberId) {
+    if (state.isSavedToday) return;
+    if (state.categories.isEmpty) return;
 
-  /// Intenta guardar la sesión de puntos del día vía API.
+    final newScores = Map<String, Map<int, int>>.from(state.pendingScores);
+    newScores[memberId] = {
+      for (final category in state.categories)
+        category.scoringCategoryId: category.maxPoints,
+    };
+
+    state = state.copyWith(pendingScores: newScores);
+  }
+
+  /// Limpia todos los puntajes del miembro indicado.
+  void clearCategoryPointsForMember(String memberId) {
+    if (state.isSavedToday) return;
+
+    final newScores = Map<String, Map<int, int>>.from(state.pendingScores);
+    newScores[memberId] = state.categories.isEmpty
+        ? {0: 0}
+        : {
+            for (final category in state.categories)
+              category.scoringCategoryId: 0,
+          };
+
+    state = state.copyWith(pendingScores: newScores);
+  }
+
+  /// Asigna un valor a una categoría para todos los miembros.
+  void setCategoryPointsForAllMembers(int categoryId, int value) {
+    if (state.isSavedToday) return;
+
+    final category = state.categories.firstWhere(
+      (c) => c.scoringCategoryId == categoryId,
+      orElse: () => ScoringCategory(
+        scoringCategoryId: categoryId,
+        name: '',
+        maxPoints: 100,
+        originLevel: 'LOCAL_FIELD',
+        originId: 0,
+      ),
+    );
+
+    final normalized = category.normalizePoints(value);
+    final newScores = <String, Map<int, int>>{};
+
+    for (final member in state.members) {
+      final memberScores = Map<int, int>.from(
+        state.pendingScores[member.id] ?? {},
+      );
+      memberScores[categoryId] = normalized;
+      newScores[member.id] = memberScores;
+    }
+
+    state = state.copyWith(pendingScores: newScores);
+  }
+
+  // ── Guardar planilla semanal ─────────────────────────────────────────────
+
+  /// Intenta guardar la planilla semanal de puntos vía API.
   ///
   /// Retorna [true] si se guardó exitosamente.
   /// Retorna [false] si la validación falla o hay un error de red.
   ///
-  /// Regla atómica: todos con puntos > 0, o todos en 0 (sesión en blanco).
+  /// Regla atómica: todos los registros de la unidad se guardan en una sola
+  /// transacción backend. Si uno falla, no se persiste ninguno.
   Future<bool> saveSession() async {
     final pendingScores = state.pendingScores;
 
     if (pendingScores.isEmpty) return false;
-
-    // Calcular total por miembro
-    final totalByMember = {
-      for (final entry in pendingScores.entries)
-        entry.key: entry.value.values.fold(0, (a, b) => a + b)
-    };
-
-    final anyWithPoints = totalByMember.values.any((p) => p > 0);
-    final anyWithZero = totalByMember.values.any((p) => p == 0);
-
-    // Mezcla inválida: algunos con puntos y otros sin
-    if (anyWithPoints && anyWithZero) return false;
 
     final ctx = await ref.read(clubContextProvider.future);
     if (ctx == null) return false;
@@ -477,58 +568,43 @@ class UnitsNotifier extends Notifier<UnitsState> {
     final week = _isoWeekNumber(now);
     final year = _isoWeekYear(now);
 
-    final useCase = ref.read(createWeeklyRecordUseCaseProvider);
-    final failures = <String>[];
-
-    for (final entry in pendingScores.entries) {
-      final memberId = entry.key;
+    final records = pendingScores.entries.map((entry) {
       final memberCategoryScores = entry.value;
-
-      // Construir el array de scores para el API
       final scores = memberCategoryScores.entries
+          .where((e) => e.key > 0)
           .map((e) => {'category_id': e.key, 'points': e.value})
           .toList();
-
-      // attendance = 1 si tiene algún punto, 0 si todo es 0
-      final totalPoints = memberCategoryScores.values.fold(0, (a, b) => a + b);
-      final attendance = totalPoints > 0 ? 1 : 0;
-      // punctuality se usa el mismo valor que attendance por defecto
-      final punctuality = attendance;
-
-      try {
-        final result = await useCase.call(CreateWeeklyRecordParams(
-          clubId: ctx.clubId,
-          unitId: unit.id,
-          userId: memberId,
-          week: week,
-          year: year,
-          attendance: attendance,
-          punctuality: punctuality,
-          scores: scores,
-        ));
-
-        result.fold(
-          (failure) => failures.add(memberId),
-          (_) {},
-        );
-      } catch (_) {
-        failures.add(memberId);
-      }
-    }
-
-    if (failures.isNotEmpty) {
-      state = state.copyWith(
-        isSaving: false,
-        errorMessage: failures.length == 1
-            ? 'units.errors.save_failed_one'.tr()
-            : 'units.errors.save_failed_other'
-                .tr(namedArgs: {'count': '${failures.length}'}),
+      return BulkWeeklyRecordEntry(
+        userId: entry.key,
+        attendance: 0,
+        punctuality: 0,
+        scores: scores,
       );
-      return false;
-    }
+    }).toList();
 
-    state = state.copyWith(isSaving: false, isSavedToday: true);
-    return true;
+    final result = await ref.read(bulkUpsertWeeklyRecordsUseCaseProvider).call(
+          BulkUpsertWeeklyRecordsParams(
+            clubId: ctx.clubId,
+            unitId: unit.id,
+            week: week,
+            year: year,
+            records: records,
+          ),
+        );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          isSaving: false,
+          errorMessage: failure.message,
+        );
+        return false;
+      },
+      (_) {
+        state = state.copyWith(isSaving: false, isSavedToday: false);
+        return true;
+      },
+    );
   }
 
   /// Reinicia los puntos pendientes a 0 para todos los miembros y categorías.
@@ -852,6 +928,26 @@ class UnitsNotifier extends Notifier<UnitsState> {
           for (final c in categories) c.scoringCategoryId: 0,
         },
     };
+  }
+
+  Map<String, Map<int, int>> _buildScoresFromCurrentWeekRecords(
+    List<UnitMember> members,
+    List<ScoringCategory> categories,
+    List<WeeklyRecord> currentRecords,
+  ) {
+    final initial = _buildInitialScores(members, categories);
+
+    for (final record in currentRecords) {
+      final scores = Map<int, int>.from(initial[record.userId] ?? {});
+
+      for (final score in record.scores) {
+        scores[score.categoryId] = score.points;
+      }
+
+      initial[record.userId] = scores;
+    }
+
+    return initial;
   }
 
   /// Calcula el número de semana ISO 8601 para una fecha dada.

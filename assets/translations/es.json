@@ -5,6 +5,7 @@
     "cancel": "Cancelar",
     "confirm": "Confirmar",
     "ok": "OK",
+    "done": "Listo",
     "save": "Guardar",
     "add": "Agregar",
     "edit": "Editar",
@@ -827,6 +828,7 @@
     },
     "personal_info": {
       "errors": {
+        "fetch_personal_info": "Error al cargar información personal",
         "update_personal_info": "Error al actualizar información personal",
         "fetch_emergency_contacts": "Error al obtener contactos de emergencia",
         "add_emergency_contact": "Error al agregar contacto de emergencia",
@@ -1295,17 +1297,23 @@
       "empty_subtitle": "Contacta al director de tu club\npara que te asigne una unidad."
     },
     "detail": {
-      "scores_title": "Puntos del dia",
+      "scores_title": "Puntos de la semana",
       "read_only_scores_title": "Puntajes",
       "save_error_all_or_none": "Todos los miembros deben tener puntaje o ninguno.",
-      "save_success": "Puntos del dia guardados correctamente",
+      "save_error": "No se pudieron guardar los puntos de la semana.",
+      "save_success": "Puntos de la semana guardados correctamente",
       "members_count": "{count} miembros",
       "leader_label": "Lider: {name}",
-      "saved_today_banner": "Ya registraste los puntos de hoy",
+      "saved_today_banner": "La planilla semanal ya fue guardada",
       "points_total": "{total} / {max} pts",
       "category_points": "{points}/{max}",
       "reset_button": "Reiniciar puntos",
-      "save_button": "Guardar puntos del dia"
+      "save_button": "Guardar semana",
+      "assign_all_button": "Asignar todo",
+      "clear_button": "Limpiar",
+      "bulk_categories_title": "Aplicar una categoría a todos",
+      "max_button": "Máx.",
+      "boolean_category_hint": "Todo o nada"
     },
     "member_of_month": {
       "history_title": "Miembro del Mes — Historial",
@@ -1747,7 +1755,8 @@
       "fetch_enrolled_clubs": "Error al obtener clubes inscritos",
       "create_payment": "Error al registrar pago",
       "fetch_member_payments": "Error al obtener pagos del miembro",
-      "fetch_camporee_payments": "Error al obtener pagos del camporee"
+      "fetch_camporee_payments": "Error al obtener pagos del camporee",
+      "fetch_events": "Error al obtener eventos del camporee"
     },
     "common": {
       "free": "Gratuito",
@@ -1757,6 +1766,8 @@
     },
     "list": {
       "title": "Camporees",
+      "subtitle": "Campamentos y eventos disponibles para tu club.",
+      "available_count": "{count} disponibles",
       "empty": "No hay camporees disponibles",
       "error_loading": "Error al cargar camporees"
     },
@@ -1774,7 +1785,20 @@
       "view_all_members": "Ver todos los miembros ({count})",
       "error_loading": "Error al cargar el camporee",
       "insurance_ok": "Seguro OK",
-      "no_insurance": "Sin seguro"
+      "no_insurance": "Sin seguro",
+      "banner_title": "Detalle del Camporí",
+      "location_title": "UBICACIÓN",
+      "open_in_maps": "Abrir en mapas",
+      "open_location_title": "Abrir ubicación",
+      "map_open_error": "No se pudo abrir la aplicación de mapas",
+      "address_copied": "Dirección copiada",
+      "location_no_coordinates": "Sin coordenadas registradas",
+      "events_title": "Eventos del Camporí",
+      "events_subtitle": "Agenda y eventos registrados para este camporí.",
+      "no_events_yet": "Aún no hay eventos registrados.",
+      "events_error": "No se pudieron cargar los eventos.",
+      "event_day": "Día {day}",
+      "event_points": "{points} pts"
     },
     "enroll_club": {
       "title": "Inscripción de clubes",
@@ -1810,8 +1834,8 @@
       "local": "Local"
     },
     "register_member": {
-      "title": "Inscribir miembro",
-      "info_banner": "Para registrar un miembro necesitas su ID de usuario. El seguro de tipo CAMPOREE es necesario para validar la inscripción.",
+      "title": "Inscribir miembros",
+      "info_banner": "Selecciona miembros de tu sección. El tipo de camporee lo define la creación del evento; no necesitas capturar IDs ni datos de seguro.",
       "insurance_error_title": "Error de seguro",
       "insurance_error_body": "El miembro no tiene un seguro de tipo CAMPOREE activo y válido. Verifica que el seguro exista, sea de tipo CAMPOREE, esté activo y cubra las fechas del camporee.",
       "user_id_label": "ID de usuario",
@@ -1829,7 +1853,29 @@
       "insurance_id_hint": "ID del seguro de tipo CAMPOREE (opcional)",
       "insurance_id_invalid": "Ingresa un ID de seguro válido",
       "register_button": "Registrar miembro",
-      "success": "Miembro registrado exitosamente"
+      "success": "Miembro registrado exitosamente",
+      "select_members_button": "Seleccionar miembros",
+      "modify_selection_button": "Modificar selección",
+      "selection_title": "Miembros seleccionados",
+      "selection_count": "{count} seleccionados",
+      "selection_loading": "{count} miembros seleccionados",
+      "selected_empty_title": "Aún no seleccionaste miembros",
+      "selected_empty_subtitle": "Abre la lista del club para elegir uno o varios asistentes.",
+      "selected_more": "+ {count} miembros más",
+      "register_button_count": "Registrar {count} miembros",
+      "success_many": "{count} miembros registrados exitosamente",
+      "partial_success": "{success} registrados; {failed} no se pudieron registrar.",
+      "already_selected": "Los miembros seleccionados ya estaban inscritos.",
+      "already_registered_hint": "{count} miembros ya aparecen inscritos o en validación.",
+      "picker_title": "Seleccionar miembros",
+      "picker_subtitle": "Elige asistentes del club activo. Los ya inscritos aparecen marcados.",
+      "search_hint": "Buscar por nombre...",
+      "empty_members": "No hay miembros disponibles en esta sección.",
+      "empty_search": "No encontramos miembros con ese nombre.",
+      "already_enrolled": "Ya inscrito",
+      "selected": "Seleccionado",
+      "use_selection": "Usar selección ({count})",
+      "no_class": "Sin clase"
     },
     "payments": {
       "title": "Pagos — {name}",
@@ -2473,7 +2519,9 @@
       "delete_file": "Error al eliminar el archivo",
       "upload_failed": "Error al subir el archivo",
       "folder_not_exists": "La carpeta no existe aún. No se pueden realizar operaciones sin una carpeta creada.",
-      "folder_not_loaded": "La carpeta no está cargada. Asegúrese de que evidenceFolderProvider haya completado antes de invocar operaciones de mutación."
+      "folder_not_loaded": "La carpeta no está cargada. Asegúrese de que evidenceFolderProvider haya completado antes de invocar operaciones de mutación.",
+      "create_folder": "Error al crear la Carpeta Anual de Evidencias",
+      "create_folder_empty": "La carpeta fue solicitada, pero aún no está disponible. Intenta actualizar."
     },
     "title": "Carpeta Anual de Evidencias",
     "section_title": "Sección",
@@ -2535,7 +2583,11 @@
     "no_folder": {
       "title": "Carpeta no disponible",
       "description1": "La Carpeta Anual de Evidencias aún no ha sido creada para esta sección.",
-      "description2": "Contacta a la administración del campo local para consultar el estatus."
+      "description2": "Contacta a la administración del campo local para consultar el estatus.",
+      "available_hint": "Ya hay una plantilla publicada. Crea la carpeta para comenzar a subir evidencias.",
+      "create_action": "Crear carpeta",
+      "creating": "Creando carpeta…",
+      "create_success": "Carpeta creada. Ya puedes agregar evidencias."
     },
     "error_load_title": "Error al cargar la carpeta",
     "status_history": {
@@ -2826,8 +2878,10 @@
     },
     "status": {
       "title_pending": "Inscripción anual pendiente",
+      "title_submitted": "Inscripción anual enviada",
       "subtitle_pending_action": "Completa la inscripción para este año",
       "subtitle_pending_viewer": "El club aún no ha completado la inscripción para este año",
+      "subtitle_submitted": "La inscripción fue enviada y está en validación por parte del campo local",
       "subtitle_inactive_action": "La inscripción para este año requiere atención",
       "subtitle_inactive_viewer": "La inscripción del club para este año no está activa",
       "button_enroll": "Inscribirse"
@@ -3327,6 +3381,7 @@
       "members": "Miembros",
       "club": "Club",
       "evidence_folder": "Carpeta Anual de Evidencias",
+      "camporees": "Camporees",
       "finances": "Finanzas",
       "units": "Unidades",
       "grouped_class": "Clase Agrupada",

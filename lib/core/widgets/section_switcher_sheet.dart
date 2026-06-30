@@ -46,22 +46,45 @@ Future<void> showSectionSwitcher({
 // Color helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Returns (badgeBackground, badgeText) per section.
-(Color bg, Color fg) _sectionBadgeColors(String? clubTypeName) {
-  if (clubTypeName == null) {
-    return (AppColors.primaryLight, AppColors.primaryDark);
+String _normalizeClubTypeName(String? value) {
+  return (value ?? '')
+      .trim()
+      .toLowerCase()
+      .replaceAll('á', 'a')
+      .replaceAll('é', 'e')
+      .replaceAll('í', 'i')
+      .replaceAll('ó', 'o')
+      .replaceAll('ú', 'u')
+      .replaceAll('ü', 'u');
+}
+
+int _clubTypeCycleRank(String? clubTypeName) {
+  final normalized = _normalizeClubTypeName(clubTypeName);
+
+  if (normalized.contains('aventurer') || normalized.contains('adventurer')) {
+    return 0;
   }
-  final lower = clubTypeName.toLowerCase();
-  if (lower.contains('conquistador')) {
-    return (AppColors.primaryLight, AppColors.primaryDark);
+  if (normalized.contains('conquistador') ||
+      normalized.contains('pathfinder')) {
+    return 1;
   }
-  if (lower.contains('aventurer')) {
-    return (const Color(0xFFE0F0FA), const Color(0xFF1A6B9C));
+  if (normalized.contains('guia') || normalized.contains('master guide')) {
+    return 2;
   }
-  if (lower.contains('guía') || lower.contains('guia')) {
-    return (AppColors.secondaryLight, AppColors.secondaryDark);
-  }
-  return (AppColors.primaryLight, AppColors.primaryDark);
+  return 3;
+}
+
+List<AuthorizationGrant> _sortAssignmentsByClubTypeCycle(
+  List<AuthorizationGrant> assignments,
+) {
+  final indexed = assignments.asMap().entries.toList();
+  indexed.sort((a, b) {
+    final rankCompare = _clubTypeCycleRank(a.value.clubTypeName)
+        .compareTo(_clubTypeCycleRank(b.value.clubTypeName));
+    if (rankCompare != 0) return rankCompare;
+    return a.key.compareTo(b.key);
+  });
+  return indexed.map((entry) => entry.value).toList();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -171,8 +194,10 @@ class _SectionSwitcherSheetState extends ConsumerState<_SectionSwitcherSheet> {
         ?.authorization
         ?.activeAssignmentId;
 
-    // Show at most 3 assignments per spec.
-    final display = widget.assignments.take(3).toList();
+    // Show at most 3 assignments per spec, ordered by formation age cycle:
+    // Aventureros → Conquistadores → Guías Mayores.
+    final display =
+        _sortAssignmentsByClubTypeCycle(widget.assignments).take(3).toList();
 
     return Container(
       decoration: BoxDecoration(
@@ -275,7 +300,7 @@ class _OptionCard extends StatelessWidget {
     final c = context.sac;
     final color = clubColorFromName(grant.clubTypeName);
     final logoAsset = clubLogoAssetFromName(grant.clubTypeName);
-    final (badgeBg, badgeFg) = _sectionBadgeColors(grant.clubTypeName);
+    final (badgeBg, badgeFg) = clubBadgeColorsFromName(grant.clubTypeName);
     final roleName = RoleUtils.translate(grant.roleName, gender: userGender);
     final isNonActive = !grant.isActive;
 

@@ -18,6 +18,12 @@ abstract class EvidenceFolderRepository {
       String clubSectionId,
       {RequestCancelToken? cancelToken});
 
+  /// Crea la Carpeta Anual de Evidencias para una sección de club.
+  ///
+  /// Usa el endpoint por [clubSectionId] para que la app no pida UUIDs internos.
+  Future<Either<Failure, EvidenceFolder>> createEvidenceFolder(
+      String clubSectionId);
+
   /// Envía la carpeta completa a validación.
   ///
   /// AnnualFolders opera sobre carpeta completa, no por sección.

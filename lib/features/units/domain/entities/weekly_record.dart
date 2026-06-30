@@ -2,20 +2,23 @@
 class WeeklyRecordScore {
   final int categoryId;
   final String categoryName;
+  final String scoringMode;
   final int points;
   final int maxPoints;
 
   const WeeklyRecordScore({
     required this.categoryId,
     required this.categoryName,
+    this.scoringMode = 'numeric',
     required this.points,
     required this.maxPoints,
   });
 }
 
-/// Representa un registro semanal de asistencia y puntos de un miembro.
+/// Representa un registro semanal de puntos por categoría de un miembro.
 class WeeklyRecord {
   final int recordId;
+  final int? unitId;
   final String userId;
   final int week;
 
@@ -23,10 +26,10 @@ class WeeklyRecord {
   /// para semanas que cruzan el fin de año).
   final int year;
 
-  /// Puntos de asistencia para la semana.
+  /// Campo legacy de asistencia. No suma al total operativo.
   final int attendance;
 
-  /// Puntos de puntualidad para la semana.
+  /// Campo legacy de puntualidad. No suma al total operativo.
   final int punctuality;
 
   /// Puntos totales para la semana (suma de todas las categorías).
@@ -48,6 +51,7 @@ class WeeklyRecord {
 
   const WeeklyRecord({
     required this.recordId,
+    this.unitId,
     required this.userId,
     required this.week,
     required this.year,

@@ -6,6 +6,7 @@ import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/datasources/camporees_remote_data_source.dart';
 import '../../data/repositories/camporees_repository_impl.dart';
 import '../../domain/entities/camporee.dart';
+import '../../domain/entities/camporee_event.dart';
 import '../../domain/entities/camporee_member.dart';
 import '../../domain/entities/camporee_payment.dart';
 import '../../domain/repositories/camporees_repository.dart';
@@ -83,6 +84,23 @@ final camporeeDetailProvider =
   );
 });
 
+/// Provider para eventos registrados en un camporee.
+final camporeeEventsProvider = FutureProvider.autoDispose
+    .family<List<CamporeeEvent>, int>((ref, camporeeId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final repository = ref.read(camporeesRepositoryProvider);
+  final result = await repository.getCamporeeEvents(
+    camporeeId,
+    cancelToken: cancelToken,
+  );
+
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (events) => events,
+  );
+});
+
 /// Base provider que realiza la llamada real al repositorio para los miembros
 /// paginados de un camporee (page 1, limit 50).
 ///
@@ -141,6 +159,44 @@ final camporeeMembersMetaProvider = FutureProvider.autoDispose
   return paginated.meta;
 });
 
+/// IDs de usuarios que ya están seleccionados/inscritos para asistir al camporee.
+///
+/// Consulta estados visibles para asistencia (`registered`, `pending_approval`,
+/// `approved`) y pagina hasta agotar resultados para que el selector de miembros
+/// pueda marcar registros ya enviados anteriormente, incluso si están pendientes
+/// de aprobación por inscripción tardía.
+final camporeeRegisteredUserIdsProvider = FutureProvider.autoDispose
+    .family<Set<String>, int>((ref, camporeeId) async {
+  final repository = ref.read(camporeesRepositoryProvider);
+  const statuses = ['registered', 'pending_approval', 'approved'];
+  final ids = <String>{};
+
+  for (final status in statuses) {
+    var page = 1;
+    var hasNextPage = true;
+
+    while (hasNextPage) {
+      final result = await repository.getCamporeeMembers(
+        camporeeId,
+        page: page,
+        limit: 100,
+        status: status,
+      );
+
+      final paginated = result.fold(
+        (failure) => throw Exception(failure.message),
+        (value) => value,
+      );
+
+      ids.addAll(paginated.data.map((member) => member.userId));
+      hasNextPage = paginated.meta.hasNextPage;
+      page += 1;
+    }
+  }
+
+  return ids;
+});
+
 // ── Mutation notifiers ────────────────────────────────────────────────────────
 
 /// Estado para operaciones de registro de miembros en camporees.
@@ -172,6 +228,22 @@ class CamporeeRegistrationState {
   }
 }
 
+/// Resultado de una inscripción múltiple.
+class CamporeeRegistrationBatchResult {
+  final int successCount;
+  final int failureCount;
+  final String? firstErrorMessage;
+
+  const CamporeeRegistrationBatchResult({
+    required this.successCount,
+    required this.failureCount,
+    this.firstErrorMessage,
+  });
+
+  bool get isSuccess => failureCount == 0;
+  bool get hasAnySuccess => successCount > 0;
+}
+
 /// Notifier para manejar el registro de miembros en camporees.
 ///
 /// Family por [camporeeId].
@@ -186,7 +258,7 @@ class CamporeeRegistrationNotifier
   /// Registra un miembro en el camporee.
   Future<bool> register({
     required String userId,
-    required String camporeeType,
+    String? camporeeType,
     String? clubName,
     int? insuranceId,
   }) async {
@@ -219,9 +291,77 @@ class CamporeeRegistrationNotifier
       (_) {
         state = state.copyWith(isLoading: false, success: true);
         ref.invalidate(camporeeMembersProvider(_camporeeId));
+        ref.invalidate(camporeeRegisteredUserIdsProvider(_camporeeId));
         ref.invalidate(camporeeDetailProvider(_camporeeId));
         return true;
       },
+    );
+  }
+
+  /// Registra múltiples miembros en el camporee usando el contrato individual
+  /// existente del backend.
+  Future<CamporeeRegistrationBatchResult> registerMany({
+    required List<String> userIds,
+  }) async {
+    final uniqueUserIds = userIds.toSet().toList();
+
+    if (uniqueUserIds.isEmpty) {
+      return const CamporeeRegistrationBatchResult(
+        successCount: 0,
+        failureCount: 0,
+      );
+    }
+
+    state = state.copyWith(
+      isLoading: true,
+      errorMessage: null,
+      isInsuranceError: false,
+      success: false,
+    );
+
+    var successCount = 0;
+    var failureCount = 0;
+    String? firstErrorMessage;
+    var hasInsuranceError = false;
+
+    for (final userId in uniqueUserIds) {
+      final result = await ref.read(camporeesRepositoryProvider).registerMember(
+            _camporeeId,
+            userId: userId,
+          );
+
+      result.fold(
+        (failure) {
+          failureCount += 1;
+          firstErrorMessage ??= failure.message;
+          hasInsuranceError = hasInsuranceError ||
+              failure.code == 403 ||
+              failure.message.toLowerCase().contains('seguro') ||
+              failure.message.toLowerCase().contains('insurance');
+        },
+        (_) {
+          successCount += 1;
+        },
+      );
+    }
+
+    if (successCount > 0) {
+      ref.invalidate(camporeeMembersProvider(_camporeeId));
+      ref.invalidate(camporeeRegisteredUserIdsProvider(_camporeeId));
+      ref.invalidate(camporeeDetailProvider(_camporeeId));
+    }
+
+    state = state.copyWith(
+      isLoading: false,
+      success: failureCount == 0,
+      errorMessage: firstErrorMessage,
+      isInsuranceError: hasInsuranceError,
+    );
+
+    return CamporeeRegistrationBatchResult(
+      successCount: successCount,
+      failureCount: failureCount,
+      firstErrorMessage: firstErrorMessage,
     );
   }
 
@@ -292,6 +432,7 @@ class CamporeeRemoveMemberNotifier
       (_) {
         state = state.copyWith(isLoading: false, success: true);
         ref.invalidate(camporeeMembersProvider(_camporeeId));
+        ref.invalidate(camporeeRegisteredUserIdsProvider(_camporeeId));
         return true;
       },
     );

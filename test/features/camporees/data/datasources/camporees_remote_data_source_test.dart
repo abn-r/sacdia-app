@@ -133,10 +133,102 @@ Map<String, dynamic> _paginatedResponse({
       'meta': meta ?? _metaJson(),
     };
 
+Map<String, dynamic> _camporeeJson({
+  Object? registrationCost = 125.50,
+}) =>
+    {
+      'local_camporee_id': 10,
+      'name': 'Camporee Local',
+      'description': 'Camporee de prueba',
+      'start_date': '2026-07-01T00:00:00.000Z',
+      'end_date': '2026-07-03T00:00:00.000Z',
+      'local_camporee_place': 'Campo local',
+      'lat': '19.1738',
+      'long': '-96.1342',
+      'registration_cost': registrationCost,
+      'includes_adventurers': true,
+      'includes_pathfinders': true,
+      'includes_master_guides': false,
+      'active': true,
+      'local_field_id': 1,
+    };
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 void main() {
   const baseUrl = 'http://localhost:3000';
+
+  group('CamporeesRemoteDataSourceImpl.getCamporees', () {
+    test('parses string registration_cost returned by backend decimals',
+        () async {
+      final (:dio, :adapter) = _dioWith({
+        'data': [
+          _camporeeJson(registrationCost: '125.50'),
+        ],
+      });
+      final ds = CamporeesRemoteDataSourceImpl(dio: dio, baseUrl: baseUrl);
+
+      final result = await ds.getCamporees(active: true);
+
+      expect(result, hasLength(1));
+      expect(result.first.registrationCost, 125.50);
+      expect(result.first.lat, 19.1738);
+      expect(result.first.longitude, -96.1342);
+      expect(adapter.lastOptions!.queryParameters['active'], true);
+    });
+
+    test('parses registered camporee events from backend data envelope',
+        () async {
+      final (:dio, :adapter) = _dioWith({
+        'status': 'success',
+        'data': [
+          {
+            'camporee_event_id': 77,
+            'title': 'Orden cerrado',
+            'description': 'Prueba por escuadras',
+            'max_points': 100,
+            'min_points': 0,
+            'day_number': 2,
+            'starts_at': '09:00',
+            'ends_at': '10:00',
+            'display_category': 'competencia',
+            'status': 'programado',
+            'participants_mode': 'count',
+            'participants_count': 8,
+            'sections': ['pathfinders'],
+            'venue': {'camporee_venue_id': 1, 'name': 'Cancha central'},
+          },
+        ],
+      });
+      final ds = CamporeesRemoteDataSourceImpl(dio: dio, baseUrl: baseUrl);
+
+      final result = await ds.getCamporeeEvents(42);
+
+      expect(adapter.lastOptions!.path, '$baseUrl/local-camporees/42/events');
+      expect(result, hasLength(1));
+      expect(result.first.camporeeEventId, 77);
+      expect(result.first.title, 'Orden cerrado');
+      expect(result.first.venueName, 'Cancha central');
+    });
+  });
+
+  group('CamporeesRemoteDataSourceImpl.registerMember', () {
+    test('sends only user_id by default because backend infers camporee type',
+        () async {
+      final (:dio, :adapter) = _dioWith(_memberJson());
+      final ds = CamporeesRemoteDataSourceImpl(dio: dio, baseUrl: baseUrl);
+
+      await ds.registerMember(
+        42,
+        userId: 'user-001',
+      );
+
+      expect(adapter.lastOptions!.path, '$baseUrl/camporees/42/register');
+      expect(adapter.lastOptions!.data, {
+        'user_id': 'user-001',
+      });
+    });
+  });
 
   group('CamporeesRemoteDataSourceImpl.getCamporeeMembers', () {
     // ── Happy path ───────────────────────────────────────────────────────────

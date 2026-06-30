@@ -43,7 +43,7 @@ class ClubRankingsScreen extends ConsumerWidget {
       body: Builder(
         builder: (context) {
           if (authView.isLoading) {
-            return RankingSkeleton.myRanking();
+            return RankingSkeleton.annualProgress();
           }
           if (authView.hasError || !_canViewAnnualProgress(authView.user)) {
             return const RankingEmptyState(
@@ -73,14 +73,14 @@ class ClubRankingsScreen extends ConsumerWidget {
                     yearName: year.name,
                   );
                 },
-                loading: () => RankingSkeleton.myRanking(),
+                loading: () => RankingSkeleton.annualProgress(),
                 error: (_, __) => RankingEmptyState(
                   reason: RankingEmptyReason.networkError,
                   onRetry: () => ref.invalidate(clubContextProvider),
                 ),
               );
             },
-            loading: () => RankingSkeleton.myRanking(),
+            loading: () => RankingSkeleton.annualProgress(),
             error: (_, __) => RankingEmptyState(
               reason: RankingEmptyReason.networkError,
               onRetry: () => ref.invalidate(currentEcclesiasticalYearProvider),
@@ -119,7 +119,7 @@ class _AnnualRankingProgressBody extends ConsumerWidget {
         onRefresh: () async =>
             ref.invalidate(annualRankingProgressProvider(params)),
       ),
-      loading: () => RankingSkeleton.myRanking(),
+      loading: () => RankingSkeleton.annualProgress(),
       error: (_, __) => RankingEmptyState(
         reason: RankingEmptyReason.networkError,
         onRetry: () => ref.invalidate(annualRankingProgressProvider(params)),
@@ -144,19 +144,23 @@ class AnnualRankingProgressContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return RefreshIndicator(
       onRefresh: onRefresh,
+      color: AppColors.primary,
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.only(bottom: 28),
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
         children: [
           _ProgressHeroCard(progress: progress, yearName: yearName),
+          const SizedBox(height: 12),
           if (progress.nextTier != null)
             _NextTierCard(tier: progress.nextTier!)
           else
             const _TopTierCard(),
+          const SizedBox(height: 12),
           if (progress.axes.isNotEmpty)
             _AxesCard(axes: progress.axes)
           else
             _ComponentsCard(components: progress.components),
+          const SizedBox(height: 12),
           _PendingItemsCard(items: progress.pendingItems),
         ],
       ),
@@ -174,113 +178,132 @@ class _ProgressHeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final percent = (progress.progressPercentage / 100).clamp(0.0, 1.0);
+    final tierPalette = _tierPaletteFor(context, progress.currentTier);
 
-    return SacCard(
-      margin: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-      padding: const EdgeInsets.all(18),
-      borderColor: AppColors.primary.withValues(alpha: 0.18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: AppColors.primarySurface,
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: const HugeIcon(
+    return Semantics(
+      label:
+          '${tr('rankings.annual_progress.header_title')}, ${_formatPoints(progress.currentPoints)} ${tr('rankings.annual_progress.points_of_total', namedArgs: {
+            'total': _formatPoints(progress.maxPoints),
+          })}, ${tr('rankings.annual_progress.progress_percentage', namedArgs: {
+            'percent': progress.progressPercentage.toStringAsFixed(0),
+          })}',
+      child: SacCard(
+        padding: const EdgeInsets.all(18),
+        borderColor: AppColors.primary.withValues(alpha: 0.18),
+        backgroundColor: c.surface,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _IconTile(
                   icon: HugeIcons.strokeRoundedAward01,
-                  size: 26,
                   color: AppColors.primary,
+                  backgroundColor: AppColors.primarySurface,
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      tr('rankings.annual_progress.header_title'),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: c.text,
-                            fontWeight: FontWeight.w900,
-                          ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      tr(
-                        'rankings.annual_progress.header_body',
-                        namedArgs: {
-                          'club': progress.clubName,
-                          'type': progress.clubType.name,
-                          'year': yearName,
-                        },
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        tr('rankings.annual_progress.header_title'),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: c.text,
+                                  fontWeight: FontWeight.w800,
+                                  height: 1.15,
+                                ),
                       ),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: c.textSecondary,
-                            height: 1.35,
-                          ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: Text(
-                  _formatPoints(progress.currentPoints),
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w900,
+                      const SizedBox(height: 4),
+                      Text(
+                        tr(
+                          'rankings.annual_progress.header_body',
+                          namedArgs: {
+                            'club': progress.clubName,
+                            'type': progress.clubType.name,
+                            'year': yearName,
+                          },
+                        ),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: c.textSecondary,
+                              height: 1.35,
+                            ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
+                    ],
+                  ),
                 ),
-              ),
-              _TierChip(label: progress.currentTier?.name),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            tr(
-              'rankings.annual_progress.points_of_total',
-              namedArgs: {'total': _formatPoints(progress.maxPoints)},
+              ],
             ),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: c.textSecondary,
-                  fontWeight: FontWeight.w600,
+            const SizedBox(height: 20),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _formatPoints(progress.currentPoints),
+                        style:
+                            Theme.of(context).textTheme.displaySmall?.copyWith(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 34,
+                                  letterSpacing: -0.8,
+                                  height: 0.95,
+                                ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        tr(
+                          'rankings.annual_progress.points_of_total',
+                          namedArgs: {
+                            'total': _formatPoints(progress.maxPoints),
+                          },
+                        ),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: c.textSecondary,
+                              fontWeight: FontWeight.w700,
+                              height: 1.25,
+                            ),
+                      ),
+                    ],
+                  ),
                 ),
-          ),
-          const SizedBox(height: 16),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              minHeight: 10,
+                const SizedBox(width: 12),
+                _TierChip(
+                  label: progress.currentTier?.name,
+                  palette: tierPalette,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _AnimatedProgressBar(
               value: percent,
+              color: _progressColorFor(percent, c),
               backgroundColor: c.surfaceVariant,
-              color: AppColors.primary,
+              height: 10,
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            tr(
-              'rankings.annual_progress.progress_percentage',
-              namedArgs: {
-                'percent': progress.progressPercentage.toStringAsFixed(0),
-              },
+            const SizedBox(height: 8),
+            Text(
+              tr(
+                'rankings.annual_progress.progress_percentage',
+                namedArgs: {
+                  'percent': progress.progressPercentage.toStringAsFixed(0),
+                },
+              ),
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: c.textSecondary,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.2,
+                  ),
             ),
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: c.textSecondary,
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -288,8 +311,9 @@ class _ProgressHeroCard extends StatelessWidget {
 
 class _TierChip extends StatelessWidget {
   final String? label;
+  final _TierPalette palette;
 
-  const _TierChip({required this.label});
+  const _TierChip({required this.label, required this.palette});
 
   @override
   Widget build(BuildContext context) {
@@ -298,18 +322,20 @@ class _TierChip extends StatelessWidget {
         : tr('rankings.annual_progress.no_tier_yet');
 
     return Container(
-      constraints: const BoxConstraints(minHeight: 36),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      constraints: const BoxConstraints(minHeight: 38, minWidth: 86),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
       decoration: BoxDecoration(
-        color: AppColors.secondaryLight,
+        color: palette.background,
         borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: palette.border),
       ),
       child: Text(
         text,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: AppColors.secondaryDark,
-              fontWeight: FontWeight.w800,
+              color: palette.foreground,
+              fontWeight: FontWeight.w900,
             ),
+        textAlign: TextAlign.center,
       ),
     );
   }
@@ -326,24 +352,16 @@ class _NextTierCard extends StatelessWidget {
     final pointsToReach = tier.pointsToReach;
 
     return SacCard(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       padding: const EdgeInsets.all(16),
-      backgroundColor: AppColors.accentLight,
-      borderColor: AppColors.accent.withValues(alpha: 0.35),
+      backgroundColor: Color.lerp(c.surface, AppColors.accentLight, 0.62),
+      borderColor: AppColors.accent.withValues(alpha: 0.32),
+      accentColor: AppColors.accent,
       child: Row(
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.72),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const HugeIcon(
-              icon: HugeIcons.strokeRoundedTarget01,
-              size: 24,
-              color: AppColors.accentDark,
-            ),
+          _IconTile(
+            icon: HugeIcons.strokeRoundedTarget01,
+            color: AppColors.accentDark,
+            backgroundColor: c.surface.withValues(alpha: 0.72),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -354,7 +372,7 @@ class _NextTierCard extends StatelessWidget {
                   tr('rankings.annual_progress.next_tier'),
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
                         color: c.textSecondary,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w800,
                       ),
                 ),
                 const SizedBox(height: 2),
@@ -363,10 +381,11 @@ class _NextTierCard extends StatelessWidget {
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: AppColors.accentDark,
                         fontWeight: FontWeight.w900,
+                        height: 1.1,
                       ),
                 ),
                 if (pointsToReach != null) ...[
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 3),
                   Text(
                     tr(
                       'rankings.annual_progress.points_to_reach',
@@ -374,6 +393,8 @@ class _NextTierCard extends StatelessWidget {
                     ),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: c.textSecondary,
+                          fontWeight: FontWeight.w600,
+                          height: 1.3,
                         ),
                   ),
                 ],
@@ -391,17 +412,32 @@ class _TopTierCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
+
     return SacCard(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       padding: const EdgeInsets.all(16),
-      backgroundColor: AppColors.secondaryLight,
+      backgroundColor: Color.lerp(c.surface, AppColors.secondaryLight, 0.68),
       borderColor: AppColors.secondary.withValues(alpha: 0.28),
-      child: Text(
-        tr('rankings.annual_progress.top_tier_reached'),
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.secondaryDark,
-              fontWeight: FontWeight.w800,
+      accentColor: AppColors.secondary,
+      child: Row(
+        children: [
+          _IconTile(
+            icon: HugeIcons.strokeRoundedAward01,
+            color: AppColors.secondaryDark,
+            backgroundColor: c.surface.withValues(alpha: 0.72),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              tr('rankings.annual_progress.top_tier_reached'),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.secondaryDark,
+                    fontWeight: FontWeight.w800,
+                    height: 1.35,
+                  ),
             ),
+          ),
+        ],
       ),
     );
   }
@@ -417,7 +453,6 @@ class _ComponentsCard extends StatelessWidget {
     final c = context.sac;
 
     return SacCard(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -427,9 +462,9 @@ class _ComponentsCard extends StatelessWidget {
             title: tr('rankings.annual_progress.components_title'),
           ),
           const SizedBox(height: 14),
-          for (final component in components) ...[
-            _ComponentRow(component: component),
-            if (component != components.last)
+          for (var index = 0; index < components.length; index++) ...[
+            _ComponentRow(component: components[index]),
+            if (index != components.length - 1)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Divider(height: 1, color: c.divider),
@@ -448,10 +483,7 @@ class _AxesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-
     return SacCard(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -461,13 +493,9 @@ class _AxesCard extends StatelessWidget {
             title: tr('rankings.annual_progress.components_title'),
           ),
           const SizedBox(height: 14),
-          for (final axis in axes) ...[
-            _AxisSection(axis: axis),
-            if (axis != axes.last)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                child: Divider(height: 1, color: c.divider),
-              ),
+          for (var index = 0; index < axes.length; index++) ...[
+            _AxisSection(axis: axes[index]),
+            if (index != axes.length - 1) const SizedBox(height: 12),
           ],
         ],
       ),
@@ -484,60 +512,101 @@ class _AxisSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final percent = (axis.progressPercentage / 100).clamp(0.0, 1.0);
+    final accent = _axisAccentFor(axis.key);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Text(
-                axis.label,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: c.text,
-                      fontWeight: FontWeight.w900,
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: c.surfaceVariant,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: c.borderLight),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedChartBarLine,
+                  size: 20,
+                  color: accent,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      axis.label,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: c.text,
+                            fontWeight: FontWeight.w900,
+                            height: 1.18,
+                          ),
                     ),
+                    const SizedBox(height: 4),
+                    Text(
+                      tr(
+                        'rankings.annual_progress.component_points',
+                        namedArgs: {
+                          'earned': _formatPoints(axis.earnedPoints),
+                          'max': _formatPoints(axis.maxPoints),
+                        },
+                      ),
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: c.textSecondary,
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              tr(
-                'rankings.annual_progress.component_points',
-                namedArgs: {
-                  'earned': _formatPoints(axis.earnedPoints),
-                  'max': _formatPoints(axis.maxPoints),
-                },
-              ),
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w900,
-                  ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(999),
-          child: LinearProgressIndicator(
-            minHeight: 8,
-            value: percent,
-            backgroundColor: c.surfaceVariant,
-            color: AppColors.primary,
+            ],
           ),
-        ),
-        if (axis.components.isNotEmpty) ...[
           const SizedBox(height: 12),
-          for (final component in axis.components) ...[
-            _ComponentRow(component: component),
-            if (component != axis.components.last)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: Divider(height: 1, color: c.divider),
+          _AnimatedProgressBar(
+            value: percent,
+            backgroundColor: c.surface,
+            color: _progressColorFor(percent, c, activeColor: accent),
+            height: 8,
+          ),
+          if (axis.components.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: c.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: c.borderLight),
               ),
+              child: Column(
+                children: [
+                  for (var index = 0;
+                      index < axis.components.length;
+                      index++) ...[
+                    _ComponentRow(component: axis.components[index]),
+                    if (index != axis.components.length - 1)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Divider(height: 1, color: c.divider),
+                      ),
+                  ],
+                ],
+              ),
+            ),
           ],
         ],
-      ],
+      ),
     );
   }
 }
@@ -551,11 +620,13 @@ class _ComponentRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final percent = (component.progressPercentage / 100).clamp(0.0, 1.0);
+    final color = _progressColorFor(percent, c, activeColor: AppColors.primary);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: Text(
@@ -563,9 +634,11 @@ class _ComponentRow extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: c.text,
                       fontWeight: FontWeight.w800,
+                      height: 1.2,
                     ),
               ),
             ),
+            const SizedBox(width: 10),
             Text(
               tr(
                 'rankings.annual_progress.component_points',
@@ -575,21 +648,18 @@ class _ComponentRow extends StatelessWidget {
                 },
               ),
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: AppColors.primary,
+                    color: color,
                     fontWeight: FontWeight.w900,
                   ),
             ),
           ],
         ),
         const SizedBox(height: 8),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(999),
-          child: LinearProgressIndicator(
-            minHeight: 8,
-            value: percent,
-            backgroundColor: c.surfaceVariant,
-            color: AppColors.secondary,
-          ),
+        _AnimatedProgressBar(
+          value: percent,
+          backgroundColor: c.surfaceVariant,
+          color: color,
+          height: 8,
         ),
       ],
     );
@@ -604,30 +674,46 @@ class _PendingItemsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    final hasItems = items.isNotEmpty;
 
     return SacCard(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       padding: const EdgeInsets.all(16),
+      borderColor: hasItems
+          ? AppColors.primary.withValues(alpha: 0.20)
+          : AppColors.secondary.withValues(alpha: 0.22),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _SectionHeading(
             icon: HugeIcons.strokeRoundedTask01,
             title: tr('rankings.annual_progress.pending.title'),
+            color: hasItems ? AppColors.primary : AppColors.secondary,
           ),
           const SizedBox(height: 12),
-          if (items.isEmpty)
-            Text(
-              tr('rankings.annual_progress.pending.empty'),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: c.textSecondary,
-                    height: 1.35,
-                  ),
+          if (!hasItems)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.secondaryLight.withValues(alpha: 0.55),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.secondary.withValues(alpha: 0.18),
+                ),
+              ),
+              child: Text(
+                tr('rankings.annual_progress.pending.empty'),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: c.textSecondary,
+                      fontWeight: FontWeight.w700,
+                      height: 1.35,
+                    ),
+              ),
             )
           else
-            for (final item in items) ...[
-              _PendingItemTile(item: item),
-              if (item != items.last) const SizedBox(height: 10),
+            for (var index = 0; index < items.length; index++) ...[
+              _PendingItemTile(item: items[index]),
+              if (index != items.length - 1) const SizedBox(height: 10),
             ],
         ],
       ),
@@ -664,6 +750,7 @@ class _PendingItemTile extends StatelessWidget {
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: c.text,
                         fontWeight: FontWeight.w800,
+                        height: 1.25,
                       ),
                 ),
               ),
@@ -760,8 +847,13 @@ class _MetaPill extends StatelessWidget {
 class _SectionHeading extends StatelessWidget {
   final List<List<dynamic>> icon;
   final String title;
+  final Color color;
 
-  const _SectionHeading({required this.icon, required this.title});
+  const _SectionHeading({
+    required this.icon,
+    required this.title,
+    this.color = AppColors.primary,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -769,20 +861,149 @@ class _SectionHeading extends StatelessWidget {
 
     return Row(
       children: [
-        HugeIcon(icon: icon, size: 20, color: AppColors.primary),
-        const SizedBox(width: 8),
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.11),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: HugeIcon(icon: icon, size: 18, color: color),
+        ),
+        const SizedBox(width: 10),
         Expanded(
           child: Text(
             title,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: c.text,
                   fontWeight: FontWeight.w900,
+                  height: 1.15,
                 ),
           ),
         ),
       ],
     );
   }
+}
+
+class _IconTile extends StatelessWidget {
+  final List<List<dynamic>> icon;
+  final Color color;
+  final Color backgroundColor;
+
+  const _IconTile({
+    required this.icon,
+    required this.color,
+    required this.backgroundColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 48,
+      height: 48,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: HugeIcon(icon: icon, size: 24, color: color),
+    );
+  }
+}
+
+class _AnimatedProgressBar extends StatelessWidget {
+  final double value;
+  final Color color;
+  final Color backgroundColor;
+  final double height;
+
+  const _AnimatedProgressBar({
+    required this.value,
+    required this.color,
+    required this.backgroundColor,
+    required this.height,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+
+    final safeValue = value.clamp(0.0, 1.0).toDouble();
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(999),
+      child: TweenAnimationBuilder<double>(
+        tween: Tween<double>(begin: 0, end: safeValue),
+        duration:
+            reduceMotion ? Duration.zero : const Duration(milliseconds: 650),
+        curve: Curves.easeOutCubic,
+        builder: (context, animatedValue, _) {
+          return LinearProgressIndicator(
+            minHeight: height,
+            value: animatedValue,
+            backgroundColor: backgroundColor,
+            color: color,
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _TierPalette {
+  final Color foreground;
+  final Color background;
+  final Color border;
+
+  const _TierPalette({
+    required this.foreground,
+    required this.background,
+    required this.border,
+  });
+}
+
+_TierPalette _tierPaletteFor(BuildContext context, RankingTier? tier) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  final key = (tier?.slug ?? tier?.name ?? '').toLowerCase();
+
+  final Color foreground = switch (key) {
+    String value when value.contains('bronze') || value.contains('bronce') =>
+      const Color(0xFFB86A2D),
+    String value when value.contains('silver') || value.contains('plata') =>
+      const Color(0xFF64748B),
+    String value when value.contains('gold') || value.contains('oro') =>
+      const Color(0xFF9A6B18),
+    String value when value.contains('diamond') || value.contains('diamante') =>
+      const Color(0xFF0E7490),
+    _ => AppColors.secondaryDark,
+  };
+
+  return _TierPalette(
+    foreground: foreground,
+    background: isDark
+        ? foreground.withValues(alpha: 0.18)
+        : foreground.withValues(alpha: 0.12),
+    border: foreground.withValues(alpha: isDark ? 0.36 : 0.20),
+  );
+}
+
+Color _axisAccentFor(String key) {
+  final normalized = key.toLowerCase();
+  if (normalized.contains('oper')) return AppColors.secondary;
+  if (normalized.contains('admin')) return AppColors.primary;
+  return AppColors.accentDark;
+}
+
+Color _progressColorFor(
+  double percent,
+  SacColors colors, {
+  Color activeColor = AppColors.primary,
+}) {
+  if (percent >= 1.0) return AppColors.secondary;
+  if (percent <= 0.0) return colors.textTertiary;
+  return activeColor;
 }
 
 String _formatPoints(int points) =>
