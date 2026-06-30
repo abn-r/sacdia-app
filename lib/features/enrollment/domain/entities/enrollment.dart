@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 /// Estado de una inscripción anual.
-enum EnrollmentStatus { active, inactive, pending }
+enum EnrollmentStatus { active, inactive, pending, pendingValidation, rejected }
 
 /// Par de día + hora de reunión.
 class MeetingSchedule extends Equatable {

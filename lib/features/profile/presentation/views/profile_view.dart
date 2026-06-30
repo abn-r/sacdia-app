@@ -74,6 +74,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           ),
           IOSUiSettings(
             title: 'profile.view.crop_photo_title'.tr(),
+            doneButtonTitle: 'common.done'.tr(),
+            cancelButtonTitle: 'common.cancel'.tr(),
             aspectRatioLockEnabled: true,
             resetAspectRatioEnabled: false,
           ),

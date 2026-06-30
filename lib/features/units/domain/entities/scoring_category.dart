@@ -9,6 +9,7 @@ class ScoringCategory {
   final int scoringCategoryId;
   final String name;
   final int maxPoints;
+  final String scoringMode;
 
   /// Nivel organizacional que creó esta categoría.
   /// Posibles valores: "DIVISION", "UNION", "LOCAL_FIELD"
@@ -27,11 +28,21 @@ class ScoringCategory {
     required this.scoringCategoryId,
     required this.name,
     required this.maxPoints,
+    this.scoringMode = 'numeric',
     required this.originLevel,
     required this.originId,
     this.active = true,
     this.readonly = false,
   });
+
+  bool get isBooleanFull => scoringMode == 'boolean_full';
+
+  int normalizePoints(int value) {
+    if (isBooleanFull) {
+      return value > 0 ? maxPoints : 0;
+    }
+    return value.clamp(0, maxPoints).toInt();
+  }
 
   @override
   bool operator ==(Object other) =>

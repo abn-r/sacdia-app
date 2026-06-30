@@ -10,6 +10,8 @@ class CamporeeModel extends Equatable {
   final DateTime startDate;
   final DateTime endDate;
   final String place;
+  final double? lat;
+  final double? longitude;
   final double? registrationCost;
   final bool includesAdventurers;
   final bool includesPathfinders;
@@ -25,6 +27,8 @@ class CamporeeModel extends Equatable {
     required this.startDate,
     required this.endDate,
     required this.place,
+    this.lat,
+    this.longitude,
     this.registrationCost,
     required this.includesAdventurers,
     required this.includesPathfinders,
@@ -45,9 +49,17 @@ class CamporeeModel extends Equatable {
       description: safeStringOrNull(json['description']),
       startDate: DateTime.parse(safeString(json['start_date'])),
       endDate: DateTime.parse(safeString(json['end_date'])),
-      place: safeString(json['local_camporee_place'] ?? json['place']),
+      place: safeString(
+        json['local_camporee_place'] ??
+            json['union_camporee_place'] ??
+            json['place'],
+      ),
+      lat: safeDoubleOrNull(json['lat'] ?? json['latitude']),
+      longitude: safeDoubleOrNull(
+        json['long'] ?? json['longitude'] ?? json['lng'],
+      ),
       registrationCost: json['registration_cost'] != null
-          ? (json['registration_cost'] as num).toDouble()
+          ? safeDouble(json['registration_cost'])
           : null,
       includesAdventurers: safeBool(json['includes_adventurers']),
       includesPathfinders: safeBool(json['includes_pathfinders']),
@@ -70,6 +82,8 @@ class CamporeeModel extends Equatable {
       startDate: startDate,
       endDate: endDate,
       place: place,
+      lat: lat,
+      longitude: longitude,
       registrationCost: registrationCost,
       includesAdventurers: includesAdventurers,
       includesPathfinders: includesPathfinders,
@@ -88,6 +102,8 @@ class CamporeeModel extends Equatable {
         startDate,
         endDate,
         place,
+        lat,
+        longitude,
         registrationCost,
         includesAdventurers,
         includesPathfinders,

@@ -91,6 +91,21 @@ void main() {
     );
 
     testWidgets(
+      'shows camporees shortcut when the user can read camporees',
+      (tester) async {
+        final user = _userWithPermissions(
+          const [
+            'camporees:read',
+          ],
+        );
+
+        await _pumpQuickAccessGrid(tester, user);
+
+        expect(find.text('dashboard.quick_access.camporees'), findsOne);
+      },
+    );
+
+    testWidgets(
       'does not expose legacy personal or section rankings from dashboard',
       (tester) async {
         final user = _userWithPermissions(

@@ -92,6 +92,15 @@ abstract class UnitsRepository {
     List<Map<String, int>> scores = const [],
   });
 
+  /// Crea o actualiza atómicamente los registros semanales de una unidad.
+  Future<Either<Failure, List<WeeklyRecord>>> bulkUpsertWeeklyRecords({
+    required int clubId,
+    required int unitId,
+    required int week,
+    required int year,
+    required List<Map<String, dynamic>> records,
+  });
+
   /// Actualiza un registro semanal existente.
   Future<Either<Failure, WeeklyRecord>> updateWeeklyRecord({
     required int clubId,

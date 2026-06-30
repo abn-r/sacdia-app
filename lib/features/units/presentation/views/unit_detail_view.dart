@@ -21,7 +21,7 @@ import '../providers/units_providers.dart';
 ///
 /// Muestra:
 /// - Header con info de la unidad
-/// - Banner de "ya registrado hoy" si [isSavedToday]
+/// - Banner de planilla ya guardada si [isSavedToday]
 /// - Lista de miembros con puntaje dinámico por categoría
 /// - Footer sticky con botón de guardar
 ///
@@ -109,6 +109,19 @@ class UnitDetailView extends ConsumerWidget {
                   ),
                 ),
 
+                if (canRegisterPoints && state.categories.isNotEmpty) ...[
+                  _CategoryBulkActions(
+                    categories: state.categories,
+                    isDisabled: state.isSavedToday,
+                    onSetForAll: (category, value) =>
+                        notifier.setCategoryPointsForAllMembers(
+                      category.scoringCategoryId,
+                      value,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+
                 // Lista de miembros con puntajes por categoría
                 ...state.members.map((member) {
                   final memberScores = state.pendingScores[member.id] ?? {};
@@ -138,6 +151,10 @@ class UnitDetailView extends ConsumerWidget {
                           value,
                         );
                       },
+                      onSetAll: () =>
+                          notifier.setAllCategoryPointsForMember(member.id),
+                      onClear: () =>
+                          notifier.clearCategoryPointsForMember(member.id),
                     ),
                   );
                 }),
@@ -151,6 +168,7 @@ class UnitDetailView extends ConsumerWidget {
           if (canRegisterPoints)
             _SaveFooter(
               isSavedToday: state.isSavedToday,
+              isSaving: state.isSaving,
               onSave: () => _handleSave(context, notifier),
               onReset: () => notifier.resetSession(),
             ),
@@ -165,7 +183,7 @@ class UnitDetailView extends ConsumerWidget {
       if (!saved) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('units.detail.save_error_all_or_none'.tr()),
+            content: Text('units.detail.save_error'.tr()),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -284,6 +302,71 @@ class _SavedTodayBanner extends StatelessWidget {
   }
 }
 
+class _CategoryBulkActions extends StatelessWidget {
+  final List<ScoringCategory> categories;
+  final bool isDisabled;
+  final void Function(ScoringCategory category, int value) onSetForAll;
+
+  const _CategoryBulkActions({
+    required this.categories,
+    required this.isDisabled,
+    required this.onSetForAll,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return SacCard(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'units.detail.bulk_categories_title'.tr(),
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: c.text,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          const SizedBox(height: 8),
+          ...categories.map(
+            (category) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      category.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: c.textSecondary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed:
+                        isDisabled ? null : () => onSetForAll(category, 0),
+                    child: const Text('0'),
+                  ),
+                  TextButton(
+                    onPressed: isDisabled
+                        ? null
+                        : () => onSetForAll(category, category.maxPoints),
+                    child: Text('units.detail.max_button'.tr()),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Card de un miembro con puntaje dinámico por categoría.
 ///
 /// Cuando hay categorías configuradas, muestra una fila por categoría
@@ -307,6 +390,8 @@ class _MemberCategoryScoreCard extends StatelessWidget {
   final bool isReadOnly;
   final void Function(int categoryId, int delta) onAdjust;
   final void Function(int categoryId, int value) onSetValue;
+  final VoidCallback onSetAll;
+  final VoidCallback onClear;
 
   const _MemberCategoryScoreCard({
     required this.member,
@@ -318,6 +403,8 @@ class _MemberCategoryScoreCard extends StatelessWidget {
     required this.isReadOnly,
     required this.onAdjust,
     required this.onSetValue,
+    required this.onSetAll,
+    required this.onClear,
   });
 
   @override
@@ -357,6 +444,27 @@ class _MemberCategoryScoreCard extends StatelessWidget {
               ),
             ],
           ),
+
+          if (!isReadOnly && categories.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: isDisabled ? null : onSetAll,
+                    child: Text('units.detail.assign_all_button'.tr()),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: isDisabled ? null : onClear,
+                    child: Text('units.detail.clear_button'.tr()),
+                  ),
+                ),
+              ],
+            ),
+          ],
 
           const SizedBox(height: 10),
 
@@ -415,6 +523,52 @@ class _CategoryRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final canEditManually = !isReadOnly && !isDisabled;
+    final normalizedPoints = category.normalizePoints(points);
+
+    if (category.isBooleanFull) {
+      return Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  category.name,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: c.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  'units.detail.boolean_category_hint'.tr(),
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: c.textTertiary,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            normalizedPoints == category.maxPoints
+                ? '${category.maxPoints}'
+                : '0',
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          Switch.adaptive(
+            value: normalizedPoints == category.maxPoints,
+            onChanged: canEditManually
+                ? (checked) => onSetValue(checked ? category.maxPoints : 0)
+                : null,
+          ),
+        ],
+      );
+    }
 
     return Row(
       children: [
@@ -437,7 +591,7 @@ class _CategoryRow extends StatelessWidget {
         if (isReadOnly) ...[
           // Solo lectura: mostrar valor sin controles
           Text(
-            '$points / ${category.maxPoints}',
+            '$normalizedPoints / ${category.maxPoints}',
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
                   color: AppColors.primary,
                   fontWeight: FontWeight.w600,
@@ -453,7 +607,7 @@ class _CategoryRow extends StatelessWidget {
               _SmallAdjustButton(
                 label: '-1',
                 isNegative: true,
-                isDisabled: isDisabled || points <= 0,
+                isDisabled: isDisabled || normalizedPoints <= 0,
                 onPressed: () => onAdjust(-1),
               ),
               const SizedBox(width: 6),
@@ -481,7 +635,7 @@ class _CategoryRow extends StatelessWidget {
                     child: Text(
                       'units.detail.category_points'.tr(
                         namedArgs: {
-                          'points': '$points',
+                          'points': '$normalizedPoints',
                           'max': '${category.maxPoints}',
                         },
                       ),
@@ -499,7 +653,8 @@ class _CategoryRow extends StatelessWidget {
               _SmallAdjustButton(
                 label: '+1',
                 isNegative: false,
-                isDisabled: isDisabled || points >= category.maxPoints,
+                isDisabled:
+                    isDisabled || normalizedPoints >= category.maxPoints,
                 onPressed: () => onAdjust(1),
               ),
             ],
@@ -510,7 +665,9 @@ class _CategoryRow extends StatelessWidget {
   }
 
   Future<void> _openManualPointsDialog(BuildContext context) async {
-    final controller = TextEditingController(text: '$points');
+    final controller = TextEditingController(
+      text: '${category.normalizePoints(points)}',
+    );
     String? errorText;
     final material = MaterialLocalizations.of(context);
 
@@ -680,11 +837,13 @@ class _SmallAdjustButton extends StatelessWidget {
 /// Footer sticky con el botón de guardar y opción de resetear.
 class _SaveFooter extends StatelessWidget {
   final bool isSavedToday;
+  final bool isSaving;
   final VoidCallback onSave;
   final VoidCallback onReset;
 
   const _SaveFooter({
     required this.isSavedToday,
+    required this.isSaving,
     required this.onSave,
     required this.onReset,
   });
@@ -708,6 +867,7 @@ class _SaveFooter extends StatelessWidget {
           : SacButton.primary(
               text: 'units.detail.save_button'.tr(),
               icon: HugeIcons.strokeRoundedFloppyDisk,
+              isLoading: isSaving,
               onPressed: onSave,
             ),
     );

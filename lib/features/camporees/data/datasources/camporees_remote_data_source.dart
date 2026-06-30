@@ -5,6 +5,7 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../../core/models/paginated_result.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/camporee_model.dart';
+import '../models/camporee_event_model.dart';
 import '../models/camporee_member_model.dart';
 import '../models/camporee_payment_model.dart';
 
@@ -20,12 +21,21 @@ abstract class CamporeesRemoteDataSource {
   Future<CamporeeModel> getCamporeeDetail(int camporeeId,
       {CancelToken? cancelToken});
 
+  /// Obtiene eventos registrados de un camporee local.
+  /// GET /api/v1/local-camporees/:camporeeId/events
+  Future<List<CamporeeEventModel>> getCamporeeEvents(
+    int camporeeId, {
+    CancelToken? cancelToken,
+  });
+
   /// Registra un miembro en un camporee.
   /// POST /api/v1/camporees/:camporeeId/register
+  /// El backend infiere el tipo de camporee desde el endpoint; camporeeType se
+  /// mantiene opcional por compatibilidad con despliegues anteriores.
   Future<CamporeeMemberModel> registerMember(
     int camporeeId, {
     required String userId,
-    required String camporeeType,
+    String? camporeeType,
     String? clubName,
     int? insuranceId,
   });
@@ -191,21 +201,64 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
     }
   }
 
+  // ── GET /api/v1/local-camporees/:camporeeId/events ─────────────────────────
+
+  @override
+  Future<List<CamporeeEventModel>> getCamporeeEvents(
+    int camporeeId, {
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl/local-camporees/$camporeeId/events',
+        cancelToken: cancelToken,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = response.data;
+        final List<dynamic> data;
+        if (responseData is Map && responseData['data'] is List) {
+          data = responseData['data'] as List<dynamic>;
+        } else if (responseData is List) {
+          data = responseData;
+        } else {
+          data = const [];
+        }
+
+        return data
+            .whereType<Map<String, dynamic>>()
+            .map(CamporeeEventModel.fromJson)
+            .toList();
+      }
+
+      throw ServerException(
+        message: tr('camporees.errors.fetch_events'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
+      AppLogger.e('Error en getCamporeeEvents', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
   // ── POST /api/v1/camporees/:camporeeId/register ──────────────────────────────
 
   @override
   Future<CamporeeMemberModel> registerMember(
     int camporeeId, {
     required String userId,
-    required String camporeeType,
+    String? camporeeType,
     String? clubName,
     int? insuranceId,
   }) async {
     try {
       final body = <String, dynamic>{
         'user_id': userId,
-        'camporee_type': camporeeType,
       };
+      if (camporeeType != null && camporeeType.isNotEmpty) {
+        body['camporee_type'] = camporeeType;
+      }
       if (clubName != null) body['club_name'] = clubName;
       if (insuranceId != null) body['insurance_id'] = insuranceId;
 

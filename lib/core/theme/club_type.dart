@@ -71,3 +71,25 @@ Color clubColorFromName(String? name) =>
 
 String? clubLogoAssetFromName(String? name) =>
     clubTypeFromName(name)?.logoAsset;
+
+/// Resolves the canonical badge background/foreground colors for a club type.
+///
+/// This mirrors the section switcher visual language:
+/// - Conquistadores → red
+/// - Aventureros → blue
+/// - Guías Mayores → green
+///
+/// Unknown values intentionally fall back to Conquistadores/SACDIA primary
+/// because that was the previous default for generic club-type badges.
+(Color background, Color foreground) clubBadgeColorsFromName(String? name) {
+  switch (clubTypeFromName(name)) {
+    case ClubType.conquistadores:
+      return (AppColors.primaryLight, AppColors.primaryDark);
+    case ClubType.aventureros:
+      return (const Color(0xFFE0F0FA), const Color(0xFF1A6B9C));
+    case ClubType.guiasMayores:
+      return (AppColors.secondaryLight, AppColors.secondaryDark);
+    case null:
+      return (AppColors.primaryLight, AppColors.primaryDark);
+  }
+}

@@ -8,6 +8,8 @@ class Camporee extends Equatable {
   final DateTime startDate;
   final DateTime endDate;
   final String place;
+  final double? lat;
+  final double? longitude;
   final double? registrationCost;
   final bool includesAdventurers;
   final bool includesPathfinders;
@@ -23,6 +25,8 @@ class Camporee extends Equatable {
     required this.startDate,
     required this.endDate,
     required this.place,
+    this.lat,
+    this.longitude,
     this.registrationCost,
     required this.includesAdventurers,
     required this.includesPathfinders,
@@ -32,6 +36,8 @@ class Camporee extends Equatable {
     this.localFieldName,
   });
 
+  bool get hasLocation => lat != null && longitude != null;
+
   @override
   List<Object?> get props => [
         camporeeId,
@@ -40,6 +46,8 @@ class Camporee extends Equatable {
         startDate,
         endDate,
         place,
+        lat,
+        longitude,
         registrationCost,
         includesAdventurers,
         includesPathfinders,

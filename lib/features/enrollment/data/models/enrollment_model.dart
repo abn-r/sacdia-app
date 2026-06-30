@@ -101,6 +101,10 @@ class EnrollmentModel extends Enrollment {
     final rawStatus = (json['status'] as String?)?.toLowerCase();
     if (rawStatus == 'inactive') status = EnrollmentStatus.inactive;
     if (rawStatus == 'pending') status = EnrollmentStatus.pending;
+    if (rawStatus == 'pending_validation') {
+      status = EnrollmentStatus.pendingValidation;
+    }
+    if (rawStatus == 'rejected') status = EnrollmentStatus.rejected;
 
     DateTime? createdAt;
     final rawCreated = json['created_at'];

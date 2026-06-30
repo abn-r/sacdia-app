@@ -11,6 +11,8 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_dialog.dart';
 import '../../../../core/widgets/sac_progress_bar.dart';
+import '../../../auth/domain/utils/authorization_utils.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../widgets/evidence_folder_loading_skeleton.dart';
 import '../../domain/entities/evidence_folder.dart';
 import '../../domain/entities/evidence_section.dart';
@@ -49,6 +51,7 @@ class EvidenceFolderView extends ConsumerWidget {
           // Ambos convergen en _NoFolderBody.
           data: (folder) => folder == null
               ? _NoFolderBody(
+                  clubSectionId: clubSectionId,
                   onBack: () => Navigator.of(context).maybePop(),
                 )
               : _FolderBody(
@@ -59,6 +62,7 @@ class EvidenceFolderView extends ConsumerWidget {
             // Fallback defensivo: backend viejo que todavía devuelve 404.
             if (error is NotFoundException) {
               return _NoFolderBody(
+                clubSectionId: clubSectionId,
                 onBack: () => Navigator.of(context).maybePop(),
               );
             }
@@ -624,14 +628,51 @@ class _EmptySections extends StatelessWidget {
 
 // ── Empty state: carpeta no disponible (404 de negocio) ──────────────────────
 
-class _NoFolderBody extends StatelessWidget {
+class _NoFolderBody extends ConsumerWidget {
+  final String clubSectionId;
   final VoidCallback onBack;
 
-  const _NoFolderBody({required this.onBack});
+  const _NoFolderBody({
+    required this.clubSectionId,
+    required this.onBack,
+  });
+
+  Future<void> _handleCreate(BuildContext context, WidgetRef ref) async {
+    final notifier = ref
+        .read(evidenceFolderCreationNotifierProvider(clubSectionId).notifier);
+    final created = await notifier.createFolder();
+
+    if (!context.mounted) return;
+
+    final creationState =
+        ref.read(evidenceFolderCreationNotifierProvider(clubSectionId));
+    if (created) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('evidence_folder.no_folder.create_success'.tr()),
+          backgroundColor: AppColors.secondary,
+        ),
+      );
+      return;
+    }
+
+    final message = creationState.errorMessage ??
+        'evidence_folder.errors.create_folder'.tr();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.error,
+      ),
+    );
+  }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = context.sac;
+    final user = ref.watch(authNotifierProvider).valueOrNull;
+    final canCreate = hasAnyPermission(user, {'evidence_folders:update'});
+    final creationState =
+        ref.watch(evidenceFolderCreationNotifierProvider(clubSectionId));
 
     return Column(
       children: [
@@ -698,14 +739,38 @@ class _NoFolderBody extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'evidence_folder.no_folder.description2'.tr(),
+                    canCreate
+                        ? 'evidence_folder.no_folder.available_hint'.tr()
+                        : 'evidence_folder.no_folder.description2'.tr(),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: c.textSecondary,
                           height: 1.55,
                         ),
                     textAlign: TextAlign.center,
                   ),
+                  if (creationState.errorMessage != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      creationState.errorMessage!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.error,
+                            height: 1.4,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                   const SizedBox(height: 32),
+                  if (canCreate) ...[
+                    SacButton.primary(
+                      text: creationState.isLoading
+                          ? 'evidence_folder.no_folder.creating'.tr()
+                          : 'evidence_folder.no_folder.create_action'.tr(),
+                      icon: HugeIcons.strokeRoundedAdd01,
+                      isLoading: creationState.isLoading,
+                      onPressed: () => _handleCreate(context, ref),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                   SacButton.ghost(
                     text: 'common.back'.tr(),
                     icon: HugeIcons.strokeRoundedArrowLeft01,

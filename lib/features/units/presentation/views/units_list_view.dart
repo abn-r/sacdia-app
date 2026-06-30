@@ -37,12 +37,17 @@ List<Unit> _filterUnitsByRole(
   List<Unit> units,
   String? role,
   String? userId,
+  int? sectionId,
 ) {
+  final scopedUnits = sectionId == null
+      ? units
+      : units.where((u) => u.clubSectionId == sectionId).toList();
+
   if (role != null && _canManageRole(role)) {
-    return units; // management sees all
+    return scopedUnits; // management sees all units in the active section
   }
   // Non-management: only units where the user is directly assigned
-  return units
+  return scopedUnits
       .where(
         (u) =>
             u.advisorId == userId ||
@@ -90,8 +95,9 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
       final user = ref.read(authNotifierProvider).valueOrNull;
       final role = clubCtx?.roleName;
       final userId = user?.id;
+      final sectionId = clubCtx?.sectionId;
 
-      final visible = _filterUnitsByRole(rawUnits, role, userId);
+      final visible = _filterUnitsByRole(rawUnits, role, userId, sectionId);
       if (visible.length == 1) {
         _navigateToUnit(visible.first, replace: true);
       }
@@ -135,12 +141,18 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
         ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
 
     final role = clubContextAsync.valueOrNull?.roleName;
+    final sectionId = clubContextAsync.valueOrNull?.sectionId;
     final userId = currentUser?.id;
     final canManage = _canManageRole(role);
     final canDelete = _canDeleteRole(role);
 
     // Filter units based on role before checking count
-    final visibleUnits = _filterUnitsByRole(state.units, role, userId);
+    final visibleUnits = _filterUnitsByRole(
+      state.units,
+      role,
+      userId,
+      sectionId,
+    );
 
     // Caso de una sola unidad: render placeholder mientras se hace el push
     // Use visibleUnits for this check so management roles with 1 unit also

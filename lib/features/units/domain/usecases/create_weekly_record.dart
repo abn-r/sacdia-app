@@ -14,9 +14,12 @@ class CreateWeeklyRecordParams extends Equatable {
   /// Año ISO 8601 al que pertenece el registro.
   final int year;
 
+  /// Campo legacy de compatibilidad; la asistencia que suma puntos debe viajar
+  /// como categoría en [scores].
   final int attendance;
 
-  /// Puntos de puntualidad (1 si estuvo puntual, 0 si no).
+  /// Campo legacy de compatibilidad; la puntualidad que suma puntos debe viajar
+  /// como categoría en [scores].
   final int punctuality;
 
   /// Puntajes por categoría dinámica.

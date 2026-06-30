@@ -1,16 +1,24 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
+import 'package:sacdia_app/core/auth/club_role_names.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
-import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee.dart';
+import 'package:sacdia_app/features/camporees/domain/entities/camporee_event.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.dart';
+import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_location_card.dart';
 
 import '../providers/camporees_providers.dart';
 import 'camporee_members_view.dart';
@@ -18,7 +26,8 @@ import 'camporee_register_member_view.dart';
 
 /// Vista de detalle de un camporee.
 ///
-/// Muestra información completa del camporee y la sección de miembros inscritos.
+/// Mantiene navegación y componentes cercanos a patrones nativos: AppBar
+/// estándar, contenido en lista vertical y acciones con targets táctiles claros.
 class CamporeeDetailView extends ConsumerWidget {
   final int camporeeId;
 
@@ -31,15 +40,16 @@ class CamporeeDetailView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final detailAsync = ref.watch(camporeeDetailProvider(camporeeId));
 
-    return Scaffold(
-      backgroundColor: context.sac.background,
-      body: detailAsync.when(
-        loading: () => const Center(child: SacLoading()),
-        error: (error, _) => _ErrorBody(
+    return detailAsync.when(
+      loading: () => const _CamporeeScaffold(body: _DetailSkeleton()),
+      error: (error, _) => _CamporeeScaffold(
+        body: _ErrorBody(
           message: error.toString().replaceFirst('Exception: ', ''),
           onRetry: () => ref.invalidate(camporeeDetailProvider(camporeeId)),
         ),
-        data: (camporee) => _DetailBody(
+      ),
+      data: (camporee) => _CamporeeScaffold(
+        body: _DetailBody(
           camporee: camporee,
           camporeeId: camporeeId,
         ),
@@ -48,7 +58,50 @@ class CamporeeDetailView extends ConsumerWidget {
   }
 }
 
-// ── Detail Body ───────────────────────────────────────────────────────────────
+class _CamporeeScaffold extends StatelessWidget {
+  final Widget body;
+
+  const _CamporeeScaffold({required this.body});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return Scaffold(
+      backgroundColor: c.background,
+      appBar: AppBar(
+        backgroundColor: c.background,
+        foregroundColor: c.text,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        centerTitle: true,
+        leading: SacBackButton(
+          color: c.text,
+          onPressed: () {
+            final navigator = Navigator.of(context);
+            if (navigator.canPop()) {
+              navigator.pop();
+            } else {
+              context.go(RouteNames.homeDashboard);
+            }
+          },
+        ),
+        title: Text(
+          'camporees.list.title'.tr(),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: c.text,
+              ),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(height: 1, color: c.border),
+        ),
+      ),
+      body: SafeArea(top: false, child: body),
+    );
+  }
+}
 
 class _DetailBody extends ConsumerWidget {
   final Camporee camporee;
@@ -61,303 +114,469 @@ class _DetailBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    const eventViewerRoles = {
+      ClubRoleNames.director,
+      ClubRoleNames.deputyDirector,
+      ClubRoleNames.secretary,
+      ClubRoleNames.treasurer,
+      ClubRoleNames.secretaryTreasurer,
+      ClubRoleNames.counselor,
+    };
+    final user = ref.watch(
+      authNotifierProvider.select((value) => value.valueOrNull),
+    );
+    final canViewEvents = hasAnyRole(user, eventViewerRoles);
     final membersAsync = ref.watch(camporeeMembersProvider(camporeeId));
-    final c = context.sac;
-    final dateFormat = DateFormat('d MMMM yyyy', 'es');
+    final eventsAsync =
+        canViewEvents ? ref.watch(camporeeEventsProvider(camporeeId)) : null;
+    final description = camporee.description?.trim();
 
-    return CustomScrollView(
-      physics: const BouncingScrollPhysics(
-        parent: AlwaysScrollableScrollPhysics(),
+    return RefreshIndicator(
+      color: AppColors.primary,
+      onRefresh: () async {
+        ref.invalidate(camporeeDetailProvider(camporeeId));
+        ref.invalidate(camporeeMembersProvider(camporeeId));
+        if (canViewEvents) {
+          ref.invalidate(camporeeEventsProvider(camporeeId));
+        }
+      },
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
+        children: [
+          _TitleSection(camporee: camporee),
+          const SizedBox(height: 12),
+          _CamporeeDetailBanner(camporee: camporee),
+          const SizedBox(height: 12),
+          _CamporeeFactsPanel(camporee: camporee),
+          const SizedBox(height: 24),
+          CamporeeLocationCard(camporee: camporee),
+          if (description != null && description.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            _DescriptionSection(description: description),
+          ],
+          if (eventsAsync != null) ...[
+            const SizedBox(height: 24),
+            _EventsSection(
+              eventsAsync: eventsAsync,
+              onRetry: () => ref.invalidate(camporeeEventsProvider(camporeeId)),
+            ),
+          ],
+          const SizedBox(height: 24),
+          _MembersSection(
+            camporeeId: camporeeId,
+            camporeeName: camporee.name,
+            membersAsync: membersAsync,
+          ),
+        ],
       ),
-      slivers: [
-        // Hero header
-        SliverAppBar(
-          automaticallyImplyLeading: false,
-          leading: sacAutoBackButton(context),
-          expandedHeight: 200,
-          pinned: true,
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [AppColors.primary, AppColors.primaryDark],
-                ),
-              ),
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 48, 20, 20),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Center(
-                          child: HugeIcon(
-                            icon: HugeIcons.strokeRoundedAward01,
-                            size: 30,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        camporee.name,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                            ),
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
+    );
+  }
+}
+
+class _CamporeeDetailBanner extends StatelessWidget {
+  final Camporee camporee;
+
+  const _CamporeeDetailBanner({required this.camporee});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final dateFormat = DateFormat('d MMM', context.locale.toString());
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.22)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.warning.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Center(
+              child: HugeIcon(
+                icon: HugeIcons.strokeRoundedCampfire,
+                size: 21,
+                color: AppColors.warning,
               ),
             ),
           ),
-        ),
-
-        // Info card
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
+          const SizedBox(width: 12),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Descripción
-                if (camporee.description != null &&
-                    camporee.description!.isNotEmpty) ...[
-                  _SectionTitle(
-                    icon: HugeIcons.strokeRoundedInformationCircle,
-                    label: 'camporees.detail.description'.tr(),
+                Text(
+                  'camporees.detail.banner_title'.tr(),
+                  style: TextStyle(
+                    color: c.text,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    camporee.description!,
-                    style: TextStyle(
-                      fontSize: 14,
-                      height: 1.65,
-                      color: c.textSecondary,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${dateFormat.format(camporee.startDate.toLocal())} – ${dateFormat.format(camporee.endDate.toLocal())}',
+                  style: TextStyle(
+                    color: c.textSecondary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TitleSection extends StatelessWidget {
+  final Camporee camporee;
+
+  const _TitleSection({required this.camporee});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _IconTile(
+              icon: HugeIcons.strokeRoundedCampfire,
+              color: AppColors.primary,
+              size: 52,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                camporee.name,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color: c.text,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
+                      height: 1.1,
                     ),
-                  ),
-                  const SizedBox(height: 24),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        _ClubTypeBadges(camporee: camporee),
+      ],
+    );
+  }
+}
+
+class _CamporeeFactsPanel extends StatelessWidget {
+  final Camporee camporee;
+
+  const _CamporeeFactsPanel({required this.camporee});
+
+  @override
+  Widget build(BuildContext context) {
+    final dateFormat = DateFormat('d MMMM yyyy', context.locale.toString());
+    final currencyFormatter = NumberFormat.currency(
+      locale: context.locale.toString(),
+      symbol: '\$',
+      decimalDigits: 0,
+    );
+
+    return _SurfacePanel(
+      child: Column(
+        children: [
+          _FactRow(
+            icon: HugeIcons.strokeRoundedCalendar01,
+            label: 'camporees.detail.start'.tr(),
+            value: dateFormat.format(camporee.startDate.toLocal()),
+          ),
+          _PanelDivider(),
+          _FactRow(
+            icon: HugeIcons.strokeRoundedCalendar02,
+            label: 'camporees.detail.end'.tr(),
+            value: dateFormat.format(camporee.endDate.toLocal()),
+          ),
+          _PanelDivider(),
+          _FactRow(
+            icon: HugeIcons.strokeRoundedMoney01,
+            label: 'camporees.detail.cost'.tr(),
+            value: _formatCost(camporee.registrationCost, currencyFormatter),
+          ),
+          if (camporee.localFieldName != null) ...[
+            _PanelDivider(),
+            _FactRow(
+              icon: HugeIcons.strokeRoundedBuilding01,
+              label: 'camporees.detail.local_field'.tr(),
+              value: camporee.localFieldName!,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _formatCost(double? cost, NumberFormat formatter) {
+    if (cost == null || cost == 0) return 'camporees.common.free'.tr();
+    return formatter.format(cost);
+  }
+}
+
+class _DescriptionSection extends StatelessWidget {
+  final String description;
+
+  const _DescriptionSection({required this.description});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionHeader(label: 'camporees.detail.description'.tr()),
+        const SizedBox(height: 10),
+        Text(
+          description,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: context.sac.textSecondary,
+                height: 1.6,
+              ),
+        ),
+      ],
+    );
+  }
+}
+
+class _EventsSection extends StatelessWidget {
+  final AsyncValue<List<CamporeeEvent>> eventsAsync;
+  final VoidCallback onRetry;
+
+  const _EventsSection({
+    required this.eventsAsync,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _SurfacePanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionHeader(label: 'camporees.detail.events_title'.tr()),
+          const SizedBox(height: 6),
+          Text(
+            'camporees.detail.events_subtitle'.tr(),
+            style: TextStyle(
+              color: context.sac.textSecondary,
+              fontSize: 13,
+              height: 1.35,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 14),
+          eventsAsync.when(
+            data: (events) {
+              if (events.isEmpty) {
+                return _EmptyInlineState(
+                  icon: HugeIcons.strokeRoundedCalendar03,
+                  label: 'camporees.detail.no_events_yet'.tr(),
+                );
+              }
+
+              return Column(
+                children: [
+                  for (var index = 0; index < events.length; index++)
+                    StaggeredListItem(
+                      index: index,
+                      initialDelay: Duration.zero,
+                      staggerDelay: const Duration(milliseconds: 35),
+                      child: _EventTile(event: events[index]),
+                    ),
                 ],
+              );
+            },
+            loading: () => const Padding(
+              padding: EdgeInsets.symmetric(vertical: 18),
+              child: Center(child: SacLoading()),
+            ),
+            error: (_, __) => _InlineRetryState(
+              label: 'camporees.detail.events_error'.tr(),
+              onRetry: onRetry,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-                // Info grid
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: c.surfaceVariant,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: c.border),
-                  ),
-                  child: Column(
-                    children: [
-                      _DetailRow(
-                        icon: HugeIcons.strokeRoundedCalendar01,
-                        label: 'camporees.detail.start'.tr(),
-                        value: dateFormat.format(camporee.startDate.toLocal()),
-                      ),
-                      Divider(color: c.border, height: 20),
-                      _DetailRow(
-                        icon: HugeIcons.strokeRoundedCalendar02,
-                        label: 'camporees.detail.end'.tr(),
-                        value: dateFormat.format(camporee.endDate.toLocal()),
-                      ),
-                      Divider(color: c.border, height: 20),
-                      _DetailRow(
-                        icon: HugeIcons.strokeRoundedLocation01,
-                        label: 'camporees.detail.place'.tr(),
-                        value: camporee.place,
-                      ),
-                      if (camporee.registrationCost != null) ...[
-                        Divider(color: c.border, height: 20),
-                        _DetailRow(
-                          icon: HugeIcons.strokeRoundedMoney01,
-                          label: 'camporees.detail.cost'.tr(),
-                          value: camporee.registrationCost == 0
-                              ? 'camporees.common.free'.tr()
-                              : NumberFormat.currency(
-                                  locale: 'es',
-                                  symbol: '\$',
-                                  decimalDigits: 0,
-                                ).format(camporee.registrationCost),
-                        ),
-                      ],
-                      if (camporee.localFieldName != null) ...[
-                        Divider(color: c.border, height: 20),
-                        _DetailRow(
-                          icon: HugeIcons.strokeRoundedBuilding01,
-                          label: 'camporees.detail.local_field'.tr(),
-                          value: camporee.localFieldName!,
-                        ),
-                      ],
-                    ],
+class _EventTile extends StatelessWidget {
+  final CamporeeEvent event;
+
+  const _EventTile({required this.event});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final timeLabel = _timeLabel(event);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: c.surfaceVariant,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: c.border),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _IconTile(
+            icon: _categoryIcon(event.displayCategory),
+            color: _categoryColor(context, event.displayCategory),
+            size: 42,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  event.title,
+                  style: TextStyle(
+                    color: c.text,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    height: 1.25,
                   ),
                 ),
-
-                const SizedBox(height: 20),
-
-                // Club type badges
-                _SectionTitle(
-                  icon: HugeIcons.strokeRoundedUserGroup,
-                  label: 'camporees.detail.club_types'.tr(),
-                ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 6),
                 Wrap(
                   spacing: 8,
                   runSpacing: 6,
                   children: [
-                    if (camporee.includesAdventurers)
-                      _TypeChip(
-                          label: 'camporees.common.adventurers'.tr(),
-                          color: AppColors.warning),
-                    if (camporee.includesPathfinders)
-                      _TypeChip(
-                          label: 'camporees.common.pathfinders'.tr(),
-                          color: AppColors.primary),
-                    if (camporee.includesMasterGuides)
-                      _TypeChip(
-                          label: 'camporees.common.master_guides'.tr(),
-                          color: AppColors.secondary),
-                  ],
-                ),
-
-                const SizedBox(height: 28),
-                Divider(color: c.border),
-                const SizedBox(height: 16),
-
-                // Miembros inscritos header
-                Row(
-                  children: [
-                    _SectionTitle(
-                      icon: HugeIcons.strokeRoundedUserGroup,
-                      label: 'camporees.detail.members_enrolled'.tr(),
+                    _MiniMeta(
+                      icon: HugeIcons.strokeRoundedCalendar01,
+                      label: 'camporees.detail.event_day'
+                          .tr(namedArgs: {'day': '${event.dayNumber}'}),
                     ),
-                    const Spacer(),
-                    // Botón para inscribir miembro
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CamporeeRegisterMemberView(
-                              camporeeId: camporeeId,
-                            ),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            HugeIcon(
-                              icon: HugeIcons.strokeRoundedUserAdd01,
-                              size: 14,
-                              color: Colors.white,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'camporees.detail.enroll'.tr(),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
+                    if (timeLabel != null)
+                      _MiniMeta(
+                        icon: HugeIcons.strokeRoundedClock01,
+                        label: timeLabel,
                       ),
+                    _MiniMeta(
+                      icon: HugeIcons.strokeRoundedAward01,
+                      label: 'camporees.detail.event_points'
+                          .tr(namedArgs: {'points': '${event.maxPoints}'}),
                     ),
+                    if (event.venueName != null)
+                      _MiniMeta(
+                        icon: HugeIcons.strokeRoundedLocation01,
+                        label: event.venueName!,
+                      ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                if (event.description != null &&
+                    event.description!.trim().isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    event.description!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: c.textSecondary,
+                      fontSize: 12,
+                      height: 1.35,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
-        ),
+        ],
+      ),
+    );
+  }
 
-        // Members preview (first 3)
-        membersAsync.when(
-          data: (members) {
-            if (members.isEmpty) {
-              return SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-                  child: Text(
-                    'camporees.detail.no_members_yet'.tr(),
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: context.sac.textSecondary,
-                    ),
-                  ),
-                ),
-              );
-            }
+  String? _timeLabel(CamporeeEvent event) {
+    if (event.startsAt == null || event.startsAt!.trim().isEmpty) return null;
+    if (event.endsAt == null || event.endsAt!.trim().isEmpty) {
+      return event.startsAt;
+    }
+    return '${event.startsAt} – ${event.endsAt}';
+  }
 
-            final preview = members.take(3).toList();
-            return SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  return StaggeredListItem(
-                    index: index,
-                    child: _MemberPreviewTile(member: preview[index]),
-                  );
-                },
-                childCount: preview.length,
-              ),
-            );
-          },
-          loading: () => const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Center(child: SacLoading()),
-            ),
-          ),
-          error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
-        ),
+  HugeIconData _categoryIcon(String category) {
+    switch (category) {
+      case 'espiritual':
+        return HugeIcons.strokeRoundedBookOpen01;
+      case 'competencia':
+        return HugeIcons.strokeRoundedChampion;
+      case 'taller':
+        return HugeIcons.strokeRoundedTools;
+      case 'ceremonial':
+        return HugeIcons.strokeRoundedFlag01;
+      case 'social':
+        return HugeIcons.strokeRoundedUserGroup;
+      default:
+        return HugeIcons.strokeRoundedCalendar03;
+    }
+  }
 
-        // "Ver todos" button
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-            child: membersAsync.maybeWhen(
-              data: (members) => members.isNotEmpty
-                  ? SacButton.outline(
-                      text: 'camporees.detail.view_all_members'
-                          .tr(namedArgs: {'count': '${members.length}'}),
-                      icon: HugeIcons.strokeRoundedUserGroup,
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CamporeeMembersView(
-                              camporeeId: camporeeId,
-                              camporeeName: camporee.name,
-                            ),
-                          ),
-                        );
-                      },
-                    )
-                  : const SizedBox.shrink(),
-              orElse: () => const SizedBox.shrink(),
-            ),
+  Color _categoryColor(BuildContext context, String category) {
+    switch (category) {
+      case 'espiritual':
+        return AppColors.secondary;
+      case 'competencia':
+        return AppColors.primary;
+      case 'taller':
+        return context.sac.info;
+      case 'ceremonial':
+        return context.sac.warning;
+      case 'social':
+        return context.sac.success;
+      default:
+        return context.sac.textTertiary;
+    }
+  }
+}
+
+class _MiniMeta extends StatelessWidget {
+  final HugeIconData icon;
+  final String label;
+
+  const _MiniMeta({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        HugeIcon(icon: icon, size: 12, color: c.textTertiary),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: TextStyle(
+            color: c.textSecondary,
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ],
@@ -365,86 +584,218 @@ class _DetailBody extends ConsumerWidget {
   }
 }
 
-// ── Detail Row ─────────────────────────────────────────────────────────────────
+class _MembersSection extends StatelessWidget {
+  final int camporeeId;
+  final String camporeeName;
+  final AsyncValue<List<CamporeeMember>> membersAsync;
 
-class _DetailRow extends StatelessWidget {
-  final HugeIconData icon;
-  final String label;
-  final String value;
+  const _MembersSection({
+    required this.camporeeId,
+    required this.camporeeName,
+    required this.membersAsync,
+  });
 
-  const _DetailRow({
-    required this.icon,
-    required this.label,
-    required this.value,
+  @override
+  Widget build(BuildContext context) {
+    return _SurfacePanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionHeader(label: 'camporees.detail.members_enrolled'.tr()),
+          const SizedBox(height: 14),
+          membersAsync.when(
+            data: (members) => _MembersPreview(
+              camporeeId: camporeeId,
+              camporeeName: camporeeName,
+              members: members,
+            ),
+            loading: () => const Padding(
+              padding: EdgeInsets.symmetric(vertical: 18),
+              child: Center(child: SacLoading()),
+            ),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
+          const SizedBox(height: 14),
+          SacButton.primary(
+            text: 'camporees.detail.enroll'.tr(),
+            icon: HugeIcons.strokeRoundedUserAdd01,
+            onPressed: () {
+              HapticFeedback.selectionClick();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CamporeeRegisterMemberView(
+                    camporeeId: camporeeId,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MembersPreview extends StatelessWidget {
+  final int camporeeId;
+  final String camporeeName;
+  final List<CamporeeMember> members;
+
+  const _MembersPreview({
+    required this.camporeeId,
+    required this.camporeeName,
+    required this.members,
   });
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        HugeIcon(icon: icon, size: 18, color: AppColors.primary),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: c.textTertiary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: c.text,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+
+    if (members.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: c.surfaceVariant,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: c.borderLight),
+        ),
+        child: Text(
+          'camporees.detail.no_members_yet'.tr(),
+          style: TextStyle(
+            fontSize: 14,
+            height: 1.45,
+            color: c.textSecondary,
+            fontWeight: FontWeight.w600,
           ),
+        ),
+      );
+    }
+
+    final preview = members.take(3).toList();
+    return Column(
+      children: [
+        for (var index = 0; index < preview.length; index++)
+          StaggeredListItem(
+            index: index,
+            initialDelay: Duration.zero,
+            staggerDelay: const Duration(milliseconds: 40),
+            child: _MemberPreviewTile(member: preview[index]),
+          ),
+        const SizedBox(height: 12),
+        SacButton.outline(
+          text: 'camporees.detail.view_all_members'
+              .tr(namedArgs: {'count': '${members.length}'}),
+          icon: HugeIcons.strokeRoundedUserGroup,
+          onPressed: () {
+            HapticFeedback.selectionClick();
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CamporeeMembersView(
+                  camporeeId: camporeeId,
+                  camporeeName: camporeeName,
+                ),
+              ),
+            );
+          },
         ),
       ],
     );
   }
 }
 
-// ── Type Chip ──────────────────────────────────────────────────────────────────
-
-class _TypeChip extends StatelessWidget {
+class _EmptyInlineState extends StatelessWidget {
+  final HugeIconData icon;
   final String label;
-  final Color color;
 
-  const _TypeChip({required this.label, required this.color});
+  const _EmptyInlineState({
+    required this.icon,
+    required this.label,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.4)),
+        color: c.surfaceVariant,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: c.borderLight),
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
+      child: Row(
+        children: [
+          HugeIcon(icon: icon, size: 18, color: c.textTertiary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.45,
+                color: c.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-// ── Member Preview Tile ────────────────────────────────────────────────────────
+class _InlineRetryState extends StatelessWidget {
+  final String label;
+  final VoidCallback onRetry;
+
+  const _InlineRetryState({
+    required this.label,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: c.error.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: c.error.withValues(alpha: 0.18)),
+      ),
+      child: Row(
+        children: [
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedAlert02,
+            size: 18,
+            color: c.error,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                color: c.textSecondary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: onRetry,
+            child: Text('common.retry'.tr()),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _MemberPreviewTile extends StatelessWidget {
   final CamporeeMember member;
@@ -456,41 +807,48 @@ class _MemberPreviewTile extends StatelessWidget {
     final c = context.sac;
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(12),
+        color: c.surfaceVariant,
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: c.border),
       ),
       child: Row(
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: AppColors.primaryLight,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: HugeIcon(
-                icon: HugeIcons.strokeRoundedUser,
-                size: 18,
-                color: AppColors.primary,
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
+          _MemberAvatar(member: member),
+          const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              member.userName ?? member.userId,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: c.text,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  member.userName ?? member.userId,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: c.text,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (member.clubName != null) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    member.clubName!,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: c.textTertiary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
             ),
           ),
+          const SizedBox(width: 8),
           _InsuranceBadge(verified: member.insuranceVerified),
         ],
       ),
@@ -498,7 +856,113 @@ class _MemberPreviewTile extends StatelessWidget {
   }
 }
 
-// ── Insurance Badge ────────────────────────────────────────────────────────────
+class _FactRow extends StatelessWidget {
+  final HugeIconData icon;
+  final String label;
+  final String value;
+
+  const _FactRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: HugeIcon(icon: icon, size: 18, color: AppColors.primary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: c.textTertiary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  value,
+                  style: TextStyle(
+                    color: c.text,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PanelDivider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Divider(height: 1, color: context.sac.divider),
+    );
+  }
+}
+
+class _MemberAvatar extends StatelessWidget {
+  final CamporeeMember member;
+
+  const _MemberAvatar({required this.member});
+
+  @override
+  Widget build(BuildContext context) {
+    final imageUrl = member.userImageUrl;
+
+    return ClipOval(
+      child: Container(
+        width: 44,
+        height: 44,
+        color: AppColors.primary.withValues(alpha: 0.10),
+        child: imageUrl != null && imageUrl.isNotEmpty
+            ? Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const _AvatarFallback(),
+              )
+            : const _AvatarFallback(),
+      ),
+    );
+  }
+}
+
+class _AvatarFallback extends StatelessWidget {
+  const _AvatarFallback();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: HugeIcon(
+        icon: HugeIcons.strokeRoundedUser,
+        size: 20,
+        color: AppColors.primary,
+      ),
+    );
+  }
+}
 
 class _InsuranceBadge extends StatelessWidget {
   final bool verified;
@@ -507,17 +971,17 @@ class _InsuranceBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = verified ? AppColors.secondary : AppColors.error;
+    final color = verified ? context.sac.success : context.sac.error;
     final label = verified
         ? 'camporees.detail.insurance_ok'.tr()
         : 'camporees.detail.no_insurance'.tr();
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.22)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -529,12 +993,12 @@ class _InsuranceBadge extends StatelessWidget {
             size: 11,
             color: color,
           ),
-          const SizedBox(width: 3),
+          const SizedBox(width: 4),
           Text(
             label,
             style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
               color: color,
             ),
           ),
@@ -544,23 +1008,90 @@ class _InsuranceBadge extends StatelessWidget {
   }
 }
 
-// ── Section Title ──────────────────────────────────────────────────────────────
+class _ClubTypeBadges extends StatelessWidget {
+  final Camporee camporee;
 
-class _SectionTitle extends StatelessWidget {
-  final HugeIconData icon;
+  const _ClubTypeBadges({required this.camporee});
+
+  @override
+  Widget build(BuildContext context) {
+    final badges = <Widget>[
+      if (camporee.includesAdventurers)
+        _Badge(
+          label: 'camporees.common.adventurers'.tr(),
+          color: context.sac.warning,
+        ),
+      if (camporee.includesPathfinders)
+        _Badge(
+          label: 'camporees.common.pathfinders'.tr(),
+          color: AppColors.primary,
+        ),
+      if (camporee.includesMasterGuides)
+        _Badge(
+          label: 'camporees.common.master_guides'.tr(),
+          color: context.sac.success,
+        ),
+    ];
+
+    if (badges.isEmpty) return const SizedBox.shrink();
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: badges,
+    );
+  }
+}
+
+class _Badge extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _Badge({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.22)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+          color: color,
+          height: 1.1,
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
   final String label;
 
-  const _SectionTitle({required this.icon, required this.label});
+  const _SectionHeader({required this.label});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        HugeIcon(icon: icon, size: 18, color: AppColors.primary),
+        Container(
+          width: 6,
+          height: 6,
+          decoration: const BoxDecoration(
+            color: AppColors.primary,
+            shape: BoxShape.circle,
+          ),
+        ),
         const SizedBox(width: 8),
         Text(
           label,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: context.sac.text,
               ),
@@ -570,7 +1101,95 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
-// ── Error Body ─────────────────────────────────────────────────────────────────
+class _IconTile extends StatelessWidget {
+  final HugeIconData icon;
+  final Color color;
+  final double size;
+
+  const _IconTile({
+    required this.icon,
+    required this.color,
+    required this.size,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(size >= 50 ? 18 : 14),
+      ),
+      child: Center(
+        child: HugeIcon(icon: icon, size: size * 0.48, color: color),
+      ),
+    );
+  }
+}
+
+class _SurfacePanel extends StatelessWidget {
+  final Widget child;
+
+  const _SurfacePanel({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: c.borderLight),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _DetailSkeleton extends StatelessWidget {
+  const _DetailSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
+      children: [
+        Container(
+          height: 150,
+          decoration: BoxDecoration(
+            color: c.surfaceVariant,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: c.borderLight),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          height: 238,
+          decoration: BoxDecoration(
+            color: c.surfaceVariant,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: c.borderLight),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          height: 160,
+          decoration: BoxDecoration(
+            color: c.surfaceVariant,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: c.borderLight),
+          ),
+        ),
+      ],
+    );
+  }
+}
 
 class _ErrorBody extends StatelessWidget {
   final String message;
@@ -580,30 +1199,32 @@ class _ErrorBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            HugeIcon(
+            _IconTile(
               icon: HugeIcons.strokeRoundedAlert02,
-              size: 56,
-              color: AppColors.error,
+              color: c.error,
+              size: 72,
             ),
             const SizedBox(height: 16),
             Text(
               'camporees.detail.error_loading'.tr(),
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: c.text,
+                  ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               message,
-              style: TextStyle(fontSize: 14, color: context.sac.textSecondary),
+              style: TextStyle(fontSize: 14, color: c.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),

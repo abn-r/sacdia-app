@@ -86,6 +86,15 @@ abstract class UnitsRemoteDataSource {
     List<Map<String, int>> scores = const [],
   });
 
+  /// Crea o actualiza registros semanales de una unidad de forma atómica.
+  Future<List<WeeklyRecordModel>> bulkUpsertWeeklyRecords({
+    required int clubId,
+    required int unitId,
+    required int week,
+    required int year,
+    required List<Map<String, dynamic>> records,
+  });
+
   /// Actualiza un registro semanal existente.
   ///
   /// [scores] es la lista de puntajes por categoría (actualización parcial).
@@ -399,6 +408,43 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
       return WeeklyRecordModel.fromJson(json);
     } catch (e) {
       AppLogger.e('Error en createWeeklyRecord', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── POST /clubs/:clubId/units/:unitId/weekly-records/bulk ─────────────────
+
+  @override
+  Future<List<WeeklyRecordModel>> bulkUpsertWeeklyRecords({
+    required int clubId,
+    required int unitId,
+    required int week,
+    required int year,
+    required List<Map<String, dynamic>> records,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '${_unitsBase(clubId)}/$unitId/weekly-records/bulk',
+        data: {
+          'week': week,
+          'year': year,
+          'records': records,
+        },
+      );
+
+      _assertSuccess(response, tr('units.errors.create_weekly_record'));
+
+      final body = response.data;
+      final List<dynamic> rawList = body is List
+          ? body
+          : (body as Map<String, dynamic>)['data'] as List<dynamic>? ?? [];
+
+      return rawList
+          .whereType<Map<String, dynamic>>()
+          .map(WeeklyRecordModel.fromJson)
+          .toList();
+    } catch (e) {
+      AppLogger.e('Error en bulkUpsertWeeklyRecords', tag: _tag, error: e);
       _rethrow(e);
     }
   }

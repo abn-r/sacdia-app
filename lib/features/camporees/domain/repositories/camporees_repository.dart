@@ -3,6 +3,7 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/models/paginated_result.dart';
 import '../entities/camporee.dart';
+import '../entities/camporee_event.dart';
 import '../entities/camporee_member.dart';
 import '../entities/camporee_payment.dart';
 
@@ -16,11 +17,17 @@ abstract class CamporeesRepository {
   Future<Either<Failure, Camporee>> getCamporeeDetail(int camporeeId,
       {RequestCancelToken? cancelToken});
 
+  /// Obtiene eventos registrados de un camporee.
+  Future<Either<Failure, List<CamporeeEvent>>> getCamporeeEvents(
+    int camporeeId, {
+    RequestCancelToken? cancelToken,
+  });
+
   /// Registra un miembro en un camporee.
   Future<Either<Failure, CamporeeMember>> registerMember(
     int camporeeId, {
     required String userId,
-    required String camporeeType,
+    String? camporeeType,
     String? clubName,
     int? insuranceId,
   });

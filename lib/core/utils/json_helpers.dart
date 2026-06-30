@@ -53,6 +53,14 @@ double safeDouble(dynamic value, [double fallback = 0.0]) {
   return fallback;
 }
 
+/// Safe nullable double parsing.
+double? safeDoubleOrNull(dynamic value) {
+  if (value is double) return value;
+  if (value is int) return value.toDouble();
+  if (value is String) return double.tryParse(value);
+  return null;
+}
+
 /// Safe bool parsing (handles bool, int 0/1, String "true"/"false", null).
 bool safeBool(dynamic value, [bool fallback = false]) {
   if (value is bool) return value;

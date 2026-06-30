@@ -254,6 +254,32 @@ class UnitsRepositoryImpl implements UnitsRepository {
   }
 
   @override
+  Future<Either<Failure, List<WeeklyRecord>>> bulkUpsertWeeklyRecords({
+    required int clubId,
+    required int unitId,
+    required int week,
+    required int year,
+    required List<Map<String, dynamic>> records,
+  }) async {
+    try {
+      final models = await remoteDataSource.bulkUpsertWeeklyRecords(
+        clubId: clubId,
+        unitId: unitId,
+        week: week,
+        year: year,
+        records: records,
+      );
+      return Right(models.map((m) => m.toEntity()).toList());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, WeeklyRecord>> updateWeeklyRecord({
     required int clubId,
     required int unitId,

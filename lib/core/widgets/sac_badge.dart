@@ -13,27 +13,39 @@ class SacBadge extends StatelessWidget {
   final String label;
   final dynamic icon;
   final SacBadgeVariant variant;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
 
   const SacBadge({
     super.key,
     required this.label,
     this.icon,
     this.variant = SacBadgeVariant.primary,
+    this.backgroundColor,
+    this.foregroundColor,
   });
 
   /// Success badge shortcut
   const SacBadge.success({super.key, required this.label, this.icon})
-      : variant = SacBadgeVariant.secondary;
+      : variant = SacBadgeVariant.secondary,
+        backgroundColor = null,
+        foregroundColor = null;
 
   /// Warning badge shortcut
   const SacBadge.warning({super.key, required this.label, this.icon})
-      : variant = SacBadgeVariant.accent;
+      : variant = SacBadgeVariant.accent,
+        backgroundColor = null,
+        foregroundColor = null;
 
   /// Error badge shortcut
   const SacBadge.error({super.key, required this.label, this.icon})
-      : variant = SacBadgeVariant.error;
+      : variant = SacBadgeVariant.error,
+        backgroundColor = null,
+        foregroundColor = null;
 
   Color _backgroundColor(BuildContext context) {
+    if (backgroundColor != null) return backgroundColor!;
+
     switch (variant) {
       case SacBadgeVariant.primary:
         return AppColors.primaryLight;
@@ -49,6 +61,8 @@ class SacBadge extends StatelessWidget {
   }
 
   Color _foregroundColor(BuildContext context) {
+    if (foregroundColor != null) return foregroundColor!;
+
     switch (variant) {
       case SacBadgeVariant.primary:
         return AppColors.primaryDark;
@@ -65,6 +79,8 @@ class SacBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fg = _foregroundColor(context);
+
     return Container(
       padding: EdgeInsets.symmetric(
         vertical: 4,
@@ -78,7 +94,7 @@ class SacBadge extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            buildIcon(icon, size: 14, color: _foregroundColor(context)),
+            buildIcon(icon, size: 14, color: fg),
             const SizedBox(width: 4),
           ],
           Text(
@@ -86,7 +102,7 @@ class SacBadge extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: _foregroundColor(context),
+              color: fg,
               height: 1.2,
             ),
           ),
