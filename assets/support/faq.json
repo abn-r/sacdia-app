@@ -67,13 +67,13 @@
       "id": "privacy_data",
       "category": "privacy",
       "question": "¿Qué datos míos guarda SACDIA?",
-      "answer": "SACDIA almacena únicamente los datos necesarios para la gestión del club: nombre, correo, teléfono, foto, club asignado, historial de actividades y logros. Puedes descargar una copia completa de tus datos desde **Configuración → Exportar mis datos** en cualquier momento."
+      "answer": "SACDIA almacena los datos necesarios para operar el club y proteger a sus miembros: cuenta, perfil, club asignado, roles, actividades, logros, evidencias, notificaciones y, cuando aplica, datos de salud, seguros, contactos de emergencia o representante legal. Puedes solicitar una copia/exportación de la información disponible desde **Configuración → Exportar mis datos** o contactando a soporte."
     },
     {
       "id": "privacy_delete_account",
       "category": "privacy",
       "question": "¿Puedo eliminar mi cuenta?",
-      "answer": "Sí. Desde **Configuración → Eliminar cuenta** puedes solicitar la eliminación definitiva. Tu director de club será notificado y tus datos se borrarán en un plazo máximo de 30 días (algunos registros contables deben conservarse por requisitos legales, pero serán anonimizados)."
+      "answer": "Sí. Desde **Configuración → Eliminar cuenta** puedes solicitar la eliminación de tu cuenta. SACDIA eliminará o anonimizará la información asociada cuando proceda; algunos registros pueden conservarse de forma limitada cuando sean necesarios por seguridad, soporte, auditoría, trazabilidad institucional o respaldos técnicos temporales."
     },
     {
       "id": "support_contact",
