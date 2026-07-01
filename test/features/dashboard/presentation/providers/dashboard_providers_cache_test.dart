@@ -1,5 +1,5 @@
-import 'dart:convert';
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -179,7 +179,8 @@ Map<String, dynamic> _summaryJson(DashboardSummary summary) {
 
 void main() {
   group('Dashboard summary cache', () {
-    test('returns cached summary within TTL', () async {
+    test('returns cached summary within TTL without immediate refresh',
+        () async {
       final authNotifier = _FakeAuthNotifier(
         _buildUser(userId: 'user-1', activeAssignmentId: 'assign-a'),
       );
@@ -203,7 +204,7 @@ void main() {
       final result = await container.read(dashboardNotifierProvider.future);
 
       expect(result?.clubName, equals('Aventura'));
-      expect(useCase.calls, equals(1));
+      expect(useCase.calls, equals(0));
     });
 
     test(
@@ -224,7 +225,9 @@ void main() {
         useCase: useCase,
         initialPrefs: {
           key: jsonEncode(_summaryJson(cached)),
-          '${key}_cached_at': DateTime.now().millisecondsSinceEpoch,
+          '${key}_cached_at': DateTime.now()
+              .subtract(const Duration(seconds: 45))
+              .millisecondsSinceEpoch,
         },
       );
       addTearDown(container.dispose);
@@ -261,7 +264,9 @@ void main() {
         useCase: useCase,
         initialPrefs: {
           key: jsonEncode(_summaryJson(cached)),
-          '${key}_cached_at': DateTime.now().millisecondsSinceEpoch,
+          '${key}_cached_at': DateTime.now()
+              .subtract(const Duration(seconds: 45))
+              .millisecondsSinceEpoch,
         },
       );
       addTearDown(container.dispose);
@@ -290,6 +295,49 @@ void main() {
       expect(state.value?.clubName, equals('Cached'));
     });
 
+    test('throttles background refresh attempts after a transient failure',
+        () async {
+      final authNotifier = _FakeAuthNotifier(
+        _buildUser(userId: 'user-1', activeAssignmentId: 'assign-a'),
+      );
+      final key = _dashboardCacheKey(
+        userId: 'user-1',
+        assignmentId: 'assign-a',
+      );
+      final cached = _summary(userName: 'Ana', clubName: 'Cached');
+      final useCase = _ControlledGetDashboardSummary();
+      final container = await _buildDashboardContainer(
+        authNotifier: authNotifier,
+        useCase: useCase,
+        initialPrefs: {
+          key: jsonEncode(_summaryJson(cached)),
+          '${key}_cached_at': DateTime.now()
+              .subtract(const Duration(seconds: 45))
+              .millisecondsSinceEpoch,
+        },
+      );
+      addTearDown(container.dispose);
+
+      await container.read(dashboardNotifierProvider.future);
+      await useCase.firstCallStarted.future;
+      useCase.completeAll(
+        left(
+          const ServerFailure(message: 'server down'),
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(useCase.calls, equals(1));
+
+      container.invalidate(dashboardNotifierProvider);
+      final cachedAgain =
+          await container.read(dashboardNotifierProvider.future);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(cachedAgain?.clubName, equals('Cached'));
+      expect(useCase.calls, equals(1));
+    });
+
     test(
         'does not schedule duplicate background refresh for the same cache key',
         () async {
@@ -307,7 +355,9 @@ void main() {
         useCase: useCase,
         initialPrefs: {
           key: jsonEncode(_summaryJson(cached)),
-          '${key}_cached_at': DateTime.now().millisecondsSinceEpoch,
+          '${key}_cached_at': DateTime.now()
+              .subtract(const Duration(seconds: 45))
+              .millisecondsSinceEpoch,
         },
       );
       addTearDown(container.dispose);
@@ -420,7 +470,7 @@ void main() {
 
       final resultA = await container.read(dashboardNotifierProvider.future);
       expect(resultA?.clubName, equals('Club A'));
-      expect(useCase.calls, equals(1));
+      expect(useCase.calls, equals(0));
 
       authNotifier.user =
           _buildUser(userId: 'user-1', activeAssignmentId: 'assign-b');
@@ -428,7 +478,7 @@ void main() {
       container.invalidate(dashboardNotifierProvider);
       final resultB = await container.read(dashboardNotifierProvider.future);
       expect(resultB?.clubName, equals('Club B'));
-      expect(useCase.calls, equals(2));
+      expect(useCase.calls, equals(0));
     });
   });
 }

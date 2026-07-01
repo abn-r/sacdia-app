@@ -18,6 +18,9 @@ import '../../domain/repositories/dashboard_repository.dart';
 import '../../domain/usecases/get_dashboard_data.dart';
 
 const Duration _dashboardSummaryTtl = Duration(seconds: 90);
+const Duration _dashboardSummaryRefreshThrottle = Duration(seconds: 30);
+const String _dashboardSummaryRefreshAttemptedAtSuffix =
+    '_refresh_attempted_at';
 final Set<String> _dashboardSummaryRefreshInFlightKeys = {};
 
 String _dashboardSummaryCacheKey({
@@ -79,6 +82,43 @@ Future<void> _saveCachedDashboardSummary({
 
   await storage.saveString(cacheKey, jsonEncode(serializable));
   await storage.setCachedAt(cacheKey);
+}
+
+bool _shouldRefreshCachedDashboardSummary({
+  required LocalStorage storage,
+  required String cacheKey,
+}) {
+  final cachedAt = storage.getCachedAt(cacheKey);
+  if (cachedAt == null) return true;
+
+  final now = DateTime.now();
+  final cacheAge =
+      now.difference(DateTime.fromMillisecondsSinceEpoch(cachedAt));
+  if (cacheAge <= _dashboardSummaryRefreshThrottle) {
+    return false;
+  }
+
+  final lastRefreshAttemptAt = storage.getInt(
+    '$cacheKey$_dashboardSummaryRefreshAttemptedAtSuffix',
+  );
+  if (lastRefreshAttemptAt == null) {
+    return true;
+  }
+
+  final attemptAge = now.difference(
+    DateTime.fromMillisecondsSinceEpoch(lastRefreshAttemptAt),
+  );
+  return attemptAge > _dashboardSummaryRefreshThrottle;
+}
+
+Future<void> _markDashboardSummaryRefreshAttempt({
+  required LocalStorage storage,
+  required String cacheKey,
+}) {
+  return storage.saveInt(
+    '$cacheKey$_dashboardSummaryRefreshAttemptedAtSuffix',
+    DateTime.now().millisecondsSinceEpoch,
+  );
 }
 
 /// Provider para la fuente de datos remota del dashboard
@@ -250,6 +290,19 @@ class DashboardNotifier extends AsyncNotifier<DashboardSummary?> {
     required String activeAssignmentId,
   }) {
     final storage = ref.read(localStorageProvider);
+    if (!_shouldRefreshCachedDashboardSummary(
+      storage: storage,
+      cacheKey: cacheKey,
+    )) {
+      return;
+    }
+
+    unawaited(
+      _markDashboardSummaryRefreshAttempt(
+        storage: storage,
+        cacheKey: cacheKey,
+      ),
+    );
     unawaited(
       _refreshInBackground(
         storage: storage,
