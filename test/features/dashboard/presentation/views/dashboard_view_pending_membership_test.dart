@@ -41,6 +41,18 @@ class _NullProfileNotifier extends ProfileNotifier {
   Future<UserDetail?> build() async => null;
 }
 
+class _CountingProfileNotifier extends ProfileNotifier {
+  _CountingProfileNotifier(this.onBuild);
+
+  final void Function() onBuild;
+
+  @override
+  Future<UserDetail?> build() async {
+    onBuild();
+    return null;
+  }
+}
+
 void main() {
   testWidgets(
     'shows pending membership state instead of dashboard load error',
@@ -65,6 +77,32 @@ void main() {
       expect(
           find.text('dashboard.pending_state.profile_action'), findsOneWidget);
       expect(find.text('dashboard.load_null_error'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'does not load profile just to render pending membership state',
+    (tester) async {
+      var profileBuilds = 0;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            dashboardNotifierProvider.overrideWith(_NullDashboardNotifier.new),
+            authNotifierProvider.overrideWith(_FakeAuthNotifier.new),
+            profileNotifierProvider.overrideWith(
+              () => _CountingProfileNotifier(() => profileBuilds++),
+            ),
+          ],
+          child: const MaterialApp(
+            home: DashboardView(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(profileBuilds, 0);
     },
   );
 }

@@ -22,11 +22,19 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, UserEntity?>> getCurrentUser() async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure(message: 'Sin conexión a internet'));
+    }
+
     try {
       final userModel = await remoteDataSource.getCurrentUser();
       return Right(userModel);
+    } on core_exceptions.ConnectionException catch (e) {
+      return Left(NetworkFailure(message: e.message, stackTrace: e.stackTrace));
     } on core_exceptions.AuthException catch (e) {
       return Left(AuthFailure(message: e.message, code: e.code));
+    } on core_exceptions.ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
     }

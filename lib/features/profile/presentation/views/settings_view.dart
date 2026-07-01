@@ -649,7 +649,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               ),
               _groupDivider(),
               _SwitchTile(
-                icon: HugeIcons.strokeRoundedAward01,
+                icon: HugeIcons.strokeRoundedChampion,
                 title: 'profile.settings.notif_achievements'.tr(),
                 iconColor: master ? c.textSecondary : c.textTertiary,
                 indent: true,
@@ -824,7 +824,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           _GroupContainer(
             children: [
               SettingTile(
-                icon: HugeIcons.strokeRoundedLogout01,
+                icon: HugeIcons.strokeRoundedLogout02,
                 title: 'profile.settings.logout_tile'.tr(),
                 iconColor: AppColors.error,
                 onTap: _handleLogout,

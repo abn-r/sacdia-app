@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/constants/app_constants.dart';
+import 'package:sacdia_app/core/errors/exceptions.dart';
 import 'package:sacdia_app/core/storage/secure_storage.dart';
 import 'package:sacdia_app/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -94,6 +95,24 @@ class _RecordingAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
+class _ConnectionErrorAdapter implements HttpClientAdapter {
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<List<int>>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    throw DioException(
+      requestOptions: options,
+      type: DioExceptionType.connectionError,
+      error: ConnectionException(message: 'offline'),
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
 void main() {
   test('does not auto-activate a pending-only membership request', () async {
     SharedPreferences.setMockInitialValues({});
@@ -121,5 +140,25 @@ void main() {
       ),
       isEmpty,
     );
+  });
+
+  test('rethrows connection errors and preserves the local token', () async {
+    SharedPreferences.setMockInitialValues({});
+    final storage = _FakeSecureStorage();
+    await storage.write(AppConstants.tokenKey, 'jwt');
+    final dio = Dio(BaseOptions(baseUrl: 'http://localhost:3000'))
+      ..httpClientAdapter = _ConnectionErrorAdapter();
+
+    final dataSource = AuthRemoteDataSourceImpl(
+      dio: dio,
+      baseUrl: 'http://localhost:3000/api/v1',
+      secureStorage: storage,
+    );
+
+    expect(
+      dataSource.getCurrentUser,
+      throwsA(isA<ConnectionException>()),
+    );
+    expect(await storage.read(AppConstants.tokenKey), 'jwt');
   });
 }

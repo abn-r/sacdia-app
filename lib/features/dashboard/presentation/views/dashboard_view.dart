@@ -15,7 +15,6 @@ import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../notifications/presentation/providers/unread_notifications_count_provider.dart';
-import '../../../profile/presentation/providers/profile_providers.dart';
 import '../providers/dashboard_providers.dart';
 import '../widgets/club_info_card.dart';
 import '../widgets/current_class_card.dart';
@@ -38,9 +37,7 @@ class DashboardView extends ConsumerWidget {
     final user = ref.watch(
       authNotifierProvider.select((v) => v.valueOrNull),
     );
-    final userGender = ref.watch(
-      profileNotifierProvider.select((v) => v.valueOrNull?.gender),
-    );
+    final userGender = user?.metadata?['gender']?.toString();
     final unreadNotificationsCount =
         ref.watch(unreadNotificationsCountProvider);
 

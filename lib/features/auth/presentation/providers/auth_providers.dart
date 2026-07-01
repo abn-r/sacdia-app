@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -144,6 +145,39 @@ final forgotPasswordNotifierProvider =
 class AuthNotifier extends AsyncNotifier<UserEntity?> {
   static const _tag = 'AuthNotifier';
 
+  List<String> _decodeCachedPermissions(String? rawPermissions) {
+    if (rawPermissions == null || rawPermissions.trim().isEmpty) {
+      return const [];
+    }
+
+    try {
+      final decoded = jsonDecode(rawPermissions);
+      if (decoded is List) {
+        return decoded
+            .map((value) => value?.toString().trim().toLowerCase())
+            .whereType<String>()
+            .where((value) => value.isNotEmpty)
+            .toSet()
+            .toList();
+      }
+    } catch (_) {
+      // Legacy/debug fallback: tolerate comma-separated values.
+    }
+
+    return rawPermissions
+        .split(',')
+        .map((value) => value.trim().toLowerCase())
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .toList();
+  }
+
+  int? _parseCachedInt(String? rawValue) {
+    final value = rawValue?.trim();
+    if (value == null || value.isEmpty) return null;
+    return int.tryParse(value);
+  }
+
   @override
   Future<UserEntity?> build() async {
     final repository = ref.read(authRepositoryProvider);
@@ -181,6 +215,18 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         await secureStorage.read(AppConstants.cachedActiveRoleName);
     final cachedClubType =
         await secureStorage.read(AppConstants.cachedActiveClubType);
+    final cachedActivePermissions = _decodeCachedPermissions(
+      await secureStorage.read(AppConstants.cachedActivePermissions),
+    );
+    final cachedClubId = _parseCachedInt(
+      await secureStorage.read(AppConstants.cachedActiveClubId),
+    );
+    final cachedSectionId = _parseCachedInt(
+      await secureStorage.read(AppConstants.cachedActiveSectionId),
+    );
+    final cachedClubTypeId = _parseCachedInt(
+      await secureStorage.read(AppConstants.cachedActiveClubTypeId),
+    );
     // cachedActiveClubName is reserved for future use — not read yet.
     final prefs = ref.read(sharedPreferencesProvider);
 
@@ -205,10 +251,15 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
               final cachedGrant = AuthorizationGrant(
                 assignmentId: cachedAssignmentId,
                 roleName: cachedRoleName,
+                permissions: cachedActivePermissions,
+                clubId: cachedClubId,
+                sectionId: cachedSectionId,
+                clubTypeId: cachedClubTypeId,
                 clubTypeName: cachedClubType,
                 status: 'active',
               );
               cachedAuthorization = AuthorizationSnapshot(
+                effectivePermissions: cachedActivePermissions,
                 clubAssignments: [cachedGrant],
                 activeAssignmentId: cachedAssignmentId,
               );
@@ -294,6 +345,42 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       } else {
         secureStorage.delete(AppConstants.cachedActiveClubType);
       }
+      final permissionsToCache =
+          (user.authorization?.effectivePermissions.isNotEmpty ?? false)
+              ? user.authorization!.effectivePermissions
+              : activeGrant.permissions;
+      if (permissionsToCache.isNotEmpty) {
+        secureStorage.write(
+          AppConstants.cachedActivePermissions,
+          jsonEncode(permissionsToCache),
+        );
+      } else {
+        secureStorage.delete(AppConstants.cachedActivePermissions);
+      }
+      if (activeGrant.clubId != null) {
+        secureStorage.write(
+          AppConstants.cachedActiveClubId,
+          activeGrant.clubId!.toString(),
+        );
+      } else {
+        secureStorage.delete(AppConstants.cachedActiveClubId);
+      }
+      if (activeGrant.sectionId != null) {
+        secureStorage.write(
+          AppConstants.cachedActiveSectionId,
+          activeGrant.sectionId!.toString(),
+        );
+      } else {
+        secureStorage.delete(AppConstants.cachedActiveSectionId);
+      }
+      if (activeGrant.clubTypeId != null) {
+        secureStorage.write(
+          AppConstants.cachedActiveClubTypeId,
+          activeGrant.clubTypeId!.toString(),
+        );
+      } else {
+        secureStorage.delete(AppConstants.cachedActiveClubTypeId);
+      }
       // cachedActiveClubName reserved for future use (club display name not yet in grant)
       secureStorage.delete(AppConstants.cachedActiveClubName);
     } else {
@@ -302,6 +389,10 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       secureStorage.delete(AppConstants.cachedActiveRoleName);
       secureStorage.delete(AppConstants.cachedActiveClubName);
       secureStorage.delete(AppConstants.cachedActiveClubType);
+      secureStorage.delete(AppConstants.cachedActivePermissions);
+      secureStorage.delete(AppConstants.cachedActiveClubId);
+      secureStorage.delete(AppConstants.cachedActiveSectionId);
+      secureStorage.delete(AppConstants.cachedActiveClubTypeId);
     }
   }
 
@@ -725,6 +816,10 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     secureStorage.delete(AppConstants.cachedActiveRoleName);
     secureStorage.delete(AppConstants.cachedActiveClubName);
     secureStorage.delete(AppConstants.cachedActiveClubType);
+    secureStorage.delete(AppConstants.cachedActivePermissions);
+    secureStorage.delete(AppConstants.cachedActiveClubId);
+    secureStorage.delete(AppConstants.cachedActiveSectionId);
+    secureStorage.delete(AppConstants.cachedActiveClubTypeId);
 
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.remove('cached_post_register_complete');
@@ -778,6 +873,10 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         secureStorage.delete(AppConstants.cachedActiveRoleName);
         secureStorage.delete(AppConstants.cachedActiveClubName);
         secureStorage.delete(AppConstants.cachedActiveClubType);
+        secureStorage.delete(AppConstants.cachedActivePermissions);
+        secureStorage.delete(AppConstants.cachedActiveClubId);
+        secureStorage.delete(AppConstants.cachedActiveSectionId);
+        secureStorage.delete(AppConstants.cachedActiveClubTypeId);
 
         return true;
       },

@@ -359,12 +359,53 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       return null;
-    } catch (e) {
+    } on DioException catch (e) {
       AppLogger.e('Error al obtener usuario actual', tag: _tag, error: e);
-      if (e is DioException && e.response?.statusCode == 401) {
+
+      final statusCode = e.response?.statusCode;
+      if (statusCode == 401 || statusCode == 403) {
         await _clearToken();
+        return null;
       }
-      return null;
+
+      final appError = e.error;
+      if (appError is ConnectionException) {
+        throw appError;
+      }
+      if (appError is AuthException) {
+        throw appError;
+      }
+      if (appError is ServerException) {
+        throw appError;
+      }
+      if (appError is ValidationException) {
+        throw appError;
+      }
+
+      if (e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        throw ConnectionException(
+          message: e.message ?? tr('errors.connection_error'),
+          stackTrace: e.stackTrace,
+        );
+      }
+
+      final serverMessage = e.response?.data is Map
+          ? e.response!.data['message'] as String?
+          : null;
+      throw ServerException(
+        message: serverMessage ?? e.message ?? tr('errors.server_error'),
+        code: statusCode,
+        stackTrace: e.stackTrace,
+      );
+    } on AppException catch (e) {
+      AppLogger.e('Error al obtener usuario actual', tag: _tag, error: e);
+      rethrow;
+    } catch (e, stackTrace) {
+      AppLogger.e('Error al obtener usuario actual', tag: _tag, error: e);
+      throw ServerException(message: e.toString(), stackTrace: stackTrace);
     }
   }
 
@@ -632,6 +673,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         AppConstants.cachedActiveRoleName,
         AppConstants.cachedActiveClubName,
         AppConstants.cachedActiveClubType,
+        AppConstants.cachedActivePermissions,
+        AppConstants.cachedActiveClubId,
+        AppConstants.cachedActiveSectionId,
+        AppConstants.cachedActiveClubTypeId,
       ];
       for (final key in secureKeys) {
         await _secureStorage.delete(key);

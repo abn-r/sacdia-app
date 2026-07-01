@@ -133,7 +133,7 @@ class ProfileHonorsSection extends ConsumerWidget {
                   child: Column(
                     children: [
                       HugeIcon(
-                        icon: HugeIcons.strokeRoundedAward01,
+                        icon: HugeIcons.strokeRoundedMedal02,
                         size: 48,
                         color: context.sac.textTertiary,
                       ),

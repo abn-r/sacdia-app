@@ -190,6 +190,10 @@ class AppBootstrapNotifier extends AsyncNotifier<AppBootstrapState> {
       AppConstants.cachedActiveRoleName,
       AppConstants.cachedActiveClubName,
       AppConstants.cachedActiveClubType,
+      AppConstants.cachedActivePermissions,
+      AppConstants.cachedActiveClubId,
+      AppConstants.cachedActiveSectionId,
+      AppConstants.cachedActiveClubTypeId,
       'cached_post_register_complete',
     ];
 
