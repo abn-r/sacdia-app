@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'requirement_evidence.dart';
+import 'requirement_track.dart';
 
 /// Estado del flujo de validacion de un requerimiento de clase progresiva.
 enum RequirementStatus {
@@ -140,6 +141,15 @@ class ClassRequirement extends Equatable {
   /// Si el honor vinculado ya fue completado por el usuario.
   final bool? linkedHonorCompleted;
 
+  /// Track curricular al que pertenece este requerimiento.
+  final RequirementTrack? requirementTrack;
+
+  /// Indica si este requerimiento es obligatorio para investidura.
+  final bool? requiredForInvestiture;
+
+  /// Orden de despliegue sugerido.
+  final int? displayOrder;
+
   const ClassRequirement({
     required this.id,
     required this.name,
@@ -164,6 +174,9 @@ class ClassRequirement extends Equatable {
     this.linkedHonorId,
     this.linkedHonorName,
     this.linkedHonorCompleted,
+    this.requirementTrack,
+    this.requiredForInvestiture,
+    this.displayOrder,
   });
 
   // Computed helpers
@@ -215,5 +228,8 @@ class ClassRequirement extends Equatable {
         linkedHonorId,
         linkedHonorName,
         linkedHonorCompleted,
+        requirementTrack,
+        requiredForInvestiture,
+        displayOrder,
       ];
 }

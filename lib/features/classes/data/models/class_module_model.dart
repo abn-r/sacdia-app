@@ -20,10 +20,10 @@ class ClassModuleModel extends Equatable {
   /// Crea una instancia desde JSON
   factory ClassModuleModel.fromJson(Map<String, dynamic> json) {
     return ClassModuleModel(
-      id: safeInt(json['id']),
-      name: safeString(json['name']),
-      classId: safeInt(json['class_id']),
-      sections: (json['sections'] as List<dynamic>?)
+      id: safeInt(json['id'] ?? json['module_id']),
+      name: safeString(json['name'] ?? json['module_name']),
+      classId: safeInt(json['class_id'] ?? json['classId']),
+      sections: ((json['sections'] ?? json['class_sections']) as List<dynamic>?)
               ?.map((section) =>
                   ClassSectionModel.fromJson(section as Map<String, dynamic>))
               .toList() ??

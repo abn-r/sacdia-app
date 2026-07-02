@@ -20,10 +20,12 @@ import '../../../members/presentation/providers/members_providers.dart';
 import '../../domain/entities/class_module_detail.dart';
 import '../../domain/entities/class_requirement.dart';
 import '../../domain/entities/class_with_progress.dart';
+import '../../domain/entities/requirement_track.dart';
 import '../providers/classes_providers.dart';
 import '../widgets/class_identity_badge.dart';
 import '../widgets/module_expansion_tile.dart';
 import '../widgets/progress_ring.dart';
+import '../widgets/requirement_card.dart';
 import 'requirement_detail_view.dart';
 
 /// Vista de avances de clase — rediseño handoff (Variante B).
@@ -186,6 +188,59 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
     return names.take(3).toList();
   }
 
+  _RequirementTrackBuckets _bucketByRequirementTrack(
+    List<ClassModuleDetail> modules,
+  ) {
+    final basicModules = <ClassModuleDetail>[];
+    final advancedRequirements = <ClassRequirement>[];
+    final extraRequirements = <ClassRequirement>[];
+
+    for (final module in modules) {
+      final basicRequirements = <ClassRequirement>[];
+
+      for (final requirement in module.requirements) {
+        switch (requirement.requirementTrack) {
+          case RequirementTrack.advanced:
+            advancedRequirements.add(requirement);
+            break;
+          case RequirementTrack.extra:
+            extraRequirements.add(requirement);
+            break;
+          case RequirementTrack.basic:
+          case RequirementTrack.unknown:
+          case null:
+            basicRequirements.add(requirement);
+            break;
+        }
+      }
+
+      if (basicRequirements.isNotEmpty) {
+        basicModules.add(
+          module.copyWithRequirements(_sortedRequirements(basicRequirements)),
+        );
+      }
+    }
+
+    return _RequirementTrackBuckets(
+      basicModules: basicModules,
+      advancedRequirements: _sortedRequirements(advancedRequirements),
+      extraRequirements: _sortedRequirements(extraRequirements),
+    );
+  }
+
+  List<ClassRequirement> _sortedRequirements(
+    List<ClassRequirement> requirements,
+  ) {
+    final sorted = List<ClassRequirement>.from(requirements);
+    sorted.sort((a, b) {
+      final aOrder = a.displayOrder ?? 1 << 20;
+      final bOrder = b.displayOrder ?? 1 << 20;
+      if (aOrder != bOrder) return aOrder.compareTo(bOrder);
+      return a.name.compareTo(b.name);
+    });
+    return sorted;
+  }
+
   void _openRequirementDetail(ClassRequirement requirement) {
     Navigator.push(
       context,
@@ -328,11 +383,13 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
                     valueListenable: _query,
                     builder: (context, query, _) {
                       final filteredModules = _filteredModules(query);
-                      final noResults =
-                          query.isNotEmpty && filteredModules.isEmpty;
+                      final buckets =
+                          _bucketByRequirementTrack(filteredModules);
+                      final noResults = query.isNotEmpty &&
+                          (filteredModules.isEmpty || buckets.isEmpty);
                       return noResults
                           ? const SizedBox.shrink()
-                          : const _SectionLabel(text: 'MÓDULOS');
+                          : const SizedBox(height: 2);
                     },
                   ),
                 ],
@@ -345,7 +402,9 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
             valueListenable: _query,
             builder: (context, query, _) {
               final filteredModules = _filteredModules(query);
-              final noResults = query.isNotEmpty && filteredModules.isEmpty;
+              final buckets = _bucketByRequirementTrack(filteredModules);
+              final noResults = query.isNotEmpty &&
+                  (filteredModules.isEmpty || buckets.isEmpty);
 
               if (noResults) {
                 return SliverToBoxAdapter(
@@ -365,15 +424,15 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
               }
 
               // ── Modules list inside a single card ──────────────────────────
-              if (classData.modules.isEmpty) {
+              if (classData.modules.isEmpty || buckets.isEmpty) {
                 return const SliverToBoxAdapter(child: _EmptyModules());
               }
 
               return SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                  child: _ModulesCard(
-                    modules: filteredModules,
+                  child: _RequirementTrackSections(
+                    buckets: buckets,
                     onRequirementTap: _openRequirementDetail,
                   ),
                 ),
@@ -384,6 +443,23 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
       ),
     );
   }
+}
+
+class _RequirementTrackBuckets {
+  final List<ClassModuleDetail> basicModules;
+  final List<ClassRequirement> advancedRequirements;
+  final List<ClassRequirement> extraRequirements;
+
+  const _RequirementTrackBuckets({
+    required this.basicModules,
+    required this.advancedRequirements,
+    required this.extraRequirements,
+  });
+
+  bool get isEmpty =>
+      basicModules.isEmpty &&
+      advancedRequirements.isEmpty &&
+      extraRequirements.isEmpty;
 }
 
 InvestitureStatus _investitureStatusOf(ClassWithProgress classData) {
@@ -399,8 +475,7 @@ bool _shouldShowInvestitureCard(
   required int? enrollmentId,
 }) {
   if (enrollmentId == null || classData.isExpired) return false;
-  if (classData.totalRequirements == 0) return false;
-  return classData.completedRequirements == classData.totalRequirements;
+  return classData.isInvestitureEligibleByTrackOrLegacy;
 }
 
 bool _canSubmitInvestiture(InvestitureStatus status) {
@@ -739,7 +814,9 @@ class _HeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pct = classData.completionPercent;
+    final pct = classData.investitureProgressPercent;
+    final showAdvancedSection = classData.hasAdvancedTrackData;
+    final hasTrackData = classData.hasTrackData;
     final validated = classData.completedRequirements;
     final total = classData.totalRequirements;
 
@@ -751,97 +828,118 @@ class _HeroCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: classColor.withValues(alpha: 0.18)),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Left side
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Eyebrow
-                Text(
-                  '${classData.name.toUpperCase()} · AVANCE',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.ink400,
-                    letterSpacing: 0.88,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                // Big percentage
-                RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: '$pct',
-                        style: TextStyle(
-                          fontSize: 44,
-                          fontWeight: FontWeight.w800,
-                          color: classColor,
-                          height: 1,
-                          letterSpacing: -1.3,
-                          fontFeatures: [FontFeature.tabularFigures()],
-                        ),
-                      ),
-                      TextSpan(
-                        text: '%',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          color: classColor,
-                          height: 1,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 6),
-                // Sub text
-                RichText(
-                  text: TextSpan(
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.ink500,
-                    ),
-                    children: [
-                      TextSpan(
-                        text: '$validated',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.ink800,
-                        ),
-                      ),
-                      TextSpan(text: ' de $total requisitos validados'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(width: 16),
-
-          // Right: class identity + 56×56 donut
-          Stack(
-            alignment: Alignment.center,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              HeroDonut(
-                progress: classData.completionRatio,
-                color: classColor,
+              // Left side
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Eyebrow
+                    Text(
+                      '${classData.name.toUpperCase()} · AVANCE',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.ink400,
+                        letterSpacing: 0.88,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    // Big percentage
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: '$pct',
+                            style: TextStyle(
+                              fontSize: 44,
+                              fontWeight: FontWeight.w800,
+                              color: classColor,
+                              height: 1,
+                              letterSpacing: -1.3,
+                              fontFeatures: [FontFeature.tabularFigures()],
+                            ),
+                          ),
+                          TextSpan(
+                            text: '%',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w800,
+                              color: classColor,
+                              height: 1,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (hasTrackData) ...[
+                      const SizedBox(height: 10),
+                      const Text(
+                        'Desarrollo + actividades complementarias',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: AppColors.ink500,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ] else if (!hasTrackData) ...[
+                      const SizedBox(height: 10),
+                      // Sub text (legacy)
+                      RichText(
+                        text: TextSpan(
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.ink500,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: '$validated',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.ink800,
+                              ),
+                            ),
+                            TextSpan(text: ' de $total requisitos validados'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
-              ClassIdentityBadge(
-                className: classData.name,
-                imageUrl: classData.imageUrl,
-                size: 34,
-                logoPadding: 5,
-                borderRadius: 11,
-                fallbackIcon: HugeIcons.strokeRoundedBookOpen01,
+
+              const SizedBox(width: 16),
+
+              // Right: class identity + 56×56 donut
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  HeroDonut(
+                    progress: classData.investitureProgressRatio,
+                    color: classColor,
+                  ),
+                  ClassIdentityBadge(
+                    className: classData.name,
+                    imageUrl: classData.imageUrl,
+                    size: 34,
+                    logoPadding: 5,
+                    borderRadius: 11,
+                    fallbackIcon: HugeIcons.strokeRoundedBookOpen01,
+                  ),
+                ],
               ),
             ],
           ),
+          if (showAdvancedSection) ...[
+            const SizedBox(height: 16),
+            _AdvancedTrackSection(classData: classData),
+          ],
         ],
       ),
     );
@@ -882,7 +980,7 @@ class _PillsRow extends StatelessWidget {
     }
 
     return SizedBox(
-      height: 38,
+      height: 30,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: EdgeInsets.zero,
@@ -894,28 +992,28 @@ class _PillsRow extends StatelessWidget {
             label: 'Validados',
             count: validated,
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           _StatusPill(
             color: AppColors.sentColor,
             bg: AppColors.sentBg,
             label: 'Enviados',
             count: sent,
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           _StatusPill(
             color: AppColors.observedColor,
             bg: AppColors.observedBg,
             label: 'Observados',
             count: observed,
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           _StatusPill(
             color: AppColors.rejectedColor,
             bg: AppColors.rejectedBg,
             label: 'Rechazados',
             count: rejected,
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           _StatusPill(
             color: AppColors.pendingColor,
             bg: AppColors.pendingBg,
@@ -944,7 +1042,7 @@ class _StatusPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(999),
@@ -953,33 +1051,127 @@ class _StatusPill extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 6,
-            height: 6,
+            width: 5,
+            height: 5,
             decoration: BoxDecoration(
               color: color,
               shape: BoxShape.circle,
             ),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           Text(
             '$count',
             style: const TextStyle(
-              fontSize: 12,
+              fontSize: 11.5,
               fontWeight: FontWeight.w700,
               color: AppColors.ink800,
               fontFeatures: [FontFeature.tabularFigures()],
             ),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 3),
           Text(
             label,
             style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w400,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w500,
               color: AppColors.ink600,
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── Advanced track summary ─────────────────────────────────────────────────────
+
+class _AdvancedTrackSection extends StatelessWidget {
+  final ClassWithProgress classData;
+
+  const _AdvancedTrackSection({
+    required this.classData,
+  });
+
+  int get _percentage =>
+      (classData.advancedProgress?.percentage ?? 0).clamp(0, 100).toInt();
+
+  String get _status {
+    if (_percentage >= 100) return 'Completa';
+    if (_percentage > 0) return 'En curso';
+    return 'Pendiente';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label:
+          'Sección avanzada: $_percentage por ciento. Avance independiente de investidura.',
+      child: Container(
+        width: double.infinity,
+        constraints: const BoxConstraints(minHeight: 68),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+        decoration: BoxDecoration(
+          color: AppColors.canvas,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.ink150),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Sección avanzada',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.ink800,
+                      fontWeight: FontWeight.w800,
+                      height: 1.1,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  '$_percentage%',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: AppColors.ink900,
+                    fontWeight: FontWeight.w800,
+                    height: 1,
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '$_status · avance independiente',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.ink500,
+                fontWeight: FontWeight.w600,
+                height: 1.2,
+              ),
+            ),
+            const SizedBox(height: 9),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: LinearProgressIndicator(
+                value: _percentage / 100,
+                minHeight: 2,
+                backgroundColor: AppColors.ink150,
+                color: AppColors.sentColor.withValues(alpha: 0.6),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1100,6 +1292,61 @@ class _SectionLabel extends StatelessWidget {
   }
 }
 
+// ── Requirement track sections ────────────────────────────────────────────────
+
+class _RequirementTrackSections extends StatelessWidget {
+  final _RequirementTrackBuckets buckets;
+  final void Function(ClassRequirement) onRequirementTap;
+
+  const _RequirementTrackSections({
+    required this.buckets,
+    required this.onRequirementTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final children = <Widget>[];
+
+    if (buckets.basicModules.isNotEmpty) {
+      children.addAll([
+        const _SectionLabel(text: 'DESARROLLO DE CLASE'),
+        _ModulesCard(
+          modules: buckets.basicModules,
+          onRequirementTap: onRequirementTap,
+        ),
+      ]);
+    }
+
+    if (buckets.advancedRequirements.isNotEmpty) {
+      if (children.isNotEmpty) children.add(const SizedBox(height: 18));
+      children.addAll([
+        const _SectionLabel(text: 'AVANZADO'),
+        _RequirementListCard(
+          requirements: buckets.advancedRequirements,
+          onRequirementTap: onRequirementTap,
+        ),
+      ]);
+    }
+
+    if (buckets.extraRequirements.isNotEmpty) {
+      if (children.isNotEmpty) children.add(const SizedBox(height: 18));
+      children.addAll([
+        const _SectionLabel(text: 'ACTIVIDADES COMPLEMENTARIAS'),
+        _RequirementListCard(
+          requirements: buckets.extraRequirements,
+          onRequirementTap: onRequirementTap,
+        ),
+      ]);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: children,
+    );
+  }
+}
+
 // ── Modules card ───────────────────────────────────────────────────────────────
 
 class _ModulesCard extends StatelessWidget {
@@ -1143,6 +1390,42 @@ class _ModulesCard extends StatelessWidget {
                 onRequirementTap: onRequirementTap,
               ),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Requirement list card ─────────────────────────────────────────────────────
+
+class _RequirementListCard extends StatelessWidget {
+  final List<ClassRequirement> requirements;
+  final void Function(ClassRequirement) onRequirementTap;
+
+  const _RequirementListCard({
+    required this.requirements,
+    required this.onRequirementTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.paper,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.ink150),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final requirement in requirements)
+              RequirementCard(
+                requirement: requirement,
+                onTap: () => onRequirementTap(requirement),
+              ),
           ],
         ),
       ),

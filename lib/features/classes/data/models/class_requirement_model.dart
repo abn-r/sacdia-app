@@ -1,5 +1,6 @@
 import '../../domain/entities/class_requirement.dart';
 import 'requirement_evidence_model.dart';
+import '../../domain/entities/requirement_track.dart';
 
 /// Modelo de datos para [ClassRequirement].
 class ClassRequirementModel extends ClassRequirement {
@@ -27,6 +28,9 @@ class ClassRequirementModel extends ClassRequirement {
     super.linkedHonorId,
     super.linkedHonorName,
     super.linkedHonorCompleted,
+    super.requirementTrack,
+    super.requiredForInvestiture,
+    super.displayOrder,
   });
 
   factory ClassRequirementModel.fromJson(Map<String, dynamic> json) {
@@ -83,6 +87,12 @@ class ClassRequirementModel extends ClassRequirement {
           (json['honor_name'] ?? json['linkedHonorName'])?.toString(),
       linkedHonorCompleted: json['honor_completed'] as bool? ??
           json['linkedHonorCompleted'] as bool?,
+      requirementTrack: RequirementTrackMeta.fromValue(
+          json['requirement_track'] ?? json['requirementTrack']),
+      requiredForInvestiture: json['required_for_investiture'] as bool? ??
+          json['requiredForInvestiture'] as bool?,
+      displayOrder:
+          _parseIntOrNull(json['display_order'] ?? json['displayOrder']),
     );
   }
 
@@ -91,6 +101,14 @@ class ClassRequirementModel extends ClassRequirement {
     if (value is double) return value.toInt();
     if (value is String) return int.tryParse(value) ?? 0;
     return 0;
+  }
+
+  static int? _parseIntOrNull(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is String) return int.tryParse(value);
+    return null;
   }
 
   static DateTime? _parseDate(String? value) {
@@ -122,5 +140,8 @@ class ClassRequirementModel extends ClassRequirement {
         linkedHonorId: linkedHonorId,
         linkedHonorName: linkedHonorName,
         linkedHonorCompleted: linkedHonorCompleted,
+        requirementTrack: requirementTrack,
+        requiredForInvestiture: requiredForInvestiture,
+        displayOrder: displayOrder,
       );
 }

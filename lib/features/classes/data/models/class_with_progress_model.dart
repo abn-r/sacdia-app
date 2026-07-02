@@ -1,4 +1,6 @@
 import '../../domain/entities/class_with_progress.dart';
+import '../../domain/entities/track_eligibility.dart';
+import '../../domain/entities/track_progress.dart';
 import 'class_module_detail_model.dart';
 import '../../../../core/utils/json_helpers.dart';
 
@@ -16,6 +18,12 @@ class ClassWithProgressModel extends ClassWithProgress {
     super.availableUntilYearId,
     super.minDurationYears,
     super.maxDurationYears,
+    super.overallProgress,
+    super.basicProgress,
+    super.advancedProgress,
+    super.extraProgress,
+    super.investitureEligibility,
+    super.advancedEligibility,
     super.modules,
   });
 
@@ -45,6 +53,20 @@ class ClassWithProgressModel extends ClassWithProgress {
           safeInt(json['min_duration_years'] ?? json['minDurationYears'], 1),
       maxDurationYears:
           safeInt(json['max_duration_years'] ?? json['maxDurationYears'], 1),
+      overallProgress: safeIntOrNull(json['overall_progress']),
+      basicProgress: json.containsKey('basic_progress')
+          ? TrackProgress.fromJson(json['basic_progress'])
+          : null,
+      advancedProgress: json.containsKey('advanced_progress')
+          ? TrackProgress.fromJson(json['advanced_progress'])
+          : null,
+      extraProgress: json.containsKey('extra_progress')
+          ? TrackProgress.fromJson(json['extra_progress'])
+          : null,
+      investitureEligibility:
+          TrackEligibility.fromJson(json['investiture_eligibility']),
+      advancedEligibility:
+          TrackEligibility.fromJson(json['advanced_eligibility']),
       modules: modules,
     );
   }
@@ -61,6 +83,12 @@ class ClassWithProgressModel extends ClassWithProgress {
         availableUntilYearId: availableUntilYearId,
         minDurationYears: minDurationYears,
         maxDurationYears: maxDurationYears,
+        overallProgress: overallProgress,
+        basicProgress: basicProgress,
+        advancedProgress: advancedProgress,
+        extraProgress: extraProgress,
+        investitureEligibility: investitureEligibility,
+        advancedEligibility: advancedEligibility,
         modules: modules,
       );
 }

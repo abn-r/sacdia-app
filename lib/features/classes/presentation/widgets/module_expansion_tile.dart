@@ -7,6 +7,8 @@ import 'package:sacdia_app/core/widgets/sac_card.dart';
 import '../../domain/entities/class_module.dart';
 import '../../domain/entities/class_module_detail.dart';
 import '../../domain/entities/class_requirement.dart';
+import '../../domain/entities/class_section.dart';
+import '../../domain/entities/requirement_track.dart';
 import 'mini_ring.dart';
 import 'requirement_card.dart';
 import 'section_checkbox.dart';
@@ -31,6 +33,8 @@ class ModuleExpansionTile extends StatelessWidget {
     final totalCount = module.sections.length;
     final progress = totalCount > 0 ? completedCount / totalCount : 0.0;
     final isComplete = completedCount == totalCount && totalCount > 0;
+    final hasTrackData =
+        module.sections.any((section) => section.requirementTrack != null);
 
     return SacCard(
       margin: const EdgeInsets.only(bottom: 10),
@@ -84,15 +88,118 @@ class ModuleExpansionTile extends StatelessWidget {
               ),
             ),
           ),
-          children: module.sections.map((section) {
-            return SectionCheckbox(
-              section: section,
-              onChanged: (isCompleted) {
-                onSectionToggle(section.id, isCompleted);
-              },
-            );
-          }).toList(),
+          children: hasTrackData
+              ? _buildTrackGroupedSectionChildren()
+              : module.sections
+                  .map((section) => SectionCheckbox(
+                        section: section,
+                        onChanged: (isCompleted) {
+                          onSectionToggle(section.id, isCompleted);
+                        },
+                      ))
+                  .toList(),
         ),
+      ),
+    );
+  }
+
+  List<Widget> _buildTrackGroupedSectionChildren() {
+    final grouped = <RequirementTrack, List<ClassSection>>{
+      RequirementTrack.basic: [],
+      RequirementTrack.advanced: [],
+      RequirementTrack.extra: [],
+      RequirementTrack.unknown: [],
+    };
+
+    final sections = List<ClassSection>.from(module.sections)
+      ..sort((a, b) {
+        final trackWeightA =
+            RequirementTrackMeta.sortWeight(a.requirementTrack);
+        final trackWeightB =
+            RequirementTrackMeta.sortWeight(b.requirementTrack);
+        if (trackWeightA != trackWeightB) {
+          return trackWeightA.compareTo(trackWeightB);
+        }
+
+        final aOrder = a.displayOrder ?? 1 << 20;
+        final bOrder = b.displayOrder ?? 1 << 20;
+        return aOrder.compareTo(bOrder);
+      });
+
+    for (final section in sections) {
+      grouped[section.requirementTrack ?? RequirementTrack.unknown]!
+          .add(section);
+    }
+
+    final trackEntries = [
+      RequirementTrack.basic,
+      RequirementTrack.advanced,
+      RequirementTrack.extra,
+      RequirementTrack.unknown,
+    ];
+
+    final children = <Widget>[];
+    for (final track in trackEntries) {
+      final requirements = grouped[track]!;
+      if (requirements.isEmpty) continue;
+
+      final isAdvanced = track == RequirementTrack.advanced;
+      children.add(_TrackSectionHeader(
+        label: RequirementTrackMeta.toLabel(track),
+        isAdvanced: isAdvanced,
+      ));
+
+      children.addAll(
+        requirements.map(
+          (section) => SectionCheckbox(
+            section: section,
+            onChanged: (isCompleted) {
+              onSectionToggle(section.id, isCompleted);
+            },
+          ),
+        ),
+      );
+    }
+
+    return children;
+  }
+}
+
+class _TrackSectionHeader extends StatelessWidget {
+  final String label;
+  final bool isAdvanced;
+
+  const _TrackSectionHeader({
+    required this.label,
+    required this.isAdvanced,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final subtitle = isAdvanced ? 'Avanzado' : null;
+    return Padding(
+      padding: const EdgeInsets.only(left: 2, top: 8, bottom: 6),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.ink500,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          if (subtitle != null)
+            Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 10.5,
+                color: AppColors.ink400,
+              ),
+            ),
+        ],
       ),
     );
   }
