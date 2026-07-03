@@ -377,14 +377,12 @@ class _PaymentCard extends StatelessWidget {
 
   String _paymentTypeLabel(String type) {
     switch (type) {
-      case 'cash':
-        return 'camporees.payments.payment_type_cash'.tr();
-      case 'transfer':
-        return 'camporees.payments.payment_type_transfer'.tr();
-      case 'check':
-        return 'camporees.payments.payment_type_check'.tr();
-      case 'card':
-        return 'camporees.payments.payment_type_card'.tr();
+      case 'inscription':
+        return 'camporees.payments.payment_type_inscription'.tr();
+      case 'materials':
+        return 'camporees.payments.payment_type_materials'.tr();
+      case 'other':
+        return 'camporees.payments.payment_type_other'.tr();
       default:
         return type;
     }
@@ -443,14 +441,13 @@ class _CamporeePaymentFormSheetState
   final _referenceCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
 
-  String _paymentType = 'cash';
+  String _paymentType = 'inscription';
   DateTime? _paymentDate;
 
   List<(String, String)> get _paymentTypes => [
-        ('cash', 'camporees.payments.payment_type_cash'.tr()),
-        ('transfer', 'camporees.payments.payment_type_transfer'.tr()),
-        ('check', 'camporees.payments.payment_type_check'.tr()),
-        ('card', 'camporees.payments.payment_type_card'.tr()),
+        ('inscription', 'camporees.payments.payment_type_inscription'.tr()),
+        ('materials', 'camporees.payments.payment_type_materials'.tr()),
+        ('other', 'camporees.payments.payment_type_other'.tr()),
       ];
 
   @override

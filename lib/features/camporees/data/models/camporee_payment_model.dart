@@ -31,14 +31,23 @@ class CamporeePaymentModel extends Equatable {
   factory CamporeePaymentModel.fromJson(Map<String, dynamic> json) {
     return CamporeePaymentModel(
       id: safeInt(json['id'] ?? json['payment_id']),
-      camporeeId: safeInt(json['camporee_id']),
-      memberId: safeString(json['member_id'] ?? json['user_id']),
+      camporeeId: safeInt(
+        json['camporee_id'] ?? json['camporee_member']?['camporee_id'],
+      ),
+      memberId: safeString(
+        json['member_id'] ??
+            json['camporee_member_id'] ??
+            json['camporee_member']?['camporee_member_id'] ??
+            json['user_id'] ??
+            json['camporee_member']?['user_id'],
+      ),
       amount: safeDouble(json['amount']),
-      paymentType: safeString(json['payment_type'], 'cash'),
+      paymentType: safeString(json['payment_type'], 'inscription'),
       reference: safeStringOrNull(json['reference']),
       status: safeString(json['status'], 'pending'),
-      paymentDate: json['payment_date'] != null
-          ? DateTime.tryParse(safeString(json['payment_date']))
+      paymentDate: (json['paid_at'] ?? json['payment_date']) != null
+          ? DateTime.tryParse(
+              safeString(json['paid_at'] ?? json['payment_date']))
           : null,
       notes: safeStringOrNull(json['notes']),
       createdAt: json['created_at'] != null

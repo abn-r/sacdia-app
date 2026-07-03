@@ -56,6 +56,8 @@ class CamporeePayment extends Equatable {
 
   CamporeePaymentStatus get paymentStatus {
     switch (status) {
+      case 'approved':
+      case 'registered':
       case 'verified':
         return CamporeePaymentStatus.verified;
       case 'rejected':

@@ -1896,6 +1896,9 @@
       "amount_required": "Digite o valor",
       "amount_invalid": "Digite um valor válido",
       "payment_type_label": "Tipo de pagamento *",
+      "payment_type_inscription": "Inscrição",
+      "payment_type_materials": "Materiais",
+      "payment_type_other": "Outro",
       "reference_label": "Referência (opcional)",
       "reference_hint": "Número do comprovante ou referência",
       "payment_date_label": "Data do pagamento (opcional)",
@@ -1906,6 +1909,26 @@
     },
     "payment_status": {
       "verified": "Verificado"
+    },
+    "judge": {
+      "assignments_title": "Avaliações atribuídas",
+      "event_fallback": "Evento #{eventId}",
+      "section_label": "Seção #{sectionId}",
+      "score_action": "Lançar pontuação",
+      "no_primary_assignments": "Você não tem avaliações como juiz principal.",
+      "no_primary_assignments_hint": "Juízes auxiliares podem apoiar a avaliação, mas somente o juiz principal envia a pontuação oficial.",
+      "assignments_error": "Não foi possível carregar suas atribuições.",
+      "score_title": "Pontuação por rubrica",
+      "total_label": "Total calculado: {total} / {maxTotal} pontos",
+      "notes_label": "Notas opcionais",
+      "awarded_points": "Pontos concedidos",
+      "max_points_hint": "Máximo: {max} pontos",
+      "submit_score": "Enviar pontuação oficial",
+      "score_invalid": "Revise os pontos: eles não podem ser negativos nem exceder o máximo do critério.",
+      "score_saved": "Pontuação oficial enviada.",
+      "score_save_failed": "Não foi possível enviar a pontuação.",
+      "no_rubrics": "Este evento não tem rubricas ativas.",
+      "rubrics_error": "Não foi possível carregar as rubricas."
     }
   },
   "finances": {

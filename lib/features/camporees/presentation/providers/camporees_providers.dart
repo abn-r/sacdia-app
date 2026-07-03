@@ -7,8 +7,11 @@ import '../../data/datasources/camporees_remote_data_source.dart';
 import '../../data/repositories/camporees_repository_impl.dart';
 import '../../domain/entities/camporee.dart';
 import '../../domain/entities/camporee_event.dart';
+import '../../domain/entities/camporee_judge_assignment.dart';
 import '../../domain/entities/camporee_member.dart';
 import '../../domain/entities/camporee_payment.dart';
+import '../../domain/entities/camporee_rubric.dart';
+import '../../domain/entities/camporee_score_submission.dart';
 import '../../domain/repositories/camporees_repository.dart';
 
 // ── Infrastructure providers ──────────────────────────────────────────────────
@@ -651,4 +654,128 @@ class EnrollClubNotifier
 final enrollClubNotifierProvider = NotifierProvider.autoDispose
     .family<EnrollClubNotifier, EnrollClubState, int>(
   EnrollClubNotifier.new,
+);
+
+// ── Camporee scoring providers ───────────────────────────────────────────────
+
+/// Asignaciones del usuario actual como juez de camporee.
+final camporeeJudgeAssignmentsProvider =
+    FutureProvider.autoDispose<List<CamporeeJudgeAssignment>>((ref) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final repository = ref.read(camporeesRepositoryProvider);
+  final result = await repository.getMyJudgeAssignments(
+    cancelToken: cancelToken,
+  );
+
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (assignments) => assignments,
+  );
+});
+
+/// Rúbricas activas de un evento de camporee.
+final camporeeEventRubricsProvider = FutureProvider.autoDispose
+    .family<List<CamporeeRubric>, int>((ref, eventId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final repository = ref.read(camporeesRepositoryProvider);
+  final result = await repository.getCamporeeEventRubrics(
+    eventId,
+    cancelToken: cancelToken,
+  );
+
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (rubrics) => rubrics,
+  );
+});
+
+class CamporeeJudgeScoreParams {
+  final int eventId;
+  final int clubSectionId;
+
+  const CamporeeJudgeScoreParams({
+    required this.eventId,
+    required this.clubSectionId,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      other is CamporeeJudgeScoreParams &&
+      other.eventId == eventId &&
+      other.clubSectionId == clubSectionId;
+
+  @override
+  int get hashCode => Object.hash(eventId, clubSectionId);
+}
+
+class CamporeeScoreSubmissionState {
+  final bool isLoading;
+  final String? errorMessage;
+  final bool success;
+
+  const CamporeeScoreSubmissionState({
+    this.isLoading = false,
+    this.errorMessage,
+    this.success = false,
+  });
+
+  CamporeeScoreSubmissionState copyWith({
+    bool? isLoading,
+    String? errorMessage,
+    bool? success,
+  }) {
+    return CamporeeScoreSubmissionState(
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage,
+      success: success ?? this.success,
+    );
+  }
+}
+
+class CamporeeScoreSubmissionNotifier extends AutoDisposeFamilyNotifier<
+    CamporeeScoreSubmissionState, CamporeeJudgeScoreParams> {
+  @override
+  CamporeeScoreSubmissionState build(CamporeeJudgeScoreParams arg) =>
+      const CamporeeScoreSubmissionState();
+
+  Future<bool> submit({
+    required List<CamporeeScoreSubmissionItem> items,
+    String? notes,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
+
+    final result =
+        await ref.read(camporeesRepositoryProvider).submitCamporeeEventScore(
+              arg.eventId,
+              arg.clubSectionId,
+              submission: CamporeeScoreSubmission(
+                source: 'judge_primary',
+                notes: notes,
+                items: items,
+              ),
+            );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
+        return false;
+      },
+      (_) {
+        state = state.copyWith(isLoading: false, success: true);
+        ref.invalidate(camporeeJudgeAssignmentsProvider);
+        return true;
+      },
+    );
+  }
+
+  void reset() => state = const CamporeeScoreSubmissionState();
+}
+
+final camporeeScoreSubmissionProvider = NotifierProvider.autoDispose.family<
+    CamporeeScoreSubmissionNotifier,
+    CamporeeScoreSubmissionState,
+    CamporeeJudgeScoreParams>(
+  CamporeeScoreSubmissionNotifier.new,
 );

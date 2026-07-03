@@ -37,6 +37,8 @@ import 'package:sacdia_app/features/camporees/presentation/views/camporees_list_
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_detail_view.dart';
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_members_view.dart';
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_register_member_view.dart';
+import 'package:sacdia_app/features/camporees/presentation/views/judge_assignments_view.dart';
+import 'package:sacdia_app/features/camporees/presentation/views/judge_score_entry_view.dart';
 import 'package:sacdia_app/features/transfers/presentation/views/transfer_request_detail_view.dart';
 import 'package:sacdia_app/features/transfers/presentation/views/transfer_requests_view.dart';
 import 'package:sacdia_app/features/units/presentation/views/member_of_month_history_view.dart';
@@ -766,6 +768,36 @@ final routerProvider = Provider<GoRouter>((ref) {
             CamporeeMembersView(
               camporeeId: camporeeId,
               camporeeName: camporeeName,
+            ),
+          );
+        },
+      ),
+
+      // Asignaciones de juez principal para scoring de camporee
+      GoRoute(
+        path: RouteNames.camporeeJudgeAssignments,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          const JudgeAssignmentsView(),
+        ),
+      ),
+
+      // Captura de puntaje por rúbrica para juez principal
+      GoRoute(
+        path: RouteNames.camporeeJudgeScoreEntry,
+        pageBuilder: (context, state) {
+          final eventId = int.tryParse(state.pathParameters['eventId']!) ?? 0;
+          final clubSectionId =
+              int.tryParse(state.pathParameters['clubSectionId']!) ?? 0;
+          final eventTitle = state.uri.queryParameters['eventTitle'];
+          return _sharedAxisBuild(
+            context,
+            state,
+            JudgeScoreEntryView(
+              eventId: eventId,
+              clubSectionId: clubSectionId,
+              eventTitle: eventTitle,
             ),
           );
         },

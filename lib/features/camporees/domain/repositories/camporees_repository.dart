@@ -4,8 +4,11 @@ import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/models/paginated_result.dart';
 import '../entities/camporee.dart';
 import '../entities/camporee_event.dart';
+import '../entities/camporee_judge_assignment.dart';
 import '../entities/camporee_member.dart';
 import '../entities/camporee_payment.dart';
+import '../entities/camporee_rubric.dart';
+import '../entities/camporee_score_submission.dart';
 
 /// Repositorio de camporees (interfaz del dominio)
 abstract class CamporeesRepository {
@@ -79,4 +82,21 @@ abstract class CamporeesRepository {
   Future<Either<Failure, List<CamporeePayment>>> getCamporeePayments(
       int camporeeId,
       {RequestCancelToken? cancelToken});
+
+  /// Obtiene asignaciones del juez autenticado para scoring de camporee.
+  Future<Either<Failure, List<CamporeeJudgeAssignment>>> getMyJudgeAssignments(
+      {RequestCancelToken? cancelToken});
+
+  /// Obtiene rúbricas activas de un evento puntuable.
+  Future<Either<Failure, List<CamporeeRubric>>> getCamporeeEventRubrics(
+    int eventId, {
+    RequestCancelToken? cancelToken,
+  });
+
+  /// Envía puntaje oficial por rúbrica.
+  Future<Either<Failure, void>> submitCamporeeEventScore(
+    int eventId,
+    int clubSectionId, {
+    required CamporeeScoreSubmission submission,
+  });
 }

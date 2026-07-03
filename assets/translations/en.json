@@ -1896,6 +1896,9 @@
       "amount_required": "Enter the amount",
       "amount_invalid": "Enter a valid amount",
       "payment_type_label": "Payment type *",
+      "payment_type_inscription": "Registration",
+      "payment_type_materials": "Materials",
+      "payment_type_other": "Other",
       "reference_label": "Reference (optional)",
       "reference_hint": "Voucher or reference number",
       "payment_date_label": "Payment date (optional)",
@@ -1906,6 +1909,26 @@
     },
     "payment_status": {
       "verified": "Verified"
+    },
+    "judge": {
+      "assignments_title": "Assigned evaluations",
+      "event_fallback": "Event #{eventId}",
+      "section_label": "Section #{sectionId}",
+      "score_action": "Enter score",
+      "no_primary_assignments": "You do not have primary judge evaluations.",
+      "no_primary_assignments_hint": "Assistant judges can support evaluation, but only the primary judge submits the official score.",
+      "assignments_error": "Could not load your assignments.",
+      "score_title": "Rubric score",
+      "total_label": "Calculated total: {total} / {maxTotal} points",
+      "notes_label": "Optional notes",
+      "awarded_points": "Awarded points",
+      "max_points_hint": "Maximum: {max} points",
+      "submit_score": "Submit official score",
+      "score_invalid": "Review the points: they cannot be negative or exceed the criterion maximum.",
+      "score_saved": "Official score submitted.",
+      "score_save_failed": "Could not submit the score.",
+      "no_rubrics": "This event has no active rubrics.",
+      "rubrics_error": "Could not load rubrics."
     }
   },
   "finances": {

@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/errors/exceptions.dart';
 import 'package:sacdia_app/core/models/paginated_result.dart';
 import 'package:sacdia_app/features/camporees/data/datasources/camporees_remote_data_source.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_member_model.dart';
+import 'package:sacdia_app/features/camporees/domain/entities/camporee_score_submission.dart';
 
 // ── Fake HttpClientAdapter ────────────────────────────────────────────────────
 
@@ -226,6 +227,92 @@ void main() {
       expect(adapter.lastOptions!.path, '$baseUrl/camporees/42/register');
       expect(adapter.lastOptions!.data, {
         'user_id': 'user-001',
+      });
+    });
+  });
+
+  group('CamporeesRemoteDataSourceImpl camporee scoring', () {
+    test('parses current judge assignments from backend data envelope',
+        () async {
+      final (:dio, :adapter) = _dioWith({
+        'status': 'success',
+        'data': [
+          {
+            'camporee_event_judge_assignment_id': 'assignment-1',
+            'camporee_event_id': 77,
+            'camporee_judge_id': 'judge-1',
+            'camporee_club_id': 5,
+            'club_section_id': 99,
+            'judge_role': 'primary',
+            'active': true,
+            'event_title': 'Nudos',
+            'can_submit_score': true,
+          },
+        ],
+      });
+      final ds = CamporeesRemoteDataSourceImpl(dio: dio, baseUrl: baseUrl);
+
+      final result = await ds.getMyJudgeAssignments();
+
+      expect(
+          adapter.lastOptions!.path, '$baseUrl/camporee-judges/me/assignments');
+      expect(result, hasLength(1));
+      expect(result.first.assignmentId, 'assignment-1');
+      expect(result.first.judgeRole, 'primary');
+      expect(result.first.canSubmitScore, isTrue);
+    });
+
+    test('parses event rubrics from backend data envelope', () async {
+      final (:dio, :adapter) = _dioWith({
+        'status': 'success',
+        'data': [
+          {
+            'camporee_event_rubric_id': 101,
+            'camporee_event_id': 77,
+            'title': 'Técnica',
+            'description': 'Nudo correcto',
+            'max_points': '40.50',
+            'display_order': 0,
+            'active': true,
+          },
+        ],
+      });
+      final ds = CamporeesRemoteDataSourceImpl(dio: dio, baseUrl: baseUrl);
+
+      final result = await ds.getCamporeeEventRubrics(77);
+
+      expect(adapter.lastOptions!.path, '$baseUrl/camporee-events/77/rubrics');
+      expect(result, hasLength(1));
+      expect(result.first.rubricId, 101);
+      expect(result.first.maxPoints, 40.5);
+    });
+
+    test('submits one official score item per rubric', () async {
+      final (:dio, :adapter) = _dioWith({
+        'status': 'success',
+        'data': {'camporee_event_section_result_id': 'result-1'},
+      }, statusCode: 201);
+      final ds = CamporeesRemoteDataSourceImpl(dio: dio, baseUrl: baseUrl);
+
+      await ds.submitCamporeeEventScore(
+        77,
+        99,
+        submission: const CamporeeScoreSubmission(
+          items: [
+            CamporeeScoreSubmissionItem(rubricId: 101, awardedPoints: 35),
+            CamporeeScoreSubmissionItem(rubricId: 102, awardedPoints: 50),
+          ],
+        ),
+      );
+
+      expect(adapter.lastOptions!.path,
+          '$baseUrl/camporee-events/77/sections/99/scores');
+      expect(adapter.lastOptions!.data, {
+        'source': 'judge_primary',
+        'items': [
+          {'camporee_event_rubric_id': 101, 'awarded_points': 35.0},
+          {'camporee_event_rubric_id': 102, 'awarded_points': 50.0},
+        ],
       });
     });
   });

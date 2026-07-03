@@ -1896,6 +1896,9 @@
       "amount_required": "Entrez le montant",
       "amount_invalid": "Entrez un montant valide",
       "payment_type_label": "Type de paiement *",
+      "payment_type_inscription": "Inscription",
+      "payment_type_materials": "Matériaux",
+      "payment_type_other": "Autre",
       "reference_label": "Référence (optionnel)",
       "reference_hint": "Numéro de reçu ou de référence",
       "payment_date_label": "Date de paiement (optionnel)",
@@ -1906,6 +1909,26 @@
     },
     "payment_status": {
       "verified": "Vérifié"
+    },
+    "judge": {
+      "assignments_title": "Évaluations assignées",
+      "event_fallback": "Événement n°{eventId}",
+      "section_label": "Section n°{sectionId}",
+      "score_action": "Saisir le score",
+      "no_primary_assignments": "Vous n’avez pas d’évaluations comme juge principal.",
+      "no_primary_assignments_hint": "Les juges assistants peuvent soutenir l’évaluation, mais seul le juge principal envoie le score officiel.",
+      "assignments_error": "Impossible de charger vos assignations.",
+      "score_title": "Score par grille",
+      "total_label": "Total calculé : {total} / {maxTotal} points",
+      "notes_label": "Notes optionnelles",
+      "awarded_points": "Points accordés",
+      "max_points_hint": "Maximum : {max} points",
+      "submit_score": "Envoyer le score officiel",
+      "score_invalid": "Vérifiez les points : ils ne peuvent pas être négatifs ni dépasser le maximum du critère.",
+      "score_saved": "Score officiel envoyé.",
+      "score_save_failed": "Impossible d’envoyer le score.",
+      "no_rubrics": "Cet événement n’a pas de grilles actives.",
+      "rubrics_error": "Impossible de charger les grilles."
     }
   },
   "finances": {

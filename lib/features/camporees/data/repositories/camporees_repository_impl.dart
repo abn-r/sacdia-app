@@ -7,8 +7,11 @@ import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/camporee.dart';
 import '../../domain/entities/camporee_event.dart';
+import '../../domain/entities/camporee_judge_assignment.dart';
 import '../../domain/entities/camporee_member.dart';
 import '../../domain/entities/camporee_payment.dart';
+import '../../domain/entities/camporee_rubric.dart';
+import '../../domain/entities/camporee_score_submission.dart';
 import '../../domain/repositories/camporees_repository.dart';
 import '../datasources/camporees_remote_data_source.dart';
 
@@ -255,6 +258,65 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
       final models = await remoteDataSource.getCamporeePayments(camporeeId,
           cancelToken: cancelToken.asDioCancelToken());
       return Right(models.map((m) => m.toEntity()).toList());
+    } on ServerException catch (e) {
+      return _serverFailure(e);
+    } on AuthException catch (e) {
+      return _authFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<CamporeeJudgeAssignment>>> getMyJudgeAssignments(
+      {RequestCancelToken? cancelToken}) async {
+    try {
+      final models = await remoteDataSource.getMyJudgeAssignments(
+        cancelToken: cancelToken.asDioCancelToken(),
+      );
+      return Right(models.map((m) => m.toEntity()).toList());
+    } on ServerException catch (e) {
+      return _serverFailure(e);
+    } on AuthException catch (e) {
+      return _authFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<CamporeeRubric>>> getCamporeeEventRubrics(
+    int eventId, {
+    RequestCancelToken? cancelToken,
+  }) async {
+    try {
+      final models = await remoteDataSource.getCamporeeEventRubrics(
+        eventId,
+        cancelToken: cancelToken.asDioCancelToken(),
+      );
+      return Right(models.map((m) => m.toEntity()).toList());
+    } on ServerException catch (e) {
+      return _serverFailure(e);
+    } on AuthException catch (e) {
+      return _authFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> submitCamporeeEventScore(
+    int eventId,
+    int clubSectionId, {
+    required CamporeeScoreSubmission submission,
+  }) async {
+    try {
+      await remoteDataSource.submitCamporeeEventScore(
+        eventId,
+        clubSectionId,
+        submission: submission,
+      );
+      return const Right(null);
     } on ServerException catch (e) {
       return _serverFailure(e);
     } on AuthException catch (e) {

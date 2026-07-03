@@ -56,6 +56,9 @@ class RouteNames {
   static const String camporeeDetail = '/camporee/:camporeeId';
   static const String camporeeMembers = '/camporee/:camporeeId/members';
   static const String camporeeRegisterMember = '/camporee/:camporeeId/register';
+  static const String camporeeJudgeAssignments = '/camporee/judge-assignments';
+  static const String camporeeJudgeScoreEntry =
+      '/camporee-events/:eventId/sections/:clubSectionId/score';
 
   // Traslados
   static const String transferRequests = '/transfers';
@@ -122,6 +125,15 @@ class RouteNames {
       '/camporee/$camporeeId/members';
   static String camporeeRegisterMemberPath(String camporeeId) =>
       '/camporee/$camporeeId/register';
+  static String camporeeJudgeScoreEntryPath(
+    int eventId,
+    int clubSectionId, {
+    String? eventTitle,
+  }) {
+    final base = '/camporee-events/$eventId/sections/$clubSectionId/score';
+    if (eventTitle == null || eventTitle.trim().isEmpty) return base;
+    return '$base?eventTitle=${Uri.encodeComponent(eventTitle)}';
+  }
 
   // Traslados helpers
   static String transferRequestDetail(String requestId) =>

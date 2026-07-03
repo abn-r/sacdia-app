@@ -7,11 +7,14 @@ import 'package:sacdia_app/core/models/paginated_result.dart';
 import 'package:sacdia_app/core/network/network_info.dart';
 import 'package:sacdia_app/features/camporees/data/datasources/camporees_remote_data_source.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_event_model.dart';
+import 'package:sacdia_app/features/camporees/data/models/camporee_judge_assignment_model.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_member_model.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_model.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_payment_model.dart';
+import 'package:sacdia_app/features/camporees/data/models/camporee_rubric_model.dart';
 import 'package:sacdia_app/features/camporees/data/repositories/camporees_repository_impl.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.dart';
+import 'package:sacdia_app/features/camporees/domain/entities/camporee_score_submission.dart';
 
 // ── Stubs ─────────────────────────────────────────────────────────────────────
 
@@ -22,6 +25,10 @@ import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.da
 class _StubDataSource implements CamporeesRemoteDataSource {
   /// Set this before each test to control what [getCamporeeMembers] returns.
   Object? getMembersResult; // PaginatedResult<CamporeeMemberModel> or Exception
+  Object?
+      judgeAssignmentsResult; // List<CamporeeJudgeAssignmentModel> or Exception
+  Object? rubricsResult; // List<CamporeeRubricModel> or Exception
+  Object? submitScoreResult; // null or Exception
 
   @override
   Future<PaginatedResult<CamporeeMemberModel>> getCamporeeMembers(
@@ -111,6 +118,35 @@ class _StubDataSource implements CamporeesRemoteDataSource {
     CancelToken? cancelToken,
   }) =>
       throw UnimplementedError();
+
+  @override
+  Future<List<CamporeeJudgeAssignmentModel>> getMyJudgeAssignments({
+    CancelToken? cancelToken,
+  }) async {
+    final r = judgeAssignmentsResult;
+    if (r is Exception) throw r;
+    return r as List<CamporeeJudgeAssignmentModel>;
+  }
+
+  @override
+  Future<List<CamporeeRubricModel>> getCamporeeEventRubrics(
+    int eventId, {
+    CancelToken? cancelToken,
+  }) async {
+    final r = rubricsResult;
+    if (r is Exception) throw r;
+    return r as List<CamporeeRubricModel>;
+  }
+
+  @override
+  Future<void> submitCamporeeEventScore(
+    int eventId,
+    int clubSectionId, {
+    required CamporeeScoreSubmission submission,
+  }) async {
+    final r = submitScoreResult;
+    if (r is Exception) throw r;
+  }
 }
 
 /// Stub [NetworkInfo] that always reports connected.
@@ -276,6 +312,52 @@ void main() {
         },
         (_) => fail('Expected Left'),
       );
+    });
+  });
+
+  group('CamporeesRepositoryImpl camporee scoring', () {
+    test('maps primary judge assignments to domain entities', () async {
+      dataSource.judgeAssignmentsResult = const [
+        CamporeeJudgeAssignmentModel(
+          assignmentId: 'assignment-1',
+          eventId: 77,
+          judgeId: 'judge-1',
+          camporeeClubId: 5,
+          clubSectionId: 99,
+          judgeRole: 'primary',
+          active: true,
+          eventTitle: 'Nudos',
+          canSubmitScore: true,
+        ),
+      ];
+
+      final result = await repository.getMyJudgeAssignments();
+
+      expect(result.isRight(), isTrue);
+      result.fold(
+        (_) => fail('Expected Right'),
+        (assignments) {
+          expect(assignments, hasLength(1));
+          expect(assignments.first.isPrimary, isTrue);
+          expect(assignments.first.canSubmitScore, isTrue);
+        },
+      );
+    });
+
+    test('returns Right(null) when score submission succeeds', () async {
+      dataSource.submitScoreResult = null;
+
+      final result = await repository.submitCamporeeEventScore(
+        77,
+        99,
+        submission: const CamporeeScoreSubmission(
+          items: [
+            CamporeeScoreSubmissionItem(rubricId: 101, awardedPoints: 35),
+          ],
+        ),
+      );
+
+      expect(result.isRight(), isTrue);
     });
   });
 }

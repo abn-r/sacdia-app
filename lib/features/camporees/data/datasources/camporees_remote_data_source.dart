@@ -4,10 +4,13 @@ import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/models/paginated_result.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../../domain/entities/camporee_score_submission.dart';
+import '../models/camporee_judge_assignment_model.dart';
 import '../models/camporee_model.dart';
 import '../models/camporee_event_model.dart';
 import '../models/camporee_member_model.dart';
 import '../models/camporee_payment_model.dart';
+import '../models/camporee_rubric_model.dart';
 
 /// Interfaz para la fuente de datos remota de camporees
 abstract class CamporeesRemoteDataSource {
@@ -92,6 +95,27 @@ abstract class CamporeesRemoteDataSource {
   /// GET /api/v1/camporees/:camporeeId/payments
   Future<List<CamporeePaymentModel>> getCamporeePayments(int camporeeId,
       {CancelToken? cancelToken});
+
+  /// Obtiene asignaciones del juez autenticado.
+  /// GET /api/v1/camporee-judges/me/assignments
+  Future<List<CamporeeJudgeAssignmentModel>> getMyJudgeAssignments({
+    CancelToken? cancelToken,
+  });
+
+  /// Obtiene las rúbricas activas de un evento puntuable.
+  /// GET /api/v1/camporee-events/:eventId/rubrics
+  Future<List<CamporeeRubricModel>> getCamporeeEventRubrics(
+    int eventId, {
+    CancelToken? cancelToken,
+  });
+
+  /// Envía puntaje oficial del juez principal para una sección/evento.
+  /// POST /api/v1/camporee-events/:eventId/sections/:clubSectionId/scores
+  Future<void> submitCamporeeEventScore(
+    int eventId,
+    int clubSectionId, {
+    required CamporeeScoreSubmission submission,
+  });
 }
 
 /// Implementación de la fuente de datos remota de camporees.
@@ -131,6 +155,14 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
     }
     return e.message ?? tr('common.error_network');
+  }
+
+  List<dynamic> _extractList(dynamic responseData) {
+    if (responseData is Map && responseData['data'] is List) {
+      return responseData['data'] as List<dynamic>;
+    }
+    if (responseData is List) return responseData;
+    return const [];
   }
 
   // ── GET /api/v1/camporees ────────────────────────────────────────────────────
@@ -469,7 +501,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
       };
       if (reference != null) body['reference'] = reference;
       if (paymentDate != null) {
-        body['payment_date'] = paymentDate.toIso8601String();
+        body['paid_at'] = paymentDate.toIso8601String();
       }
       if (notes != null) body['notes'] = notes;
 
@@ -569,6 +601,95 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getCamporeePayments', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /api/v1/camporee-judges/me/assignments ───────────────────────────
+
+  @override
+  Future<List<CamporeeJudgeAssignmentModel>> getMyJudgeAssignments({
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl/camporee-judges/me/assignments',
+        cancelToken: cancelToken,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return _extractList(response.data)
+            .whereType<Map<String, dynamic>>()
+            .map(CamporeeJudgeAssignmentModel.fromJson)
+            .toList();
+      }
+
+      throw ServerException(
+        message: tr('camporees.errors.fetch_judge_assignments'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
+      AppLogger.e('Error en getMyJudgeAssignments', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /api/v1/camporee-events/:eventId/rubrics ─────────────────────────
+
+  @override
+  Future<List<CamporeeRubricModel>> getCamporeeEventRubrics(
+    int eventId, {
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl/camporee-events/$eventId/rubrics',
+        cancelToken: cancelToken,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return _extractList(response.data)
+            .whereType<Map<String, dynamic>>()
+            .map(CamporeeRubricModel.fromJson)
+            .toList();
+      }
+
+      throw ServerException(
+        message: tr('camporees.errors.fetch_event_rubrics'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
+      AppLogger.e('Error en getCamporeeEventRubrics', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── POST /api/v1/camporee-events/:eventId/sections/:sectionId/scores ──────
+
+  @override
+  Future<void> submitCamporeeEventScore(
+    int eventId,
+    int clubSectionId, {
+    required CamporeeScoreSubmission submission,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '$_baseUrl/camporee-events/$eventId/sections/$clubSectionId/scores',
+        data: submission.toJson(),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return;
+      }
+
+      throw ServerException(
+        message: tr('camporees.errors.submit_score'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en submitCamporeeEventScore', tag: _tag, error: e);
       _rethrow(e);
     }
   }
