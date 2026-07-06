@@ -73,11 +73,13 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
   @override
   Future<Either<Failure, List<CamporeeEvent>>> getCamporeeEvents(
     int camporeeId, {
+    String camporeeType = 'local',
     RequestCancelToken? cancelToken,
   }) async {
     try {
       final models = await remoteDataSource.getCamporeeEvents(
         camporeeId,
+        camporeeType: camporeeType,
         cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(models.map((m) => m.toEntity()).toList());

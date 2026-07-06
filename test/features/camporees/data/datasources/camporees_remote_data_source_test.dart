@@ -196,8 +196,32 @@ void main() {
             'status': 'programado',
             'participants_mode': 'count',
             'participants_count': 8,
+            'agenda_visible': true,
+            'event_type': {
+              'event_type_id': 1,
+              'code': 'scoring',
+              'name': 'Puntaje',
+            },
             'sections': ['pathfinders'],
             'venue': {'camporee_venue_id': 1, 'name': 'Cancha central'},
+            'schedule_blocks': [
+              {
+                'camporee_event_schedule_block_id': 'block-1',
+                'title': 'Primer grupo',
+                'day_number': 2,
+                'starts_at': '09:00',
+                'ends_at': '10:00',
+                'venue': {'camporee_venue_id': 1, 'name': 'Cancha central'},
+                'assignments': [
+                  {
+                    'club_section': {
+                      'name': 'Conquistadores',
+                      'clubs': {'name': 'Estrellas'},
+                    },
+                  },
+                ],
+              },
+            ],
           },
         ],
       });
@@ -205,11 +229,35 @@ void main() {
 
       final result = await ds.getCamporeeEvents(42);
 
-      expect(adapter.lastOptions!.path, '$baseUrl/local-camporees/42/events');
+      expect(
+        adapter.lastOptions!.path,
+        '$baseUrl/local-camporees/42/events/preview',
+      );
       expect(result, hasLength(1));
       expect(result.first.camporeeEventId, 77);
       expect(result.first.title, 'Orden cerrado');
       expect(result.first.venueName, 'Cancha central');
+      expect(result.first.eventTypeCode, 'scoring');
+      expect(result.first.scheduleBlocks, hasLength(1));
+      expect(result.first.scheduleBlocks.first.assignedSectionNames.first,
+          'Estrellas · Conquistadores');
+    });
+
+    test('uses union camporee preview endpoint when camporeeType is union',
+        () async {
+      final (:dio, :adapter) = _dioWith({
+        'status': 'success',
+        'data': <Map<String, dynamic>>[],
+      });
+      final ds = CamporeesRemoteDataSourceImpl(dio: dio, baseUrl: baseUrl);
+
+      final result = await ds.getCamporeeEvents(42, camporeeType: 'union');
+
+      expect(
+        adapter.lastOptions!.path,
+        '$baseUrl/union-camporees/42/events/preview',
+      );
+      expect(result, isEmpty);
     });
   });
 

@@ -468,12 +468,18 @@ class _EventTile extends StatelessWidget {
                   spacing: 8,
                   runSpacing: 6,
                   children: [
-                    _MiniMeta(
-                      icon: HugeIcons.strokeRoundedCalendar01,
-                      label: 'camporees.detail.event_day'
-                          .tr(namedArgs: {'day': '${event.dayNumber}'}),
-                    ),
-                    if (timeLabel != null)
+                    if (event.eventTypeName != null)
+                      _MiniMeta(
+                        icon: HugeIcons.strokeRoundedTag01,
+                        label: event.eventTypeName!,
+                      ),
+                    if (event.agendaVisible)
+                      _MiniMeta(
+                        icon: HugeIcons.strokeRoundedCalendar01,
+                        label: 'camporees.detail.event_day'
+                            .tr(namedArgs: {'day': '${event.dayNumber}'}),
+                      ),
+                    if (event.agendaVisible && timeLabel != null)
                       _MiniMeta(
                         icon: HugeIcons.strokeRoundedClock01,
                         label: timeLabel,
@@ -483,10 +489,15 @@ class _EventTile extends StatelessWidget {
                       label: 'camporees.detail.event_points'
                           .tr(namedArgs: {'points': '${event.maxPoints}'}),
                     ),
-                    if (event.venueName != null)
+                    if (event.agendaVisible && event.venueName != null)
                       _MiniMeta(
                         icon: HugeIcons.strokeRoundedLocation01,
                         label: event.venueName!,
+                      ),
+                    if (!event.agendaVisible)
+                      _MiniMeta(
+                        icon: HugeIcons.strokeRoundedLockKey,
+                        label: 'camporees.detail.agenda_pending'.tr(),
                       ),
                   ],
                 ),
@@ -504,6 +515,10 @@ class _EventTile extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
+                ],
+                if (event.agendaVisible && event.scheduleBlocks.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  _ScheduleBlocksPreview(blocks: event.scheduleBlocks),
                 ],
               ],
             ),
@@ -553,6 +568,91 @@ class _EventTile extends StatelessWidget {
       default:
         return context.sac.textTertiary;
     }
+  }
+}
+
+class _ScheduleBlocksPreview extends StatelessWidget {
+  final List<CamporeeEventScheduleBlock> blocks;
+
+  const _ScheduleBlocksPreview({required this.blocks});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return Column(
+      children: [
+        for (final block in blocks)
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(top: 6),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: c.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: c.border),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  block.title?.trim().isNotEmpty == true
+                      ? block.title!.trim()
+                      : 'camporees.detail.schedule_block'.tr(),
+                  style: TextStyle(
+                    color: c.text,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: [
+                    _MiniMeta(
+                      icon: HugeIcons.strokeRoundedCalendar01,
+                      label: 'camporees.detail.event_day'
+                          .tr(namedArgs: {'day': '${block.dayNumber}'}),
+                    ),
+                    if (_blockTime(block) != null)
+                      _MiniMeta(
+                        icon: HugeIcons.strokeRoundedClock01,
+                        label: _blockTime(block)!,
+                      ),
+                    if (block.venueName != null)
+                      _MiniMeta(
+                        icon: HugeIcons.strokeRoundedLocation01,
+                        label: block.venueName!,
+                      ),
+                  ],
+                ),
+                if (block.assignedSectionNames.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    block.assignedSectionNames.join(', '),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: c.textSecondary,
+                      fontSize: 11,
+                      height: 1.3,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  static String? _blockTime(CamporeeEventScheduleBlock block) {
+    if (block.startsAt == null || block.startsAt!.trim().isEmpty) return null;
+    if (block.endsAt == null || block.endsAt!.trim().isEmpty) {
+      return block.startsAt;
+    }
+    return '${block.startsAt} – ${block.endsAt}';
   }
 }
 

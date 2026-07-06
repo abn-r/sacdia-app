@@ -23,6 +23,7 @@ abstract class CamporeesRepository {
   /// Obtiene eventos registrados de un camporee.
   Future<Either<Failure, List<CamporeeEvent>>> getCamporeeEvents(
     int camporeeId, {
+    String camporeeType = 'local',
     RequestCancelToken? cancelToken,
   });
 

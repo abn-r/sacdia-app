@@ -1798,7 +1798,9 @@
       "no_events_yet": "Aucun événement enregistré pour l’instant.",
       "events_error": "Impossible de charger les événements.",
       "event_day": "Jour {day}",
-      "event_points": "{points} pts"
+      "event_points": "{points} pts",
+      "agenda_pending": "Agenda en attente",
+      "schedule_block": "Bloc d’agenda"
     },
     "enroll_club": {
       "title": "Inscription des clubs",

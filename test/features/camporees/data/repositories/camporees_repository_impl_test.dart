@@ -60,6 +60,7 @@ class _StubDataSource implements CamporeesRemoteDataSource {
   @override
   Future<List<CamporeeEventModel>> getCamporeeEvents(
     int camporeeId, {
+    String camporeeType = 'local',
     CancelToken? cancelToken,
   }) =>
       throw UnimplementedError();

@@ -1798,7 +1798,9 @@
       "no_events_yet": "No events registered yet.",
       "events_error": "Could not load events.",
       "event_day": "Day {day}",
-      "event_points": "{points} pts"
+      "event_points": "{points} pts",
+      "agenda_pending": "Agenda pending",
+      "schedule_block": "Schedule block"
     },
     "enroll_club": {
       "title": "Club enrollment",

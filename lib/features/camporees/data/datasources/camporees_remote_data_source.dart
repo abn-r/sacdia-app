@@ -24,10 +24,12 @@ abstract class CamporeesRemoteDataSource {
   Future<CamporeeModel> getCamporeeDetail(int camporeeId,
       {CancelToken? cancelToken});
 
-  /// Obtiene eventos registrados de un camporee local.
-  /// GET /api/v1/local-camporees/:camporeeId/events
+  /// Obtiene preview seguro de eventos registrados de un camporee.
+  /// GET /api/v1/local-camporees/:camporeeId/events/preview
+  /// GET /api/v1/union-camporees/:camporeeId/events/preview
   Future<List<CamporeeEventModel>> getCamporeeEvents(
     int camporeeId, {
+    String camporeeType = 'local',
     CancelToken? cancelToken,
   });
 
@@ -233,16 +235,19 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
     }
   }
 
-  // ── GET /api/v1/local-camporees/:camporeeId/events ─────────────────────────
+  // ── GET /api/v1/{local|union}-camporees/:camporeeId/events/preview ────────
 
   @override
   Future<List<CamporeeEventModel>> getCamporeeEvents(
     int camporeeId, {
+    String camporeeType = 'local',
     CancelToken? cancelToken,
   }) async {
     try {
+      final camporeePath =
+          camporeeType == 'union' ? 'union-camporees' : 'local-camporees';
       final response = await _dio.get(
-        '$_baseUrl/local-camporees/$camporeeId/events',
+        '$_baseUrl/$camporeePath/$camporeeId/events/preview',
         cancelToken: cancelToken,
       );
 
@@ -258,8 +263,11 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
         }
 
         return data
-            .whereType<Map<String, dynamic>>()
-            .map(CamporeeEventModel.fromJson)
+            .whereType<Map>()
+            .map(
+              (item) =>
+                  CamporeeEventModel.fromJson(Map<String, dynamic>.from(item)),
+            )
             .toList();
       }
 
