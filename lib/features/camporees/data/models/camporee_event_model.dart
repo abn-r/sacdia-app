@@ -2,6 +2,291 @@ import 'package:equatable/equatable.dart';
 import '../../../../core/utils/json_helpers.dart';
 import '../../domain/entities/camporee_event.dart';
 
+class CamporeeStaffMemberModel extends Equatable {
+  final String? staffMemberId;
+  final String? category;
+  final String? roleLabel;
+  final String? userId;
+  final String? userName;
+  final String? userEmail;
+  final String? userImageUrl;
+
+  const CamporeeStaffMemberModel({
+    this.staffMemberId,
+    this.category,
+    this.roleLabel,
+    this.userId,
+    this.userName,
+    this.userEmail,
+    this.userImageUrl,
+  });
+
+  factory CamporeeStaffMemberModel.fromJson(
+    Map<String, dynamic> json, {
+    Map<String, dynamic>? fallback,
+  }) {
+    final user = _firstMap(
+      json['user'],
+      json['users'],
+      json['basic_user'],
+      fallback?['user'],
+      fallback?['users'],
+      fallback?['basic_user'],
+    );
+
+    return CamporeeStaffMemberModel(
+      staffMemberId: _firstString(
+        json['camporee_staff_member_id'],
+        json['staff_member_id'],
+        json['id'],
+        fallback?['camporee_staff_member_id'],
+        fallback?['staff_member_id'],
+      ),
+      category: _firstString(
+        json['category'],
+        json['staff_category'],
+        fallback?['category'],
+        fallback?['staff_category'],
+      ),
+      roleLabel: _firstString(
+        json['role_label'],
+        json['roleLabel'],
+        json['staff_role_label'],
+        fallback?['role_label'],
+        fallback?['roleLabel'],
+        fallback?['staff_role_label'],
+      ),
+      userId: _firstString(
+        json['user_id'],
+        user?['user_id'],
+        user?['id'],
+        fallback?['user_id'],
+      ),
+      userName: _resolveName(json, user, fallback),
+      userEmail: _firstString(
+        json['user_email'],
+        json['email'],
+        user?['email'],
+        fallback?['user_email'],
+        fallback?['email'],
+      ),
+      userImageUrl: _firstString(
+        json['user_image'],
+        json['user_image_url'],
+        json['image_url'],
+        json['avatar_url'],
+        user?['user_image'],
+        user?['image_url'],
+        user?['avatar_url'],
+        fallback?['user_image'],
+        fallback?['user_image_url'],
+        fallback?['image_url'],
+        fallback?['avatar_url'],
+      ),
+    );
+  }
+
+  CamporeeStaffMember toEntity() {
+    return CamporeeStaffMember(
+      staffMemberId: staffMemberId,
+      category: category,
+      roleLabel: roleLabel,
+      userId: userId,
+      userName: userName,
+      userEmail: userEmail,
+      userImageUrl: userImageUrl,
+    );
+  }
+
+  static Map<String, dynamic>? _firstMap(dynamic first,
+      [dynamic second,
+      dynamic third,
+      dynamic fourth,
+      dynamic fifth,
+      dynamic sixth]) {
+    for (final value in [first, second, third, fourth, fifth, sixth]) {
+      if (value is Map<String, dynamic>) return value;
+      if (value is Map) return Map<String, dynamic>.from(value);
+    }
+    return null;
+  }
+
+  static String? _firstString(dynamic first,
+      [dynamic second,
+      dynamic third,
+      dynamic fourth,
+      dynamic fifth,
+      dynamic sixth,
+      dynamic seventh,
+      dynamic eighth,
+      dynamic ninth,
+      dynamic tenth,
+      dynamic eleventh,
+      dynamic twelfth]) {
+    for (final value in [
+      first,
+      second,
+      third,
+      fourth,
+      fifth,
+      sixth,
+      seventh,
+      eighth,
+      ninth,
+      tenth,
+      eleventh,
+      twelfth,
+    ]) {
+      final parsed = safeStringOrNull(value)?.trim();
+      if (parsed != null && parsed.isNotEmpty) return parsed;
+    }
+    return null;
+  }
+
+  static String? _resolveName(
+    Map<String, dynamic> json,
+    Map<String, dynamic>? user,
+    Map<String, dynamic>? fallback,
+  ) {
+    final explicit = _firstString(
+      user?['full_name'],
+      user?['display_name'],
+      user?['user_name'],
+      json['full_name'],
+      json['display_name'],
+      json['user_name'],
+      json['staff_member_name'],
+      fallback?['full_name'],
+      fallback?['display_name'],
+      fallback?['user_name'],
+      fallback?['staff_member_name'],
+    );
+    if (explicit != null) return explicit;
+
+    return _composeName(user) ?? _composeName(json) ?? _composeName(fallback);
+  }
+
+  static String? _composeName(Map<String, dynamic>? json) {
+    if (json == null) return null;
+    final parts = [
+      safeStringOrNull(json['name']),
+      safeStringOrNull(json['paternal_last_name']),
+      safeStringOrNull(json['maternal_last_name']),
+    ]
+        .whereType<String>()
+        .map((part) => part.trim())
+        .where((part) => part.isNotEmpty)
+        .toList();
+
+    if (parts.isEmpty) return null;
+    return parts.join(' ');
+  }
+
+  @override
+  List<Object?> get props => [
+        staffMemberId,
+        category,
+        roleLabel,
+        userId,
+        userName,
+        userEmail,
+        userImageUrl,
+      ];
+}
+
+class CamporeeEventStaffAssignmentModel extends Equatable {
+  final String? assignmentId;
+  final String? staffMemberId;
+  final String assignmentRole;
+  final String? titleOverride;
+  final String? notes;
+  final int displayOrder;
+  final bool active;
+  final CamporeeStaffMemberModel? staffMember;
+
+  const CamporeeEventStaffAssignmentModel({
+    this.assignmentId,
+    this.staffMemberId,
+    required this.assignmentRole,
+    this.titleOverride,
+    this.notes,
+    this.displayOrder = 0,
+    this.active = true,
+    this.staffMember,
+  });
+
+  factory CamporeeEventStaffAssignmentModel.fromJson(
+    Map<String, dynamic> json,
+  ) {
+    final nestedStaffMember = _asMap(
+      json['camporee_staff_member'] ?? json['staff_member'],
+    );
+    final staffMember = nestedStaffMember != null || _hasFlattenedStaff(json)
+        ? CamporeeStaffMemberModel.fromJson(
+            nestedStaffMember ?? const <String, dynamic>{},
+            fallback: json,
+          )
+        : null;
+
+    return CamporeeEventStaffAssignmentModel(
+      assignmentId: safeStringOrNull(
+        json['camporee_event_staff_assignment_id'] ?? json['id'],
+      ),
+      staffMemberId: safeStringOrNull(
+        json['camporee_staff_member_id'] ??
+            json['staff_member_id'] ??
+            staffMember?.staffMemberId,
+      ),
+      assignmentRole:
+          safeString(json['assignment_role'], 'support').trim().toLowerCase(),
+      titleOverride: safeStringOrNull(json['title_override']),
+      notes: safeStringOrNull(json['notes']),
+      displayOrder: safeInt(json['display_order']),
+      active: safeBool(json['active'], true),
+      staffMember: staffMember,
+    );
+  }
+
+  CamporeeEventStaffAssignment toEntity() {
+    return CamporeeEventStaffAssignment(
+      assignmentId: assignmentId,
+      staffMemberId: staffMemberId,
+      assignmentRole: assignmentRole,
+      titleOverride: titleOverride,
+      notes: notes,
+      displayOrder: displayOrder,
+      active: active,
+      staffMember: staffMember?.toEntity(),
+    );
+  }
+
+  static Map<String, dynamic>? _asMap(dynamic value) {
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) return Map<String, dynamic>.from(value);
+    return null;
+  }
+
+  static bool _hasFlattenedStaff(Map<String, dynamic> json) {
+    return json.containsKey('camporee_staff_member_id') ||
+        json.containsKey('staff_member_id') ||
+        json.containsKey('user_id') ||
+        json.containsKey('user_name') ||
+        json.containsKey('staff_member_name');
+  }
+
+  @override
+  List<Object?> get props => [
+        assignmentId,
+        staffMemberId,
+        assignmentRole,
+        titleOverride,
+        notes,
+        displayOrder,
+        active,
+        staffMember,
+      ];
+}
+
 class CamporeeEventScheduleBlockModel extends Equatable {
   final String? scheduleBlockId;
   final String? title;
@@ -121,6 +406,7 @@ class CamporeeEventModel extends Equatable {
   final String? eventTypeCode;
   final String? eventTypeName;
   final List<CamporeeEventScheduleBlockModel> scheduleBlocks;
+  final List<CamporeeEventStaffAssignmentModel> staffAssignments;
 
   const CamporeeEventModel({
     required this.camporeeEventId,
@@ -143,6 +429,7 @@ class CamporeeEventModel extends Equatable {
     this.eventTypeCode,
     this.eventTypeName,
     this.scheduleBlocks = const [],
+    this.staffAssignments = const [],
   });
 
   factory CamporeeEventModel.fromJson(Map<String, dynamic> json) {
@@ -157,6 +444,7 @@ class CamporeeEventModel extends Equatable {
         ? json['event_type'] as Map<String, dynamic>
         : null;
     final rawBlocks = json['schedule_blocks'];
+    final staffAssignments = _staffAssignmentsFromJson(json);
 
     return CamporeeEventModel(
       camporeeEventId: safeInt(json['camporee_event_id'] ?? json['id']),
@@ -190,6 +478,7 @@ class CamporeeEventModel extends Equatable {
               )
               .toList()
           : const [],
+      staffAssignments: staffAssignments,
     );
   }
 
@@ -205,6 +494,47 @@ class CamporeeEventModel extends Equatable {
       return fullName.isEmpty ? null : fullName;
     }
     return override;
+  }
+
+  static List<CamporeeEventStaffAssignmentModel> _staffAssignmentsFromJson(
+    Map<String, dynamic> json,
+  ) {
+    final rawAssignments = json['staff_assignments'] ??
+        json['staffAssignments'] ??
+        json['event_staff_assignments'] ??
+        json['camporee_event_staff_assignments'] ??
+        (_looksLikeStaffAssignments(json['assignments'])
+            ? json['assignments']
+            : null);
+
+    if (rawAssignments is! List) return const [];
+
+    final assignments = rawAssignments
+        .whereType<Map>()
+        .map(
+          (item) => CamporeeEventStaffAssignmentModel.fromJson(
+            Map<String, dynamic>.from(item),
+          ),
+        )
+        .toList()
+      ..sort((a, b) {
+        final order = a.displayOrder.compareTo(b.displayOrder);
+        if (order != 0) return order;
+        return a.assignmentRole.compareTo(b.assignmentRole);
+      });
+
+    return assignments;
+  }
+
+  static bool _looksLikeStaffAssignments(dynamic value) {
+    if (value is! List) return false;
+    return value.whereType<Map>().any((item) {
+      return item.containsKey('assignment_role') ||
+          item.containsKey('camporee_event_staff_assignment_id') ||
+          item.containsKey('camporee_staff_member_id') ||
+          item.containsKey('camporee_staff_member') ||
+          item.containsKey('staff_member');
+    });
   }
 
   CamporeeEvent toEntity() {
@@ -229,6 +559,8 @@ class CamporeeEventModel extends Equatable {
       eventTypeCode: eventTypeCode,
       eventTypeName: eventTypeName,
       scheduleBlocks: scheduleBlocks.map((block) => block.toEntity()).toList(),
+      staffAssignments:
+          staffAssignments.map((assignment) => assignment.toEntity()).toList(),
     );
   }
 
@@ -254,5 +586,6 @@ class CamporeeEventModel extends Equatable {
         eventTypeCode,
         eventTypeName,
         scheduleBlocks,
+        staffAssignments,
       ];
 }

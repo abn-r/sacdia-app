@@ -71,15 +71,11 @@ class CamporeesListView extends ConsumerWidget {
               child: ListView.builder(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 28),
-                itemCount: camporees.length + 1,
+                itemCount: camporees.length,
                 itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return _CamporeesIntroCard(count: camporees.length);
-                  }
-
-                  final camporee = camporees[index - 1];
+                  final camporee = camporees[index];
                   return StaggeredListItem(
-                    index: index - 1,
+                    index: index,
                     initialDelay: const Duration(milliseconds: 40),
                     staggerDelay: const Duration(milliseconds: 45),
                     child: _CamporeeCard(
@@ -112,82 +108,6 @@ class CamporeesListView extends ConsumerWidget {
   }
 }
 
-class _CamporeesIntroCard extends StatelessWidget {
-  final int count;
-
-  const _CamporeesIntroCard({required this.count});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: c.borderLight),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _IconTile(
-            icon: HugeIcons.strokeRoundedCampfire,
-            color: AppColors.primary,
-            size: 48,
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'camporees.list.subtitle'.tr(),
-                  style: TextStyle(
-                    color: c.text,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    height: 1.25,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _CountBadge(count: count),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CountBadge extends StatelessWidget {
-  final int count;
-
-  const _CountBadge({required this.count});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.09),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.20)),
-      ),
-      child: Text(
-        'camporees.list.available_count'.tr(namedArgs: {'count': '$count'}),
-        style: const TextStyle(
-          color: AppColors.primaryDark,
-          fontSize: 12,
-          fontWeight: FontWeight.w800,
-        ),
-      ),
-    );
-  }
-}
-
 class _CamporeeCard extends StatelessWidget {
   final Camporee camporee;
   final VoidCallback onTap;
@@ -205,6 +125,7 @@ class _CamporeeCard extends StatelessWidget {
       locale: context.locale.toString(),
       symbol: '\$',
       decimalDigits: 0,
+      customPattern: '¤#,##0',
     );
     final startFormatted = dateFormatter.format(camporee.startDate.toLocal());
     final endFormatted = dateFormatter.format(camporee.endDate.toLocal());
@@ -552,9 +473,9 @@ class _CamporeesSkeleton extends StatelessWidget {
 
     return ListView.builder(
       padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 28),
-      itemCount: 4,
+      itemCount: 3,
       itemBuilder: (context, index) => Container(
-        height: index == 0 ? 104 : 178,
+        height: 178,
         margin: const EdgeInsets.only(bottom: 14),
         decoration: BoxDecoration(
           color: c.surfaceVariant,

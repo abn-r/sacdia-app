@@ -1773,6 +1773,7 @@
     },
     "detail": {
       "description": "Description",
+      "dates": "Dates",
       "start": "Start",
       "end": "End",
       "place": "Place",
@@ -1797,10 +1798,22 @@
       "events_subtitle": "Schedule and events registered for this camporee.",
       "no_events_yet": "No events registered yet.",
       "events_error": "Could not load events.",
+      "event_detail_title": "Event detail",
+      "event_type": "Event type",
+      "event_day_label": "Day",
+      "event_time": "Time",
+      "event_schedule": "Schedule",
+      "event_total_points": "Total score",
+      "event_schedules": "Schedules",
+      "event_staff_title": "Assigned staff",
       "event_day": "Day {day}",
       "event_points": "{points} pts",
       "agenda_pending": "Agenda pending",
-      "schedule_block": "Schedule block"
+      "schedule_block": "Schedule block",
+      "view_schedules": "View schedules",
+      "hide_schedules": "Hide schedules",
+      "event_staff_responsible": "Responsible: {names}",
+      "event_staff_supporting": "Supporting: {names}"
     },
     "enroll_club": {
       "title": "Club enrollment",

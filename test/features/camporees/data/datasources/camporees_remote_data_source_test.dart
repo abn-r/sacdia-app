@@ -202,6 +202,41 @@ void main() {
               'code': 'scoring',
               'name': 'Puntaje',
             },
+            'staff_assignments': [
+              {
+                'camporee_event_staff_assignment_id': 'assignment-1',
+                'camporee_staff_member_id': 'staff-1',
+                'assignment_role': 'responsible',
+                'display_order': 0,
+                'camporee_staff_member': {
+                  'camporee_staff_member_id': 'staff-1',
+                  'category': 'leadership',
+                  'role_label': 'Coordinador',
+                  'user': {
+                    'user_id': 'user-1',
+                    'name': 'Pedro',
+                    'paternal_last_name': 'Gómez',
+                  },
+                },
+              },
+              {
+                'camporee_event_staff_assignment_id': 'assignment-2',
+                'camporee_staff_member_id': 'staff-2',
+                'assignment_role': 'assistant',
+                'display_order': 1,
+                'camporee_staff_member': {
+                  'category': 'support',
+                  'user_name': 'Marco',
+                },
+              },
+              {
+                'camporee_event_staff_assignment_id': 'assignment-3',
+                'camporee_staff_member_id': 'staff-3',
+                'assignment_role': 'support',
+                'display_order': 2,
+                'staff_member_name': 'Fabio',
+              },
+            ],
             'sections': ['pathfinders'],
             'venue': {'camporee_venue_id': 1, 'name': 'Cancha central'},
             'schedule_blocks': [
@@ -238,6 +273,10 @@ void main() {
       expect(result.first.title, 'Orden cerrado');
       expect(result.first.venueName, 'Cancha central');
       expect(result.first.eventTypeCode, 'scoring');
+      expect(result.first.staffAssignments, hasLength(3));
+      final entity = result.first.toEntity();
+      expect(entity.responsibleDisplayNames, ['Pedro Gómez']);
+      expect(entity.supportingDisplayNames, ['Marco', 'Fabio']);
       expect(result.first.scheduleBlocks, hasLength(1));
       expect(result.first.scheduleBlocks.first.assignedSectionNames.first,
           'Estrellas · Conquistadores');

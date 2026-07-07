@@ -1,5 +1,97 @@
 import 'package:equatable/equatable.dart';
 
+/// Persona del roster de un camporí asignable a eventos de agenda.
+class CamporeeStaffMember extends Equatable {
+  final String? staffMemberId;
+  final String? category;
+  final String? roleLabel;
+  final String? userId;
+  final String? userName;
+  final String? userEmail;
+  final String? userImageUrl;
+
+  const CamporeeStaffMember({
+    this.staffMemberId,
+    this.category,
+    this.roleLabel,
+    this.userId,
+    this.userName,
+    this.userEmail,
+    this.userImageUrl,
+  });
+
+  String? get displayName {
+    final name = userName?.trim();
+    if (name != null && name.isNotEmpty) return name;
+
+    final label = roleLabel?.trim();
+    if (label != null && label.isNotEmpty) return label;
+
+    return null;
+  }
+
+  @override
+  List<Object?> get props => [
+        staffMemberId,
+        category,
+        roleLabel,
+        userId,
+        userName,
+        userEmail,
+        userImageUrl,
+      ];
+}
+
+/// Asignación de personal del roster a un evento de agenda.
+class CamporeeEventStaffAssignment extends Equatable {
+  final String? assignmentId;
+  final String? staffMemberId;
+  final String assignmentRole;
+  final String? titleOverride;
+  final String? notes;
+  final int displayOrder;
+  final bool active;
+  final CamporeeStaffMember? staffMember;
+
+  const CamporeeEventStaffAssignment({
+    this.assignmentId,
+    this.staffMemberId,
+    required this.assignmentRole,
+    this.titleOverride,
+    this.notes,
+    this.displayOrder = 0,
+    this.active = true,
+    this.staffMember,
+  });
+
+  bool get isResponsible => assignmentRole == 'responsible';
+  bool get isAssistant => assignmentRole == 'assistant';
+  bool get isEvaluator => assignmentRole == 'evaluator';
+  bool get isSupport => assignmentRole == 'support';
+
+  String? get compactDisplayName {
+    final staffName = staffMember?.displayName?.trim();
+    if (staffName != null && staffName.isNotEmpty) return staffName;
+
+    final title = titleOverride?.trim();
+    if (title != null && title.isNotEmpty) return title;
+
+    return null;
+  }
+
+  @override
+  List<Object?> get props => [
+        assignmentId,
+        staffMemberId,
+        assignmentRole,
+        titleOverride,
+        notes,
+        displayOrder,
+        active,
+        staffMember,
+      ];
+}
+
 /// Bloque opcional de agenda para segmentar un evento por horario/grupo.
 class CamporeeEventScheduleBlock extends Equatable {
   final String? scheduleBlockId;
@@ -65,6 +157,7 @@ class CamporeeEvent extends Equatable {
   final String? eventTypeCode;
   final String? eventTypeName;
   final List<CamporeeEventScheduleBlock> scheduleBlocks;
+  final List<CamporeeEventStaffAssignment> staffAssignments;
 
   const CamporeeEvent({
     required this.camporeeEventId,
@@ -87,10 +180,66 @@ class CamporeeEvent extends Equatable {
     this.eventTypeCode,
     this.eventTypeName,
     this.scheduleBlocks = const [],
+    this.staffAssignments = const [],
   });
 
   bool get hasTime =>
       agendaVisible && startsAt != null && startsAt!.trim().isNotEmpty;
+
+  List<CamporeeEventStaffAssignment> get activeStaffAssignments =>
+      staffAssignments.where((assignment) => assignment.active).toList();
+
+  List<CamporeeEventStaffAssignment> get responsibleAssignments =>
+      activeStaffAssignments
+          .where((assignment) => assignment.isResponsible)
+          .toList();
+
+  List<CamporeeEventStaffAssignment> get assistantAssignments =>
+      activeStaffAssignments
+          .where((assignment) => assignment.isAssistant)
+          .toList();
+
+  List<CamporeeEventStaffAssignment> get evaluatorAssignments =>
+      activeStaffAssignments
+          .where((assignment) => assignment.isEvaluator)
+          .toList();
+
+  List<CamporeeEventStaffAssignment> get supportAssignments =>
+      activeStaffAssignments
+          .where((assignment) => assignment.isSupport)
+          .toList();
+
+  List<CamporeeEventStaffAssignment> get supportingAssignments =>
+      activeStaffAssignments
+          .where(
+            (assignment) =>
+                assignment.isAssistant ||
+                assignment.isEvaluator ||
+                assignment.isSupport,
+          )
+          .toList();
+
+  List<String> get responsibleDisplayNames =>
+      _compactDisplayNames(responsibleAssignments);
+
+  List<String> get supportingDisplayNames =>
+      _compactDisplayNames(supportingAssignments);
+
+  static List<String> _compactDisplayNames(
+    List<CamporeeEventStaffAssignment> assignments,
+  ) {
+    final seen = <String>{};
+    final names = <String>[];
+
+    for (final assignment in assignments) {
+      final name = assignment.compactDisplayName?.trim();
+      if (name == null || name.isEmpty || seen.contains(name)) continue;
+      seen.add(name);
+      names.add(name);
+    }
+
+    return names;
+  }
 
   @override
   List<Object?> get props => [
@@ -114,5 +263,6 @@ class CamporeeEvent extends Equatable {
         eventTypeCode,
         eventTypeName,
         scheduleBlocks,
+        staffAssignments,
       ];
 }

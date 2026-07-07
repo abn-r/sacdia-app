@@ -155,6 +155,12 @@ class _DetailBody extends ConsumerWidget {
             const SizedBox(height: 24),
             _DescriptionSection(description: description),
           ],
+          const SizedBox(height: 24),
+          _MembersSection(
+            camporeeId: camporeeId,
+            camporeeName: camporee.name,
+            membersAsync: membersAsync,
+          ),
           if (eventsAsync != null) ...[
             const SizedBox(height: 24),
             _EventsSection(
@@ -162,12 +168,6 @@ class _DetailBody extends ConsumerWidget {
               onRetry: () => ref.invalidate(camporeeEventsProvider(camporeeId)),
             ),
           ],
-          const SizedBox(height: 24),
-          _MembersSection(
-            camporeeId: camporeeId,
-            camporeeName: camporee.name,
-            membersAsync: membersAsync,
-          ),
         ],
       ),
     );
@@ -295,21 +295,18 @@ class _CamporeeFactsPanel extends StatelessWidget {
       locale: context.locale.toString(),
       symbol: '\$',
       decimalDigits: 0,
+      customPattern: '¤#,##0',
     );
+    final dateRange =
+        '${dateFormat.format(camporee.startDate.toLocal())} – ${dateFormat.format(camporee.endDate.toLocal())}';
 
     return _SurfacePanel(
       child: Column(
         children: [
           _FactRow(
             icon: HugeIcons.strokeRoundedCalendar01,
-            label: 'camporees.detail.start'.tr(),
-            value: dateFormat.format(camporee.startDate.toLocal()),
-          ),
-          _PanelDivider(),
-          _FactRow(
-            icon: HugeIcons.strokeRoundedCalendar02,
-            label: 'camporees.detail.end'.tr(),
-            value: dateFormat.format(camporee.endDate.toLocal()),
+            label: 'camporees.detail.dates'.tr(),
+            value: dateRange,
           ),
           _PanelDivider(),
           _FactRow(
@@ -403,7 +400,10 @@ class _EventsSection extends StatelessWidget {
                       index: index,
                       initialDelay: Duration.zero,
                       staggerDelay: const Duration(milliseconds: 35),
-                      child: _EventTile(event: events[index]),
+                      child: _EventTile(
+                        key: ValueKey(events[index].camporeeEventId),
+                        event: events[index],
+                      ),
                     ),
                 ],
               );
@@ -426,148 +426,329 @@ class _EventsSection extends StatelessWidget {
 class _EventTile extends StatelessWidget {
   final CamporeeEvent event;
 
-  const _EventTile({required this.event});
+  const _EventTile({super.key, required this.event});
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final timeLabel = _timeLabel(event);
+    final pointsLabel = 'camporees.detail.event_points'
+        .tr(namedArgs: {'points': '${event.maxPoints}'});
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: c.surfaceVariant,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: c.border),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _IconTile(
-            icon: _categoryIcon(event.displayCategory),
-            color: _categoryColor(context, event.displayCategory),
-            size: 42,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () {
+            HapticFeedback.selectionClick();
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => _CamporeeEventDetailPage(event: event),
+              ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  event.title,
-                  style: TextStyle(
-                    color: c.text,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    height: 1.25,
-                  ),
+                _IconTile(
+                  icon: _eventCategoryIcon(event.displayCategory),
+                  color: _eventCategoryColor(context, event.displayCategory),
+                  size: 40,
                 ),
-                const SizedBox(height: 6),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 6,
-                  children: [
-                    if (event.eventTypeName != null)
-                      _MiniMeta(
-                        icon: HugeIcons.strokeRoundedTag01,
-                        label: event.eventTypeName!,
-                      ),
-                    if (event.agendaVisible)
-                      _MiniMeta(
-                        icon: HugeIcons.strokeRoundedCalendar01,
-                        label: 'camporees.detail.event_day'
-                            .tr(namedArgs: {'day': '${event.dayNumber}'}),
-                      ),
-                    if (event.agendaVisible && timeLabel != null)
-                      _MiniMeta(
-                        icon: HugeIcons.strokeRoundedClock01,
-                        label: timeLabel,
-                      ),
-                    _MiniMeta(
-                      icon: HugeIcons.strokeRoundedAward01,
-                      label: 'camporees.detail.event_points'
-                          .tr(namedArgs: {'points': '${event.maxPoints}'}),
-                    ),
-                    if (event.agendaVisible && event.venueName != null)
-                      _MiniMeta(
-                        icon: HugeIcons.strokeRoundedLocation01,
-                        label: event.venueName!,
-                      ),
-                    if (!event.agendaVisible)
-                      _MiniMeta(
-                        icon: HugeIcons.strokeRoundedLockKey,
-                        label: 'camporees.detail.agenda_pending'.tr(),
-                      ),
-                  ],
-                ),
-                if (event.description != null &&
-                    event.description!.trim().isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    event.description!,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    event.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: c.textSecondary,
-                      fontSize: 12,
-                      height: 1.35,
-                      fontWeight: FontWeight.w600,
+                      color: c.text,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      height: 1.25,
                     ),
                   ),
-                ],
-                if (event.agendaVisible && event.scheduleBlocks.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  _ScheduleBlocksPreview(blocks: event.scheduleBlocks),
-                ],
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  pointsLabel,
+                  style: TextStyle(
+                    color: c.textSecondary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
+}
 
-  String? _timeLabel(CamporeeEvent event) {
-    if (event.startsAt == null || event.startsAt!.trim().isEmpty) return null;
-    if (event.endsAt == null || event.endsAt!.trim().isEmpty) {
-      return event.startsAt;
-    }
-    return '${event.startsAt} – ${event.endsAt}';
+class _CamporeeEventDetailPage extends StatelessWidget {
+  final CamporeeEvent event;
+
+  const _CamporeeEventDetailPage({required this.event});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final description = event.description?.trim();
+    final hasSchedules = event.agendaVisible && event.scheduleBlocks.isNotEmpty;
+    final hasStaffSummary = event.agendaVisible &&
+        (event.responsibleDisplayNames.isNotEmpty ||
+            event.supportingDisplayNames.isNotEmpty);
+
+    return Scaffold(
+      backgroundColor: c.background,
+      appBar: AppBar(
+        backgroundColor: c.background,
+        foregroundColor: c.text,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        centerTitle: true,
+        leading: SacBackButton(
+          color: c.text,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          'camporees.detail.event_detail_title'.tr(),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: c.text,
+              ),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(height: 1, color: c.border),
+        ),
+      ),
+      body: SafeArea(
+        top: false,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
+          children: [
+            _EventDetailHeader(event: event),
+            const SizedBox(height: 18),
+            _EventFactsPanel(event: event),
+            if (description != null && description.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              _DescriptionSection(description: description),
+            ],
+            if (hasStaffSummary) ...[
+              const SizedBox(height: 24),
+              _EventStaffDetail(event: event),
+            ],
+            if (hasSchedules) ...[
+              const SizedBox(height: 24),
+              _SectionHeader(label: 'camporees.detail.event_schedules'.tr()),
+              const SizedBox(height: 10),
+              _ScheduleBlocksPreview(blocks: event.scheduleBlocks),
+            ],
+          ],
+        ),
+      ),
+    );
   }
+}
 
-  HugeIconData _categoryIcon(String category) {
-    switch (category) {
-      case 'espiritual':
-        return HugeIcons.strokeRoundedBookOpen01;
-      case 'competencia':
-        return HugeIcons.strokeRoundedChampion;
-      case 'taller':
-        return HugeIcons.strokeRoundedTools;
-      case 'ceremonial':
-        return HugeIcons.strokeRoundedFlag01;
-      case 'social':
-        return HugeIcons.strokeRoundedUserGroup;
-      default:
-        return HugeIcons.strokeRoundedCalendar03;
-    }
+class _EventDetailHeader extends StatelessWidget {
+  final CamporeeEvent event;
+
+  const _EventDetailHeader({required this.event});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _IconTile(
+          icon: _eventCategoryIcon(event.displayCategory),
+          color: _eventCategoryColor(context, event.displayCategory),
+          size: 52,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            event.title,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: c.text,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.2,
+                  height: 1.15,
+                ),
+          ),
+        ),
+      ],
+    );
   }
+}
 
-  Color _categoryColor(BuildContext context, String category) {
-    switch (category) {
-      case 'espiritual':
-        return AppColors.secondary;
-      case 'competencia':
-        return AppColors.primary;
-      case 'taller':
-        return context.sac.info;
-      case 'ceremonial':
-        return context.sac.warning;
-      case 'social':
-        return context.sac.success;
-      default:
-        return context.sac.textTertiary;
+class _EventFactsPanel extends StatelessWidget {
+  final CamporeeEvent event;
+
+  const _EventFactsPanel({required this.event});
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = <Widget>[];
+
+    void addFact({
+      required HugeIconData icon,
+      required String label,
+      required String value,
+    }) {
+      if (rows.isNotEmpty) rows.add(_PanelDivider());
+      rows.add(_FactRow(icon: icon, label: label, value: value));
     }
+
+    final eventTypeName = event.eventTypeName?.trim();
+    if (eventTypeName != null && eventTypeName.isNotEmpty) {
+      addFact(
+        icon: HugeIcons.strokeRoundedTag01,
+        label: 'camporees.detail.event_type'.tr(),
+        value: eventTypeName,
+      );
+    }
+
+    if (event.agendaVisible) {
+      addFact(
+        icon: HugeIcons.strokeRoundedCalendar01,
+        label: 'camporees.detail.event_day_label'.tr(),
+        value: 'camporees.detail.event_day'
+            .tr(namedArgs: {'day': '${event.dayNumber}'}),
+      );
+
+      final timeLabel = _eventTimeLabel(event);
+      if (timeLabel != null) {
+        addFact(
+          icon: HugeIcons.strokeRoundedClock01,
+          label: 'camporees.detail.event_time'.tr(),
+          value: timeLabel,
+        );
+      }
+    } else {
+      addFact(
+        icon: HugeIcons.strokeRoundedLockKey,
+        label: 'camporees.detail.event_schedule'.tr(),
+        value: 'camporees.detail.agenda_pending'.tr(),
+      );
+    }
+
+    addFact(
+      icon: HugeIcons.strokeRoundedAward01,
+      label: 'camporees.detail.event_total_points'.tr(),
+      value: 'camporees.detail.event_points'
+          .tr(namedArgs: {'points': '${event.maxPoints}'}),
+    );
+
+    final venueName = event.venueName?.trim();
+    if (event.agendaVisible && venueName != null && venueName.isNotEmpty) {
+      addFact(
+        icon: HugeIcons.strokeRoundedLocation01,
+        label: 'camporees.detail.place'.tr(),
+        value: venueName,
+      );
+    }
+
+    return _SurfacePanel(child: Column(children: rows));
+  }
+}
+
+class _EventStaffDetail extends StatelessWidget {
+  final CamporeeEvent event;
+
+  const _EventStaffDetail({required this.event});
+
+  @override
+  Widget build(BuildContext context) {
+    final responsibleNames = event.responsibleDisplayNames.join(', ');
+    final supportingNames = event.supportingDisplayNames.join(', ');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionHeader(label: 'camporees.detail.event_staff_title'.tr()),
+        const SizedBox(height: 10),
+        _SurfacePanel(
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              if (responsibleNames.isNotEmpty)
+                _MiniMeta(
+                  icon: HugeIcons.strokeRoundedUserCheck01,
+                  label: 'camporees.detail.event_staff_responsible'.tr(
+                    namedArgs: {'names': responsibleNames},
+                  ),
+                ),
+              if (supportingNames.isNotEmpty)
+                _MiniMeta(
+                  icon: HugeIcons.strokeRoundedUserGroup,
+                  label: 'camporees.detail.event_staff_supporting'.tr(
+                    namedArgs: {'names': supportingNames},
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+String? _eventTimeLabel(CamporeeEvent event) {
+  if (event.startsAt == null || event.startsAt!.trim().isEmpty) return null;
+  if (event.endsAt == null || event.endsAt!.trim().isEmpty) {
+    return event.startsAt;
+  }
+  return '${event.startsAt} – ${event.endsAt}';
+}
+
+HugeIconData _eventCategoryIcon(String category) {
+  switch (category) {
+    case 'espiritual':
+      return HugeIcons.strokeRoundedBookOpen01;
+    case 'competencia':
+      return HugeIcons.strokeRoundedChampion;
+    case 'taller':
+      return HugeIcons.strokeRoundedTools;
+    case 'ceremonial':
+      return HugeIcons.strokeRoundedFlag01;
+    case 'social':
+      return HugeIcons.strokeRoundedUserGroup;
+    default:
+      return HugeIcons.strokeRoundedCalendar03;
+  }
+}
+
+Color _eventCategoryColor(BuildContext context, String category) {
+  switch (category) {
+    case 'espiritual':
+      return AppColors.secondary;
+    case 'competencia':
+      return AppColors.primary;
+    case 'taller':
+      return context.sac.info;
+    case 'ceremonial':
+      return context.sac.warning;
+    case 'social':
+      return context.sac.success;
+    default:
+      return context.sac.textTertiary;
   }
 }
 

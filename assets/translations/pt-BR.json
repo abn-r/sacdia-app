@@ -1773,6 +1773,7 @@
     },
     "detail": {
       "description": "Descrição",
+      "dates": "Datas",
       "start": "Início",
       "end": "Fim",
       "place": "Local",
@@ -1797,10 +1798,22 @@
       "events_subtitle": "Agenda e eventos registrados para este campori.",
       "no_events_yet": "Ainda não há eventos registrados.",
       "events_error": "Não foi possível carregar os eventos.",
+      "event_detail_title": "Detalhe do evento",
+      "event_type": "Tipo de evento",
+      "event_day_label": "Dia",
+      "event_time": "Horário",
+      "event_schedule": "Agenda",
+      "event_total_points": "Pontuação total",
+      "event_schedules": "Horários",
+      "event_staff_title": "Equipe atribuída",
       "event_day": "Dia {day}",
       "event_points": "{points} pts",
       "agenda_pending": "Agenda pendente",
-      "schedule_block": "Bloco da agenda"
+      "schedule_block": "Bloco da agenda",
+      "view_schedules": "Ver horários",
+      "hide_schedules": "Ocultar horários",
+      "event_staff_responsible": "Responsável: {names}",
+      "event_staff_supporting": "Apoiam: {names}"
     },
     "enroll_club": {
       "title": "Inscrição de clubes",
