@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/errors/failures.dart';
 import '../../../../core/models/paginated_result.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -12,6 +14,7 @@ import '../../domain/entities/camporee_member.dart';
 import '../../domain/entities/camporee_payment.dart';
 import '../../domain/entities/camporee_rubric.dart';
 import '../../domain/entities/camporee_score_submission.dart';
+import '../../domain/entities/camporee_section_registration.dart';
 import '../../domain/repositories/camporees_repository.dart';
 
 // ── Infrastructure providers ──────────────────────────────────────────────────
@@ -84,6 +87,21 @@ final camporeeDetailProvider =
   return result.fold(
     (failure) => throw Exception(failure.message),
     (camporee) => camporee,
+  );
+});
+
+/// Inscripción contextual de la sección activa del actor autenticado.
+///
+/// El backend resuelve la sección y los permisos; el cliente solo conserva
+/// el [camporeeId] como clave de caché.
+final camporeeSectionRegistrationProvider = FutureProvider.autoDispose
+    .family<CamporeeSectionRegistration, int>((ref, camporeeId) async {
+  final repository = ref.read(camporeesRepositoryProvider);
+  final result = await repository.getActiveSectionRegistration(camporeeId);
+
+  return result.fold(
+    (failure) => throw failure,
+    (registration) => registration,
   );
 });
 
@@ -201,6 +219,112 @@ final camporeeRegisteredUserIdsProvider = FutureProvider.autoDispose
 });
 
 // ── Mutation notifiers ────────────────────────────────────────────────────────
+
+enum RegisterCamporeeSectionStatus {
+  idle,
+  loading,
+  success,
+  failure,
+}
+
+/// Estado tipado para inscribir la sección activa en un camporee.
+class RegisterCamporeeSectionState extends Equatable {
+  final RegisterCamporeeSectionStatus status;
+  final CamporeeSectionRegistration? registration;
+  final Failure? failure;
+
+  const RegisterCamporeeSectionState._({
+    required this.status,
+    this.registration,
+    this.failure,
+  });
+
+  const RegisterCamporeeSectionState.idle()
+      : this._(status: RegisterCamporeeSectionStatus.idle);
+
+  const RegisterCamporeeSectionState.loading()
+      : this._(status: RegisterCamporeeSectionStatus.loading);
+
+  const RegisterCamporeeSectionState.success(
+    CamporeeSectionRegistration registration,
+  ) : this._(
+          status: RegisterCamporeeSectionStatus.success,
+          registration: registration,
+        );
+
+  const RegisterCamporeeSectionState.failure(Failure failure)
+      : this._(
+          status: RegisterCamporeeSectionStatus.failure,
+          failure: failure,
+        );
+
+  bool get isIdle => status == RegisterCamporeeSectionStatus.idle;
+  bool get isLoading => status == RegisterCamporeeSectionStatus.loading;
+  bool get isSuccess => status == RegisterCamporeeSectionStatus.success;
+  bool get hasFailure => status == RegisterCamporeeSectionStatus.failure;
+
+  @override
+  List<Object?> get props => [status, registration, failure];
+}
+
+/// Inscribe la sección activa resuelta por el backend.
+class RegisterCamporeeSectionNotifier
+    extends AutoDisposeFamilyNotifier<RegisterCamporeeSectionState, int> {
+  bool _isRegistering = false;
+  bool _isDisposed = false;
+
+  @override
+  RegisterCamporeeSectionState build(int camporeeId) {
+    _isDisposed = false;
+    ref.onDispose(() => _isDisposed = true);
+    return const RegisterCamporeeSectionState.idle();
+  }
+
+  Future<bool> register() async {
+    if (_isRegistering) return false;
+
+    _isRegistering = true;
+    state = const RegisterCamporeeSectionState.loading();
+    final repository = ref.read(camporeesRepositoryProvider);
+
+    try {
+      final result = await repository.registerActiveSection(arg);
+
+      return result.fold(
+        (failure) {
+          if (!_isDisposed) {
+            state = RegisterCamporeeSectionState.failure(failure);
+          }
+          return false;
+        },
+        (registration) {
+          if (_isDisposed) return true;
+
+          state = RegisterCamporeeSectionState.success(registration);
+          ref.invalidate(camporeeSectionRegistrationProvider(arg));
+          ref.invalidate(camporeeDetailProvider(arg));
+          ref.invalidate(camporeeEnrolledClubsProvider(arg));
+
+          if (registration.enablesParticipants) {
+            // Invalidar la fuente paginada refresca lista y metadatos derivados
+            // sin reconstrucciones duplicadas.
+            ref.invalidate(_camporeeMembersPaginatedProvider(arg));
+            ref.invalidate(camporeeRegisteredUserIdsProvider(arg));
+          }
+
+          return true;
+        },
+      );
+    } finally {
+      _isRegistering = false;
+    }
+  }
+}
+
+final registerCamporeeSectionProvider = NotifierProvider.autoDispose
+    .family<RegisterCamporeeSectionNotifier, RegisterCamporeeSectionState, int>(
+  RegisterCamporeeSectionNotifier.new,
+);
 
 /// Estado para operaciones de registro de miembros en camporees.
 class CamporeeRegistrationState {
