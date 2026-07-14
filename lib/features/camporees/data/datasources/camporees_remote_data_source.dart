@@ -11,6 +11,7 @@ import '../models/camporee_event_model.dart';
 import '../models/camporee_member_model.dart';
 import '../models/camporee_payment_model.dart';
 import '../models/camporee_rubric_model.dart';
+import '../models/camporee_section_registration_model.dart';
 
 /// Interfaz para la fuente de datos remota de camporees
 abstract class CamporeesRemoteDataSource {
@@ -23,6 +24,18 @@ abstract class CamporeesRemoteDataSource {
   /// GET /api/v1/camporees/:camporeeId
   Future<CamporeeModel> getCamporeeDetail(int camporeeId,
       {CancelToken? cancelToken});
+
+  /// Obtiene la inscripción contextual de la sección activa.
+  /// GET /api/v1/camporees/:camporeeId/section-registration
+  Future<CamporeeSectionRegistrationModel> getActiveSectionRegistration(
+    int camporeeId,
+  );
+
+  /// Inscribe la sección activa sin aceptar IDs controlados por el cliente.
+  /// POST /api/v1/camporees/:camporeeId/section-registration
+  Future<CamporeeSectionRegistrationModel> registerActiveSection(
+    int camporeeId,
+  );
 
   /// Obtiene preview seguro de eventos registrados de un camporee.
   /// GET /api/v1/local-camporees/:camporeeId/events/preview
@@ -164,6 +177,21 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
     return const [];
   }
 
+  Map<String, dynamic> _extractObject(dynamic responseData) {
+    if (responseData is! Map) {
+      throw FormatException(
+        'Expected an object response, got ${responseData.runtimeType}',
+      );
+    }
+    final map = Map<String, dynamic>.from(responseData);
+    if (map.containsKey('data')) {
+      final data = map['data'];
+      if (data is Map) return Map<String, dynamic>.from(data);
+      throw FormatException('Expected data to contain an object');
+    }
+    return map;
+  }
+
   // ── GET /api/v1/camporees ────────────────────────────────────────────────────
 
   @override
@@ -228,6 +256,64 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getCamporeeDetail', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /api/v1/camporees/:camporeeId/section-registration ───────────────
+
+  @override
+  Future<CamporeeSectionRegistrationModel> getActiveSectionRegistration(
+    int camporeeId,
+  ) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/section-registration',
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return CamporeeSectionRegistrationModel.fromJson(
+          _extractObject(response.data),
+        );
+      }
+
+      throw ServerException(
+        message: 'Unable to fetch active section registration',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e(
+        'Error en getActiveSectionRegistration',
+        tag: _tag,
+        error: e,
+      );
+      _rethrow(e);
+    }
+  }
+
+  // ── POST /api/v1/camporees/:camporeeId/section-registration ──────────────
+
+  @override
+  Future<CamporeeSectionRegistrationModel> registerActiveSection(
+    int camporeeId,
+  ) async {
+    try {
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/section-registration',
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return CamporeeSectionRegistrationModel.fromJson(
+          _extractObject(response.data),
+        );
+      }
+
+      throw ServerException(
+        message: 'Unable to register active section',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en registerActiveSection', tag: _tag, error: e);
       _rethrow(e);
     }
   }

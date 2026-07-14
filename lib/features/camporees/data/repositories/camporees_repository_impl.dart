@@ -11,6 +11,7 @@ import '../../domain/entities/camporee_judge_assignment.dart';
 import '../../domain/entities/camporee_member.dart';
 import '../../domain/entities/camporee_payment.dart';
 import '../../domain/entities/camporee_rubric.dart';
+import '../../domain/entities/camporee_section_registration.dart';
 import '../../domain/entities/camporee_score_submission.dart';
 import '../../domain/repositories/camporees_repository.dart';
 import '../datasources/camporees_remote_data_source.dart';
@@ -60,6 +61,38 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
     try {
       final model = await remoteDataSource.getCamporeeDetail(camporeeId,
           cancelToken: cancelToken.asDioCancelToken());
+      return Right(model.toEntity());
+    } on ServerException catch (e) {
+      return _serverFailure(e);
+    } on AuthException catch (e) {
+      return _authFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, CamporeeSectionRegistration>>
+      getActiveSectionRegistration(int camporeeId) async {
+    try {
+      final model =
+          await remoteDataSource.getActiveSectionRegistration(camporeeId);
+      return Right(model.toEntity());
+    } on ServerException catch (e) {
+      return _serverFailure(e);
+    } on AuthException catch (e) {
+      return _authFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, CamporeeSectionRegistration>> registerActiveSection(
+    int camporeeId,
+  ) async {
+    try {
+      final model = await remoteDataSource.registerActiveSection(camporeeId);
       return Right(model.toEntity());
     } on ServerException catch (e) {
       return _serverFailure(e);

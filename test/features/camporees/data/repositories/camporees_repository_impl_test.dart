@@ -12,7 +12,9 @@ import 'package:sacdia_app/features/camporees/data/models/camporee_member_model.
 import 'package:sacdia_app/features/camporees/data/models/camporee_model.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_payment_model.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_rubric_model.dart';
+import 'package:sacdia_app/features/camporees/data/models/camporee_section_registration_model.dart';
 import 'package:sacdia_app/features/camporees/data/repositories/camporees_repository_impl.dart';
+import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_score_submission.dart';
 
@@ -29,6 +31,26 @@ class _StubDataSource implements CamporeesRemoteDataSource {
       judgeAssignmentsResult; // List<CamporeeJudgeAssignmentModel> or Exception
   Object? rubricsResult; // List<CamporeeRubricModel> or Exception
   Object? submitScoreResult; // null or Exception
+  Object? getSectionRegistrationResult;
+  Object? registerSectionResult;
+
+  @override
+  Future<CamporeeSectionRegistrationModel> getActiveSectionRegistration(
+    int camporeeId,
+  ) async {
+    final r = getSectionRegistrationResult;
+    if (r is Exception) throw r;
+    return r as CamporeeSectionRegistrationModel;
+  }
+
+  @override
+  Future<CamporeeSectionRegistrationModel> registerActiveSection(
+    int camporeeId,
+  ) async {
+    final r = registerSectionResult;
+    if (r is Exception) throw r;
+    return r as CamporeeSectionRegistrationModel;
+  }
 
   @override
   Future<PaginatedResult<CamporeeMemberModel>> getCamporeeMembers(
@@ -187,6 +209,26 @@ PaginatedResult<CamporeeMemberModel> _paginatedModels({
   );
 }
 
+const _sectionRegistrationModel = CamporeeSectionRegistrationModel(
+  camporeeId: 7,
+  clubId: 12,
+  clubName: 'Orión',
+  clubSectionId: 44,
+  sectionName: 'Conquistadores',
+  clubTypeId: 2,
+  clubTypeName: 'Conquistadores',
+  status: CamporeeSectionRegistrationStatus.registered,
+  disposition: CamporeeSectionRegistrationDisposition.open,
+  canEnroll: false,
+  blockingReason: 'already_enrolled',
+  enrollmentId: 91,
+  registeredAt: null,
+  registeredBy: CamporeeSectionRegistrationActorModel(
+    userId: 'director-1',
+    displayName: 'Directora Activa',
+  ),
+);
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 void main() {
@@ -199,6 +241,58 @@ void main() {
       remoteDataSource: dataSource,
       networkInfo: _AlwaysConnected(),
     );
+  });
+
+  group('CamporeesRepositoryImpl section registration', () {
+    test('returns Right domain entity for GET and POST', () async {
+      dataSource.getSectionRegistrationResult = _sectionRegistrationModel;
+      dataSource.registerSectionResult = _sectionRegistrationModel;
+
+      final getResult = await repository.getActiveSectionRegistration(7);
+      final postResult = await repository.registerActiveSection(7);
+
+      for (final result in [getResult, postResult]) {
+        expect(result.isRight(), isTrue);
+        result.fold(
+          (_) => fail('Expected Right'),
+          (registration) {
+            expect(registration, isA<CamporeeSectionRegistration>());
+            expect(registration.clubSectionId, 44);
+            expect(registration.enablesParticipants, isTrue);
+          },
+        );
+      }
+    });
+
+    test('maps datasource exceptions with the repository failure pattern',
+        () async {
+      dataSource.getSectionRegistrationResult = ServerException(
+        message: 'Malformed response',
+        code: 500,
+      );
+      dataSource.registerSectionResult = AuthException(
+        message: 'Unauthorized',
+        code: 401,
+      );
+
+      final getResult = await repository.getActiveSectionRegistration(7);
+      final postResult = await repository.registerActiveSection(7);
+
+      getResult.fold(
+        (failure) {
+          expect(failure, isA<ServerFailure>());
+          expect(failure.code, 500);
+        },
+        (_) => fail('Expected Left'),
+      );
+      postResult.fold(
+        (failure) {
+          expect(failure, isA<AuthFailure>());
+          expect(failure.code, 401);
+        },
+        (_) => fail('Expected Left'),
+      );
+    });
   });
 
   group('CamporeesRepositoryImpl.getCamporeeMembers', () {
