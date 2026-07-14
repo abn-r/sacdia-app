@@ -20,6 +20,7 @@ import 'package:sacdia_app/features/camporees/domain/entities/camporee_event.dar
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_location_card.dart';
+import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_participant_access_gate.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_section_registration_panel.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_section_registration_sheet.dart';
 
@@ -132,7 +133,7 @@ class _DetailBody extends ConsumerWidget {
     final registrationAsync =
         ref.watch(camporeeSectionRegistrationProvider(camporeeId));
     final participantsEnabled =
-        registrationAsync.valueOrNull?.enablesParticipants ?? false;
+        camporeeParticipantsAreEnabled(registrationAsync);
     final membersAsync = participantsEnabled
         ? ref.watch(camporeeMembersProvider(camporeeId))
         : const AsyncData<List<CamporeeMember>>(<CamporeeMember>[]);

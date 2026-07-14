@@ -13,6 +13,7 @@ class CamporeeSectionRegistrationPanel extends StatelessWidget {
   final VoidCallback onEnroll;
   final VoidCallback onRetry;
   final VoidCallback onManageParticipants;
+  final bool showActions;
 
   const CamporeeSectionRegistrationPanel({
     super.key,
@@ -20,6 +21,7 @@ class CamporeeSectionRegistrationPanel extends StatelessWidget {
     required this.onEnroll,
     required this.onRetry,
     required this.onManageParticipants,
+    this.showActions = true,
   });
 
   @override
@@ -52,6 +54,7 @@ class CamporeeSectionRegistrationPanel extends StatelessWidget {
             registration: registration,
             onEnroll: onEnroll,
             onManageParticipants: onManageParticipants,
+            showActions: showActions,
           ),
         ),
       ),
@@ -63,11 +66,13 @@ class _RegistrationContent extends StatelessWidget {
   final CamporeeSectionRegistration registration;
   final VoidCallback onEnroll;
   final VoidCallback onManageParticipants;
+  final bool showActions;
 
   const _RegistrationContent({
     required this.registration,
     required this.onEnroll,
     required this.onManageParticipants,
+    required this.showActions,
   });
 
   @override
@@ -159,7 +164,8 @@ class _RegistrationContent extends StatelessWidget {
           const SizedBox(height: 12),
           _RegistrationMeta(registration: registration),
         ],
-        if (registration.canEnroll &&
+        if (showActions &&
+            registration.canEnroll &&
             registration.status ==
                 CamporeeSectionRegistrationStatus.notEnrolled) ...[
           const SizedBox(height: 16),
@@ -173,7 +179,7 @@ class _RegistrationContent extends StatelessWidget {
             labelOverflow: TextOverflow.visible,
           ),
         ],
-        if (registration.enablesParticipants) ...[
+        if (showActions && registration.enablesParticipants) ...[
           const SizedBox(height: 16),
           SacButton.primary(
             text: 'camporees.section_registration.participants_action'.tr(),
