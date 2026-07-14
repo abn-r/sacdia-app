@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/exceptions.dart';
 import 'package:sacdia_app/core/models/paginated_result.dart';
+import 'package:sacdia_app/core/network/interceptors/error_interceptor.dart';
 import 'package:sacdia_app/features/camporees/data/datasources/camporees_remote_data_source.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_member_model.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
@@ -232,6 +233,56 @@ void main() {
         throwsA(isA<ServerException>()),
       );
       expect(adapter.lastOptions, isNotNull);
+    });
+
+    test('preserves auth failures produced by the real ErrorInterceptor',
+        () async {
+      for (final testCase in const [
+        (statusCode: 401, register: false),
+        (statusCode: 403, register: true),
+      ]) {
+        final (:dio, :adapter) = _dioWith({
+          'message': 'Context authorization denied',
+        }, statusCode: testCase.statusCode);
+        dio.interceptors.add(ErrorInterceptor());
+        final ds = CamporeesRemoteDataSourceImpl(dio: dio, baseUrl: baseUrl);
+
+        final request = testCase.register
+            ? ds.registerActiveSection(7)
+            : ds.getActiveSectionRegistration(7);
+
+        await expectLater(
+          request,
+          throwsA(
+            isA<AuthException>()
+                .having((error) => error.code, 'code', testCase.statusCode)
+                .having(
+                  (error) => error.message,
+                  'message',
+                  'Context authorization denied',
+                ),
+          ),
+        );
+        expect(adapter.lastOptions, isNotNull);
+      }
+    });
+
+    test('preserves connection failures produced by the real ErrorInterceptor',
+        () async {
+      final dio = _dioThatThrows(
+        (options) => DioException(
+          requestOptions: options,
+          type: DioExceptionType.connectionError,
+          message: 'Network unreachable',
+        ),
+      );
+      dio.interceptors.add(ErrorInterceptor());
+      final ds = CamporeesRemoteDataSourceImpl(dio: dio, baseUrl: baseUrl);
+
+      await expectLater(
+        ds.getActiveSectionRegistration(7),
+        throwsA(isA<ConnectionException>()),
+      );
     });
   });
 

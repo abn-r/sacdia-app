@@ -148,10 +148,13 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
 
   Never _rethrow(Object e) {
     if (e is DioException) {
+      if (e.error is AppException) {
+        throw e.error as AppException;
+      }
       final msg = _extractDioMessage(e);
       throw ServerException(message: msg, code: e.response?.statusCode);
     }
-    if (e is ServerException || e is AuthException) throw e;
+    if (e is AppException) throw e;
     throw ServerException(message: e.toString());
   }
 

@@ -1,9 +1,12 @@
+import 'dart:typed_data';
+
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/exceptions.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/models/paginated_result.dart';
+import 'package:sacdia_app/core/network/interceptors/error_interceptor.dart';
 import 'package:sacdia_app/core/network/network_info.dart';
 import 'package:sacdia_app/features/camporees/data/datasources/camporees_remote_data_source.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_event_model.dart';
@@ -175,6 +178,43 @@ class _AlwaysConnected implements NetworkInfo {
   Future<bool> get isConnected async => true;
 }
 
+class _ErrorResponseAdapter implements HttpClientAdapter {
+  _ErrorResponseAdapter(this.statusCode);
+
+  final int statusCode;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    return ResponseBody.fromString(
+      '{"message":"Context authorization denied"}',
+      statusCode,
+      headers: {
+        Headers.contentTypeHeader: ['application/json'],
+      },
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+CamporeesRepositoryImpl _repositoryWithErrorInterceptor(int statusCode) {
+  final dio = Dio(BaseOptions(responseType: ResponseType.json));
+  dio.httpClientAdapter = _ErrorResponseAdapter(statusCode);
+  dio.interceptors.add(ErrorInterceptor());
+  return CamporeesRepositoryImpl(
+    remoteDataSource: CamporeesRemoteDataSourceImpl(
+      dio: dio,
+      baseUrl: 'http://localhost:3000',
+    ),
+    networkInfo: _AlwaysConnected(),
+  );
+}
+
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
 CamporeeMemberModel _memberModel({
@@ -292,6 +332,30 @@ void main() {
         },
         (_) => fail('Expected Left'),
       );
+    });
+
+    test('maps real intercepted 401 and 403 responses to AuthFailure',
+        () async {
+      for (final testCase in const [
+        (statusCode: 401, register: false),
+        (statusCode: 403, register: true),
+      ]) {
+        final realRepository =
+            _repositoryWithErrorInterceptor(testCase.statusCode);
+
+        final result = testCase.register
+            ? await realRepository.registerActiveSection(7)
+            : await realRepository.getActiveSectionRegistration(7);
+
+        result.fold(
+          (failure) {
+            expect(failure, isA<AuthFailure>());
+            expect(failure.code, testCase.statusCode);
+            expect(failure.message, 'Context authorization denied');
+          },
+          (_) => fail('Expected Left'),
+        );
+      }
     });
   });
 
