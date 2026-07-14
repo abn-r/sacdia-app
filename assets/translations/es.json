@@ -1783,6 +1783,7 @@
       "members_enrolled": "Miembros inscritos",
       "enroll": "Inscribir",
       "no_members_yet": "Aún no hay miembros inscritos.",
+      "members_loading": "Cargando participantes inscritos",
       "members_error": "No pudimos cargar los miembros inscritos.",
       "retry_members": "Reintentar miembros",
       "retry_members_semantics": "Reintentar carga de miembros inscritos",

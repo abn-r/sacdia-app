@@ -944,9 +944,15 @@ class _MembersSection extends StatelessWidget {
                 camporeeName: camporeeName,
                 members: members,
               ),
-              loading: () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 18),
-                child: Center(child: SacLoading()),
+              loading: () => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                child: Center(
+                  child: Semantics(
+                    label: 'camporees.detail.members_loading'.tr(),
+                    liveRegion: true,
+                    child: const SacLoading(),
+                  ),
+                ),
               ),
               error: (_, __) => _MembersError(onRetry: onRetryMembers),
             ),

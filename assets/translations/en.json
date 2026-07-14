@@ -1783,6 +1783,7 @@
       "members_enrolled": "Enrolled members",
       "enroll": "Enroll",
       "no_members_yet": "No members enrolled yet.",
+      "members_loading": "Loading enrolled participants",
       "members_error": "We could not load the enrolled members.",
       "retry_members": "Retry members",
       "retry_members_semantics": "Retry loading enrolled members",

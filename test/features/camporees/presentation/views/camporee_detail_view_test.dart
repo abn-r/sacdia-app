@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -98,6 +99,27 @@ void main() {
 
     expect(memberLoads, 2);
   });
+
+  testWidgets('loading de miembros anuncia participantes como live region',
+      (tester) async {
+    await _pumpDetail(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      ),
+      onMembersLoad: () {},
+      keepMembersLoading: true,
+    );
+
+    final semantics = tester.widget<Semantics>(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Semantics &&
+            widget.properties.label == 'Cargando participantes inscritos',
+      ),
+    );
+    expect(semantics.properties.liveRegion, isTrue);
+  });
 }
 
 Future<void> _pumpDetail(
@@ -105,8 +127,10 @@ Future<void> _pumpDetail(
   required CamporeeSectionRegistration registration,
   required VoidCallback onMembersLoad,
   bool failMembersOnce = false,
+  bool keepMembersLoading = false,
 }) async {
   var failed = false;
+  final loading = Completer<List<CamporeeMember>>();
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -116,6 +140,7 @@ Future<void> _pumpDetail(
             .overrideWith((ref, id) async => registration),
         camporeeMembersProvider.overrideWith((ref, id) async {
           onMembersLoad();
+          if (keepMembersLoading) return loading.future;
           if (failMembersOnce && !failed) {
             failed = true;
             throw Exception('socket');

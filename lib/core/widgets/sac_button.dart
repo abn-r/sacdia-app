@@ -338,11 +338,15 @@ class _SacButtonState extends State<SacButton>
   Widget build(BuildContext context) {
     final c = context.sac;
 
-    // ── Resolve disabled colors using theme tokens ──────────────────────
-    final effectiveBg = _effectivelyDisabled ? c.surface : _backgroundColor;
-    final effectiveFg =
-        _effectivelyDisabled ? c.textTertiary : _foregroundColor;
-    final effectiveBorder = _effectivelyDisabled
+    // Loading blocks interaction, but keeps the configured visual hierarchy.
+    // Only genuinely disabled, non-loading buttons use disabled tokens.
+    final visuallyDisabled = _effectivelyDisabled && !widget.isLoading;
+    final effectiveBg = visuallyDisabled ? c.surface : _backgroundColor;
+    final baseFg = visuallyDisabled ? c.textTertiary : _foregroundColor;
+    final effectiveFg = widget.isLoading
+        ? _accessibleLoadingForeground(baseFg, effectiveBg, c.surface)
+        : baseFg;
+    final effectiveBorder = visuallyDisabled
         ? BorderSide(color: c.border, width: 1.5)
         : (_borderSide ?? BorderSide.none);
 
@@ -439,4 +443,31 @@ class _SacButtonState extends State<SacButton>
       ),
     );
   }
+}
+
+Color _accessibleLoadingForeground(
+  Color preferred,
+  Color background,
+  Color surface,
+) {
+  final paintedBackground = Color.alphaBlend(background, surface);
+  if (_contrastRatio(preferred, paintedBackground) >= 3) return preferred;
+
+  final candidates = <Color>[AppColors.ink900, Colors.white];
+  return candidates.reduce(
+    (best, candidate) => _contrastRatio(candidate, paintedBackground) >
+            _contrastRatio(best, paintedBackground)
+        ? candidate
+        : best,
+  );
+}
+
+double _contrastRatio(Color first, Color second) {
+  final firstLuminance = first.computeLuminance();
+  final secondLuminance = second.computeLuminance();
+  final lighter =
+      firstLuminance > secondLuminance ? firstLuminance : secondLuminance;
+  final darker =
+      firstLuminance > secondLuminance ? secondLuminance : firstLuminance;
+  return (lighter + 0.05) / (darker + 0.05);
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 
@@ -84,6 +85,35 @@ void main() {
     expect(semantics.properties.liveRegion, isTrue);
   });
 
+  for (final brightness in Brightness.values) {
+    testWidgets('spinner conserva colores efectivos accesibles en $brightness',
+        (tester) async {
+      await _pumpButton(
+        tester,
+        SacButton.primary(
+          text: 'Confirmar',
+          onPressed: () {},
+          isLoading: true,
+          backgroundColor: AppColors.primary,
+          textColor: AppColors.ink900,
+        ),
+        brightness: brightness,
+      );
+
+      final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+      final background = button.style!.backgroundColor!.resolve({})!;
+      final foreground = button.style!.foregroundColor!.resolve({})!;
+      final spinner = tester.widget<CircularProgressIndicator>(
+        find.byType(CircularProgressIndicator),
+      );
+
+      expect(background, AppColors.primary);
+      expect(foreground, AppColors.ink900);
+      expect(spinner.color, foreground);
+      expect(_contrastRatio(foreground, background), greaterThanOrEqualTo(4.5));
+    });
+  }
+
   testWidgets('disableAnimations evita la escala de presión', (tester) async {
     await _pumpButton(
       tester,
@@ -112,10 +142,13 @@ Future<void> _pumpButton(
   TextScaler textScaler = TextScaler.noScaling,
   double width = 320,
   bool disableAnimations = false,
+  Brightness brightness = Brightness.light,
 }) async {
   await tester.pumpWidget(
     MaterialApp(
-      theme: AppTheme.lightTheme,
+      theme: brightness == Brightness.light
+          ? AppTheme.lightTheme
+          : AppTheme.darkTheme,
       home: MediaQuery(
         data: MediaQueryData(
           textScaler: textScaler,
@@ -130,4 +163,14 @@ Future<void> _pumpButton(
     ),
   );
   await tester.pump();
+}
+
+double _contrastRatio(Color first, Color second) {
+  final firstLuminance = first.computeLuminance();
+  final secondLuminance = second.computeLuminance();
+  final lighter =
+      firstLuminance > secondLuminance ? firstLuminance : secondLuminance;
+  final darker =
+      firstLuminance > secondLuminance ? secondLuminance : firstLuminance;
+  return (lighter + 0.05) / (darker + 0.05);
 }

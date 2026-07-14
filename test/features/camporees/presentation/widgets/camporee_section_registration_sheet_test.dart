@@ -6,6 +6,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
@@ -129,6 +130,45 @@ void main() {
     expect(find.byType(CamporeeSectionRegistrationSheet), findsNothing);
   });
 
+  for (final brightness in Brightness.values) {
+    testWidgets(
+        'error de submit usa texto AA y señal redundante en $brightness',
+        (tester) async {
+      await _pumpSheet(
+        tester,
+        onConfirm: () async => false,
+        brightness: brightness,
+      );
+      await tester.tap(
+        find.widgetWithText(ElevatedButton, 'Confirmar inscripción'),
+      );
+      await tester.pumpAndSettle();
+
+      final message = tester.widget<Text>(
+        find.text('No pudimos inscribir la sección.'),
+      );
+      final errorContainer = tester.widget<Container>(
+        find.byKey(const Key('camporee-registration-submit-error')),
+      );
+      final decoration = errorContainer.decoration! as BoxDecoration;
+      final semantics = tester.widget<Semantics>(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is Semantics &&
+              widget.properties.label == 'No pudimos inscribir la sección.',
+        ),
+      );
+
+      expect(message.style!.color, isNot(AppColors.error));
+      expect(
+        _contrastRatio(message.style!.color!, decoration.color!),
+        greaterThanOrEqualTo(4.5),
+      );
+      expect((decoration.border! as Border).top.color, AppColors.error);
+      expect(semantics.properties.liveRegion, isTrue);
+    });
+  }
+
   testWidgets('CTAs permiten dos líneas con text scaling 200%', (tester) async {
     await _pumpSheet(
       tester,
@@ -156,6 +196,12 @@ void main() {
       'fr': 'Début du camporee',
       'pt-BR': 'Início do Campori',
     };
+    const expectedMembersLoading = {
+      'es': 'Cargando participantes inscritos',
+      'en': 'Loading enrolled participants',
+      'fr': 'Chargement des participants inscrits',
+      'pt-BR': 'Carregando participantes inscritos',
+    };
 
     for (final entry in expectedLabels.entries) {
       final translations = jsonDecode(
@@ -164,10 +210,12 @@ void main() {
       final camporees = translations['camporees'] as Map<String, dynamic>;
       final registration =
           camporees['section_registration'] as Map<String, dynamic>;
+      final detail = camporees['detail'] as Map<String, dynamic>;
 
       expect(registration['start_date'], entry.value);
       expect(registration.containsKey('deadline'), isFalse);
       expect(camporees.containsKey('enroll_club'), isFalse);
+      expect(detail['members_loading'], expectedMembersLoading[entry.key]);
     }
   });
 }
@@ -177,6 +225,7 @@ Future<void> _pumpSheet(
   required Future<bool> Function() onConfirm,
   Locale locale = const Locale('es'),
   TextScaler textScaler = TextScaler.noScaling,
+  Brightness brightness = Brightness.light,
 }) async {
   await tester.pumpWidget(
     EasyLocalization(
@@ -193,7 +242,9 @@ Future<void> _pumpSheet(
       child: ProviderScope(
         child: Builder(
           builder: (context) => MaterialApp(
-            theme: AppTheme.lightTheme,
+            theme: brightness == Brightness.light
+                ? AppTheme.lightTheme
+                : AppTheme.darkTheme,
             locale: context.locale,
             localizationsDelegates: context.localizationDelegates,
             supportedLocales: context.supportedLocales,
@@ -227,6 +278,16 @@ Future<void> _pumpSheet(
   await tester.pump();
   await tester.tap(find.text('Abrir'));
   await tester.pumpAndSettle();
+}
+
+double _contrastRatio(Color first, Color second) {
+  final firstLuminance = first.computeLuminance();
+  final secondLuminance = second.computeLuminance();
+  final lighter =
+      firstLuminance > secondLuminance ? firstLuminance : secondLuminance;
+  final darker =
+      firstLuminance > secondLuminance ? secondLuminance : firstLuminance;
+  return (lighter + 0.05) / (darker + 0.05);
 }
 
 class _FileAssetLoader extends AssetLoader {

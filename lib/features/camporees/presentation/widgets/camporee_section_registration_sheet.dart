@@ -181,13 +181,42 @@ class _CamporeeSectionRegistrationSheetState
               if (_hasFailure) ...[
                 const SizedBox(height: 16),
                 Semantics(
+                  container: true,
+                  excludeSemantics: true,
+                  label: 'camporees.section_registration.submit_error'.tr(),
                   liveRegion: true,
-                  child: Text(
-                    'camporees.section_registration.submit_error'.tr(),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  child: Container(
+                    key: const Key('camporee-registration-submit-error'),
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: colors.surfaceVariant,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: colors.error),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        HugeIcon(
+                          icon: HugeIcons.strokeRoundedAlert02,
                           color: colors.error,
-                          fontWeight: FontWeight.w700,
+                          size: 20,
                         ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'camporees.section_registration.submit_error'.tr(),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: colors.text,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
