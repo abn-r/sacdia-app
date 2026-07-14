@@ -199,6 +199,7 @@ void main() {
       expect(cachedDetail, _staleCamporee);
       expect(repository.detailCalls, 0);
       final listCallsBeforeMutation = repository.camporeesCalls;
+      final detailCallsBeforeMutation = repository.detailCalls;
 
       await container
           .read(registerCamporeeSectionProvider(_camporeeId).notifier)
@@ -207,13 +208,14 @@ void main() {
         camporeeDetailProvider(_camporeeId).future,
       );
 
-      expect(repository.camporeesCalls, greaterThan(listCallsBeforeMutation));
+      expect(repository.camporeesCalls - listCallsBeforeMutation, 1);
+      expect(repository.detailCalls - detailCallsBeforeMutation, 0);
       expect(refreshedDetail, _freshCamporee);
     });
 
     test(
-        'waits for the backend, prevents duplicate posts, then refreshes all '
-        'participant-enabled data', () async {
+        'retains an unmounted mutation, prevents a recreated duplicate, and '
+        'refreshes each participant-enabled provider once', () async {
       final response = _registration(
         CamporeeSectionRegistrationStatus.registered,
       );
@@ -234,32 +236,46 @@ void main() {
         registerCamporeeSectionProvider(_camporeeId).notifier,
       );
       final firstPost = notifier.register();
-      final duplicatePost = notifier.register();
 
       expect(states.first.status, RegisterCamporeeSectionStatus.idle);
       expect(states.last.status, RegisterCamporeeSectionStatus.loading);
       expect(repository.registerCalls, 1);
-      expect(await duplicatePost, isFalse);
       expect(
         container.read(registerCamporeeSectionProvider(_camporeeId)).isLoading,
         isTrue,
       );
       expect(repository.contextualCalls, harness.contextualCalls);
 
+      mutationSubscription.close();
+      await Future<void>.delayed(Duration.zero);
+      final recreatedNotifier = container.read(
+        registerCamporeeSectionProvider(_camporeeId).notifier,
+      );
+      final duplicatePost = recreatedNotifier.register();
+
       backend.complete(right(response));
 
       expect(await firstPost, isTrue);
-      expect(
-        container.read(registerCamporeeSectionProvider(_camporeeId)),
-        RegisterCamporeeSectionState.success(response),
-      );
+      expect(await duplicatePost, isFalse);
+      expect(repository.registerCalls, 1);
       await _waitUntil(
         () =>
-            repository.contextualCalls > harness.contextualCalls &&
-            repository.detailCalls > harness.detailCalls &&
-            repository.enrolledClubsCalls > harness.enrolledClubsCalls &&
-            repository.memberListCalls > harness.memberListCalls &&
-            repository.registeredUserIdsCalls > harness.registeredUserIdsCalls,
+            repository.contextualCalls >= harness.contextualCalls + 1 &&
+            repository.camporeesCalls >= harness.camporeesCalls + 1 &&
+            repository.detailCalls >= harness.detailCalls + 1 &&
+            repository.enrolledClubsCalls >= harness.enrolledClubsCalls + 1 &&
+            repository.memberListCalls >= harness.memberListCalls + 1 &&
+            repository.registeredUserIdsCalls >=
+                harness.registeredUserIdsCalls + 3,
+      );
+      expect(repository.contextualCalls - harness.contextualCalls, 1);
+      expect(repository.camporeesCalls - harness.camporeesCalls, 1);
+      expect(repository.detailCalls - harness.detailCalls, 1);
+      expect(repository.enrolledClubsCalls - harness.enrolledClubsCalls, 1);
+      expect(repository.memberListCalls - harness.memberListCalls, 1);
+      expect(
+        repository.registeredUserIdsCalls - harness.registeredUserIdsCalls,
+        3,
       );
     });
 
@@ -289,15 +305,20 @@ void main() {
         expect(response.enablesParticipants, isFalse);
         await _waitUntil(
           () =>
-              repository.contextualCalls > harness.contextualCalls &&
-              repository.detailCalls > harness.detailCalls &&
-              repository.enrolledClubsCalls > harness.enrolledClubsCalls,
+              repository.contextualCalls >= harness.contextualCalls + 1 &&
+              repository.camporeesCalls >= harness.camporeesCalls + 1 &&
+              repository.detailCalls >= harness.detailCalls + 1 &&
+              repository.enrolledClubsCalls >= harness.enrolledClubsCalls + 1,
         );
         await _flushProviderWork();
-        expect(repository.memberListCalls, harness.memberListCalls);
+        expect(repository.contextualCalls - harness.contextualCalls, 1);
+        expect(repository.camporeesCalls - harness.camporeesCalls, 1);
+        expect(repository.detailCalls - harness.detailCalls, 1);
+        expect(repository.enrolledClubsCalls - harness.enrolledClubsCalls, 1);
+        expect(repository.memberListCalls - harness.memberListCalls, 0);
         expect(
-          repository.registeredUserIdsCalls,
-          harness.registeredUserIdsCalls,
+          repository.registeredUserIdsCalls - harness.registeredUserIdsCalls,
+          0,
         );
       });
     }
@@ -373,6 +394,11 @@ Future<_ProviderCallSnapshot> _watchRelatedProviders(
       container.read(camporeesRepositoryProvider) as _FakeCamporeesRepository;
 
   container.listen(
+    camporeesProvider,
+    (_, __) {},
+    fireImmediately: true,
+  );
+  container.listen(
     camporeeSectionRegistrationProvider(_camporeeId),
     (_, __) {},
     fireImmediately: true,
@@ -399,6 +425,7 @@ Future<_ProviderCallSnapshot> _watchRelatedProviders(
   );
 
   await Future.wait([
+    container.read(camporeesProvider.future),
     container.read(camporeeSectionRegistrationProvider(_camporeeId).future),
     container.read(camporeeDetailProvider(_camporeeId).future),
     container.read(camporeeEnrolledClubsProvider(_camporeeId).future),
@@ -407,6 +434,7 @@ Future<_ProviderCallSnapshot> _watchRelatedProviders(
   ]);
 
   return _ProviderCallSnapshot(
+    camporeesCalls: repository.camporeesCalls,
     contextualCalls: repository.contextualCalls,
     detailCalls: repository.detailCalls,
     enrolledClubsCalls: repository.enrolledClubsCalls,
@@ -428,6 +456,7 @@ Future<void> _flushProviderWork() async {
 }
 
 class _ProviderCallSnapshot {
+  final int camporeesCalls;
   final int contextualCalls;
   final int detailCalls;
   final int enrolledClubsCalls;
@@ -435,6 +464,7 @@ class _ProviderCallSnapshot {
   final int registeredUserIdsCalls;
 
   const _ProviderCallSnapshot({
+    required this.camporeesCalls,
     required this.contextualCalls,
     required this.detailCalls,
     required this.enrolledClubsCalls,

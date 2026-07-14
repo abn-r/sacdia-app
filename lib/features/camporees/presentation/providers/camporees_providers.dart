@@ -287,11 +287,12 @@ class RegisterCamporeeSectionNotifier
   Future<bool> register() async {
     if (_isRegistering) return false;
 
+    final keepAliveLink = ref.keepAlive();
     _isRegistering = true;
-    state = const RegisterCamporeeSectionState.loading();
-    final repository = ref.read(camporeesRepositoryProvider);
 
     try {
+      state = const RegisterCamporeeSectionState.loading();
+      final repository = ref.read(camporeesRepositoryProvider);
       final result = await repository.registerActiveSection(arg);
 
       final outcome = await result.fold<Future<bool>>(
@@ -337,6 +338,7 @@ class RegisterCamporeeSectionNotifier
       return outcome;
     } finally {
       _isRegistering = false;
+      keepAliveLink.close();
     }
   }
 }
