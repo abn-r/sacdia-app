@@ -27,7 +27,8 @@ void main() {
     expect(find.text('Conquistadores'), findsOneWidget);
     expect(find.text('Camporí Esperanza'), findsOneWidget);
     expect(find.textContaining('125'), findsOneWidget);
-    expect(find.text('Fecha límite'), findsOneWidget);
+    expect(find.text('Inicio del Camporí'), findsOneWidget);
+    expect(find.text('Fecha límite'), findsNothing);
     expect(
       find.text('Registrarás esta inscripción como director.'),
       findsOneWidget,
@@ -89,6 +90,28 @@ void main() {
 
     expect(calls, 2);
     expect(find.byType(CamporeeSectionRegistrationSheet), findsNothing);
+  });
+
+  test('las cuatro traducciones describen startDate como inicio, no deadline',
+      () {
+    const expectedLabels = {
+      'es': 'Inicio del Camporí',
+      'en': 'Camporee starts',
+      'fr': 'Début du camporee',
+      'pt-BR': 'Início do Campori',
+    };
+
+    for (final entry in expectedLabels.entries) {
+      final translations = jsonDecode(
+        File('assets/translations/${entry.key}.json').readAsStringSync(),
+      ) as Map<String, dynamic>;
+      final camporees = translations['camporees'] as Map<String, dynamic>;
+      final registration =
+          camporees['section_registration'] as Map<String, dynamic>;
+
+      expect(registration['start_date'], entry.value);
+      expect(registration.containsKey('deadline'), isFalse);
+    }
   });
 }
 

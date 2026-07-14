@@ -140,7 +140,7 @@ class _CamporeeSectionRegistrationSheetState
               sectionName: widget.registration.sectionName,
               camporeeName: widget.camporee.name,
               cost: costLabel,
-              deadline: dateFormat.format(widget.camporee.startDate.toLocal()),
+              startDate: dateFormat.format(widget.camporee.startDate.toLocal()),
             ),
             const SizedBox(height: 16),
             Container(
@@ -217,14 +217,14 @@ class _ConfirmationFacts extends StatelessWidget {
   final String sectionName;
   final String camporeeName;
   final String cost;
-  final String deadline;
+  final String startDate;
 
   const _ConfirmationFacts({
     required this.clubName,
     required this.sectionName,
     required this.camporeeName,
     required this.cost,
-    required this.deadline,
+    required this.startDate,
   });
 
   @override
@@ -234,7 +234,7 @@ class _ConfirmationFacts extends StatelessWidget {
       ('camporees.section_registration.section'.tr(), sectionName),
       ('camporees.section_registration.camporee'.tr(), camporeeName),
       ('camporees.section_registration.cost'.tr(), cost),
-      ('camporees.section_registration.deadline'.tr(), deadline),
+      ('camporees.section_registration.start_date'.tr(), startDate),
     ];
 
     return Container(

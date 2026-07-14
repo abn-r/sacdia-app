@@ -1980,7 +1980,6 @@
       "section": "Section",
       "camporee": "Camporee",
       "cost": "Coût",
-      "deadline": "Date limite",
       "director_confirmation": "Vous enregistrerez cette inscription en tant que directeur.",
       "confirm": "Confirmer l’inscription",
       "retry_submit": "Réessayer l’inscription",
@@ -2032,7 +2031,8 @@
           "title": "Inscription indisponible",
           "description": "Impossible de déterminer l’état de l’inscription pour le moment."
         }
-      }
+      },
+      "start_date": "Début du camporee"
     }
   },
   "finances": {

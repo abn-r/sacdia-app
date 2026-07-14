@@ -1980,7 +1980,6 @@
       "section": "Seção",
       "camporee": "Campori",
       "cost": "Custo",
-      "deadline": "Data limite",
       "director_confirmation": "Você registrará esta inscrição como diretor.",
       "confirm": "Confirmar inscrição",
       "retry_submit": "Tentar inscrição novamente",
@@ -2032,7 +2031,8 @@
           "title": "Inscrição indisponível",
           "description": "Não foi possível determinar o status da inscrição agora."
         }
-      }
+      },
+      "start_date": "Início do Campori"
     }
   },
   "finances": {

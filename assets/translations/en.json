@@ -1980,7 +1980,6 @@
       "section": "Section",
       "camporee": "Camporee",
       "cost": "Cost",
-      "deadline": "Deadline",
       "director_confirmation": "You will submit this enrollment as the director.",
       "confirm": "Confirm enrollment",
       "retry_submit": "Retry enrollment",
@@ -2032,7 +2031,8 @@
           "title": "Enrollment unavailable",
           "description": "We could not determine the enrollment status right now."
         }
-      }
+      },
+      "start_date": "Camporee starts"
     }
   },
   "finances": {
