@@ -23,15 +23,28 @@ class _FakeCamporeesRepository extends Fake implements CamporeesRepository {
 
   CamporeeSectionRegistration contextualRegistration;
   Failure? contextualFailure;
+  List<Camporee> camporees = const [];
+  Camporee detailCamporee = _freshCamporee;
+  List<Camporee> Function(int call)? camporeesHandler;
   Future<Either<Failure, CamporeeSectionRegistration>> Function(int call)?
       registerHandler;
 
+  int camporeesCalls = 0;
   int contextualCalls = 0;
   int registerCalls = 0;
   int detailCalls = 0;
   int enrolledClubsCalls = 0;
   int memberListCalls = 0;
   int registeredUserIdsCalls = 0;
+
+  @override
+  Future<Either<Failure, List<Camporee>>> getCamporees({
+    bool? active,
+    RequestCancelToken? cancelToken,
+  }) async {
+    camporeesCalls += 1;
+    return right(camporeesHandler?.call(camporeesCalls) ?? camporees);
+  }
 
   @override
   Future<Either<Failure, CamporeeSectionRegistration>>
@@ -58,7 +71,7 @@ class _FakeCamporeesRepository extends Fake implements CamporeesRepository {
     RequestCancelToken? cancelToken,
   }) async {
     detailCalls += 1;
-    return right(_camporee);
+    return right(detailCamporee);
   }
 
   @override
@@ -149,6 +162,55 @@ void main() {
   });
 
   group('registerCamporeeSectionProvider', () {
+    test('refreshes cache-first detail instead of reusing a stale list item',
+        () async {
+      final response = _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      );
+      final repository = _FakeCamporeesRepository()
+        ..camporeesHandler = (call) {
+          return call == 1 ? [_staleCamporee] : [_freshCamporee];
+        }
+        ..registerHandler = (_) async => right(response);
+      final container = _container(repository);
+      final listSubscription = container.listen(
+        camporeesProvider,
+        (_, __) {},
+        fireImmediately: true,
+      );
+      final mutationSubscription = container.listen(
+        registerCamporeeSectionProvider(_camporeeId),
+        (_, __) {},
+        fireImmediately: true,
+      );
+      addTearDown(listSubscription.close);
+      addTearDown(mutationSubscription.close);
+
+      await container.read(camporeesProvider.future);
+      final detailSubscription = container.listen(
+        camporeeDetailProvider(_camporeeId),
+        (_, __) {},
+        fireImmediately: true,
+      );
+      addTearDown(detailSubscription.close);
+      final cachedDetail = await container.read(
+        camporeeDetailProvider(_camporeeId).future,
+      );
+      expect(cachedDetail, _staleCamporee);
+      expect(repository.detailCalls, 0);
+      final listCallsBeforeMutation = repository.camporeesCalls;
+
+      await container
+          .read(registerCamporeeSectionProvider(_camporeeId).notifier)
+          .register();
+      final refreshedDetail = await container.read(
+        camporeeDetailProvider(_camporeeId).future,
+      );
+
+      expect(repository.camporeesCalls, greaterThan(listCallsBeforeMutation));
+      expect(refreshedDetail, _freshCamporee);
+    });
+
     test(
         'waits for the backend, prevents duplicate posts, then refreshes all '
         'participant-enabled data', () async {
@@ -400,12 +462,24 @@ CamporeeSectionRegistration _registration(
   );
 }
 
-final _camporee = Camporee(
+final _staleCamporee = Camporee(
   camporeeId: _camporeeId,
-  name: 'Camporee 2026',
+  name: 'Camporee 2026 (stale)',
   startDate: DateTime.utc(2026, 8, 1),
   endDate: DateTime.utc(2026, 8, 3),
   place: 'Field',
+  includesAdventurers: true,
+  includesPathfinders: true,
+  includesMasterGuides: true,
+  active: true,
+);
+
+final _freshCamporee = Camporee(
+  camporeeId: _camporeeId,
+  name: 'Camporee 2026 (fresh)',
+  startDate: DateTime.utc(2026, 8, 1),
+  endDate: DateTime.utc(2026, 8, 3),
+  place: 'Updated field',
   includesAdventurers: true,
   includesPathfinders: true,
   includesMasterGuides: true,

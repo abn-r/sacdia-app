@@ -61,12 +61,16 @@ final camporeesProvider =
 /// cargado en [camporeesProvider] (lista activa). El modelo de lista y el
 /// de detalle tienen el mismo esquema, por lo que reutilizar el objeto
 /// evita una llamada de red redundante al navegar desde la lista.
+/// Durante refresh/error no reutiliza el valor previo de la lista: en esos
+/// estados el preview puede estar obsoleto y el detalle debe ir al network.
 /// Si el camporee no está en caché (p.ej. navegación por deep link),
 /// se realiza la llamada al endpoint de detalle normalmente.
 final camporeeDetailProvider =
     FutureProvider.autoDispose.family<Camporee, int>((ref, camporeeId) async {
   // Check the already-loaded list first to avoid a redundant network call.
-  final cachedList = ref.read(camporeesProvider).valueOrNull;
+  final listState = ref.read(camporeesProvider);
+  final cachedList =
+      listState is AsyncData<List<Camporee>> ? listState.value : null;
   if (cachedList != null) {
     Camporee? cached;
     for (final c in cachedList) {
@@ -290,19 +294,22 @@ class RegisterCamporeeSectionNotifier
     try {
       final result = await repository.registerActiveSection(arg);
 
-      return result.fold(
-        (failure) {
+      final outcome = await result.fold<Future<bool>>(
+        (failure) async {
           if (!_isDisposed) {
             state = RegisterCamporeeSectionState.failure(failure);
           }
           return false;
         },
-        (registration) {
+        (registration) async {
           if (_isDisposed) return true;
 
           state = RegisterCamporeeSectionState.success(registration);
           ref.invalidate(camporeeSectionRegistrationProvider(arg));
-          ref.invalidate(camporeeDetailProvider(arg));
+          // El detalle consulta esta lista primero; debe quedar inválida antes
+          // de reconstruir el provider family para no reutilizar su preview.
+          ref.invalidate(camporeesProvider);
+          final camporeesRefresh = ref.read(camporeesProvider.future);
           ref.invalidate(camporeeEnrolledClubsProvider(arg));
 
           if (registration.enablesParticipants) {
@@ -312,9 +319,22 @@ class RegisterCamporeeSectionNotifier
             ref.invalidate(camporeeRegisteredUserIdsProvider(arg));
           }
 
+          // La mutación ya fue exitosa aunque falle este refresh auxiliar.
+          // Esperarlo establece una barrera: detail nunca reconstruye contra
+          // el AsyncData anterior de la lista cache-first.
+          try {
+            await camporeesRefresh;
+          } catch (_) {
+            // camporeeDetailProvider irá al endpoint al observar lista no-data.
+          }
+
+          if (!_isDisposed) {
+            ref.invalidate(camporeeDetailProvider(arg));
+          }
           return true;
         },
       );
+      return outcome;
     } finally {
       _isRegistering = false;
     }
