@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee.dart';
@@ -16,9 +17,13 @@ import 'package:sacdia_app/features/camporees/presentation/providers/camporees_p
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_detail_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class _UnauthenticatedNotifier extends AuthNotifier {
+class _TestAuthNotifier extends AuthNotifier {
+  final UserEntity? user;
+
+  _TestAuthNotifier(this.user);
+
   @override
-  Future<UserEntity?> build() async => null;
+  Future<UserEntity?> build() async => user;
 }
 
 void main() {
@@ -38,6 +43,7 @@ void main() {
         CamporeeSectionRegistrationStatus.pendingApproval,
       ),
       onMembersLoad: () => memberLoads += 1,
+      user: _director,
     );
 
     final registrationY =
@@ -74,6 +80,26 @@ void main() {
       find.widgetWithText(ElevatedButton, 'Inscribir'),
     );
     expect(enrollButton.onPressed, isNotNull);
+  });
+
+  testWidgets('deputy conserva lectura pero no ve altas de participantes',
+      (tester) async {
+    var memberLoads = 0;
+    await _pumpDetail(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      ),
+      user: _deputy,
+      onMembersLoad: () => memberLoads += 1,
+    );
+
+    expect(memberLoads, 1);
+    expect(find.text('Inscribir participantes'), findsNothing);
+    final enrollButton = tester.widget<ElevatedButton>(
+      find.widgetWithText(ElevatedButton, 'Inscribir'),
+    );
+    expect(enrollButton.onPressed, isNull);
   });
 
   testWidgets('error de miembros muestra mensaje y reintenta el provider',
@@ -126,6 +152,7 @@ Future<void> _pumpDetail(
   WidgetTester tester, {
   required CamporeeSectionRegistration registration,
   required VoidCallback onMembersLoad,
+  UserEntity? user = _director,
   bool failMembersOnce = false,
   bool keepMembersLoading = false,
 }) async {
@@ -134,7 +161,7 @@ Future<void> _pumpDetail(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        authNotifierProvider.overrideWith(_UnauthenticatedNotifier.new),
+        authNotifierProvider.overrideWith(() => _TestAuthNotifier(user)),
         camporeeDetailProvider.overrideWith((ref, id) async => _camporee),
         camporeeSectionRegistrationProvider
             .overrideWith((ref, id) async => registration),
@@ -172,6 +199,42 @@ Future<void> _pumpDetail(
   await tester.drag(find.byType(ListView), const Offset(0, -900));
   await tester.pump(const Duration(milliseconds: 500));
 }
+
+const _director = UserEntity(
+  id: 'director-user',
+  email: 'director@example.com',
+  authorization: AuthorizationSnapshot(
+    activeAssignmentId: 'active',
+    clubAssignments: [
+      AuthorizationGrant(
+        assignmentId: 'active',
+        roleName: 'director',
+        status: 'active',
+        clubId: 8,
+        sectionId: 12,
+        clubTypeId: 2,
+      ),
+    ],
+  ),
+);
+
+const _deputy = UserEntity(
+  id: 'deputy-user',
+  email: 'deputy@example.com',
+  authorization: AuthorizationSnapshot(
+    activeAssignmentId: 'active',
+    clubAssignments: [
+      AuthorizationGrant(
+        assignmentId: 'active',
+        roleName: 'deputy-director',
+        status: 'active',
+        clubId: 8,
+        sectionId: 12,
+        clubTypeId: 2,
+      ),
+    ],
+  ),
+);
 
 class _FileAssetLoader extends AssetLoader {
   const _FileAssetLoader();

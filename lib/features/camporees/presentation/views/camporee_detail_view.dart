@@ -126,14 +126,17 @@ class _DetailBody extends ConsumerWidget {
       ClubRoleNames.secretaryTreasurer,
       ClubRoleNames.counselor,
     };
-    final user = ref.watch(
-      authNotifierProvider.select((value) => value.valueOrNull),
-    );
+    final authAsync = ref.watch(authNotifierProvider);
+    final user = authAsync.valueOrNull;
     final canViewEvents = hasAnyRole(user, eventViewerRoles);
     final registrationAsync =
         ref.watch(camporeeSectionRegistrationProvider(camporeeId));
     final participantsEnabled =
         camporeeParticipantsAreEnabled(registrationAsync);
+    final canRegisterParticipants = canRegisterCamporeeParticipants(
+      registrationAsync,
+      authAsync,
+    );
     final membersAsync = participantsEnabled
         ? ref.watch(camporeeMembersProvider(camporeeId))
         : const AsyncData<List<CamporeeMember>>(<CamporeeMember>[]);
@@ -184,6 +187,7 @@ class _DetailBody extends ConsumerWidget {
               );
             },
             onManageParticipants: () => _openParticipants(context),
+            showParticipantAction: canRegisterParticipants,
           ),
           const SizedBox(height: 24),
           _MembersSection(
@@ -191,6 +195,7 @@ class _DetailBody extends ConsumerWidget {
             camporeeName: camporee.name,
             membersAsync: membersAsync,
             participantsEnabled: participantsEnabled,
+            canRegisterParticipants: canRegisterParticipants,
             registrationAsync: registrationAsync,
             onRetryMembers: () =>
                 ref.invalidate(camporeeMembersProvider(camporeeId)),
@@ -916,6 +921,7 @@ class _MembersSection extends StatelessWidget {
   final String camporeeName;
   final AsyncValue<List<CamporeeMember>> membersAsync;
   final bool participantsEnabled;
+  final bool canRegisterParticipants;
   final AsyncValue<CamporeeSectionRegistration> registrationAsync;
   final VoidCallback onRetryMembers;
 
@@ -924,6 +930,7 @@ class _MembersSection extends StatelessWidget {
     required this.camporeeName,
     required this.membersAsync,
     required this.participantsEnabled,
+    required this.canRegisterParticipants,
     required this.registrationAsync,
     required this.onRetryMembers,
   });
@@ -961,8 +968,8 @@ class _MembersSection extends StatelessWidget {
           SacButton.primary(
             text: 'camporees.detail.enroll'.tr(),
             icon: HugeIcons.strokeRoundedUserAdd01,
-            isEnabled: participantsEnabled,
-            onPressed: participantsEnabled
+            isEnabled: canRegisterParticipants,
+            onPressed: canRegisterParticipants
                 ? () {
                     HapticFeedback.selectionClick();
                     Navigator.push(

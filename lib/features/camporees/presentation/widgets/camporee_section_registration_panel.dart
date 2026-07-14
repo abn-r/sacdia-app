@@ -14,6 +14,7 @@ class CamporeeSectionRegistrationPanel extends StatelessWidget {
   final VoidCallback onRetry;
   final VoidCallback onManageParticipants;
   final bool showActions;
+  final bool showParticipantAction;
 
   const CamporeeSectionRegistrationPanel({
     super.key,
@@ -22,6 +23,7 @@ class CamporeeSectionRegistrationPanel extends StatelessWidget {
     required this.onRetry,
     required this.onManageParticipants,
     this.showActions = true,
+    this.showParticipantAction = true,
   });
 
   @override
@@ -55,6 +57,7 @@ class CamporeeSectionRegistrationPanel extends StatelessWidget {
             onEnroll: onEnroll,
             onManageParticipants: onManageParticipants,
             showActions: showActions,
+            showParticipantAction: showParticipantAction,
           ),
         ),
       ),
@@ -67,12 +70,14 @@ class _RegistrationContent extends StatelessWidget {
   final VoidCallback onEnroll;
   final VoidCallback onManageParticipants;
   final bool showActions;
+  final bool showParticipantAction;
 
   const _RegistrationContent({
     required this.registration,
     required this.onEnroll,
     required this.onManageParticipants,
     required this.showActions,
+    required this.showParticipantAction,
   });
 
   @override
@@ -179,7 +184,9 @@ class _RegistrationContent extends StatelessWidget {
             labelOverflow: TextOverflow.visible,
           ),
         ],
-        if (showActions && registration.enablesParticipants) ...[
+        if (showActions &&
+            showParticipantAction &&
+            registration.enablesParticipants) ...[
           const SizedBox(height: 16),
           SacButton.primary(
             text: 'camporees.section_registration.participants_action'.tr(),

@@ -12,6 +12,7 @@ import 'package:sacdia_app/features/insurance/domain/entities/member_insurance.d
 import 'package:sacdia_app/features/insurance/presentation/providers/insurance_providers.dart';
 import 'package:sacdia_app/features/insurance/presentation/widgets/insurance_status_badge.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_participant_access_gate.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 
 import '../providers/camporees_providers.dart';
 
@@ -40,6 +41,7 @@ class _CamporeeRegisterMemberViewState
   Widget build(BuildContext context) {
     final sectionRegistrationAsync =
         ref.watch(camporeeSectionRegistrationProvider(widget.camporeeId));
+    final authAsync = ref.watch(authNotifierProvider);
     final c = context.sac;
 
     return Scaffold(
@@ -53,11 +55,13 @@ class _CamporeeRegisterMemberViewState
         elevation: 0,
       ),
       body: SafeArea(
-        child: CamporeeParticipantAccessGate(
+        child: CamporeeParticipantRegistrationGate(
           registrationAsync: sectionRegistrationAsync,
-          onRetry: () => ref.invalidate(
+          authAsync: authAsync,
+          onRetryRegistration: () => ref.invalidate(
             camporeeSectionRegistrationProvider(widget.camporeeId),
           ),
+          onRetryAuth: () => ref.invalidate(authNotifierProvider),
           child: _EligibleRegistrationForm(
             camporeeId: widget.camporeeId,
             selectedUserIds: _selectedUserIds,

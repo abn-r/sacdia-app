@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_participant_access_gate.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 
 import '../providers/camporees_providers.dart';
 import 'camporee_register_member_view.dart';
@@ -32,8 +33,11 @@ class CamporeeMembersView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sectionRegistrationAsync =
         ref.watch(camporeeSectionRegistrationProvider(camporeeId));
-    final participantsEnabled =
-        camporeeParticipantsAreEnabled(sectionRegistrationAsync);
+    final authAsync = ref.watch(authNotifierProvider);
+    final canRegisterParticipants = canRegisterCamporeeParticipants(
+      sectionRegistrationAsync,
+      authAsync,
+    );
     final c = context.sac;
 
     return Scaffold(
@@ -48,7 +52,7 @@ class CamporeeMembersView extends ConsumerWidget {
         backgroundColor: c.surface,
         foregroundColor: c.text,
         elevation: 0,
-        actions: participantsEnabled
+        actions: canRegisterParticipants
             ? [
                 IconButton(
                   onPressed: () => _openRegisterMember(context, ref),
@@ -70,6 +74,7 @@ class CamporeeMembersView extends ConsumerWidget {
           ),
           child: _EligibleMembersBody(
             camporeeId: camporeeId,
+            canRegisterParticipants: canRegisterParticipants,
             onEnroll: () => _openRegisterMember(context, ref),
             onRemove: (member) => _confirmRemove(context, ref, member),
           ),
@@ -160,11 +165,13 @@ class CamporeeMembersView extends ConsumerWidget {
 
 class _EligibleMembersBody extends ConsumerWidget {
   final int camporeeId;
+  final bool canRegisterParticipants;
   final VoidCallback onEnroll;
   final ValueChanged<CamporeeMember> onRemove;
 
   const _EligibleMembersBody({
     required this.camporeeId,
+    required this.canRegisterParticipants,
     required this.onEnroll,
     required this.onRemove,
   });
@@ -195,20 +202,22 @@ class _EligibleMembersBody extends ConsumerWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  'camporees.members.empty_hint'.tr(),
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: c.textTertiary,
+                if (canRegisterParticipants) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    'camporees.members.empty_hint'.tr(),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: c.textTertiary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 24),
-                SacButton.primary(
-                  text: 'camporees.members.enroll_first'.tr(),
-                  icon: HugeIcons.strokeRoundedUserAdd01,
-                  onPressed: onEnroll,
-                ),
+                  const SizedBox(height: 24),
+                  SacButton.primary(
+                    text: 'camporees.members.enroll_first'.tr(),
+                    icon: HugeIcons.strokeRoundedUserAdd01,
+                    onPressed: onEnroll,
+                  ),
+                ],
               ],
             ),
           );
@@ -246,7 +255,9 @@ class _EligibleMembersBody extends ConsumerWidget {
                       staggerDelay: const Duration(milliseconds: 50),
                       child: _MemberTile(
                         member: member,
-                        onRemove: () => onRemove(member),
+                        onRemove: canRegisterParticipants
+                            ? () => onRemove(member)
+                            : null,
                       ),
                     );
                   },
@@ -395,7 +406,7 @@ class _StatChip extends StatelessWidget {
 
 class _MemberTile extends StatelessWidget {
   final CamporeeMember member;
-  final VoidCallback onRemove;
+  final VoidCallback? onRemove;
 
   const _MemberTile({
     required this.member,
@@ -478,20 +489,20 @@ class _MemberTile extends StatelessWidget {
             ),
           ),
 
-          // Remove button
-          IconButton(
-            onPressed: onRemove,
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedDelete01,
-              size: 20,
-              color: AppColors.error,
+          if (onRemove != null)
+            IconButton(
+              onPressed: onRemove,
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedDelete01,
+                size: 20,
+                color: AppColors.error,
+              ),
+              tooltip: 'camporees.members.remove_tooltip'.tr(),
+              style: IconButton.styleFrom(
+                backgroundColor: AppColors.error.withValues(alpha: 0.08),
+                minimumSize: const Size(36, 36),
+              ),
             ),
-            tooltip: 'camporees.members.remove_tooltip'.tr(),
-            style: IconButton.styleFrom(
-              backgroundColor: AppColors.error.withValues(alpha: 0.08),
-              minimumSize: const Size(36, 36),
-            ),
-          ),
         ],
       ),
     );

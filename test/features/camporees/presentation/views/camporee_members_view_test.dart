@@ -7,11 +7,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
+import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
 import 'package:sacdia_app/features/camporees/presentation/providers/camporees_providers.dart';
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_members_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+class _TestAuthNotifier extends AuthNotifier {
+  final Future<UserEntity?> Function() loader;
+
+  _TestAuthNotifier(this.loader);
+
+  @override
+  Future<UserEntity?> build() => loader();
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -93,6 +105,74 @@ void main() {
     expect(find.text('Pendiente de aprobación'), findsOneWidget);
   });
 
+  for (final role in ['deputy-director', 'secretary']) {
+    testWidgets('$role conserva lectura pero no expone altas', (tester) async {
+      var memberLoads = 0;
+
+      await _pumpView(
+        tester,
+        registration: _registration(
+          CamporeeSectionRegistrationStatus.registered,
+        ),
+        user: _userWithActiveRole(role),
+        members: const [
+          CamporeeMember(
+            camporeeMemberId: 7,
+            userId: 'member-1',
+            userName: 'Miembro Uno',
+            insuranceVerified: true,
+            active: true,
+          ),
+        ],
+        onMembersLoad: () => memberLoads += 1,
+      );
+
+      expect(memberLoads, 1);
+      expect(find.text('1'), findsWidgets);
+      expect(find.byTooltip('Inscribir miembro'), findsNothing);
+      expect(find.text('Inscribir primer miembro'), findsNothing);
+      expect(find.byTooltip('Remover'), findsNothing);
+    });
+  }
+
+  testWidgets('director histórico con active grant deputy no expone altas',
+      (tester) async {
+    var memberLoads = 0;
+
+    await _pumpView(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.approved,
+      ),
+      user: _userWithHistoricalDirector(),
+      onMembersLoad: () => memberLoads += 1,
+    );
+
+    expect(memberLoads, 1);
+    expect(find.byTooltip('Inscribir miembro'), findsNothing);
+    expect(find.text('Inscribir primer miembro'), findsNothing);
+  });
+
+  testWidgets('auth loading preserva lectura pero bloquea altas',
+      (tester) async {
+    final authCompleter = Completer<UserEntity?>();
+    var memberLoads = 0;
+
+    await _pumpView(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      ),
+      authFuture: authCompleter.future,
+      onMembersLoad: () => memberLoads += 1,
+    );
+
+    expect(memberLoads, 1);
+    expect(find.text('No hay miembros inscritos'), findsOneWidget);
+    expect(find.byTooltip('Inscribir miembro'), findsNothing);
+    expect(find.text('Inscribir primer miembro'), findsNothing);
+  });
+
   for (final status in [
     CamporeeSectionRegistrationStatus.registered,
     CamporeeSectionRegistrationStatus.approved,
@@ -118,11 +198,19 @@ Future<void> _pumpView(
   CamporeeSectionRegistration? registration,
   Future<CamporeeSectionRegistration>? registrationFuture,
   Future<CamporeeSectionRegistration> Function()? registrationLoader,
+  UserEntity? user = _defaultDirector,
+  Future<UserEntity?>? authFuture,
+  List<CamporeeMember> members = const [],
   required VoidCallback onMembersLoad,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
+        authNotifierProvider.overrideWith(
+          () => _TestAuthNotifier(
+            () => authFuture ?? Future.value(user),
+          ),
+        ),
         camporeeSectionRegistrationProvider.overrideWith((ref, id) async {
           if (registrationLoader != null) return registrationLoader();
           if (registrationFuture != null) return registrationFuture;
@@ -130,7 +218,7 @@ Future<void> _pumpView(
         }),
         camporeeMembersProvider.overrideWith((ref, id) async {
           onMembersLoad();
-          return const <CamporeeMember>[];
+          return members;
         }),
       ],
       child: EasyLocalization(
@@ -156,8 +244,71 @@ Future<void> _pumpView(
   );
   await tester.pump();
   await tester.pump();
-  await tester.pump(const Duration(milliseconds: 50));
+  await tester.pump(const Duration(milliseconds: 120));
+  await tester.pump(const Duration(milliseconds: 120));
 }
+
+const _defaultDirector = UserEntity(
+  id: 'director-user',
+  email: 'director@example.com',
+  authorization: AuthorizationSnapshot(
+    activeAssignmentId: 'active',
+    clubAssignments: [
+      AuthorizationGrant(
+        assignmentId: 'active',
+        roleName: 'director',
+        status: 'active',
+        clubId: 8,
+        sectionId: 12,
+        clubTypeId: 2,
+      ),
+    ],
+  ),
+);
+
+UserEntity _userWithActiveRole(String role) => UserEntity(
+      id: '$role-user',
+      email: '$role@example.com',
+      authorization: AuthorizationSnapshot(
+        activeAssignmentId: 'active',
+        clubAssignments: [
+          AuthorizationGrant(
+            assignmentId: 'active',
+            roleName: role,
+            status: 'active',
+            clubId: 8,
+            sectionId: 12,
+            clubTypeId: 2,
+          ),
+        ],
+      ),
+    );
+
+UserEntity _userWithHistoricalDirector() => const UserEntity(
+      id: 'historical-director',
+      email: 'historical@example.com',
+      authorization: AuthorizationSnapshot(
+        activeAssignmentId: 'active-deputy',
+        clubAssignments: [
+          AuthorizationGrant(
+            assignmentId: 'old-director',
+            roleName: 'director',
+            status: 'active',
+            clubId: 9,
+            sectionId: 19,
+            clubTypeId: 2,
+          ),
+          AuthorizationGrant(
+            assignmentId: 'active-deputy',
+            roleName: 'deputy-director',
+            status: 'active',
+            clubId: 8,
+            sectionId: 12,
+            clubTypeId: 2,
+          ),
+        ],
+      ),
+    );
 
 class _FileAssetLoader extends AssetLoader {
   const _FileAssetLoader();
