@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_section_registration_panel.dart';
@@ -82,15 +83,33 @@ void main() {
         )
         .height;
 
-    await _pumpPanel(tester, registration: _registration(canEnroll: true));
+    await _pumpPanel(
+      tester,
+      registration: _registration(
+        status: CamporeeSectionRegistrationStatus.registered,
+      ),
+    );
     final dataHeight = tester
         .getSize(
           find.byKey(const Key('camporee-section-registration-panel')),
         )
         .height;
 
-    expect(loadingHeight, greaterThanOrEqualTo(220));
-    expect(dataHeight, greaterThanOrEqualTo(220));
+    expect(loadingHeight, greaterThanOrEqualTo(320));
+    expect(loadingHeight, closeTo(dataHeight, 0.01));
+  });
+
+  testWidgets('loading anuncia la consulta como live region', (tester) async {
+    await _pumpPanel(tester, registrationAsync: const AsyncLoading());
+
+    final semantics = tester.widget<Semantics>(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Semantics &&
+            widget.properties.label == 'Consultando inscripción de sección',
+      ),
+    );
+    expect(semantics.properties.liveRegion, isTrue);
   });
 
   testWidgets('error de red ofrece reintento accesible', (tester) async {
@@ -135,6 +154,39 @@ void main() {
       expect(find.text('Inscribir participantes'), findsNothing);
     }
   });
+
+  for (final brightness in Brightness.values) {
+    testWidgets('CTAs alcanzan contraste AA en $brightness', (tester) async {
+      await _pumpPanel(
+        tester,
+        registration: _registration(canEnroll: true),
+        brightness: brightness,
+      );
+
+      final button = tester.widget<ElevatedButton>(
+        find.widgetWithText(ElevatedButton, 'Inscribir mi sección'),
+      );
+      final foreground = button.style!.foregroundColor!.resolve({})!;
+      final background = button.style!.backgroundColor!.resolve({})!;
+
+      expect(foreground, AppColors.ink900);
+      expect(_contrastRatio(foreground, background), greaterThanOrEqualTo(4.5));
+    });
+  }
+
+  testWidgets('CTA conserva texto completo con text scaling 200%',
+      (tester) async {
+    await _pumpPanel(
+      tester,
+      registration: _registration(canEnroll: true),
+      textScaler: const TextScaler.linear(2),
+    );
+
+    final label = tester.widget<Text>(find.text('Inscribir mi sección'));
+    expect(label.maxLines, 2);
+    expect(label.overflow, TextOverflow.visible);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 Future<void> _pumpPanel(
@@ -143,6 +195,8 @@ Future<void> _pumpPanel(
   AsyncValue<CamporeeSectionRegistration>? registrationAsync,
   VoidCallback? onRetry,
   VoidCallback? onManageParticipants,
+  Brightness brightness = Brightness.light,
+  TextScaler textScaler = TextScaler.noScaling,
 }) async {
   await tester.pumpWidget(
     EasyLocalization(
@@ -154,18 +208,23 @@ Future<void> _pumpPanel(
       child: ProviderScope(
         child: Builder(
           builder: (context) => MaterialApp(
-            theme: AppTheme.lightTheme,
+            theme: brightness == Brightness.light
+                ? AppTheme.lightTheme
+                : AppTheme.darkTheme,
             locale: context.locale,
             localizationsDelegates: context.localizationDelegates,
             supportedLocales: context.supportedLocales,
-            home: Scaffold(
-              body: SingleChildScrollView(
-                child: CamporeeSectionRegistrationPanel(
-                  registrationAsync:
-                      registrationAsync ?? AsyncData(registration!),
-                  onEnroll: () {},
-                  onRetry: onRetry ?? () {},
-                  onManageParticipants: onManageParticipants ?? () {},
+            home: MediaQuery(
+              data: MediaQueryData(textScaler: textScaler),
+              child: Scaffold(
+                body: SingleChildScrollView(
+                  child: CamporeeSectionRegistrationPanel(
+                    registrationAsync:
+                        registrationAsync ?? AsyncData(registration!),
+                    onEnroll: () {},
+                    onRetry: onRetry ?? () {},
+                    onManageParticipants: onManageParticipants ?? () {},
+                  ),
                 ),
               ),
             ),
@@ -176,6 +235,16 @@ Future<void> _pumpPanel(
   );
   await tester.pump();
   await tester.pump();
+}
+
+double _contrastRatio(Color first, Color second) {
+  final firstLuminance = first.computeLuminance();
+  final secondLuminance = second.computeLuminance();
+  final lighter =
+      firstLuminance > secondLuminance ? firstLuminance : secondLuminance;
+  final darker =
+      firstLuminance > secondLuminance ? secondLuminance : firstLuminance;
+  return (lighter + 0.05) / (darker + 0.05);
 }
 
 class _FileAssetLoader extends AssetLoader {

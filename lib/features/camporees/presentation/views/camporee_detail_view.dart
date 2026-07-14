@@ -191,6 +191,8 @@ class _DetailBody extends ConsumerWidget {
             membersAsync: membersAsync,
             participantsEnabled: participantsEnabled,
             registrationAsync: registrationAsync,
+            onRetryMembers: () =>
+                ref.invalidate(camporeeMembersProvider(camporeeId)),
           ),
           if (eventsAsync != null) ...[
             const SizedBox(height: 24),
@@ -914,6 +916,7 @@ class _MembersSection extends StatelessWidget {
   final AsyncValue<List<CamporeeMember>> membersAsync;
   final bool participantsEnabled;
   final AsyncValue<CamporeeSectionRegistration> registrationAsync;
+  final VoidCallback onRetryMembers;
 
   const _MembersSection({
     required this.camporeeId,
@@ -921,6 +924,7 @@ class _MembersSection extends StatelessWidget {
     required this.membersAsync,
     required this.participantsEnabled,
     required this.registrationAsync,
+    required this.onRetryMembers,
   });
 
   @override
@@ -944,7 +948,7 @@ class _MembersSection extends StatelessWidget {
                 padding: EdgeInsets.symmetric(vertical: 18),
                 child: Center(child: SacLoading()),
               ),
-              error: (_, __) => const SizedBox.shrink(),
+              error: (_, __) => _MembersError(onRetry: onRetryMembers),
             ),
           const SizedBox(height: 14),
           SacButton.primary(
@@ -964,6 +968,49 @@ class _MembersSection extends StatelessWidget {
                     );
                   }
                 : null,
+            backgroundColor: AppColors.primary,
+            textColor: AppColors.ink900,
+            labelMaxLines: 2,
+            labelOverflow: TextOverflow.visible,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MembersError extends StatelessWidget {
+  final VoidCallback onRetry;
+
+  const _MembersError({required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      liveRegion: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'camporees.detail.members_error'.tr(),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: context.sac.text,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          const SizedBox(height: 12),
+          Semantics(
+            button: true,
+            label: 'camporees.detail.retry_members_semantics'.tr(),
+            child: SacButton.outline(
+              text: 'camporees.detail.retry_members'.tr(),
+              icon: HugeIcons.strokeRoundedRefresh,
+              onPressed: onRetry,
+              textColor: context.sac.text,
+              borderColor: context.sac.textSecondary,
+              labelMaxLines: 2,
+              labelOverflow: TextOverflow.visible,
+            ),
           ),
         ],
       ),

@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee.dart';
@@ -29,6 +30,8 @@ class CamporeeSectionRegistrationSheet extends ConsumerStatefulWidget {
     return showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
       useSafeArea: true,
       backgroundColor: context.sac.surface,
       barrierColor: context.sac.barrierColor,
@@ -84,7 +87,10 @@ class _CamporeeSectionRegistrationSheetState
         content: Semantics(liveRegion: true, child: Text(message)),
       ),
     );
-    Navigator.of(context).maybePop(true);
+    setState(() => _isSubmitting = false);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) Navigator.of(context).pop(true);
+    });
   }
 
   @override
@@ -92,120 +98,127 @@ class _CamporeeSectionRegistrationSheetState
     final colors = context.sac;
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
     final dateFormat = DateFormat.yMMMd(context.locale.toString());
-    final currency = NumberFormat.simpleCurrency(
+    final currency = NumberFormat.currency(
       locale: context.locale.toString(),
+      symbol: '\$',
+      decimalDigits: 0,
+      customPattern: '¤#,##0',
     );
     final cost = widget.camporee.registrationCost;
     final costLabel = cost == null || cost == 0
         ? 'camporees.common.free'.tr()
         : currency.format(cost);
 
-    return SafeArea(
-      top: false,
-      child: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(20, 12, 20, 20 + bottomInset),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: colors.border,
-                  borderRadius: BorderRadius.circular(100),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'camporees.section_registration.sheet_title'.tr(),
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: colors.text,
-                    fontWeight: FontWeight.w800,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'camporees.section_registration.sheet_description'.tr(),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colors.textSecondary,
-                    height: 1.45,
-                  ),
-            ),
-            const SizedBox(height: 20),
-            _ConfirmationFacts(
-              clubName: widget.registration.clubName,
-              sectionName: widget.registration.sectionName,
-              camporeeName: widget.camporee.name,
-              cost: costLabel,
-              startDate: dateFormat.format(widget.camporee.startDate.toLocal()),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: colors.info.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: colors.info.withValues(alpha: 0.24),
-                ),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedUserCheck01,
-                    color: colors.info,
-                    size: 22,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'camporees.section_registration.director_confirmation'
-                          .tr(),
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: colors.text,
-                            fontWeight: FontWeight.w700,
-                            height: 1.4,
-                          ),
+    return PopScope(
+      canPop: !_isSubmitting,
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(20, 12, 20, 20 + bottomInset),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 8),
+              Text(
+                'camporees.section_registration.sheet_title'.tr(),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: colors.text,
+                      fontWeight: FontWeight.w800,
                     ),
-                  ),
-                ],
               ),
-            ),
-            if (_hasFailure) ...[
+              const SizedBox(height: 8),
+              Text(
+                'camporees.section_registration.sheet_description'.tr(),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: colors.textSecondary,
+                      height: 1.45,
+                    ),
+              ),
+              const SizedBox(height: 20),
+              _ConfirmationFacts(
+                clubName: widget.registration.clubName,
+                sectionName: widget.registration.sectionName,
+                camporeeName: widget.camporee.name,
+                cost: costLabel,
+                startDate:
+                    dateFormat.format(widget.camporee.startDate.toLocal()),
+              ),
               const SizedBox(height: 16),
-              Semantics(
-                liveRegion: true,
-                child: Text(
-                  'camporees.section_registration.submit_error'.tr(),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: colors.error,
-                        fontWeight: FontWeight.w700,
-                      ),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: colors.info.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: colors.info.withValues(alpha: 0.24),
+                  ),
                 ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedUserCheck01,
+                      color: colors.info,
+                      size: 22,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'camporees.section_registration.director_confirmation'
+                            .tr(),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: colors.text,
+                              fontWeight: FontWeight.w700,
+                              height: 1.4,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (_hasFailure) ...[
+                const SizedBox(height: 16),
+                Semantics(
+                  liveRegion: true,
+                  child: Text(
+                    'camporees.section_registration.submit_error'.tr(),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colors.error,
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 20),
+              SacButton.primary(
+                text: _hasFailure
+                    ? 'camporees.section_registration.retry_submit'.tr()
+                    : 'camporees.section_registration.confirm'.tr(),
+                icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+                isLoading: _isSubmitting,
+                isEnabled: !_isSubmitting,
+                onPressed: _isSubmitting ? null : _submit,
+                backgroundColor: AppColors.primary,
+                textColor: AppColors.ink900,
+                labelMaxLines: 2,
+                labelOverflow: TextOverflow.visible,
+                loadingSemanticLabel:
+                    'camporees.section_registration.submitting'.tr(),
+              ),
+              const SizedBox(height: 8),
+              SacButton.ghost(
+                text: 'common.cancel'.tr(),
+                onPressed: _isSubmitting
+                    ? null
+                    : () => Navigator.of(context).maybePop(),
+                textColor: colors.text,
+                labelMaxLines: 2,
+                labelOverflow: TextOverflow.visible,
               ),
             ],
-            const SizedBox(height: 20),
-            SacButton.primary(
-              text: _hasFailure
-                  ? 'camporees.section_registration.retry_submit'.tr()
-                  : 'camporees.section_registration.confirm'.tr(),
-              icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-              isLoading: _isSubmitting,
-              isEnabled: !_isSubmitting,
-              onPressed: _isSubmitting ? null : _submit,
-            ),
-            const SizedBox(height: 8),
-            SacButton.ghost(
-              text: 'common.cancel'.tr(),
-              onPressed:
-                  _isSubmitting ? null : () => Navigator.of(context).maybePop(),
-            ),
-          ],
+          ),
         ),
       ),
     );

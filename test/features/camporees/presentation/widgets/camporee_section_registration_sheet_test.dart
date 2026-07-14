@@ -38,6 +38,25 @@ void main() {
     expect(find.textContaining('club_section_id'), findsNothing);
   });
 
+  for (final locale in const [
+    Locale('en'),
+    Locale('fr'),
+    Locale('pt', 'BR'),
+  ]) {
+    testWidgets('mantiene el símbolo monetario del contrato en $locale',
+        (tester) async {
+      await _pumpSheet(
+        tester,
+        onConfirm: () async => false,
+        locale: locale,
+      );
+
+      expect(find.textContaining(r'$'), findsOneWidget);
+      expect(find.textContaining('€'), findsNothing);
+      expect(find.textContaining(r'R$'), findsNothing);
+    });
+  }
+
   testWidgets(
       'doble toque durante loading confirma una sola vez y cierra al éxito',
       (tester) async {
@@ -59,6 +78,23 @@ void main() {
 
     expect(calls, 1);
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    await tester.tapAt(const Offset(4, 4));
+    await tester.pump(const Duration(milliseconds: 250));
+    expect(find.byType(CamporeeSectionRegistrationSheet), findsOneWidget);
+
+    await tester.binding.handlePopRoute();
+    await tester.pump(const Duration(milliseconds: 250));
+    expect(find.byType(CamporeeSectionRegistrationSheet), findsOneWidget);
+
+    final loadingSemantics = tester.widget<Semantics>(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Semantics &&
+            widget.properties.label == 'Inscribiendo sección',
+      ),
+    );
+    expect(loadingSemantics.properties.liveRegion, isTrue);
 
     result.complete(true);
     await tester.pumpAndSettle();
@@ -84,12 +120,32 @@ void main() {
 
     expect(find.text('No pudimos inscribir la sección.'), findsOneWidget);
     expect(find.text('Reintentar inscripción'), findsOneWidget);
+    expect(find.text('Cancelar'), findsOneWidget);
 
     await tester.tap(find.text('Reintentar inscripción'));
     await tester.pumpAndSettle();
 
     expect(calls, 2);
     expect(find.byType(CamporeeSectionRegistrationSheet), findsNothing);
+  });
+
+  testWidgets('CTAs permiten dos líneas con text scaling 200%', (tester) async {
+    await _pumpSheet(
+      tester,
+      onConfirm: () async => false,
+      textScaler: const TextScaler.linear(2),
+    );
+
+    final confirmButton = find.widgetWithText(
+      ElevatedButton,
+      'Confirmar inscripción',
+    );
+    final confirm = tester.widget<Text>(
+      find.descendant(of: confirmButton, matching: find.byType(Text)),
+    );
+    expect(confirm.maxLines, 2);
+    expect(confirm.overflow, TextOverflow.visible);
+    expect(tester.takeException(), isNull);
   });
 
   test('las cuatro traducciones describen startDate como inicio, no deadline',
@@ -111,6 +167,7 @@ void main() {
 
       expect(registration['start_date'], entry.value);
       expect(registration.containsKey('deadline'), isFalse);
+      expect(camporees.containsKey('enroll_club'), isFalse);
     }
   });
 }
@@ -118,14 +175,21 @@ void main() {
 Future<void> _pumpSheet(
   WidgetTester tester, {
   required Future<bool> Function() onConfirm,
+  Locale locale = const Locale('es'),
+  TextScaler textScaler = TextScaler.noScaling,
 }) async {
   await tester.pumpWidget(
     EasyLocalization(
-      supportedLocales: const [Locale('es')],
+      supportedLocales: const [
+        Locale('es'),
+        Locale('en'),
+        Locale('fr'),
+        Locale('pt', 'BR'),
+      ],
       path: 'assets/translations',
       assetLoader: const _FileAssetLoader(),
       fallbackLocale: const Locale('es'),
-      startLocale: const Locale('es'),
+      startLocale: locale,
       child: ProviderScope(
         child: Builder(
           builder: (context) => MaterialApp(
@@ -133,19 +197,24 @@ Future<void> _pumpSheet(
             locale: context.locale,
             localizationsDelegates: context.localizationDelegates,
             supportedLocales: context.supportedLocales,
-            home: Scaffold(
-              body: Builder(
-                builder: (sheetContext) => ElevatedButton(
-                  onPressed: () => showModalBottomSheet<void>(
-                    context: sheetContext,
-                    isScrollControlled: true,
-                    builder: (_) => CamporeeSectionRegistrationSheet(
-                      camporee: _camporee,
-                      registration: _registration,
-                      onConfirm: onConfirm,
+            home: MediaQuery(
+              data: MediaQueryData(textScaler: textScaler),
+              child: Scaffold(
+                body: Builder(
+                  builder: (sheetContext) => ElevatedButton(
+                    onPressed: () => showModalBottomSheet<void>(
+                      context: sheetContext,
+                      isScrollControlled: true,
+                      isDismissible: false,
+                      enableDrag: false,
+                      builder: (_) => CamporeeSectionRegistrationSheet(
+                        camporee: _camporee,
+                        registration: _registration,
+                        onConfirm: onConfirm,
+                      ),
                     ),
+                    child: const Text('Abrir'),
                   ),
-                  child: const Text('Abrir'),
                 ),
               ),
             ),

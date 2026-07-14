@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -31,7 +32,7 @@ class CamporeeSectionRegistrationPanel extends StatelessWidget {
       child: Container(
         key: const Key('camporee-section-registration-panel'),
         width: double.infinity,
-        constraints: const BoxConstraints(minHeight: 220),
+        constraints: const BoxConstraints(minHeight: 320),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: colors.surface,
@@ -39,7 +40,13 @@ class CamporeeSectionRegistrationPanel extends StatelessWidget {
           border: Border.all(color: colors.border),
         ),
         child: registrationAsync.when(
-          loading: () => const Center(child: SacLoading()),
+          loading: () => Center(
+            child: Semantics(
+              label: 'camporees.section_registration.loading'.tr(),
+              liveRegion: true,
+              child: const SacLoading(),
+            ),
+          ),
           error: (_, __) => _RegistrationError(onRetry: onRetry),
           data: (registration) => _RegistrationContent(
             registration: registration,
@@ -160,6 +167,10 @@ class _RegistrationContent extends StatelessWidget {
             text: 'camporees.section_registration.enroll_action'.tr(),
             icon: HugeIcons.strokeRoundedEdit02,
             onPressed: onEnroll,
+            backgroundColor: AppColors.primary,
+            textColor: AppColors.ink900,
+            labelMaxLines: 2,
+            labelOverflow: TextOverflow.visible,
           ),
         ],
         if (registration.enablesParticipants) ...[
@@ -168,6 +179,10 @@ class _RegistrationContent extends StatelessWidget {
             text: 'camporees.section_registration.participants_action'.tr(),
             icon: HugeIcons.strokeRoundedUserAdd01,
             onPressed: onManageParticipants,
+            backgroundColor: AppColors.primary,
+            textColor: AppColors.ink900,
+            labelMaxLines: 2,
+            labelOverflow: TextOverflow.visible,
           ),
         ],
       ],
@@ -253,6 +268,10 @@ class _RegistrationError extends StatelessWidget {
             text: 'camporees.section_registration.retry'.tr(),
             icon: HugeIcons.strokeRoundedRefresh,
             onPressed: onRetry,
+            textColor: context.sac.text,
+            borderColor: context.sac.textSecondary,
+            labelMaxLines: 2,
+            labelOverflow: TextOverflow.visible,
           ),
         ),
       ],

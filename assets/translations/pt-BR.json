@@ -1180,12 +1180,7 @@
       "certificates": "Certificates delivered",
       "booklets": "Members with booklet",
       "booklets_signed": "Booklet requirements signed",
-      "edit_manual_data": "Complete manual data",
-      "status_message_draft": "Faltam dados manuais para gerar o relatório",
-      "status_message_generated": "Relatório pronto para revisar",
-      "status_message_submitted": "Enviado · aguardando revisão",
-      "status_message_approved": "Aprovado",
-      "status_message_rejected": "Rejeitado"
+      "edit_manual_data": "Complete manual data"
     },
     "visible": {
       "title": "Relatórios",
@@ -1197,13 +1192,7 @@
       "prepare_report": "Prepare report",
       "preparing": "Preparing…",
       "prepare_error": "Could not prepare the report",
-      "no_enrollment": "No active enrollment was found for your club.",
-      "history_title": "Histórico",
-      "next_action_pending": "Dados manuais pendentes",
-      "next_action_continue": "Continuar preparação",
-      "next_action_all_set": "Tudo em dia",
-      "continue_report": "Continuar",
-      "view_period": "Ver relatório do período"
+      "no_enrollment": "No active enrollment was found for your club."
     },
     "form": {
       "title": "Report data",
@@ -1260,13 +1249,7 @@
       "materials_description": "Mark only what was already completed or delivered.",
       "certificates_helper": "Certificates or recognitions delivered to members.",
       "booklets_helper": "Members have their booklet or physical record.",
-      "booklets_signed_helper": "Booklet requirements were reviewed and signed.",
-      "sheet_title": "Dados de {month} {year}",
-      "discard_title": "Descartar alterações?",
-      "discard_body": "Você tem alterações não salvas.",
-      "discard_confirm": "Descartar",
-      "discard_keep": "Continuar editando",
-      "save_disabled_hint": "Sem alterações"
+      "booklets_signed_helper": "Booklet requirements were reviewed and signed."
     }
   },
   "units": {
@@ -1800,6 +1783,9 @@
       "members_enrolled": "Membros inscritos",
       "enroll": "Inscrever",
       "no_members_yet": "Ainda não há membros inscritos.",
+      "members_error": "Não foi possível carregar os membros inscritos.",
+      "retry_members": "Tentar membros novamente",
+      "retry_members_semantics": "Tentar carregar os membros inscritos novamente",
       "view_all_members": "Ver todos os membros ({count})",
       "error_loading": "Erro ao carregar o camporee",
       "insurance_ok": "Seguro OK",
@@ -1832,21 +1818,6 @@
       "event_staff_responsible": "Responsável: {names}",
       "event_staff_supporting": "Apoiam: {names}"
     },
-    "enroll_club": {
-      "title": "Inscrição de clubes",
-      "enroll_club": "Inscrever clube",
-      "active_section_notice": "A inscrição usa automaticamente a seção ativa que você dirige.",
-      "section_id_label": "ID da seção do clube *",
-      "section_id_hint": "ID da seção (ex. 42)",
-      "section_id_required": "Digite o ID da seção",
-      "section_id_invalid": "Digite um ID válido",
-      "enrolled_clubs": "Clubes inscritos",
-      "no_clubs_yet": "Ainda não há clubes inscritos",
-      "unknown_club": "Clube desconhecido",
-      "section_number": "Seção #{number}",
-      "enrolled_badge": "inscrito",
-      "success": "Clube inscrito com sucesso"
-    },
     "members": {
       "title": "Membros inscritos",
       "enroll_member_tooltip": "Inscrever membro",
@@ -1868,9 +1839,9 @@
     },
     "register_member": {
       "title": "Inscrever membros",
-      "info_banner": "Selecione membros da sua seção. Cada participante deve ter seguro CAMPOREE ou de ATIVIDADES GERAIS ativo e válido durante o evento.",
+      "info_banner": "Selecione membros da sua seção. O tipo de camporee é definido na criação do evento; você não precisa informar IDs nem dados de seguro.",
       "insurance_error_title": "Erro de seguro",
-      "insurance_error_body": "O membro deve ter seguro CAMPOREE ou de ATIVIDADES GERAIS ativo e válido para as datas do camporee.",
+      "insurance_error_body": "O membro não tem um seguro do tipo CAMPOREE ativo e válido. Verifique se o seguro existe, é do tipo CAMPOREE, está ativo e cobre as datas do camporee.",
       "user_id_label": "ID de usuário",
       "user_id_hint": "UUID do usuário (ex. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)",
       "user_id_required": "O ID de usuário é obrigatório",
@@ -1883,7 +1854,7 @@
       "club_name_label": "Nome do clube",
       "club_name_hint": "Nome do clube (obrigatório para união)",
       "insurance_id_label": "ID do seguro",
-      "insurance_id_hint": "ID do seguro CAMPOREE ou de ATIVIDADES GERAIS (obrigatório)",
+      "insurance_id_hint": "ID do seguro do tipo CAMPOREE (opcional)",
       "insurance_id_invalid": "Digite um ID de seguro válido",
       "register_button": "Registrar membro",
       "success": "Membro registrado com sucesso",
@@ -1965,6 +1936,7 @@
     },
     "section_registration": {
       "semantics": "Status da inscrição da seção",
+      "loading": "Consultando inscrição da seção",
       "title": "Inscrição da seção",
       "enroll_action": "Inscrever minha seção",
       "participants_action": "Inscrever participantes",
@@ -1986,6 +1958,7 @@
       "submit_error": "Não foi possível inscrever a seção.",
       "success": "Seção inscrita com sucesso.",
       "participants_locked": "A inscrição de participantes fica bloqueada até que a seção esteja registrada e habilitada.",
+      "submitting": "Inscrevendo seção",
       "states": {
         "registered": {
           "title": "Seção inscrita",
@@ -2356,8 +2329,7 @@
       "image": "Imagens",
       "video": "Videos",
       "text": "Contenido de texto",
-      "files": "Arquivos",
-      "search": "Resultados"
+      "files": "Arquivos"
     },
     "filter": {
       "all": "Todos",
@@ -3945,28 +3917,6 @@
       "score_pending_hint": "Ainda faltam dados para calcular a pontuação composta deste membro.",
       "rank_position": "Posição #{position}",
       "section_name": "Seção: {name}"
-    }
-  },
-  "materials": {
-    "catalog": {
-      "title": "Materiais",
-      "search_hint": "Buscar produtos...",
-      "filter_all": "Todos",
-      "filter_all_categories": "Todas",
-      "cart": "Carrinho",
-      "empty": "Nenhum produto disponível",
-      "load_more": "Carregar mais",
-      "in_stock": "Disponível",
-      "low_stock": "Pouco estoque",
-      "out_of_stock": "Esgotado"
-    },
-    "history": {
-      "title": "Meus pedidos",
-      "no_folio": "Sem folha",
-      "empty_title": "Você ainda não fez pedidos",
-      "empty_subtitle": "Explore o catálogo e faça seu primeiro pedido.",
-      "go_catalog": "Ir ao catálogo",
-      "error_title": "Não foi possível carregar o histórico"
     }
   }
 }

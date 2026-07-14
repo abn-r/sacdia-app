@@ -36,11 +36,15 @@ class SacButton extends StatefulWidget {
   // Overrides opcionales de estilo (heredados de CustomButton)
   final Color? backgroundColor;
   final Color? textColor;
+  final Color? borderColor;
   final double? fontSize;
   final double? borderRadius;
   final EdgeInsetsGeometry? padding;
   final double? iconSize;
   final double spaceBetween;
+  final int labelMaxLines;
+  final TextOverflow labelOverflow;
+  final String? loadingSemanticLabel;
 
   const SacButton({
     super.key,
@@ -55,11 +59,15 @@ class SacButton extends StatefulWidget {
     this.fullWidth = false,
     this.backgroundColor,
     this.textColor,
+    this.borderColor,
     this.fontSize,
     this.borderRadius,
     this.padding,
     this.iconSize,
     this.spaceBetween = 8,
+    this.labelMaxLines = 1,
+    this.labelOverflow = TextOverflow.ellipsis,
+    this.loadingSemanticLabel,
   });
 
   /// Constructor rápido para botón primario full width
@@ -73,11 +81,15 @@ class SacButton extends StatefulWidget {
     this.trailingIcon,
     this.backgroundColor,
     this.textColor,
+    this.borderColor,
     this.fontSize,
     this.borderRadius,
     this.padding,
     this.iconSize,
     this.spaceBetween = 8,
+    this.labelMaxLines = 1,
+    this.labelOverflow = TextOverflow.ellipsis,
+    this.loadingSemanticLabel,
   })  : variant = SacButtonVariant.primary,
         size = SacButtonSize.medium,
         fullWidth = true;
@@ -93,11 +105,15 @@ class SacButton extends StatefulWidget {
     this.trailingIcon,
     this.backgroundColor,
     this.textColor,
+    this.borderColor,
     this.fontSize,
     this.borderRadius,
     this.padding,
     this.iconSize,
     this.spaceBetween = 8,
+    this.labelMaxLines = 1,
+    this.labelOverflow = TextOverflow.ellipsis,
+    this.loadingSemanticLabel,
   })  : variant = SacButtonVariant.outline,
         size = SacButtonSize.medium,
         fullWidth = true;
@@ -113,11 +129,15 @@ class SacButton extends StatefulWidget {
     this.trailingIcon,
     this.backgroundColor,
     this.textColor,
+    this.borderColor,
     this.fontSize,
     this.borderRadius,
     this.padding,
     this.iconSize,
     this.spaceBetween = 8,
+    this.labelMaxLines = 1,
+    this.labelOverflow = TextOverflow.ellipsis,
+    this.loadingSemanticLabel,
   })  : variant = SacButtonVariant.ghost,
         size = SacButtonSize.medium,
         fullWidth = false;
@@ -133,11 +153,15 @@ class SacButton extends StatefulWidget {
     this.trailingIcon,
     this.backgroundColor,
     this.textColor,
+    this.borderColor,
     this.fontSize,
     this.borderRadius,
     this.padding,
     this.iconSize,
     this.spaceBetween = 8,
+    this.labelMaxLines = 1,
+    this.labelOverflow = TextOverflow.ellipsis,
+    this.loadingSemanticLabel,
   })  : variant = SacButtonVariant.destructive,
         size = SacButtonSize.medium,
         fullWidth = true;
@@ -153,11 +177,15 @@ class SacButton extends StatefulWidget {
     this.trailingIcon,
     this.backgroundColor,
     this.textColor,
+    this.borderColor,
     this.fontSize,
     this.borderRadius,
     this.padding,
     this.iconSize,
     this.spaceBetween = 8,
+    this.labelMaxLines = 1,
+    this.labelOverflow = TextOverflow.ellipsis,
+    this.loadingSemanticLabel,
   })  : variant = SacButtonVariant.success,
         size = SacButtonSize.medium,
         fullWidth = true;
@@ -198,14 +226,17 @@ class _SacButtonState extends State<SacButton>
   void _handleTapDown(TapDownDetails _) {
     if (_effectivelyDisabled) return;
     HapticFeedback.lightImpact();
+    if (MediaQuery.disableAnimationsOf(context)) return;
     _pressController.forward();
   }
 
   void _handleTapUp(TapUpDetails _) {
+    if (MediaQuery.disableAnimationsOf(context)) return;
     _pressController.reverse();
   }
 
   void _handleTapCancel() {
+    if (MediaQuery.disableAnimationsOf(context)) return;
     _pressController.reverse();
   }
 
@@ -294,6 +325,9 @@ class _SacButtonState extends State<SacButton>
   }
 
   BorderSide? get _borderSide {
+    if (widget.borderColor != null) {
+      return BorderSide(color: widget.borderColor!, width: 1.5);
+    }
     if (widget.variant == SacButtonVariant.outline) {
       return const BorderSide(color: AppColors.primary, width: 1.5);
     }
@@ -334,15 +368,22 @@ class _SacButtonState extends State<SacButton>
       ),
     );
 
+    final loadingIndicator = SizedBox(
+      height: _iconSize,
+      width: _iconSize,
+      child: CircularProgressIndicator(
+        color: effectiveFg,
+        strokeWidth: 2.0,
+      ),
+    );
     final child = widget.isLoading
-        ? SizedBox(
-            height: _iconSize,
-            width: _iconSize,
-            child: CircularProgressIndicator(
-              color: effectiveFg,
-              strokeWidth: 2.0,
-            ),
-          )
+        ? widget.loadingSemanticLabel == null
+            ? loadingIndicator
+            : Semantics(
+                label: widget.loadingSemanticLabel,
+                liveRegion: true,
+                child: loadingIndicator,
+              )
         : Row(
             mainAxisSize:
                 widget.fullWidth ? MainAxisSize.max : MainAxisSize.min,
@@ -355,7 +396,9 @@ class _SacButtonState extends State<SacButton>
               Flexible(
                 child: Text(
                   widget.text,
-                  overflow: TextOverflow.ellipsis,
+                  maxLines: widget.labelMaxLines,
+                  overflow: widget.labelOverflow,
+                  textAlign: TextAlign.center,
                 ),
               ),
               if (widget.trailingIcon != null) ...[

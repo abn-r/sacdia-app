@@ -74,13 +74,39 @@ void main() {
     );
     expect(enrollButton.onPressed, isNotNull);
   });
+
+  testWidgets('error de miembros muestra mensaje y reintenta el provider',
+      (tester) async {
+    var memberLoads = 0;
+    await _pumpDetail(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      ),
+      onMembersLoad: () => memberLoads += 1,
+      failMembersOnce: true,
+    );
+
+    expect(
+        find.text('No pudimos cargar los miembros inscritos.'), findsOneWidget);
+    expect(find.text('Reintentar miembros'), findsOneWidget);
+    expect(memberLoads, 1);
+
+    await tester.tap(find.text('Reintentar miembros'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(memberLoads, 2);
+  });
 }
 
 Future<void> _pumpDetail(
   WidgetTester tester, {
   required CamporeeSectionRegistration registration,
   required VoidCallback onMembersLoad,
+  bool failMembersOnce = false,
 }) async {
+  var failed = false;
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -90,6 +116,10 @@ Future<void> _pumpDetail(
             .overrideWith((ref, id) async => registration),
         camporeeMembersProvider.overrideWith((ref, id) async {
           onMembersLoad();
+          if (failMembersOnce && !failed) {
+            failed = true;
+            throw Exception('socket');
+          }
           return const <CamporeeMember>[];
         }),
       ],
