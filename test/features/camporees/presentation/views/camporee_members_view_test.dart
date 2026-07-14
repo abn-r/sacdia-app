@@ -105,35 +105,61 @@ void main() {
     expect(find.text('Pendiente de aprobación'), findsOneWidget);
   });
 
-  for (final role in ['deputy-director', 'secretary']) {
-    testWidgets('$role conserva lectura pero no expone altas', (tester) async {
-      var memberLoads = 0;
+  testWidgets('deputy conserva lectura y remoción pero no expone altas',
+      (tester) async {
+    var memberLoads = 0;
 
-      await _pumpView(
-        tester,
-        registration: _registration(
-          CamporeeSectionRegistrationStatus.registered,
-        ),
-        user: _userWithActiveRole(role),
-        members: const [
-          CamporeeMember(
-            camporeeMemberId: 7,
-            userId: 'member-1',
-            userName: 'Miembro Uno',
-            insuranceVerified: true,
-            active: true,
-          ),
-        ],
-        onMembersLoad: () => memberLoads += 1,
-      );
+    await _pumpView(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      ),
+      user: _userWithActiveRole('deputy-director'),
+      members: const [_member],
+      onMembersLoad: () => memberLoads += 1,
+    );
 
-      expect(memberLoads, 1);
-      expect(find.text('1'), findsWidgets);
-      expect(find.byTooltip('Inscribir miembro'), findsNothing);
-      expect(find.text('Inscribir primer miembro'), findsNothing);
-      expect(find.byTooltip('Remover'), findsNothing);
-    });
-  }
+    expect(memberLoads, 1);
+    expect(find.text('1'), findsWidgets);
+    expect(find.byTooltip('Inscribir miembro'), findsNothing);
+    expect(find.text('Inscribir primer miembro'), findsNothing);
+    expect(find.byTooltip('Remover'), findsOneWidget);
+  });
+
+  testWidgets('secretary conserva lectura sin altas ni remoción',
+      (tester) async {
+    var memberLoads = 0;
+
+    await _pumpView(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      ),
+      user: _userWithActiveRole('secretary'),
+      members: const [_member],
+      onMembersLoad: () => memberLoads += 1,
+    );
+
+    expect(memberLoads, 1);
+    expect(find.text('1'), findsWidgets);
+    expect(find.byTooltip('Inscribir miembro'), findsNothing);
+    expect(find.text('Inscribir primer miembro'), findsNothing);
+    expect(find.byTooltip('Remover'), findsNothing);
+  });
+
+  testWidgets('director conserva alta y remoción', (tester) async {
+    await _pumpView(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      ),
+      members: const [_member],
+      onMembersLoad: () {},
+    );
+
+    expect(find.byTooltip('Inscribir miembro'), findsOneWidget);
+    expect(find.byTooltip('Remover'), findsOneWidget);
+  });
 
   testWidgets('director histórico con active grant deputy no expone altas',
       (tester) async {
@@ -252,11 +278,13 @@ const _defaultDirector = UserEntity(
   id: 'director-user',
   email: 'director@example.com',
   authorization: AuthorizationSnapshot(
+    effectivePermissions: ['attendance:manage'],
     activeAssignmentId: 'active',
     clubAssignments: [
       AuthorizationGrant(
         assignmentId: 'active',
         roleName: 'director',
+        permissions: ['attendance:manage'],
         status: 'active',
         clubId: 8,
         sectionId: 12,
@@ -266,23 +294,30 @@ const _defaultDirector = UserEntity(
   ),
 );
 
-UserEntity _userWithActiveRole(String role) => UserEntity(
-      id: '$role-user',
-      email: '$role@example.com',
-      authorization: AuthorizationSnapshot(
-        activeAssignmentId: 'active',
-        clubAssignments: [
-          AuthorizationGrant(
-            assignmentId: 'active',
-            roleName: role,
-            status: 'active',
-            clubId: 8,
-            sectionId: 12,
-            clubTypeId: 2,
-          ),
-        ],
-      ),
-    );
+UserEntity _userWithActiveRole(String role) {
+  final permissions = role == 'director' || role == 'deputy-director'
+      ? const ['attendance:manage']
+      : const <String>[];
+  return UserEntity(
+    id: '$role-user',
+    email: '$role@example.com',
+    authorization: AuthorizationSnapshot(
+      effectivePermissions: permissions,
+      activeAssignmentId: 'active',
+      clubAssignments: [
+        AuthorizationGrant(
+          assignmentId: 'active',
+          roleName: role,
+          permissions: permissions,
+          status: 'active',
+          clubId: 8,
+          sectionId: 12,
+          clubTypeId: 2,
+        ),
+      ],
+    ),
+  );
+}
 
 UserEntity _userWithHistoricalDirector() => const UserEntity(
       id: 'historical-director',
@@ -319,6 +354,14 @@ class _FileAssetLoader extends AssetLoader {
     return jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
   }
 }
+
+const _member = CamporeeMember(
+  camporeeMemberId: 7,
+  userId: 'member-1',
+  userName: 'Miembro Uno',
+  insuranceVerified: true,
+  active: true,
+);
 
 CamporeeSectionRegistration _registration(
   CamporeeSectionRegistrationStatus status,

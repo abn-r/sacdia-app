@@ -6,7 +6,9 @@ import 'package:sacdia_app/core/auth/club_role_names.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
+import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_section_registration_panel.dart';
 
@@ -30,10 +32,33 @@ bool canRegisterCamporeeParticipants(
   AsyncValue<CamporeeSectionRegistration> registrationAsync,
   AsyncValue<UserEntity?> authAsync,
 ) {
+  final activeGrant = _activeCamporeeGrant(registrationAsync, authAsync);
+  return activeGrant?.roleName?.trim().toLowerCase() == ClubRoleNames.director;
+}
+
+/// Autoridad para remover participantes, alineada con el guard del backend.
+///
+/// A diferencia del alta, no exige rol director: requiere el permiso efectivo
+/// `attendance:manage` dentro del contexto CLUB activo y exacto del Camporí.
+bool canRemoveCamporeeParticipants(
+  AsyncValue<CamporeeSectionRegistration> registrationAsync,
+  AsyncValue<UserEntity?> authAsync,
+) {
+  return _activeCamporeeGrant(registrationAsync, authAsync) != null &&
+      hasAnyPermission(
+        authAsync.valueOrNull,
+        const {'attendance:manage'},
+      );
+}
+
+AuthorizationGrant? _activeCamporeeGrant(
+  AsyncValue<CamporeeSectionRegistration> registrationAsync,
+  AsyncValue<UserEntity?> authAsync,
+) {
   if (!camporeeParticipantsAreEnabled(registrationAsync) ||
       authAsync.isLoading ||
       authAsync.hasError) {
-    return false;
+    return null;
   }
 
   final registration = registrationAsync.valueOrNull;
@@ -41,18 +66,18 @@ bool canRegisterCamporeeParticipants(
   final activeGrant = authorization?.activeGrant;
   if (registration == null ||
       activeGrant == null ||
-      !activeGrant.isActive ||
-      activeGrant.roleName?.trim().toLowerCase() != ClubRoleNames.director) {
-    return false;
+      activeGrant.status != 'active') {
+    return null;
   }
 
   // `activeGrant` sólo se resuelve desde clubAssignments (scope CLUB). Además
   // se exige la identidad completa de la sección que devolvió el backend.
-  return activeGrant.assignmentId != null &&
+  final matchesContext = activeGrant.assignmentId != null &&
       activeGrant.assignmentId == authorization!.activeAssignmentId &&
       activeGrant.clubId == registration.clubId &&
       activeGrant.sectionId == registration.clubSectionId &&
       activeGrant.clubTypeId == registration.clubTypeId;
+  return matchesContext ? activeGrant : null;
 }
 
 /// Frontera fail-closed para cualquier pantalla que lea o muta participantes.

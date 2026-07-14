@@ -38,6 +38,10 @@ class CamporeeMembersView extends ConsumerWidget {
       sectionRegistrationAsync,
       authAsync,
     );
+    final canRemoveParticipants = canRemoveCamporeeParticipants(
+      sectionRegistrationAsync,
+      authAsync,
+    );
     final c = context.sac;
 
     return Scaffold(
@@ -75,6 +79,7 @@ class CamporeeMembersView extends ConsumerWidget {
           child: _EligibleMembersBody(
             camporeeId: camporeeId,
             canRegisterParticipants: canRegisterParticipants,
+            canRemoveParticipants: canRemoveParticipants,
             onEnroll: () => _openRegisterMember(context, ref),
             onRemove: (member) => _confirmRemove(context, ref, member),
           ),
@@ -166,12 +171,14 @@ class CamporeeMembersView extends ConsumerWidget {
 class _EligibleMembersBody extends ConsumerWidget {
   final int camporeeId;
   final bool canRegisterParticipants;
+  final bool canRemoveParticipants;
   final VoidCallback onEnroll;
   final ValueChanged<CamporeeMember> onRemove;
 
   const _EligibleMembersBody({
     required this.camporeeId,
     required this.canRegisterParticipants,
+    required this.canRemoveParticipants,
     required this.onEnroll,
     required this.onRemove,
   });
@@ -255,7 +262,7 @@ class _EligibleMembersBody extends ConsumerWidget {
                       staggerDelay: const Duration(milliseconds: 50),
                       child: _MemberTile(
                         member: member,
-                        onRemove: canRegisterParticipants
+                        onRemove: canRemoveParticipants
                             ? () => onRemove(member)
                             : null,
                       ),

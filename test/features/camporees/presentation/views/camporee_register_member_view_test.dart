@@ -59,6 +59,20 @@ void main() {
     );
   });
 
+  for (final grantStatus in <String?>[null, 'pending', 'rejected', 'expired']) {
+    test('director con active grant status $grantStatus no autoriza el alta',
+        () {
+      final registration = AsyncData(
+        _registration(CamporeeSectionRegistrationStatus.registered),
+      );
+      final user = AsyncData(
+        _userWithActiveRole('director', status: grantStatus),
+      );
+
+      expect(canRegisterCamporeeParticipants(registration, user), isFalse);
+    });
+  }
+
   for (final status in [
     CamporeeSectionRegistrationStatus.notEnrolled,
     CamporeeSectionRegistrationStatus.pendingApproval,
@@ -390,7 +404,12 @@ const _userWithoutActiveGrant = UserEntity(
   ),
 );
 
-UserEntity _userWithActiveRole(String role, {int sectionId = 12}) => UserEntity(
+UserEntity _userWithActiveRole(
+  String role, {
+  int sectionId = 12,
+  String? status = 'active',
+}) =>
+    UserEntity(
       id: '$role-user',
       email: '$role@example.com',
       authorization: AuthorizationSnapshot(
@@ -399,7 +418,7 @@ UserEntity _userWithActiveRole(String role, {int sectionId = 12}) => UserEntity(
           AuthorizationGrant(
             assignmentId: 'active',
             roleName: role,
-            status: 'active',
+            status: status,
             clubId: 8,
             sectionId: sectionId,
             clubTypeId: 2,
