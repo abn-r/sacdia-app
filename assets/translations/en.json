@@ -1962,6 +1962,77 @@
       "score_save_failed": "Could not submit the score.",
       "no_rubrics": "This event has no active rubrics.",
       "rubrics_error": "Could not load rubrics."
+    },
+    "section_registration": {
+      "semantics": "Section registration status",
+      "title": "Section registration",
+      "enroll_action": "Enroll my section",
+      "participants_action": "Enroll participants",
+      "registered_by": "Registered by {name}",
+      "registered_by_date": "Registered by {name} on {date}",
+      "load_error": "We could not check the registration.",
+      "load_error_hint": "Check your connection and try again.",
+      "retry_semantics": "Retry registration check",
+      "retry": "Retry",
+      "sheet_title": "Confirm enrollment",
+      "sheet_description": "Review the details before enrolling your section in this camporee.",
+      "club": "Club",
+      "section": "Section",
+      "camporee": "Camporee",
+      "cost": "Cost",
+      "deadline": "Deadline",
+      "director_confirmation": "You will submit this enrollment as the director.",
+      "confirm": "Confirm enrollment",
+      "retry_submit": "Retry enrollment",
+      "submit_error": "We could not enroll the section.",
+      "success": "Section enrolled successfully.",
+      "participants_locked": "Participant enrollment is locked until the section is registered and enabled.",
+      "states": {
+        "registered": {
+          "title": "Section enrolled",
+          "description": "You can now enroll participants from this section."
+        },
+        "approved": {
+          "title": "Enrollment approved",
+          "description": "The section is enabled to enroll participants."
+        },
+        "pending": {
+          "title": "Awaiting approval",
+          "description": "You can enroll participants once the request is approved."
+        },
+        "rejected": {
+          "title": "Enrollment rejected",
+          "description": "The request was not approved. Contact the coordinator before trying again."
+        },
+        "cancelled": {
+          "title": "Enrollment cancelled",
+          "description": "This enrollment was cancelled and does not enable participants."
+        },
+        "not_open": {
+          "title": "Enrollment is not open yet",
+          "description": "Enrollment will open when the coordinator enables the period."
+        },
+        "frozen": {
+          "title": "Enrollment paused",
+          "description": "The coordinator has temporarily paused enrollment."
+        },
+        "open": {
+          "title": "Your section can enroll",
+          "description": "Confirm the details to register the section in this camporee."
+        },
+        "late_open": {
+          "title": "Late enrollment available",
+          "description": "The request will require approval before participants are enabled."
+        },
+        "read_only": {
+          "title": "Enrollment information",
+          "description": "Only the section director can submit the enrollment."
+        },
+        "unavailable": {
+          "title": "Enrollment unavailable",
+          "description": "We could not determine the enrollment status right now."
+        }
+      }
     }
   },
   "finances": {

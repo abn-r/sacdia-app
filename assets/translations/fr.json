@@ -1962,6 +1962,77 @@
       "score_save_failed": "Impossible d’envoyer le score.",
       "no_rubrics": "Cet événement n’a pas de grilles actives.",
       "rubrics_error": "Impossible de charger les grilles."
+    },
+    "section_registration": {
+      "semantics": "État de l’inscription de la section",
+      "title": "Inscription de la section",
+      "enroll_action": "Inscrire ma section",
+      "participants_action": "Inscrire des participants",
+      "registered_by": "Inscrite par {name}",
+      "registered_by_date": "Inscrite par {name} le {date}",
+      "load_error": "Impossible de consulter l’inscription.",
+      "load_error_hint": "Vérifiez votre connexion et réessayez.",
+      "retry_semantics": "Réessayer de consulter l’inscription",
+      "retry": "Réessayer",
+      "sheet_title": "Confirmer l’inscription",
+      "sheet_description": "Vérifiez les informations avant d’inscrire votre section à ce camporee.",
+      "club": "Club",
+      "section": "Section",
+      "camporee": "Camporee",
+      "cost": "Coût",
+      "deadline": "Date limite",
+      "director_confirmation": "Vous enregistrerez cette inscription en tant que directeur.",
+      "confirm": "Confirmer l’inscription",
+      "retry_submit": "Réessayer l’inscription",
+      "submit_error": "Impossible d’inscrire la section.",
+      "success": "Section inscrite avec succès.",
+      "participants_locked": "L’inscription des participants reste bloquée tant que la section n’est pas inscrite et autorisée.",
+      "states": {
+        "registered": {
+          "title": "Section inscrite",
+          "description": "Vous pouvez maintenant inscrire les participants de cette section."
+        },
+        "approved": {
+          "title": "Inscription approuvée",
+          "description": "La section est autorisée à inscrire des participants."
+        },
+        "pending": {
+          "title": "En attente d’approbation",
+          "description": "Vous pourrez inscrire des participants après l’approbation de la demande."
+        },
+        "rejected": {
+          "title": "Inscription refusée",
+          "description": "La demande n’a pas été approuvée. Contactez la coordination avant de réessayer."
+        },
+        "cancelled": {
+          "title": "Inscription annulée",
+          "description": "Cette inscription a été annulée et n’autorise pas les participants."
+        },
+        "not_open": {
+          "title": "Inscriptions pas encore ouvertes",
+          "description": "Les inscriptions ouvriront lorsque la coordination activera la période."
+        },
+        "frozen": {
+          "title": "Inscriptions suspendues",
+          "description": "La coordination a temporairement suspendu les inscriptions."
+        },
+        "open": {
+          "title": "Votre section peut s’inscrire",
+          "description": "Confirmez les informations pour inscrire la section à ce camporee."
+        },
+        "late_open": {
+          "title": "Inscription tardive disponible",
+          "description": "La demande devra être approuvée avant l’inscription des participants."
+        },
+        "read_only": {
+          "title": "Informations sur l’inscription",
+          "description": "Seul le directeur de la section peut effectuer l’inscription."
+        },
+        "unavailable": {
+          "title": "Inscription indisponible",
+          "description": "Impossible de déterminer l’état de l’inscription pour le moment."
+        }
+      }
     }
   },
   "finances": {

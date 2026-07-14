@@ -1962,6 +1962,77 @@
       "score_save_failed": "No se pudo enviar el puntaje.",
       "no_rubrics": "Este evento no tiene rúbricas activas.",
       "rubrics_error": "No se pudieron cargar las rúbricas."
+    },
+    "section_registration": {
+      "semantics": "Estado de inscripción de la sección",
+      "title": "Inscripción de la sección",
+      "enroll_action": "Inscribir mi sección",
+      "participants_action": "Inscribir participantes",
+      "registered_by": "Registrada por {name}",
+      "registered_by_date": "Registrada por {name} el {date}",
+      "load_error": "No pudimos consultar la inscripción.",
+      "load_error_hint": "Revisa tu conexión e inténtalo nuevamente.",
+      "retry_semantics": "Reintentar consulta de inscripción",
+      "retry": "Reintentar",
+      "sheet_title": "Confirmar inscripción",
+      "sheet_description": "Revisa los datos antes de inscribir tu sección en este Camporí.",
+      "club": "Club",
+      "section": "Sección",
+      "camporee": "Camporí",
+      "cost": "Costo",
+      "deadline": "Fecha límite",
+      "director_confirmation": "Registrarás esta inscripción como director.",
+      "confirm": "Confirmar inscripción",
+      "retry_submit": "Reintentar inscripción",
+      "submit_error": "No pudimos inscribir la sección.",
+      "success": "Sección inscrita correctamente.",
+      "participants_locked": "La inscripción de participantes está bloqueada hasta que la sección esté registrada y habilitada.",
+      "states": {
+        "registered": {
+          "title": "Sección inscrita",
+          "description": "Ya puedes inscribir participantes de esta sección."
+        },
+        "approved": {
+          "title": "Inscripción aprobada",
+          "description": "La sección está habilitada para inscribir participantes."
+        },
+        "pending": {
+          "title": "Pendiente de aprobación",
+          "description": "Podrás inscribir participantes cuando la solicitud sea aprobada."
+        },
+        "rejected": {
+          "title": "Inscripción rechazada",
+          "description": "La solicitud no fue aprobada. Consulta con la coordinación antes de intentar nuevamente."
+        },
+        "cancelled": {
+          "title": "Inscripción cancelada",
+          "description": "Esta inscripción fue cancelada y no habilita participantes."
+        },
+        "not_open": {
+          "title": "Inscripciones aún no disponibles",
+          "description": "La inscripción abrirá cuando la coordinación habilite el período."
+        },
+        "frozen": {
+          "title": "Inscripciones pausadas",
+          "description": "La coordinación pausó temporalmente las inscripciones."
+        },
+        "open": {
+          "title": "Tu sección puede inscribirse",
+          "description": "Confirma los datos para registrar la sección en este Camporí."
+        },
+        "late_open": {
+          "title": "Inscripción tardía disponible",
+          "description": "La solicitud quedará pendiente de aprobación antes de habilitar participantes."
+        },
+        "read_only": {
+          "title": "Consulta de inscripción",
+          "description": "Solo el director de la sección puede realizar la inscripción."
+        },
+        "unavailable": {
+          "title": "Inscripción no disponible",
+          "description": "No pudimos determinar el estado de inscripción en este momento."
+        }
+      }
     }
   },
   "finances": {

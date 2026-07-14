@@ -18,7 +18,10 @@ import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.d
 import 'package:sacdia_app/features/camporees/domain/entities/camporee.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_event.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.dart';
+import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_location_card.dart';
+import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_section_registration_panel.dart';
+import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_section_registration_sheet.dart';
 
 import '../providers/camporees_providers.dart';
 import 'camporee_members_view.dart';
@@ -126,7 +129,13 @@ class _DetailBody extends ConsumerWidget {
       authNotifierProvider.select((value) => value.valueOrNull),
     );
     final canViewEvents = hasAnyRole(user, eventViewerRoles);
-    final membersAsync = ref.watch(camporeeMembersProvider(camporeeId));
+    final registrationAsync =
+        ref.watch(camporeeSectionRegistrationProvider(camporeeId));
+    final participantsEnabled =
+        registrationAsync.valueOrNull?.enablesParticipants ?? false;
+    final membersAsync = participantsEnabled
+        ? ref.watch(camporeeMembersProvider(camporeeId))
+        : const AsyncData<List<CamporeeMember>>(<CamporeeMember>[]);
     final eventsAsync =
         canViewEvents ? ref.watch(camporeeEventsProvider(camporeeId)) : null;
     final description = camporee.description?.trim();
@@ -135,7 +144,10 @@ class _DetailBody extends ConsumerWidget {
       color: AppColors.primary,
       onRefresh: () async {
         ref.invalidate(camporeeDetailProvider(camporeeId));
-        ref.invalidate(camporeeMembersProvider(camporeeId));
+        ref.invalidate(camporeeSectionRegistrationProvider(camporeeId));
+        if (participantsEnabled) {
+          ref.invalidate(camporeeMembersProvider(camporeeId));
+        }
         if (canViewEvents) {
           ref.invalidate(camporeeEventsProvider(camporeeId));
         }
@@ -156,10 +168,29 @@ class _DetailBody extends ConsumerWidget {
             _DescriptionSection(description: description),
           ],
           const SizedBox(height: 24),
+          CamporeeSectionRegistrationPanel(
+            registrationAsync: registrationAsync,
+            onRetry: () => ref.invalidate(
+              camporeeSectionRegistrationProvider(camporeeId),
+            ),
+            onEnroll: () {
+              final registration = registrationAsync.valueOrNull;
+              if (registration == null || !registration.canEnroll) return;
+              CamporeeSectionRegistrationSheet.show(
+                context,
+                camporee: camporee,
+                registration: registration,
+              );
+            },
+            onManageParticipants: () => _openParticipants(context),
+          ),
+          const SizedBox(height: 24),
           _MembersSection(
             camporeeId: camporeeId,
             camporeeName: camporee.name,
             membersAsync: membersAsync,
+            participantsEnabled: participantsEnabled,
+            registrationAsync: registrationAsync,
           ),
           if (eventsAsync != null) ...[
             const SizedBox(height: 24),
@@ -169,6 +200,18 @@ class _DetailBody extends ConsumerWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+
+  void _openParticipants(BuildContext context) {
+    HapticFeedback.selectionClick();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CamporeeRegisterMemberView(
+          camporeeId: camporeeId,
+        ),
       ),
     );
   }
@@ -869,11 +912,15 @@ class _MembersSection extends StatelessWidget {
   final int camporeeId;
   final String camporeeName;
   final AsyncValue<List<CamporeeMember>> membersAsync;
+  final bool participantsEnabled;
+  final AsyncValue<CamporeeSectionRegistration> registrationAsync;
 
   const _MembersSection({
     required this.camporeeId,
     required this.camporeeName,
     required this.membersAsync,
+    required this.participantsEnabled,
+    required this.registrationAsync,
   });
 
   @override
@@ -884,35 +931,84 @@ class _MembersSection extends StatelessWidget {
         children: [
           _SectionHeader(label: 'camporees.detail.members_enrolled'.tr()),
           const SizedBox(height: 14),
-          membersAsync.when(
-            data: (members) => _MembersPreview(
-              camporeeId: camporeeId,
-              camporeeName: camporeeName,
-              members: members,
+          if (!participantsEnabled)
+            _ParticipantsLockedState(registrationAsync: registrationAsync)
+          else
+            membersAsync.when(
+              data: (members) => _MembersPreview(
+                camporeeId: camporeeId,
+                camporeeName: camporeeName,
+                members: members,
+              ),
+              loading: () => const Padding(
+                padding: EdgeInsets.symmetric(vertical: 18),
+                child: Center(child: SacLoading()),
+              ),
+              error: (_, __) => const SizedBox.shrink(),
             ),
-            loading: () => const Padding(
-              padding: EdgeInsets.symmetric(vertical: 18),
-              child: Center(child: SacLoading()),
-            ),
-            error: (_, __) => const SizedBox.shrink(),
-          ),
           const SizedBox(height: 14),
           SacButton.primary(
             text: 'camporees.detail.enroll'.tr(),
             icon: HugeIcons.strokeRoundedUserAdd01,
-            onPressed: () {
-              HapticFeedback.selectionClick();
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CamporeeRegisterMemberView(
-                    camporeeId: camporeeId,
-                  ),
-                ),
-              );
-            },
+            isEnabled: participantsEnabled,
+            onPressed: participantsEnabled
+                ? () {
+                    HapticFeedback.selectionClick();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CamporeeRegisterMemberView(
+                          camporeeId: camporeeId,
+                        ),
+                      ),
+                    );
+                  }
+                : null,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ParticipantsLockedState extends StatelessWidget {
+  final AsyncValue<CamporeeSectionRegistration> registrationAsync;
+
+  const _ParticipantsLockedState({required this.registrationAsync});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      liveRegion: registrationAsync.isLoading || registrationAsync.hasError,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: context.sac.surfaceVariant,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: context.sac.borderLight),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedLockKey,
+              size: 20,
+              color: context.sac.textTertiary,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'camporees.section_registration.participants_locked'.tr(),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: context.sac.textSecondary,
+                      fontWeight: FontWeight.w600,
+                      height: 1.45,
+                    ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
