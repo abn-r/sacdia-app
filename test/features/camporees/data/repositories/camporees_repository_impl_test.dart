@@ -357,6 +357,44 @@ void main() {
         );
       }
     });
+
+    test('maps contextual connection errors to NetworkFailure', () async {
+      dataSource.getSectionRegistrationResult = ConnectionException(
+        message: 'Network unavailable',
+      );
+
+      final result = await repository.getActiveSectionRegistration(7);
+
+      result.fold(
+        (failure) {
+          expect(failure, isA<NetworkFailure>());
+          expect(failure.message, 'Network unavailable');
+        },
+        (_) => fail('Expected Left'),
+      );
+    });
+
+    test('maps contextual validation errors and preserves field details',
+        () async {
+      dataSource.registerSectionResult = ValidationException(
+        message: 'Invalid registration',
+        fieldsErrors: const {'camporeeId': 'invalid'},
+      );
+
+      final result = await repository.registerActiveSection(7);
+
+      result.fold(
+        (failure) {
+          expect(failure, isA<ValidationFailure>());
+          expect(failure.message, 'Invalid registration');
+          expect(
+            (failure as ValidationFailure).fieldsErrors,
+            const {'camporeeId': 'invalid'},
+          );
+        },
+        (_) => fail('Expected Left'),
+      );
+    });
   });
 
   group('CamporeesRepositoryImpl.getCamporeeMembers', () {
@@ -465,6 +503,25 @@ void main() {
         (failure) {
           expect(failure, isA<AuthFailure>());
           expect((failure as AuthFailure).code, 401);
+        },
+        (_) => fail('Expected Left'),
+      );
+    });
+
+    test('maps NotFoundException through the shared repository mapper',
+        () async {
+      dataSource.getMembersResult = NotFoundException(
+        message: 'Camporee not found',
+        code: 404,
+      );
+
+      final result = await repository.getCamporeeMembers(1);
+
+      result.fold(
+        (failure) {
+          expect(failure, isA<NotFoundFailure>());
+          expect(failure.message, 'Camporee not found');
+          expect(failure.code, 404);
         },
         (_) => fail('Expected Left'),
       );
