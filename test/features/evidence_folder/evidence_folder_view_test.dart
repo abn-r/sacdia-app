@@ -28,7 +28,10 @@ void main() {
     ) as Map<String, dynamic>;
   });
 
-  Future<void> pumpEvidenceFolder(WidgetTester tester) async {
+  Future<void> pumpEvidenceFolder(
+    WidgetTester tester, {
+    EvidenceFolder? folder,
+  }) async {
     tester.view.physicalSize = const Size(1200, 2000);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -38,7 +41,7 @@ void main() {
       ProviderScope(
         overrides: [
           evidenceFolderProvider('2').overrideWith(
-            (ref) async => _evidenceFolderFixture,
+            (ref) async => folder ?? _evidenceFolderFixture,
           ),
         ],
         child: EasyLocalization(
@@ -81,6 +84,21 @@ void main() {
     _expectStatusCount('evidence-status-submitted', 2);
     _expectStatusCount('evidence-status-rejected', 5);
     _expectStatusCount('evidence-status-pending', 1);
+  });
+
+  testWidgets('shows submitted folder state before the closed fallback',
+      (tester) async {
+    await pumpEvidenceFolder(tester, folder: _submittedFolderFixture);
+
+    final hero = find.byKey(const ValueKey('evidence-folder-hero'));
+    expect(
+      find.descendant(of: hero, matching: find.text('Enviado')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: hero, matching: find.text('Cerrada')),
+      findsNothing,
+    );
   });
 
   testWidgets('filters sections by name', (tester) async {
@@ -225,6 +243,20 @@ final _evidenceFolderFixture = EvidenceFolder(
       firstDescription: 'First-aid procedure awaiting corrections',
     ),
   ],
+);
+
+const _submittedFolderFixture = EvidenceFolder(
+  folderId: 'folder-submitted',
+  id: 'template-submitted',
+  name: 'Carpeta enviada',
+  isOpen: false,
+  totalPoints: 50,
+  totalPercentage: 100,
+  totalEarnedPoints: 20,
+  totalMaxPoints: 50,
+  progressPercentage: 40,
+  status: 'submitted',
+  sections: [],
 );
 
 List<EvidenceSection> _sectionsForStatus({

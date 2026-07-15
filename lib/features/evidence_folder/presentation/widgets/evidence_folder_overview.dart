@@ -452,18 +452,18 @@ _FolderStatus _folderStatus(EvidenceFolder folder) {
       color: AppColors.accentDark,
     );
   }
-  if (!folder.isOpen || folder.status == 'closed') {
-    return _FolderStatus(
-      label: 'evidence_folder.status.closed'.tr(),
-      icon: HugeIcons.strokeRoundedLocked,
-      color: AppColors.errorDark,
-    );
-  }
   if (folder.status == 'submitted') {
     return _FolderStatus(
       label: 'evidence_folder.status.submitted'.tr(),
       icon: HugeIcons.strokeRoundedSent,
       color: AppColors.info,
+    );
+  }
+  if (folder.status == 'closed' || !folder.isOpen) {
+    return _FolderStatus(
+      label: 'evidence_folder.status.closed'.tr(),
+      icon: HugeIcons.strokeRoundedLocked,
+      color: AppColors.errorDark,
     );
   }
   return _FolderStatus(
