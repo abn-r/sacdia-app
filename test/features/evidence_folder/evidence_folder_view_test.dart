@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,15 +11,21 @@ import 'package:sacdia_app/features/evidence_folder/domain/entities/evidence_fol
 import 'package:sacdia_app/features/evidence_folder/domain/entities/evidence_section.dart';
 import 'package:sacdia_app/features/evidence_folder/presentation/providers/evidence_folder_providers.dart';
 import 'package:sacdia_app/features/evidence_folder/presentation/views/evidence_folder_view.dart';
+import 'package:sacdia_app/features/evidence_folder/presentation/widgets/section_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  late Map<String, dynamic> translations;
+
   setUpAll(() async {
     SharedPreferences.setMockInitialValues({});
     await initializeDateFormatting('es');
     await EasyLocalization.ensureInitialized();
+    translations = jsonDecode(
+      await File('assets/translations/es.json').readAsString(),
+    ) as Map<String, dynamic>;
   });
 
   Future<void> pumpEvidenceFolder(WidgetTester tester) async {
@@ -36,6 +45,7 @@ void main() {
           supportedLocales: const [Locale('es')],
           path: 'assets/translations',
           fallbackLocale: const Locale('es'),
+          assetLoader: _TestAssetLoader(translations),
           child: Builder(
             builder: (context) => MaterialApp(
               localizationsDelegates: context.localizationDelegates,
@@ -84,7 +94,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Camporee Readiness'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(SectionCard),
+        matching: find.text('Camporee Readiness'),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('Administration Records'), findsNothing);
     expect(find.text('Community Service'), findsNothing);
     expect(find.text('Leadership Training'), findsNothing);
@@ -127,6 +143,16 @@ void main() {
       expect(find.text(section.name), findsNothing);
     }
   });
+}
+
+class _TestAssetLoader extends AssetLoader {
+  final Map<String, dynamic> translations;
+
+  const _TestAssetLoader(this.translations);
+
+  @override
+  Future<Map<String, dynamic>?> load(String path, Locale locale) async =>
+      translations;
 }
 
 void _expectStatusCount(String key, int count) {
