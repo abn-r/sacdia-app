@@ -175,7 +175,7 @@ class _TeachingScopeBody extends StatelessWidget {
             index == 0 ? const SizedBox(height: 12) : const SizedBox(height: 8),
         itemBuilder: (context, index) {
           if (index == 0) {
-            return _ScopeHeader(scope: scope);
+            return const SizedBox();
           }
 
           final progressiveClass = scope.classes[index - 1];
