@@ -4,16 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/animations/page_transitions.dart';
-import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_dialog.dart';
-import '../../../../core/widgets/sac_progress_bar.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../widgets/evidence_folder_loading_skeleton.dart';
+import '../widgets/evidence_folder_overview.dart';
 import '../../domain/entities/evidence_folder.dart';
 import '../../domain/entities/evidence_section.dart';
 import '../providers/evidence_folder_providers.dart';
@@ -97,6 +96,39 @@ class _FolderBody extends ConsumerStatefulWidget {
 class _FolderBodyState extends ConsumerState<_FolderBody> {
   /// Tracks which sectionId is currently being submitted (null = none).
   String? _submittingSectionId;
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  String _query = '';
+
+  List<EvidenceSection> get _filteredSections {
+    final normalizedQuery = _query.trim().toLowerCase();
+    if (normalizedQuery.isEmpty) return widget.folder.sections;
+
+    return widget.folder.sections.where((section) {
+      final nameMatches = section.name.toLowerCase().contains(normalizedQuery);
+      final descriptionMatches =
+          section.description?.toLowerCase().contains(normalizedQuery) ?? false;
+      return nameMatches || descriptionMatches;
+    }).toList(growable: false);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _handleQueryChanged(String query) {
+    if (query == _query) return;
+    setState(() => _query = query);
+  }
+
+  void _clearQuery() {
+    _searchController.clear();
+    setState(() => _query = '');
+    _searchFocusNode.requestFocus();
+  }
 
   Future<void> _handleSectionSubmit(EvidenceSection section) async {
     final confirmed = await SacDialog.show(
@@ -191,6 +223,7 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
   Widget build(BuildContext context) {
     final c = context.sac;
     final folder = widget.folder;
+    final filteredSections = _filteredSections;
 
     return RefreshIndicator(
       color: AppColors.primary,
@@ -232,11 +265,9 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
                 if (folder.isOpen && folder.isUnderEvaluation)
                   _UnderEvaluationBanner(folder: folder),
 
-                // Header card
-                _FolderHeaderCard(folder: folder),
+                EvidenceFolderHero(folder: folder),
 
-                // Progress summary
-                _ProgressSummaryRow(folder: folder),
+                EvidenceStatusPills(sections: folder.sections),
 
                 const SizedBox(height: 8),
 
@@ -251,282 +282,72 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
                         ),
                   ),
                 ),
+
+                EvidenceSectionSearchField(
+                  controller: _searchController,
+                  focusNode: _searchFocusNode,
+                  query: _query,
+                  onChanged: _handleQueryChanged,
+                  onClear: _clearQuery,
+                ),
               ],
             ),
           ),
 
-          // Sections list
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final section = folder.sections[index];
-                return StaggeredListItem(
-                  index: index,
-                  child: SectionCard(
-                    section: section,
-                    folderIsOpen: folder.isOpen,
-                    onTap: () => _openSectionDetail(section),
-                    onSubmit: folder.isOpen && section.canSubmit
-                        ? () => _handleSectionSubmit(section)
-                        : null,
-                    isSubmitting: _submittingSectionId == section.id,
+          // Compact sections grouped inside one paper container.
+          if (filteredSections.isNotEmpty)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Material(
+                  key: const ValueKey('evidence-sections-card'),
+                  color: c.surface,
+                  clipBehavior: Clip.antiAlias,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(color: c.border),
                   ),
-                );
-              },
-              childCount: folder.sections.length,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      for (var index = 0;
+                          index < filteredSections.length;
+                          index++) ...[
+                        if (index > 0)
+                          Divider(
+                            height: 1,
+                            thickness: 1,
+                            color: c.divider,
+                          ),
+                        SectionCard(
+                          section: filteredSections[index],
+                          folderIsOpen: folder.isOpen,
+                          onTap: () =>
+                              _openSectionDetail(filteredSections[index]),
+                          onSubmit:
+                              folder.isOpen && filteredSections[index].canSubmit
+                                  ? () => _handleSectionSubmit(
+                                        filteredSections[index],
+                                      )
+                                  : null,
+                          isSubmitting: _submittingSectionId ==
+                              filteredSections[index].id,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ),
 
           SliverToBoxAdapter(
             child: folder.sections.isEmpty
                 ? _EmptySections()
-                : const SizedBox(height: 32),
+                : _query.trim().isNotEmpty && filteredSections.isEmpty
+                    ? const EvidenceSearchEmpty()
+                    : const SizedBox(height: 32),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ── Header card con nombre y estado de la carpeta ─────────────────────────────
-
-class _FolderHeaderCard extends StatelessWidget {
-  final EvidenceFolder folder;
-
-  const _FolderHeaderCard({required this.folder});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final percentage = (folder.completionRatio * 100).toStringAsFixed(0);
-
-    // Status badge colors
-    final statusColor = folder.isOpen ? AppColors.secondary : AppColors.accent;
-    final statusBg =
-        folder.isOpen ? AppColors.secondaryLight : AppColors.accentLight;
-
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: c.surfaceVariant,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: c.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Nombre + estado en una fila compacta
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Text(
-                  folder.name,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: c.text,
-                      ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                decoration: BoxDecoration(
-                  color: statusBg,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: statusColor.withValues(alpha: 0.35),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    HugeIcon(
-                      icon: folder.isOpen
-                          ? HugeIcons.strokeRoundedLock
-                          : HugeIcons.strokeRoundedLocked,
-                      size: 11,
-                      color: statusColor,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      folder.isOpen
-                          ? 'evidence_folder.status.open'.tr()
-                          : 'evidence_folder.status.closed'.tr(),
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: statusColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          if (folder.description != null && folder.description!.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              folder.description!,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: c.textSecondary,
-                    height: 1.4,
-                  ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-
-          const SizedBox(height: 14),
-          Divider(color: c.divider, height: 1),
-          const SizedBox(height: 12),
-
-          // Progreso + porcentaje inline
-          Row(
-            children: [
-              Expanded(
-                child: SacProgressBar(
-                  progress: folder.completionRatio,
-                  height: 5,
-                  trackColor: c.border,
-                  useGradient: false,
-                  color: AppColors.secondary,
-                  showShimmer: false,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                '$percentage%',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: folder.completionRatio > 0
-                      ? AppColors.secondary
-                      : c.textTertiary,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 10),
-
-          // Puntos — inline, sutil
-          Row(
-            children: [
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedStar,
-                size: 13,
-                color: AppColors.accent,
-              ),
-              const SizedBox(width: 5),
-              Text(
-                'evidence_folder.points_ratio'.tr(namedArgs: {
-                  'earned': '${folder.earnedPoints}',
-                  'max': '${folder.maxPoints}',
-                }),
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: c.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Fila resumen de secciones ──────────────────────────────────────────────────
-
-class _ProgressSummaryRow extends StatelessWidget {
-  final EvidenceFolder folder;
-
-  const _ProgressSummaryRow({required this.folder});
-
-  @override
-  Widget build(BuildContext context) {
-    final total = folder.sections.length;
-    final validated = folder.validatedCount;
-    final submitted = folder.submittedCount;
-    final pending = total - validated - submitted;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-      child: Row(
-        children: [
-          _StatPill(
-            count: pending,
-            label: 'evidence_folder.stats.pending'.tr(),
-            color: AppColors.accent,
-          ),
-          const SizedBox(width: 8),
-          _StatPill(
-            count: submitted,
-            label: 'evidence_folder.stats.submitted'.tr(),
-            color: AppColors.info,
-          ),
-          const SizedBox(width: 8),
-          _StatPill(
-            count: validated,
-            label: 'evidence_folder.stats.validated'.tr(),
-            color: AppColors.secondary,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatPill extends StatelessWidget {
-  final int count;
-  final String label;
-  final Color color;
-
-  const _StatPill({
-    required this.count,
-    required this.label,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(
-          color: c.surfaceVariant,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: c.border),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '$count',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: color,
-              ),
-            ),
-            const SizedBox(height: 1),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-                color: c.textSecondary,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

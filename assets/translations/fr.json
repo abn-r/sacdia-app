@@ -2562,6 +2562,9 @@
       "create_folder_empty": "Le dossier a été demandé, mais il n'est pas encore disponible. Essayez d'actualiser."
     },
     "title": "Dossier Annuel de Preuves",
+    "overview_label": "{name} · PROGRESSION",
+    "search_hint": "Rechercher une section de preuves…",
+    "no_results_body": "Essayez un autre nom ou une autre description.",
     "section_title": "Section",
     "send": "Envoyer",
     "stay": "Rester",
@@ -2587,6 +2590,8 @@
     "stats": {
       "pending": "En attente",
       "submitted": "Envoyées",
+      "preapproved": "Pré-approuvées",
+      "rejected": "Rejetées",
       "validated": "Validées"
     },
     "sections_title": "Sections",
