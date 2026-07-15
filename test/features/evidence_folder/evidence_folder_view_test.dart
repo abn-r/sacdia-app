@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:sacdia_app/features/evidence_folder/domain/entities/evidence_file.dart';
 import 'package:sacdia_app/features/evidence_folder/domain/entities/evidence_folder.dart';
@@ -43,6 +44,7 @@ void main() {
   Future<void> pumpEvidenceFolder(
     WidgetTester tester, {
     EvidenceFolder? folder,
+    Future<EvidenceFolder?> Function(Ref ref)? loadFolder,
     double viewportWidth = 1200,
     double viewportHeight = 2000,
   }) async {
@@ -55,7 +57,7 @@ void main() {
       ProviderScope(
         overrides: [
           evidenceFolderProvider('2').overrideWith(
-            (ref) async => folder ?? _evidenceFolderFixture,
+            loadFolder ?? (ref) async => folder ?? _evidenceFolderFixture,
           ),
         ],
         child: EasyLocalization(
@@ -107,6 +109,57 @@ void main() {
     _expectStatusCount('evidence-status-pending', 1);
   });
 
+  testWidgets('reloads the folder when the user pulls to refresh',
+      (tester) async {
+    var requests = 0;
+    await pumpEvidenceFolder(
+      tester,
+      loadFolder: (ref) async {
+        requests++;
+        return _evidenceFolderFixture;
+      },
+    );
+    expect(requests, 1);
+
+    final refresh = tester
+        .state<RefreshIndicatorState>(find.byType(RefreshIndicator))
+        .show();
+    await tester.pump();
+    await tester.pumpAndSettle();
+    await refresh;
+
+    expect(requests, 2);
+  });
+
+  testWidgets('scales the folder hero content down twenty percent',
+      (tester) async {
+    await pumpEvidenceFolder(tester);
+
+    final hero = find.byKey(const ValueKey('evidence-folder-hero'));
+    final heroProgress =
+        find.byKey(const ValueKey('evidence-folder-hero-progress'));
+    final percentage = find.descendant(of: hero, matching: find.text('62%'));
+
+    expect(tester.getSize(heroProgress), const Size(52, 52));
+    expect(tester.widget<Text>(percentage).style?.fontSize, 44);
+  });
+
+  testWidgets('keeps evidence status counters compact', (tester) async {
+    await pumpEvidenceFolder(tester);
+
+    for (final key in const [
+      'evidence-status-validated',
+      'evidence-status-preapproved',
+      'evidence-status-submitted',
+      'evidence-status-rejected',
+      'evidence-status-pending',
+    ]) {
+      final pill = find.byKey(ValueKey(key));
+      expect(pill, findsOneWidget);
+      expect(tester.getSize(pill).height, 34);
+    }
+  });
+
   testWidgets('shows submitted folder state before the closed fallback',
       (tester) async {
     await pumpEvidenceFolder(tester, folder: _submittedFolderFixture);
@@ -144,6 +197,35 @@ void main() {
     expect(find.text('Community Service'), findsNothing);
     expect(find.text('Leadership Training'), findsNothing);
     expect(find.text('Health and Safety'), findsNothing);
+  });
+
+  testWidgets('adds space between the section search and visible results',
+      (tester) async {
+    await pumpEvidenceFolder(tester, viewportHeight: 5000);
+
+    final spacing = find.byKey(const ValueKey('evidence-sections-spacing'));
+    expect(spacing, findsOneWidget);
+    expect(tester.getSize(spacing).height, 8);
+  });
+
+  testWidgets('constrains the section search icon to a fixed size',
+      (tester) async {
+    await pumpEvidenceFolder(tester);
+
+    final searchField = find.byKey(const ValueKey('evidence-section-search'));
+    final searchIcon =
+        find.byKey(const ValueKey('evidence-section-search-icon'));
+
+    expect(searchIcon, findsOneWidget);
+    expect(tester.getSize(searchIcon), const Size(20, 20));
+
+    final field = tester.widget<TextField>(searchField);
+    final constraints = field.decoration?.prefixIconConstraints;
+    expect(constraints, isNotNull);
+    expect(constraints?.minWidth, 48);
+    expect(constraints?.maxWidth, 48);
+    expect(constraints?.minHeight, 48);
+    expect(constraints?.maxHeight, 48);
   });
 
   testWidgets('groups compact section rows and shows their summary',
@@ -187,6 +269,34 @@ void main() {
       find.descendant(of: pendingRow, matching: find.text('1 / 5 archivos')),
       findsOneWidget,
     );
+  });
+
+  testWidgets('uses a complete status circle independent of file count',
+      (tester) async {
+    await pumpEvidenceFolder(tester, viewportHeight: 5000);
+
+    final pendingRow =
+        find.byKey(const ValueKey('evidence-section-section-pending'));
+    final statusIndicator = find.byKey(
+      const ValueKey('evidence-section-status-section-pending'),
+    );
+
+    expect(statusIndicator, findsOneWidget);
+    expect(
+      find.descendant(
+        of: pendingRow,
+        matching: find.byType(CircularProgressIndicator),
+      ),
+      findsNothing,
+    );
+
+    final indicator = tester.widget<Container>(statusIndicator);
+    final decoration = indicator.decoration! as BoxDecoration;
+    final border = decoration.border! as Border;
+    expect(tester.getSize(statusIndicator), const Size(44, 44));
+    expect(decoration.shape, BoxShape.circle);
+    expect(border.top.color, AppColors.accentDark);
+    expect(border.top.width, 3);
   });
 
   testWidgets('opens section detail when a compact row is tapped',

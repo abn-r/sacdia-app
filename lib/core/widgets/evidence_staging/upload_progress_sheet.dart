@@ -141,21 +141,17 @@ class _UploadProgressSheetContentState
             _buildHeader(c),
             const SizedBox(height: 12),
 
-            // Overall progress bar
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: _overallProgress,
-                minHeight: 6,
-                backgroundColor: c.surfaceVariant,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  _hasErrors
-                      ? AppColors.accent
-                      : _allSuccess
-                          ? AppColors.secondary
-                          : AppColors.primary,
-                ),
-              ),
+            // Overall progress bar. The value comes from Dio upload bytes and
+            // is animated between updates so short progress events still feel
+            // smooth without inventing progress that has not been reported.
+            _AnimatedOverallProgress(
+              progress: _overallProgress,
+              color: _hasErrors
+                  ? AppColors.accent
+                  : _allSuccess
+                      ? AppColors.secondary
+                      : AppColors.primary,
+              backgroundColor: c.surfaceVariant,
             ),
             const SizedBox(height: 16),
 
@@ -427,29 +423,8 @@ class _FileProgressRow extends StatelessWidget {
         );
 
       case StagedFileStatus.uploading:
-        // Uploading: blue dot + percentage
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 10,
-              height: 10,
-              decoration: const BoxDecoration(
-                color: AppColors.info,
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              '${(file.uploadProgress * 100).toInt()}%',
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppColors.info,
-              ),
-            ),
-          ],
-        );
+        // Uploading: animated determinate loader + real byte percentage.
+        return _AnimatedFileUploadStatus(file: file);
 
       case StagedFileStatus.completed:
         // Completed: green check
@@ -475,5 +450,102 @@ class _FileProgressRow extends StatelessWidget {
           color: AppColors.secondary,
         );
     }
+  }
+}
+
+class _AnimatedOverallProgress extends StatelessWidget {
+  final double progress;
+  final Color color;
+  final Color backgroundColor;
+
+  const _AnimatedOverallProgress({
+    required this.progress,
+    required this.color,
+    required this.backgroundColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final targetProgress = progress.clamp(0.0, 1.0);
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween(end: targetProgress),
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutCubic,
+      builder: (context, animatedProgress, _) {
+        return Column(
+          children: [
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                '${(animatedProgress * 100).round()}%',
+                key: const ValueKey('upload-overall-progress-value'),
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.info,
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                key: const ValueKey('upload-overall-progress-bar'),
+                value: animatedProgress,
+                minHeight: 6,
+                backgroundColor: backgroundColor,
+                valueColor: AlwaysStoppedAnimation<Color>(color),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _AnimatedFileUploadStatus extends StatelessWidget {
+  final StagedFile file;
+
+  const _AnimatedFileUploadStatus({required this.file});
+
+  @override
+  Widget build(BuildContext context) {
+    final targetProgress = file.uploadProgress.clamp(0.0, 1.0);
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween(end: targetProgress),
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+      builder: (context, animatedProgress, _) {
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 22,
+              height: 22,
+              child: CircularProgressIndicator(
+                key: ValueKey('upload-file-progress-${file.id}'),
+                value: animatedProgress == 0 ? null : animatedProgress,
+                strokeWidth: 2.4,
+                color: AppColors.info,
+                backgroundColor: AppColors.info.withValues(alpha: 0.16),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              '${(animatedProgress * 100).round()}%',
+              key: ValueKey('upload-file-progress-value-${file.id}'),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.info,
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

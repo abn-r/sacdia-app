@@ -228,8 +228,9 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
     return RefreshIndicator(
       color: AppColors.primary,
       onRefresh: () async {
-        // El consumer padre invalidará si el widget aún está montado;
-        // aquí usamos una forma segura via ProviderScope.
+        final provider = evidenceFolderProvider(widget.clubSectionId);
+        ref.invalidate(provider);
+        await ref.read(provider.future);
       },
       child: CustomScrollView(
         physics: const BouncingScrollPhysics(
@@ -290,6 +291,11 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
                   onChanged: _handleQueryChanged,
                   onClear: _clearQuery,
                 ),
+                if (filteredSections.isNotEmpty)
+                  const SizedBox(
+                    key: ValueKey('evidence-sections-spacing'),
+                    height: 8,
+                  ),
               ],
             ),
           ),

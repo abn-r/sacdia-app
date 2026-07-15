@@ -35,11 +35,11 @@ class EvidenceFolderHero extends StatelessWidget {
       container: true,
       label: '$overviewLabel: $percentage%, $pointsLabel, ${status.label}',
       child: Container(
-        margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: status.color.withValues(alpha: 0.2),
           ),
@@ -57,13 +57,13 @@ class EvidenceFolderHero extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: 9,
                       fontWeight: FontWeight.w600,
                       color: c.textTertiary,
-                      letterSpacing: 0.88,
+                      letterSpacing: 0.7,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   Text(
                     '$percentage%',
                     style: const TextStyle(
@@ -75,21 +75,21 @@ class EvidenceFolderHero extends StatelessWidget {
                       fontFeatures: [FontFeature.tabularFigures()],
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const HugeIcon(
                         icon: HugeIcons.strokeRoundedStar,
-                        size: 15,
+                        size: 12,
                         color: AppColors.accentDark,
                       ),
-                      const SizedBox(width: 5),
+                      const SizedBox(width: 4),
                       Flexible(
                         child: Text(
                           pointsLabel,
                           style: TextStyle(
-                            fontSize: 12.5,
+                            fontSize: 10,
                             fontWeight: FontWeight.w700,
                             color: c.textSecondary,
                           ),
@@ -97,38 +97,39 @@ class EvidenceFolderHero extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   _FolderStatusBadge(status: status),
                 ],
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 13),
             SizedBox(
-              width: 64,
-              height: 64,
+              key: const ValueKey('evidence-folder-hero-progress'),
+              width: 52,
+              height: 52,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
                   SizedBox.expand(
                     child: CircularProgressIndicator(
                       value: progress,
-                      strokeWidth: 6,
+                      strokeWidth: 5,
                       strokeCap: StrokeCap.round,
                       backgroundColor: c.borderLight,
                       color: AppColors.coral500,
                     ),
                   ),
                   Container(
-                    width: 40,
-                    height: 40,
+                    width: 32,
+                    height: 32,
                     decoration: BoxDecoration(
                       color: AppColors.coral50,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     alignment: Alignment.center,
                     child: const HugeIcon(
                       icon: HugeIcons.strokeRoundedFolder01,
-                      size: 23,
+                      size: 18,
                       color: AppColors.coral600,
                     ),
                   ),
@@ -150,22 +151,22 @@ class _FolderStatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
       decoration: BoxDecoration(
         color: status.color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: status.color.withValues(alpha: 0.35)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          HugeIcon(icon: status.icon, size: 13, color: status.color),
-          const SizedBox(width: 5),
+          HugeIcon(icon: status.icon, size: 10, color: status.color),
+          const SizedBox(width: 4),
           Flexible(
             child: Text(
               status.label,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 9,
                 fontWeight: FontWeight.w700,
                 color: status.color,
               ),
@@ -228,7 +229,7 @@ class EvidenceStatusPills extends StatelessWidget {
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       child: Row(
         children: [
           for (var index = 0; index < statuses.length; index++) ...[
@@ -261,31 +262,32 @@ class _EvidenceStatusPill extends StatelessWidget {
       label: '${data.label}: $count',
       child: Container(
         key: ValueKey(data.keyName),
-        constraints: const BoxConstraints(minHeight: 42),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        constraints: const BoxConstraints(minHeight: 34),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: data.color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(color: data.color.withValues(alpha: 0.28)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            HugeIcon(icon: data.icon, size: 15, color: data.color),
-            const SizedBox(width: 6),
+            HugeIcon(icon: data.icon, size: 13, color: data.color),
+            const SizedBox(width: 5),
             Text(
               '$count',
               style: TextStyle(
-                fontSize: 15,
+                fontSize: 14,
                 fontWeight: FontWeight.w800,
                 color: data.color,
               ),
             ),
-            const SizedBox(width: 5),
+            const SizedBox(width: 4),
             Text(
               data.label,
               style: TextStyle(
-                fontSize: 11.5,
+                fontSize: 10.5,
                 fontWeight: FontWeight.w600,
                 color: context.sac.textSecondary,
               ),
@@ -332,10 +334,21 @@ class EvidenceSectionSearchField extends StatelessWidget {
             textInputAction: TextInputAction.search,
             decoration: InputDecoration(
               hintText: 'evidence_folder.search_hint'.tr(),
-              prefixIcon: HugeIcon(
-                icon: HugeIcons.strokeRoundedSearch01,
-                size: 20,
-                color: isFocused ? AppColors.coral600 : c.textTertiary,
+              prefixIconConstraints: const BoxConstraints.tightFor(
+                width: 48,
+                height: 48,
+              ),
+              prefixIcon: Center(
+                child: SizedBox(
+                  key: const ValueKey('evidence-section-search-icon'),
+                  width: 20,
+                  height: 20,
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedSearch01,
+                    size: 20,
+                    color: isFocused ? AppColors.coral600 : c.textTertiary,
+                  ),
+                ),
               ),
               suffixIcon: query.isEmpty
                   ? null

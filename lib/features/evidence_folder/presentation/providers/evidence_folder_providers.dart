@@ -68,7 +68,9 @@ final deleteEvidenceFileUseCaseProvider = Provider<DeleteEvidenceFile>((ref) {
 
 /// Provider que carga la Carpeta Anual de Evidencias para una sección de club.
 ///
-/// autoDispose para liberar memoria al salir de la pantalla.
+/// Conserva en memoria la última carpeta cargada durante la sesión. Así la
+/// navegación fuera y dentro de la pantalla no dispara otra consulta; las
+/// mutaciones y el pull-to-refresh la invalidan explícitamente.
 ///
 /// Retorna `null` cuando la carpeta aún no fue creada (estado de negocio
 /// válido — backend responde `200 + data: null`). La vista discrimina en
@@ -80,6 +82,7 @@ final deleteEvidenceFileUseCaseProvider = Provider<DeleteEvidenceFile>((ref) {
 /// que `null` en el branch `error:`.
 final evidenceFolderProvider = FutureProvider.autoDispose
     .family<EvidenceFolder?, String>((ref, clubSectionId) async {
+  ref.keepAlive();
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final useCase = ref.read(getEvidenceFolderUseCaseProvider);

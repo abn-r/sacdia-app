@@ -146,43 +146,26 @@ class _SectionProgressIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    final filesProgress = section.maxFiles <= 0
-        ? 0.0
-        : (section.files.length / section.maxFiles).clamp(0.0, 1.0);
     final statusLabel = _statusLabel(section.status);
-    final filesLabel = 'evidence_folder.files_ratio'.tr(namedArgs: {
-      'current': '${section.files.length}',
-      'max': '${section.maxFiles}',
-    });
     final color = _statusColor(section.status);
 
     return Semantics(
-      label:
-          '${'evidence_folder.section_status_label'.tr()}: $statusLabel. $filesLabel',
+      label: '${'evidence_folder.section_status_label'.tr()}: $statusLabel',
       child: ExcludeSemantics(
-        child: SizedBox(
-          width: 40,
-          height: 40,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              SizedBox(
-                width: 40,
-                height: 40,
-                child: CircularProgressIndicator(
-                  value: filesProgress,
-                  strokeWidth: 3,
-                  backgroundColor: c.divider,
-                  valueColor: AlwaysStoppedAnimation<Color>(color),
-                ),
-              ),
-              HugeIcon(
-                icon: _statusIcon(section.status),
-                size: 17,
-                color: color,
-              ),
-            ],
+        child: Container(
+          key: ValueKey('evidence-section-status-${section.id}'),
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color.withValues(alpha: 0.10),
+            border: Border.all(color: color, width: 3),
+          ),
+          alignment: Alignment.center,
+          child: HugeIcon(
+            icon: _statusIcon(section.status),
+            size: 20,
+            color: color,
           ),
         ),
       ),

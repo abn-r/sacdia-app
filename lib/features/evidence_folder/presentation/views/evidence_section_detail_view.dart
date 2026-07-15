@@ -97,7 +97,7 @@ class _EvidenceSectionDetailViewState
           title: Text(
             'evidence_folder.section_title'.tr(),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700, color: AppColors.primary),
+                fontWeight: FontWeight.w700, color: c.text),
             overflow: TextOverflow.ellipsis,
           ),
           backgroundColor: c.background,
@@ -149,8 +149,8 @@ class _EvidenceSectionDetailViewState
                         Text(
                           widget.section.name,
                           style:
-                              Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.w600,
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
                                     color: c.text,
                                     height: 1.25,
                                   ),
@@ -412,34 +412,29 @@ class _SectionMetaCard extends StatelessWidget {
             const SizedBox(height: 10),
           ],
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _MetaItem(
-                icon: HugeIcons.strokeRoundedStar,
-                label: 'evidence_folder.points_label'.tr(),
-                value: 'evidence_folder.points_value'.tr(namedArgs: {
-                  'points': '${section.pointValue}',
-                }),
-                color: AppColors.accent,
-                context: context,
+              Expanded(
+                child: _MetaItem(
+                  icon: HugeIcons.strokeRoundedStar,
+                  label: 'evidence_folder.points_label'.tr(),
+                  value: 'evidence_folder.points_value'.tr(namedArgs: {
+                    'points': '${section.pointValue}',
+                  }),
+                  color: AppColors.accent,
+                  context: context,
+                ),
               ),
               const SizedBox(width: 24),
-              _MetaItem(
-                icon: HugeIcons.strokeRoundedPercent,
-                label: 'evidence_folder.weight_label'.tr(),
-                value: '${section.percentage.toStringAsFixed(1)}%',
-                color: AppColors.primary,
-                context: context,
-              ),
-              const SizedBox(width: 24),
-              _MetaItem(
-                icon: HugeIcons.strokeRoundedFiles01,
-                label: 'evidence_folder.limit_label'.tr(),
-                value: 'evidence_folder.files_count'.tr(namedArgs: {
-                  'count': '${section.maxFiles}',
-                }),
-                color: c.textSecondary,
-                context: context,
+              Expanded(
+                child: _MetaItem(
+                  icon: HugeIcons.strokeRoundedFiles01,
+                  label: 'evidence_folder.limit_label'.tr(),
+                  value: 'evidence_folder.files_count'.tr(namedArgs: {
+                    'count': '${section.maxFiles}',
+                  }),
+                  color: c.textSecondary,
+                  context: context,
+                ),
               ),
             ],
           ),
@@ -473,12 +468,16 @@ class _MetaItem extends StatelessWidget {
           children: [
             HugeIcon(icon: icon, size: 13, color: color),
             const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: context.sac.textTertiary,
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: context.sac.textTertiary,
+                ),
               ),
             ),
           ],
