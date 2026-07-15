@@ -26,11 +26,14 @@ class EvidenceFolderHero extends StatelessWidget {
       'earned': '${folder.earnedPoints}',
       'max': '${folder.maxPoints}',
     });
+    final overviewLabel = 'evidence_folder.overview_label'.tr(namedArgs: {
+      'name': folder.name,
+    });
 
     return Semantics(
       key: const ValueKey('evidence-folder-hero'),
       container: true,
-      label: 'AVANCE: $percentage%, $pointsLabel, ${status.label}',
+      label: '$overviewLabel: $percentage%, $pointsLabel, ${status.label}',
       child: Container(
         margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
@@ -50,7 +53,7 @@ class EvidenceFolderHero extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    folder.name,
+                    overviewLabel,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -58,16 +61,6 @@ class EvidenceFolderHero extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                       color: c.textTertiary,
                       letterSpacing: 0.88,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'AVANCE',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: c.textTertiary,
-                      letterSpacing: 1.1,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -350,6 +343,9 @@ class EvidenceSectionSearchField extends StatelessWidget {
                       button: true,
                       label: 'common.clear'.tr(),
                       child: SizedBox(
+                        key: const ValueKey(
+                          'evidence-section-search-clear',
+                        ),
                         width: 48,
                         height: 48,
                         child: IconButton(
@@ -412,7 +408,7 @@ class EvidenceSearchEmpty extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'evidence_folder.search_empty_hint'.tr(),
+            'evidence_folder.no_results_body'.tr(),
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: c.textSecondary,

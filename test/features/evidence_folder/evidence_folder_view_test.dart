@@ -26,13 +26,25 @@ void main() {
     translations = jsonDecode(
       await File('assets/translations/es.json').readAsString(),
     ) as Map<String, dynamic>;
+    final evidenceFolderTranslations = Map<String, dynamic>.from(
+      translations['evidence_folder'] as Map<String, dynamic>,
+    )..addAll({
+        'overview_label': '{name} · Avance',
+        'search_hint': 'Buscar sección de evidencia…',
+        'no_results_body': 'Intenta con otro nombre o descripción.',
+      });
+    translations = {
+      ...translations,
+      'evidence_folder': evidenceFolderTranslations,
+    };
   });
 
   Future<void> pumpEvidenceFolder(
     WidgetTester tester, {
     EvidenceFolder? folder,
+    double viewportHeight = 2000,
   }) async {
-    tester.view.physicalSize = const Size(1200, 2000);
+    tester.view.physicalSize = Size(1200, viewportHeight);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -71,11 +83,18 @@ void main() {
     final hero = find.byKey(const ValueKey('evidence-folder-hero'));
     expect(hero, findsOneWidget);
     expect(
-      find.descendant(of: hero, matching: find.text('Carpeta 2026')),
+      find.descendant(
+        of: hero,
+        matching: find.text('Carpeta 2026 · Avance'),
+      ),
       findsOneWidget,
     );
     expect(
       find.descendant(of: hero, matching: find.text('62%')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: hero, matching: find.text('31 / 50 pts')),
       findsOneWidget,
     );
 
@@ -144,6 +163,33 @@ void main() {
     expect(find.text('Health and Safety'), findsNothing);
   });
 
+  testWidgets('clears the query and restores the complete section list',
+      (tester) async {
+    await pumpEvidenceFolder(tester, viewportHeight: 5000);
+
+    final searchField = find.byKey(const ValueKey('evidence-section-search'));
+    await tester.enterText(searchField, 'Administration Records');
+    await tester.pumpAndSettle();
+    expect(find.byType(SectionCard), findsOneWidget);
+
+    final clearAction =
+        find.byKey(const ValueKey('evidence-section-search-clear'));
+    expect(clearAction, findsOneWidget);
+    expect(tester.getSize(clearAction).width, greaterThanOrEqualTo(48));
+    expect(tester.getSize(clearAction).height, greaterThanOrEqualTo(48));
+
+    await tester.tap(clearAction);
+    await tester.pump();
+
+    final field = tester.widget<TextField>(searchField);
+    expect(field.controller?.text, isEmpty);
+    expect(
+      find.byType(SectionCard),
+      findsNWidgets(_evidenceFolderFixture.sections.length),
+    );
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('shows a no-results state when no section matches',
       (tester) async {
     await pumpEvidenceFolder(tester);
@@ -157,6 +203,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('No se encontraron resultados'), findsOneWidget);
+    expect(
+      find.text('Intenta con otro nombre o descripción.'),
+      findsOneWidget,
+    );
     for (final section in _evidenceFolderFixture.sections) {
       expect(find.text(section.name), findsNothing);
     }
