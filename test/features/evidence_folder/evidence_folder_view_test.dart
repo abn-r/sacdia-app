@@ -55,13 +55,21 @@ void main() {
       (tester) async {
     await pumpEvidenceFolder(tester);
 
-    expect(find.byKey(const ValueKey('evidence-folder-hero')), findsOneWidget);
-    expect(find.text('62%'), findsOneWidget);
+    final hero = find.byKey(const ValueKey('evidence-folder-hero'));
+    expect(hero, findsOneWidget);
+    expect(
+      find.descendant(of: hero, matching: find.text('Carpeta 2026')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: hero, matching: find.text('62%')),
+      findsOneWidget,
+    );
 
-    _expectStatusCount('evidence-status-validated', 1);
-    _expectStatusCount('evidence-status-preapproved', 1);
-    _expectStatusCount('evidence-status-submitted', 1);
-    _expectStatusCount('evidence-status-rejected', 1);
+    _expectStatusCount('evidence-status-validated', 4);
+    _expectStatusCount('evidence-status-preapproved', 3);
+    _expectStatusCount('evidence-status-submitted', 2);
+    _expectStatusCount('evidence-status-rejected', 5);
     _expectStatusCount('evidence-status-pending', 1);
   });
 
@@ -162,38 +170,55 @@ final _evidenceFolderFixture = EvidenceFolder(
         ),
       ],
     ),
-    const EvidenceSection(
-      id: 'section-submitted',
-      name: 'Community Service',
-      description: 'Unique MISSION Archive for neighborhood outreach',
-      pointValue: 10,
-      percentage: 20,
+    ..._sectionsForStatus(
       status: EvidenceSectionStatus.submitted,
+      count: 2,
+      idPrefix: 'submitted',
+      firstName: 'Community Service',
+      firstDescription: 'Unique MISSION Archive for neighborhood outreach',
     ),
-    const EvidenceSection(
-      id: 'section-preapproved',
-      name: 'Camporee Readiness',
-      description: 'Equipment checklist verified by the local field',
-      pointValue: 10,
-      percentage: 20,
+    ..._sectionsForStatus(
       status: EvidenceSectionStatus.preapprovedLf,
+      count: 3,
+      idPrefix: 'preapproved',
+      firstName: 'Camporee Readiness',
+      firstDescription: 'Equipment checklist verified by the local field',
     ),
-    const EvidenceSection(
-      id: 'section-validated',
-      name: 'Leadership Training',
-      description: 'Mentor development attendance records',
-      pointValue: 10,
-      percentage: 20,
+    ..._sectionsForStatus(
       status: EvidenceSectionStatus.validated,
-      earnedPoints: 10,
+      count: 4,
+      idPrefix: 'validated',
+      firstName: 'Leadership Training',
+      firstDescription: 'Mentor development attendance records',
     ),
-    const EvidenceSection(
-      id: 'section-rejected',
-      name: 'Health and Safety',
-      description: 'First-aid procedure awaiting corrections',
-      pointValue: 10,
-      percentage: 20,
+    ..._sectionsForStatus(
       status: EvidenceSectionStatus.rejected,
+      count: 5,
+      idPrefix: 'rejected',
+      firstName: 'Health and Safety',
+      firstDescription: 'First-aid procedure awaiting corrections',
     ),
   ],
 );
+
+List<EvidenceSection> _sectionsForStatus({
+  required EvidenceSectionStatus status,
+  required int count,
+  required String idPrefix,
+  required String firstName,
+  required String firstDescription,
+}) {
+  return List.generate(
+    count,
+    (index) => EvidenceSection(
+      id: 'section-$idPrefix-${index + 1}',
+      name: index == 0 ? firstName : '$firstName ${index + 1}',
+      description:
+          index == 0 ? firstDescription : '$firstDescription ${index + 1}',
+      pointValue: 10,
+      percentage: 20,
+      status: status,
+      earnedPoints: status == EvidenceSectionStatus.validated ? 10 : 0,
+    ),
+  );
+}
