@@ -11,6 +11,7 @@ import 'package:sacdia_app/features/evidence_folder/domain/entities/evidence_fol
 import 'package:sacdia_app/features/evidence_folder/domain/entities/evidence_section.dart';
 import 'package:sacdia_app/features/evidence_folder/presentation/providers/evidence_folder_providers.dart';
 import 'package:sacdia_app/features/evidence_folder/presentation/views/evidence_folder_view.dart';
+import 'package:sacdia_app/features/evidence_folder/presentation/views/evidence_section_detail_view.dart';
 import 'package:sacdia_app/features/evidence_folder/presentation/widgets/section_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -142,6 +143,116 @@ void main() {
     expect(find.text('Community Service'), findsNothing);
     expect(find.text('Leadership Training'), findsNothing);
     expect(find.text('Health and Safety'), findsNothing);
+  });
+
+  testWidgets('groups compact section rows and shows their summary',
+      (tester) async {
+    await pumpEvidenceFolder(tester, viewportHeight: 5000);
+
+    final groupedCard = find.byKey(const ValueKey('evidence-sections-card'));
+    final pendingRow =
+        find.byKey(const ValueKey('evidence-section-section-pending'));
+
+    expect(groupedCard, findsOneWidget);
+    for (final section in _evidenceFolderFixture.sections) {
+      expect(
+        find.descendant(
+          of: groupedCard,
+          matching: find.byKey(ValueKey('evidence-section-${section.id}')),
+        ),
+        findsOneWidget,
+      );
+    }
+    expect(
+      find.descendant(of: groupedCard, matching: pendingRow),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: pendingRow,
+        matching: find.text('Administration Records'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: pendingRow, matching: find.text('Pendiente')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: pendingRow, matching: find.text('0 / 10 pts')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: pendingRow, matching: find.text('1 / 5 archivos')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('opens section detail when a compact row is tapped',
+      (tester) async {
+    await pumpEvidenceFolder(tester);
+
+    final pendingRow =
+        find.byKey(const ValueKey('evidence-section-section-pending'));
+    expect(pendingRow, findsOneWidget);
+
+    await tester.tap(pendingRow);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(EvidenceSectionDetailView), findsOneWidget);
+  });
+
+  testWidgets('shows send action for a submittable row in an open folder',
+      (tester) async {
+    await pumpEvidenceFolder(tester);
+
+    final pendingRow =
+        find.byKey(const ValueKey('evidence-section-section-pending'));
+    final pendingSendAction = find.descendant(
+      of: pendingRow,
+      matching: find.byKey(
+        const ValueKey('evidence-section-submit-section-pending'),
+      ),
+    );
+    expect(pendingSendAction, findsOneWidget);
+    expect(tester.getSize(pendingSendAction).width, greaterThanOrEqualTo(48));
+    expect(tester.getSize(pendingSendAction).height, greaterThanOrEqualTo(48));
+  });
+
+  testWidgets('hides send action when the folder is closed', (tester) async {
+    await pumpEvidenceFolder(tester, folder: _closedFolderFixture);
+
+    final closedPendingRow =
+        find.byKey(const ValueKey('evidence-section-section-pending'));
+    expect(closedPendingRow, findsOneWidget);
+    expect(
+      find.descendant(
+        of: closedPendingRow,
+        matching: find.text('Enviar a validación'),
+      ),
+      findsNothing,
+    );
+  });
+
+  testWidgets('send action confirms without opening section detail',
+      (tester) async {
+    await pumpEvidenceFolder(tester);
+
+    final pendingRow =
+        find.byKey(const ValueKey('evidence-section-section-pending'));
+    final sendAction = find.descendant(
+      of: pendingRow,
+      matching: find.byKey(
+        const ValueKey('evidence-section-submit-section-pending'),
+      ),
+    );
+    expect(sendAction, findsOneWidget);
+
+    await tester.tap(sendAction);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Enviar sección a validación'), findsOneWidget);
+    expect(find.byType(EvidenceSectionDetailView), findsNothing);
   });
 
   testWidgets('filters sections by description without matching case',
@@ -307,6 +418,20 @@ const _submittedFolderFixture = EvidenceFolder(
   progressPercentage: 40,
   status: 'submitted',
   sections: [],
+);
+
+final _closedFolderFixture = EvidenceFolder(
+  folderId: 'folder-closed',
+  id: 'template-closed',
+  name: 'Carpeta cerrada',
+  isOpen: false,
+  totalPoints: 100,
+  totalPercentage: 100,
+  totalEarnedPoints: 31,
+  totalMaxPoints: 50,
+  progressPercentage: 62,
+  status: 'closed',
+  sections: _evidenceFolderFixture.sections,
 );
 
 List<EvidenceSection> _sectionsForStatus({

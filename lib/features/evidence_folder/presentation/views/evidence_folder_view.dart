@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/animations/page_transitions.dart';
-import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -295,27 +294,51 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
             ),
           ),
 
-          // Sections list
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final section = filteredSections[index];
-                return StaggeredListItem(
-                  index: index,
-                  child: SectionCard(
-                    section: section,
-                    folderIsOpen: folder.isOpen,
-                    onTap: () => _openSectionDetail(section),
-                    onSubmit: folder.isOpen && section.canSubmit
-                        ? () => _handleSectionSubmit(section)
-                        : null,
-                    isSubmitting: _submittingSectionId == section.id,
+          // Compact sections grouped inside one paper container.
+          if (filteredSections.isNotEmpty)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Material(
+                  key: const ValueKey('evidence-sections-card'),
+                  color: c.surface,
+                  clipBehavior: Clip.antiAlias,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(color: c.border),
                   ),
-                );
-              },
-              childCount: filteredSections.length,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      for (var index = 0;
+                          index < filteredSections.length;
+                          index++) ...[
+                        if (index > 0)
+                          Divider(
+                            height: 1,
+                            thickness: 1,
+                            color: c.divider,
+                          ),
+                        SectionCard(
+                          section: filteredSections[index],
+                          folderIsOpen: folder.isOpen,
+                          onTap: () =>
+                              _openSectionDetail(filteredSections[index]),
+                          onSubmit:
+                              folder.isOpen && filteredSections[index].canSubmit
+                                  ? () => _handleSectionSubmit(
+                                        filteredSections[index],
+                                      )
+                                  : null,
+                          isSubmitting: _submittingSectionId ==
+                              filteredSections[index].id,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ),
 
           SliverToBoxAdapter(
             child: folder.sections.isEmpty
