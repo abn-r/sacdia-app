@@ -2562,6 +2562,9 @@
       "create_folder_empty": "The folder was requested, but it is not available yet. Try refreshing."
     },
     "title": "Annual Evidence Folder",
+    "overview_label": "{name} · PROGRESS",
+    "search_hint": "Search evidence section…",
+    "no_results_body": "Try another name or description.",
     "section_title": "Section",
     "send": "Send",
     "stay": "Stay",
@@ -2587,6 +2590,8 @@
     "stats": {
       "pending": "Pending",
       "submitted": "Submitted",
+      "preapproved": "Pre-approved",
+      "rejected": "Rejected",
       "validated": "Validated"
     },
     "sections_title": "Sections",

@@ -2562,6 +2562,9 @@
       "create_folder_empty": "A pasta foi solicitada, mas ainda não está disponível. Tente atualizar."
     },
     "title": "Pasta Anual de Evidências",
+    "overview_label": "{name} · PROGRESSO",
+    "search_hint": "Buscar seção de evidências…",
+    "no_results_body": "Tente outro nome ou descrição.",
     "section_title": "Seção",
     "send": "Enviar",
     "stay": "Ficar",
@@ -2587,6 +2590,8 @@
     "stats": {
       "pending": "Pendentes",
       "submitted": "Enviadas",
+      "preapproved": "Pré-aprovadas",
+      "rejected": "Rejeitadas",
       "validated": "Validadas"
     },
     "sections_title": "Seções",

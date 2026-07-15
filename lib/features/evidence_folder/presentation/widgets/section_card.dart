@@ -5,7 +5,6 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/evidence_section.dart';
-import 'section_status_badge.dart';
 
 /// Compact row that summarizes an [EvidenceSection] inside the grouped list.
 class SectionCard extends StatelessWidget {
@@ -36,9 +35,6 @@ class SectionCard extends StatelessWidget {
     final dateFormat = DateFormat('d MMM yyyy, HH:mm', 'es');
     final showSubmitAction =
         folderIsOpen && section.canSubmit && onSubmit != null;
-    final textScaler = MediaQuery.textScalerOf(context).clamp(
-      maxScaleFactor: 1.3,
-    );
 
     return Material(
       key: ValueKey('evidence-section-${section.id}'),
@@ -63,7 +59,6 @@ class SectionCard extends StatelessWidget {
                           section.name,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          textScaler: textScaler,
                           style:
                               Theme.of(context).textTheme.titleSmall?.copyWith(
                                     fontWeight: FontWeight.w700,
@@ -78,7 +73,6 @@ class SectionCard extends StatelessWidget {
                             description,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            textScaler: textScaler,
                             style:
                                 Theme.of(context).textTheme.bodySmall?.copyWith(
                                       color: c.textSecondary,
@@ -92,7 +86,7 @@ class SectionCard extends StatelessWidget {
                           runSpacing: 6,
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
-                            SectionStatusBadge(status: section.status),
+                            _CompactStatusLabel(status: section.status),
                             _CompactMetric(
                               icon: HugeIcons.strokeRoundedStar,
                               label:
@@ -208,19 +202,54 @@ class _CompactMetric extends StatelessWidget {
 
     return Row(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        HugeIcon(icon: icon, size: 13, color: c.textSecondary),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: c.textSecondary,
-                fontWeight: FontWeight.w600,
-              ),
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: HugeIcon(icon: icon, size: 13, color: c.textSecondary),
+        ),
+        const SizedBox(width: 5),
+        Flexible(
+          child: Text(
+            label,
+            softWrap: true,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: c.textSecondary,
+                  fontWeight: FontWeight.w600,
+                  height: 1.25,
+                ),
+          ),
         ),
       ],
+    );
+  }
+}
+
+class _CompactStatusLabel extends StatelessWidget {
+  final EvidenceSectionStatus status;
+
+  const _CompactStatusLabel({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _statusColor(status);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        _statusLabel(status),
+        softWrap: true,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w700,
+              height: 1.2,
+            ),
+      ),
     );
   }
 }
@@ -328,9 +357,13 @@ class _SubmitSectionButton extends StatelessWidget {
             onTap: isSubmitting ? () {} : onSubmit,
             borderRadius: BorderRadius.circular(12),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 8,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   if (isSubmitting)
                     SizedBox(
@@ -349,14 +382,19 @@ class _SubmitSectionButton extends StatelessWidget {
                       color: AppColors.info,
                     ),
                   const SizedBox(width: 8),
-                  Text(
-                    isSubmitting
-                        ? 'evidence_folder.sending'.tr()
-                        : 'evidence_folder.send_to_validation'.tr(),
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.info,
+                  Flexible(
+                    child: Text(
+                      isSubmitting
+                          ? 'evidence_folder.sending'.tr()
+                          : 'evidence_folder.send_to_validation'.tr(),
+                      textAlign: TextAlign.center,
+                      softWrap: true,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.info,
+                        height: 1.2,
+                      ),
                     ),
                   ),
                 ],

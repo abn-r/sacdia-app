@@ -43,9 +43,10 @@ void main() {
   Future<void> pumpEvidenceFolder(
     WidgetTester tester, {
     EvidenceFolder? folder,
+    double viewportWidth = 1200,
     double viewportHeight = 2000,
   }) async {
-    tester.view.physicalSize = Size(1200, viewportHeight);
+    tester.view.physicalSize = Size(viewportWidth, viewportHeight);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -253,6 +254,52 @@ void main() {
 
     expect(find.text('Enviar sección a validación'), findsOneWidget);
     expect(find.byType(EvidenceSectionDetailView), findsNothing);
+  });
+
+  testWidgets('compact rows honor large text without layout overflow',
+      (tester) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(
+      tester.platformDispatcher.clearTextScaleFactorTestValue,
+    );
+
+    await pumpEvidenceFolder(
+      tester,
+      viewportWidth: 320,
+      viewportHeight: 844,
+    );
+
+    final groupedCard = find.byKey(const ValueKey('evidence-sections-card'));
+    await tester.scrollUntilVisible(
+      groupedCard,
+      240,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
+    final pendingRow =
+        find.byKey(const ValueKey('evidence-section-section-pending'));
+    final pendingTitle = find.descendant(
+      of: pendingRow,
+      matching: find.text('Administration Records'),
+    );
+    final sendAction = find.descendant(
+      of: pendingRow,
+      matching: find.byKey(
+        const ValueKey('evidence-section-submit-section-pending'),
+      ),
+    );
+
+    expect(groupedCard, findsOneWidget);
+    expect(pendingRow, findsOneWidget);
+    expect(sendAction, findsOneWidget);
+    expect(tester.getSize(sendAction).height, greaterThanOrEqualTo(48));
+    expect(
+      MediaQuery.textScalerOf(tester.element(pendingTitle)).scale(10),
+      20,
+    );
+    expect(tester.widget<Text>(pendingTitle).textScaler, isNull);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('filters sections by description without matching case',

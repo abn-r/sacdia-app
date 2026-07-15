@@ -2562,6 +2562,9 @@
       "create_folder_empty": "La carpeta fue solicitada, pero aún no está disponible. Intenta actualizar."
     },
     "title": "Carpeta Anual de Evidencias",
+    "overview_label": "{name} · AVANCE",
+    "search_hint": "Buscar sección de evidencia…",
+    "no_results_body": "Intenta con otro nombre o descripción.",
     "section_title": "Sección",
     "send": "Enviar",
     "stay": "Quedarme",
@@ -2587,6 +2590,8 @@
     "stats": {
       "pending": "Pendientes",
       "submitted": "Enviadas",
+      "preapproved": "Preaprobadas",
+      "rejected": "Rechazadas",
       "validated": "Validadas"
     },
     "sections_title": "Secciones",
