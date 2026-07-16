@@ -18,6 +18,7 @@ import '../../domain/entities/join_request.dart';
 import '../providers/members_providers.dart';
 import '../widgets/join_request_card.dart';
 import '../widgets/member_card.dart';
+import '../widgets/member_class_group_header.dart';
 import '../widgets/members_filter_bar.dart';
 import 'member_profile_view.dart';
 import 'role_assignment_view.dart';
@@ -285,7 +286,7 @@ class _MembersTab extends ConsumerWidget {
         for (final entry in entries) {
           // Header
           if (flatIndex == cursor) {
-            return _ClassGroupHeader(
+            return MemberClassGroupHeader(
               label: entry.key,
               count: entry.value.length,
             );
@@ -553,51 +554,6 @@ class _PendingBadge extends StatelessWidget {
           color: Colors.white,
         ),
       ),
-    );
-  }
-}
-
-/// Header de grupo de clase con label y conteo de miembros
-class _ClassGroupHeader extends StatelessWidget {
-  final String label;
-  final int count;
-
-  const _ClassGroupHeader({
-    required this.label,
-    required this.count,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Row(
-      children: [
-        Text(
-          label.toUpperCase(),
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: c.textTertiary,
-            letterSpacing: 0.8,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.10),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Text(
-            '$count',
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primary,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
