@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
+import '../../../../core/widgets/fixed_input_icon_slot.dart';
 import '../../domain/entities/unit.dart';
 import '../../domain/usecases/get_unit_detail.dart';
 import '../../../members/domain/entities/club_member.dart';
@@ -809,8 +810,11 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
                 hintText: 'units.form.search_hint'.tr(),
-                prefixIcon: const HugeIcon(
-                    icon: HugeIcons.strokeRoundedSearch01, size: 20),
+                prefixIconConstraints: FixedInputIconSlot.constraints,
+                prefixIcon: FixedInputIconSlot(
+                  icon: HugeIcons.strokeRoundedSearch01,
+                  color: c.textTertiary,
+                ),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
                         icon: const HugeIcon(
@@ -1062,8 +1066,11 @@ class _MultiMemberPickerSheetState extends State<_MultiMemberPickerSheet> {
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
                 hintText: 'units.form.search_hint'.tr(),
-                prefixIcon: const HugeIcon(
-                    icon: HugeIcons.strokeRoundedSearch01, size: 20),
+                prefixIconConstraints: FixedInputIconSlot.constraints,
+                prefixIcon: FixedInputIconSlot(
+                  icon: HugeIcons.strokeRoundedSearch01,
+                  color: c.textTertiary,
+                ),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
                         icon: const HugeIcon(

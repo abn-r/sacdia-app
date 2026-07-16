@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
@@ -719,8 +720,13 @@ class _CamporeePaymentFormSheetState
     return InputDecoration(
       hintText: hintText,
       hintStyle: TextStyle(fontSize: 13, color: c.textTertiary),
+      prefixIconConstraints: FixedInputIconSlot.constraints,
       prefixIcon: prefixIcon != null
-          ? HugeIcon(icon: prefixIcon, color: c.textTertiary, size: 18)
+          ? FixedInputIconSlot(
+              icon: prefixIcon,
+              color: c.textTertiary,
+              iconSize: 18,
+            )
           : null,
       filled: true,
       fillColor: c.surface,

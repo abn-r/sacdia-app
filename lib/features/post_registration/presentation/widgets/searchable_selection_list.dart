@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/fixed_input_icon_slot.dart';
 
 /// Item seleccionable con checkbox
 class SelectableItem {
@@ -141,8 +142,12 @@ class _SearchableSelectionListState extends State<SearchableSelectionList> {
             controller: _searchController,
             decoration: InputDecoration(
               hintText: widget.searchHint ?? tr('common.search'),
-              prefixIcon:
-                  HugeIcon(icon: HugeIcons.strokeRoundedSearch01, size: 22),
+              prefixIconConstraints: FixedInputIconSlot.constraints,
+              prefixIcon: FixedInputIconSlot(
+                icon: HugeIcons.strokeRoundedSearch01,
+                iconSize: 22,
+                color: context.sac.textTertiary,
+              ),
               suffixIcon: _searchQuery.isNotEmpty
                   ? IconButton(
                       icon: HugeIcon(

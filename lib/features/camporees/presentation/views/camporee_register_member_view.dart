@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -558,13 +559,11 @@ class _MemberPickerSheetState extends ConsumerState<_MemberPickerSheet> {
                         controller: _searchController,
                         onChanged: (value) => setState(() => _query = value),
                         decoration: InputDecoration(
-                          prefixIcon: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: HugeIcon(
-                              icon: HugeIcons.strokeRoundedSearch01,
-                              size: 18,
-                              color: c.textTertiary,
-                            ),
+                          prefixIconConstraints: FixedInputIconSlot.constraints,
+                          prefixIcon: FixedInputIconSlot(
+                            icon: HugeIcons.strokeRoundedSearch01,
+                            iconSize: 18,
+                            color: c.textTertiary,
                           ),
                           hintText:
                               'camporees.register_member.search_hint'.tr(),

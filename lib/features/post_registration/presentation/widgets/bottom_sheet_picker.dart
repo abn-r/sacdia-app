@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Generic item model
@@ -307,8 +308,11 @@ class _BottomSheetPickerSheetState extends State<BottomSheetPickerSheet> {
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
                 hintText: widget.searchHint ?? tr('common.search'),
-                prefixIcon: const HugeIcon(
-                    icon: HugeIcons.strokeRoundedSearch01, size: 20),
+                prefixIconConstraints: FixedInputIconSlot.constraints,
+                prefixIcon: const FixedInputIconSlot(
+                  icon: HugeIcons.strokeRoundedSearch01,
+                  color: Colors.black,
+                ),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
                         icon: const HugeIcon(

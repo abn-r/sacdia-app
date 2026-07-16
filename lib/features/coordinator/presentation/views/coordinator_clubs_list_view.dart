@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/coordinator_club.dart';
 import 'package:sacdia_app/features/coordinator/presentation/providers/coordinator_providers.dart';
 
@@ -188,10 +189,11 @@ class _ClubSearchBarState extends ConsumerState<_ClubSearchBar> {
         decoration: InputDecoration(
           hintText: 'coordinator.clubs.search_hint'.tr(),
           hintStyle: TextStyle(color: c.textTertiary, fontSize: 14),
-          prefixIcon: HugeIcon(
+          prefixIconConstraints: FixedInputIconSlot.constraints,
+          prefixIcon: FixedInputIconSlot(
             icon: HugeIcons.strokeRoundedSearch01,
             color: c.textTertiary,
-            size: 20,
+            iconSize: 20,
           ),
           suffixIcon: _controller.text.isNotEmpty
               ? IconButton(

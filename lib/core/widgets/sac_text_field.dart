@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 
 class SacTextField extends StatefulWidget {
   final TextEditingController? controller;
@@ -172,10 +173,7 @@ class _SacTextFieldState extends State<SacTextField> {
                       ? context.sac.surface
                       : context.sac.surfaceVariant,
                   prefixIcon: _buildPrefixIcon(),
-                  prefixIconConstraints: const BoxConstraints(
-                    minWidth: 40,
-                    minHeight: 0,
-                  ),
+                  prefixIconConstraints: FixedInputIconSlot.constraints,
                   suffixIcon: _buildSuffixIcon(),
                   // Ocultar error interno — se muestra debajo del contenedor
                   errorStyle: const TextStyle(height: 0, fontSize: 0),
@@ -206,13 +204,9 @@ class _SacTextFieldState extends State<SacTextField> {
   Widget? _buildPrefixIcon() {
     if (widget.prefixIcon == null) return null;
 
-    return Padding(
-      padding: const EdgeInsets.only(left: 15, right: 8),
-      child: HugeIcon(
-        icon: widget.prefixIcon!,
-        size: 20,
-        color: context.sac.textSecondary,
-      ),
+    return FixedInputIconSlot(
+      icon: widget.prefixIcon!,
+      color: context.sac.textSecondary,
     );
   }
 

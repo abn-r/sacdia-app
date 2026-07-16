@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
@@ -156,10 +157,11 @@ class _CamporeeEnrollClubViewState
                     decoration: InputDecoration(
                       hintText: 'camporees.enroll_club.section_id_hint'.tr(),
                       hintStyle: TextStyle(fontSize: 13, color: c.textTertiary),
-                      prefixIcon: HugeIcon(
+                      prefixIconConstraints: FixedInputIconSlot.constraints,
+                      prefixIcon: FixedInputIconSlot(
                         icon: HugeIcons.strokeRoundedBuilding01,
                         color: c.textTertiary,
-                        size: 18,
+                        iconSize: 18,
                       ),
                       filled: true,
                       fillColor: c.background,

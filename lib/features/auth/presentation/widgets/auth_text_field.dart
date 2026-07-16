@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 
 /// Widget reutilizable para campos de texto en vistas de autenticación
 class AuthTextField extends StatefulWidget {
@@ -35,11 +36,12 @@ class _AuthTextFieldState extends State<AuthTextField> {
       controller: widget.controller,
       decoration: InputDecoration(
         hintText: widget.hintText,
-        prefixIcon: HugeIcon(
+        prefixIcon: FixedInputIconSlot(
           icon: widget.icon,
           color: context.sac.textTertiary,
-          size: 24,
+          iconSize: 24,
         ),
+        prefixIconConstraints: FixedInputIconSlot.constraints,
         suffixIcon: widget.obscureText
             ? IconButton(
                 icon: HugeIcon(

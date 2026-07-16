@@ -8,6 +8,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/widgets/sac_back_button.dart';
+import '../../../../core/widgets/fixed_input_icon_slot.dart';
 import '../../domain/entities/faq_item.dart';
 import '../providers/support_providers.dart';
 
@@ -276,10 +277,11 @@ class _FaqSearchField extends StatelessWidget {
           fillColor: c.surface,
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-          prefixIcon: HugeIcon(
+          prefixIconConstraints: FixedInputIconSlot.constraints,
+          prefixIcon: FixedInputIconSlot(
             icon: HugeIcons.strokeRoundedSearch01,
             color: c.textSecondary,
-            size: 24,
+            iconSize: 24,
           ),
           suffixIcon: controller.text.isEmpty
               ? null

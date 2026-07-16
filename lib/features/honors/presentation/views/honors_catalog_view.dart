@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 
 import '../../domain/entities/honor.dart';
 import '../theme/honor_category_palette.dart';
@@ -314,10 +315,11 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
                     color: context.sac.textTertiary,
                     fontSize: 14,
                   ),
-                  prefixIcon: HugeIcon(
+                  prefixIconConstraints: FixedInputIconSlot.constraints,
+                  prefixIcon: FixedInputIconSlot(
                     icon: HugeIcons.strokeRoundedSearch01,
                     color: context.sac.textSecondary,
-                    size: 20,
+                    iconSize: 20,
                   ),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(

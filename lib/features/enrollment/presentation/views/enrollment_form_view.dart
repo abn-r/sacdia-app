@@ -9,6 +9,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/widgets/sac_button.dart';
+import '../../../../core/widgets/fixed_input_icon_slot.dart';
 import '../../../activities/presentation/views/location_picker_view.dart';
 import '../../../activities/presentation/widgets/activity_form_widgets.dart';
 import '../../../members/domain/entities/club_member.dart';
@@ -805,10 +806,11 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
   }) {
     return InputDecoration(
       hintText: hintText,
-      prefixIcon: HugeIcon(
+      prefixIconConstraints: FixedInputIconSlot.constraints,
+      prefixIcon: FixedInputIconSlot(
         icon: prefixIcon,
         color: c.textTertiary,
-        size: 20,
+        iconSize: 20,
       ),
       filled: true,
       fillColor: c.surface,
@@ -1663,10 +1665,11 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
               onChanged: (v) => setState(() => _searchQuery = v),
               decoration: InputDecoration(
                 hintText: 'enrollment.picker.search_hint'.tr(),
-                prefixIcon: HugeIcon(
+                prefixIconConstraints: FixedInputIconSlot.constraints,
+                prefixIcon: FixedInputIconSlot(
                   icon: HugeIcons.strokeRoundedSearch01,
                   color: c.textTertiary,
-                  size: 18,
+                  iconSize: 18,
                 ),
                 filled: true,
                 fillColor: c.background,

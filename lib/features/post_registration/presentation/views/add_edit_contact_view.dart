@@ -8,6 +8,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_text_field.dart';
+import '../../../../core/widgets/fixed_input_icon_slot.dart';
 import '../../data/models/emergency_contact_model.dart';
 import '../../data/models/relationship_type_model.dart';
 import '../providers/personal_info_providers.dart';
@@ -584,8 +585,11 @@ class _RelationshipTypePickerSheetState
                 hintText:
                     'post_registration.contact_form.relationship_search_hint'
                         .tr(),
-                prefixIcon: const HugeIcon(
-                    icon: HugeIcons.strokeRoundedSearch01, size: 20),
+                prefixIconConstraints: FixedInputIconSlot.constraints,
+                prefixIcon: FixedInputIconSlot(
+                  icon: HugeIcons.strokeRoundedSearch01,
+                  color: context.sac.textTertiary,
+                ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 12,

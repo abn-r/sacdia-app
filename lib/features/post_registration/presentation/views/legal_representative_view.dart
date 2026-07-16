@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../data/models/legal_representative_model.dart';
 import '../providers/personal_info_providers.dart';
@@ -223,8 +224,12 @@ class _LegalRepresentativeViewState
                         labelText:
                             'post_registration.legal_representative.type_label'
                                 .tr(),
-                        prefixIcon: const HugeIcon(
-                            icon: HugeIcons.strokeRoundedUserGroup, size: 22),
+                        prefixIconConstraints: FixedInputIconSlot.constraints,
+                        prefixIcon: FixedInputIconSlot(
+                          icon: HugeIcons.strokeRoundedUserGroup,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          iconSize: 22,
+                        ),
                         border: const OutlineInputBorder(),
                       ),
                       items: types.map((type) {
@@ -264,8 +269,12 @@ class _LegalRepresentativeViewState
                 hintText:
                     'post_registration.legal_representative.first_name_hint'
                         .tr(),
-                prefixIcon:
-                    const HugeIcon(icon: HugeIcons.strokeRoundedUser, size: 22),
+                prefixIconConstraints: FixedInputIconSlot.constraints,
+                prefixIcon: FixedInputIconSlot(
+                  icon: HugeIcons.strokeRoundedUser,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  iconSize: 22,
+                ),
                 border: const OutlineInputBorder(),
               ),
               textCapitalization: TextCapitalization.words,
@@ -294,8 +303,12 @@ class _LegalRepresentativeViewState
                 hintText:
                     'post_registration.legal_representative.paternal_surname_hint'
                         .tr(),
-                prefixIcon:
-                    const HugeIcon(icon: HugeIcons.strokeRoundedUser, size: 22),
+                prefixIconConstraints: FixedInputIconSlot.constraints,
+                prefixIcon: FixedInputIconSlot(
+                  icon: HugeIcons.strokeRoundedUser,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  iconSize: 22,
+                ),
                 border: const OutlineInputBorder(),
               ),
               textCapitalization: TextCapitalization.words,
@@ -324,8 +337,12 @@ class _LegalRepresentativeViewState
                 hintText:
                     'post_registration.legal_representative.maternal_surname_hint'
                         .tr(),
-                prefixIcon:
-                    const HugeIcon(icon: HugeIcons.strokeRoundedUser, size: 22),
+                prefixIconConstraints: FixedInputIconSlot.constraints,
+                prefixIcon: FixedInputIconSlot(
+                  icon: HugeIcons.strokeRoundedUser,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  iconSize: 22,
+                ),
                 border: const OutlineInputBorder(),
               ),
               textCapitalization: TextCapitalization.words,
@@ -352,8 +369,12 @@ class _LegalRepresentativeViewState
                     'post_registration.legal_representative.phone_label'.tr(),
                 hintText:
                     'post_registration.legal_representative.phone_hint'.tr(),
-                prefixIcon:
-                    const HugeIcon(icon: HugeIcons.strokeRoundedCall, size: 22),
+                prefixIconConstraints: FixedInputIconSlot.constraints,
+                prefixIcon: FixedInputIconSlot(
+                  icon: HugeIcons.strokeRoundedCall,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  iconSize: 22,
+                ),
                 border: const OutlineInputBorder(),
               ),
               keyboardType: TextInputType.phone,

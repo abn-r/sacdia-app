@@ -9,6 +9,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
+import '../../../../core/widgets/fixed_input_icon_slot.dart';
 import '../providers/inventory_providers.dart';
 
 // ── Compact stats row ───────────────────────────────────────────────────────────
@@ -332,13 +333,11 @@ class InventoryFilterBar extends StatelessWidget {
                 hintText: 'inventory.summary_header.search_hint'.tr(),
                 hintStyle:
                     TextStyle(color: context.sac.textTertiary, fontSize: 14),
-                prefixIcon: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedSearch01,
-                    size: 18,
-                    color: context.sac.textTertiary,
-                  ),
+                prefixIconConstraints: FixedInputIconSlot.constraints,
+                prefixIcon: FixedInputIconSlot(
+                  icon: HugeIcons.strokeRoundedSearch01,
+                  iconSize: 18,
+                  color: context.sac.textTertiary,
                 ),
                 suffixIcon: searchController.text.isNotEmpty
                     ? IconButton(

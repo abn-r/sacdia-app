@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 
 @Deprecated(
     'Use SacTextField from sac_widgets.dart. Will be removed in a future release.')
@@ -165,6 +166,7 @@ class CustomTextFieldState extends State<CustomTextField> {
                   fillColor: context.sac.surface,
                   filled: true,
                   prefixIcon: _buildPrefixIcon(),
+                  prefixIconConstraints: FixedInputIconSlot.constraints,
                   suffixIcon: widget.obscureText
                       ? IconButton(
                           icon: _obscureText
@@ -209,10 +211,10 @@ class CustomTextFieldState extends State<CustomTextField> {
       return null;
     }
 
-    return HugeIcon(
+    return FixedInputIconSlot(
       icon: widget.prefixIcon!,
       color: context.sac.textSecondary,
-      size: 24,
+      iconSize: 24,
     );
   }
 }

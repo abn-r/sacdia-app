@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../data/models/disease_model.dart';
 import '../providers/personal_info_providers.dart';
@@ -636,9 +637,11 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
                                           .tr(),
                                   hintStyle: const TextStyle(
                                       color: MedicoTokens.ink400, fontSize: 15),
-                                  prefixIcon: const HugeIcon(
+                                  prefixIconConstraints:
+                                      FixedInputIconSlot.constraints,
+                                  prefixIcon: const FixedInputIconSlot(
                                     icon: HugeIcons.strokeRoundedSearch01,
-                                    size: 22,
+                                    iconSize: 22,
                                     color: MedicoTokens.ink400,
                                   ),
                                   suffixIcon: _searchQuery.isNotEmpty

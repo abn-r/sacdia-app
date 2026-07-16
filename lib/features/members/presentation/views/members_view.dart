@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
@@ -793,10 +794,11 @@ class _JoinRequestSearchBarState extends State<_JoinRequestSearchBar> {
             decoration: InputDecoration(
               hintText: 'members.view.search_requests_hint'.tr(),
               hintStyle: TextStyle(color: c.textTertiary, fontSize: 14),
-              prefixIcon: HugeIcon(
+              prefixIconConstraints: FixedInputIconSlot.constraints,
+              prefixIcon: FixedInputIconSlot(
                 icon: HugeIcons.strokeRoundedSearch01,
                 color: c.textTertiary,
-                size: 20,
+                iconSize: 20,
               ),
               border: InputBorder.none,
               contentPadding:

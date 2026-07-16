@@ -7,12 +7,14 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../providers/cart_provider.dart';
 import '../providers/catalog_provider.dart';
 import '../providers/categories_provider.dart';
 import '../providers/programs_provider.dart';
 import '../widgets/product_card.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 
 /// Pantalla principal del catálogo de materiales.
 ///
@@ -117,8 +119,12 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
               onChanged: _onSearchChanged,
               decoration: InputDecoration(
                 hintText: 'Buscar productos...',
-                prefixIcon:
-                    const HugeIcon(icon: HugeIcons.strokeRoundedSearch01),
+                prefixIconConstraints: FixedInputIconSlot.constraints,
+                prefixIcon: FixedInputIconSlot(
+                  icon: HugeIcons.strokeRoundedSearch01,
+                  color: context.sac.textSecondary,
+                  iconSize: 20,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(color: AppColors.lightBorder),
