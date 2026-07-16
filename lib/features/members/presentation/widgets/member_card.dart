@@ -25,6 +25,9 @@ class MemberCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    final classLogoAsset = member.currentClass == null
+        ? null
+        : AppColors.classLogoAsset(member.currentClass!);
 
     return Material(
       color: c.surface,
@@ -100,11 +103,26 @@ class MemberCard extends StatelessWidget {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                HugeIcon(
-                                  icon: HugeIcons.strokeRoundedSchool,
-                                  color: c.textTertiary,
-                                  size: 13,
-                                ),
+                                if (classLogoAsset != null)
+                                  Image.asset(
+                                    classLogoAsset,
+                                    key: ValueKey(
+                                      'member-card-class-logo-${member.currentClass}',
+                                    ),
+                                    width: 18,
+                                    height: 18,
+                                    fit: BoxFit.contain,
+                                    excludeFromSemantics: true,
+                                  )
+                                else
+                                  HugeIcon(
+                                    key: const ValueKey(
+                                      'member-card-class-fallback-icon',
+                                    ),
+                                    icon: HugeIcons.strokeRoundedSchool,
+                                    color: c.textTertiary,
+                                    size: 13,
+                                  ),
                                 const SizedBox(width: 4),
                                 Flexible(
                                   child: Text(
