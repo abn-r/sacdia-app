@@ -392,41 +392,48 @@ final availableRolesProvider = Provider.autoDispose<List<String>>((ref) {
 final membersByClassProvider =
     Provider.autoDispose<Map<String, List<ClubMember>>>((ref) {
   final members = ref.watch(filteredMembersProvider);
-  final grouped = <String, List<ClubMember>>{};
-
-  for (final member in members) {
-    final key = member.currentClass ?? tr('members.errors.no_class');
-    grouped.putIfAbsent(key, () => []).add(member);
-  }
-
-  // Ordenar los grupos por nombre de clase
-  final ordered = <String, List<ClubMember>>{};
-  final sortedKeys = grouped.keys.toList()
-    ..sort((a, b) {
-      // "Sin clase" siempre al final
-      final noClass = tr('members.errors.no_class');
-      if (a == noClass) return 1;
-      if (b == noClass) return -1;
-      return _classOrder(a).compareTo(_classOrder(b));
-    });
-  for (final key in sortedKeys) {
-    ordered[key] = grouped[key]!;
-  }
-  return ordered;
+  return groupMembersByClass(
+    members,
+    noClassLabel: tr('members.errors.no_class'),
+  );
 });
 
-/// Orden de las clases de Conquistadores para presentación
-int _classOrder(String className) {
-  const order = {
-    'Amigo': 1,
-    'Compañero': 2,
-    'Explorador': 3,
-    'Viajero': 4,
-    'Guía': 5,
-    'Pionero': 6,
-    'Pathfinder': 7,
+/// Agrupa miembros por clase y ordena los grupos por su ID de catálogo.
+Map<String, List<ClubMember>> groupMembersByClass(
+  List<ClubMember> members, {
+  required String noClassLabel,
+}) {
+  final groupedMembers = <String, List<ClubMember>>{};
+  final classIds = <String, int?>{};
+
+  for (final member in members) {
+    final label = member.currentClass ?? noClassLabel;
+    groupedMembers.putIfAbsent(label, () => []).add(member);
+
+    if (member.currentClass != null && member.currentClassId != null) {
+      classIds[label] ??= member.currentClassId;
+    }
+  }
+
+  final sortedLabels = groupedMembers.keys.toList()
+    ..sort((a, b) {
+      if (a == noClassLabel) return b == noClassLabel ? 0 : 1;
+      if (b == noClassLabel) return -1;
+
+      final idA = classIds[a];
+      final idB = classIds[b];
+      if (idA != null && idB != null) {
+        final comparison = idA.compareTo(idB);
+        return comparison == 0 ? a.compareTo(b) : comparison;
+      }
+      if (idA != null) return -1;
+      if (idB != null) return 1;
+      return a.compareTo(b);
+    });
+
+  return {
+    for (final label in sortedLabels) label: groupedMembers[label]!,
   };
-  return order[className] ?? 99;
 }
 
 // ── Member detail provider ─────────────────────────────────────────────────────
