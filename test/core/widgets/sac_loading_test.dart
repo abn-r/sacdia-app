@@ -62,6 +62,32 @@ void main() {
     await tester.pump();
     expect(tester.binding.hasScheduledFrame, isFalse);
   });
+
+  testWidgets(
+      'runtime toggle replaces small moving dots without remounting the app', (
+    tester,
+  ) async {
+    final reduceMotion = ValueNotifier<bool>(false);
+    addTearDown(reduceMotion.dispose);
+
+    await tester.pumpWidget(
+      _LoadingHarness(
+        reduceMotion: reduceMotion,
+        child: const SacLoadingSmall(),
+      ),
+    );
+
+    expect(find.byType(AnimatedBuilder), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 100));
+
+    reduceMotion.value = true;
+    await tester.pump();
+
+    expect(find.byType(AnimatedBuilder), findsNothing);
+    expect(find.byType(DecoratedBox), findsNWidgets(3));
+    await tester.pump();
+    expect(tester.binding.hasScheduledFrame, isFalse);
+  });
 }
 
 class _LoadingHarness extends StatelessWidget {
