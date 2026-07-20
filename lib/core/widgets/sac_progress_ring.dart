@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
@@ -8,8 +10,8 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 ///
 /// On mount the arc fills from 0 to [progress] using a spring-like
 /// [Curves.easeOutCubic] curve. Progress changes after mount animate
-/// smoothly to the new value. Set [animate] to false for static rendering
-/// or when the accessibility "reduce motion" setting is active.
+/// smoothly to the new value. Set [animate] to false for static rendering;
+/// system Reduced Motion is honored automatically.
 ///
 /// The painter uses a sweep gradient (indigo → emerald) that rotates as the
 /// arc grows, and rounded stroke caps for a polished look.
@@ -58,6 +60,8 @@ class _SacProgressRingState extends State<SacProgressRing>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late Animation<double> _progressAnimation;
+  Timer? _delayedStart;
+  bool? _reduceMotion;
 
   @override
   void initState() {
@@ -71,40 +75,64 @@ class _SacProgressRingState extends State<SacProgressRing>
     final clamped = widget.progress.clamp(0.0, 1.0);
 
     _progressAnimation = Tween<double>(begin: 0.0, end: clamped).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+      CurvedAnimation(parent: _controller, curve: SacMotion.easeOut),
     );
+  }
 
-    final shouldAnimate = widget.animate;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduceMotion = SacMotion.reduceMotionOf(context);
+    if (_reduceMotion == reduceMotion) return;
 
-    if (shouldAnimate) {
+    final firstDependencyRead = _reduceMotion == null;
+    _reduceMotion = reduceMotion;
+
+    if (reduceMotion || !widget.animate) {
+      _settleToTarget();
+    } else if (firstDependencyRead) {
       // Small delay so the ring appears after the card entrance animation.
-      Future.delayed(const Duration(milliseconds: 250), () {
-        if (mounted) _controller.forward();
+      _delayedStart = Timer(const Duration(milliseconds: 250), () {
+        if (mounted && _reduceMotion == false) _controller.forward();
       });
-    } else {
-      _controller.value = 1.0;
     }
   }
 
   @override
   void didUpdateWidget(SacProgressRing oldWidget) {
     super.didUpdateWidget(oldWidget);
+    _controller.duration = widget.animationDuration;
     if (oldWidget.progress != widget.progress) {
+      _delayedStart?.cancel();
       final current = _progressAnimation.value;
       final clamped = widget.progress.clamp(0.0, 1.0);
       _progressAnimation = Tween<double>(
         begin: current,
         end: clamped,
       ).animate(
-          CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
-      _controller
-        ..reset()
-        ..forward();
+        CurvedAnimation(parent: _controller, curve: SacMotion.easeOut),
+      );
+
+      if (_reduceMotion == true || !widget.animate) {
+        _settleToTarget();
+      } else {
+        _controller.forward(from: 0);
+      }
+    } else if (oldWidget.animate && !widget.animate) {
+      _settleToTarget();
     }
+  }
+
+  void _settleToTarget() {
+    _delayedStart?.cancel();
+    _controller
+      ..stop()
+      ..value = 1;
   }
 
   @override
   void dispose() {
+    _delayedStart?.cancel();
     _controller.dispose();
     super.dispose();
   }

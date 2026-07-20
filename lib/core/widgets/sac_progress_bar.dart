@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
@@ -60,6 +61,8 @@ class _SacProgressBarState extends State<SacProgressBar>
   late final AnimationController _fillController;
   late final AnimationController _shimmerController;
   late Animation<double> _fillAnimation;
+  bool? _reduceMotion;
+  int _fillGeneration = 0;
 
   @override
   void initState() {
@@ -73,7 +76,7 @@ class _SacProgressBarState extends State<SacProgressBar>
     );
 
     _fillAnimation = Tween<double>(begin: 0.0, end: clamped).animate(
-      CurvedAnimation(parent: _fillController, curve: Curves.easeOutCubic),
+      CurvedAnimation(parent: _fillController, curve: SacMotion.easeOut),
     );
 
     // Shimmer sweeps once across the filled portion after the fill completes.
@@ -81,18 +84,28 @@ class _SacProgressBarState extends State<SacProgressBar>
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     );
+  }
 
-    // Always animate (respect accessibility via MediaQuery in build).
-    _fillController.forward().then((_) {
-      if (mounted && widget.showShimmer && clamped > 0) {
-        _shimmerController.forward();
-      }
-    });
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduceMotion = SacMotion.reduceMotionOf(context);
+    if (_reduceMotion == reduceMotion) return;
+
+    final firstDependencyRead = _reduceMotion == null;
+    _reduceMotion = reduceMotion;
+
+    if (reduceMotion) {
+      _settleToTarget();
+    } else if (firstDependencyRead) {
+      _startFill();
+    }
   }
 
   @override
   void didUpdateWidget(SacProgressBar oldWidget) {
     super.didUpdateWidget(oldWidget);
+    _fillController.duration = widget.fillDuration;
     if (oldWidget.progress != widget.progress) {
       final current = _fillAnimation.value;
       final clamped = widget.progress.clamp(0.0, 1.0);
@@ -100,11 +113,42 @@ class _SacProgressBarState extends State<SacProgressBar>
         begin: current,
         end: clamped,
       ).animate(
-          CurvedAnimation(parent: _fillController, curve: Curves.easeOutCubic));
-      _fillController
-        ..reset()
-        ..forward();
+        CurvedAnimation(parent: _fillController, curve: SacMotion.easeOut),
+      );
+
+      if (_reduceMotion == true) {
+        _settleToTarget();
+      } else {
+        _startFill();
+      }
     }
+  }
+
+  void _startFill() {
+    final generation = ++_fillGeneration;
+    _shimmerController
+      ..stop()
+      ..value = 0;
+    _fillController.forward(from: 0).then((_) {
+      final target = widget.progress.clamp(0.0, 1.0);
+      if (mounted &&
+          generation == _fillGeneration &&
+          _reduceMotion == false &&
+          widget.showShimmer &&
+          target > 0) {
+        _shimmerController.forward(from: 0);
+      }
+    });
+  }
+
+  void _settleToTarget() {
+    _fillGeneration++;
+    _fillController
+      ..stop()
+      ..value = 1;
+    _shimmerController
+      ..stop()
+      ..value = 0;
   }
 
   @override
@@ -167,7 +211,9 @@ class _SacProgressBarState extends State<SacProgressBar>
                             ),
                           ),
                           // Shimmer sweep over the filled area (runs once)
-                          if (widget.showShimmer && filledFraction > 0)
+                          if (widget.showShimmer &&
+                              _reduceMotion != true &&
+                              filledFraction > 0)
                             FractionallySizedBox(
                               widthFactor: filledFraction,
                               alignment: Alignment.centerLeft,

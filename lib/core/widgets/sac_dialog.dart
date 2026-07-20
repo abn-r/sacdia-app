@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
@@ -256,23 +257,39 @@ class _AnimatedDialogContentState extends State<_AnimatedDialogContent>
   late final AnimationController _controller;
   late final Animation<double> _scaleAnimation;
   late final Animation<double> _fadeAnimation;
+  bool? _reduceMotion;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 220),
+      duration: SacMotion.modal,
     );
     _scaleAnimation = CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeOutBack,
-    ).drive(Tween<double>(begin: 0.82, end: 1.0));
+      curve: SacMotion.easeOut,
+    ).drive(Tween<double>(begin: SacMotion.enterScale, end: 1.0));
     _fadeAnimation = CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeOut,
+      curve: SacMotion.easeOut,
     ).drive(Tween<double>(begin: 0.0, end: 1.0));
-    _controller.forward();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduceMotion = SacMotion.reduceMotionOf(context);
+    if (_reduceMotion == reduceMotion) return;
+
+    final firstDependencyRead = _reduceMotion == null;
+    _reduceMotion = reduceMotion;
+    _controller.duration =
+        reduceMotion ? SacMotion.reducedFade : SacMotion.modal;
+
+    if (firstDependencyRead || !_controller.isCompleted) {
+      _controller.forward();
+    }
   }
 
   @override
@@ -283,16 +300,16 @@ class _AnimatedDialogContentState extends State<_AnimatedDialogContent>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) => FadeTransition(
-        opacity: _fadeAnimation,
-        child: ScaleTransition(
-          scale: _scaleAnimation,
-          child: child,
-        ),
-      ),
+    final fadedContent = FadeTransition(
+      opacity: _fadeAnimation,
       child: widget.child,
+    );
+
+    if (_reduceMotion == true) return fadedContent;
+
+    return ScaleTransition(
+      scale: _scaleAnimation,
+      child: fadedContent,
     );
   }
 }

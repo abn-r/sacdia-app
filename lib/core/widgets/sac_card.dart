@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
@@ -46,6 +49,8 @@ class _SacCardState extends State<SacCard> with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _fade;
   late final Animation<double> _scale;
+  Timer? _delayedStart;
+  bool? _reduceMotion;
 
   @override
   void initState() {
@@ -53,28 +58,39 @@ class _SacCardState extends State<SacCard> with SingleTickerProviderStateMixin {
 
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 320),
+      duration: SacMotion.standard,
     );
 
-    _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+    _fade = CurvedAnimation(parent: _controller, curve: SacMotion.easeOut);
 
-    _scale = Tween<double>(begin: 0.94, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
+    _scale = Tween<double>(begin: SacMotion.enterScale, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: SacMotion.easeOut),
     );
+  }
 
-    final shouldAnimate = widget.animate;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduceMotion = SacMotion.reduceMotionOf(context);
+    if (_reduceMotion == reduceMotion) return;
 
-    if (shouldAnimate) {
-      Future.delayed(widget.animationDelay, () {
-        if (mounted) _controller.forward();
+    final firstDependencyRead = _reduceMotion == null;
+    _reduceMotion = reduceMotion;
+
+    if (reduceMotion || !widget.animate) {
+      _delayedStart?.cancel();
+      _controller.stop();
+      _controller.value = 1;
+    } else if (firstDependencyRead) {
+      _delayedStart = Timer(widget.animationDelay, () {
+        if (mounted && _reduceMotion == false) _controller.forward();
       });
-    } else {
-      _controller.value = 1.0;
     }
   }
 
   @override
   void dispose() {
+    _delayedStart?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -131,7 +147,7 @@ class _SacCardState extends State<SacCard> with SingleTickerProviderStateMixin {
       );
     }
 
-    if (!widget.animate) return content;
+    if (!widget.animate || _reduceMotion == true) return content;
 
     return FadeTransition(
       opacity: _fade,

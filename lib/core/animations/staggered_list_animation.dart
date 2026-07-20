@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 
 /// Duolingo-style staggered list animation utilities.
 ///
@@ -21,7 +24,8 @@ import 'package:flutter/material.dart';
 ///
 /// The animation triggers automatically when the widget first builds.
 /// [index] controls the stagger delay (50ms per item, capped at 600ms).
-/// Set [animate] to false to opt-out for accessibility (reduced-motion).
+/// Set [animate] to false for an explicit opt-out. System Reduced Motion is
+/// honored automatically.
 class StaggeredListItem extends StatefulWidget {
   final Widget child;
 
@@ -63,6 +67,8 @@ class _StaggeredListItemState extends State<StaggeredListItem>
   late final AnimationController _controller;
   late final Animation<double> _fade;
   late final Animation<Offset> _slide;
+  Timer? _delayedStart;
+  bool? _reduceMotion;
 
   @override
   void initState() {
@@ -75,7 +81,7 @@ class _StaggeredListItemState extends State<StaggeredListItem>
 
     _fade = CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeOut,
+      curve: SacMotion.easeOut,
     );
 
     _slide = Tween<Offset>(
@@ -83,30 +89,46 @@ class _StaggeredListItemState extends State<StaggeredListItem>
       end: Offset.zero,
     ).animate(CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeOutCubic,
+      curve: SacMotion.easeOut,
     ));
+  }
 
-    if (widget.animate) {
-      // Cap individual item delay so very long lists don't feel broken.
-      final cappedIndex = widget.index.clamp(0, 10);
-      final delay = widget.initialDelay + widget.staggerDelay * cappedIndex;
-      Future.delayed(delay, () {
-        if (mounted) _controller.forward();
-      });
-    } else {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduceMotion = SacMotion.reduceMotionOf(context);
+    if (_reduceMotion == reduceMotion) return;
+
+    final firstDependencyRead = _reduceMotion == null;
+    _reduceMotion = reduceMotion;
+
+    if (reduceMotion || !widget.animate) {
+      _delayedStart?.cancel();
       _controller.value = 1.0;
+    } else if (firstDependencyRead) {
+      _scheduleStart();
     }
+  }
+
+  void _scheduleStart() {
+    // Cap individual item delay so very long lists don't feel broken.
+    final cappedIndex = widget.index.clamp(0, 10);
+    final delay = widget.initialDelay + widget.staggerDelay * cappedIndex;
+    _delayedStart = Timer(delay, () {
+      if (mounted && _reduceMotion == false) _controller.forward();
+    });
   }
 
   @override
   void dispose() {
+    _delayedStart?.cancel();
     _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.animate) return widget.child;
+    if (!widget.animate || _reduceMotion == true) return widget.child;
 
     return FadeTransition(
       opacity: _fade,
