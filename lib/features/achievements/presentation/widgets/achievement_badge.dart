@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 import '../../domain/entities/achievement.dart'
@@ -57,6 +58,7 @@ class _AchievementBadgeState extends State<AchievementBadge>
     with TickerProviderStateMixin {
   late final AnimationController _shimmerController;
   late final AnimationController _pulseController;
+  late bool _reduceMotion;
 
   @override
   void initState() {
@@ -71,8 +73,13 @@ class _AchievementBadgeState extends State<AchievementBadge>
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     );
+  }
 
-    _startAnimationsIfNeeded();
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _reduceMotion = SacMotion.reduceMotionOf(context);
+    _synchronizeAnimations();
   }
 
   @override
@@ -80,26 +87,41 @@ class _AchievementBadgeState extends State<AchievementBadge>
     super.didUpdateWidget(oldWidget);
     if (oldWidget.visualState != widget.visualState ||
         oldWidget.tier != widget.tier) {
-      _startAnimationsIfNeeded();
+      _reduceMotion = SacMotion.reduceMotionOf(context);
+      _synchronizeAnimations();
     }
   }
 
-  void _startAnimationsIfNeeded() {
-    if (widget.visualState == AchievementVisualState.unlocked) {
-      if (widget.tier == AchievementTier.platinum ||
-          widget.tier == AchievementTier.diamond) {
-        _shimmerController.repeat(reverse: true);
-      } else {
-        _shimmerController.stop();
-      }
+  void _synchronizeAnimations() {
+    if (_reduceMotion) {
+      _shimmerController
+        ..stop()
+        ..value = 0;
+      _pulseController
+        ..stop()
+        ..value = 0;
+      return;
+    }
 
-      if (widget.tier == AchievementTier.diamond) {
-        _pulseController.repeat(reverse: true);
-      } else {
-        _pulseController.stop();
+    final isUnlocked = widget.visualState == AchievementVisualState.unlocked;
+    final shimmerEligible = isUnlocked &&
+        (widget.tier == AchievementTier.platinum ||
+            widget.tier == AchievementTier.diamond);
+    final pulseEligible = isUnlocked && widget.tier == AchievementTier.diamond;
+
+    if (shimmerEligible) {
+      if (!_shimmerController.isAnimating) {
+        _shimmerController.repeat(reverse: true);
       }
     } else {
       _shimmerController.stop();
+    }
+
+    if (pulseEligible) {
+      if (!_pulseController.isAnimating) {
+        _pulseController.repeat(reverse: true);
+      }
+    } else {
       _pulseController.stop();
     }
   }
