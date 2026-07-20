@@ -258,6 +258,7 @@ class _AnimatedDialogContentState extends State<_AnimatedDialogContent>
   late final Animation<double> _scaleAnimation;
   late final Animation<double> _fadeAnimation;
   bool? _reduceMotion;
+  bool _scaleSuppressed = false;
 
   @override
   void initState() {
@@ -280,6 +281,7 @@ class _AnimatedDialogContentState extends State<_AnimatedDialogContent>
   void didChangeDependencies() {
     super.didChangeDependencies();
     final reduceMotion = SacMotion.reduceMotionOf(context);
+    if (reduceMotion) _scaleSuppressed = true;
     if (_reduceMotion == reduceMotion) return;
 
     final firstDependencyRead = _reduceMotion == null;
@@ -305,7 +307,7 @@ class _AnimatedDialogContentState extends State<_AnimatedDialogContent>
       child: widget.child,
     );
 
-    if (_reduceMotion == true) return fadedContent;
+    if (_scaleSuppressed) return fadedContent;
 
     return ScaleTransition(
       scale: _scaleAnimation,

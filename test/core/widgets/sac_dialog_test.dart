@@ -48,6 +48,51 @@ void main() {
     await tester.pump(SacMotion.reducedFade);
     expect(_fade(tester).opacity.value, 1);
   });
+
+  testWidgets(
+      're-enabling motion during initially reduced entrance keeps scale stable',
+      (
+    tester,
+  ) async {
+    final reduceMotion = ValueNotifier<bool>(true);
+    addTearDown(reduceMotion.dispose);
+
+    await tester.pumpWidget(
+      _DialogHarness(reduceMotion: reduceMotion),
+    );
+    await tester.pump(const Duration(milliseconds: 40));
+    expect(_fade(tester).opacity.value, inExclusiveRange(0, 1));
+    expect(_dialogScaleValue(tester), 1);
+
+    reduceMotion.value = false;
+    await tester.pump();
+
+    expect(_dialogScaleValue(tester), 1);
+  });
+
+  testWidgets(
+      're-enabling motion after suppression never restores partial scale', (
+    tester,
+  ) async {
+    final reduceMotion = ValueNotifier<bool>(false);
+    addTearDown(reduceMotion.dispose);
+
+    await tester.pumpWidget(
+      _DialogHarness(reduceMotion: reduceMotion),
+    );
+    await tester.pump(const Duration(milliseconds: 40));
+    expect(_dialogScaleValue(tester), lessThan(1));
+
+    reduceMotion.value = true;
+    await tester.pump(const Duration(milliseconds: 20));
+    expect(_fade(tester).opacity.value, inExclusiveRange(0, 1));
+    expect(_dialogScaleValue(tester), 1);
+
+    reduceMotion.value = false;
+    await tester.pump();
+
+    expect(_dialogScaleValue(tester), 1);
+  });
 }
 
 FadeTransition _fade(WidgetTester tester) =>
@@ -55,6 +100,12 @@ FadeTransition _fade(WidgetTester tester) =>
 
 ScaleTransition _scale(WidgetTester tester) =>
     tester.widget<ScaleTransition>(_dialogTransition(ScaleTransition));
+
+double _dialogScaleValue(WidgetTester tester) {
+  final scaleTransition = _dialogTransition(ScaleTransition);
+  if (scaleTransition.evaluate().isEmpty) return 1;
+  return tester.widget<ScaleTransition>(scaleTransition).scale.value;
+}
 
 Finder _dialogTransition(Type type) => find.descendant(
       of: find.byType(SacDialog),
