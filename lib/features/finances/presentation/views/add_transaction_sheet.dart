@@ -10,6 +10,8 @@ import 'package:mime/mime.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/utils/icon_helper.dart';
+import '../../../../core/widgets/fixed_input_icon_slot.dart';
 import '../../../../core/widgets/evidence_staging/image_source_dialog.dart';
 import '../../domain/entities/finance_category.dart';
 import '../../domain/entities/transaction.dart';
@@ -153,6 +155,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                       decoration: _inputDecoration(
                         hint: 'finances.add_transaction.amount_hint'.tr(),
                         prefix: '\$',
+                        prefixIcon: HugeIcons.strokeRoundedMoney01,
                         context: context,
                       ),
                       validator: (v) {
@@ -493,10 +496,20 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     required String hint,
     required BuildContext context,
     String? prefix,
+    HugeIconData? prefixIcon,
   }) {
     return InputDecoration(
       hintText: hint,
       prefixText: prefix,
+      prefixIconConstraints:
+          prefixIcon == null ? null : FixedInputIconSlot.constraints,
+      prefixIcon: prefixIcon == null
+          ? null
+          : FixedInputIconSlot(
+              icon: prefixIcon,
+              color: context.sac.textTertiary,
+              iconSize: 20,
+            ),
       filled: true,
       fillColor: Theme.of(context)
           .colorScheme
