@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -624,6 +625,81 @@ class _HonorDetailContent extends ConsumerWidget {
 
 // ── Hero Section ───────────────────────────────────────────────────────────────
 
+/// Owns the honor-detail hero entrance without coupling its timing to content.
+///
+/// Keeping this small wrapper separate lets the hero motion be verified without
+/// starting the independent body-card animations on the detail screen.
+class HonorHeroMotion extends StatefulWidget {
+  const HonorHeroMotion({super.key, required this.builder});
+
+  final Widget Function(
+    BuildContext context,
+    Animation<double> badgeScale,
+    Animation<double> progressValue,
+  ) builder;
+
+  @override
+  State<HonorHeroMotion> createState() => _HonorHeroMotionState();
+}
+
+class _HonorHeroMotionState extends State<HonorHeroMotion>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _badgeScale;
+  late Animation<double> _progressValue;
+  bool? _reduceMotion;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: SacMotion.routeEnter,
+    );
+
+    _badgeScale = Tween<double>(
+      begin: SacMotion.enterScale,
+      end: 1,
+    ).animate(
+      CurvedAnimation(parent: _controller, curve: SacMotion.easeOut),
+    );
+
+    _progressValue = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final reduceMotion = SacMotion.reduceMotionOf(context);
+    if (_reduceMotion == reduceMotion) return;
+
+    final firstDependencyRead = _reduceMotion == null;
+    _reduceMotion = reduceMotion;
+
+    if (reduceMotion) {
+      _controller.stop();
+      _controller.value = 1;
+      return;
+    }
+
+    if (firstDependencyRead) _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      widget.builder(context, _badgeScale, _progressValue);
+}
+
 class _HeroSection extends ConsumerStatefulWidget {
   final Honor honor;
   final Color categoryColor;
@@ -645,42 +721,7 @@ class _HeroSection extends ConsumerStatefulWidget {
   ConsumerState<_HeroSection> createState() => _HeroSectionState();
 }
 
-class _HeroSectionState extends ConsumerState<_HeroSection>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _badgeScale;
-  late Animation<double> _progressValue;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-
-    _badgeScale = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.elasticOut,
-    );
-
-    _progressValue = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOutCubic,
-    );
-
-    // Delay slightly so the hero renders first
-    Future.delayed(const Duration(milliseconds: 80), () {
-      if (mounted) _controller.forward();
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
+class _HeroSectionState extends ConsumerState<_HeroSection> {
   @override
   Widget build(BuildContext context) {
     final showInAppProgress = widget.isEnrolled &&
@@ -693,106 +734,109 @@ class _HeroSectionState extends ConsumerState<_HeroSection>
         _heroSecondaryForegroundColor(context, widget.categoryColor);
     final heroOverlay = _heroOverlayColor(context, widget.categoryColor);
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            widget.categoryColor,
-            widget.categoryColor.withValues(alpha: 0.72),
-          ],
+    return HonorHeroMotion(
+      builder: (context, badgeScale, progressValue) => Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              widget.categoryColor,
+              widget.categoryColor.withValues(alpha: 0.72),
+            ],
+          ),
         ),
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 48, 20, 20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              ScaleTransition(
-                scale: _badgeScale,
-                child: widget.isEnrolled
-                    ? _ProgressBadge(
-                        honor: widget.honor,
-                        categoryColor: widget.categoryColor,
-                        progressValue: _progressValue,
-                        progressPercent: progressPercent,
-                      )
-                    : _SimpleBadge(honor: widget.honor),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                widget.honor.name,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: widget.foregroundColor,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
-                  height: 1.2,
+        child: SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 48, 20, 20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ScaleTransition(
+                  scale: badgeScale,
+                  child: widget.isEnrolled
+                      ? _ProgressBadge(
+                          honor: widget.honor,
+                          categoryColor: widget.categoryColor,
+                          progressValue: progressValue,
+                          progressPercent: progressPercent,
+                        )
+                      : _SimpleBadge(honor: widget.honor),
                 ),
-              ),
-              const SizedBox(height: 10),
-              if (showInAppProgress && progressStats != null) ...[
+                const SizedBox(height: 16),
                 Text(
-                  'honors.detail.progress_summary'.tr(namedArgs: {
-                    'completed': '${progressStats.completed}',
-                    'total': '${progressStats.total}',
-                  }),
+                  widget.honor.name,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: heroSecondaryForeground,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
+                    color: widget.foregroundColor,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
+                    height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 8),
-                AnimatedBuilder(
-                  animation: _progressValue,
-                  builder: (context, _) {
-                    return ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: _progressValue.value * progressPercent,
-                        minHeight: 4,
-                        backgroundColor: heroOverlay,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          widget.foregroundColor,
+                const SizedBox(height: 10),
+                if (showInAppProgress && progressStats != null) ...[
+                  Text(
+                    'honors.detail.progress_summary'.tr(namedArgs: {
+                      'completed': '${progressStats.completed}',
+                      'total': '${progressStats.total}',
+                    }),
+                    style: TextStyle(
+                      color: heroSecondaryForeground,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  AnimatedBuilder(
+                    animation: progressValue,
+                    builder: (context, _) {
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: progressValue.value * progressPercent,
+                          minHeight: 4,
+                          backgroundColor: heroOverlay,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            widget.foregroundColor,
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                ),
-              ] else if (widget.isEnrolled && widget.userHonor != null) ...[
-                _FrostedPill(
-                  label: _completionModeLabel(widget.userHonor!.completionMode),
-                  foregroundColor: widget.foregroundColor,
-                  backgroundColor: heroOverlay,
-                ),
-              ] else ...[
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 6,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    if (widget.honor.skillLevel != null)
+                      );
+                    },
+                  ),
+                ] else if (widget.isEnrolled && widget.userHonor != null) ...[
+                  _FrostedPill(
+                    label:
+                        _completionModeLabel(widget.userHonor!.completionMode),
+                    foregroundColor: widget.foregroundColor,
+                    backgroundColor: heroOverlay,
+                  ),
+                ] else ...[
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      if (widget.honor.skillLevel != null)
+                        _FrostedPill(
+                          label: _skillLevelLabel(widget.honor.skillLevel),
+                          foregroundColor: widget.foregroundColor,
+                          backgroundColor: heroOverlay,
+                        ),
                       _FrostedPill(
-                        label: _skillLevelLabel(widget.honor.skillLevel),
+                        label: _approvalLabel(widget.honor.approval),
                         foregroundColor: widget.foregroundColor,
                         backgroundColor: heroOverlay,
                       ),
-                    _FrostedPill(
-                      label: _approvalLabel(widget.honor.approval),
-                      foregroundColor: widget.foregroundColor,
-                      backgroundColor: heroOverlay,
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
