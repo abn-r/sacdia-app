@@ -67,7 +67,7 @@ int _displayedValue(WidgetTester tester) {
 }
 
 class _CounterHarness extends StatelessWidget {
-  _CounterHarness({required this.reduceMotion, required this.target});
+  const _CounterHarness({required this.reduceMotion, required this.target});
 
   final ValueListenable<bool> reduceMotion;
   final ValueListenable<int> target;
