@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'motion_tokens.dart';
+
 /// Custom page route transitions for GoRouter.
 ///
 /// Provides three transition styles used throughout the app:
@@ -14,6 +16,41 @@ import 'package:go_router/go_router.dart';
 // Shared-axis (horizontal slide) — forward / back navigation
 // ──────────────────────────────────────────────────────────────────────────
 
+Widget _buildSharedAxisTransition(
+  BuildContext context,
+  Animation<double> animation,
+  Animation<double> secondaryAnimation,
+  Widget child,
+) {
+  final reduceMotion = SacMotion.reduceMotionOf(context);
+  final slideIn = Tween<Offset>(
+    begin: reduceMotion ? Offset.zero : const Offset(0.04, 0),
+    end: Offset.zero,
+  ).animate(CurvedAnimation(parent: animation, curve: SacMotion.easeOut));
+  final fadeIn = CurvedAnimation(parent: animation, curve: SacMotion.easeOut);
+
+  final slideOut = Tween<Offset>(
+    begin: Offset.zero,
+    end: reduceMotion ? Offset.zero : const Offset(-0.03, 0),
+  ).animate(
+    CurvedAnimation(parent: secondaryAnimation, curve: SacMotion.easeOut),
+  );
+  final fadeOut = Tween<double>(begin: 1, end: 0).animate(
+    CurvedAnimation(parent: secondaryAnimation, curve: SacMotion.easeOut),
+  );
+
+  return SlideTransition(
+    position: slideOut,
+    child: FadeTransition(
+      opacity: fadeOut,
+      child: SlideTransition(
+        position: slideIn,
+        child: FadeTransition(opacity: fadeIn, child: child),
+      ),
+    ),
+  );
+}
+
 /// GoRouter [CustomTransitionPage] with a horizontal shared-axis slide.
 ///
 /// Incoming page slides in from the right and fades in simultaneously.
@@ -25,47 +62,27 @@ CustomTransitionPage<T> sharedAxisPage<T>({
   return CustomTransitionPage<T>(
     key: key,
     child: child,
-    transitionDuration: const Duration(milliseconds: 340),
-    reverseTransitionDuration: const Duration(milliseconds: 280),
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      if (MediaQuery.of(context).disableAnimations) return child;
-
-      // Incoming: slides from right, fades in.
-      final slideIn = Tween<Offset>(
-        begin: const Offset(0.06, 0),
-        end: Offset.zero,
-      ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
-
-      final fadeIn = CurvedAnimation(parent: animation, curve: Curves.easeOut);
-
-      // Outgoing: slides slightly left, fades out.
-      final slideOut = Tween<Offset>(
-        begin: Offset.zero,
-        end: const Offset(-0.04, 0),
-      ).animate(CurvedAnimation(
-          parent: secondaryAnimation, curve: Curves.easeInCubic));
-
-      final fadeOut = Tween<double>(begin: 1.0, end: 0.0).animate(
-        CurvedAnimation(parent: secondaryAnimation, curve: Curves.easeIn),
-      );
-
-      return SlideTransition(
-        position: slideOut,
-        child: FadeTransition(
-          opacity: fadeOut,
-          child: SlideTransition(
-            position: slideIn,
-            child: FadeTransition(opacity: fadeIn, child: child),
-          ),
-        ),
-      );
-    },
+    transitionDuration: SacMotion.routeEnter,
+    reverseTransitionDuration: SacMotion.routeExit,
+    transitionsBuilder: _buildSharedAxisTransition,
   );
 }
 
 // ──────────────────────────────────────────────────────────────────────────
 // Fade-through — bottom-navigation tab switching
 // ──────────────────────────────────────────────────────────────────────────
+
+Widget _buildFadeThroughTransition(
+  BuildContext context,
+  Animation<double> animation,
+  Animation<double> secondaryAnimation,
+  Widget child,
+) {
+  return FadeTransition(
+    opacity: CurvedAnimation(parent: animation, curve: SacMotion.easeOut),
+    child: child,
+  );
+}
 
 /// GoRouter [CustomTransitionPage] with a pure cross-fade.
 ///
@@ -77,16 +94,9 @@ CustomTransitionPage<T> fadeThroughPage<T>({
   return CustomTransitionPage<T>(
     key: key,
     child: child,
-    transitionDuration: const Duration(milliseconds: 260),
-    reverseTransitionDuration: const Duration(milliseconds: 200),
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      if (MediaQuery.of(context).disableAnimations) return child;
-
-      return FadeTransition(
-        opacity: CurvedAnimation(parent: animation, curve: Curves.easeInOut),
-        child: child,
-      );
-    },
+    transitionDuration: SacMotion.reducedFade,
+    reverseTransitionDuration: SacMotion.reducedFade,
+    transitionsBuilder: _buildFadeThroughTransition,
   );
 }
 
@@ -94,9 +104,27 @@ CustomTransitionPage<T> fadeThroughPage<T>({
 // Slide-up — modal-style pages (post-registration steps, detail screens)
 // ──────────────────────────────────────────────────────────────────────────
 
+Widget _buildSlideUpTransition(
+  BuildContext context,
+  Animation<double> animation,
+  Animation<double> secondaryAnimation,
+  Widget child,
+) {
+  final reduceMotion = SacMotion.reduceMotionOf(context);
+  final slideIn = Tween<Offset>(
+    begin: reduceMotion ? Offset.zero : const Offset(0, 1),
+    end: Offset.zero,
+  ).animate(CurvedAnimation(parent: animation, curve: SacMotion.drawer));
+  final fadeIn = CurvedAnimation(parent: animation, curve: SacMotion.easeOut);
+
+  return SlideTransition(
+    position: slideIn,
+    child: FadeTransition(opacity: fadeIn, child: child),
+  );
+}
+
 /// GoRouter [CustomTransitionPage] that slides the page up from the bottom.
 ///
-/// Pairs with a slight scale on the outgoing page for an iOS sheet feel.
 CustomTransitionPage<T> slideUpPage<T>({
   required LocalKey key,
   required Widget child,
@@ -104,23 +132,9 @@ CustomTransitionPage<T> slideUpPage<T>({
   return CustomTransitionPage<T>(
     key: key,
     child: child,
-    transitionDuration: const Duration(milliseconds: 380),
-    reverseTransitionDuration: const Duration(milliseconds: 300),
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      if (MediaQuery.of(context).disableAnimations) return child;
-
-      final slideIn = Tween<Offset>(
-        begin: const Offset(0, 1),
-        end: Offset.zero,
-      ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
-
-      final fadeIn = CurvedAnimation(parent: animation, curve: Curves.easeOut);
-
-      return SlideTransition(
-        position: slideIn,
-        child: FadeTransition(opacity: fadeIn, child: child),
-      );
-    },
+    transitionDuration: SacMotion.routeEnter,
+    reverseTransitionDuration: SacMotion.routeExit,
+    transitionsBuilder: _buildSlideUpTransition,
   );
 }
 
@@ -137,43 +151,23 @@ CustomTransitionPage<T> slideUpPage<T>({
 class SacSharedAxisRoute<T> extends PageRouteBuilder<T> {
   SacSharedAxisRoute({required WidgetBuilder builder, super.settings})
       : super(
-          transitionDuration: const Duration(milliseconds: 340),
-          reverseTransitionDuration: const Duration(milliseconds: 280),
+          transitionDuration: SacMotion.routeEnter,
+          reverseTransitionDuration: SacMotion.routeExit,
           pageBuilder: (context, animation, secondaryAnimation) =>
               builder(context),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            if (MediaQuery.of(context).disableAnimations) return child;
+          transitionsBuilder: _buildSharedAxisTransition,
+        );
+}
 
-            final slideIn = Tween<Offset>(
-              begin: const Offset(0.06, 0),
-              end: Offset.zero,
-            ).animate(
-                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
-
-            final fadeIn =
-                CurvedAnimation(parent: animation, curve: Curves.easeOut);
-
-            final slideOut = Tween<Offset>(
-              begin: Offset.zero,
-              end: const Offset(-0.04, 0),
-            ).animate(CurvedAnimation(
-                parent: secondaryAnimation, curve: Curves.easeInCubic));
-
-            final fadeOut = Tween<double>(begin: 1.0, end: 0.0).animate(
-              CurvedAnimation(parent: secondaryAnimation, curve: Curves.easeIn),
-            );
-
-            return SlideTransition(
-              position: slideOut,
-              child: FadeTransition(
-                opacity: fadeOut,
-                child: SlideTransition(
-                  position: slideIn,
-                  child: FadeTransition(opacity: fadeIn, child: child),
-                ),
-              ),
-            );
-          },
+/// A [PageRoute] that applies an opacity-only fade-through transition.
+class SacFadeThroughRoute<T> extends PageRouteBuilder<T> {
+  SacFadeThroughRoute({required WidgetBuilder builder, super.settings})
+      : super(
+          transitionDuration: SacMotion.reducedFade,
+          reverseTransitionDuration: SacMotion.reducedFade,
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              builder(context),
+          transitionsBuilder: _buildFadeThroughTransition,
         );
 }
 
@@ -185,26 +179,10 @@ class SacSharedAxisRoute<T> extends PageRouteBuilder<T> {
 class SacSlideUpRoute<T> extends PageRouteBuilder<T> {
   SacSlideUpRoute({required WidgetBuilder builder, super.settings})
       : super(
-          transitionDuration: const Duration(milliseconds: 380),
-          reverseTransitionDuration: const Duration(milliseconds: 300),
+          transitionDuration: SacMotion.routeEnter,
+          reverseTransitionDuration: SacMotion.routeExit,
           pageBuilder: (context, animation, secondaryAnimation) =>
               builder(context),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            if (MediaQuery.of(context).disableAnimations) return child;
-
-            final slideIn = Tween<Offset>(
-              begin: const Offset(0, 1),
-              end: Offset.zero,
-            ).animate(
-                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
-
-            final fadeIn =
-                CurvedAnimation(parent: animation, curve: Curves.easeOut);
-
-            return SlideTransition(
-              position: slideIn,
-              child: FadeTransition(opacity: fadeIn, child: child),
-            );
-          },
+          transitionsBuilder: _buildSlideUpTransition,
         );
 }

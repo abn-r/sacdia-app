@@ -304,9 +304,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Navigator stack that survives as long as the shell is alive.
       //
       // The four primary nav-bar tabs are modelled as individual branches.
-      // The remaining /home/* "quick-access" modules each get their own branch
-      // too — they are not shown in the nav bar but still benefit from the
-      // preserved widget tree when navigated to via context.go().
+      // Quick-access modules are dashboard drill-ins pushed onto its branch.
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
             _MainShell(navigationShell: navigationShell),
@@ -336,16 +334,16 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: RouteNames.homeMembers,
                 pageBuilder: (context, state) =>
-                    _fadeThroughBuild(context, state, const MembersView()),
+                    _sharedAxisBuild(context, state, const MembersView()),
               ),
               GoRoute(
                 path: RouteNames.homeClub,
                 pageBuilder: (context, state) =>
-                    _fadeThroughBuild(context, state, const ClubView()),
+                    _sharedAxisBuild(context, state, const ClubView()),
               ),
               GoRoute(
                 path: RouteNames.homeEvidences,
-                pageBuilder: (context, state) => _fadeThroughBuild(
+                pageBuilder: (context, state) => _sharedAxisBuild(
                   context,
                   state,
                   const _EvidenceFolderShell(),
@@ -354,16 +352,16 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: RouteNames.homeFinances,
                 pageBuilder: (context, state) =>
-                    _fadeThroughBuild(context, state, const FinancesView()),
+                    _sharedAxisBuild(context, state, const FinancesView()),
               ),
               GoRoute(
                 path: RouteNames.homeUnits,
                 pageBuilder: (context, state) =>
-                    _fadeThroughBuild(context, state, const UnitsListView()),
+                    _sharedAxisBuild(context, state, const UnitsListView()),
               ),
               GoRoute(
                 path: RouteNames.homeGroupedClass,
-                pageBuilder: (context, state) => _fadeThroughBuild(
+                pageBuilder: (context, state) => _sharedAxisBuild(
                   context,
                   state,
                   const TeachingScopeView(),
@@ -372,17 +370,17 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: RouteNames.homeInsurance,
                 pageBuilder: (context, state) =>
-                    _fadeThroughBuild(context, state, const InsuranceView()),
+                    _sharedAxisBuild(context, state, const InsuranceView()),
               ),
               GoRoute(
                 path: RouteNames.homeInventory,
                 pageBuilder: (context, state) =>
-                    _fadeThroughBuild(context, state, const InventoryView()),
+                    _sharedAxisBuild(context, state, const InventoryView()),
               ),
               GoRoute(
                 path: RouteNames.homeResources,
                 pageBuilder: (context, state) =>
-                    _fadeThroughBuild(context, state, const ResourcesView()),
+                    _sharedAxisBuild(context, state, const ResourcesView()),
               ),
               GoRoute(
                 path: RouteNames.homeHonors,
@@ -402,7 +400,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 path: RouteNames.homeCamporees,
-                pageBuilder: (context, state) => _fadeThroughBuild(
+                pageBuilder: (context, state) => _sharedAxisBuild(
                   context,
                   state,
                   const CamporeesListView(),
@@ -425,7 +423,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 path: RouteNames.homeClubRankings,
-                pageBuilder: (context, state) => _fadeThroughBuild(
+                pageBuilder: (context, state) => _sharedAxisBuild(
                   context,
                   state,
                   const ClubRankingsScreen(),
@@ -434,11 +432,11 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: RouteNames.homeMaterials,
                 pageBuilder: (context, state) =>
-                    _fadeThroughBuild(context, state, const CatalogView()),
+                    _sharedAxisBuild(context, state, const CatalogView()),
               ),
               GoRoute(
                 path: RouteNames.homeReports,
-                pageBuilder: (context, state) => _fadeThroughBuild(
+                pageBuilder: (context, state) => _sharedAxisBuild(
                   context,
                   state,
                   const MonthlyReportsVisibleListView(),
