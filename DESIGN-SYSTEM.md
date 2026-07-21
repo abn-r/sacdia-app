@@ -1182,10 +1182,14 @@ role_assignments / transfers / units / validation
 - Loading text: gerunds ("Guardando...", "Cargando...")
 - Motion policy: `SacMotion.reduceMotionOf(context)` reads
   `MediaQuery.disableAnimations` for shared primitives and routes.
-- With Reduced Motion, omit slide, scale, pulse, shimmer, and stagger effects;
-  progress, rings, and counters settle on their final values, and loading dots
-  are static. A gentle fade may remain where it preserves navigation or dialog
-  context.
+- Scope: this applies to the shared primitives documented here, the registered
+  page transitions, list and counter helpers, and achievement badge loops. It
+  does not redefine component-specific interaction feedback such as
+  `SacButton`'s press scale.
+- Within that scope, Reduced Motion omits slide, scale, pulse, shimmer, and
+  stagger effects; progress, rings, and counters settle on their final values,
+  and loading dots are static. A gentle fade may remain where it preserves
+  navigation or dialog context.
 - Decorative achievement shimmer and pulse loops stop and reset while Reduced
   Motion is enabled.
 
