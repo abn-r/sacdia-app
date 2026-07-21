@@ -38,6 +38,40 @@ Future<void> _pumpTransition(
   await tester.pump();
 }
 
+Future<void> _pumpEarlyPop(
+  WidgetTester tester, {
+  required _TransitionsBuilder builder,
+}) async {
+  final controller = AnimationController(
+    vsync: tester,
+    duration: SacMotion.routeEnter,
+    reverseDuration: SacMotion.routeExit,
+    value: 1,
+  );
+
+  await tester.pumpWidget(
+    MaterialApp(
+      home: Builder(
+        builder: (context) => KeyedSubtree(
+          key: const ValueKey('transition-under-test'),
+          child: builder(
+            context,
+            controller,
+            const AlwaysStoppedAnimation(0),
+            const ColoredBox(color: Colors.blue),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  controller.reverse();
+  expect(controller.status, AnimationStatus.reverse);
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 20));
+  controller.dispose();
+}
+
 void _expectNormalSlideUp() {
   final root = find.byKey(const ValueKey('transition-under-test'));
   final slide = testerWidget<SlideTransition>(
@@ -67,6 +101,27 @@ void _expectReducedSlideUp() {
 
   expect(slide.position.value, Offset.zero);
   expect(fade.opacity.value, inExclusiveRange(0, 1));
+}
+
+void _expectResponsiveSlideUpPop() {
+  final root = find.byKey(const ValueKey('transition-under-test'));
+  final slide = testerWidget<SlideTransition>(
+    find.descendant(of: root, matching: find.byType(SlideTransition)),
+  );
+  final fade = testerWidget<FadeTransition>(
+    find.descendant(of: root, matching: find.byType(FadeTransition)),
+  );
+
+  expect(slide.position.value.dx, 0);
+  expect(
+    slide.position.value.dy,
+    closeTo(SacMotion.drawer.transform(0.1), 0.000001),
+  );
+  expect(slide.position.value.dy, greaterThan(0));
+  expect(
+    fade.opacity.value,
+    closeTo(1 - SacMotion.easeOut.transform(0.1), 0.000001),
+  );
 }
 
 T testerWidget<T extends Widget>(Finder finder) {
@@ -106,6 +161,14 @@ void main() {
 
       _expectReducedSlideUp();
     });
+
+    testWidgets('starts pop travel responsively toward the bottom', (
+      tester,
+    ) async {
+      await _pumpEarlyPop(tester, builder: page.transitionsBuilder);
+
+      _expectResponsiveSlideUpPop();
+    });
   });
 
   group('SacSlideUpRoute', () {
@@ -136,6 +199,14 @@ void main() {
           builder: route.transitionsBuilder, disableAnimations: true);
 
       _expectReducedSlideUp();
+    });
+
+    testWidgets('starts pop travel responsively toward the bottom', (
+      tester,
+    ) async {
+      await _pumpEarlyPop(tester, builder: route.transitionsBuilder);
+
+      _expectResponsiveSlideUpPop();
     });
   });
 }

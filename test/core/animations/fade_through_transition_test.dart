@@ -37,6 +37,40 @@ Future<void> _pumpFade(
   await tester.pump();
 }
 
+Future<void> _pumpEarlyPop(
+  WidgetTester tester, {
+  required _TransitionsBuilder builder,
+}) async {
+  final controller = AnimationController(
+    vsync: tester,
+    duration: SacMotion.reducedFade,
+    reverseDuration: SacMotion.reducedFade,
+    value: 1,
+  );
+
+  await tester.pumpWidget(
+    MaterialApp(
+      home: Builder(
+        builder: (context) => KeyedSubtree(
+          key: const ValueKey('transition-under-test'),
+          child: builder(
+            context,
+            controller,
+            const AlwaysStoppedAnimation(0),
+            const ColoredBox(color: Colors.blue),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  controller.reverse();
+  expect(controller.status, AnimationStatus.reverse);
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 16));
+  controller.dispose();
+}
+
 void _expectOpacityOnlyFade() {
   final root = find.byKey(const ValueKey('transition-under-test'));
   final fadeFinder = find.descendant(
@@ -56,6 +90,18 @@ void _expectOpacityOnlyFade() {
   final fade = testerWidget<FadeTransition>(fadeFinder);
   expect(
       fade.opacity.value, closeTo(SacMotion.easeOut.transform(0.1), 0.000001));
+}
+
+void _expectResponsiveFadePop() {
+  final root = find.byKey(const ValueKey('transition-under-test'));
+  final fade = testerWidget<FadeTransition>(
+    find.descendant(of: root, matching: find.byType(FadeTransition)),
+  );
+
+  expect(
+    fade.opacity.value,
+    closeTo(1 - SacMotion.easeOut.transform(0.1), 0.000001),
+  );
 }
 
 T testerWidget<T extends Widget>(Finder finder) {
@@ -92,6 +138,12 @@ void main() {
         },
       );
     }
+
+    testWidgets('starts pop fading responsively', (tester) async {
+      await _pumpEarlyPop(tester, builder: page.transitionsBuilder);
+
+      _expectResponsiveFadePop();
+    });
   });
 
   group('SacFadeThroughRoute', () {
@@ -120,5 +172,11 @@ void main() {
         },
       );
     }
+
+    testWidgets('starts pop fading responsively', (tester) async {
+      await _pumpEarlyPop(tester, builder: route.transitionsBuilder);
+
+      _expectResponsiveFadePop();
+    });
   });
 }

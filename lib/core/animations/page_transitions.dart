@@ -26,17 +26,35 @@ Widget _buildSharedAxisTransition(
   final slideIn = Tween<Offset>(
     begin: reduceMotion ? Offset.zero : const Offset(0.04, 0),
     end: Offset.zero,
-  ).animate(CurvedAnimation(parent: animation, curve: SacMotion.easeOut));
-  final fadeIn = CurvedAnimation(parent: animation, curve: SacMotion.easeOut);
+  ).animate(
+    CurvedAnimation(
+      parent: animation,
+      curve: SacMotion.easeOut,
+      reverseCurve: const FlippedCurve(SacMotion.easeOut),
+    ),
+  );
+  final fadeIn = CurvedAnimation(
+    parent: animation,
+    curve: SacMotion.easeOut,
+    reverseCurve: const FlippedCurve(SacMotion.easeOut),
+  );
 
   final slideOut = Tween<Offset>(
     begin: Offset.zero,
     end: reduceMotion ? Offset.zero : const Offset(-0.03, 0),
   ).animate(
-    CurvedAnimation(parent: secondaryAnimation, curve: SacMotion.easeOut),
+    CurvedAnimation(
+      parent: secondaryAnimation,
+      curve: SacMotion.easeOut,
+      reverseCurve: const FlippedCurve(SacMotion.easeOut),
+    ),
   );
   final fadeOut = Tween<double>(begin: 1, end: 0).animate(
-    CurvedAnimation(parent: secondaryAnimation, curve: SacMotion.easeOut),
+    CurvedAnimation(
+      parent: secondaryAnimation,
+      curve: SacMotion.easeOut,
+      reverseCurve: const FlippedCurve(SacMotion.easeOut),
+    ),
   );
 
   return SlideTransition(
@@ -79,7 +97,11 @@ Widget _buildFadeThroughTransition(
   Widget child,
 ) {
   return FadeTransition(
-    opacity: CurvedAnimation(parent: animation, curve: SacMotion.easeOut),
+    opacity: CurvedAnimation(
+      parent: animation,
+      curve: SacMotion.easeOut,
+      reverseCurve: const FlippedCurve(SacMotion.easeOut),
+    ),
     child: child,
   );
 }
@@ -114,8 +136,18 @@ Widget _buildSlideUpTransition(
   final slideIn = Tween<Offset>(
     begin: reduceMotion ? Offset.zero : const Offset(0, 1),
     end: Offset.zero,
-  ).animate(CurvedAnimation(parent: animation, curve: SacMotion.drawer));
-  final fadeIn = CurvedAnimation(parent: animation, curve: SacMotion.easeOut);
+  ).animate(
+    CurvedAnimation(
+      parent: animation,
+      curve: SacMotion.drawer,
+      reverseCurve: const FlippedCurve(SacMotion.drawer),
+    ),
+  );
+  final fadeIn = CurvedAnimation(
+    parent: animation,
+    curve: SacMotion.easeOut,
+    reverseCurve: const FlippedCurve(SacMotion.easeOut),
+  );
 
   return SlideTransition(
     position: slideIn,

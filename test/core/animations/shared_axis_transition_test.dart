@@ -39,6 +39,40 @@ Future<void> _pumpTransition(
   await tester.pump();
 }
 
+Future<void> _pumpEarlyPop(
+  WidgetTester tester, {
+  required _TransitionsBuilder builder,
+}) async {
+  final controller = AnimationController(
+    vsync: tester,
+    duration: SacMotion.routeEnter,
+    reverseDuration: SacMotion.routeExit,
+    value: 1,
+  );
+
+  await tester.pumpWidget(
+    MaterialApp(
+      home: Builder(
+        builder: (context) => KeyedSubtree(
+          key: const ValueKey('transition-under-test'),
+          child: builder(
+            context,
+            controller,
+            const AlwaysStoppedAnimation(0),
+            const ColoredBox(color: Colors.blue),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  controller.reverse();
+  expect(controller.status, AnimationStatus.reverse);
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 20));
+  controller.dispose();
+}
+
 void _expectSharedAxisIntermediateState() {
   final root = find.byKey(const ValueKey('transition-under-test'));
   final slides = find
@@ -86,6 +120,26 @@ void _expectReducedSharedAxisIntermediateState() {
   expect(fades[1].opacity.value, inExclusiveRange(0, 1));
 }
 
+void _expectResponsiveSharedAxisPop() {
+  final root = find.byKey(const ValueKey('transition-under-test'));
+  final slides = find
+      .descendant(of: root, matching: find.byType(SlideTransition))
+      .evaluate()
+      .map((element) => element.widget as SlideTransition)
+      .toList();
+  final fades = find
+      .descendant(of: root, matching: find.byType(FadeTransition))
+      .evaluate()
+      .map((element) => element.widget as FadeTransition)
+      .toList();
+  final earlyExitProgress = SacMotion.easeOut.transform(0.1);
+
+  expect(
+      slides[1].position.value.dx, closeTo(0.04 * earlyExitProgress, 0.000001));
+  expect(slides[1].position.value.dx, greaterThan(0));
+  expect(fades[1].opacity.value, closeTo(1 - earlyExitProgress, 0.000001));
+}
+
 void main() {
   group('sharedAxisPage', () {
     late CustomTransitionPage<void> page;
@@ -120,6 +174,14 @@ void main() {
 
       _expectReducedSharedAxisIntermediateState();
     });
+
+    testWidgets('starts pop travel responsively toward the right', (
+      tester,
+    ) async {
+      await _pumpEarlyPop(tester, builder: page.transitionsBuilder);
+
+      _expectResponsiveSharedAxisPop();
+    });
   });
 
   group('SacSharedAxisRoute', () {
@@ -151,6 +213,14 @@ void main() {
           builder: route.transitionsBuilder, disableAnimations: true);
 
       _expectReducedSharedAxisIntermediateState();
+    });
+
+    testWidgets('starts pop travel responsively toward the right', (
+      tester,
+    ) async {
+      await _pumpEarlyPop(tester, builder: route.transitionsBuilder);
+
+      _expectResponsiveSharedAxisPop();
     });
   });
 }
