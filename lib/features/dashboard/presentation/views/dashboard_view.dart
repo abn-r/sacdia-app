@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -89,25 +88,19 @@ class DashboardView extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Welcome header — animates in as item 0
-                    StaggeredListItem(
-                      index: 0,
-                      initialDelay: const Duration(milliseconds: 60),
-                      child: WelcomeHeader(
-                        userName: dashboard.userName,
-                        userAvatar: dashboard.userAvatar ?? user?.avatar,
-                        unreadNotificationsCount: unreadNotificationsCount,
-                        onNotificationsTap: () =>
-                            context.push(RouteNames.notificationsInbox),
-                      ),
+                    // Welcome header
+                    WelcomeHeader(
+                      userName: dashboard.userName,
+                      userAvatar: dashboard.userAvatar ?? user?.avatar,
+                      unreadNotificationsCount: unreadNotificationsCount,
+                      onNotificationsTap: () =>
+                          context.push(RouteNames.notificationsInbox),
                     ),
 
-                    // Content cards with staggered entrance
+                    // Content cards
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: hPad),
-                      child: StaggeredColumn(
-                        initialDelay: const Duration(milliseconds: 120),
-                        staggerDelay: const Duration(milliseconds: 80),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Membership status banner (pending/rejected/expired)
