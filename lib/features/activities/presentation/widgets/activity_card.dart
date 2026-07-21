@@ -77,7 +77,7 @@ class ActivityCard extends StatelessWidget {
       onTap: onTap,
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
-      animate: true,
+      animate: false,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

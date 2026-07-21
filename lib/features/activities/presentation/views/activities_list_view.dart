@@ -2,8 +2,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
-import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -441,21 +441,18 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                               );
                             }
                             final activity = item as Activity;
-                            return StaggeredListItem(
-                              index: index,
-                              child: ActivityCard(
-                                activity: activity,
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    SacSharedAxisRoute(
-                                      builder: (context) => ActivityDetailView(
-                                        activityId: activity.id,
-                                      ),
+                            return ActivityCard(
+                              activity: activity,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  SacSharedAxisRoute(
+                                    builder: (context) => ActivityDetailView(
+                                      activityId: activity.id,
                                     ),
-                                  );
-                                },
-                              ),
+                                  ),
+                                );
+                              },
                             );
                           },
                         ),
@@ -472,21 +469,18 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                           itemCount: filtered.length,
                           itemBuilder: (context, index) {
                             final activity = filtered[index];
-                            return StaggeredListItem(
-                              index: index,
-                              child: ActivityCard(
-                                activity: activity,
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    SacSharedAxisRoute(
-                                      builder: (context) => ActivityDetailView(
-                                        activityId: activity.id,
-                                      ),
+                            return ActivityCard(
+                              activity: activity,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  SacSharedAxisRoute(
+                                    builder: (context) => ActivityDetailView(
+                                      activityId: activity.id,
                                     ),
-                                  );
-                                },
-                              ),
+                                  ),
+                                );
+                              },
                             );
                           },
                         ),
@@ -494,18 +488,12 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                     }
 
                     return AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 320),
-                      switchInCurve: Curves.easeOut,
-                      switchOutCurve: Curves.easeIn,
+                      duration: SacMotion.standard,
+                      switchInCurve: SacMotion.easeOut,
+                      switchOutCurve: SacMotion.easeOut,
                       transitionBuilder: (child, animation) => FadeTransition(
                         opacity: animation,
-                        child: SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(0.04, 0),
-                            end: Offset.zero,
-                          ).animate(animation),
-                          child: child,
-                        ),
+                        child: child,
                       ),
                       child: content,
                     );
