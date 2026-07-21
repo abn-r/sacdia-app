@@ -1,111 +1,161 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/features/honors/domain/entities/honor.dart';
+import 'package:sacdia_app/features/honors/domain/entities/honor_category.dart';
+import 'package:sacdia_app/features/honors/domain/entities/honor_requirement.dart';
+import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
+import 'package:sacdia_app/features/honors/domain/entities/user_honor_requirement_progress.dart';
+import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/honors/presentation/views/honor_detail_view.dart';
 
 void main() {
   testWidgets(
-    'normal hero begins at the shared scale and settles without overshoot',
+    'real honor detail hero enters from the shared scale without overshoot',
     (tester) async {
       final reduceMotion = ValueNotifier<bool>(false);
       addTearDown(reduceMotion.dispose);
 
-      await tester.pumpWidget(_HeroMotionHarness(reduceMotion: reduceMotion));
+      await _pumpDetail(tester, reduceMotion);
 
-      expect(_scale(tester).scale.value, SacMotion.enterScale);
-      expect(_progress(tester).value, 0);
+      expect(_heroScale(tester).scale.value, SacMotion.enterScale);
+      expect(_heroProgress(tester).value, 0);
       expect(tester.binding.hasScheduledFrame, isTrue);
 
-      await tester.pump(SacMotion.routeEnter ~/ 2);
-      expect(_scale(tester).scale.value, inExclusiveRange(0.96, 1));
-      expect(_scale(tester).scale.value, lessThanOrEqualTo(1));
-      expect(_progress(tester).value, inExclusiveRange(0, 0.6));
+      for (var elapsed = 0;
+          elapsed < SacMotion.routeEnter.inMilliseconds;
+          elapsed += 40) {
+        await tester.pump(const Duration(milliseconds: 40));
+        expect(_heroScale(tester).scale.value, greaterThanOrEqualTo(0.96));
+        expect(_heroScale(tester).scale.value, lessThanOrEqualTo(1));
+      }
 
-      await tester.pump(SacMotion.routeEnter ~/ 2);
-      expect(_scale(tester).scale.value, 1);
-      expect(_progress(tester).value, 0.6);
+      expect(_heroScale(tester).scale.value, 1);
+      expect(_heroProgress(tester).value, 0.5);
     },
   );
 
-  testWidgets('reduced motion starts the hero fully settled without frames', (
+  testWidgets('real honor detail is settled without frames when reduced', (
     tester,
   ) async {
     final reduceMotion = ValueNotifier<bool>(true);
     addTearDown(reduceMotion.dispose);
 
-    await tester.pumpWidget(_HeroMotionHarness(reduceMotion: reduceMotion));
+    await _pumpDetail(tester, reduceMotion);
 
-    expect(_scale(tester).scale.value, 1);
-    expect(_progress(tester).value, 0.6);
+    expect(_heroScale(tester).scale.value, 1);
+    expect(_heroProgress(tester).value, 0.5);
     expect(tester.binding.hasScheduledFrame, isFalse);
   });
 
   testWidgets(
-      'runtime reduced-motion changes settle and never replay hero entry',
-      (tester) async {
-    final reduceMotion = ValueNotifier<bool>(false);
-    addTearDown(reduceMotion.dispose);
+    'real honor detail settles for reduced motion without replaying its hero',
+    (tester) async {
+      final reduceMotion = ValueNotifier<bool>(false);
+      addTearDown(reduceMotion.dispose);
 
-    await tester.pumpWidget(_HeroMotionHarness(reduceMotion: reduceMotion));
-    await tester.pump(const Duration(milliseconds: 40));
-    expect(_scale(tester).scale.value, inExclusiveRange(0.96, 1));
-    expect(_progress(tester).value, inExclusiveRange(0, 0.6));
+      await _pumpDetail(tester, reduceMotion);
+      await tester.pump(const Duration(milliseconds: 40));
+      expect(_heroScale(tester).scale.value, inExclusiveRange(0.96, 1));
+      expect(_heroProgress(tester).value, inExclusiveRange(0, 0.5));
 
-    reduceMotion.value = true;
-    await tester.pump();
+      reduceMotion.value = true;
+      await tester.pump();
 
-    expect(_scale(tester).scale.value, 1);
-    expect(_progress(tester).value, 0.6);
-    await tester.pump();
-    expect(tester.binding.hasScheduledFrame, isFalse);
+      expect(_heroScale(tester).scale.value, 1);
+      expect(_heroProgress(tester).value, 0.5);
+      await tester.pump();
+      expect(tester.binding.hasScheduledFrame, isFalse);
 
-    reduceMotion.value = false;
-    await tester.pump();
+      reduceMotion.value = false;
+      await tester.pump();
 
-    expect(_scale(tester).scale.value, 1);
-    expect(_progress(tester).value, 0.6);
-    expect(tester.binding.hasScheduledFrame, isFalse);
-  });
+      expect(_heroScale(tester).scale.value, 1);
+      expect(_heroProgress(tester).value, 0.5);
+      expect(tester.binding.hasScheduledFrame, isFalse);
+    },
+  );
 }
 
-ScaleTransition _scale(WidgetTester tester) =>
-    tester.widget<ScaleTransition>(find.byType(ScaleTransition));
+Future<void> _pumpDetail(
+  WidgetTester tester,
+  ValueListenable<bool> reduceMotion,
+) async {
+  const honor = Honor(
+    id: 7,
+    name: 'Arte de acampar',
+    categoryId: 1,
+    approval: 1,
+    clubTypeId: 1,
+  );
+  final userHonor = UserHonor(
+    id: 77,
+    honorId: honor.id,
+    userId: 'user-1',
+    completionMode: HonorCompletionMode.inApp,
+    validationStatus: 'IN_PROGRESS',
+    date: DateTime(2026, 6, 11),
+  );
 
-LinearProgressIndicator _progress(WidgetTester tester) => tester
-    .widget<LinearProgressIndicator>(find.byType(LinearProgressIndicator));
-
-class _HeroMotionHarness extends StatelessWidget {
-  const _HeroMotionHarness({required this.reduceMotion});
-
-  final ValueListenable<bool> reduceMotion;
-
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: reduceMotion,
-      builder: (context, disabled, _) => MediaQuery(
-        data: MediaQueryData(disableAnimations: disabled),
-        child: Directionality(
-          textDirection: TextDirection.ltr,
-          child: HonorHeroMotion(
-            builder: (context, badgeScale, progressValue) => Column(
-              children: [
-                ScaleTransition(
-                  scale: badgeScale,
-                  child: const SizedBox(width: 40, height: 40),
-                ),
-                AnimatedBuilder(
-                  animation: progressValue,
-                  builder: (context, _) => LinearProgressIndicator(
-                    value: progressValue.value * 0.6,
-                  ),
-                ),
-              ],
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        honorCategoriesProvider.overrideWith(
+          (ref) async => const <HonorCategory>[],
+        ),
+        allHonorsProvider.overrideWith((ref) async => [honor]),
+        activeHonorCatalogClubTypeIdProvider.overrideWith(
+          (ref) => const AsyncValue.data(null),
+        ),
+        userHonorsProvider.overrideWith((ref) async => [userHonor]),
+        honorRequirementsProvider(honor.id).overrideWith(
+          (ref) async => const <HonorRequirement>[],
+        ),
+        userHonorProgressProvider(honor.id).overrideWith(
+          (ref) async => [
+            const UserHonorRequirementProgress(
+              requirementId: 1,
+              requirementNumber: 1,
+              text: 'Completado',
+              completed: true,
             ),
-          ),
+            const UserHonorRequirementProgress(
+              requirementId: 2,
+              requirementNumber: 2,
+              text: 'Pendiente',
+              completed: false,
+            ),
+          ],
+        ),
+      ],
+      child: ValueListenableBuilder<bool>(
+        valueListenable: reduceMotion,
+        child: MaterialApp(
+          home: HonorDetailView(honorId: honor.id, initialHonor: honor),
+        ),
+        builder: (context, disabled, child) => MediaQuery(
+          data: MediaQueryData(disableAnimations: disabled),
+          child: child!,
         ),
       ),
-    );
-  }
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+  await tester.pump();
 }
+
+ScaleTransition _heroScale(WidgetTester tester) =>
+    tester.widget<ScaleTransition>(_heroDescendant(ScaleTransition));
+
+LinearProgressIndicator _heroProgress(WidgetTester tester) =>
+    tester.widget<LinearProgressIndicator>(
+      _heroDescendant(LinearProgressIndicator),
+    );
+
+Finder _heroDescendant(Type type) => find.descendant(
+      of: find.byType(SliverAppBar),
+      matching: find.byType(type),
+    );

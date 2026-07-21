@@ -625,12 +625,8 @@ class _HonorDetailContent extends ConsumerWidget {
 
 // ── Hero Section ───────────────────────────────────────────────────────────────
 
-/// Owns the honor-detail hero entrance without coupling its timing to content.
-///
-/// Keeping this small wrapper separate lets the hero motion be verified without
-/// starting the independent body-card animations on the detail screen.
-class HonorHeroMotion extends StatefulWidget {
-  const HonorHeroMotion({super.key, required this.builder});
+class _HonorHeroMotion extends StatefulWidget {
+  const _HonorHeroMotion({required this.builder});
 
   final Widget Function(
     BuildContext context,
@@ -639,10 +635,10 @@ class HonorHeroMotion extends StatefulWidget {
   ) builder;
 
   @override
-  State<HonorHeroMotion> createState() => _HonorHeroMotionState();
+  State<_HonorHeroMotion> createState() => _HonorHeroMotionState();
 }
 
-class _HonorHeroMotionState extends State<HonorHeroMotion>
+class _HonorHeroMotionState extends State<_HonorHeroMotion>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _badgeScale;
@@ -734,7 +730,7 @@ class _HeroSectionState extends ConsumerState<_HeroSection> {
         _heroSecondaryForegroundColor(context, widget.categoryColor);
     final heroOverlay = _heroOverlayColor(context, widget.categoryColor);
 
-    return HonorHeroMotion(
+    return _HonorHeroMotion(
       builder: (context, badgeScale, progressValue) => Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -1042,6 +1038,7 @@ class _StaggeredCardsState extends State<_StaggeredCards>
   late final AnimationController _controller;
   late final List<Animation<double>> _fadeAnims;
   late final List<Animation<Offset>> _slideAnims;
+  bool? _reduceMotion;
 
   @override
   void initState() {
@@ -1068,7 +1065,25 @@ class _StaggeredCardsState extends State<_StaggeredCards>
         curve: Interval(start, end, curve: Curves.easeOut),
       ));
     });
-    _controller.forward();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final reduceMotion = SacMotion.reduceMotionOf(context);
+    if (_reduceMotion == reduceMotion) return;
+
+    final firstDependencyRead = _reduceMotion == null;
+    _reduceMotion = reduceMotion;
+
+    if (reduceMotion) {
+      _controller.stop();
+      _controller.value = 1;
+      return;
+    }
+
+    if (firstDependencyRead) _controller.forward();
   }
 
   @override
