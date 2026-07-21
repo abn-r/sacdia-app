@@ -25,6 +25,8 @@ class _FakeAuthNotifier extends AuthNotifier {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  const cardModeKey = ValueKey('card');
+  const chronologicalModeKey = ValueKey('chrono');
   late Map<String, dynamic> translations;
 
   setUpAll(() async {
@@ -90,6 +92,54 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  Finder activitiesSwitcher() => find.descendant(
+        of: find.byType(ActivitiesListView),
+        matching: find.byType(AnimatedSwitcher),
+      );
+
+  Finder modeChild(Finder switcher, Key key) => find.descendant(
+        of: switcher,
+        matching: find.byKey(key),
+      );
+
+  double modeOpacity(
+    WidgetTester tester,
+    Finder switcher,
+    Key key,
+  ) {
+    final child = modeChild(switcher, key);
+    expect(child, findsOneWidget);
+
+    final fade =
+        tester.element(child).findAncestorWidgetOfExactType<FadeTransition>();
+    expect(fade, isNotNull);
+    expect(
+      find.descendant(
+        of: switcher,
+        matching: find.byWidget(fade!),
+      ),
+      findsOneWidget,
+    );
+    return fade.opacity.value;
+  }
+
+  void expectNoPositionalOrScaleMotion(Finder switcher) {
+    expect(
+      find.descendant(
+        of: switcher,
+        matching: find.byType(SlideTransition),
+      ),
+      findsNothing,
+    );
+    expect(
+      find.descendant(
+        of: switcher,
+        matching: find.byType(ScaleTransition),
+      ),
+      findsNothing,
+    );
+  }
+
   testWidgets('does not add an entrance scale to an activity card',
       (tester) async {
     await tester.pumpWidget(
@@ -118,12 +168,18 @@ void main() {
     await pumpActivitiesList(tester);
 
     expect(find.byType(ActivityCard), findsOneWidget);
-    expect(find.byType(StaggeredListItem), findsNothing);
     final activityList = find.ancestor(
       of: find.byType(ActivityCard),
       matching: find.byType(ListView),
     );
     expect(activityList, findsOneWidget);
+    expect(
+      find.descendant(
+        of: activityList,
+        matching: find.byType(StaggeredListItem),
+      ),
+      findsNothing,
+    );
     expect(
       find.descendant(
         of: activityList,
@@ -140,17 +196,17 @@ void main() {
     );
   });
 
-  testWidgets('switches list modes with one standard ease-out fade only',
+  testWidgets('replaces card mode with one standard ease-out fade',
       (tester) async {
     await pumpActivitiesList(tester);
 
-    final modeSwitcher = find.descendant(
-      of: find.byType(ActivitiesListView),
-      matching: find.byType(AnimatedSwitcher),
-    );
+    final modeSwitcher = activitiesSwitcher();
     expect(modeSwitcher, findsOneWidget);
 
-    final switcher = tester.widget<AnimatedSwitcher>(modeSwitcher);
+    var switcher = tester.widget<AnimatedSwitcher>(modeSwitcher);
+    expect(switcher.child?.key, cardModeKey);
+    expect(modeChild(modeSwitcher, cardModeKey), findsOneWidget);
+    expect(modeChild(modeSwitcher, chronologicalModeKey), findsNothing);
     expect(switcher.duration, SacMotion.standard);
     expect(switcher.switchInCurve, SacMotion.easeOut);
     expect(switcher.switchOutCurve, SacMotion.easeOut);
@@ -160,49 +216,76 @@ void main() {
           widget is HugeIcon && widget.icon == HugeIcons.strokeRoundedListView,
     );
     await tester.tap(modeToggle);
+    await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
+
+    switcher = tester.widget<AnimatedSwitcher>(modeSwitcher);
+    expect(switcher.child?.key, chronologicalModeKey);
+    expect(modeChild(modeSwitcher, cardModeKey), findsOneWidget);
+    expect(modeChild(modeSwitcher, chronologicalModeKey), findsOneWidget);
+    expect(
+      modeOpacity(tester, modeSwitcher, cardModeKey),
+      allOf(greaterThan(0), lessThan(1)),
+    );
+    expect(
+      modeOpacity(tester, modeSwitcher, chronologicalModeKey),
+      allOf(greaterThan(0), lessThan(1)),
+    );
+    expectNoPositionalOrScaleMotion(modeSwitcher);
+
+    await tester.pumpAndSettle();
+
+    switcher = tester.widget<AnimatedSwitcher>(modeSwitcher);
+    expect(switcher.child?.key, chronologicalModeKey);
+    expect(modeChild(modeSwitcher, cardModeKey), findsNothing);
+    expect(modeChild(modeSwitcher, chronologicalModeKey), findsOneWidget);
   });
 
-  testWidgets('uses a pure fade while replacing the visible list mode',
+  testWidgets(
+      'rapid retarget settles back on card mode without residual motion',
       (tester) async {
     await pumpActivitiesList(tester);
 
+    final modeSwitcher = activitiesSwitcher();
     final modeToggle = find.byWidgetPredicate(
       (widget) =>
           widget is HugeIcon && widget.icon == HugeIcons.strokeRoundedListView,
     );
     expect(modeToggle, findsOneWidget);
-    await tester.tap(modeToggle);
-    await tester.pump(const Duration(milliseconds: 100));
+    final toggleCenter = tester.getCenter(modeToggle);
 
-    final modeSwitcher = find.descendant(
-      of: find.byType(ActivitiesListView),
-      matching: find.byType(AnimatedSwitcher),
-    );
+    await tester.tapAt(toggleCenter);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(modeChild(modeSwitcher, cardModeKey), findsOneWidget);
+    expect(modeChild(modeSwitcher, chronologicalModeKey), findsOneWidget);
+
+    await tester.tapAt(toggleCenter);
+    await tester.pump();
+    await tester.pumpAndSettle();
+
     expect(modeSwitcher, findsOneWidget);
-    expect(find.byType(ActivityCard), findsWidgets);
-    expect(find.byType(StaggeredListItem), findsNothing);
+    expect(
+      tester.widget<AnimatedSwitcher>(modeSwitcher).child?.key,
+      cardModeKey,
+    );
+    expect(modeChild(modeSwitcher, cardModeKey), findsOneWidget);
+    expect(modeChild(modeSwitcher, chronologicalModeKey), findsNothing);
     expect(
       find.descendant(
         of: modeSwitcher,
-        matching: find.byType(FadeTransition),
+        matching: find.byType(ActivityCard),
       ),
-      findsWidgets,
+      findsOneWidget,
     );
     expect(
       find.descendant(
         of: modeSwitcher,
-        matching: find.byType(SlideTransition),
-      ),
-      findsNothing,
-    );
-    expect(
-      find.descendant(
-        of: modeSwitcher,
-        matching: find.byType(ScaleTransition),
+        matching: find.byType(StaggeredListItem),
       ),
       findsNothing,
     );
+    expectNoPositionalOrScaleMotion(modeSwitcher);
   });
 }
 
