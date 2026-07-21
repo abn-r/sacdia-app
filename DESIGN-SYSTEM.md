@@ -494,7 +494,10 @@ SacTextField(
 
 iOS-inspired dialog. Rounded 20px, surface bg, title in `AppColors.primary`,
 iOS-style horizontal action buttons separated by 0.5px dividers.
-Scale + fade entrance animation (220ms, `Curves.easeOutBack`).
+Scale + fade entrance animation using `SacMotion.modal` (240ms) and
+`SacMotion.easeOut`, from `SacMotion.enterScale` (0.96) to 1.0. With
+Reduced Motion enabled it keeps only the `SacMotion.reducedFade` (160ms) fade;
+it does not scale.
 
 **Use the static helper for confirm/cancel pattern:**
 
@@ -523,6 +526,8 @@ if (confirmed == true) { ... }
 **File:** `lib/core/widgets/sac_loading.dart`
 
 Primary loading indicator: animated wave dots (`loading_animation_widget`).
+With Reduced Motion, both loading widgets render the same-size static
+three-dot mark instead of the wave animation.
 
 ```dart
 // Full screen loading
@@ -531,7 +536,7 @@ Center(child: SacLoading())
 // Custom color
 SacLoading(color: AppColors.secondary)
 
-// Compact (same animation — both render 30px wave dots)
+// Compact (both use a 30px loading field)
 SacLoadingSmall()
 ```
 
@@ -546,7 +551,9 @@ loading: () => const Center(child: SacLoading()),
 **File:** `lib/core/widgets/sac_progress_bar.dart`
 
 Animated linear progress bar. Fills from 0 to `progress` on mount with
-`Curves.easeOutCubic` over 700ms. One shimmer sweep after fill.
+`SacMotion.easeOut` over the configurable 700ms default. An optional shimmer
+can sweep once after the fill. With Reduced Motion, the bar immediately shows
+its final value and never runs the shimmer.
 
 ```dart
 SacProgressBar(
@@ -560,15 +567,16 @@ SacProgressBar(
 
 - Gradient: `AppColors.primary` → `AppColors.secondary` (left to right)
 - Track: `context.sac.borderLight`
-- `showShimmer: true` (default) — disable for repeated updates
+- `showShimmer: false` (default) — enable only for a one-time loading cue
 
 ### 6.8 SacProgressRing
 
 **File:** `lib/core/widgets/sac_progress_ring.dart`
 
 Animated ring progress indicator. Apple Health / Fitness style.
-Sweep gradient (`primary` → secondary). Rounded stroke caps.
-Spring-like fill animation (900ms, `Curves.easeOutCubic`).
+Sweep gradient (`primary` → secondary). Rounded stroke caps. It fills with
+`SacMotion.easeOut` over the configurable 900ms default; with Reduced Motion,
+it immediately renders its final value without the delayed entrance.
 
 ```dart
 SacProgressRing(
@@ -708,11 +716,12 @@ Three standard transitions registered in the router:
 
 | Transition | Function | Duration | Use case |
 |------------|----------|----------|---------|
-| Shared-axis (horizontal slide) | `sharedAxisPage<T>()` | 340ms forward / 280ms back | Standard forward/back navigation |
-| Fade-through | `fadeThroughPage<T>()` | ~300ms | Tab switches, peer-level navigation |
-| Slide-up | `slideUpPage<T>()` | ~300ms | Bottom sheet as page, modal flows |
+| Shared-axis (horizontal slide) | `sharedAxisPage<T>()` | 240ms enter / 200ms reverse | Standard forward/back navigation |
+| Fade-through | `fadeThroughPage<T>()` | 160ms | Tab switches, peer-level navigation |
+| Slide-up | `slideUpPage<T>()` | 240ms enter / 200ms reverse | Bottom sheet as page, modal flows |
 
-All transitions respect `MediaQuery.disableAnimations`.
+All transitions respect `MediaQuery.disableAnimations`. Under Reduced Motion,
+shared-axis and slide-up remove translation and retain only the fade.
 
 The router wraps most routes with `_sharedAxisBuild` (shared-axis slide).
 
@@ -1053,6 +1062,11 @@ see `lib/features/activities/` for the implementation.
 
 ## 14. Animation Conventions
 
+`SacMotion` (`lib/core/animations/motion_tokens.dart`) is the canonical motion
+policy. Use its duration, curve, scale, and `reduceMotionOf(context)` tokens
+instead of new literal values. Core motion re-evaluates
+`MediaQuery.disableAnimations` when dependencies change.
+
 ### 14.1 Card Entrance (Stagger)
 
 ```dart
@@ -1064,11 +1078,16 @@ SacCard(
 )
 ```
 
+With Reduced Motion, card entrances resolve to their final layout immediately:
+no scale animation or delay.
+
 ### 14.2 Staggered List Animation
 
 **File:** `lib/core/animations/staggered_list_animation.dart`
 
-Use `StaggeredListAnimation` wrapper for lists that should animate items in sequence.
+Use `StaggeredListItem` or `StaggeredColumn` for lists that should animate
+items in sequence. They read `MediaQuery.disableAnimations`; with Reduced
+Motion, items render immediately without stagger or slide.
 
 ### 14.3 Page Transitions
 
@@ -1092,7 +1111,8 @@ Used for achievement unlocks and gamification moments. Renders over the screen.
 **File:** `lib/core/animations/animated_counter.dart`
 
 Animates a numeric value from old to new over a duration. Use for KPI cards and
-score displays.
+score displays. It reacts to `MediaQuery.disableAnimations`; with Reduced
+Motion, it cancels delayed counting and displays the final value immediately.
 
 ---
 
@@ -1160,7 +1180,14 @@ role_assignments / transfers / units / validation
 - Text is in Spanish (es-MX) by default
 - Button text: infinitives ("Guardar", "Cancelar", "Eliminar")
 - Loading text: gerunds ("Guardando...", "Cargando...")
-- `MediaQuery.disableAnimations` is respected in all custom animations
+- Motion policy: `SacMotion.reduceMotionOf(context)` reads
+  `MediaQuery.disableAnimations` for shared primitives and routes.
+- With Reduced Motion, omit slide, scale, pulse, shimmer, and stagger effects;
+  progress, rings, and counters settle on their final values, and loading dots
+  are static. A gentle fade may remain where it preserves navigation or dialog
+  context.
+- Decorative achievement shimmer and pulse loops stop and reset while Reduced
+  Motion is enabled.
 
 ---
 
