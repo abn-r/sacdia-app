@@ -1,12 +1,9 @@
 import 'dart:convert';
+import 'dart:ui' as ui;
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:file/file.dart';
-import 'package:file/memory.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/features/achievements/domain/entities/achievement.dart';
 import 'package:sacdia_app/features/achievements/domain/entities/user_achievement.dart';
@@ -14,19 +11,33 @@ import 'package:sacdia_app/features/achievements/presentation/widgets/achievemen
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  late Object imageCacheKey;
 
-  setUpAll(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-      _pathProviderChannel,
-      (_) async => '/tmp',
+  setUpAll(() async {
+    final codec = await ui.instantiateImageCodec(
+      base64Decode(_transparentPng),
+      targetWidth: _badgeCacheSize,
+      targetHeight: _badgeCacheSize,
     );
-    CachedNetworkImageProvider.defaultCacheManager = _BadgeCacheManager();
+    final frame = await codec.getNextFrame();
+    codec.dispose();
+
+    final provider = ResizeImage.resizeIfNeeded(
+      _badgeCacheSize,
+      _badgeCacheSize,
+      const CachedNetworkImageProvider(_badgeImageUrl),
+    );
+    imageCacheKey = await provider.obtainKey(ImageConfiguration.empty);
+    PaintingBinding.instance.imageCache.putIfAbsent(
+      imageCacheKey,
+      () => OneFrameImageStreamCompleter(
+        Future.value(ImageInfo(image: frame.image)),
+      ),
+    );
   });
 
   tearDownAll(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(_pathProviderChannel, null);
+    PaintingBinding.instance.imageCache.evict(imageCacheKey);
   });
 
   group('AchievementBadge motion accessibility', () {
@@ -186,9 +197,10 @@ Widget _badgeApp({
       child: Scaffold(
         body: Center(
           child: AchievementBadge(
-            badgeImageUrl: null,
+            badgeImageUrl: _badgeImageUrl,
             tier: tier,
             visualState: visualState,
+            isSecret: true,
           ),
         ),
       ),
@@ -215,35 +227,9 @@ Future<void> _finishImageDecode(WidgetTester tester) async {
   await tester.pump();
 }
 
-class _BadgeCacheManager extends Fake implements BaseCacheManager {
-  _BadgeCacheManager() {
-    final fileSystem = MemoryFileSystem();
-    _badgeFile = fileSystem.file('/badge.png')
-      ..writeAsBytesSync(base64Decode(_transparentPng));
-  }
-
-  late final File _badgeFile;
-
-  @override
-  Stream<FileResponse> getFileStream(
-    String url, {
-    String? key,
-    Map<String, String>? headers,
-    bool withProgress = false,
-  }) {
-    return Stream.value(
-      FileInfo(
-        _badgeFile,
-        FileSource.Cache,
-        DateTime.now().add(const Duration(days: 1)),
-        url,
-      ),
-    );
-  }
-}
-
 const _transparentPng =
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8A'
     'AQUBAScY42YAAAAASUVORK5CYII=';
 
-const _pathProviderChannel = MethodChannel('plugins.flutter.io/path_provider');
+const _badgeImageUrl = 'https://example.com/achievement.png';
+const _badgeCacheSize = 192;
