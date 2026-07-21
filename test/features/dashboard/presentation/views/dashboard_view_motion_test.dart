@@ -106,12 +106,15 @@ Future<void> _pumpLoadedDashboard(
   expect(find.byType(WelcomeHeader), findsOneWidget);
 }
 
-List<T> _ancestorWidgets<T extends Widget>(
+List<T> _dashboardCompositionAncestors<T extends Widget>(
   WidgetTester tester,
   Finder finder,
 ) {
   final ancestors = <T>[];
   tester.element(finder).visitAncestorElements((element) {
+    if (element.widget is DashboardView) {
+      return false;
+    }
     if (element.widget case final T widget) {
       ancestors.add(widget);
     }
@@ -137,6 +140,7 @@ void main() {
       );
 
       final functionalSections = <Finder>[
+        find.byType(WelcomeHeader),
         find.byType(BirthdayCelebrationGate),
         find.byType(QuickAccessGrid),
         find.byType(UpcomingActivitiesCard),
@@ -145,15 +149,31 @@ void main() {
       for (final section in functionalSections) {
         expect(section, findsOneWidget);
 
-        for (final fade in _ancestorWidgets<FadeTransition>(tester, section)) {
+        expect(
+          _dashboardCompositionAncestors<StaggeredListItem>(tester, section),
+          isEmpty,
+          reason: '$section must not be wrapped in dashboard-owned stagger',
+        );
+        expect(
+          _dashboardCompositionAncestors<StaggeredColumn>(tester, section),
+          isEmpty,
+          reason: '$section must not be inside a dashboard-owned stagger',
+        );
+
+        for (final fade in _dashboardCompositionAncestors<FadeTransition>(
+          tester,
+          section,
+        )) {
           expect(
             fade.opacity.value,
             1,
             reason: '$section must not wait for an entrance fade',
           );
         }
-        for (final slide
-            in _ancestorWidgets<SlideTransition>(tester, section)) {
+        for (final slide in _dashboardCompositionAncestors<SlideTransition>(
+          tester,
+          section,
+        )) {
           expect(
             slide.position.value,
             Offset.zero,
@@ -161,9 +181,6 @@ void main() {
           );
         }
       }
-
-      expect(find.byType(StaggeredListItem), findsNothing);
-      expect(find.byType(StaggeredColumn), findsNothing);
     },
   );
 
@@ -200,10 +217,20 @@ void main() {
         expect((children[7] as SizedBox).height, 16);
         expect(children[8], isA<QuickAccessGrid>());
         expect((children[9] as SizedBox).height, 16);
-        expect(children[10].runtimeType.toString(), '_AnimationDemoLauncher');
         expect((children[11] as SizedBox).height, 16);
         expect(children[12], isA<UpcomingActivitiesCard>());
         expect((children[13] as SizedBox).height, 24);
+
+        final animationDemoTitle = find.text('Demo temporal de animaciones');
+        expect(animationDemoTitle, findsOneWidget);
+        expect(
+          tester.getTopLeft(find.byType(QuickAccessGrid)).dy,
+          lessThan(tester.getTopLeft(animationDemoTitle).dy),
+        );
+        expect(
+          tester.getTopLeft(animationDemoTitle).dy,
+          lessThan(tester.getTopLeft(find.byType(UpcomingActivitiesCard)).dy),
+        );
 
         final reportsShortcut = find.text('dashboard.quick_access.reports');
         expect(
