@@ -33,7 +33,7 @@ abstract class CamporeesRepository {
     required String userId,
     String? camporeeType,
     String? clubName,
-    int? insuranceId,
+    required int insuranceId,
   });
 
   /// Obtiene los miembros inscritos en un camporee (respuesta paginada).
@@ -50,11 +50,8 @@ abstract class CamporeesRepository {
 
   // ── Payments ────────────────────────────────────────────────────────────────
 
-  /// Inscribe un club en un camporee.
-  Future<Either<Failure, CamporeeEnrolledClub>> enrollClub(
-    int camporeeId, {
-    required int clubSectionId,
-  });
+  /// Inscribe la sección activa del director en un camporee local.
+  Future<Either<Failure, CamporeeEnrolledClub>> enrollClub(int camporeeId);
 
   /// Obtiene los clubes inscritos en un camporee.
   Future<Either<Failure, List<CamporeeEnrolledClub>>> getEnrolledClubs(

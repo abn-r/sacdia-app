@@ -45,9 +45,15 @@ class _CamporeeRegisterMemberViewState
         ref.watch(camporeeRegisteredUserIdsProvider(widget.camporeeId));
     final registeredIds = registeredIdsAsync.valueOrNull ?? const <String>{};
     final selectedMembers = _selectedMembers(membersAsync.valueOrNull);
-    final idsToRegister = _selectedUserIds
-        .where((userId) => !registeredIds.contains(userId))
-        .toList();
+    final insuranceIdsByUserId = _eligibleInsuranceIds(
+      selectedMembers,
+      registeredIds,
+    );
+    final pendingSelectedCount = selectedMembers
+        .where((member) => !registeredIds.contains(member.memberId))
+        .length;
+    final hasSelectedWithoutEligibleInsurance =
+        pendingSelectedCount > insuranceIdsByUserId.length;
     final c = context.sac;
 
     return Scaffold(
@@ -79,6 +85,13 @@ class _CamporeeRegisterMemberViewState
                   setState(() => _selectedUserIds.remove(userId));
                 },
               ),
+              if (hasSelectedWithoutEligibleInsurance) ...[
+                const SizedBox(height: 12),
+                _ErrorBanner(
+                  message:
+                      'camporees.register_member.insurance_error_body'.tr(),
+                ),
+              ],
               const SizedBox(height: 14),
               SacButton.outline(
                 text: _selectedUserIds.isEmpty
@@ -94,14 +107,19 @@ class _CamporeeRegisterMemberViewState
               const SizedBox(height: 28),
               SacButton.primary(
                 text: 'camporees.register_member.register_button_count'.tr(
-                  namedArgs: {'count': idsToRegister.length.toString()},
+                  namedArgs: {
+                    'count': insuranceIdsByUserId.length.toString(),
+                  },
                 ),
                 icon: HugeIcons.strokeRoundedUserAdd01,
                 isLoading: registrationState.isLoading,
-                isEnabled: idsToRegister.isNotEmpty,
-                onPressed: registrationState.isLoading || idsToRegister.isEmpty
+                isEnabled: insuranceIdsByUserId.isNotEmpty &&
+                    !hasSelectedWithoutEligibleInsurance,
+                onPressed: registrationState.isLoading ||
+                        insuranceIdsByUserId.isEmpty ||
+                        hasSelectedWithoutEligibleInsurance
                     ? null
-                    : () => _submit(context, idsToRegister),
+                    : () => _submit(context, insuranceIdsByUserId),
               ),
               const SizedBox(height: 16),
             ],
@@ -118,6 +136,21 @@ class _CamporeeRegisterMemberViewState
         .map((userId) => byId[userId])
         .whereType<MemberInsurance>()
         .toList();
+  }
+
+  Map<String, int> _eligibleInsuranceIds(
+    List<MemberInsurance> members,
+    Set<String> registeredIds,
+  ) {
+    return {
+      for (final member in members)
+        if (!registeredIds.contains(member.memberId) &&
+            member.insuranceId != null &&
+            member.status == InsuranceStatus.asegurado &&
+            (member.insuranceType == InsuranceType.camporee ||
+                member.insuranceType == InsuranceType.generalActivities))
+          member.memberId: member.insuranceId!,
+    };
   }
 
   Future<void> _openMemberPicker(BuildContext context) async {
@@ -137,11 +170,16 @@ class _CamporeeRegisterMemberViewState
     }
   }
 
-  Future<void> _submit(BuildContext context, List<String> idsToRegister) async {
-    if (idsToRegister.isEmpty) {
+  Future<void> _submit(
+    BuildContext context,
+    Map<String, int> insuranceIdsByUserId,
+  ) async {
+    if (insuranceIdsByUserId.isEmpty) {
       _showSnack(
         context,
-        'camporees.register_member.already_selected'.tr(),
+        _selectedUserIds.isEmpty
+            ? 'camporees.register_member.already_selected'.tr()
+            : 'camporees.register_member.insurance_error_body'.tr(),
         AppColors.accent,
       );
       return;
@@ -152,7 +190,9 @@ class _CamporeeRegisterMemberViewState
     );
     notifier.reset();
 
-    final result = await notifier.registerMany(userIds: idsToRegister);
+    final result = await notifier.registerMany(
+      insuranceIdsByUserId: insuranceIdsByUserId,
+    );
 
     if (!context.mounted) return;
 

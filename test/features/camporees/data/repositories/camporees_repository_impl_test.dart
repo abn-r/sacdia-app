@@ -71,7 +71,7 @@ class _StubDataSource implements CamporeesRemoteDataSource {
     required String userId,
     String? camporeeType,
     String? clubName,
-    int? insuranceId,
+    required int insuranceId,
   }) =>
       throw UnimplementedError();
 
@@ -80,10 +80,7 @@ class _StubDataSource implements CamporeesRemoteDataSource {
       throw UnimplementedError();
 
   @override
-  Future<CamporeeEnrolledClubModel> enrollClub(
-    int camporeeId, {
-    required int clubSectionId,
-  }) =>
+  Future<CamporeeEnrolledClubModel> enrollClub(int camporeeId) =>
       throw UnimplementedError();
 
   @override

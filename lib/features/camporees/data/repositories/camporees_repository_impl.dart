@@ -98,7 +98,7 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
     required String userId,
     String? camporeeType,
     String? clubName,
-    int? insuranceId,
+    required int insuranceId,
   }) async {
     try {
       final model = await remoteDataSource.registerMember(
@@ -167,14 +167,10 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
 
   @override
   Future<Either<Failure, CamporeeEnrolledClub>> enrollClub(
-    int camporeeId, {
-    required int clubSectionId,
-  }) async {
+    int camporeeId,
+  ) async {
     try {
-      final model = await remoteDataSource.enrollClub(
-        camporeeId,
-        clubSectionId: clubSectionId,
-      );
+      final model = await remoteDataSource.enrollClub(camporeeId);
       return Right(model.toEntity());
     } on ServerException catch (e) {
       return _serverFailure(e);

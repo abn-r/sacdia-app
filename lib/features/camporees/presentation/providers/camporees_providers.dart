@@ -263,7 +263,7 @@ class CamporeeRegistrationNotifier
     required String userId,
     String? camporeeType,
     String? clubName,
-    int? insuranceId,
+    required int insuranceId,
   }) async {
     state = state.copyWith(
         isLoading: true,
@@ -304,11 +304,11 @@ class CamporeeRegistrationNotifier
   /// Registra múltiples miembros en el camporee usando el contrato individual
   /// existente del backend.
   Future<CamporeeRegistrationBatchResult> registerMany({
-    required List<String> userIds,
+    required Map<String, int> insuranceIdsByUserId,
   }) async {
-    final uniqueUserIds = userIds.toSet().toList();
+    final registrations = insuranceIdsByUserId.entries.toList();
 
-    if (uniqueUserIds.isEmpty) {
+    if (registrations.isEmpty) {
       return const CamporeeRegistrationBatchResult(
         successCount: 0,
         failureCount: 0,
@@ -327,10 +327,11 @@ class CamporeeRegistrationNotifier
     String? firstErrorMessage;
     var hasInsuranceError = false;
 
-    for (final userId in uniqueUserIds) {
+    for (final registration in registrations) {
       final result = await ref.read(camporeesRepositoryProvider).registerMember(
             _camporeeId,
-            userId: userId,
+            userId: registration.key,
+            insuranceId: registration.value,
           );
 
       result.fold(
@@ -627,13 +628,11 @@ class EnrollClubNotifier
 
   int get _camporeeId => arg;
 
-  Future<bool> enroll({required int clubSectionId}) async {
+  Future<bool> enroll() async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
-    final result = await ref.read(camporeesRepositoryProvider).enrollClub(
-          _camporeeId,
-          clubSectionId: clubSectionId,
-        );
+    final result =
+        await ref.read(camporeesRepositoryProvider).enrollClub(_camporeeId);
 
     return result.fold(
       (failure) {

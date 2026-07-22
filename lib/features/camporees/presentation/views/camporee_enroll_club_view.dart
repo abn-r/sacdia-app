@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
@@ -28,15 +27,6 @@ class CamporeeEnrollClubView extends ConsumerStatefulWidget {
 
 class _CamporeeEnrollClubViewState
     extends ConsumerState<CamporeeEnrollClubView> {
-  final _formKey = GlobalKey<FormState>();
-  final _sectionIdCtrl = TextEditingController();
-
-  @override
-  void dispose() {
-    _sectionIdCtrl.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final enrollState =
@@ -79,133 +69,80 @@ class _CamporeeEnrollClubViewState
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: c.border),
             ),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryLight,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const HugeIcon(
-                          icon: HugeIcons.strokeRoundedBuilding01,
-                          color: AppColors.primary,
-                          size: 18,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        'camporees.enroll_club.enroll_club'.tr(),
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: c.text,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Error
-                  if (enrollState.errorMessage != null) ...[
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.errorLight,
-                        borderRadius: BorderRadius.circular(10),
+                        color: AppColors.primaryLight,
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Row(
-                        children: [
-                          const HugeIcon(
-                            icon: HugeIcons.strokeRoundedAlert02,
-                            color: AppColors.error,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              enrollState.errorMessage!,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: AppColors.error,
-                              ),
+                      child: const HugeIcon(
+                        icon: HugeIcons.strokeRoundedBuilding01,
+                        color: AppColors.primary,
+                        size: 18,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'camporees.enroll_club.enroll_club'.tr(),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: c.text,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // Error
+                if (enrollState.errorMessage != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.errorLight,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      children: [
+                        const HugeIcon(
+                          icon: HugeIcons.strokeRoundedAlert02,
+                          color: AppColors.error,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            enrollState.errorMessage!,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.error,
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-
-                  Text(
-                    'camporees.enroll_club.section_id_label'.tr(),
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: c.textSecondary,
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: _sectionIdCtrl,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      hintText: 'camporees.enroll_club.section_id_hint'.tr(),
-                      hintStyle: TextStyle(fontSize: 13, color: c.textTertiary),
-                      prefixIconConstraints: FixedInputIconSlot.constraints,
-                      prefixIcon: FixedInputIconSlot(
-                        icon: HugeIcons.strokeRoundedBuilding01,
-                        color: c.textTertiary,
-                        iconSize: 18,
-                      ),
-                      filled: true,
-                      fillColor: c.background,
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 14),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: c.border),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: c.border),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                            color: AppColors.primary, width: 1.5),
-                      ),
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.error),
-                      ),
-                    ),
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) {
-                        return 'camporees.enroll_club.section_id_required'.tr();
-                      }
-                      final parsed = int.tryParse(v.trim());
-                      if (parsed == null || parsed <= 0) {
-                        return 'camporees.enroll_club.section_id_invalid'.tr();
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  SacButton.primary(
-                    text: 'camporees.enroll_club.enroll_club'.tr(),
-                    icon: HugeIcons.strokeRoundedBuilding01,
-                    isLoading: enrollState.isLoading,
-                    onPressed: enrollState.isLoading ? null : _submit,
-                  ),
+                  const SizedBox(height: 12),
                 ],
-              ),
+
+                Text(
+                  'camporees.enroll_club.active_section_notice'.tr(),
+                  style: TextStyle(fontSize: 13, color: c.textSecondary),
+                ),
+                const SizedBox(height: 16),
+
+                SacButton.primary(
+                  text: 'camporees.enroll_club.enroll_club'.tr(),
+                  icon: HugeIcons.strokeRoundedBuilding01,
+                  isLoading: enrollState.isLoading,
+                  onPressed: enrollState.isLoading ? null : _submit,
+                ),
+              ],
             ),
           ),
 
@@ -359,15 +296,11 @@ class _CamporeeEnrollClubViewState
   }
 
   Future<void> _submit() async {
-    final formState = _formKey.currentState;
-    if (formState == null || !formState.validate()) return;
-
     ref.read(enrollClubNotifierProvider(widget.camporeeId).notifier).reset();
 
-    final sectionId = int.parse(_sectionIdCtrl.text.trim());
     final success = await ref
         .read(enrollClubNotifierProvider(widget.camporeeId).notifier)
-        .enroll(clubSectionId: sectionId);
+        .enroll();
 
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -379,7 +312,6 @@ class _CamporeeEnrollClubViewState
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
-      _sectionIdCtrl.clear();
     }
   }
 }

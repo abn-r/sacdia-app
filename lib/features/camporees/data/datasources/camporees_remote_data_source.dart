@@ -42,7 +42,7 @@ abstract class CamporeesRemoteDataSource {
     required String userId,
     String? camporeeType,
     String? clubName,
-    int? insuranceId,
+    required int insuranceId,
   });
 
   /// Obtiene los miembros inscritos en un camporee (respuesta paginada).
@@ -61,12 +61,9 @@ abstract class CamporeesRemoteDataSource {
 
   // ── Payments ────────────────────────────────────────────────────────────────
 
-  /// Inscribe un club en un camporee.
-  /// POST /api/v1/camporees/:camporeeId/clubs
-  Future<CamporeeEnrolledClubModel> enrollClub(
-    int camporeeId, {
-    required int clubSectionId,
-  });
+  /// Inscribe la sección activa del director en un camporee local.
+  /// POST /api/v1/camporees/:camporeeId/section-registration
+  Future<CamporeeEnrolledClubModel> enrollClub(int camporeeId);
 
   /// Obtiene los clubes inscritos en un camporee.
   /// GET /api/v1/camporees/:camporeeId/clubs
@@ -290,7 +287,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
     required String userId,
     String? camporeeType,
     String? clubName,
-    int? insuranceId,
+    required int insuranceId,
   }) async {
     try {
       final body = <String, dynamic>{
@@ -300,7 +297,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
         body['camporee_type'] = camporeeType;
       }
       if (clubName != null) body['club_name'] = clubName;
-      if (insuranceId != null) body['insurance_id'] = insuranceId;
+      body['insurance_id'] = insuranceId;
 
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/register',
@@ -424,17 +421,13 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
     }
   }
 
-  // ── POST /api/v1/camporees/:camporeeId/clubs ──────────────────────────────
+  // ── POST /api/v1/camporees/:camporeeId/section-registration ─────────────
 
   @override
-  Future<CamporeeEnrolledClubModel> enrollClub(
-    int camporeeId, {
-    required int clubSectionId,
-  }) async {
+  Future<CamporeeEnrolledClubModel> enrollClub(int camporeeId) async {
     try {
       final response = await _dio.post(
-        '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/clubs',
-        data: {'club_section_id': clubSectionId},
+        '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/section-registration',
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

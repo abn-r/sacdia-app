@@ -109,15 +109,19 @@ class CamporeeEnrolledClubModel extends Equatable {
     final section = json['club_section'] as Map<String, dynamic>?;
 
     return CamporeeEnrolledClubModel(
-      id: safeInt(json['id'] ?? json['enrollment_id']),
-      camporeeId: safeInt(json['camporee_id']),
-      clubSectionId: safeInt(json['club_section_id'] ?? section?['id']),
+      id: safeInt(json['enrollmentId'] ?? json['id'] ?? json['enrollment_id']),
+      camporeeId: safeInt(json['camporeeId'] ?? json['camporee_id']),
+      clubSectionId: safeInt(
+        json['clubSectionId'] ?? json['club_section_id'] ?? section?['id'],
+      ),
       clubName: safeStringOrNull(club?['name']) ??
-          safeStringOrNull(json['club_name']),
+          safeStringOrNull(json['clubName'] ?? json['club_name']),
       sectionName: safeStringOrNull(section?['name']) ??
-          safeStringOrNull(json['section_name']),
-      enrolledAt: json['created_at'] != null
-          ? DateTime.tryParse(safeString(json['created_at']))
+          safeStringOrNull(json['sectionName'] ?? json['section_name']),
+      enrolledAt: (json['registeredAt'] ?? json['created_at']) != null
+          ? DateTime.tryParse(
+              safeString(json['registeredAt'] ?? json['created_at']),
+            )
           : null,
     );
   }

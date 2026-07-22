@@ -301,7 +301,7 @@ void main() {
   });
 
   group('CamporeesRemoteDataSourceImpl.registerMember', () {
-    test('sends only user_id by default because backend infers camporee type',
+    test('sends the mandatory insurance id while backend infers camporee type',
         () async {
       final (:dio, :adapter) = _dioWith(_memberJson());
       final ds = CamporeesRemoteDataSourceImpl(dio: dio, baseUrl: baseUrl);
@@ -309,12 +309,42 @@ void main() {
       await ds.registerMember(
         42,
         userId: 'user-001',
+        insuranceId: 17,
       );
 
       expect(adapter.lastOptions!.path, '$baseUrl/camporees/42/register');
       expect(adapter.lastOptions!.data, {
         'user_id': 'user-001',
+        'insurance_id': 17,
       });
+    });
+  });
+
+  group('CamporeesRemoteDataSourceImpl.enrollClub', () {
+    test(
+        'uses the contextual active-section endpoint without serializing a section id',
+        () async {
+      final (:dio, :adapter) = _dioWith({
+        'camporeeId': 42,
+        'clubId': 7,
+        'clubName': 'Orión',
+        'clubSectionId': 9,
+        'sectionName': 'Conquistadores',
+        'clubTypeId': 2,
+        'clubTypeName': 'Conquistadores',
+        'registration': {
+          'id': 17,
+          'status': 'registered',
+        },
+        'canEnroll': false,
+      });
+      final ds = CamporeesRemoteDataSourceImpl(dio: dio, baseUrl: baseUrl);
+
+      await ds.enrollClub(42);
+
+      expect(adapter.lastOptions!.path,
+          '$baseUrl/camporees/42/section-registration');
+      expect(adapter.lastOptions!.data, isNull);
     });
   });
 
