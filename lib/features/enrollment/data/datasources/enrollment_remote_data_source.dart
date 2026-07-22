@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 
@@ -81,9 +79,8 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
 
   /// Construye el payload para crear/actualizar una inscripción.
   ///
-  /// meeting_schedule se serializa como JSON string para backward compatibility
-  /// con el backend actual que espera meeting_days como String.
-  /// Cuando el backend actualice el DTO, se puede enviar directo como lista.
+  /// El backend acepta tanto [meeting_days] legacy como el arreglo estructurado
+  /// [meeting_schedule], y exige [latitude]/[longitude] como nombres canónicos.
   Map<String, dynamic> _buildPayload({
     required String address,
     double? lat,
@@ -103,12 +100,11 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
 
     return {
       'address': address,
-      // Legacy field: plain day names for current backend
+      // Campo legacy conservado para compatibilidad con reportes históricos.
       'meeting_days': daysList.join(', '),
-      // Extended field: structured schedule (ignored by current backend, ready for upgrade)
-      'meeting_schedule': jsonEncode(scheduleJson),
-      if (lat != null) 'lat': lat,
-      if (long != null) 'long': long,
+      'meeting_schedule': scheduleJson,
+      if (lat != null) 'latitude': lat,
+      if (long != null) 'longitude': long,
       if (soulsTarget != null) 'souls_target': soulsTarget,
       if (fee != null) 'fee': fee,
       if (feeAmount != null) 'fee_amount': feeAmount,
@@ -265,13 +261,13 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
       final data = <String, dynamic>{};
       if (address != null) {
         data['address'] = address;
-        if (lat != null) data['lat'] = lat;
-        if (long != null) data['long'] = long;
+        if (lat != null) data['latitude'] = lat;
+        if (long != null) data['longitude'] = long;
       }
       if (meetingSchedule != null) {
         data['meeting_days'] = meetingSchedule.map((s) => s.day).join(', ');
         data['meeting_schedule'] =
-            jsonEncode(meetingSchedule.map((s) => s.toJson()).toList());
+            meetingSchedule.map((s) => s.toJson()).toList();
       }
       if (soulsTarget != null) data['souls_target'] = soulsTarget;
       if (fee != null) data['fee'] = fee;

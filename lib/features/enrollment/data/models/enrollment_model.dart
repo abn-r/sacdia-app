@@ -43,7 +43,7 @@ class EnrollmentModel extends Enrollment {
         ? rawSectionId
         : int.tryParse(rawSectionId.toString()) ?? 0;
 
-    final rawYear = json['year'];
+    final rawYear = json['ecclesiastical_year_id'] ?? json['year'];
     final year = rawYear is int
         ? rawYear
         : int.tryParse(rawYear?.toString() ?? '') ?? DateTime.now().year;
@@ -137,8 +137,8 @@ class EnrollmentModel extends Enrollment {
       clubSectionId: sectionId,
       year: year,
       address: json['address'] as String?,
-      lat: (json['lat'] as num?)?.toDouble(),
-      long: (json['long'] as num?)?.toDouble(),
+      lat: ((json['latitude'] ?? json['lat']) as num?)?.toDouble(),
+      long: ((json['longitude'] ?? json['long']) as num?)?.toDouble(),
       meetingDays: meetingDays,
       meetingSchedule: schedule,
       status: status,
@@ -160,10 +160,10 @@ class EnrollmentModel extends Enrollment {
       'id': id,
       'user_id': userId,
       'club_section_id': clubSectionId,
-      'year': year,
+      'ecclesiastical_year_id': year,
       'address': address,
-      'lat': lat,
-      'long': long,
+      'latitude': lat,
+      'longitude': long,
       'meeting_days': meetingDays,
       'meeting_schedule': scheduleJson,
       'status': status.name,
