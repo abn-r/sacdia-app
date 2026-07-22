@@ -1180,7 +1180,12 @@
       "certificates": "Certificates delivered",
       "booklets": "Members with booklet",
       "booklets_signed": "Booklet requirements signed",
-      "edit_manual_data": "Complete manual data"
+      "edit_manual_data": "Complete manual data",
+      "status_message_draft": "Manual data is still needed to generate this report",
+      "status_message_generated": "Report ready to review",
+      "status_message_submitted": "Submitted · awaiting review",
+      "status_message_approved": "Approved",
+      "status_message_rejected": "Rejected"
     },
     "visible": {
       "title": "Reports",
@@ -1192,7 +1197,13 @@
       "prepare_report": "Prepare report",
       "preparing": "Preparing…",
       "prepare_error": "Could not prepare the report",
-      "no_enrollment": "No active enrollment was found for your club."
+      "no_enrollment": "No active enrollment was found for your club.",
+      "history_title": "History",
+      "next_action_pending": "Pending manual data",
+      "next_action_continue": "Continue preparation",
+      "next_action_all_set": "You're all set",
+      "continue_report": "Continue",
+      "view_period": "View period report"
     },
     "form": {
       "title": "Report data",
@@ -1249,7 +1260,13 @@
       "materials_description": "Mark only what was already completed or delivered.",
       "certificates_helper": "Certificates or recognitions delivered to members.",
       "booklets_helper": "Members have their booklet or physical record.",
-      "booklets_signed_helper": "Booklet requirements were reviewed and signed."
+      "booklets_signed_helper": "Booklet requirements were reviewed and signed.",
+      "sheet_title": "{month} {year} data",
+      "discard_title": "Discard changes?",
+      "discard_body": "You have unsaved changes.",
+      "discard_confirm": "Discard",
+      "discard_keep": "Keep editing",
+      "save_disabled_hint": "No changes"
     }
   },
   "units": {
@@ -1818,6 +1835,7 @@
     "enroll_club": {
       "title": "Club enrollment",
       "enroll_club": "Enroll club",
+      "active_section_notice": "Enrollment automatically uses the active section you lead.",
       "section_id_label": "Club section ID *",
       "section_id_hint": "Section ID (e.g. 42)",
       "section_id_required": "Enter section ID",
@@ -1850,9 +1868,9 @@
     },
     "register_member": {
       "title": "Enroll members",
-      "info_banner": "Select members from your section. The camporee type is defined when the event is created; you do not need to enter IDs or insurance data.",
+      "info_banner": "Select members from your section. Each participant must have active CAMPOREE or GENERAL ACTIVITIES insurance valid for the event dates.",
       "insurance_error_title": "Insurance error",
-      "insurance_error_body": "The member does not have an active and valid CAMPOREE type insurance. Please verify that the insurance exists, is of type CAMPOREE, is active, and covers the camporee dates.",
+      "insurance_error_body": "The member must have active CAMPOREE or GENERAL ACTIVITIES insurance valid for the camporee dates.",
       "user_id_label": "User ID",
       "user_id_hint": "User UUID (e.g. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)",
       "user_id_required": "User ID is required",
@@ -1865,7 +1883,7 @@
       "club_name_label": "Club name",
       "club_name_hint": "Club name (required for union)",
       "insurance_id_label": "Insurance ID",
-      "insurance_id_hint": "CAMPOREE type insurance ID (optional)",
+      "insurance_id_hint": "CAMPOREE or GENERAL ACTIVITIES insurance ID (required)",
       "insurance_id_invalid": "Enter a valid insurance ID",
       "register_button": "Register member",
       "success": "Member registered successfully",
@@ -2267,7 +2285,8 @@
       "image": "Images",
       "video": "Videos",
       "text": "Contenido de texto",
-      "files": "Files"
+      "files": "Files",
+      "search": "Results"
     },
     "filter": {
       "all": "Todos",
@@ -3856,6 +3875,28 @@
       "score_pending_hint": "There is not enough data yet to calculate this member’s composite score.",
       "rank_position": "Position #{position}",
       "section_name": "Section: {name}"
+    }
+  },
+  "materials": {
+    "catalog": {
+      "title": "Materials",
+      "search_hint": "Search products...",
+      "filter_all": "All",
+      "filter_all_categories": "All",
+      "cart": "Cart",
+      "empty": "No products available",
+      "load_more": "Load more",
+      "in_stock": "In stock",
+      "low_stock": "Low stock",
+      "out_of_stock": "Out of stock"
+    },
+    "history": {
+      "title": "My orders",
+      "no_folio": "No folio",
+      "empty_title": "You have no orders yet",
+      "empty_subtitle": "Browse the catalog and place your first order.",
+      "go_catalog": "Go to catalog",
+      "error_title": "Could not load order history"
     }
   }
 }

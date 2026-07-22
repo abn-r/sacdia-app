@@ -1,11 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
-/// Opciones de filtro de tipo de recurso
+/// Opciones de filtro de tipo de recurso.
 class ResourceTypeFilter {
   final String? value; // null = "Todos"
   final String label;
@@ -51,7 +52,7 @@ List<ResourceTypeFilter> get _filters => <ResourceTypeFilter>[
       ),
     ];
 
-/// Barra horizontal de chips para filtrar recursos por tipo
+/// Barra horizontal de chips para filtrar recursos por tipo.
 class ResourceFilterBar extends StatelessWidget {
   final String? activeType;
   final ValueChanged<String?> onTypeChanged;
@@ -67,6 +68,7 @@ class ResourceFilterBar extends StatelessWidget {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       clipBehavior: Clip.none,
+      padding: const EdgeInsets.only(right: 20),
       child: Row(
         children: _filters
             .map(
@@ -85,7 +87,7 @@ class ResourceFilterBar extends StatelessWidget {
   }
 }
 
-class _FilterChip extends StatelessWidget {
+class _FilterChip extends StatefulWidget {
   final ResourceTypeFilter filter;
   final bool isActive;
   final VoidCallback onTap;
@@ -97,56 +99,60 @@ class _FilterChip extends StatelessWidget {
   });
 
   @override
+  State<_FilterChip> createState() => _FilterChipState();
+}
+
+class _FilterChipState extends State<_FilterChip> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
     final c = context.sac;
     final radius = BorderRadius.circular(AppTheme.radiusFull);
+    final reduce = SacMotion.reduceMotionOf(context);
 
     return Semantics(
       button: true,
-      selected: isActive,
-      label: filter.label,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: radius,
-          onTap: onTap,
+      selected: widget.isActive,
+      label: widget.filter.label,
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _pressed = true),
+        onTapUp: (_) => setState(() => _pressed = false),
+        onTapCancel: () => setState(() => _pressed = false),
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: (!reduce && _pressed) ? 0.97 : 1,
+          duration: SacMotion.press,
+          curve: Curves.easeOut,
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
+            duration: const Duration(milliseconds: 150),
             curve: Curves.easeOut,
             constraints: const BoxConstraints(minHeight: 44),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: isActive ? AppColors.primary : c.surface,
+              color: widget.isActive ? AppColors.primary : c.surface,
               borderRadius: radius,
               border: Border.all(
-                color: isActive ? AppColors.primary : c.border,
-                width: 1.2,
+                color: widget.isActive ? AppColors.primary : c.border,
               ),
-              boxShadow: isActive
-                  ? [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.25),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      ),
-                    ]
-                  : null,
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 HugeIcon(
-                  icon: filter.icon,
+                  icon: widget.filter.icon,
                   size: 15,
-                  color: isActive ? Colors.white : c.textSecondary,
+                  color: widget.isActive ? Colors.white : c.textSecondary,
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  filter.label,
+                  widget.filter.label,
+                  maxLines: 1,
+                  softWrap: false,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: isActive ? Colors.white : c.textSecondary,
+                    color: widget.isActive ? Colors.white : c.textSecondary,
                   ),
                 ),
               ],

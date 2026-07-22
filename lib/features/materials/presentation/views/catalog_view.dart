@@ -1,25 +1,24 @@
 import 'dart:async';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
-import '../../../../core/config/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/sac_colors.dart';
 import '../providers/cart_provider.dart';
 import '../providers/catalog_provider.dart';
 import '../providers/categories_provider.dart';
 import '../providers/programs_provider.dart';
 import '../widgets/product_card.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
-import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 
 /// Pantalla principal del catálogo de materiales.
-///
-/// Muestra un grid 2×N de productos con filtros de búsqueda, programa y
-/// categoría. Soporta paginación incremental mediante "Cargar más".
 class CatalogView extends ConsumerStatefulWidget {
   const CatalogView({super.key});
 
@@ -59,28 +58,46 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     final cartState = ref.watch(cartProvider);
     final catalogAsync = ref.watch(catalogProvider(_query));
     final categoriasAsync = ref.watch(categoriesProvider);
     final programasAsync = ref.watch(programsProvider);
 
     return Scaffold(
+      backgroundColor: c.background,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         leading: sacAutoBackButton(context),
-        title: const Text('Materiales'),
+        backgroundColor: c.background,
+        surfaceTintColor: Colors.transparent,
+        title: Text(
+          'materials.catalog.title'.tr(),
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: c.text,
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const HugeIcon(icon: HugeIcons.strokeRoundedInvoice03),
-            tooltip: 'Mis pedidos',
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedInvoice03,
+              color: c.text,
+              size: 22,
+            ),
+            tooltip: 'materials.history.title'.tr(),
             onPressed: () => context.push(RouteNames.materialsHistory),
           ),
           Stack(
             alignment: Alignment.topRight,
             children: [
               IconButton(
-                icon:
-                    const HugeIcon(icon: HugeIcons.strokeRoundedShoppingCart01),
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedShoppingCart01,
+                  color: c.text,
+                  size: 22,
+                ),
+                tooltip: 'materials.catalog.cart'.tr(),
                 onPressed: () => context.push(RouteNames.materialsCart),
               ),
               if (cartState.itemCount > 0)
@@ -111,47 +128,52 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
       ),
       body: Column(
         children: [
-          // ── Search ──
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: TextField(
               controller: _searchController,
               onChanged: _onSearchChanged,
+              style: TextStyle(color: c.text),
               decoration: InputDecoration(
-                hintText: 'Buscar productos...',
+                hintText: 'materials.catalog.search_hint'.tr(),
+                hintStyle: TextStyle(color: c.textTertiary),
+                filled: true,
+                fillColor: c.surface,
                 prefixIconConstraints: FixedInputIconSlot.constraints,
                 prefixIcon: FixedInputIconSlot(
                   icon: HugeIcons.strokeRoundedSearch01,
-                  color: context.sac.textSecondary,
+                  color: c.textSecondary,
                   iconSize: 20,
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.lightBorder),
+                  borderSide: BorderSide(color: c.border),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.lightBorder),
+                  borderSide: BorderSide(color: c.border),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.primary),
                 ),
                 contentPadding: const EdgeInsets.symmetric(vertical: 10),
               ),
             ),
           ),
-
-          // ── Program filter ──
           programasAsync.when(
             loading: () => const SizedBox.shrink(),
             error: (_, __) => const SizedBox.shrink(),
             data: (programas) {
               if (programas.isEmpty) return const SizedBox.shrink();
               return SizedBox(
-                height: 36,
+                height: 40,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 28, 0),
                   children: [
                     _FilterChip(
-                      label: 'Todos',
+                      label: 'materials.catalog.filter_all'.tr(),
                       selected: _selectedProgramaId == null,
                       onTap: () => setState(() => _selectedProgramaId = null),
                     ),
@@ -159,7 +181,8 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
                       (p) => _FilterChip(
                         label: p.label,
                         selected: _selectedProgramaId == p.id,
-                        onTap: () => setState(() => _selectedProgramaId = p.id),
+                        onTap: () =>
+                            setState(() => _selectedProgramaId = p.id),
                       ),
                     ),
                   ],
@@ -167,8 +190,6 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
               );
             },
           ),
-
-          // ── Category chips ──
           categoriasAsync.when(
             loading: () => const SizedBox.shrink(),
             error: (_, __) => const SizedBox.shrink(),
@@ -177,21 +198,22 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
               return Padding(
                 padding: const EdgeInsets.only(top: 6),
                 child: SizedBox(
-                  height: 36,
+                  height: 40,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 28, 0),
                     children: [
                       _FilterChip(
-                        label: 'Categorías',
+                        label: 'materials.catalog.filter_all_categories'.tr(),
                         selected: _selectedCat == null,
                         onTap: () => setState(() => _selectedCat = null),
                       ),
                       ...cats.map(
-                        (c) => _FilterChip(
-                          label: c.label,
-                          selected: _selectedCat == c.slug,
-                          onTap: () => setState(() => _selectedCat = c.slug),
+                        (cat) => _FilterChip(
+                          label: cat.label,
+                          selected: _selectedCat == cat.slug,
+                          onTap: () =>
+                              setState(() => _selectedCat = cat.slug),
                         ),
                       ),
                     ],
@@ -200,16 +222,10 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
               );
             },
           ),
-
-          const SizedBox(height: 8),
-
-          // ── Product grid ──
+          const SizedBox(height: 10),
           Expanded(
             child: catalogAsync.when(
-              loading: () => const Center(
-                  child: CircularProgressIndicator(
-                color: AppColors.primary,
-              )),
+              loading: () => const _CatalogSkeleton(),
               error: (error, _) => _ErrorState(
                 message: error.toString(),
                 onRetry: () => ref.invalidate(catalogProvider(_query)),
@@ -230,7 +246,7 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
                     crossAxisCount: 2,
                     mainAxisSpacing: 12,
                     crossAxisSpacing: 12,
-                    childAspectRatio: 0.75,
+                    childAspectRatio: 0.72,
                   ),
                   itemCount: state.items.length + (state.hasMore ? 1 : 0),
                   itemBuilder: (context, index) {
@@ -260,9 +276,7 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
   }
 }
 
-// ── Sub-widgets ────────────────────────────────────────────────────────────────
-
-class _FilterChip extends StatelessWidget {
+class _FilterChip extends StatefulWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
@@ -274,29 +288,115 @@ class _FilterChip extends StatelessWidget {
   });
 
   @override
+  State<_FilterChip> createState() => _FilterChipState();
+}
+
+class _FilterChipState extends State<_FilterChip> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
+    final c = context.sac;
+    final reduce = SacMotion.reduceMotionOf(context);
+
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-          decoration: BoxDecoration(
-            color: selected ? AppColors.primary : AppColors.lightSurface,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: selected ? AppColors.primary : AppColors.lightBorder,
+        onTapDown: (_) => setState(() => _pressed = true),
+        onTapUp: (_) => setState(() => _pressed = false),
+        onTapCancel: () => setState(() => _pressed = false),
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: (!reduce && _pressed) ? 0.97 : 1,
+          duration: SacMotion.press,
+          curve: Curves.easeOut,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            curve: Curves.easeOut,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: widget.selected ? AppColors.primary : c.surface,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: widget.selected ? AppColors.primary : c.border,
+              ),
+            ),
+            child: Text(
+              widget.label,
+              maxLines: 1,
+              softWrap: false,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: widget.selected ? Colors.white : c.text,
+              ),
             ),
           ),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: selected ? Colors.white : AppColors.lightText,
+        ),
+      ),
+    );
+  }
+}
+
+class _CatalogSkeleton extends StatelessWidget {
+  const _CatalogSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return GridView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 0.72,
+      ),
+      itemCount: 4,
+      itemBuilder: (_, __) => Container(
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: c.border.withValues(alpha: 0.7)),
+        ),
+        child: Column(
+          children: [
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: c.border.withValues(alpha: 0.35),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+              ),
             ),
-          ),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 12,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: c.border.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    height: 12,
+                    width: 72,
+                    decoration: BoxDecoration(
+                      color: c.border.withValues(alpha: 0.35),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -308,20 +408,23 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    final c = context.sac;
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           HugeIcon(
-              icon: HugeIcons.strokeRoundedPackage,
-              size: 56,
-              color: AppColors.lightTextTertiary),
-          SizedBox(height: 16),
+            icon: HugeIcons.strokeRoundedPackage,
+            size: 56,
+            color: c.textTertiary,
+          ),
+          const SizedBox(height: 16),
           Text(
-            'No hay productos disponibles',
+            'materials.catalog.empty'.tr(),
             style: TextStyle(
-              color: AppColors.lightTextSecondary,
+              color: c.textSecondary,
               fontSize: 16,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -338,28 +441,30 @@ class _ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 48,
-              color: AppColors.error),
+            icon: HugeIcons.strokeRoundedAlert02,
+            size: 48,
+            color: AppColors.error,
+          ),
           const SizedBox(height: 12),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.lightTextSecondary),
+              style: TextStyle(color: c.textSecondary),
             ),
           ),
           const SizedBox(height: 16),
           FilledButton(
             onPressed: onRetry,
             style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text('Reintentar'),
+            child: Text('common.retry'.tr()),
           ),
         ],
       ),
@@ -383,9 +488,9 @@ class _LoadMoreButton extends StatelessWidget {
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppColors.primary),
               ),
-              child: const Text(
-                'Cargar más',
-                style: TextStyle(color: AppColors.primary),
+              child: Text(
+                'materials.catalog.load_more'.tr(),
+                style: const TextStyle(color: AppColors.primary),
               ),
             ),
     );

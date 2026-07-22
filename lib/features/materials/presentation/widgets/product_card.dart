@@ -1,10 +1,14 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/material_item.dart';
 import '../utils/money_format.dart';
+import 'materials_pressable.dart';
 
-/// Tarjeta cuadrada para mostrar un producto del catálogo.
+/// Tarjeta de producto del catálogo (grid 2 columnas).
 class ProductCard extends StatelessWidget {
   final MaterialItem item;
   final VoidCallback onTap;
@@ -17,120 +21,110 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final c = context.sac;
     final hasStock = item.stock > 0;
 
-    return GestureDetector(
+    return MaterialsPressable(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.lightBorder),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x0A000000),
-              blurRadius: 4,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image placeholder
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: AppColors.primarySurface,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(12),
-                  ),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  item.title.isNotEmpty ? item.title[0].toUpperCase() : '?',
-                  style: TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
+      child: Semantics(
+        button: true,
+        label: item.title,
+        child: Container(
+          decoration: BoxDecoration(
+            color: c.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: c.border.withValues(alpha: 0.75)),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  color: AppColors.primary.withValues(alpha: 0.08),
+                  alignment: Alignment.center,
+                  child: HugeIcon(
+                    icon: _categoryIcon(item.category.slug),
+                    size: 36,
                     color: AppColors.primary,
                   ),
                 ),
               ),
-            ),
-
-            // Info section
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.title,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.lightText,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        formatMxn(item.priceCentavos),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w700,
-                        ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.title,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: c.text,
+                        height: 1.2,
                       ),
-                      _StockIndicator(hasStock: hasStock, stock: item.stock),
-                    ],
-                  ),
-                ],
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      formatMxn(item.priceCentavos),
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primary,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      _stockLabel(hasStock: hasStock, stock: item.stock),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: hasStock
+                            ? (item.stock <= 5
+                                ? AppColors.warning
+                                : c.textTertiary)
+                            : AppColors.error,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
-}
 
-class _StockIndicator extends StatelessWidget {
-  final bool hasStock;
-  final int stock;
-
-  const _StockIndicator({required this.hasStock, required this.stock});
-
-  @override
-  Widget build(BuildContext context) {
-    if (!hasStock) {
-      return _badge('Agotado', AppColors.error, AppColors.errorLight);
+  static List<List<dynamic>> _categoryIcon(String slug) {
+    switch (slug.toLowerCase()) {
+      case 'insignias':
+        return HugeIcons.strokeRoundedAward01;
+      case 'uniforme':
+      case 'uniformes':
+        return HugeIcons.strokeRoundedShirt01;
+      case 'panoletas':
+      case 'pañoletas':
+        return HugeIcons.strokeRoundedTie;
+      case 'material':
+      case 'materiales':
+        return HugeIcons.strokeRoundedPackage;
+      case 'cuadernillos':
+      case 'libros':
+        return HugeIcons.strokeRoundedBook02;
+      default:
+        return HugeIcons.strokeRoundedShoppingBag01;
     }
-    if (stock <= 5) {
-      return _badge('Poco stock', AppColors.warning, AppColors.accentLight);
-    }
-    return _badge('Disponible', AppColors.secondary, AppColors.secondaryLight);
   }
 
-  Widget _badge(String label, Color color, Color bg) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 9,
-          color: color,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
+  static String _stockLabel({required bool hasStock, required int stock}) {
+    if (!hasStock) return 'materials.catalog.out_of_stock'.tr();
+    if (stock <= 5) return 'materials.catalog.low_stock'.tr();
+    return 'materials.catalog.in_stock'.tr();
   }
 }

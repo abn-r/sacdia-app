@@ -27,19 +27,25 @@ class MonthlyReportsVisibleListView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: c.background,
       appBar: AppBar(
-        backgroundColor: c.background,
+        backgroundColor: c.background.withValues(alpha: 0.92),
         surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0.5,
         title: Text(
           'monthly_reports.visible.title'.tr(),
           style: TextStyle(
-              fontWeight: FontWeight.w700, fontSize: 18, color: c.text),
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            color: c.text,
+            letterSpacing: -0.2,
+          ),
         ),
         centerTitle: false,
         leading: IconButton(
           icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedArrowLeft01,
-              color: c.text,
-              size: 22),
+            icon: HugeIcons.strokeRoundedArrowLeft01,
+            color: c.text,
+            size: 22,
+          ),
           onPressed: () => context.go(RouteNames.homeDashboard),
         ),
       ),
@@ -52,29 +58,37 @@ class MonthlyReportsVisibleListView extends ConsumerWidget {
         data: (page) => RefreshIndicator(
           color: AppColors.primary,
           onRefresh: () async => ref.invalidate(visibleMonthlyReportsProvider),
-          child: ListView.separated(
-            padding: const EdgeInsets.all(20),
-            itemCount: page.items.length + 1,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              if (index == 0) {
-                return const MonthlyReportEntrance(child: _ReportsHeroCard());
-              }
-              final report = page.items[index - 1];
-              return MonthlyReportEntrance(
-                index: index,
-                child: _VisibleReportCard(
-                  report: report,
-                  onTap: () => Navigator.push(
-                    context,
-                    SacSharedAxisRoute(
-                      builder: (_) =>
-                          MonthlyReportDetailView(reportId: report.id),
-                    ),
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+            children: [
+              MonthlyReportEntrance(
+                child: _NextActionBar(reports: page.items),
+              ),
+              const SizedBox(height: 22),
+              MonthlyReportEntrance(
+                index: 1,
+                child: Text(
+                  'monthly_reports.visible.history_title'.tr(),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.2,
+                    color: c.textTertiary,
                   ),
                 ),
-              );
-            },
+              ),
+              const SizedBox(height: 10),
+              if (page.items.isEmpty)
+                MonthlyReportEntrance(
+                  index: 2,
+                  child: _EmptyHistory(c: c),
+                )
+              else
+                MonthlyReportEntrance(
+                  index: 2,
+                  child: _GroupedHistoryList(reports: page.items),
+                ),
+            ],
           ),
         ),
       ),
@@ -82,18 +96,67 @@ class MonthlyReportsVisibleListView extends ConsumerWidget {
   }
 }
 
-class _ReportsHeroCard extends ConsumerWidget {
-  const _ReportsHeroCard();
+enum _NextActionKind { prepare, continueDraft, allSet }
 
-  Future<void> _prepare(BuildContext context, WidgetRef ref) async {
+class _NextActionBar extends ConsumerWidget {
+  final List<VisibleMonthlyReport> reports;
+
+  const _NextActionBar({required this.reports});
+
+  VisibleMonthlyReport? _periodReport() {
+    final target = MonthlyReportPeriod.forPreparation();
+    for (final report in reports) {
+      if (report.month == target.month && report.year == target.year) {
+        return report;
+      }
+    }
+    return null;
+  }
+
+  _NextActionKind _kind(VisibleMonthlyReport? period) {
+    if (period == null) return _NextActionKind.prepare;
+    if (period.reportStatus == MonthlyReportStatus.draft) {
+      return _NextActionKind.continueDraft;
+    }
+    return _NextActionKind.allSet;
+  }
+
+  Future<void> _prepareOrOpen(
+    BuildContext context,
+    WidgetRef ref, {
+    VisibleMonthlyReport? existing,
+  }) async {
+    if (existing != null &&
+        existing.reportStatus != MonthlyReportStatus.draft) {
+      Navigator.push(
+        context,
+        SacSharedAxisRoute(
+          builder: (_) => MonthlyReportDetailView(reportId: existing.id),
+        ),
+      );
+      return;
+    }
+
     final enrollment = await ref.read(currentEnrollmentProvider.future);
     if (!context.mounted) return;
     final enrollmentId = enrollment?.endpointId;
     if (enrollmentId == null || enrollmentId == '0') {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('monthly_reports.visible.no_enrollment'.tr()),
-            behavior: SnackBarBehavior.floating),
+          content: Text('monthly_reports.visible.no_enrollment'.tr()),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    if (existing != null &&
+        existing.reportStatus == MonthlyReportStatus.draft) {
+      Navigator.push(
+        context,
+        SacSharedAxisRoute(
+          builder: (_) => MonthlyReportDetailView(reportId: existing.id),
+        ),
       );
       return;
     }
@@ -112,9 +175,12 @@ class _ReportsHeroCard extends ConsumerWidget {
       final state = ref.read(monthlyReportMutationProvider);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(state.errorMessage ??
-                'monthly_reports.visible.prepare_error'.tr()),
-            behavior: SnackBarBehavior.floating),
+          content: Text(
+            state.errorMessage ??
+                'monthly_reports.visible.prepare_error'.tr(),
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
@@ -122,7 +188,8 @@ class _ReportsHeroCard extends ConsumerWidget {
     Navigator.push(
       context,
       SacSharedAxisRoute(
-          builder: (_) => MonthlyReportDetailView(reportId: report.id)),
+        builder: (_) => MonthlyReportDetailView(reportId: report.id),
+      ),
     );
   }
 
@@ -132,71 +199,174 @@ class _ReportsHeroCard extends ConsumerWidget {
     final mutation = ref.watch(monthlyReportMutationProvider);
     final enrollmentAsync = ref.watch(currentEnrollmentProvider);
     final target = MonthlyReportPeriod.forPreparation();
+    final period = _periodReport();
+    final kind = _kind(period);
+    final monthRaw = DateFormat.MMMM(context.locale.toString())
+        .format(DateTime(target.year, target.month));
+    final monthLabel = monthRaw.isEmpty
+        ? monthRaw
+        : '${monthRaw[0].toUpperCase()}${monthRaw.substring(1)}';
+    final busy = mutation.isLoading || enrollmentAsync.isLoading;
+
+    final String statusLabel;
+    final String? ctaLabel;
+    switch (kind) {
+      case _NextActionKind.prepare:
+        statusLabel = 'monthly_reports.visible.next_action_pending'.tr();
+        ctaLabel = busy
+            ? 'monthly_reports.visible.preparing'.tr()
+            : 'monthly_reports.visible.prepare_report'.tr();
+      case _NextActionKind.continueDraft:
+        statusLabel = 'monthly_reports.visible.next_action_continue'.tr();
+        ctaLabel = busy
+            ? 'monthly_reports.visible.preparing'.tr()
+            : 'monthly_reports.visible.continue_report'.tr();
+      case _NextActionKind.allSet:
+        statusLabel = 'monthly_reports.visible.next_action_all_set'.tr();
+        ctaLabel = null;
+    }
 
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [
-          AppColors.primary.withValues(alpha: 0.16),
-          AppColors.accent.withValues(alpha: 0.12)
-        ]),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.18)),
+        color: c.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: c.border.withValues(alpha: 0.7)),
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
+      child: Row(
+        children: [
           Container(
-            width: 46,
-            height: 46,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(16)),
-            child: const HugeIcon(
-                icon: HugeIcons.strokeRoundedAnalytics01,
-                color: Colors.white,
-                size: 22),
+              color: kind == _NextActionKind.allSet
+                  ? const Color(0xFFDCFCE7)
+                  : AppColors.primary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: HugeIcon(
+              icon: kind == _NextActionKind.allSet
+                  ? HugeIcons.strokeRoundedCheckmarkCircle02
+                  : HugeIcons.strokeRoundedNoteEdit,
+              color: kind == _NextActionKind.allSet
+                  ? const Color(0xFF15803D)
+                  : AppColors.primary,
+              size: 20,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
-              child: Text('monthly_reports.visible.hero_title'.tr(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$monthLabel ${target.year}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: c.text))),
-        ]),
-        const SizedBox(height: 10),
-        Text(
-          'monthly_reports.visible.hero_subtitle'.tr(namedArgs: {
-            'month': DateFormat.MMMM(context.locale.toString())
-                .format(DateTime(target.year, target.month)),
-            'year': target.year.toString(),
-          }),
-          style: TextStyle(color: c.textSecondary, height: 1.35),
-        ),
-        const SizedBox(height: 16),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 180),
-          child: SacButton.primary(
-            key: ValueKey(mutation.isLoading || enrollmentAsync.isLoading),
-            text: mutation.isLoading
-                ? 'monthly_reports.visible.preparing'.tr()
-                : 'monthly_reports.visible.prepare_report'.tr(),
-            icon: HugeIcons.strokeRoundedNoteEdit,
-            onPressed: mutation.isLoading || enrollmentAsync.isLoading
-                ? null
-                : () => _prepare(context, ref),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.2,
+                    color: c.text,
+                    height: 1.1,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  statusLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: c.textSecondary,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ]),
+          if (ctaLabel != null) ...[
+            const SizedBox(width: 10),
+            SacButton(
+              text: ctaLabel,
+              size: SacButtonSize.small,
+              fullWidth: false,
+              icon: kind == _NextActionKind.continueDraft
+                  ? HugeIcons.strokeRoundedArrowRight01
+                  : HugeIcons.strokeRoundedNoteEdit,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              onPressed: busy
+                  ? null
+                  : () => _prepareOrOpen(context, ref, existing: period),
+            ),
+          ] else ...[
+            const SizedBox(width: 8),
+            IconButton(
+              tooltip: 'monthly_reports.visible.view_period'.tr(),
+              onPressed: period == null
+                  ? null
+                  : () => _prepareOrOpen(context, ref, existing: period),
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
+                color: c.textSecondary,
+                size: 20,
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
 
-class _VisibleReportCard extends StatelessWidget {
+class _GroupedHistoryList extends StatelessWidget {
+  final List<VisibleMonthlyReport> reports;
+
+  const _GroupedHistoryList({required this.reports});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return Container(
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: c.border.withValues(alpha: 0.7)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          for (var i = 0; i < reports.length; i++) ...[
+            if (i > 0)
+              Divider(
+                height: 1,
+                thickness: 1,
+                indent: 16,
+                endIndent: 16,
+                color: c.border.withValues(alpha: 0.55),
+              ),
+            _VisibleReportRow(
+              report: reports[i],
+              onTap: () => Navigator.push(
+                context,
+                SacSharedAxisRoute(
+                  builder: (_) =>
+                      MonthlyReportDetailView(reportId: reports[i].id),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _VisibleReportRow extends StatelessWidget {
   final VisibleMonthlyReport report;
   final VoidCallback? onTap;
 
-  const _VisibleReportCard({required this.report, this.onTap});
+  const _VisibleReportRow({required this.report, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -208,164 +378,79 @@ class _VisibleReportCard extends StatelessWidget {
         .where((value) => value.trim().isNotEmpty)
         .join(' · ');
 
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(24),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(24),
-        onTap: onTap,
-        child: Ink(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: c.surface,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: c.border.withValues(alpha: 0.72)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.035),
-                blurRadius: 22,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              _MonthNumberBadge(month: report.month),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '${report.monthName} ${report.year}',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -0.25,
-                              color: c.text,
-                              height: 1.05,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        _VisibleStatusChip(
-                          label: report.reportStatus.label,
-                          config: statusCfg,
-                        ),
-                      ],
+    return MonthlyReportPressable(
+      onTap: onTap,
+      pressedScale: 0.985,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${report.monthName} ${report.year}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.2,
+                      color: c.text,
+                      height: 1.15,
                     ),
-                    if (clubContext.isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        clubContext,
-                        style: TextStyle(
-                          fontSize: 13,
-                          height: 1.25,
-                          fontWeight: FontWeight.w600,
-                          color: c.textSecondary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                    if (generatedAt != null) ...[
-                      const SizedBox(height: 7),
-                      Row(
-                        children: [
-                          HugeIcon(
-                            icon: HugeIcons.strokeRoundedCalendarCheckOut01,
-                            color: c.textTertiary,
-                            size: 13,
-                          ),
-                          const SizedBox(width: 5),
-                          Expanded(
-                            child: Text(
-                              'monthly_reports.visible.generated_on'.tr(
-                                namedArgs: {
-                                  'date': DateFormat('dd/MM/yyyy')
-                                      .format(generatedAt.toLocal()),
-                                },
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 12,
-                                height: 1.15,
-                                fontWeight: FontWeight.w500,
-                                color: c.textTertiary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: c.background,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: c.border.withValues(alpha: 0.58)),
-                ),
-                child: Center(
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedArrowRight01,
-                    color: c.textTertiary,
-                    size: 15,
                   ),
-                ),
+                  if (clubContext.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      clubContext,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.2,
+                        fontWeight: FontWeight.w500,
+                        color: c.textTertiary,
+                      ),
+                    ),
+                  ],
+                  if (generatedAt != null) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      'monthly_reports.visible.generated_on'.tr(
+                        namedArgs: {
+                          'date': DateFormat(
+                            'd MMM yyyy',
+                            context.locale.toString(),
+                          ).format(generatedAt.toLocal()),
+                        },
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11,
+                        height: 1.2,
+                        fontWeight: FontWeight.w600,
+                        color: c.textTertiary,
+                      ),
+                    ),
+                  ],
+                ],
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _MonthNumberBadge extends StatelessWidget {
-  final int month;
-
-  const _MonthNumberBadge({required this.month});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Container(
-      width: 64,
-      height: 64,
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.18)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.07),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Center(
-        child: Text(
-          month.toString().padLeft(2, '0'),
-          style: const TextStyle(
-            fontSize: 26,
-            height: 1,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -0.4,
-            color: AppColors.primary,
-          ),
+            ),
+            const SizedBox(width: 10),
+            _VisibleStatusChip(
+              label: report.reportStatus.label,
+              config: statusCfg,
+            ),
+            const SizedBox(width: 6),
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowRight01,
+              color: c.textTertiary,
+              size: 16,
+            ),
+          ],
         ),
       ),
     );
@@ -381,7 +466,7 @@ class _VisibleStatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: config.bg,
         borderRadius: BorderRadius.circular(999),
@@ -391,12 +476,59 @@ class _VisibleStatusChip extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
-          fontSize: 12,
+          fontSize: 11,
           height: 1,
-          fontWeight: FontWeight.w900,
+          fontWeight: FontWeight.w800,
           letterSpacing: 0.1,
           color: config.fg,
         ),
+      ),
+    );
+  }
+}
+
+class _EmptyHistory extends StatelessWidget {
+  final SacColors c;
+
+  const _EmptyHistory({required this.c});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: c.border.withValues(alpha: 0.7)),
+      ),
+      child: Column(
+        children: [
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedFile01,
+            color: c.textTertiary,
+            size: 28,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'monthly_reports.visible.empty_title'.tr(),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              color: c.text,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'monthly_reports.visible.empty_subtitle'.tr(),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              height: 1.35,
+              color: c.textSecondary,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -447,13 +579,16 @@ class _ErrorBody extends StatelessWidget {
         padding: const EdgeInsets.all(32),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           const HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 48,
-              color: AppColors.error),
+            icon: HugeIcons.strokeRoundedAlert02,
+            size: 48,
+            color: AppColors.error,
+          ),
           const SizedBox(height: 12),
-          Text(message,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: c.textSecondary)),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: c.textSecondary),
+          ),
           const SizedBox(height: 16),
           TextButton(onPressed: onRetry, child: Text('common.retry'.tr())),
         ]),

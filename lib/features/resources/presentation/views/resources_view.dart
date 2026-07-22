@@ -96,11 +96,12 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
     return Scaffold(
       backgroundColor: c.background,
       appBar: AppBar(
-        backgroundColor: c.background,
+        backgroundColor: c.background.withValues(alpha: 0.92),
         foregroundColor: c.text,
         elevation: 0,
+        scrolledUnderElevation: 0.5,
         surfaceTintColor: Colors.transparent,
-        centerTitle: true,
+        centerTitle: false,
         leading: IconButton(
           icon: HugeIcon(
             icon: HugeIcons.strokeRoundedArrowLeft01,
@@ -116,11 +117,8 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
             fontWeight: FontWeight.w700,
             fontSize: 17,
             color: c.text,
+            letterSpacing: -0.2,
           ),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: c.border),
         ),
       ),
       body: RefreshIndicator(
@@ -130,20 +128,17 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
           controller: _scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            // ── Search bar ─────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(
                   horizontalPadding,
-                  16,
+                  12,
                   horizontalPadding,
                   0,
                 ),
                 child: _buildSearchBar(context, c),
               ),
             ),
-
-            // ── Filter chips ────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(horizontalPadding, 14, 0, 0),
@@ -156,39 +151,31 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
                 ),
               ),
             ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: 18)),
-
-            // ── List label ─────────────────────────────────────────
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                child: Text(
-                  _buildListLabel(activeType),
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: c.textSecondary,
+            if (_searchController.text.trim().isNotEmpty) ...[
+              const SliverToBoxAdapter(child: SizedBox(height: 14)),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                  child: Text(
+                    'resources.list_label.search'.tr(),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: c.textTertiary,
+                    ),
                   ),
                 ),
               ),
-            ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: 10)),
-
-            // ── Resource list ──────────────────────────────────────
+            ],
+            const SliverToBoxAdapter(child: SizedBox(height: 12)),
             _buildResourceList(context, listState),
-
-            // ── Load more indicator ────────────────────────────────
             if (listState.isLoadingMore)
-              SliverToBoxAdapter(
+              const SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: const Center(child: SacLoading()),
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Center(child: SacLoading()),
                 ),
               ),
-
-            // ── End of list label ──────────────────────────────────
             if (!listState.isLoading &&
                 !listState.isLoadingMore &&
                 !listState.hasMore &&
@@ -207,7 +194,6 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
                   ),
                 ),
               ),
-
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
           ],
         ),
@@ -324,10 +310,10 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
         delegate: SliverChildBuilderDelegate(
           (context, index) {
             final resource = state.items[index];
-            final animationIndex = index > 6 ? 6 : index;
+            final animationIndex = index > 5 ? 5 : index;
             return ResourceCard(
               resource: resource,
-              animationDelay: Duration(milliseconds: animationIndex * 45),
+              animationDelay: Duration(milliseconds: animationIndex * 36),
               onTap: () => _openDetail(context, resource),
             );
           },
@@ -335,24 +321,6 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
         ),
       ),
     );
-  }
-
-  String _buildListLabel(String? activeType) {
-    if (activeType == null) return 'resources.list_label.all'.tr();
-    switch (activeType) {
-      case 'document':
-        return 'resources.list_label.document'.tr();
-      case 'audio':
-        return 'resources.list_label.audio'.tr();
-      case 'image':
-        return 'resources.list_label.image'.tr();
-      case 'video_link':
-        return 'resources.list_label.video'.tr();
-      case 'text':
-        return 'resources.list_label.text'.tr();
-      default:
-        return 'resources.list_label.files'.tr();
-    }
   }
 }
 

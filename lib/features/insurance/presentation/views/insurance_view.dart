@@ -66,26 +66,19 @@ class _InsuranceViewState extends ConsumerState<InsuranceView> {
                 leading: sacAutoBackButton(context),
                 pinned: true,
                 expandedHeight: 0,
-                backgroundColor: context.sac.background,
+                backgroundColor:
+                    context.sac.background.withValues(alpha: 0.92),
                 surfaceTintColor: Colors.transparent,
+                scrolledUnderElevation: 0.5,
                 title: Text(
                   'insurance.view.title'.tr(),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: context.sac.text,
+                        letterSpacing: -0.2,
                       ),
                 ),
                 centerTitle: false,
-                actions: [
-                  IconButton(
-                    onPressed: () => ref.invalidate(membersInsuranceProvider),
-                    icon: HugeIcon(
-                      icon: HugeIcons.strokeRoundedRefresh,
-                      size: 20,
-                      color: context.sac.textSecondary,
-                    ),
-                  ),
-                ],
               ),
 
               // Body content
@@ -231,6 +224,9 @@ class _InsuranceBody extends ConsumerWidget {
         else
           ...items.asMap().entries.map((entry) => StaggeredListItem(
                 index: entry.key,
+                staggerDelay: const Duration(milliseconds: 36),
+                duration: const Duration(milliseconds: 200),
+                slideOffset: 8,
                 child: MemberInsuranceCard(
                   insurance: entry.value,
                   canManage: canManage,

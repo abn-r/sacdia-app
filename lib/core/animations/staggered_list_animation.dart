@@ -111,8 +111,8 @@ class _StaggeredListItemState extends State<StaggeredListItem>
   }
 
   void _scheduleStart() {
-    // Cap individual item delay so very long lists don't feel broken.
-    final cappedIndex = widget.index.clamp(0, 10);
+    // Cap individual item delay so frequent lists stay snappy.
+    final cappedIndex = widget.index.clamp(0, 5);
     final delay = widget.initialDelay + widget.staggerDelay * cappedIndex;
     _delayedStart = Timer(delay, () {
       if (mounted && _reduceMotion == false) _controller.forward();

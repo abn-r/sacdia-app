@@ -1,15 +1,15 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/order.dart';
 import '../utils/money_format.dart';
 import 'material_status_badge.dart';
+import 'materials_pressable.dart';
 
 /// Card de resumen de una orden en el historial.
-///
-/// Muestra folio (o "Sin folio"), fecha, estado y total.
-/// Al tocar navega a la pantalla de detalle.
 class OrderCard extends StatelessWidget {
   final Order order;
   final VoidCallback onTap;
@@ -18,79 +18,82 @@ class OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final folio = order.folioReferencia ?? 'Sin folio';
+    final c = context.sac;
+    final hasFolio = order.folioReferencia != null &&
+        order.folioReferencia!.trim().isNotEmpty;
+    final folio = hasFolio
+        ? order.folioReferencia!
+        : 'materials.history.no_folio'.tr();
 
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.lightBorder),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Header ────────────────────────────────────────────────────
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
+    return MaterialsPressable(
+      onTap: onTap,
+      pressedScale: 0.985,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: c.border.withValues(alpha: 0.75)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
                     folio,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      fontFamily: folio == 'Sin folio' ? null : 'monospace',
-                      color: folio == 'Sin folio'
-                          ? AppColors.lightTextTertiary
-                          : AppColors.lightText,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      fontFamily: hasFolio ? 'monospace' : null,
+                      color: hasFolio ? c.text : c.textTertiary,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  MaterialStatusBadge(status: order.status),
-                ],
-              ),
-              const SizedBox(height: 6),
-
-              // ── Fecha ─────────────────────────────────────────────────────
-              Text(
-                _formatDate(order.createdAt),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.lightTextSecondary,
                 ),
+                const SizedBox(width: 8),
+                MaterialStatusBadge(status: order.status),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              _formatDate(order.createdAt),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: c.textSecondary,
               ),
-              const SizedBox(height: 12),
-
-              // ── Total + arrow ─────────────────────────────────────────────
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
                     formatMxn(order.totalCentavos),
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
                       color: AppColors.primary,
+                      letterSpacing: -0.2,
                     ),
                   ),
-                  const HugeIcon(
-                    icon: HugeIcons.strokeRoundedArrowRight01,
-                    size: 20,
-                    color: AppColors.lightTextTertiary,
-                  ),
-                ],
-              ),
-            ],
-          ),
+                ),
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedArrowRight01,
+                  size: 18,
+                  color: c.textTertiary,
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
 
   String _formatDate(DateTime dt) {
-    return '${dt.day.toString().padLeft(2, '0')}/'
-        '${dt.month.toString().padLeft(2, '0')}/'
-        '${dt.year}';
+    return DateFormat('d MMM yyyy').format(dt.toLocal());
   }
 }

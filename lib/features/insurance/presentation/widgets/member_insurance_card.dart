@@ -2,17 +2,16 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/member_insurance.dart';
 import 'insurance_status_badge.dart';
 
-/// Tarjeta de miembro con su estado de seguro.
-///
-/// Al tocar, navega a la pantalla de detalle (si asegurado/vencido)
-/// o abre el formulario de registro (si sin seguro y con permisos).
-class MemberInsuranceCard extends StatelessWidget {
+/// Tarjeta de miembro con estado de seguro.
+/// Status solo vía badge (sin border tint + shadow + avatar dot).
+class MemberInsuranceCard extends StatefulWidget {
   final MemberInsurance insurance;
   final VoidCallback onTap;
   final bool canManage;
@@ -25,121 +24,114 @@ class MemberInsuranceCard extends StatelessWidget {
   });
 
   @override
+  State<MemberInsuranceCard> createState() => _MemberInsuranceCardState();
+}
+
+class _MemberInsuranceCardState extends State<MemberInsuranceCard> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() => _pressed = value);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final c = context.sac;
+    final insurance = widget.insurance;
+    final reduce = SacMotion.reduceMotionOf(context);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: _borderColor().withValues(alpha: 0.25),
-              width: 1,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) => _setPressed(true),
+        onTapUp: (_) => _setPressed(false),
+        onTapCancel: () => _setPressed(false),
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: (!reduce && _pressed) ? 0.985 : 1,
+          duration: SacMotion.press,
+          curve: Curves.easeOut,
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: c.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: c.border.withValues(alpha: 0.75)),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: context.sac.shadow,
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              // Avatar
-              _MemberAvatar(
-                photoUrl: insurance.memberPhotoUrl,
-                name: insurance.memberName,
-                status: insurance.status,
-              ),
-
-              const SizedBox(width: 12),
-
-              // Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Name
-                    Text(
-                      insurance.memberName,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: context.sac.text,
-                          ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-
-                    if (insurance.memberClass != null) ...[
-                      const SizedBox(height: 2),
+            child: Row(
+              children: [
+                _MemberAvatar(
+                  photoUrl: insurance.memberPhotoUrl,
+                  name: insurance.memberName,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        insurance.memberClass!,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: context.sac.textSecondary,
-                              fontSize: 11,
+                        insurance.memberName,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: c.text,
                             ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (insurance.memberClass != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          insurance.memberClass!,
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: c.textSecondary,
+                                    fontSize: 11,
+                                  ),
+                        ),
+                      ],
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          InsuranceStatusBadge(
+                            status: insurance.status,
+                            compact: true,
+                          ),
+                          if (insurance.endDate != null) ...[
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                _expiryText(insurance),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: _expiryColor(insurance),
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ],
-
-                    const SizedBox(height: 6),
-
-                    // Badge + expiry date
-                    Row(
-                      children: [
-                        InsuranceStatusBadge(
-                            status: insurance.status, compact: true),
-                        if (insurance.endDate != null) ...[
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              _expiryText(insurance),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    color: _expiryColor(insurance.status),
-                                    fontSize: 10.5,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-
-              const SizedBox(width: 8),
-
-              // Right action indicator
-              _RightIndicator(
-                status: insurance.status,
-                canManage: canManage,
-              ),
-            ],
+                const SizedBox(width: 8),
+                _RightIndicator(
+                  status: insurance.status,
+                  canManage: widget.canManage,
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
-  }
-
-  Color _borderColor() {
-    switch (insurance.status) {
-      case InsuranceStatus.asegurado:
-        return AppColors.secondary;
-      case InsuranceStatus.vencido:
-        return AppColors.accent;
-      case InsuranceStatus.sinSeguro:
-        return AppColors.error;
-    }
   }
 
   String _expiryText(MemberInsurance m) {
@@ -166,89 +158,54 @@ class MemberInsuranceCard extends StatelessWidget {
     }
   }
 
-  Color _expiryColor(InsuranceStatus status) {
-    switch (status) {
+  Color _expiryColor(MemberInsurance m) {
+    switch (m.status) {
       case InsuranceStatus.asegurado:
-        final days = insurance.daysUntilExpiry;
+        final days = m.daysUntilExpiry;
         return (days != null && days <= 30)
             ? AppColors.accentDark
-            : AppColors.secondaryDark;
+            : context.sac.textTertiary;
       case InsuranceStatus.vencido:
         return AppColors.accentDark;
       case InsuranceStatus.sinSeguro:
-        return AppColors.errorDark;
+        return context.sac.textTertiary;
     }
   }
 }
 
-// ── Avatar ───────────────────────────────────────────────────────────────────────
-
 class _MemberAvatar extends StatelessWidget {
   final String? photoUrl;
   final String name;
-  final InsuranceStatus status;
 
   const _MemberAvatar({
     required this.photoUrl,
     required this.name,
-    required this.status,
   });
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     final initials = _initials(name);
-    final statusColor = _statusColor(status);
 
-    return Stack(
-      children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border:
-                Border.all(color: statusColor.withValues(alpha: 0.5), width: 2),
-          ),
-          child: ClipOval(
-            child: photoUrl != null && photoUrl!.isNotEmpty
-                ? CachedNetworkImage(
-                    imageUrl: photoUrl!,
-                    memCacheWidth: 144, // 48 * 3 (max device pixel ratio)
-                    memCacheHeight: 144, // 48 * 3
-                    fit: BoxFit.cover,
-                    errorWidget: (_, __, ___) =>
-                        _InitialsAvatar(initials: initials, color: statusColor),
-                  )
-                : _InitialsAvatar(initials: initials, color: statusColor),
-          ),
-        ),
-        // Status dot
-        Positioned(
-          bottom: 0,
-          right: 0,
-          child: Container(
-            width: 14,
-            height: 14,
-            decoration: BoxDecoration(
-              color: statusColor,
-              shape: BoxShape.circle,
-              border: Border.all(color: context.sac.surface, width: 1.5),
-            ),
-          ),
-        ),
-      ],
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: c.border.withValues(alpha: 0.8)),
+      ),
+      child: ClipOval(
+        child: photoUrl != null && photoUrl!.isNotEmpty
+            ? CachedNetworkImage(
+                imageUrl: photoUrl!,
+                memCacheWidth: 132,
+                memCacheHeight: 132,
+                fit: BoxFit.cover,
+                errorWidget: (_, __, ___) => _InitialsAvatar(initials: initials),
+              )
+            : _InitialsAvatar(initials: initials),
+      ),
     );
-  }
-
-  Color _statusColor(InsuranceStatus s) {
-    switch (s) {
-      case InsuranceStatus.asegurado:
-        return AppColors.secondary;
-      case InsuranceStatus.vencido:
-        return AppColors.accent;
-      case InsuranceStatus.sinSeguro:
-        return AppColors.error;
-    }
   }
 
   String _initials(String name) {
@@ -261,29 +218,26 @@ class _MemberAvatar extends StatelessWidget {
 
 class _InitialsAvatar extends StatelessWidget {
   final String initials;
-  final Color color;
 
-  const _InitialsAvatar({required this.initials, required this.color});
+  const _InitialsAvatar({required this.initials});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: color.withValues(alpha: 0.12),
+      color: AppColors.primary.withValues(alpha: 0.10),
       child: Center(
         child: Text(
           initials,
-          style: TextStyle(
-            color: color,
+          style: const TextStyle(
+            color: AppColors.primary,
             fontWeight: FontWeight.w800,
-            fontSize: 16,
+            fontSize: 15,
           ),
         ),
       ),
     );
   }
 }
-
-// ── Right indicator ──────────────────────────────────────────────────────────────
 
 class _RightIndicator extends StatelessWidget {
   final InsuranceStatus status;
@@ -293,19 +247,19 @@ class _RightIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     if (status == InsuranceStatus.sinSeguro && canManage) {
-      // Add button for uninsured members
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: AppColors.primarySurface,
+          color: AppColors.primary.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.28)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            HugeIcon(
+            const HugeIcon(
               icon: HugeIcons.strokeRoundedAdd01,
               size: 14,
               color: AppColors.primary,
@@ -313,7 +267,7 @@ class _RightIndicator extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               'insurance.card.register_button'.tr(),
-              style: TextStyle(
+              style: const TextStyle(
                 color: AppColors.primary,
                 fontWeight: FontWeight.w700,
                 fontSize: 11,
@@ -324,12 +278,10 @@ class _RightIndicator extends StatelessWidget {
       );
     }
 
-    // Arrow for insured/expired members
     return HugeIcon(
       icon: HugeIcons.strokeRoundedArrowRight01,
-      size: 18,
-      color:
-          Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+      size: 16,
+      color: c.textTertiary,
     );
   }
 }

@@ -1,12 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import '../../domain/entities/resource.dart';
 
-/// Retorna el color asociado al tipo de recurso
+/// Color semántico por tipo de recurso.
 Color resourceTypeColor(BuildContext context, String resourceType) {
   final c = context.sac;
 
@@ -25,7 +25,6 @@ Color resourceTypeColor(BuildContext context, String resourceType) {
   }
 }
 
-/// Retorna el icono asociado al tipo de recurso
 List<List<dynamic>> resourceTypeIcon(String resourceType) {
   switch (resourceType) {
     case 'audio':
@@ -42,7 +41,6 @@ List<List<dynamic>> resourceTypeIcon(String resourceType) {
   }
 }
 
-/// Retorna la etiqueta corta del tipo de recurso
 String resourceTypeLabel(String resourceType) {
   switch (resourceType) {
     case 'audio':
@@ -59,7 +57,6 @@ String resourceTypeLabel(String resourceType) {
   }
 }
 
-/// Formatea el tamaño en bytes a string legible
 String _formatFileSize(int? bytes) {
   if (bytes == null) return '';
   if (bytes < 1024) return '$bytes B';
@@ -69,8 +66,8 @@ String _formatFileSize(int? bytes) {
   return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
 }
 
-/// Card de recurso que muestra título, tipo, tamaño y fecha
-class ResourceCard extends StatelessWidget {
+/// Card de recurso — un solo canal de tipo (icon tile tintado).
+class ResourceCard extends StatefulWidget {
   final Resource resource;
   final VoidCallback onTap;
   final Duration animationDelay;
@@ -83,149 +80,108 @@ class ResourceCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final color = resourceTypeColor(context, resource.resourceType);
-    final icon = resourceTypeIcon(resource.resourceType);
-    final label = resourceTypeLabel(resource.resourceType);
-    final sizeStr = _formatFileSize(resource.fileSize);
-
-    return Semantics(
-      button: true,
-      label: resource.title,
-      child: SacCard(
-        onTap: onTap,
-        accentColor: color,
-        animate: true,
-        animationDelay: animationDelay,
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          children: [
-            // ── Type icon ──────────────────────────────────────────
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  HugeIcon(
-                    icon: icon,
-                    size: 24,
-                    color: color,
-                  ),
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: color,
-                        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-                      ),
-                      child: Text(
-                        label,
-                        style: const TextStyle(
-                          fontSize: 7,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-
-            // ── Content ────────────────────────────────────────────
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    resource.title,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: c.text,
-                      height: 1.25,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (resource.categoryName != null || sizeStr.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: [
-                        if (resource.categoryName != null)
-                          _ResourceMetaPill(
-                            label: resource.categoryName!,
-                            color: color,
-                          ),
-                        if (sizeStr.isNotEmpty)
-                          _ResourceMetaPill(
-                            label: sizeStr,
-                            color: c.textTertiary,
-                          ),
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-
-            // ── Chevron ────────────────────────────────────────────
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedArrowRight01,
-              size: 18,
-              color: c.textTertiary,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  State<ResourceCard> createState() => _ResourceCardState();
 }
 
-class _ResourceMetaPill extends StatelessWidget {
-  final String label;
-  final Color color;
+class _ResourceCardState extends State<ResourceCard> {
+  bool _pressed = false;
 
-  const _ResourceMetaPill({
-    required this.label,
-    required this.color,
-  });
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() => _pressed = value);
+  }
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    final color = resourceTypeColor(context, widget.resource.resourceType);
+    final icon = resourceTypeIcon(widget.resource.resourceType);
+    final sizeStr = _formatFileSize(widget.resource.fileSize);
+    final reduce = SacMotion.reduceMotionOf(context);
+    final meta = [
+      if (widget.resource.categoryName != null) widget.resource.categoryName!,
+      if (sizeStr.isNotEmpty) sizeStr,
+    ].join(' · ');
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 11,
-          color: color == c.textTertiary ? c.textSecondary : color,
-          fontWeight: FontWeight.w700,
+    return Semantics(
+      button: true,
+      label: widget.resource.title,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) => _setPressed(true),
+        onTapUp: (_) => _setPressed(false),
+        onTapCancel: () => _setPressed(false),
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: (!reduce && _pressed) ? 0.985 : 1,
+          duration: SacMotion.press,
+          curve: Curves.easeOut,
+          child: SacCard(
+            // Sin accent bar — el icon tile ya comunica el tipo.
+            animate: true,
+            animationDelay: widget.animationDelay,
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  alignment: Alignment.center,
+                  child: HugeIcon(
+                    icon: icon,
+                    size: 22,
+                    color: color,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.resource.title,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: c.text,
+                          height: 1.25,
+                          letterSpacing: -0.15,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (meta.isNotEmpty) ...[
+                        const SizedBox(height: 5),
+                        Text(
+                          meta,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: c.textTertiary,
+                            height: 1.2,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedArrowRight01,
+                  size: 16,
+                  color: c.textTertiary,
+                ),
+              ],
+            ),
+          ),
         ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
       ),
     );
   }

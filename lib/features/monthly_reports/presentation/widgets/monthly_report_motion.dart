@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
+/// Short stagger entrance — keep under ~200ms total for frequent screens.
 class MonthlyReportEntrance extends StatefulWidget {
   final Widget child;
   final int index;
@@ -12,7 +14,7 @@ class MonthlyReportEntrance extends StatefulWidget {
     super.key,
     required this.child,
     this.index = 0,
-    this.offsetY = 16,
+    this.offsetY = 8,
   });
 
   @override
@@ -27,7 +29,7 @@ class _MonthlyReportEntranceState extends State<MonthlyReportEntrance> {
   void initState() {
     super.initState();
     _timer =
-        Timer(Duration(milliseconds: (widget.index * 42).clamp(0, 260)), () {
+        Timer(Duration(milliseconds: (widget.index * 36).clamp(0, 144)), () {
       if (mounted) setState(() => _visible = true);
     });
   }
@@ -44,13 +46,97 @@ class _MonthlyReportEntranceState extends State<MonthlyReportEntrance> {
 
     return AnimatedSlide(
       offset: _visible ? Offset.zero : Offset(0, widget.offsetY / 100),
-      duration: const Duration(milliseconds: 260),
+      duration: const Duration(milliseconds: 200),
       curve: Curves.easeOutCubic,
-      child: AnimatedScale(
-        scale: _visible ? 1 : 0.985,
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
+      child: AnimatedOpacity(
+        opacity: _visible ? 1 : 0,
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
         child: widget.child,
+      ),
+    );
+  }
+}
+
+/// Press feedback: scale on touch-down (Apple response + Emil button craft).
+class MonthlyReportPressable extends StatefulWidget {
+  final Widget child;
+  final VoidCallback? onTap;
+  final BorderRadius? borderRadius;
+  final double pressedScale;
+
+  const MonthlyReportPressable({
+    super.key,
+    required this.child,
+    this.onTap,
+    this.borderRadius,
+    this.pressedScale = 0.97,
+  });
+
+  @override
+  State<MonthlyReportPressable> createState() => _MonthlyReportPressableState();
+}
+
+class _MonthlyReportPressableState extends State<MonthlyReportPressable> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed == value || widget.onTap == null) return;
+    setState(() => _pressed = value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reduce = _reduceMotion(context);
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => _setPressed(true),
+      onTapUp: (_) => _setPressed(false),
+      onTapCancel: () => _setPressed(false),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: (!reduce && _pressed) ? widget.pressedScale : 1,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOut,
+        child: widget.child,
+      ),
+    );
+  }
+}
+
+/// Frosted sticky chrome for bottom CTAs / app bars.
+class MonthlyReportFrostBar extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+
+  const MonthlyReportFrostBar({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.fromLTRB(20, 10, 20, 16),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final reduceTransparency =
+        MediaQuery.maybeOf(context)?.highContrast == true;
+
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(
+          sigmaX: reduceTransparency ? 0 : 18,
+          sigmaY: reduceTransparency ? 0 : 18,
+        ),
+        child: Container(
+          padding: padding,
+          decoration: BoxDecoration(
+            color: c.surface.withValues(alpha: reduceTransparency ? 1 : 0.78),
+            border: Border(
+              top: BorderSide(color: c.border.withValues(alpha: 0.55)),
+            ),
+          ),
+          child: SafeArea(top: false, child: child),
+        ),
       ),
     );
   }
@@ -61,23 +147,24 @@ class MonthlyReportSkeletonList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
+    return ListView(
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(20),
-      itemCount: 5,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        if (index == 0) {
-          return const MonthlyReportEntrance(
-            child: _SkeletonBlock(height: 152, radius: 24, lines: 3),
-          );
-        }
-
-        return MonthlyReportEntrance(
-          index: index,
-          child: const _SkeletonReportTile(),
-        );
-      },
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+      children: const [
+        MonthlyReportEntrance(
+          child: _SkeletonBlock(height: 72, radius: 18, lines: 1),
+        ),
+        SizedBox(height: 22),
+        MonthlyReportEntrance(
+          index: 1,
+          child: _SkeletonBlock(height: 14, radius: 8, lines: 1),
+        ),
+        SizedBox(height: 12),
+        MonthlyReportEntrance(
+          index: 2,
+          child: _SkeletonBlock(height: 200, radius: 18, lines: 4),
+        ),
+      ],
     );
   }
 }
@@ -89,30 +176,25 @@ class MonthlyReportDetailSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
       children: const [
         MonthlyReportEntrance(
-          child: _SkeletonBlock(height: 94, radius: 22, lines: 2),
-        ),
-        SizedBox(height: 16),
-        MonthlyReportEntrance(
-          index: 1,
-          child: _SkeletonBlock(height: 54, radius: 16, lines: 1),
+          child: _SkeletonBlock(height: 120, radius: 22, lines: 2),
         ),
         SizedBox(height: 18),
         MonthlyReportEntrance(
-          index: 2,
+          index: 1,
           child: _SkeletonKpiGrid(),
         ),
         SizedBox(height: 18),
         MonthlyReportEntrance(
-          index: 3,
-          child: _SkeletonBlock(height: 174, radius: 18, lines: 4),
+          index: 2,
+          child: _SkeletonBlock(height: 64, radius: 16, lines: 1),
         ),
-        SizedBox(height: 14),
+        SizedBox(height: 10),
         MonthlyReportEntrance(
-          index: 4,
-          child: _SkeletonBlock(height: 148, radius: 18, lines: 3),
+          index: 3,
+          child: _SkeletonBlock(height: 64, radius: 16, lines: 1),
         ),
       ],
     );
@@ -145,77 +227,26 @@ class MonthlyReportLoadingPulse extends StatelessWidget {
   }
 }
 
-class _SkeletonReportTile extends StatelessWidget {
-  const _SkeletonReportTile();
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: c.border),
-      ),
-      child: Row(
-        children: [
-          MonthlyReportLoadingPulse(
-            width: 52,
-            height: 52,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                MonthlyReportLoadingPulse(
-                  width: 140,
-                  height: 16,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                const SizedBox(height: 8),
-                MonthlyReportLoadingPulse(
-                  width: 210,
-                  height: 11,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          MonthlyReportLoadingPulse(
-            width: 52,
-            height: 24,
-            borderRadius: BorderRadius.circular(999),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _SkeletonKpiGrid extends StatelessWidget {
   const _SkeletonKpiGrid();
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: const [
+    return const Column(
+      children: [
         Row(
           children: [
-            Expanded(child: _SkeletonBlock(height: 104, radius: 16)),
+            Expanded(child: _SkeletonBlock(height: 88, radius: 16)),
             SizedBox(width: 12),
-            Expanded(child: _SkeletonBlock(height: 104, radius: 16)),
+            Expanded(child: _SkeletonBlock(height: 88, radius: 16)),
           ],
         ),
         SizedBox(height: 12),
         Row(
           children: [
-            Expanded(child: _SkeletonBlock(height: 104, radius: 16)),
+            Expanded(child: _SkeletonBlock(height: 88, radius: 16)),
             SizedBox(width: 12),
-            Expanded(child: _SkeletonBlock(height: 104, radius: 16)),
+            Expanded(child: _SkeletonBlock(height: 88, radius: 16)),
           ],
         ),
       ],

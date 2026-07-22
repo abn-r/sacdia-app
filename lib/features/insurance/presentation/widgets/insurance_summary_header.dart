@@ -24,19 +24,12 @@ class InsuranceSummaryHeader extends StatelessWidget {
     final coverageColor = _coverageColor(coverage);
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: c.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusLG),
         border: Border.all(color: c.border),
-        boxShadow: [
-          BoxShadow(
-            color: c.shadow,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
