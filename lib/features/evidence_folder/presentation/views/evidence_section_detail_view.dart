@@ -54,22 +54,24 @@ class _EvidenceSectionDetailViewState
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final notifierState =
-        ref.watch(evidenceSectionNotifierProvider(widget.clubSectionId));
+    final notifierState = ref.watch(
+      evidenceSectionNotifierProvider(widget.clubSectionId),
+    );
 
-    final canModify = (widget.section.status == EvidenceSectionStatus.pending ||
+    final canModify =
+        (widget.section.status == EvidenceSectionStatus.pending ||
             widget.section.status == EvidenceSectionStatus.rejected) &&
         widget.folderIsOpen;
 
     // Mostrar snackbar cuando hay error
-    ref.listen(
-      evidenceSectionNotifierProvider(widget.clubSectionId),
-      (prev, next) {
-        if (next.errorMessage != null && next.errorMessage!.isNotEmpty) {
-          _showErrorSnackbar(context, next.errorMessage!);
-        }
-      },
-    );
+    ref.listen(evidenceSectionNotifierProvider(widget.clubSectionId), (
+      prev,
+      next,
+    ) {
+      if (next.errorMessage != null && next.errorMessage!.isNotEmpty) {
+        _showErrorSnackbar(context, next.errorMessage!);
+      }
+    });
 
     final isLoading = notifierState.isLoading;
 
@@ -97,7 +99,9 @@ class _EvidenceSectionDetailViewState
           title: Text(
             'evidence_folder.section_title'.tr(),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700, color: c.text),
+              fontWeight: FontWeight.w700,
+              color: c.text,
+            ),
             overflow: TextOverflow.ellipsis,
           ),
           backgroundColor: c.background,
@@ -119,7 +123,8 @@ class _EvidenceSectionDetailViewState
                   _stagingManagerKey.currentState?.submitForValidation();
                 },
                 canSubmit: _canSubmitFromStagingManager(canModify),
-                isLoading: notifierState.isLoading ||
+                isLoading:
+                    notifierState.isLoading ||
                     (_stagingManagerKey.currentState?.isLoadingForActionBar ??
                         false),
               )
@@ -139,21 +144,21 @@ class _EvidenceSectionDetailViewState
                       children: [
                         Text(
                           'evidence_folder.section_detail_label'.tr(),
-                          style:
-                              Theme.of(context).textTheme.labelSmall?.copyWith(
-                                    color: c.textSecondary,
-                                    letterSpacing: 0.8,
-                                  ),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: c.textSecondary,
+                                letterSpacing: 0.8,
+                              ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           widget.section.name,
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: c.text,
-                                    height: 1.25,
-                                  ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: c.text,
+                                height: 1.25,
+                              ),
                         ),
                       ],
                     ),
@@ -172,9 +177,9 @@ class _EvidenceSectionDetailViewState
                     child: Text(
                       'evidence_folder.section_status_label'.tr(),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: c.textSecondary,
-                            letterSpacing: 0.8,
-                          ),
+                        color: c.textSecondary,
+                        letterSpacing: 0.8,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -200,9 +205,9 @@ class _EvidenceSectionDetailViewState
                       child: Text(
                         'evidence_folder.evaluation_result_title'.tr(),
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: c.text,
-                            ),
+                          fontWeight: FontWeight.w700,
+                          color: c.text,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -220,9 +225,9 @@ class _EvidenceSectionDetailViewState
                     child: Text(
                       'evidence_folder.evidence_files_title'.tr(),
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: c.text,
-                          ),
+                        fontWeight: FontWeight.w700,
+                        color: c.text,
+                      ),
                     ),
                   ),
 
@@ -255,9 +260,11 @@ class _EvidenceSectionDetailViewState
                     // catches the error.
                     onUpload: (xFile, mimeType, onProgress) async {
                       final success = await ref
-                          .read(evidenceSectionNotifierProvider(
-                                  widget.clubSectionId)
-                              .notifier)
+                          .read(
+                            evidenceSectionNotifierProvider(
+                              widget.clubSectionId,
+                            ).notifier,
+                          )
                           .uploadFile(
                             sectionId: widget.section.id,
                             pickedFile: xFile,
@@ -267,21 +274,26 @@ class _EvidenceSectionDetailViewState
                           );
                       if (!success) {
                         throw Exception(
-                            tr('evidence_folder.errors.upload_failed'));
+                          tr('evidence_folder.errors.upload_failed'),
+                        );
                       }
                     },
                     onDeleteRemote: (fileId) async {
                       await ref
-                          .read(evidenceSectionNotifierProvider(
-                                  widget.clubSectionId)
-                              .notifier)
+                          .read(
+                            evidenceSectionNotifierProvider(
+                              widget.clubSectionId,
+                            ).notifier,
+                          )
                           .deleteFile(fileId: fileId);
                     },
                     onSubmit: () async {
                       final success = await ref
-                          .read(evidenceSectionNotifierProvider(
-                                  widget.clubSectionId)
-                              .notifier)
+                          .read(
+                            evidenceSectionNotifierProvider(
+                              widget.clubSectionId,
+                            ).notifier,
+                          )
                           .submitSection(widget.section.id);
                       if (success && mounted) {
                         // ignore: use_build_context_synchronously
@@ -290,17 +302,19 @@ class _EvidenceSectionDetailViewState
                             content: Row(
                               children: [
                                 const HugeIcon(
-                                    icon: HugeIcons
-                                        .strokeRoundedCheckmarkCircle02,
-                                    color: Colors.white,
-                                    size: 18),
+                                  icon:
+                                      HugeIcons.strokeRoundedCheckmarkCircle02,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'evidence_folder.submit_success'
-                                        .tr(namedArgs: {
-                                      'sectionName': widget.section.name,
-                                    }),
+                                    'evidence_folder.submit_success'.tr(
+                                      namedArgs: {
+                                        'sectionName': widget.section.name,
+                                      },
+                                    ),
                                   ),
                                 ),
                               ],
@@ -308,7 +322,8 @@ class _EvidenceSectionDetailViewState
                             backgroundColor: AppColors.secondary,
                             behavior: SnackBarBehavior.floating,
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                         );
                         // ignore: use_build_context_synchronously
@@ -324,9 +339,7 @@ class _EvidenceSectionDetailViewState
                     },
                   ),
 
-                  SizedBox(
-                    height: widget.section.files.isEmpty ? 8 : 16,
-                  ),
+                  SizedBox(height: widget.section.files.isEmpty ? 8 : 16),
                 ],
               ),
             ),
@@ -361,9 +374,10 @@ class _EvidenceSectionDetailViewState
         content: Row(
           children: [
             const HugeIcon(
-                icon: HugeIcons.strokeRoundedAlert02,
-                color: Colors.white,
-                size: 18),
+              icon: HugeIcons.strokeRoundedAlert02,
+              color: Colors.white,
+              size: 18,
+            ),
             const SizedBox(width: 8),
             Expanded(child: Text(message)),
           ],
@@ -403,9 +417,9 @@ class _SectionMetaCard extends StatelessWidget {
             Text(
               section.description!,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: c.textSecondary,
-                    height: 1.5,
-                  ),
+                color: c.textSecondary,
+                height: 1.5,
+              ),
             ),
             const SizedBox(height: 14),
             Divider(color: c.divider),
@@ -417,9 +431,9 @@ class _SectionMetaCard extends StatelessWidget {
                 child: _MetaItem(
                   icon: HugeIcons.strokeRoundedStar,
                   label: 'evidence_folder.points_label'.tr(),
-                  value: 'evidence_folder.points_value'.tr(namedArgs: {
-                    'points': '${section.pointValue}',
-                  }),
+                  value: 'evidence_folder.points_value'.tr(
+                    namedArgs: {'points': '${section.pointValue}'},
+                  ),
                   color: AppColors.accent,
                   context: context,
                 ),
@@ -429,9 +443,9 @@ class _SectionMetaCard extends StatelessWidget {
                 child: _MetaItem(
                   icon: HugeIcons.strokeRoundedFiles01,
                   label: 'evidence_folder.limit_label'.tr(),
-                  value: 'evidence_folder.files_count'.tr(namedArgs: {
-                    'count': '${section.maxFiles}',
-                  }),
+                  value: 'evidence_folder.files_count'.tr(
+                    namedArgs: {'count': '${section.maxFiles}'},
+                  ),
                   color: c.textSecondary,
                   context: context,
                 ),
@@ -506,10 +520,7 @@ class _EvidenceStatusChip extends StatelessWidget {
   final EvidenceSectionStatus status;
   final VoidCallback onTap;
 
-  const _EvidenceStatusChip({
-    required this.status,
-    required this.onTap,
-  });
+  const _EvidenceStatusChip({required this.status, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -522,8 +533,9 @@ class _EvidenceStatusChip extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label:
-          'evidence_folder.status_semantics'.tr(namedArgs: {'label': _label}),
+      label: 'evidence_folder.status_semantics'.tr(
+        namedArgs: {'label': _label},
+      ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -658,9 +670,7 @@ class _EvaluationResultCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.secondaryLight,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.secondary.withValues(alpha: 0.4),
-        ),
+        border: Border.all(color: AppColors.secondary.withValues(alpha: 0.4)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -726,17 +736,19 @@ class _EvaluationResultCard extends StatelessWidget {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      'evidence_folder.trace.preapproved_by'.tr(namedArgs: {
-                        'name': section.lfApproverName!,
-                        'date': section.lfApprovedAt != null
-                            ? ' · ${dateFormat.format(section.lfApprovedAt!.toLocal())}'
-                            : '',
-                      }),
+                      'evidence_folder.trace.preapproved_by'.tr(
+                        namedArgs: {
+                          'name': section.lfApproverName!,
+                          'date': section.lfApprovedAt != null
+                              ? ' · ${dateFormat.format(section.lfApprovedAt!.toLocal())}'
+                              : '',
+                        },
+                      ),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: AppColors.accentDark,
-                            fontWeight: FontWeight.w600,
-                            height: 1.3,
-                          ),
+                        color: AppColors.accentDark,
+                        fontWeight: FontWeight.w600,
+                        height: 1.3,
+                      ),
                     ),
                   ),
                 ],
@@ -755,17 +767,19 @@ class _EvaluationResultCard extends StatelessWidget {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      'evidence_folder.trace.validated_by'.tr(namedArgs: {
-                        'name': section.unionApproverName!,
-                        'date': section.unionApprovedAt != null
-                            ? ' · ${dateFormat.format(section.unionApprovedAt!.toLocal())}'
-                            : '',
-                      }),
+                      'evidence_folder.trace.validated_by'.tr(
+                        namedArgs: {
+                          'name': section.unionApproverName!,
+                          'date': section.unionApprovedAt != null
+                              ? ' · ${dateFormat.format(section.unionApprovedAt!.toLocal())}'
+                              : '',
+                        },
+                      ),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: AppColors.secondaryDark,
-                            fontWeight: FontWeight.w600,
-                            height: 1.3,
-                          ),
+                        color: AppColors.secondaryDark,
+                        fontWeight: FontWeight.w600,
+                        height: 1.3,
+                      ),
                     ),
                   ),
                 ],
@@ -789,9 +803,9 @@ class _EvaluationResultCard extends StatelessWidget {
             Text(
               section.evaluationNotes!,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.secondaryDark,
-                    height: 1.5,
-                  ),
+                color: AppColors.secondaryDark,
+                height: 1.5,
+              ),
             ),
           ],
         ],
@@ -827,9 +841,9 @@ class _ReviewerNotesBlock extends StatelessWidget {
           Text(
             'evidence_folder.reviewer_comments'.tr(),
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: context.sac.textSecondary,
-                  letterSpacing: 0.8,
-                ),
+              color: context.sac.textSecondary,
+              letterSpacing: 0.8,
+            ),
           ),
           const SizedBox(height: 8),
           ...filesWithNotes.map(
@@ -867,11 +881,13 @@ class _ReviewerNoteCalloutState extends State<_ReviewerNoteCallout> {
 
     // Colores info (azul suave) — dark-mode aware, reutiliza los tokens de
     // AppColors.statusInfoBg* que ya existen para el estado "enviado".
-    final bgColor =
-        isDark ? AppColors.statusInfoBgDark : AppColors.statusInfoBgLight;
+    final bgColor = isDark
+        ? AppColors.statusInfoBgDark
+        : AppColors.statusInfoBgLight;
     final borderColor = AppColors.info.withValues(alpha: isDark ? 0.3 : 0.35);
-    final noteColor =
-        isDark ? AppColors.statusInfoTextDark : AppColors.statusInfoText;
+    final noteColor = isDark
+        ? AppColors.statusInfoTextDark
+        : AppColors.statusInfoText;
     final labelColor = isDark
         ? AppColors.statusInfoTextDark.withValues(alpha: 0.7)
         : AppColors.statusInfoText.withValues(alpha: 0.75);

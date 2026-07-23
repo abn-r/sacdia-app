@@ -136,41 +136,41 @@ class _MonthlyReportManualDataFormViewState
   }
 
   List<TextEditingController> get _textControllers => [
-        _planning,
-        _parents,
-        _youth,
-        _church,
-        _soulTarget,
-        _unbaptized,
-        _studies,
-        _baptizedMonth,
-        _baptizedTotal,
-        _participation,
-        _service,
-      ];
+    _planning,
+    _parents,
+    _youth,
+    _church,
+    _soulTarget,
+    _unbaptized,
+    _studies,
+    _baptizedMonth,
+    _baptizedTotal,
+    _participation,
+    _service,
+  ];
 
   TextEditingController _intController(int? value) =>
       TextEditingController(text: value?.toString() ?? '');
 
   String _fingerprint() => [
-        _planning.text,
-        _parents.text,
-        _youth.text,
-        _church.text,
-        _soulTarget.text,
-        _unbaptized.text,
-        _studies.text,
-        _baptizedMonth.text,
-        _baptizedTotal.text,
-        _participation.text,
-        _service.text,
-        _weeklyInstruction,
-        _studiesGiven,
-        _literature,
-        _certificates,
-        _booklets,
-        _bookletsSigned,
-      ].join('|');
+    _planning.text,
+    _parents.text,
+    _youth.text,
+    _church.text,
+    _soulTarget.text,
+    _unbaptized.text,
+    _studies.text,
+    _baptizedMonth.text,
+    _baptizedTotal.text,
+    _participation.text,
+    _service.text,
+    _weeklyInstruction,
+    _studiesGiven,
+    _literature,
+    _certificates,
+    _booklets,
+    _bookletsSigned,
+  ].join('|');
 
   void _recomputeDirty() {
     final next = _fingerprint() != _initialFingerprint;
@@ -198,27 +198,28 @@ class _MonthlyReportManualDataFormViewState
   }
 
   MonthlyReportManualData _buildData() => MonthlyReportManualData(
-        planningMeetings: _intFrom(_planning),
-        parentMeetings: _intFrom(_parents),
-        youthCouncilAttendance: _intFrom(_youth),
-        churchBoardAttendance: _intFrom(_church),
-        soulTarget: _intFrom(_soulTarget),
-        unbaptizedMembers: _intFrom(_unbaptized),
-        bibleStudiesReceiving: _intFrom(_studies),
-        hasWeeklyBibleInstruction: _weeklyInstruction,
-        bibleStudiesGiven: _studiesGiven,
-        literatureDistributed: _literature,
-        baptizedThisMonth: _intFrom(_baptizedMonth),
-        totalBaptized: _intFrom(_baptizedTotal),
-        clubParticipationDescription: _participation.text.trim().isEmpty
-            ? null
-            : _participation.text.trim(),
-        communityServiceDescription:
-            _service.text.trim().isEmpty ? null : _service.text.trim(),
-        certificatesDelivered: _certificates,
-        membersHaveBooklet: _booklets,
-        bookletRequirementsSigned: _bookletsSigned,
-      );
+    planningMeetings: _intFrom(_planning),
+    parentMeetings: _intFrom(_parents),
+    youthCouncilAttendance: _intFrom(_youth),
+    churchBoardAttendance: _intFrom(_church),
+    soulTarget: _intFrom(_soulTarget),
+    unbaptizedMembers: _intFrom(_unbaptized),
+    bibleStudiesReceiving: _intFrom(_studies),
+    hasWeeklyBibleInstruction: _weeklyInstruction,
+    bibleStudiesGiven: _studiesGiven,
+    literatureDistributed: _literature,
+    baptizedThisMonth: _intFrom(_baptizedMonth),
+    totalBaptized: _intFrom(_baptizedTotal),
+    clubParticipationDescription: _participation.text.trim().isEmpty
+        ? null
+        : _participation.text.trim(),
+    communityServiceDescription: _service.text.trim().isEmpty
+        ? null
+        : _service.text.trim(),
+    certificatesDelivered: _certificates,
+    membersHaveBooklet: _booklets,
+    bookletRequirementsSigned: _bookletsSigned,
+  );
 
   Future<bool> _confirmDiscard() async {
     if (!_dirty) return true;
@@ -330,14 +331,14 @@ class _MonthlyReportManualDataFormViewState
                       child: _FormSection(
                         title: 'monthly_reports.form.meetings_title'.tr(),
                         eyebrow: 'monthly_reports.form.meetings_eyebrow'.tr(),
-                        description:
-                            'monthly_reports.form.meetings_description'.tr(),
+                        description: 'monthly_reports.form.meetings_description'
+                            .tr(),
                         icon: HugeIcons.strokeRoundedCalendar01,
                         children: [
                           _NumberField(
                             controller: _planning,
-                            label:
-                                'monthly_reports.form.planning_meetings'.tr(),
+                            label: 'monthly_reports.form.planning_meetings'
+                                .tr(),
                           ),
                           _NumberField(
                             controller: _parents,
@@ -345,13 +346,15 @@ class _MonthlyReportManualDataFormViewState
                           ),
                           _NumberField(
                             controller: _youth,
-                            label: 'monthly_reports.form.youth_council_attendance'
-                                .tr(),
+                            label:
+                                'monthly_reports.form.youth_council_attendance'
+                                    .tr(),
                           ),
                           _NumberField(
                             controller: _church,
-                            label: 'monthly_reports.form.church_board_attendance'
-                                .tr(),
+                            label:
+                                'monthly_reports.form.church_board_attendance'
+                                    .tr(),
                           ),
                         ],
                       ),
@@ -362,8 +365,8 @@ class _MonthlyReportManualDataFormViewState
                       child: _FormSection(
                         title: 'monthly_reports.form.mission_title'.tr(),
                         eyebrow: 'monthly_reports.form.mission_eyebrow'.tr(),
-                        description:
-                            'monthly_reports.form.mission_description'.tr(),
+                        description: 'monthly_reports.form.mission_description'
+                            .tr(),
                         icon: HugeIcons.strokeRoundedUserMultiple,
                         children: [
                           _NumberField(
@@ -372,17 +375,18 @@ class _MonthlyReportManualDataFormViewState
                           ),
                           _NumberField(
                             controller: _unbaptized,
-                            label:
-                                'monthly_reports.form.unbaptized_members'.tr(),
+                            label: 'monthly_reports.form.unbaptized_members'
+                                .tr(),
                           ),
                           _NumberField(
                             controller: _studies,
-                            label: 'monthly_reports.form.bible_studies_receiving'
-                                .tr(),
+                            label:
+                                'monthly_reports.form.bible_studies_receiving'
+                                    .tr(),
                           ),
                           _ReportSwitch(
-                            title:
-                                'monthly_reports.form.weekly_instruction'.tr(),
+                            title: 'monthly_reports.form.weekly_instruction'
+                                .tr(),
                             subtitle:
                                 'monthly_reports.form.weekly_instruction_helper'
                                     .tr(),
@@ -392,22 +396,23 @@ class _MonthlyReportManualDataFormViewState
                           ),
                           _ReportSwitch(
                             title: 'monthly_reports.form.studies_given'.tr(),
-                            subtitle: 'monthly_reports.form.studies_given_helper'
-                                .tr(),
+                            subtitle:
+                                'monthly_reports.form.studies_given_helper'
+                                    .tr(),
                             value: _studiesGiven,
                             onChanged: (v) => _setBool(() => _studiesGiven = v),
                           ),
                           _ReportSwitch(
                             title: 'monthly_reports.form.literature'.tr(),
-                            subtitle:
-                                'monthly_reports.form.literature_helper'.tr(),
+                            subtitle: 'monthly_reports.form.literature_helper'
+                                .tr(),
                             value: _literature,
                             onChanged: (v) => _setBool(() => _literature = v),
                           ),
                           _NumberField(
                             controller: _baptizedMonth,
-                            label:
-                                'monthly_reports.form.baptized_this_month'.tr(),
+                            label: 'monthly_reports.form.baptized_this_month'
+                                .tr(),
                           ),
                           _NumberField(
                             controller: _baptizedTotal,
@@ -422,21 +427,21 @@ class _MonthlyReportManualDataFormViewState
                       child: _FormSection(
                         title: 'monthly_reports.form.service_title'.tr(),
                         eyebrow: 'monthly_reports.form.service_eyebrow'.tr(),
-                        description:
-                            'monthly_reports.form.service_description'.tr(),
+                        description: 'monthly_reports.form.service_description'
+                            .tr(),
                         icon: HugeIcons.strokeRoundedNoteEdit,
                         children: [
                           _LongTextField(
                             controller: _participation,
-                            label:
-                                'monthly_reports.form.club_participation'.tr(),
+                            label: 'monthly_reports.form.club_participation'
+                                .tr(),
                             hint: 'monthly_reports.form.club_participation_hint'
                                 .tr(),
                           ),
                           _LongTextField(
                             controller: _service,
-                            label:
-                                'monthly_reports.form.community_service'.tr(),
+                            label: 'monthly_reports.form.community_service'
+                                .tr(),
                             hint: 'monthly_reports.form.community_service_hint'
                                 .tr(),
                           ),
@@ -458,13 +463,12 @@ class _MonthlyReportManualDataFormViewState
                             subtitle: 'monthly_reports.form.certificates_helper'
                                 .tr(),
                             value: _certificates,
-                            onChanged: (v) =>
-                                _setBool(() => _certificates = v),
+                            onChanged: (v) => _setBool(() => _certificates = v),
                           ),
                           _ReportSwitch(
                             title: 'monthly_reports.form.booklets'.tr(),
-                            subtitle:
-                                'monthly_reports.form.booklets_helper'.tr(),
+                            subtitle: 'monthly_reports.form.booklets_helper'
+                                .tr(),
                             value: _booklets,
                             onChanged: (v) => _setBool(() => _booklets = v),
                           ),
@@ -492,11 +496,10 @@ class _MonthlyReportManualDataFormViewState
                   text: state.isLoading
                       ? 'common.saving'.tr()
                       : (!_dirty
-                          ? 'monthly_reports.form.save_disabled_hint'.tr()
-                          : 'monthly_reports.form.save'.tr()),
+                            ? 'monthly_reports.form.save_disabled_hint'.tr()
+                            : 'monthly_reports.form.save'.tr()),
                   icon: HugeIcons.strokeRoundedNoteEdit,
-                  onPressed:
-                      state.isLoading || !_dirty ? null : _save,
+                  onPressed: state.isLoading || !_dirty ? null : _save,
                 ),
               ),
             ),
@@ -538,11 +541,7 @@ class _FormIntroCard extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             'monthly_reports.form.intro_body'.tr(),
-            style: TextStyle(
-              color: c.textSecondary,
-              fontSize: 13,
-              height: 1.4,
-            ),
+            style: TextStyle(color: c.textSecondary, fontSize: 13, height: 1.4),
           ),
         ],
       ),
@@ -619,8 +618,11 @@ class _FormSection extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 4),
           child: Text(
             description,
-            style:
-                TextStyle(color: c.textSecondary, fontSize: 13, height: 1.35),
+            style: TextStyle(
+              color: c.textSecondary,
+              fontSize: 13,
+              height: 1.35,
+            ),
           ),
         ),
         const SizedBox(height: 12),
@@ -641,10 +643,7 @@ class _FormSection extends StatelessWidget {
 class _NumberField extends StatelessWidget {
   final TextEditingController controller;
   final String label;
-  const _NumberField({
-    required this.controller,
-    required this.label,
-  });
+  const _NumberField({required this.controller, required this.label});
 
   @override
   Widget build(BuildContext context) {

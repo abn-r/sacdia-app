@@ -74,9 +74,9 @@ class _MemberInsuranceCardState extends State<MemberInsuranceCard> {
                       Text(
                         insurance.memberName,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: c.text,
-                            ),
+                          fontWeight: FontWeight.w700,
+                          color: c.text,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -84,11 +84,8 @@ class _MemberInsuranceCardState extends State<MemberInsuranceCard> {
                         const SizedBox(height: 2),
                         Text(
                           insurance.memberClass!,
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: c.textSecondary,
-                                    fontSize: 11,
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: c.textSecondary, fontSize: 11),
                         ),
                       ],
                       const SizedBox(height: 6),
@@ -103,9 +100,7 @@ class _MemberInsuranceCardState extends State<MemberInsuranceCard> {
                             Flexible(
                               child: Text(
                                 _expiryText(insurance),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
+                                style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
                                       color: _expiryColor(insurance),
                                       fontSize: 10.5,
@@ -177,10 +172,7 @@ class _MemberAvatar extends StatelessWidget {
   final String? photoUrl;
   final String name;
 
-  const _MemberAvatar({
-    required this.photoUrl,
-    required this.name,
-  });
+  const _MemberAvatar({required this.photoUrl, required this.name});
 
   @override
   Widget build(BuildContext context) {
@@ -201,7 +193,8 @@ class _MemberAvatar extends StatelessWidget {
                 memCacheWidth: 132,
                 memCacheHeight: 132,
                 fit: BoxFit.cover,
-                errorWidget: (_, __, ___) => _InitialsAvatar(initials: initials),
+                errorWidget: (_, __, ___) =>
+                    _InitialsAvatar(initials: initials),
               )
             : _InitialsAvatar(initials: initials),
       ),

@@ -61,9 +61,7 @@ class MonthlyReportsVisibleListView extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
             children: [
-              MonthlyReportEntrance(
-                child: _NextActionBar(reports: page.items),
-              ),
+              MonthlyReportEntrance(child: _NextActionBar(reports: page.items)),
               const SizedBox(height: 22),
               MonthlyReportEntrance(
                 index: 1,
@@ -79,10 +77,7 @@ class MonthlyReportsVisibleListView extends ConsumerWidget {
               ),
               const SizedBox(height: 10),
               if (page.items.isEmpty)
-                MonthlyReportEntrance(
-                  index: 2,
-                  child: _EmptyHistory(c: c),
-                )
+                MonthlyReportEntrance(index: 2, child: _EmptyHistory(c: c))
               else
                 MonthlyReportEntrance(
                   index: 2,
@@ -162,22 +157,22 @@ class _NextActionBar extends ConsumerWidget {
     }
 
     final target = MonthlyReportPeriod.forPreparation();
-    final report =
-        await ref.read(monthlyReportMutationProvider.notifier).getOrCreateDraft(
-              MonthlyReportDraftParams(
-                enrollmentId: enrollmentId,
-                month: target.month,
-                year: target.year,
-              ),
-            );
+    final report = await ref
+        .read(monthlyReportMutationProvider.notifier)
+        .getOrCreateDraft(
+          MonthlyReportDraftParams(
+            enrollmentId: enrollmentId,
+            month: target.month,
+            year: target.year,
+          ),
+        );
     if (!context.mounted) return;
     if (report == null) {
       final state = ref.read(monthlyReportMutationProvider);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            state.errorMessage ??
-                'monthly_reports.visible.prepare_error'.tr(),
+            state.errorMessage ?? 'monthly_reports.visible.prepare_error'.tr(),
           ),
           behavior: SnackBarBehavior.floating,
         ),
@@ -201,8 +196,9 @@ class _NextActionBar extends ConsumerWidget {
     final target = MonthlyReportPeriod.forPreparation();
     final period = _periodReport();
     final kind = _kind(period);
-    final monthRaw = DateFormat.MMMM(context.locale.toString())
-        .format(DateTime(target.year, target.month));
+    final monthRaw = DateFormat.MMMM(
+      context.locale.toString(),
+    ).format(DateTime(target.year, target.month));
     final monthLabel = monthRaw.isEmpty
         ? monthRaw
         : '${monthRaw[0].toUpperCase()}${monthRaw.substring(1)}';
@@ -373,10 +369,10 @@ class _VisibleReportRow extends StatelessWidget {
     final c = context.sac;
     final statusCfg = _statusConfig(report.reportStatus);
     final generatedAt = report.generatedAt;
-    final clubContext = [report.clubName, report.clubType]
-        .whereType<String>()
-        .where((value) => value.trim().isNotEmpty)
-        .join(' · ');
+    final clubContext = [
+      report.clubName,
+      report.clubType,
+    ].whereType<String>().where((value) => value.trim().isNotEmpty).join(' · ');
 
     return MonthlyReportPressable(
       onTap: onTap,
@@ -513,10 +509,7 @@ class _EmptyHistory extends StatelessWidget {
           Text(
             'monthly_reports.visible.empty_title'.tr(),
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontWeight: FontWeight.w800,
-              color: c.text,
-            ),
+            style: TextStyle(fontWeight: FontWeight.w800, color: c.text),
           ),
           const SizedBox(height: 6),
           Text(
@@ -544,22 +537,13 @@ class _StatusConfig {
 _StatusConfig _statusConfig(MonthlyReportStatus status) {
   switch (status) {
     case MonthlyReportStatus.approved:
-      return const _StatusConfig(
-        bg: Color(0xFFD1FAE5),
-        fg: Color(0xFF047857),
-      );
+      return const _StatusConfig(bg: Color(0xFFD1FAE5), fg: Color(0xFF047857));
     case MonthlyReportStatus.rejected:
       return _StatusConfig(bg: AppColors.errorLight, fg: AppColors.errorDark);
     case MonthlyReportStatus.submitted:
-      return const _StatusConfig(
-        bg: Color(0xFFDBEAFE),
-        fg: Color(0xFF1D4ED8),
-      );
+      return const _StatusConfig(bg: Color(0xFFDBEAFE), fg: Color(0xFF1D4ED8));
     case MonthlyReportStatus.generated:
-      return const _StatusConfig(
-        bg: Color(0xFFDCFCE7),
-        fg: Color(0xFF15803D),
-      );
+      return const _StatusConfig(bg: Color(0xFFDCFCE7), fg: Color(0xFF15803D));
     case MonthlyReportStatus.draft:
       return _StatusConfig(bg: AppColors.accentLight, fg: AppColors.accentDark);
   }
@@ -577,21 +561,24 @@ class _ErrorBody extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const HugeIcon(
-            icon: HugeIcons.strokeRoundedAlert02,
-            size: 48,
-            color: AppColors.error,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: TextStyle(color: c.textSecondary),
-          ),
-          const SizedBox(height: 16),
-          TextButton(onPressed: onRetry, child: Text('common.retry'.tr())),
-        ]),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const HugeIcon(
+              icon: HugeIcons.strokeRoundedAlert02,
+              size: 48,
+              color: AppColors.error,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: c.textSecondary),
+            ),
+            const SizedBox(height: 16),
+            TextButton(onPressed: onRetry, child: Text('common.retry'.tr())),
+          ],
+        ),
       ),
     );
   }
