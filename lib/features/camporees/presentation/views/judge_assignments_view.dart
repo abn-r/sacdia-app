@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -119,7 +120,7 @@ class _AssignmentTile extends StatelessWidget {
           const SizedBox(height: 14),
           SacButton.primary(
             text: 'camporees.judge.score_action'.tr(),
-            icon: Icons.edit_note,
+            icon: HugeIcons.strokeRoundedNoteEdit,
             onPressed: () {
               HapticFeedback.selectionClick();
               context.push(
@@ -149,8 +150,11 @@ class _EmptyAssignments extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       children: [
         const SizedBox(height: 96),
-        Icon(Icons.fact_check_outlined,
-            size: 52, color: context.sac.textTertiary),
+        HugeIcon(
+          icon: HugeIcons.strokeRoundedCheckList,
+          size: 52,
+          color: context.sac.textTertiary,
+        ),
         const SizedBox(height: 16),
         Text(
           'camporees.judge.no_primary_assignments'.tr(),
@@ -169,7 +173,7 @@ class _EmptyAssignments extends StatelessWidget {
         const SizedBox(height: 20),
         SacButton.outline(
           text: 'common.retry'.tr(),
-          icon: Icons.refresh,
+          icon: HugeIcons.strokeRoundedRefresh,
           onPressed: onRetry,
         ),
       ],
@@ -191,7 +195,11 @@ class _ErrorAssignments extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, size: 48, color: context.sac.error),
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedAlert02,
+              size: 48,
+              color: context.sac.error,
+            ),
             const SizedBox(height: 12),
             Text(
               'camporees.judge.assignments_error'.tr(),
@@ -210,7 +218,7 @@ class _ErrorAssignments extends StatelessWidget {
             const SizedBox(height: 20),
             SacButton.primary(
               text: 'common.retry'.tr(),
-              icon: Icons.refresh,
+              icon: HugeIcons.strokeRoundedRefresh,
               onPressed: onRetry,
             ),
           ],
