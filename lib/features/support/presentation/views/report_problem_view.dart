@@ -8,6 +8,7 @@ import '../../domain/entities/support_category.dart';
 import '../../domain/entities/support_report.dart';
 import '../providers/support_providers.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 
 /// Formulario "Reportar un problema".
 ///
@@ -164,19 +165,12 @@ class _ReportProblemViewState extends ConsumerState<ReportProblemView> {
               const SizedBox(height: 16),
 
               // Título
-              Text('support.report_field_title'.tr(),
-                  style: Theme.of(context).textTheme.labelMedium),
-              const SizedBox(height: 6),
-              TextFormField(
+              SacTextField(
                 controller: _titleCtrl,
+                label: 'support.report_field_title'.tr(),
+                hint: 'support.report_title_hint'.tr(),
                 maxLength: 120,
                 textInputAction: TextInputAction.next,
-                decoration: InputDecoration(
-                  hintText: 'support.report_title_hint'.tr(),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) {
                     return 'support.report_title_required'.tr();
@@ -190,20 +184,12 @@ class _ReportProblemViewState extends ConsumerState<ReportProblemView> {
               const SizedBox(height: 8),
 
               // Descripción
-              Text('support.report_field_description'.tr(),
-                  style: Theme.of(context).textTheme.labelMedium),
-              const SizedBox(height: 6),
-              TextFormField(
+              SacTextField(
                 controller: _descCtrl,
+                label: 'support.report_field_description'.tr(),
+                hint: 'support.report_desc_hint'.tr(),
                 maxLength: 2000,
                 maxLines: 6,
-                minLines: 4,
-                decoration: InputDecoration(
-                  hintText: 'support.report_desc_hint'.tr(),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) {
                     return 'support.report_desc_required'.tr();

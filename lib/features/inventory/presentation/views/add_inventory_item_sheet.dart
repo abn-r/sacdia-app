@@ -8,6 +8,8 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+
 import '../../../../core/widgets/evidence_staging/image_source_dialog.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -158,13 +160,10 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
                     // Name
                     _SectionLabel('inventory.form.name_label'.tr()),
                     const SizedBox(height: 6),
-                    TextFormField(
+                    SacTextField(
                       controller: _nameController,
+                      hint: 'inventory.form.name_hint'.tr(),
                       textCapitalization: TextCapitalization.sentences,
-                      decoration: _inputDecoration(
-                        hint: 'inventory.form.name_hint'.tr(),
-                        context: context,
-                      ),
                       maxLength: 120,
                       validator: (v) => (v == null || v.trim().isEmpty)
                           ? 'inventory.form.name_required'.tr()
@@ -220,16 +219,13 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
                     // Quantity
                     _SectionLabel('inventory.form.quantity_label'.tr()),
                     const SizedBox(height: 6),
-                    TextFormField(
+                    SacTextField(
                       controller: _quantityController,
+                      hint: 'inventory.form.quantity_hint'.tr(),
                       keyboardType: TextInputType.number,
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
                       ],
-                      decoration: _inputDecoration(
-                        hint: 'inventory.form.quantity_hint'.tr(),
-                        context: context,
-                      ),
                       validator: (v) {
                         if (v == null || v.isEmpty) {
                           return 'inventory.form.quantity_required'.tr();
@@ -287,26 +283,20 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
 
                     _SectionLabel('inventory.form.description_label'.tr()),
                     const SizedBox(height: 6),
-                    TextFormField(
+                    SacTextField(
                       controller: _descController,
+                      hint: 'inventory.form.description_hint'.tr(),
                       maxLines: 3,
                       textCapitalization: TextCapitalization.sentences,
-                      decoration: _inputDecoration(
-                        hint: 'inventory.form.description_hint'.tr(),
-                        context: context,
-                      ),
                     ),
 
                     const SizedBox(height: 12),
 
                     _SectionLabel('inventory.form.serial_label'.tr()),
                     const SizedBox(height: 6),
-                    TextFormField(
+                    SacTextField(
                       controller: _serialController,
-                      decoration: _inputDecoration(
-                        hint: 'inventory.form.serial_hint'.tr(),
-                        context: context,
-                      ),
+                      hint: 'inventory.form.serial_hint'.tr(),
                     ),
 
                     const SizedBox(height: 16),
@@ -330,19 +320,16 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
 
                     _SectionLabel('inventory.form.estimated_value_label'.tr()),
                     const SizedBox(height: 6),
-                    TextFormField(
+                    SacTextField(
                       controller: _valueController,
+                      hint: 'inventory.form.value_hint'.tr(),
+                      prefixText: '\$',
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
                             RegExp(r'^\d+\.?\d{0,2}')),
                       ],
-                      decoration: _inputDecoration(
-                        hint: 'inventory.form.value_hint'.tr(),
-                        prefix: '\$',
-                        context: context,
-                      ),
                     ),
 
                     const SizedBox(height: 16),
@@ -356,40 +343,31 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
 
                     _SectionLabel('inventory.form.location_label'.tr()),
                     const SizedBox(height: 6),
-                    TextFormField(
+                    SacTextField(
                       controller: _locationController,
+                      hint: 'inventory.form.location_hint'.tr(),
                       textCapitalization: TextCapitalization.sentences,
-                      decoration: _inputDecoration(
-                        hint: 'inventory.form.location_hint'.tr(),
-                        context: context,
-                      ),
                     ),
 
                     const SizedBox(height: 12),
 
                     _SectionLabel('inventory.form.assigned_to_label'.tr()),
                     const SizedBox(height: 6),
-                    TextFormField(
+                    SacTextField(
                       controller: _assignedToController,
+                      hint: 'inventory.form.assigned_to_hint'.tr(),
                       textCapitalization: TextCapitalization.words,
-                      decoration: _inputDecoration(
-                        hint: 'inventory.form.assigned_to_hint'.tr(),
-                        context: context,
-                      ),
                     ),
 
                     const SizedBox(height: 12),
 
                     _SectionLabel('inventory.form.notes_label'.tr()),
                     const SizedBox(height: 6),
-                    TextFormField(
+                    SacTextField(
                       controller: _notesController,
+                      hint: 'inventory.form.notes_hint'.tr(),
                       maxLines: 3,
                       textCapitalization: TextCapitalization.sentences,
-                      decoration: _inputDecoration(
-                        hint: 'inventory.form.notes_hint'.tr(),
-                        context: context,
-                      ),
                     ),
 
                     const SizedBox(height: 24),
@@ -611,39 +589,6 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
     return file.mimeType ?? lookupMimeType(file.path) ?? 'image/jpeg';
   }
 
-  InputDecoration _inputDecoration({
-    required String hint,
-    required BuildContext context,
-    String? prefix,
-  }) {
-    return InputDecoration(
-      hintText: hint,
-      prefixText: prefix,
-      filled: true,
-      fillColor: context.sac.surfaceVariant,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-        borderSide: BorderSide.none,
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-        borderSide: BorderSide(color: context.sac.border),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-        borderSide: const BorderSide(color: AppColors.primary, width: 2),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-        borderSide: const BorderSide(color: AppColors.error, width: 1.5),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-        borderSide: const BorderSide(color: AppColors.error, width: 2),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-    );
-  }
 }
 
 // ── Section header ──────────────────────────────────────────────────────────────

@@ -12,6 +12,7 @@ import '../providers/receipts_provider.dart';
 import '../providers/order_detail_provider.dart';
 import '../widgets/price_input.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 
 // ── Constantes de validación ──────────────────────────────────────────────────
 
@@ -313,8 +314,6 @@ class _FormBody extends StatelessWidget {
           const SizedBox(height: 20),
 
           // ── Monto pagado ─────────────────────────────────────────────────────
-          _SectionLabel(label: 'Monto pagado'),
-          const SizedBox(height: 8),
           PriceInput(
             label: 'Monto pagado',
             hint: '0.00',
@@ -324,15 +323,10 @@ class _FormBody extends StatelessWidget {
           const SizedBox(height: 20),
 
           // ── Referencia bancaria ──────────────────────────────────────────────
-          _SectionLabel(label: 'Referencia / Concepto que escribiste'),
-          const SizedBox(height: 8),
-          TextFormField(
+          SacTextField(
             controller: refController,
-            decoration: const InputDecoration(
-              labelText: 'Concepto de la transferencia',
-              hintText: 'Ej: SOL20260001',
-              border: OutlineInputBorder(),
-            ),
+            label: 'Concepto de la transferencia',
+            hint: 'Ej: SOL20260001',
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'Ingresá la referencia que usaste.';

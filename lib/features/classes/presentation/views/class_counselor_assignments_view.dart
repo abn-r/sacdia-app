@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/role_utils.dart';
 import '../../../../core/widgets/sac_back_button.dart';
 import '../../../../core/widgets/sac_card.dart';
 import '../../../../core/widgets/sac_loading.dart';
+import '../../../../core/widgets/sac_text_field.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/domain/entities/club_member.dart';
@@ -363,41 +364,95 @@ class _AssignmentsBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final sortedAssignments = [...assignments]..sort(_compareAssignments);
 
+    // Agrupa por clase preservando el orden progresivo:
+    // la clase es la unidad organizadora de la pantalla.
+    final groups = <int, List<ClassCounselorAssignment>>{};
+    for (final assignment in sortedAssignments) {
+      groups.putIfAbsent(assignment.classId, () => []).add(assignment);
+    }
+
+    var itemIndex = 0;
+    final children = <Widget>[
+      _AssignmentsHeader(
+        canAssign: canAssign,
+        isActionLoading: isActionLoading,
+        onAdd: onAdd,
+      ),
+    ];
+
+    if (sortedAssignments.isEmpty) {
+      children.add(
+        Padding(
+          padding: const EdgeInsets.only(top: 72),
+          child: _MessageState(
+            icon: HugeIcons.strokeRoundedUserGroup,
+            title: 'classes.class_assignments.empty_title'.tr(),
+            message: 'classes.class_assignments.empty_body'.tr(),
+          ),
+        ),
+      );
+    } else {
+      for (final group in groups.values) {
+        children.add(
+          _ClassGroupHeader(className: group.first.clazz.name),
+        );
+        for (final assignment in group) {
+          children.add(
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _AssignmentTile(
+                assignment: assignment,
+                index: itemIndex++,
+                canEdit: onEdit != null,
+                canRevoke: canRevoke && onRevoke != null,
+                onEdit: onEdit == null ? null : () => onEdit!(assignment),
+                onRevoke:
+                    onRevoke == null ? null : () => onRevoke!(assignment),
+              ),
+            ),
+          );
+        }
+      }
+    }
+
     return RefreshIndicator(
       color: AppColors.primary,
       onRefresh: onRefresh,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+        children: children,
+      ),
+    );
+  }
+}
+
+class _ClassGroupHeader extends StatelessWidget {
+  final String className;
+
+  const _ClassGroupHeader({required this.className});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(2, 18, 2, 10),
+      child: Row(
         children: [
-          _AssignmentsHeader(
-            canAssign: canAssign,
-            isActionLoading: isActionLoading,
-            onAdd: onAdd,
+          ClassIdentityBadge(
+            className: className,
+            size: 26,
+            logoPadding: 3,
+            borderRadius: 8,
+            fallbackIcon: HugeIcons.strokeRoundedBookOpen01,
           ),
-          const SizedBox(height: 10),
-          if (sortedAssignments.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 72),
-              child: _MessageState(
-                icon: HugeIcons.strokeRoundedUserGroup,
-                title: 'classes.class_assignments.empty_title'.tr(),
-                message: 'classes.class_assignments.empty_body'.tr(),
-              ),
-            )
-          else
-            for (final entry in sortedAssignments.asMap().entries)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: _AssignmentTile(
-                  assignment: entry.value,
-                  index: entry.key,
-                  canEdit: onEdit != null,
-                  canRevoke: canRevoke && onRevoke != null,
-                  onEdit: onEdit == null ? null : () => onEdit!(entry.value),
-                  onRevoke:
-                      onRevoke == null ? null : () => onRevoke!(entry.value),
+          const SizedBox(width: 10),
+          Text(
+            className,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink900,
+                  letterSpacing: -0.2,
                 ),
-              ),
+          ),
         ],
       ),
     );
@@ -417,78 +472,36 @@ class _AssignmentsHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.18)),
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(2, 4, 2, 0),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Center(
-              child: HugeIcon(
-                icon: HugeIcons.strokeRoundedUserCheck01,
-                size: 22,
-                color: AppColors.primary,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'classes.class_assignments.header_title'.tr(),
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.ink900,
-                                ),
-                      ),
-                    ),
-                    if (canAssign && onAdd != null) ...[
-                      const SizedBox(width: 8),
-                      _AssignmentAddAction(
-                        isLoading: isActionLoading,
-                        onTap: isActionLoading ? null : onAdd,
-                      ),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  canAssign
-                      ? 'classes.class_assignments.header_body'.tr()
-                      : 'classes.class_assignments.readonly_body'.tr(),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.ink600,
-                        height: 1.35,
-                      ),
-                ),
-              ],
+            child: Text(
+              canAssign
+                  ? 'classes.class_assignments.header_body'.tr()
+                  : 'classes.class_assignments.readonly_body'.tr(),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.ink600,
+                    height: 1.35,
+                  ),
             ),
           ),
+          if (canAssign && onAdd != null) ...[
+            const SizedBox(width: 12),
+            _AssignmentAddAction(
+              isLoading: isActionLoading,
+              onTap: isActionLoading ? null : onAdd,
+            ),
+          ],
         ],
       ),
     );
   }
 }
 
-class _AssignmentAddAction extends StatelessWidget {
+class _AssignmentAddAction extends StatefulWidget {
   final bool isLoading;
   final VoidCallback? onTap;
 
@@ -498,36 +511,51 @@ class _AssignmentAddAction extends StatelessWidget {
   });
 
   @override
+  State<_AssignmentAddAction> createState() => _AssignmentAddActionState();
+}
+
+class _AssignmentAddActionState extends State<_AssignmentAddAction> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed == value || widget.onTap == null) return;
+    setState(() => _pressed = value);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final enabled = onTap != null;
+    final enabled = widget.onTap != null;
     final color = enabled ? AppColors.primary : AppColors.ink400;
+    final reduce = SacMotion.reduceMotionOf(context);
 
     return Semantics(
       label: 'classes.class_assignments.add_button'.tr(),
       button: true,
       enabled: enabled,
-      child: Material(
-        color: AppColors.paper,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color: enabled
-                ? AppColors.primary.withValues(alpha: 0.22)
-                : AppColors.ink150,
-          ),
-        ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+      child: GestureDetector(
+        onTapDown: (_) => _setPressed(true),
+        onTapUp: (_) => _setPressed(false),
+        onTapCancel: () => _setPressed(false),
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: (!reduce && _pressed) ? 0.96 : 1,
+          duration: SacMotion.press,
+          curve: SacMotion.easeOut,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+            decoration: BoxDecoration(
+              color: enabled
+                  ? AppColors.primary.withValues(alpha: 0.10)
+                  : AppColors.ink50,
+              borderRadius: BorderRadius.circular(999),
+            ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (isLoading)
+                if (widget.isLoading)
                   SizedBox(
-                    width: 18,
-                    height: 18,
+                    width: 16,
+                    height: 16,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
                       color: color,
@@ -536,10 +564,10 @@ class _AssignmentAddAction extends StatelessWidget {
                 else
                   HugeIcon(
                     icon: HugeIcons.strokeRoundedAdd01,
-                    size: 20,
+                    size: 16,
                     color: color,
                   ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 5),
                 Text(
                   'classes.class_assignments.add_button'.tr(),
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -578,16 +606,21 @@ class _AssignmentTile extends StatelessWidget {
     final personName = _safePersonName(assignment.user, assignment.userId);
     final roleName = assignment.classRoleAssignment?.roleName;
     final classColor = AppColors.classColor(assignment.clazz.name);
+    final subtitleParts = <String>[
+      if (roleName != null && roleName.isNotEmpty) RoleUtils.translate(roleName),
+      _responsibilityLabel(assignment.responsibilityType),
+    ];
+    final exceptionReason = assignment.exceptionReason?.trim() ?? '';
 
     return SacCard(
       animate: true,
-      animationDelay: Duration(milliseconds: index * 80),
+      animationDelay: Duration(milliseconds: index * 36),
       padding: EdgeInsets.zero,
-      borderColor: classColor.withValues(alpha: 0.18),
+      onTap: canEdit ? onEdit : null,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             _PersonIdentityMark(person: assignment.user, accent: classColor),
             const SizedBox(width: 12),
@@ -599,98 +632,348 @@ class _AssignmentTile extends StatelessWidget {
                     personName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
                           color: AppColors.ink900,
                           letterSpacing: -0.2,
                         ),
                   ),
-                  const SizedBox(height: 6),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
+                  const SizedBox(height: 3),
+                  Row(
                     children: [
-                      _ClassAssignmentChip(
-                        className: assignment.clazz.name,
-                        color: classColor,
-                      ),
-                      if (roleName != null && roleName.isNotEmpty)
-                        _AssignmentChip(
-                          label: RoleUtils.translate(roleName),
-                          color: AppColors.ink600,
+                      Flexible(
+                        child: Text(
+                          subtitleParts.join(' · '),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.ink600,
+                                  ),
                         ),
-                      _AssignmentChip(
-                        label:
-                            _responsibilityLabel(assignment.responsibilityType),
-                        color: classColor,
                       ),
-                      if (assignment.exceptional)
+                      if (assignment.exceptional) ...[
+                        const SizedBox(width: 6),
                         _AssignmentChip(
                           label:
                               'classes.class_assignments.exceptional_chip'.tr(),
                           color: AppColors.accentDark,
                         ),
+                      ],
                     ],
                   ),
                   if (assignment.exceptional &&
-                      (assignment.exceptionReason?.trim().isNotEmpty ??
-                          false)) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      assignment.exceptionReason!.trim(),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.ink600,
-                            height: 1.3,
+                      exceptionReason.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.only(top: 1),
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedInformationCircle,
+                            size: 13,
+                            color: AppColors.accentDark,
                           ),
+                        ),
+                        const SizedBox(width: 5),
+                        Expanded(
+                          child: Text(
+                            exceptionReason,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
+                                  color: AppColors.accentDark,
+                                  fontSize: 11.5,
+                                  height: 1.3,
+                                ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ],
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 4),
             if (canEdit || canRevoke)
               Semantics(
                 button: true,
                 label: 'nav.more_options'.tr(),
-                child: PopupMenuButton<String>(
-                  padding: EdgeInsets.zero,
-                  icon: Container(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(999),
+                  onTap: () => _showActionsSheet(context, personName),
+                  child: const SizedBox(
                     width: 34,
                     height: 34,
-                    decoration: BoxDecoration(
-                      color: classColor.withValues(alpha: 0.09),
-                      borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-                    ),
-                    child: HugeIcon(
-                      icon: HugeIcons.strokeRoundedMoreHorizontal,
-                      size: 16,
-                      color: classColor,
+                    child: Center(
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedMoreHorizontal,
+                        size: 18,
+                        color: AppColors.ink400,
+                      ),
                     ),
                   ),
-                  onSelected: (value) {
-                    if (value == 'edit') onEdit?.call();
-                    if (value == 'revoke') onRevoke?.call();
-                  },
-                  itemBuilder: (context) => [
-                    if (canEdit)
-                      PopupMenuItem(
-                        value: 'edit',
-                        child: Text('common.edit'.tr()),
-                      ),
-                    if (canRevoke)
-                      PopupMenuItem(
-                        value: 'revoke',
-                        child: Text(
-                          'classes.class_assignments.revoke_action'.tr(),
-                          style: const TextStyle(color: AppColors.error),
-                        ),
-                      ),
-                  ],
                 ),
               ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showActionsSheet(
+    BuildContext context,
+    String personName,
+  ) async {
+    final classColor = AppColors.classColor(assignment.clazz.name);
+
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.canvas,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 10),
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.ink150,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+
+              // Identity header: quién y qué asignación
+              Row(
+                children: [
+                  _PersonIdentityMark(
+                    person: assignment.user,
+                    accent: classColor,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          personName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(sheetContext)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.ink900,
+                                letterSpacing: -0.3,
+                              ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            ClassIdentityBadge(
+                              className: assignment.clazz.name,
+                              size: 18,
+                              logoPadding: 2,
+                              borderRadius: 6,
+                              fallbackIcon:
+                                  HugeIcons.strokeRoundedBookOpen01,
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                '${assignment.clazz.name} · '
+                                '${_responsibilityLabel(assignment.responsibilityType)}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(sheetContext)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: AppColors.ink600,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+
+              // Acciones normales
+              if (canEdit)
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.paper,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: AppColors.ink150),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: _SheetAction(
+                    icon: HugeIcons.strokeRoundedPencilEdit02,
+                    label: 'common.edit'.tr(),
+                    tint: AppColors.primary,
+                    labelColor: AppColors.ink900,
+                    onTap: () => Navigator.of(sheetContext).pop('edit'),
+                  ),
+                ),
+              if (canEdit && canRevoke) const SizedBox(height: 10),
+
+              // Acción destructiva separada (grupo propio, iOS-style)
+              if (canRevoke)
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.paper,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: AppColors.error.withValues(alpha: 0.16),
+                    ),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: _SheetAction(
+                    icon: HugeIcons.strokeRoundedUserRemove01,
+                    label: 'classes.class_assignments.revoke_action'.tr(),
+                    tint: AppColors.error,
+                    labelColor: AppColors.error,
+                    onTap: () => Navigator.of(sheetContext).pop('revoke'),
+                  ),
+                ),
+              const SizedBox(height: 12),
+
+              // Cancelar: salida obvia, sin scrim-hunting
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.ink50,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () => Navigator.of(sheetContext).pop(),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    child: Center(
+                      child: Text(
+                        'common.cancel'.tr(),
+                        style: Theme.of(sheetContext)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(
+                              color: AppColors.ink600,
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (action == 'edit') onEdit?.call();
+    if (action == 'revoke') onRevoke?.call();
+  }
+}
+
+class _SheetAction extends StatefulWidget {
+  final List<List<dynamic>> icon;
+  final String label;
+  final Color tint;
+  final Color labelColor;
+  final VoidCallback onTap;
+
+  const _SheetAction({
+    required this.icon,
+    required this.label,
+    required this.tint,
+    required this.labelColor,
+    required this.onTap,
+  });
+
+  @override
+  State<_SheetAction> createState() => _SheetActionState();
+}
+
+class _SheetActionState extends State<_SheetAction> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() => _pressed = value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reduce = SacMotion.reduceMotionOf(context);
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => _setPressed(true),
+      onTapUp: (_) => _setPressed(false),
+      onTapCancel: () => _setPressed(false),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: (!reduce && _pressed) ? 0.98 : 1,
+        duration: SacMotion.press,
+        curve: SacMotion.easeOut,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: widget.tint.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: HugeIcon(
+                    icon: widget.icon,
+                    size: 18,
+                    color: widget.tint,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  widget.label,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: widget.labelColor,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.1,
+                      ),
+                ),
+              ),
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
+                size: 16,
+                color: AppColors.ink400,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -717,118 +1000,40 @@ class _PersonIdentityMark extends StatelessWidget {
         .join();
     final image = person.userImage?.trim();
 
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Container(
-          width: 54,
-          height: 54,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                accent.withValues(alpha: 0.18),
-                accent.withValues(alpha: 0.07),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: accent.withValues(alpha: 0.16)),
-          ),
-          clipBehavior: Clip.antiAlias,
-          alignment: Alignment.center,
-          child: image == null || image.isEmpty
-              ? Text(
-                  initials.isEmpty ? '?' : initials,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: accent,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -0.5,
-                      ),
-                )
-              : CachedNetworkImage(
-                  imageUrl: image,
-                  fit: BoxFit.cover,
-                  width: 54,
-                  height: 54,
-                  memCacheWidth: 162,
-                  memCacheHeight: 162,
-                  errorWidget: (_, __, ___) => Text(
-                    initials.isEmpty ? '?' : initials,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: accent,
-                          fontWeight: FontWeight.w900,
-                        ),
-                  ),
-                ),
-        ),
-        Positioned(
-          right: -2,
-          bottom: -2,
-          child: Container(
-            width: 22,
-            height: 22,
-            decoration: BoxDecoration(
-              color: AppColors.paper,
-              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-              border: Border.all(color: AppColors.ink150),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: HugeIcon(
-              icon: HugeIcons.strokeRoundedUserCheck01,
-              size: 12,
-              color: accent,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ClassAssignmentChip extends StatelessWidget {
-  final String className;
-  final Color color;
-
-  const _ClassAssignmentChip({
-    required this.className,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(5, 4, 10, 4),
+      width: 44,
+      height: 44,
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(999),
+        color: accent.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: accent.withValues(alpha: 0.14)),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ClassIdentityBadge(
-            className: className,
-            size: 22,
-            logoPadding: 3,
-            borderRadius: 7,
-            fallbackIcon: HugeIcons.strokeRoundedBookOpen01,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            className,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w800,
-                ),
-          ),
-        ],
-      ),
+      clipBehavior: Clip.antiAlias,
+      alignment: Alignment.center,
+      child: image == null || image.isEmpty
+          ? Text(
+              initials.isEmpty ? '?' : initials,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: accent,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                  ),
+            )
+          : CachedNetworkImage(
+              imageUrl: image,
+              fit: BoxFit.cover,
+              width: 44,
+              height: 44,
+              memCacheWidth: 132,
+              memCacheHeight: 132,
+              errorWidget: (_, __, ___) => Text(
+                initials.isEmpty ? '?' : initials,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: accent,
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+            ),
     );
   }
 }
@@ -1093,13 +1298,10 @@ class _ClassCounselorAssignmentSheetState
               ),
               if (_exceptional) ...[
                 const SizedBox(height: 8),
-                TextFormField(
+                SacTextField(
                   controller: _reasonController,
+                  label: 'classes.class_assignments.reason_label'.tr(),
                   maxLines: 3,
-                  decoration: InputDecoration(
-                    labelText: 'classes.class_assignments.reason_label'.tr(),
-                    border: const OutlineInputBorder(),
-                  ),
                   validator: (value) {
                     if (!_exceptional) return null;
                     if ((value ?? '').trim().isEmpty) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/class_requirement.dart';
 import '../utils/status_meta.dart';
@@ -31,11 +32,26 @@ class StatusGlyph extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final meta = StatusMeta.of(status);
+    final reduce = SacMotion.reduceMotionOf(context);
 
     return Semantics(
       label: meta.label,
       excludeSemantics: true,
-      child: _buildGlyph(),
+      // El cambio de estado (enviado → validado) es el momento clave:
+      // scale 0.8→1 + fade en vez de swap instantáneo.
+      child: AnimatedSwitcher(
+        duration: reduce ? Duration.zero : SacMotion.standard,
+        switchInCurve: SacMotion.easeOut,
+        switchOutCurve: SacMotion.easeOut,
+        transitionBuilder: (child, animation) => ScaleTransition(
+          scale: Tween<double>(begin: 0.8, end: 1).animate(animation),
+          child: FadeTransition(opacity: animation, child: child),
+        ),
+        child: KeyedSubtree(
+          key: ValueKey<RequirementStatus>(status),
+          child: _buildGlyph(),
+        ),
+      ),
     );
   }
 

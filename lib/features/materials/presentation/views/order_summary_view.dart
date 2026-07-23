@@ -12,6 +12,7 @@ import '../providers/config_provider.dart';
 import '../providers/create_order_provider.dart';
 import '../utils/money_format.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 
 /// Pantalla de resumen y confirmación de pedido.
 ///
@@ -175,24 +176,11 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
           const SizedBox(height: 24),
 
           // ── Notas opcionales ──────────────────────────────────────────────
-          _SectionHeader(title: 'Notas (opcional)'),
-          const SizedBox(height: 12),
-          TextFormField(
+          SacTextField(
             controller: _notasController,
+            label: 'Notas (opcional)',
+            hint: 'Instrucciones especiales, observaciones…',
             maxLines: 3,
-            decoration: InputDecoration(
-              hintText: 'Instrucciones especiales, observaciones…',
-              hintStyle: TextStyle(color: AppColors.lightTextTertiary),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.lightBorder),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.lightBorder),
-              ),
-              contentPadding: const EdgeInsets.all(12),
-            ),
           ),
         ],
       ),

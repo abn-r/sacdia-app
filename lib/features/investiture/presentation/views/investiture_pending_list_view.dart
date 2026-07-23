@@ -7,6 +7,7 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_loading.dart';
+import '../../../../core/widgets/sac_text_field.dart';
 import '../../domain/entities/investiture_pending.dart';
 import '../providers/investiture_providers.dart';
 import '../widgets/investiture_status_badge.dart';
@@ -402,14 +403,11 @@ class _PendingCard extends ConsumerWidget {
                 style: const TextStyle(fontSize: 14),
               ),
               const SizedBox(height: 16),
-              TextField(
+              SacTextField(
                 controller: commentsCtrl,
+                label: 'investiture.pending.field_comments_label'.tr(),
+                hint: 'investiture.pending.field_comments_hint'.tr(),
                 maxLines: 3,
-                decoration: InputDecoration(
-                  labelText: 'investiture.pending.field_comments_label'.tr(),
-                  hintText: 'investiture.pending.field_comments_hint'.tr(),
-                  border: const OutlineInputBorder(),
-                ),
               ),
             ],
           ),
@@ -473,14 +471,11 @@ class _PendingCard extends ConsumerWidget {
                   style: const TextStyle(fontSize: 14),
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                SacTextField(
                   controller: commentsCtrl,
+                  label: 'investiture.pending.field_reason_label'.tr(),
+                  hint: 'investiture.pending.field_reason_hint'.tr(),
                   maxLines: 3,
-                  decoration: InputDecoration(
-                    labelText: 'investiture.pending.field_reason_label'.tr(),
-                    hintText: 'investiture.pending.field_reason_hint'.tr(),
-                    border: const OutlineInputBorder(),
-                  ),
                   validator: (v) => (v == null || v.trim().isEmpty)
                       ? 'investiture.pending.field_reason_error'.tr()
                       : null,

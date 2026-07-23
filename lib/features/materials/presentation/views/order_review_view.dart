@@ -16,6 +16,7 @@ import '../providers/order_detail_provider.dart';
 import '../utils/money_format.dart';
 import '../widgets/material_status_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 
 /// Pantalla de revisión de una orden por folio o ID.
 ///
@@ -450,12 +451,9 @@ class _ActionCard extends ConsumerWidget {
             children: [
               const Text('¿Estás seguro de que deseas cancelar este pedido?'),
               const SizedBox(height: 12),
-              TextField(
+              SacTextField(
                 controller: reasonController,
-                decoration: const InputDecoration(
-                  labelText: 'Motivo (requerido)',
-                  border: OutlineInputBorder(),
-                ),
+                label: 'Motivo (requerido)',
                 maxLines: 2,
               ),
             ],

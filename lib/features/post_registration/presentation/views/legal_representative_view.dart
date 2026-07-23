@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../data/models/legal_representative_model.dart';
 import '../providers/personal_info_providers.dart';
@@ -260,23 +261,14 @@ class _LegalRepresentativeViewState
             const SizedBox(height: 16),
 
             // Nombre
-            TextFormField(
+            SacTextField(
               controller: _nameController,
-              decoration: InputDecoration(
-                labelText:
-                    'post_registration.legal_representative.first_name_label'
-                        .tr(),
-                hintText:
-                    'post_registration.legal_representative.first_name_hint'
-                        .tr(),
-                prefixIconConstraints: FixedInputIconSlot.constraints,
-                prefixIcon: FixedInputIconSlot(
-                  icon: HugeIcons.strokeRoundedUser,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  iconSize: 22,
-                ),
-                border: const OutlineInputBorder(),
-              ),
+              label:
+                  'post_registration.legal_representative.first_name_label'
+                      .tr(),
+              hint:
+                  'post_registration.legal_representative.first_name_hint'.tr(),
+              prefixIcon: HugeIcons.strokeRoundedUser,
               textCapitalization: TextCapitalization.words,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
@@ -294,23 +286,15 @@ class _LegalRepresentativeViewState
             const SizedBox(height: 16),
 
             // Apellido Paterno
-            TextFormField(
+            SacTextField(
               controller: _paternalSurnameController,
-              decoration: InputDecoration(
-                labelText:
-                    'post_registration.legal_representative.paternal_surname_label'
-                        .tr(),
-                hintText:
-                    'post_registration.legal_representative.paternal_surname_hint'
-                        .tr(),
-                prefixIconConstraints: FixedInputIconSlot.constraints,
-                prefixIcon: FixedInputIconSlot(
-                  icon: HugeIcons.strokeRoundedUser,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  iconSize: 22,
-                ),
-                border: const OutlineInputBorder(),
-              ),
+              label:
+                  'post_registration.legal_representative.paternal_surname_label'
+                      .tr(),
+              hint:
+                  'post_registration.legal_representative.paternal_surname_hint'
+                      .tr(),
+              prefixIcon: HugeIcons.strokeRoundedUser,
               textCapitalization: TextCapitalization.words,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
@@ -328,23 +312,15 @@ class _LegalRepresentativeViewState
             const SizedBox(height: 16),
 
             // Apellido Materno
-            TextFormField(
+            SacTextField(
               controller: _maternalSurnameController,
-              decoration: InputDecoration(
-                labelText:
-                    'post_registration.legal_representative.maternal_surname_label'
-                        .tr(),
-                hintText:
-                    'post_registration.legal_representative.maternal_surname_hint'
-                        .tr(),
-                prefixIconConstraints: FixedInputIconSlot.constraints,
-                prefixIcon: FixedInputIconSlot(
-                  icon: HugeIcons.strokeRoundedUser,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  iconSize: 22,
-                ),
-                border: const OutlineInputBorder(),
-              ),
+              label:
+                  'post_registration.legal_representative.maternal_surname_label'
+                      .tr(),
+              hint:
+                  'post_registration.legal_representative.maternal_surname_hint'
+                      .tr(),
+              prefixIcon: HugeIcons.strokeRoundedUser,
               textCapitalization: TextCapitalization.words,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
@@ -362,21 +338,11 @@ class _LegalRepresentativeViewState
             const SizedBox(height: 16),
 
             // Teléfono
-            TextFormField(
+            SacTextField(
               controller: _phoneController,
-              decoration: InputDecoration(
-                labelText:
-                    'post_registration.legal_representative.phone_label'.tr(),
-                hintText:
-                    'post_registration.legal_representative.phone_hint'.tr(),
-                prefixIconConstraints: FixedInputIconSlot.constraints,
-                prefixIcon: FixedInputIconSlot(
-                  icon: HugeIcons.strokeRoundedCall,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  iconSize: 22,
-                ),
-                border: const OutlineInputBorder(),
-              ),
+              label: 'post_registration.legal_representative.phone_label'.tr(),
+              hint: 'post_registration.legal_representative.phone_hint'.tr(),
+              prefixIcon: HugeIcons.strokeRoundedCall,
               keyboardType: TextInputType.phone,
               maxLength: 10,
               validator: (value) {
