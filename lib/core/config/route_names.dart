@@ -216,12 +216,9 @@ class RouteNames {
   // Pagos de camporee (miembro)
   static const String camporeePayments =
       '/camporee/:camporeeId/member/:memberId/payments';
-  static const String camporeeEnrollClub = '/camporee/:camporeeId/enroll-club';
 
   static String camporeePaymentsPath(int camporeeId, String memberId) =>
       '/camporee/$camporeeId/member/$memberId/payments';
-  static String camporeeEnrollClubPath(int camporeeId) =>
-      '/camporee/$camporeeId/enroll-club';
 
   // Materials (orders)
   static const String homeMaterials = '/home/materials';

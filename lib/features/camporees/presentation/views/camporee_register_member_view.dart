@@ -5,13 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/insurance/domain/entities/member_insurance.dart';
 import 'package:sacdia_app/features/insurance/presentation/providers/insurance_providers.dart';
 import 'package:sacdia_app/features/insurance/presentation/widgets/insurance_status_badge.dart';
+import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_participant_access_gate.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 
 import '../providers/camporees_providers.dart';
 
@@ -38,22 +39,9 @@ class _CamporeeRegisterMemberViewState
 
   @override
   Widget build(BuildContext context) {
-    final registrationState =
-        ref.watch(camporeeRegistrationNotifierProvider(widget.camporeeId));
-    final membersAsync = ref.watch(membersInsuranceProvider);
-    final registeredIdsAsync =
-        ref.watch(camporeeRegisteredUserIdsProvider(widget.camporeeId));
-    final registeredIds = registeredIdsAsync.valueOrNull ?? const <String>{};
-    final selectedMembers = _selectedMembers(membersAsync.valueOrNull);
-    final insuranceIdsByUserId = _eligibleInsuranceIds(
-      selectedMembers,
-      registeredIds,
-    );
-    final pendingSelectedCount = selectedMembers
-        .where((member) => !registeredIds.contains(member.memberId))
-        .length;
-    final hasSelectedWithoutEligibleInsurance =
-        pendingSelectedCount > insuranceIdsByUserId.length;
+    final sectionRegistrationAsync =
+        ref.watch(camporeeSectionRegistrationProvider(widget.camporeeId));
+    final authAsync = ref.watch(authNotifierProvider);
     final c = context.sac;
 
     return Scaffold(
@@ -67,90 +55,25 @@ class _CamporeeRegisterMemberViewState
         elevation: 0,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const _InfoBanner(),
-              const SizedBox(height: 22),
-              if (registrationState.errorMessage != null) ...[
-                _ErrorBanner(message: registrationState.errorMessage!),
-                const SizedBox(height: 16),
-              ],
-              _SelectedMembersCard(
-                selectedIds: _selectedUserIds,
-                selectedMembers: selectedMembers,
-                onRemove: (userId) {
-                  setState(() => _selectedUserIds.remove(userId));
-                },
-              ),
-              if (hasSelectedWithoutEligibleInsurance) ...[
-                const SizedBox(height: 12),
-                _ErrorBanner(
-                  message:
-                      'camporees.register_member.insurance_error_body'.tr(),
-                ),
-              ],
-              const SizedBox(height: 14),
-              SacButton.outline(
-                text: _selectedUserIds.isEmpty
-                    ? 'camporees.register_member.select_members_button'.tr()
-                    : 'camporees.register_member.modify_selection_button'.tr(),
-                icon: HugeIcons.strokeRoundedUserGroup,
-                onPressed: () => _openMemberPicker(context),
-              ),
-              if (registeredIdsAsync.hasValue && registeredIds.isNotEmpty) ...[
-                const SizedBox(height: 10),
-                _AlreadyRegisteredHint(count: registeredIds.length),
-              ],
-              const SizedBox(height: 28),
-              SacButton.primary(
-                text: 'camporees.register_member.register_button_count'.tr(
-                  namedArgs: {
-                    'count': insuranceIdsByUserId.length.toString(),
-                  },
-                ),
-                icon: HugeIcons.strokeRoundedUserAdd01,
-                isLoading: registrationState.isLoading,
-                isEnabled: insuranceIdsByUserId.isNotEmpty &&
-                    !hasSelectedWithoutEligibleInsurance,
-                onPressed: registrationState.isLoading ||
-                        insuranceIdsByUserId.isEmpty ||
-                        hasSelectedWithoutEligibleInsurance
-                    ? null
-                    : () => _submit(context, insuranceIdsByUserId),
-              ),
-              const SizedBox(height: 16),
-            ],
+        child: CamporeeParticipantRegistrationGate(
+          registrationAsync: sectionRegistrationAsync,
+          authAsync: authAsync,
+          onRetryRegistration: () => ref.invalidate(
+            camporeeSectionRegistrationProvider(widget.camporeeId),
+          ),
+          onRetryAuth: () => ref.invalidate(authNotifierProvider),
+          child: _EligibleRegistrationForm(
+            camporeeId: widget.camporeeId,
+            selectedUserIds: _selectedUserIds,
+            onRemove: (userId) {
+              setState(() => _selectedUserIds.remove(userId));
+            },
+            onOpenPicker: () => _openMemberPicker(context),
+            onSubmit: (ids) => _submit(context, ids),
           ),
         ),
       ),
     );
-  }
-
-  List<MemberInsurance> _selectedMembers(List<MemberInsurance>? members) {
-    if (members == null || _selectedUserIds.isEmpty) return const [];
-    final byId = {for (final member in members) member.memberId: member};
-    return _selectedUserIds
-        .map((userId) => byId[userId])
-        .whereType<MemberInsurance>()
-        .toList();
-  }
-
-  Map<String, int> _eligibleInsuranceIds(
-    List<MemberInsurance> members,
-    Set<String> registeredIds,
-  ) {
-    return {
-      for (final member in members)
-        if (!registeredIds.contains(member.memberId) &&
-            member.insuranceId != null &&
-            member.status == InsuranceStatus.asegurado &&
-            (member.insuranceType == InsuranceType.camporee ||
-                member.insuranceType == InsuranceType.generalActivities))
-          member.memberId: member.insuranceId!,
-    };
   }
 
   Future<void> _openMemberPicker(BuildContext context) async {
@@ -177,9 +100,7 @@ class _CamporeeRegisterMemberViewState
     if (insuranceIdsByUserId.isEmpty) {
       _showSnack(
         context,
-        _selectedUserIds.isEmpty
-            ? 'camporees.register_member.already_selected'.tr()
-            : 'camporees.register_member.insurance_error_body'.tr(),
+        'camporees.register_member.already_selected'.tr(),
         AppColors.accent,
       );
       return;
@@ -232,6 +153,120 @@ class _CamporeeRegisterMemberViewState
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
+  }
+}
+
+class _EligibleRegistrationForm extends ConsumerWidget {
+  final int camporeeId;
+  final Set<String> selectedUserIds;
+  final ValueChanged<String> onRemove;
+  final VoidCallback onOpenPicker;
+  final ValueChanged<Map<String, int>> onSubmit;
+
+  const _EligibleRegistrationForm({
+    required this.camporeeId,
+    required this.selectedUserIds,
+    required this.onRemove,
+    required this.onOpenPicker,
+    required this.onSubmit,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final registrationState =
+        ref.watch(camporeeRegistrationNotifierProvider(camporeeId));
+    final membersAsync = ref.watch(membersInsuranceProvider);
+    final registeredIdsAsync =
+        ref.watch(camporeeRegisteredUserIdsProvider(camporeeId));
+    final registeredIds = registeredIdsAsync.valueOrNull ?? const <String>{};
+    final selectedMembers = _selectedMembers(membersAsync.valueOrNull);
+    final insuranceIdsByUserId = _eligibleInsuranceIds(
+      selectedMembers,
+      registeredIds,
+    );
+    final pendingSelectedCount = selectedMembers
+        .where((member) => !registeredIds.contains(member.memberId))
+        .length;
+    final hasSelectedWithoutEligibleInsurance =
+        pendingSelectedCount > insuranceIdsByUserId.length;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _InfoBanner(),
+          const SizedBox(height: 22),
+          if (registrationState.errorMessage != null) ...[
+            _ErrorBanner(message: registrationState.errorMessage!),
+            const SizedBox(height: 16),
+          ],
+          if (hasSelectedWithoutEligibleInsurance) ...[
+            const SizedBox(height: 12),
+            _ErrorBanner(
+              message: 'camporees.register_member.insurance_error_body'.tr(),
+            ),
+          ],
+          _SelectedMembersCard(
+            selectedIds: selectedUserIds,
+            selectedMembers: selectedMembers,
+            onRemove: onRemove,
+          ),
+          const SizedBox(height: 14),
+          SacButton.outline(
+            text: selectedUserIds.isEmpty
+                ? 'camporees.register_member.select_members_button'.tr()
+                : 'camporees.register_member.modify_selection_button'.tr(),
+            icon: HugeIcons.strokeRoundedUserGroup,
+            onPressed: onOpenPicker,
+          ),
+          if (registeredIdsAsync.hasValue && registeredIds.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            _AlreadyRegisteredHint(count: registeredIds.length),
+          ],
+          const SizedBox(height: 28),
+          SacButton.primary(
+            text: 'camporees.register_member.register_button_count'.tr(
+              namedArgs: {'count': insuranceIdsByUserId.length.toString()},
+            ),
+            icon: HugeIcons.strokeRoundedUserAdd01,
+            isLoading: registrationState.isLoading,
+            isEnabled: insuranceIdsByUserId.isNotEmpty &&
+                !hasSelectedWithoutEligibleInsurance,
+            onPressed: registrationState.isLoading ||
+                    insuranceIdsByUserId.isEmpty ||
+                    hasSelectedWithoutEligibleInsurance
+                ? null
+                : () => onSubmit(insuranceIdsByUserId),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  List<MemberInsurance> _selectedMembers(List<MemberInsurance>? members) {
+    if (members == null || selectedUserIds.isEmpty) return const [];
+    final byId = {for (final member in members) member.memberId: member};
+    return selectedUserIds
+        .map((userId) => byId[userId])
+        .whereType<MemberInsurance>()
+        .toList();
+  }
+
+  Map<String, int> _eligibleInsuranceIds(
+    List<MemberInsurance> members,
+    Set<String> registeredIds,
+  ) {
+    return {
+      for (final member in members)
+        if (!registeredIds.contains(member.memberId) &&
+            member.insuranceId != null &&
+            member.status == InsuranceStatus.asegurado &&
+            (member.insuranceType == InsuranceType.camporee ||
+                member.insuranceType == InsuranceType.generalActivities))
+          member.memberId: member.insuranceId!,
+    };
   }
 }
 
@@ -599,11 +634,13 @@ class _MemberPickerSheetState extends ConsumerState<_MemberPickerSheet> {
                         controller: _searchController,
                         onChanged: (value) => setState(() => _query = value),
                         decoration: InputDecoration(
-                          prefixIconConstraints: FixedInputIconSlot.constraints,
-                          prefixIcon: FixedInputIconSlot(
-                            icon: HugeIcons.strokeRoundedSearch01,
-                            iconSize: 18,
-                            color: c.textTertiary,
+                          prefixIcon: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedSearch01,
+                              size: 18,
+                              color: c.textTertiary,
+                            ),
                           ),
                           hintText:
                               'camporees.register_member.search_hint'.tr(),

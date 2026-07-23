@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
@@ -189,7 +190,7 @@ class _JudgeScoreEntryViewState extends ConsumerState<JudgeScoreEntryView> {
                 const SizedBox(height: 18),
                 SacButton.primary(
                   text: 'camporees.judge.submit_score'.tr(),
-                  icon: Icons.send,
+                  icon: HugeIcons.strokeRoundedSent,
                   isLoading: submitState.isLoading,
                   isEnabled: !submitState.isLoading,
                   onPressed:
@@ -371,7 +372,11 @@ class _EmptyRubrics extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.rule, size: 48, color: context.sac.textTertiary),
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedCheckList,
+              size: 48,
+              color: context.sac.textTertiary,
+            ),
             const SizedBox(height: 12),
             Text(
               'camporees.judge.no_rubrics'.tr(),
@@ -384,7 +389,7 @@ class _EmptyRubrics extends StatelessWidget {
             const SizedBox(height: 18),
             SacButton.outline(
               text: 'common.retry'.tr(),
-              icon: Icons.refresh,
+              icon: HugeIcons.strokeRoundedRefresh,
               onPressed: onRetry,
             ),
           ],
@@ -408,7 +413,11 @@ class _ErrorRubrics extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, size: 48, color: context.sac.error),
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedAlert02,
+              size: 48,
+              color: context.sac.error,
+            ),
             const SizedBox(height: 12),
             Text(
               'camporees.judge.rubrics_error'.tr(),
@@ -427,7 +436,7 @@ class _ErrorRubrics extends StatelessWidget {
             const SizedBox(height: 20),
             SacButton.primary(
               text: 'common.retry'.tr(),
-              icon: Icons.refresh,
+              icon: HugeIcons.strokeRoundedRefresh,
               onPressed: onRetry,
             ),
           ],

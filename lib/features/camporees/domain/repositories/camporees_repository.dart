@@ -8,6 +8,7 @@ import '../entities/camporee_judge_assignment.dart';
 import '../entities/camporee_member.dart';
 import '../entities/camporee_payment.dart';
 import '../entities/camporee_rubric.dart';
+import '../entities/camporee_section_registration.dart';
 import '../entities/camporee_score_submission.dart';
 
 /// Repositorio de camporees (interfaz del dominio)
@@ -19,6 +20,15 @@ abstract class CamporeesRepository {
   /// Obtiene el detalle de un camporee por ID.
   Future<Either<Failure, Camporee>> getCamporeeDetail(int camporeeId,
       {RequestCancelToken? cancelToken});
+
+  /// Obtiene la inscripción contextual de la sección activa.
+  Future<Either<Failure, CamporeeSectionRegistration>>
+      getActiveSectionRegistration(int camporeeId);
+
+  /// Inscribe en el camporee la sección activa del actor autenticado.
+  Future<Either<Failure, CamporeeSectionRegistration>> registerActiveSection(
+    int camporeeId,
+  );
 
   /// Obtiene eventos registrados de un camporee.
   Future<Either<Failure, List<CamporeeEvent>>> getCamporeeEvents(

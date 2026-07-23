@@ -9,6 +9,8 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.dart';
+import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_participant_access_gate.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 
 import '../providers/camporees_providers.dart';
 import 'camporee_register_member_view.dart';
@@ -29,7 +31,17 @@ class CamporeeMembersView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final membersAsync = ref.watch(camporeeMembersProvider(camporeeId));
+    final sectionRegistrationAsync =
+        ref.watch(camporeeSectionRegistrationProvider(camporeeId));
+    final authAsync = ref.watch(authNotifierProvider);
+    final canRegisterParticipants = canRegisterCamporeeParticipants(
+      sectionRegistrationAsync,
+      authAsync,
+    );
+    final canRemoveParticipants = canRemoveCamporeeParticipants(
+      sectionRegistrationAsync,
+      authAsync,
+    );
     final c = context.sac;
 
     return Scaffold(
@@ -44,157 +56,47 @@ class CamporeeMembersView extends ConsumerWidget {
         backgroundColor: c.surface,
         foregroundColor: c.text,
         elevation: 0,
-        actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CamporeeRegisterMemberView(
-                    camporeeId: camporeeId,
+        actions: canRegisterParticipants
+            ? [
+                IconButton(
+                  onPressed: () => _openRegisterMember(context, ref),
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedUserAdd01,
+                    size: 22,
+                    color: AppColors.primary,
                   ),
+                  tooltip: 'camporees.members.enroll_member_tooltip'.tr(),
                 ),
-              ).then(
-                  (_) => ref.invalidate(camporeeMembersProvider(camporeeId)));
-            },
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedUserAdd01,
-              size: 22,
-              color: AppColors.primary,
-            ),
-            tooltip: 'camporees.members.enroll_member_tooltip'.tr(),
-          ),
-        ],
+              ]
+            : null,
       ),
       body: SafeArea(
-        child: membersAsync.when(
-          data: (members) {
-            if (members.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedUserGroup,
-                      size: 56,
-                      color: c.textTertiary,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'camporees.members.empty'.tr(),
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: c.textSecondary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'camporees.members.empty_hint'.tr(),
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: c.textTertiary,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    SacButton.primary(
-                      text: 'camporees.members.enroll_first'.tr(),
-                      icon: HugeIcons.strokeRoundedUserAdd01,
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CamporeeRegisterMemberView(
-                              camporeeId: camporeeId,
-                            ),
-                          ),
-                        ).then((_) => ref
-                            .invalidate(camporeeMembersProvider(camporeeId)));
-                      },
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            final verified = members.where((m) => m.insuranceVerified).length;
-            final unverified = members.length - verified;
-
-            return RefreshIndicator(
-              color: AppColors.primary,
-              onRefresh: () async =>
-                  ref.invalidate(camporeeMembersProvider(camporeeId)),
-              child: CustomScrollView(
-                slivers: [
-                  // Stats summary
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                      child: _StatsSummary(
-                        total: members.length,
-                        verified: verified,
-                        unverified: unverified,
-                      ),
-                    ),
-                  ),
-
-                  // Members list
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final member = members[index];
-                        return StaggeredListItem(
-                          index: index,
-                          initialDelay: const Duration(milliseconds: 60),
-                          staggerDelay: const Duration(milliseconds: 50),
-                          child: _MemberTile(
-                            member: member,
-                            onRemove: () =>
-                                _confirmRemove(context, ref, member),
-                          ),
-                        );
-                      },
-                      childCount: members.length,
-                    ),
-                  ),
-
-                  const SliverToBoxAdapter(child: SizedBox(height: 32)),
-                ],
-              ),
-            );
-          },
-          loading: () => const Center(child: SacLoading()),
-          error: (error, _) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedAlert02,
-                    size: 56,
-                    color: AppColors.error,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    error.toString().replaceFirst('Exception: ', ''),
-                    style: TextStyle(fontSize: 14, color: c.textSecondary),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  SacButton.primary(
-                    text: 'common.retry'.tr(),
-                    icon: HugeIcons.strokeRoundedRefresh,
-                    onPressed: () =>
-                        ref.invalidate(camporeeMembersProvider(camporeeId)),
-                  ),
-                ],
-              ),
-            ),
+        child: CamporeeParticipantAccessGate(
+          registrationAsync: sectionRegistrationAsync,
+          onRetry: () => ref.invalidate(
+            camporeeSectionRegistrationProvider(camporeeId),
+          ),
+          child: _EligibleMembersBody(
+            camporeeId: camporeeId,
+            canRegisterParticipants: canRegisterParticipants,
+            canRemoveParticipants: canRemoveParticipants,
+            onEnroll: () => _openRegisterMember(context, ref),
+            onRemove: (member) => _confirmRemove(context, ref, member),
           ),
         ),
       ),
     );
+  }
+
+  void _openRegisterMember(BuildContext context, WidgetRef ref) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CamporeeRegisterMemberView(
+          camporeeId: camporeeId,
+        ),
+      ),
+    ).then((_) => ref.invalidate(camporeeMembersProvider(camporeeId)));
   }
 
   Future<void> _confirmRemove(
@@ -263,6 +165,148 @@ class CamporeeMembersView extends ConsumerWidget {
         );
       }
     }
+  }
+}
+
+class _EligibleMembersBody extends ConsumerWidget {
+  final int camporeeId;
+  final bool canRegisterParticipants;
+  final bool canRemoveParticipants;
+  final VoidCallback onEnroll;
+  final ValueChanged<CamporeeMember> onRemove;
+
+  const _EligibleMembersBody({
+    required this.camporeeId,
+    required this.canRegisterParticipants,
+    required this.canRemoveParticipants,
+    required this.onEnroll,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final membersAsync = ref.watch(camporeeMembersProvider(camporeeId));
+    final c = context.sac;
+
+    return membersAsync.when(
+      data: (members) {
+        if (members.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedUserGroup,
+                  size: 56,
+                  color: c.textTertiary,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'camporees.members.empty'.tr(),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: c.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (canRegisterParticipants) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    'camporees.members.empty_hint'.tr(),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: c.textTertiary,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SacButton.primary(
+                    text: 'camporees.members.enroll_first'.tr(),
+                    icon: HugeIcons.strokeRoundedUserAdd01,
+                    onPressed: onEnroll,
+                  ),
+                ],
+              ],
+            ),
+          );
+        }
+
+        final verified = members.where((m) => m.insuranceVerified).length;
+        final unverified = members.length - verified;
+
+        return RefreshIndicator(
+          color: AppColors.primary,
+          onRefresh: () async =>
+              ref.invalidate(camporeeMembersProvider(camporeeId)),
+          child: CustomScrollView(
+            slivers: [
+              // Stats summary
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: _StatsSummary(
+                    total: members.length,
+                    verified: verified,
+                    unverified: unverified,
+                  ),
+                ),
+              ),
+
+              // Members list
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final member = members[index];
+                    return StaggeredListItem(
+                      index: index,
+                      initialDelay: const Duration(milliseconds: 60),
+                      staggerDelay: const Duration(milliseconds: 50),
+                      child: _MemberTile(
+                        member: member,
+                        onRemove: canRemoveParticipants
+                            ? () => onRemove(member)
+                            : null,
+                      ),
+                    );
+                  },
+                  childCount: members.length,
+                ),
+              ),
+
+              const SliverToBoxAdapter(child: SizedBox(height: 32)),
+            ],
+          ),
+        );
+      },
+      loading: () => const Center(child: SacLoading()),
+      error: (error, _) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedAlert02,
+                size: 56,
+                color: AppColors.error,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                error.toString().replaceFirst('Exception: ', ''),
+                style: TextStyle(fontSize: 14, color: c.textSecondary),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              SacButton.primary(
+                text: 'common.retry'.tr(),
+                icon: HugeIcons.strokeRoundedRefresh,
+                onPressed: () =>
+                    ref.invalidate(camporeeMembersProvider(camporeeId)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -369,7 +413,7 @@ class _StatChip extends StatelessWidget {
 
 class _MemberTile extends StatelessWidget {
   final CamporeeMember member;
-  final VoidCallback onRemove;
+  final VoidCallback? onRemove;
 
   const _MemberTile({
     required this.member,
@@ -452,20 +496,20 @@ class _MemberTile extends StatelessWidget {
             ),
           ),
 
-          // Remove button
-          IconButton(
-            onPressed: onRemove,
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedDelete01,
-              size: 20,
-              color: AppColors.error,
+          if (onRemove != null)
+            IconButton(
+              onPressed: onRemove,
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedDelete01,
+                size: 20,
+                color: AppColors.error,
+              ),
+              tooltip: 'camporees.members.remove_tooltip'.tr(),
+              style: IconButton.styleFrom(
+                backgroundColor: AppColors.error.withValues(alpha: 0.08),
+                minimumSize: const Size(36, 36),
+              ),
             ),
-            tooltip: 'camporees.members.remove_tooltip'.tr(),
-            style: IconButton.styleFrom(
-              backgroundColor: AppColors.error.withValues(alpha: 0.08),
-              minimumSize: const Size(36, 36),
-            ),
-          ),
         ],
       ),
     );

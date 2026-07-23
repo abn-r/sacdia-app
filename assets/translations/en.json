@@ -1180,12 +1180,7 @@
       "certificates": "Certificates delivered",
       "booklets": "Members with booklet",
       "booklets_signed": "Booklet requirements signed",
-      "edit_manual_data": "Complete manual data",
-      "status_message_draft": "Manual data is still needed to generate this report",
-      "status_message_generated": "Report ready to review",
-      "status_message_submitted": "Submitted · awaiting review",
-      "status_message_approved": "Approved",
-      "status_message_rejected": "Rejected"
+      "edit_manual_data": "Complete manual data"
     },
     "visible": {
       "title": "Reports",
@@ -1197,13 +1192,7 @@
       "prepare_report": "Prepare report",
       "preparing": "Preparing…",
       "prepare_error": "Could not prepare the report",
-      "no_enrollment": "No active enrollment was found for your club.",
-      "history_title": "History",
-      "next_action_pending": "Pending manual data",
-      "next_action_continue": "Continue preparation",
-      "next_action_all_set": "You're all set",
-      "continue_report": "Continue",
-      "view_period": "View period report"
+      "no_enrollment": "No active enrollment was found for your club."
     },
     "form": {
       "title": "Report data",
@@ -1260,13 +1249,7 @@
       "materials_description": "Mark only what was already completed or delivered.",
       "certificates_helper": "Certificates or recognitions delivered to members.",
       "booklets_helper": "Members have their booklet or physical record.",
-      "booklets_signed_helper": "Booklet requirements were reviewed and signed.",
-      "sheet_title": "{month} {year} data",
-      "discard_title": "Discard changes?",
-      "discard_body": "You have unsaved changes.",
-      "discard_confirm": "Discard",
-      "discard_keep": "Keep editing",
-      "save_disabled_hint": "No changes"
+      "booklets_signed_helper": "Booklet requirements were reviewed and signed."
     }
   },
   "units": {
@@ -1800,6 +1783,10 @@
       "members_enrolled": "Enrolled members",
       "enroll": "Enroll",
       "no_members_yet": "No members enrolled yet.",
+      "members_loading": "Loading enrolled participants",
+      "members_error": "We could not load the enrolled members.",
+      "retry_members": "Retry members",
+      "retry_members_semantics": "Retry loading enrolled members",
       "view_all_members": "View all members ({count})",
       "error_loading": "Error loading camporee",
       "insurance_ok": "Insurance OK",
@@ -1832,21 +1819,6 @@
       "event_staff_responsible": "Responsible: {names}",
       "event_staff_supporting": "Supporting: {names}"
     },
-    "enroll_club": {
-      "title": "Club enrollment",
-      "enroll_club": "Enroll club",
-      "active_section_notice": "Enrollment automatically uses the active section you lead.",
-      "section_id_label": "Club section ID *",
-      "section_id_hint": "Section ID (e.g. 42)",
-      "section_id_required": "Enter section ID",
-      "section_id_invalid": "Enter a valid ID",
-      "enrolled_clubs": "Enrolled clubs",
-      "no_clubs_yet": "No clubs enrolled yet",
-      "unknown_club": "Unknown club",
-      "section_number": "Section #{number}",
-      "enrolled_badge": "enrolled",
-      "success": "Club enrolled successfully"
-    },
     "members": {
       "title": "Enrolled members",
       "enroll_member_tooltip": "Enroll member",
@@ -1868,9 +1840,9 @@
     },
     "register_member": {
       "title": "Enroll members",
-      "info_banner": "Select members from your section. Each participant must have active CAMPOREE or GENERAL ACTIVITIES insurance valid for the event dates.",
+      "info_banner": "Select members from your section. The camporee type is defined when the event is created; you do not need to enter IDs or insurance data.",
       "insurance_error_title": "Insurance error",
-      "insurance_error_body": "The member must have active CAMPOREE or GENERAL ACTIVITIES insurance valid for the camporee dates.",
+      "insurance_error_body": "The member does not have an active and valid CAMPOREE type insurance. Please verify that the insurance exists, is of type CAMPOREE, is active, and covers the camporee dates.",
       "user_id_label": "User ID",
       "user_id_hint": "User UUID (e.g. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)",
       "user_id_required": "User ID is required",
@@ -1883,7 +1855,7 @@
       "club_name_label": "Club name",
       "club_name_hint": "Club name (required for union)",
       "insurance_id_label": "Insurance ID",
-      "insurance_id_hint": "CAMPOREE or GENERAL ACTIVITIES insurance ID (required)",
+      "insurance_id_hint": "CAMPOREE type insurance ID (optional)",
       "insurance_id_invalid": "Enter a valid insurance ID",
       "register_button": "Register member",
       "success": "Member registered successfully",
@@ -1962,6 +1934,79 @@
       "score_save_failed": "Could not submit the score.",
       "no_rubrics": "This event has no active rubrics.",
       "rubrics_error": "Could not load rubrics."
+    },
+    "section_registration": {
+      "semantics": "Section registration status",
+      "loading": "Checking section registration",
+      "title": "Section registration",
+      "enroll_action": "Enroll my section",
+      "participants_action": "Enroll participants",
+      "registered_by": "Registered by {name}",
+      "registered_by_date": "Registered by {name} on {date}",
+      "load_error": "We could not check the registration.",
+      "load_error_hint": "Check your connection and try again.",
+      "retry_semantics": "Retry registration check",
+      "retry": "Retry",
+      "sheet_title": "Confirm enrollment",
+      "sheet_description": "Review the details before enrolling your section in this camporee.",
+      "club": "Club",
+      "section": "Section",
+      "camporee": "Camporee",
+      "cost": "Cost",
+      "director_confirmation": "You will submit this enrollment as the director.",
+      "confirm": "Confirm enrollment",
+      "retry_submit": "Retry enrollment",
+      "submit_error": "We could not enroll the section.",
+      "success": "Section enrolled successfully.",
+      "participants_locked": "Participant enrollment is locked until the section is registered and enabled.",
+      "submitting": "Enrolling section",
+      "states": {
+        "registered": {
+          "title": "Section enrolled",
+          "description": "You can now enroll participants from this section."
+        },
+        "approved": {
+          "title": "Enrollment approved",
+          "description": "The section is enabled to enroll participants."
+        },
+        "pending": {
+          "title": "Awaiting approval",
+          "description": "You can enroll participants once the request is approved."
+        },
+        "rejected": {
+          "title": "Enrollment rejected",
+          "description": "The request was not approved. Contact the coordinator before trying again."
+        },
+        "cancelled": {
+          "title": "Enrollment cancelled",
+          "description": "This enrollment was cancelled and does not enable participants."
+        },
+        "not_open": {
+          "title": "Enrollment is not open yet",
+          "description": "Enrollment will open when the coordinator enables the period."
+        },
+        "frozen": {
+          "title": "Enrollment paused",
+          "description": "The coordinator has temporarily paused enrollment."
+        },
+        "open": {
+          "title": "Your section can enroll",
+          "description": "Confirm the details to register the section in this camporee."
+        },
+        "late_open": {
+          "title": "Late enrollment available",
+          "description": "The request will require approval before participants are enabled."
+        },
+        "read_only": {
+          "title": "Enrollment information",
+          "description": "Only the section director can submit the enrollment."
+        },
+        "unavailable": {
+          "title": "Enrollment unavailable",
+          "description": "We could not determine the enrollment status right now."
+        }
+      },
+      "start_date": "Camporee starts"
     }
   },
   "finances": {
@@ -2285,8 +2330,7 @@
       "image": "Images",
       "video": "Videos",
       "text": "Contenido de texto",
-      "files": "Files",
-      "search": "Results"
+      "files": "Files"
     },
     "filter": {
       "all": "Todos",
@@ -3875,28 +3919,6 @@
       "score_pending_hint": "There is not enough data yet to calculate this member’s composite score.",
       "rank_position": "Position #{position}",
       "section_name": "Section: {name}"
-    }
-  },
-  "materials": {
-    "catalog": {
-      "title": "Materials",
-      "search_hint": "Search products...",
-      "filter_all": "All",
-      "filter_all_categories": "All",
-      "cart": "Cart",
-      "empty": "No products available",
-      "load_more": "Load more",
-      "in_stock": "In stock",
-      "low_stock": "Low stock",
-      "out_of_stock": "Out of stock"
-    },
-    "history": {
-      "title": "My orders",
-      "no_folio": "No folio",
-      "empty_title": "You have no orders yet",
-      "empty_subtitle": "Browse the catalog and place your first order.",
-      "go_catalog": "Go to catalog",
-      "error_title": "Could not load order history"
     }
   }
 }

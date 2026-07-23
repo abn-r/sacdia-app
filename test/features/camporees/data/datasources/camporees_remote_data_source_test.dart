@@ -5,8 +5,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/exceptions.dart';
 import 'package:sacdia_app/core/models/paginated_result.dart';
+import 'package:sacdia_app/core/network/interceptors/error_interceptor.dart';
 import 'package:sacdia_app/features/camporees/data/datasources/camporees_remote_data_source.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_member_model.dart';
+import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_score_submission.dart';
 
 // ── Fake HttpClientAdapter ────────────────────────────────────────────────────
@@ -154,10 +156,135 @@ Map<String, dynamic> _camporeeJson({
       'local_field_id': 1,
     };
 
+Map<String, dynamic> _sectionRegistrationJson({
+  Object? clubSectionId = 44,
+}) =>
+    {
+      'camporeeId': 7,
+      'clubId': 12,
+      'clubName': 'Orión',
+      'clubSectionId': clubSectionId,
+      'sectionName': 'Conquistadores',
+      'clubTypeId': 2,
+      'clubTypeName': 'Conquistadores',
+      'status': 'registered',
+      'disposition': 'open',
+      'canEnroll': false,
+      'blockingReason': 'already_enrolled',
+      'enrollmentId': 91,
+      'registeredAt': '2026-07-13T18:30:00.000Z',
+      'registeredBy': {
+        'userId': 'director-1',
+        'displayName': 'Directora Activa',
+      },
+    };
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 void main() {
   const baseUrl = 'http://localhost:3000';
+
+  group('CamporeesRemoteDataSourceImpl section registration', () {
+    test('GET parses direct and data-enveloped contextual responses', () async {
+      for (final response in [
+        _sectionRegistrationJson(),
+        {'data': _sectionRegistrationJson()},
+      ]) {
+        final (:dio, :adapter) = _dioWith(response);
+        final ds = CamporeesRemoteDataSourceImpl(dio: dio, baseUrl: baseUrl);
+
+        final result = await ds.getActiveSectionRegistration(7);
+
+        expect(
+          adapter.lastOptions!.path,
+          '$baseUrl/camporees/7/section-registration',
+        );
+        expect(result.clubSectionId, 44);
+        expect(result.status, CamporeeSectionRegistrationStatus.registered);
+        expect(result.registeredBy?.displayName, 'Directora Activa');
+      }
+    });
+
+    test('POST sends no body or client-controlled section and parses response',
+        () async {
+      final (:dio, :adapter) = _dioWith({
+        'data': _sectionRegistrationJson(),
+      }, statusCode: 201);
+      final ds = CamporeesRemoteDataSourceImpl(dio: dio, baseUrl: baseUrl);
+
+      final result = await ds.registerActiveSection(7);
+
+      expect(
+        adapter.lastOptions!.path,
+        '$baseUrl/camporees/7/section-registration',
+      );
+      expect(adapter.lastOptions!.data, isNull);
+      expect(result.clubSectionId, 44);
+    });
+
+    test('maps malformed contextual payloads to ServerException', () async {
+      final (:dio, :adapter) = _dioWith(
+        _sectionRegistrationJson(clubSectionId: '44'),
+      );
+      final ds = CamporeesRemoteDataSourceImpl(dio: dio, baseUrl: baseUrl);
+
+      await expectLater(
+        ds.getActiveSectionRegistration(7),
+        throwsA(isA<ServerException>()),
+      );
+      expect(adapter.lastOptions, isNotNull);
+    });
+
+    test('preserves auth failures produced by the real ErrorInterceptor',
+        () async {
+      for (final testCase in const [
+        (statusCode: 401, register: false),
+        (statusCode: 403, register: true),
+      ]) {
+        final (:dio, :adapter) = _dioWith({
+          'message': 'Context authorization denied',
+        }, statusCode: testCase.statusCode);
+        dio.interceptors.add(ErrorInterceptor());
+        final ds = CamporeesRemoteDataSourceImpl(dio: dio, baseUrl: baseUrl);
+
+        final request = testCase.register
+            ? ds.registerActiveSection(7)
+            : ds.getActiveSectionRegistration(7);
+
+        await expectLater(
+          request,
+          throwsA(
+            isA<AuthException>()
+                .having((error) => error.code, 'code', testCase.statusCode)
+                .having(
+                  (error) => error.message,
+                  'message',
+                  'Context authorization denied',
+                ),
+          ),
+        );
+        expect(adapter.lastOptions, isNotNull);
+      }
+    });
+
+    test('preserves connection failures produced by the real ErrorInterceptor',
+        () async {
+      final dio = _dioThatThrows(
+        (options) => DioException(
+          requestOptions: options,
+          type: DioExceptionType.connectionError,
+          message: 'Network unreachable',
+        ),
+      );
+      dio.interceptors.add(ErrorInterceptor());
+      final ds = CamporeesRemoteDataSourceImpl(dio: dio, baseUrl: baseUrl);
+
+      await expectLater(
+        ds.getActiveSectionRegistration(7),
+        throwsA(isA<ConnectionException>()),
+      );
+    });
+  });
 
   group('CamporeesRemoteDataSourceImpl.getCamporees', () {
     test('parses string registration_cost returned by backend decimals',

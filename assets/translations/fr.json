@@ -1180,12 +1180,7 @@
       "certificates": "Certificates delivered",
       "booklets": "Members with booklet",
       "booklets_signed": "Booklet requirements signed",
-      "edit_manual_data": "Complete manual data",
-      "status_message_draft": "Des données manuelles manquent pour générer le rapport",
-      "status_message_generated": "Rapport prêt à être consulté",
-      "status_message_submitted": "Envoyé · en attente de révision",
-      "status_message_approved": "Approuvé",
-      "status_message_rejected": "Rejeté"
+      "edit_manual_data": "Complete manual data"
     },
     "visible": {
       "title": "Rapports",
@@ -1197,13 +1192,7 @@
       "prepare_report": "Prepare report",
       "preparing": "Preparing…",
       "prepare_error": "Could not prepare the report",
-      "no_enrollment": "No active enrollment was found for your club.",
-      "history_title": "Historique",
-      "next_action_pending": "Données manuelles en attente",
-      "next_action_continue": "Continuer la préparation",
-      "next_action_all_set": "Tout est à jour",
-      "continue_report": "Continuer",
-      "view_period": "Voir le rapport de la période"
+      "no_enrollment": "No active enrollment was found for your club."
     },
     "form": {
       "title": "Report data",
@@ -1260,13 +1249,7 @@
       "materials_description": "Mark only what was already completed or delivered.",
       "certificates_helper": "Certificates or recognitions delivered to members.",
       "booklets_helper": "Members have their booklet or physical record.",
-      "booklets_signed_helper": "Booklet requirements were reviewed and signed.",
-      "sheet_title": "Données de {month} {year}",
-      "discard_title": "Ignorer les modifications ?",
-      "discard_body": "Vous avez des modifications non enregistrées.",
-      "discard_confirm": "Ignorer",
-      "discard_keep": "Continuer",
-      "save_disabled_hint": "Aucun changement"
+      "booklets_signed_helper": "Booklet requirements were reviewed and signed."
     }
   },
   "units": {
@@ -1800,6 +1783,10 @@
       "members_enrolled": "Membres inscrits",
       "enroll": "Inscrire",
       "no_members_yet": "Aucun membre inscrit pour l'instant.",
+      "members_loading": "Chargement des participants inscrits",
+      "members_error": "Impossible de charger les membres inscrits.",
+      "retry_members": "Réessayer pour les membres",
+      "retry_members_semantics": "Réessayer de charger les membres inscrits",
       "view_all_members": "Voir tous les membres ({count})",
       "error_loading": "Erreur lors du chargement du camporee",
       "insurance_ok": "Assurance OK",
@@ -1832,21 +1819,6 @@
       "event_staff_responsible": "Responsable : {names}",
       "event_staff_supporting": "Soutien : {names}"
     },
-    "enroll_club": {
-      "title": "Inscription des clubs",
-      "enroll_club": "Inscrire le club",
-      "active_section_notice": "L'inscription utilise automatiquement la section active que vous dirigez.",
-      "section_id_label": "ID de section du club *",
-      "section_id_hint": "ID de la section (ex. 42)",
-      "section_id_required": "Entrez l'ID de section",
-      "section_id_invalid": "Entrez un ID valide",
-      "enrolled_clubs": "Clubs inscrits",
-      "no_clubs_yet": "Aucun club inscrit pour l'instant",
-      "unknown_club": "Club inconnu",
-      "section_number": "Section #{number}",
-      "enrolled_badge": "inscrit",
-      "success": "Club inscrit avec succès"
-    },
     "members": {
       "title": "Membres inscrits",
       "enroll_member_tooltip": "Inscrire un membre",
@@ -1868,9 +1840,9 @@
     },
     "register_member": {
       "title": "Inscrire des membres",
-      "info_banner": "Sélectionnez les membres de votre section. Chaque participant doit avoir une assurance CAMPOREE ou ACTIVITÉS GÉNÉRALES active et valide pendant l'événement.",
+      "info_banner": "Sélectionnez les membres de votre section. Le type de camporee est défini lors de la création de l’événement; vous n’avez pas à saisir d’IDs ni de données d’assurance.",
       "insurance_error_title": "Erreur d'assurance",
-      "insurance_error_body": "Le membre doit avoir une assurance CAMPOREE ou ACTIVITÉS GÉNÉRALES active et valide pour les dates du camporee.",
+      "insurance_error_body": "Le membre n'a pas d'assurance de type CAMPOREE active et valide. Vérifiez que l'assurance existe, est de type CAMPOREE, est active et couvre les dates du camporee.",
       "user_id_label": "ID d'utilisateur",
       "user_id_hint": "UUID de l'utilisateur (ex. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)",
       "user_id_required": "L'ID d'utilisateur est obligatoire",
@@ -1883,7 +1855,7 @@
       "club_name_label": "Nom du club",
       "club_name_hint": "Nom du club (obligatoire pour union)",
       "insurance_id_label": "ID d'assurance",
-      "insurance_id_hint": "ID d'assurance CAMPOREE ou ACTIVITÉS GÉNÉRALES (obligatoire)",
+      "insurance_id_hint": "ID de l'assurance de type CAMPOREE (optionnel)",
       "insurance_id_invalid": "Entrez un ID d'assurance valide",
       "register_button": "Inscrire le membre",
       "success": "Membre inscrit avec succès",
@@ -1962,6 +1934,79 @@
       "score_save_failed": "Impossible d’envoyer le score.",
       "no_rubrics": "Cet événement n’a pas de grilles actives.",
       "rubrics_error": "Impossible de charger les grilles."
+    },
+    "section_registration": {
+      "semantics": "État de l’inscription de la section",
+      "loading": "Consultation de l’inscription de la section",
+      "title": "Inscription de la section",
+      "enroll_action": "Inscrire ma section",
+      "participants_action": "Inscrire des participants",
+      "registered_by": "Inscrite par {name}",
+      "registered_by_date": "Inscrite par {name} le {date}",
+      "load_error": "Impossible de consulter l’inscription.",
+      "load_error_hint": "Vérifiez votre connexion et réessayez.",
+      "retry_semantics": "Réessayer de consulter l’inscription",
+      "retry": "Réessayer",
+      "sheet_title": "Confirmer l’inscription",
+      "sheet_description": "Vérifiez les informations avant d’inscrire votre section à ce camporee.",
+      "club": "Club",
+      "section": "Section",
+      "camporee": "Camporee",
+      "cost": "Coût",
+      "director_confirmation": "Vous enregistrerez cette inscription en tant que directeur.",
+      "confirm": "Confirmer l’inscription",
+      "retry_submit": "Réessayer l’inscription",
+      "submit_error": "Impossible d’inscrire la section.",
+      "success": "Section inscrite avec succès.",
+      "participants_locked": "L’inscription des participants reste bloquée tant que la section n’est pas inscrite et autorisée.",
+      "submitting": "Inscription de la section en cours",
+      "states": {
+        "registered": {
+          "title": "Section inscrite",
+          "description": "Vous pouvez maintenant inscrire les participants de cette section."
+        },
+        "approved": {
+          "title": "Inscription approuvée",
+          "description": "La section est autorisée à inscrire des participants."
+        },
+        "pending": {
+          "title": "En attente d’approbation",
+          "description": "Vous pourrez inscrire des participants après l’approbation de la demande."
+        },
+        "rejected": {
+          "title": "Inscription refusée",
+          "description": "La demande n’a pas été approuvée. Contactez la coordination avant de réessayer."
+        },
+        "cancelled": {
+          "title": "Inscription annulée",
+          "description": "Cette inscription a été annulée et n’autorise pas les participants."
+        },
+        "not_open": {
+          "title": "Inscriptions pas encore ouvertes",
+          "description": "Les inscriptions ouvriront lorsque la coordination activera la période."
+        },
+        "frozen": {
+          "title": "Inscriptions suspendues",
+          "description": "La coordination a temporairement suspendu les inscriptions."
+        },
+        "open": {
+          "title": "Votre section peut s’inscrire",
+          "description": "Confirmez les informations pour inscrire la section à ce camporee."
+        },
+        "late_open": {
+          "title": "Inscription tardive disponible",
+          "description": "La demande devra être approuvée avant l’inscription des participants."
+        },
+        "read_only": {
+          "title": "Informations sur l’inscription",
+          "description": "Seul le directeur de la section peut effectuer l’inscription."
+        },
+        "unavailable": {
+          "title": "Inscription indisponible",
+          "description": "Impossible de déterminer l’état de l’inscription pour le moment."
+        }
+      },
+      "start_date": "Début du camporee"
     }
   },
   "finances": {
@@ -2285,8 +2330,7 @@
       "image": "Images",
       "video": "Videos",
       "text": "Contenido de texto",
-      "files": "Fichiers",
-      "search": "Résultats"
+      "files": "Fichiers"
     },
     "filter": {
       "all": "Todos",
@@ -3874,28 +3918,6 @@
       "score_pending_hint": "Il manque encore des données pour calculer le score composite de ce membre.",
       "rank_position": "Position n°{position}",
       "section_name": "Section : {name}"
-    }
-  },
-  "materials": {
-    "catalog": {
-      "title": "Matériel",
-      "search_hint": "Rechercher des produits...",
-      "filter_all": "Tous",
-      "filter_all_categories": "Toutes",
-      "cart": "Panier",
-      "empty": "Aucun produit disponible",
-      "load_more": "Charger plus",
-      "in_stock": "Disponible",
-      "low_stock": "Stock faible",
-      "out_of_stock": "Épuisé"
-    },
-    "history": {
-      "title": "Mes commandes",
-      "no_folio": "Sans folio",
-      "empty_title": "Vous n'avez pas encore de commandes",
-      "empty_subtitle": "Parcourez le catalogue et passez votre première commande.",
-      "go_catalog": "Aller au catalogue",
-      "error_title": "Impossible de charger l'historique"
     }
   }
 }

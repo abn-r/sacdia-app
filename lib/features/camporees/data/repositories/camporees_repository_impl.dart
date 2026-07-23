@@ -11,6 +11,7 @@ import '../../domain/entities/camporee_judge_assignment.dart';
 import '../../domain/entities/camporee_member.dart';
 import '../../domain/entities/camporee_payment.dart';
 import '../../domain/entities/camporee_rubric.dart';
+import '../../domain/entities/camporee_section_registration.dart';
 import '../../domain/entities/camporee_score_submission.dart';
 import '../../domain/repositories/camporees_repository.dart';
 import '../datasources/camporees_remote_data_source.dart';
@@ -27,11 +28,52 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
 
   // ── Helpers ──────────────────────────────────────────────────────────────────
 
-  Left<Failure, T> _serverFailure<T>(ServerException e) =>
-      Left(ServerFailure(message: e.message, code: e.code));
-
-  Left<Failure, T> _authFailure<T>(AuthException e) =>
-      Left(AuthFailure(message: e.message, code: e.code));
+  Left<Failure, T> _appFailure<T>(AppException exception) {
+    final Failure failure;
+    if (exception is ServerException) {
+      failure = ServerFailure(
+        message: exception.message,
+        code: exception.code,
+        stackTrace: exception.stackTrace,
+      );
+    } else if (exception is AuthException) {
+      failure = AuthFailure(
+        message: exception.message,
+        code: exception.code,
+        stackTrace: exception.stackTrace,
+      );
+    } else if (exception is ConnectionException) {
+      failure = NetworkFailure(
+        message: exception.message,
+        stackTrace: exception.stackTrace,
+      );
+    } else if (exception is ValidationException) {
+      failure = ValidationFailure(
+        message: exception.message,
+        fieldsErrors: exception.fieldsErrors,
+        stackTrace: exception.stackTrace,
+      );
+    } else if (exception is NotFoundException) {
+      failure = NotFoundFailure(
+        message: exception.message,
+        code: exception.code,
+        stackTrace: exception.stackTrace,
+      );
+    } else if (exception is CacheException) {
+      failure = CacheFailure(
+        message: exception.message,
+        stackTrace: exception.stackTrace,
+      );
+    } else if (exception is OAuthFlowInitiatedException) {
+      failure = OAuthFlowInitiatedFailure(provider: exception.provider);
+    } else {
+      failure = UnexpectedFailure(
+        message: exception.message,
+        stackTrace: exception.stackTrace,
+      );
+    }
+    return Left(failure);
+  }
 
   Left<Failure, T> _unexpectedFailure<T>(Object e) =>
       Left(UnexpectedFailure(message: e.toString()));
@@ -45,10 +87,8 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
       final models = await remoteDataSource.getCamporees(
           active: active, cancelToken: cancelToken.asDioCancelToken());
       return Right(models.map((m) => m.toEntity()).toList());
-    } on ServerException catch (e) {
-      return _serverFailure(e);
-    } on AuthException catch (e) {
-      return _authFailure(e);
+    } on AppException catch (e) {
+      return _appFailure(e);
     } catch (e) {
       return _unexpectedFailure(e);
     }
@@ -61,10 +101,36 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
       final model = await remoteDataSource.getCamporeeDetail(camporeeId,
           cancelToken: cancelToken.asDioCancelToken());
       return Right(model.toEntity());
-    } on ServerException catch (e) {
-      return _serverFailure(e);
-    } on AuthException catch (e) {
-      return _authFailure(e);
+    } on AppException catch (e) {
+      return _appFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, CamporeeSectionRegistration>>
+      getActiveSectionRegistration(int camporeeId) async {
+    try {
+      final model =
+          await remoteDataSource.getActiveSectionRegistration(camporeeId);
+      return Right(model.toEntity());
+    } on AppException catch (e) {
+      return _appFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, CamporeeSectionRegistration>> registerActiveSection(
+    int camporeeId,
+  ) async {
+    try {
+      final model = await remoteDataSource.registerActiveSection(camporeeId);
+      return Right(model.toEntity());
+    } on AppException catch (e) {
+      return _appFailure(e);
     } catch (e) {
       return _unexpectedFailure(e);
     }
@@ -83,10 +149,8 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
         cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(models.map((m) => m.toEntity()).toList());
-    } on ServerException catch (e) {
-      return _serverFailure(e);
-    } on AuthException catch (e) {
-      return _authFailure(e);
+    } on AppException catch (e) {
+      return _appFailure(e);
     } catch (e) {
       return _unexpectedFailure(e);
     }
@@ -109,10 +173,8 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
         insuranceId: insuranceId,
       );
       return Right(model.toEntity());
-    } on ServerException catch (e) {
-      return _serverFailure(e);
-    } on AuthException catch (e) {
-      return _authFailure(e);
+    } on AppException catch (e) {
+      return _appFailure(e);
     } catch (e) {
       return _unexpectedFailure(e);
     }
@@ -139,10 +201,8 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
         meta: paginated.meta,
       );
       return Right(entities);
-    } on ServerException catch (e) {
-      return _serverFailure(e);
-    } on AuthException catch (e) {
-      return _authFailure(e);
+    } on AppException catch (e) {
+      return _appFailure(e);
     } catch (e) {
       return _unexpectedFailure(e);
     }
@@ -154,10 +214,8 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
     try {
       await remoteDataSource.removeMember(camporeeId, userId);
       return const Right(null);
-    } on ServerException catch (e) {
-      return _serverFailure(e);
-    } on AuthException catch (e) {
-      return _authFailure(e);
+    } on AppException catch (e) {
+      return _appFailure(e);
     } catch (e) {
       return _unexpectedFailure(e);
     }
@@ -172,10 +230,8 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
     try {
       final model = await remoteDataSource.enrollClub(camporeeId);
       return Right(model.toEntity());
-    } on ServerException catch (e) {
-      return _serverFailure(e);
-    } on AuthException catch (e) {
-      return _authFailure(e);
+    } on AppException catch (e) {
+      return _appFailure(e);
     } catch (e) {
       return _unexpectedFailure(e);
     }
@@ -189,10 +245,8 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
       final models = await remoteDataSource.getEnrolledClubs(camporeeId,
           cancelToken: cancelToken.asDioCancelToken());
       return Right(models.map((m) => m.toEntity()).toList());
-    } on ServerException catch (e) {
-      return _serverFailure(e);
-    } on AuthException catch (e) {
-      return _authFailure(e);
+    } on AppException catch (e) {
+      return _appFailure(e);
     } catch (e) {
       return _unexpectedFailure(e);
     }
@@ -219,10 +273,8 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
         notes: notes,
       );
       return Right(model.toEntity());
-    } on ServerException catch (e) {
-      return _serverFailure(e);
-    } on AuthException catch (e) {
-      return _authFailure(e);
+    } on AppException catch (e) {
+      return _appFailure(e);
     } catch (e) {
       return _unexpectedFailure(e);
     }
@@ -239,10 +291,8 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
           camporeeId, memberId,
           cancelToken: cancelToken.asDioCancelToken());
       return Right(models.map((m) => m.toEntity()).toList());
-    } on ServerException catch (e) {
-      return _serverFailure(e);
-    } on AuthException catch (e) {
-      return _authFailure(e);
+    } on AppException catch (e) {
+      return _appFailure(e);
     } catch (e) {
       return _unexpectedFailure(e);
     }
@@ -256,10 +306,8 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
       final models = await remoteDataSource.getCamporeePayments(camporeeId,
           cancelToken: cancelToken.asDioCancelToken());
       return Right(models.map((m) => m.toEntity()).toList());
-    } on ServerException catch (e) {
-      return _serverFailure(e);
-    } on AuthException catch (e) {
-      return _authFailure(e);
+    } on AppException catch (e) {
+      return _appFailure(e);
     } catch (e) {
       return _unexpectedFailure(e);
     }
@@ -273,10 +321,8 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
         cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(models.map((m) => m.toEntity()).toList());
-    } on ServerException catch (e) {
-      return _serverFailure(e);
-    } on AuthException catch (e) {
-      return _authFailure(e);
+    } on AppException catch (e) {
+      return _appFailure(e);
     } catch (e) {
       return _unexpectedFailure(e);
     }
@@ -293,10 +339,8 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
         cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(models.map((m) => m.toEntity()).toList());
-    } on ServerException catch (e) {
-      return _serverFailure(e);
-    } on AuthException catch (e) {
-      return _authFailure(e);
+    } on AppException catch (e) {
+      return _appFailure(e);
     } catch (e) {
       return _unexpectedFailure(e);
     }
@@ -315,10 +359,8 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
         submission: submission,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return _serverFailure(e);
-    } on AuthException catch (e) {
-      return _authFailure(e);
+    } on AppException catch (e) {
+      return _appFailure(e);
     } catch (e) {
       return _unexpectedFailure(e);
     }

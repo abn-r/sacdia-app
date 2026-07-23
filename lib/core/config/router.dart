@@ -44,7 +44,6 @@ import 'package:sacdia_app/features/transfers/presentation/views/transfer_reques
 import 'package:sacdia_app/features/units/presentation/views/member_of_month_history_view.dart';
 import 'package:sacdia_app/features/units/presentation/views/units_list_view.dart';
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_payments_view.dart';
-import 'package:sacdia_app/features/camporees/presentation/views/camporee_enroll_club_view.dart';
 import 'package:sacdia_app/features/monthly_reports/presentation/views/monthly_reports_list_view.dart';
 import 'package:sacdia_app/features/monthly_reports/presentation/views/monthly_report_detail_view.dart';
 import 'package:sacdia_app/features/monthly_reports/presentation/views/monthly_reports_visible_list_view.dart';
@@ -850,24 +849,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               camporeeId: camporeeId,
               memberId: memberId,
               memberName: memberName,
-            ),
-          );
-        },
-      ),
-
-      // Inscribir club en camporee
-      GoRoute(
-        path: RouteNames.camporeeEnrollClub,
-        pageBuilder: (context, state) {
-          final camporeeId =
-              int.tryParse(state.pathParameters['camporeeId']!) ?? 0;
-          final camporeeName = state.uri.queryParameters['name'];
-          return _sharedAxisBuild(
-            context,
-            state,
-            CamporeeEnrollClubView(
-              camporeeId: camporeeId,
-              camporeeName: camporeeName,
             ),
           );
         },
