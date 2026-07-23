@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import '../../../../core/theme/app_colors.dart';
 
 /// Barra de acciones de aprobación/rechazo para evidencias y camporees.
@@ -116,14 +117,11 @@ Future<String?> showApproveDialog({
           children: [
             Text(confirmMessage, style: const TextStyle(fontSize: 14)),
             const SizedBox(height: 16),
-            TextField(
+            SacTextField(
               controller: commentsCtrl,
+              label: 'coordinator.actions.comment_label'.tr(),
+              hint: 'coordinator.actions.comment_hint'.tr(),
               maxLines: 3,
-              decoration: InputDecoration(
-                labelText: 'coordinator.actions.comment_label'.tr(),
-                hintText: 'coordinator.actions.comment_hint'.tr(),
-                border: const OutlineInputBorder(),
-              ),
             ),
           ],
         ),
@@ -175,14 +173,11 @@ Future<String?> showRejectDialog({
             children: [
               Text(confirmMessage, style: const TextStyle(fontSize: 14)),
               const SizedBox(height: 16),
-              TextFormField(
+              SacTextField(
                 controller: reasonCtrl,
+                label: 'coordinator.actions.reject_reason_label'.tr(),
+                hint: 'coordinator.actions.reject_reason_hint'.tr(),
                 maxLines: 3,
-                decoration: InputDecoration(
-                  labelText: 'coordinator.actions.reject_reason_label'.tr(),
-                  hintText: 'coordinator.actions.reject_reason_hint'.tr(),
-                  border: const OutlineInputBorder(),
-                ),
                 validator: (v) => (v == null || v.trim().isEmpty)
                     ? 'coordinator.actions.reject_reason_required'.tr()
                     : null,

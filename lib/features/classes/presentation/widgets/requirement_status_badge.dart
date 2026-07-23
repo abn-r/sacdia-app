@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/class_requirement.dart';
 import '../utils/status_meta.dart';
@@ -21,32 +22,45 @@ class RequirementStatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final reduce = SacMotion.reduceMotionOf(context);
 
     final bgColor = _bgColor(isDark);
     final borderColor = _borderColor(isDark);
     final textColor = _textColor(isDark);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: borderColor, width: 1),
+    // Transición al cambiar de estado (enviado → validado, etc.):
+    // scale sutil + fade; con Reduced Motion cambia sin animación.
+    return AnimatedSwitcher(
+      duration: reduce ? Duration.zero : SacMotion.standard,
+      switchInCurve: SacMotion.easeOut,
+      switchOutCurve: SacMotion.easeOut,
+      transitionBuilder: (child, animation) => ScaleTransition(
+        scale: Tween<double>(begin: 0.92, end: 1).animate(animation),
+        child: FadeTransition(opacity: animation, child: child),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          HugeIcon(icon: _icon, size: 13, color: textColor),
-          const SizedBox(width: 5),
-          Text(
-            _label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: textColor,
+      child: Container(
+        key: ValueKey<RequirementStatus>(status),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: borderColor, width: 1),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            HugeIcon(icon: _icon, size: 13, color: textColor),
+            const SizedBox(width: 5),
+            Text(
+              _label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: textColor,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

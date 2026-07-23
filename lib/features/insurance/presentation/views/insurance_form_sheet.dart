@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/member_insurance.dart';
@@ -144,13 +146,10 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                     // Policy number
                     _SectionLabel('insurance.form.label_policy'.tr()),
                     const SizedBox(height: 6),
-                    TextFormField(
+                    SacTextField(
                       controller: _policyController,
+                      hint: 'insurance.form.hint_policy'.tr(),
                       textCapitalization: TextCapitalization.characters,
-                      decoration: _inputDecoration(
-                        hint: 'insurance.form.hint_policy'.tr(),
-                        context: context,
-                      ),
                     ),
 
                     const SizedBox(height: 14),
@@ -158,13 +157,10 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                     // Provider / company
                     _SectionLabel('insurance.form.label_provider'.tr()),
                     const SizedBox(height: 6),
-                    TextFormField(
+                    SacTextField(
                       controller: _providerController,
+                      hint: 'insurance.form.hint_provider'.tr(),
                       textCapitalization: TextCapitalization.words,
-                      decoration: _inputDecoration(
-                        hint: 'insurance.form.hint_provider'.tr(),
-                        context: context,
-                      ),
                     ),
 
                     const SizedBox(height: 14),
@@ -200,19 +196,16 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                     // Coverage amount
                     _SectionLabel('insurance.form.label_amount'.tr()),
                     const SizedBox(height: 6),
-                    TextFormField(
+                    SacTextField(
                       controller: _amountController,
+                      hint: 'insurance.form.hint_amount'.tr(),
+                      prefixText: '\$',
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
                             RegExp(r'^\d+\.?\d{0,2}')),
                       ],
-                      decoration: _inputDecoration(
-                        hint: 'insurance.form.hint_amount'.tr(),
-                        prefix: '\$',
-                        context: context,
-                      ),
                     ),
 
                     const SizedBox(height: 14),
@@ -386,43 +379,6 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
     }
   }
 
-  InputDecoration _inputDecoration({
-    required String hint,
-    required BuildContext context,
-    String? prefix,
-  }) {
-    return InputDecoration(
-      hintText: hint,
-      prefixText: prefix,
-      filled: true,
-      fillColor: Theme.of(context)
-          .colorScheme
-          .surfaceContainerHighest
-          .withValues(alpha: 0.4),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(
-          color: Theme.of(context).dividerColor.withValues(alpha: 0.4),
-        ),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.primary, width: 2),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.error, width: 1.5),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.error, width: 2),
-      ),
-    );
-  }
 }
 
 // ── Insurance type selector ───────────────────────────────────────────────────

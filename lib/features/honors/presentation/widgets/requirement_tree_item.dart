@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor_requirement.dart';
 
 /// A single row in the hierarchical requirements tree.
@@ -285,45 +286,11 @@ class _RequirementTreeItemState extends State<RequirementTreeItem> {
                 left: 40,
                 bottom: 10,
               ),
-              child: TextField(
+              child: SacTextField(
                 controller: widget.responseController,
+                hint: 'honors.requirements.response_hint'.tr(),
                 maxLines: 4,
-                minLines: 1,
                 maxLength: 800,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: context.sac.text,
-                  height: 1.5,
-                ),
-                decoration: InputDecoration(
-                  hintText: 'honors.requirements.response_hint'.tr(),
-                  hintStyle: TextStyle(
-                    fontSize: 12,
-                    color: context.sac.textTertiary,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: context.sac.border),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: context.sac.border),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide:
-                        BorderSide(color: widget.categoryColor, width: 1.5),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 8,
-                  ),
-                  isDense: true,
-                  counterStyle: TextStyle(
-                    fontSize: 10,
-                    color: context.sac.textTertiary,
-                  ),
-                ),
               ),
             ),
 

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../data/models/disease_model.dart';
@@ -983,7 +984,7 @@ class _DiseaseTile extends StatelessWidget {
 // Year editor
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _YearEditor extends StatefulWidget {
+class _YearEditor extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<int?> onChanged;
 
@@ -992,66 +993,49 @@ class _YearEditor extends StatefulWidget {
     required this.onChanged,
   });
 
-  @override
-  State<_YearEditor> createState() => _YearEditorState();
-}
-
-class _YearEditorState extends State<_YearEditor> {
-  String? _errorText;
-
   void _validate(String value) {
     final trimmed = value.trim();
     if (trimmed.isEmpty) {
-      setState(() => _errorText = null);
-      widget.onChanged(null);
+      onChanged(null);
       return;
     }
     final year = int.tryParse(trimmed);
     final currentYear = DateTime.now().year;
     if (year == null || year < 1900 || year > currentYear) {
-      setState(() {
-        _errorText = 'post_registration.diseases.since_year_invalid'.tr();
-      });
-      widget.onChanged(null);
+      onChanged(null);
     } else {
-      setState(() => _errorText = null);
-      widget.onChanged(year);
+      onChanged(year);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: widget.controller,
-      decoration: InputDecoration(
-        labelText: 'post_registration.diseases.since_year_label'.tr(),
-        hintText: 'post_registration.diseases.since_year_hint'.tr(),
-        errorText: _errorText,
-        suffixText: 'post_registration.health.diseases.year_suffix'.tr(),
-        suffixStyle: const TextStyle(fontSize: 13, color: MedicoTokens.ink500),
-        isDense: true,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: MedicoTokens.ink200),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: MedicoTokens.coral500),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: MedicoTokens.coral600),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: MedicoTokens.coral600),
-        ),
-      ),
+    return SacTextField(
+      controller: controller,
+      label: 'post_registration.diseases.since_year_label'.tr(),
+      hint: 'post_registration.diseases.since_year_hint'.tr(),
       keyboardType: TextInputType.number,
       inputFormatters: [
         FilteringTextInputFormatter.digitsOnly,
         LengthLimitingTextInputFormatter(4),
       ],
+      suffix: Padding(
+        padding: const EdgeInsets.only(right: 12),
+        child: Text(
+          'post_registration.health.diseases.year_suffix'.tr(),
+          style: const TextStyle(fontSize: 13, color: MedicoTokens.ink500),
+        ),
+      ),
+      validator: (value) {
+        final trimmed = value?.trim() ?? '';
+        if (trimmed.isEmpty) return null;
+        final year = int.tryParse(trimmed);
+        final currentYear = DateTime.now().year;
+        if (year == null || year < 1900 || year > currentYear) {
+          return 'post_registration.diseases.since_year_invalid'.tr();
+        }
+        return null;
+      },
       onChanged: _validate,
     );
   }

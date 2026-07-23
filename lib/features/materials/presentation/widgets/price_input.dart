@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 
 /// Widget de entrada de precio en MXN.
 ///
@@ -71,14 +72,11 @@ class _PriceInputState extends State<PriceInput> {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
+    return SacTextField(
       controller: _controller,
-      decoration: InputDecoration(
-        labelText: widget.label,
-        hintText: widget.hint ?? '0.00',
-        prefixText: '\$ ',
-        border: const OutlineInputBorder(),
-      ),
+      label: widget.label,
+      hint: widget.hint ?? '0.00',
+      prefixText: '\$',
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [
         // Allow digits and at most one decimal point

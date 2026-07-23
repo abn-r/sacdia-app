@@ -41,6 +41,10 @@ class AnimatedCounter extends StatefulWidget {
   /// Whether to animate. System Reduced Motion is honored automatically.
   final bool animate;
 
+  /// Optional formatter for the displayed number (e.g. thousand separators).
+  /// When null the raw integer is shown.
+  final String Function(int value)? formatter;
+
   const AnimatedCounter({
     super.key,
     required this.value,
@@ -51,6 +55,7 @@ class AnimatedCounter extends StatefulWidget {
     this.suffix = '',
     this.prefix = '',
     this.animate = true,
+    this.formatter,
   });
 
   @override
@@ -134,8 +139,9 @@ class _AnimatedCounterState extends State<AnimatedCounter>
       animation: _animation,
       builder: (context, _) {
         final displayed = _animation.value.round();
+        final text = widget.formatter?.call(displayed) ?? '$displayed';
         return Text(
-          '${widget.prefix}$displayed${widget.suffix}',
+          '${widget.prefix}$text${widget.suffix}',
           style: widget.style,
         );
       },

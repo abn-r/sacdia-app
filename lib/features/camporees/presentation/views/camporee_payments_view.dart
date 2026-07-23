@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 import '../../domain/entities/camporee_payment.dart';
@@ -540,24 +540,13 @@ class _CamporeePaymentFormSheetState
                 ],
 
                 // Monto
-                Text(
-                  'camporees.payments.amount_label'.tr(),
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: c.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
+                SacTextField(
                   controller: _amountCtrl,
+                  label: 'camporees.payments.amount_label'.tr(),
+                  hint: '0.00',
+                  prefixText: '\$',
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
-                  ),
-                  decoration: _inputDecoration(
-                    hintText: '0.00',
-                    context: context,
-                    prefixIcon: HugeIcons.strokeRoundedMoney01,
                   ),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) {
@@ -612,22 +601,11 @@ class _CamporeePaymentFormSheetState
                 const SizedBox(height: 16),
 
                 // Referencia (opcional)
-                Text(
-                  'camporees.payments.reference_label'.tr(),
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: c.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
+                SacTextField(
                   controller: _referenceCtrl,
-                  decoration: _inputDecoration(
-                    hintText: 'camporees.payments.reference_hint'.tr(),
-                    context: context,
-                    prefixIcon: HugeIcons.strokeRoundedTag01,
-                  ),
+                  label: 'camporees.payments.reference_label'.tr(),
+                  hint: 'camporees.payments.reference_hint'.tr(),
+                  prefixIcon: HugeIcons.strokeRoundedTag01,
                 ),
                 const SizedBox(height: 16),
 
@@ -677,22 +655,11 @@ class _CamporeePaymentFormSheetState
                 const SizedBox(height: 16),
 
                 // Notas (opcional)
-                Text(
-                  'camporees.payments.notes_label'.tr(),
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: c.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
+                SacTextField(
                   controller: _notesCtrl,
+                  label: 'camporees.payments.notes_label'.tr(),
+                  hint: 'camporees.payments.notes_hint'.tr(),
                   maxLines: 2,
-                  decoration: _inputDecoration(
-                    hintText: 'camporees.payments.notes_hint'.tr(),
-                    context: context,
-                  ),
                 ),
                 const SizedBox(height: 24),
 
@@ -707,45 +674,6 @@ class _CamporeePaymentFormSheetState
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  InputDecoration _inputDecoration({
-    required String hintText,
-    required BuildContext context,
-    dynamic prefixIcon,
-  }) {
-    final c = context.sac;
-    return InputDecoration(
-      hintText: hintText,
-      hintStyle: TextStyle(fontSize: 13, color: c.textTertiary),
-      prefixIconConstraints: FixedInputIconSlot.constraints,
-      prefixIcon: prefixIcon != null
-          ? FixedInputIconSlot(
-              icon: prefixIcon,
-              color: c.textTertiary,
-              iconSize: 18,
-            )
-          : null,
-      filled: true,
-      fillColor: c.surface,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: c.border),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: c.border),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.error),
       ),
     );
   }

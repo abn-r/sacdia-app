@@ -362,7 +362,6 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     final passwordCtrl = TextEditingController();
     String? fieldError;
     bool isLoading = false;
-    bool passwordObscure = true;
     final deleteConfirmationWord =
         'profile.settings.delete_account_confirmation_word'.tr();
 
@@ -402,9 +401,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 style: TextStyle(fontSize: 14, color: c.textSecondary),
               ),
               const SizedBox(height: 12),
-              TextField(
+              SacTextField(
                 controller: confirmCtrl,
-                autofocus: true,
+                hint: deleteConfirmationWord,
                 enabled: !isLoading,
                 textCapitalization: TextCapitalization.characters,
                 inputFormatters: [
@@ -415,10 +414,6 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     ),
                   ),
                 ],
-                decoration: InputDecoration(
-                  hintText: deleteConfirmationWord,
-                  border: const OutlineInputBorder(),
-                ),
               ),
               const SizedBox(height: 16),
               Text(
@@ -426,29 +421,12 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 style: TextStyle(fontSize: 14, color: c.textSecondary),
               ),
               const SizedBox(height: 8),
-              TextField(
+              SacTextField(
                 controller: passwordCtrl,
-                obscureText: passwordObscure,
+                hint: 'profile.settings.field_password_hint'.tr(),
+                obscureText: true,
                 enabled: !isLoading,
                 textInputAction: TextInputAction.done,
-                decoration: InputDecoration(
-                  hintText: 'profile.settings.field_password_hint'.tr(),
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: HugeIcon(
-                      icon: passwordObscure
-                          ? HugeIcons.strokeRoundedViewOffSlash
-                          : HugeIcons.strokeRoundedView,
-                      size: 20,
-                      color: c.textSecondary,
-                    ),
-                    onPressed: isLoading
-                        ? null
-                        : () => setDialogState(
-                              () => passwordObscure = !passwordObscure,
-                            ),
-                  ),
-                ),
               ),
               if (fieldError != null) ...[
                 const SizedBox(height: 8),

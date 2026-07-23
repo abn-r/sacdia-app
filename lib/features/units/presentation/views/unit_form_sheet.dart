@@ -8,6 +8,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/widgets/fixed_input_icon_slot.dart';
+import '../../../../core/widgets/sac_text_field.dart';
 import '../../domain/entities/unit.dart';
 import '../../domain/usecases/get_unit_detail.dart';
 import '../../../members/domain/entities/club_member.dart';
@@ -514,45 +515,10 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                                   label: 'units.form.name_label'.tr(),
                                 ),
                                 const SizedBox(height: 8),
-                                TextFormField(
+                                SacTextField(
                                   controller: _nameController,
+                                  hint: 'units.form.name_hint'.tr(),
                                   textCapitalization: TextCapitalization.words,
-                                  decoration: InputDecoration(
-                                    hintText: 'units.form.name_hint'.tr(),
-                                    hintStyle: TextStyle(color: c.textTertiary),
-                                    filled: true,
-                                    fillColor: c.surfaceVariant,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        horizontal: 16, vertical: 14),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          AppTheme.radiusSM),
-                                      borderSide: BorderSide(color: c.border),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          AppTheme.radiusSM),
-                                      borderSide: BorderSide(color: c.border),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          AppTheme.radiusSM),
-                                      borderSide: const BorderSide(
-                                          color: AppColors.primary, width: 2),
-                                    ),
-                                    errorBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          AppTheme.radiusSM),
-                                      borderSide: const BorderSide(
-                                          color: AppColors.error),
-                                    ),
-                                    focusedErrorBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          AppTheme.radiusSM),
-                                      borderSide: const BorderSide(
-                                          color: AppColors.error, width: 2),
-                                    ),
-                                  ),
                                   validator: (v) {
                                     if (v == null || v.trim().isEmpty) {
                                       return 'units.form.name_required'.tr();

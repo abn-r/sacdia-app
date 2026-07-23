@@ -10,6 +10,7 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/fixed_input_icon_slot.dart';
+import '../../../../core/widgets/sac_text_field.dart';
 import '../../../activities/presentation/views/location_picker_view.dart';
 import '../../../activities/presentation/widgets/activity_form_widgets.dart';
 import '../../../members/domain/entities/club_member.dart';
@@ -565,16 +566,13 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
             // Almas (objetivo)
             _FieldLabel(label: 'enrollment.form.label_souls_target'.tr()),
             const SizedBox(height: 8),
-            TextFormField(
+            SacTextField(
               controller: _soulsCtrl,
               enabled: !formState.isLoading,
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: _inputDecoration(
-                c,
-                hintText: 'enrollment.form.hint_souls'.tr(),
-                prefixIcon: HugeIcons.strokeRoundedUserAdd01,
-              ),
+              hint: 'enrollment.form.hint_souls'.tr(),
+              prefixIcon: HugeIcons.strokeRoundedUserAdd01,
               textInputAction: TextInputAction.done,
             ),
 
@@ -598,7 +596,7 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
               const SizedBox(height: 12),
               _FieldLabel(label: 'enrollment.form.label_fee_amount'.tr()),
               const SizedBox(height: 8),
-              TextFormField(
+              SacTextField(
                 controller: _feeAmountCtrl,
                 enabled: !formState.isLoading,
                 keyboardType: const TextInputType.numberWithOptions(
@@ -609,18 +607,8 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
                   // Allow digits and a single decimal point
                   FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
                 ],
-                decoration: _inputDecoration(
-                  c,
-                  hintText: 'enrollment.form.hint_fee_amount'.tr(),
-                  prefixIcon: HugeIcons.strokeRoundedMoney01,
-                ).copyWith(
-                  prefixText: '\$ ',
-                  prefixStyle: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: c.textSecondary,
-                  ),
-                ),
+                hint: 'enrollment.form.hint_fee_amount'.tr(),
+                prefixText: '\$',
                 textInputAction: TextInputAction.done,
                 validator: (value) {
                   if (!_fee) return null;
@@ -799,36 +787,6 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
     );
   }
 
-  InputDecoration _inputDecoration(
-    SacColors c, {
-    required String hintText,
-    required HugeIconData prefixIcon,
-  }) {
-    return InputDecoration(
-      hintText: hintText,
-      prefixIconConstraints: FixedInputIconSlot.constraints,
-      prefixIcon: FixedInputIconSlot(
-        icon: prefixIcon,
-        color: c.textTertiary,
-        iconSize: 20,
-      ),
-      filled: true,
-      fillColor: c.surface,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: c.border),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: c.border),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-    );
-  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_rubric.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_score_submission.dart';
 
@@ -178,14 +179,10 @@ class _JudgeScoreEntryViewState extends ConsumerState<JudgeScoreEntryView> {
                   ),
                   const SizedBox(height: 12),
                 ],
-                TextField(
+                SacTextField(
                   controller: _notesController,
-                  minLines: 2,
+                  label: 'camporees.judge.notes_label'.tr(),
                   maxLines: 4,
-                  decoration: InputDecoration(
-                    labelText: 'camporees.judge.notes_label'.tr(),
-                    border: const OutlineInputBorder(),
-                  ),
                 ),
                 const SizedBox(height: 18),
                 SacButton.primary(
@@ -338,20 +335,17 @@ class _RubricInputCard extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 12),
-          TextField(
+          SacTextField(
             controller: controller,
+            label: 'camporees.judge.awarded_points'.tr(),
+            helperText: 'camporees.judge.max_points_hint'.tr(
+              namedArgs: {'max': '${rubric.maxPoints}'},
+            ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'[0-9\.,]')),
             ],
             onChanged: onChanged,
-            decoration: InputDecoration(
-              labelText: 'camporees.judge.awarded_points'.tr(),
-              helperText: 'camporees.judge.max_points_hint'.tr(
-                namedArgs: {'max': '${rubric.maxPoints}'},
-              ),
-              border: const OutlineInputBorder(),
-            ),
           ),
         ],
       ),

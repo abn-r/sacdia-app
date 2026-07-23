@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../data/models/medicine_model.dart';
@@ -980,7 +981,7 @@ class _MedicineTile extends StatelessWidget {
 // Dose editor
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _DoseEditor extends StatefulWidget {
+class _DoseEditor extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<String?> onChanged;
 
@@ -989,70 +990,34 @@ class _DoseEditor extends StatefulWidget {
     required this.onChanged,
   });
 
-  @override
-  State<_DoseEditor> createState() => _DoseEditorState();
-}
-
-class _DoseEditorState extends State<_DoseEditor> {
-  String? _errorText;
-
   void _validate(String value) {
     final trimmed = value.trim();
     if (trimmed.isEmpty) {
-      setState(() => _errorText = null);
-      widget.onChanged(null);
+      onChanged(null);
       return;
     }
     if (trimmed.length > 255) {
-      setState(() {
-        _errorText = 'post_registration.medicines.dose_too_long'.tr();
-      });
-      widget.onChanged(null);
+      onChanged(null);
     } else {
-      setState(() => _errorText = null);
-      widget.onChanged(trimmed);
+      onChanged(trimmed);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: widget.controller,
+    return SacTextField(
+      controller: controller,
+      label: 'post_registration.medicines.dose_label'.tr(),
+      hint: 'post_registration.medicines.dose_hint'.tr(),
       maxLength: 255,
-      buildCounter: (context,
-              {required currentLength,
-              required isFocused,
-              required maxLength}) =>
-          Text(
-        '$currentLength/255',
-        style: TextStyle(
-          fontSize: 11,
-          color:
-              currentLength > 240 ? MedicoTokens.coral500 : MedicoTokens.ink400,
-        ),
-      ),
-      decoration: InputDecoration(
-        labelText: 'post_registration.medicines.dose_label'.tr(),
-        hintText: 'post_registration.medicines.dose_hint'.tr(),
-        errorText: _errorText,
-        isDense: true,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: MedicoTokens.ink200),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: MedicoTokens.coral500),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: MedicoTokens.coral600),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: MedicoTokens.coral600),
-        ),
-      ),
+      validator: (value) {
+        final trimmed = value?.trim() ?? '';
+        if (trimmed.isEmpty) return null;
+        if (trimmed.length > 255) {
+          return 'post_registration.medicines.dose_too_long'.tr();
+        }
+        return null;
+      },
       onChanged: _validate,
     );
   }

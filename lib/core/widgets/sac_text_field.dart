@@ -15,6 +15,14 @@ class SacTextField extends StatefulWidget {
   final String? Function(String?)? validator;
   final TextInputType keyboardType;
   final HugeIconData? prefixIcon;
+
+  /// Texto fijo antes del valor (ej. `$` en montos).
+  /// Compatible con [prefixIcon]; Material lo renderiza a la derecha del icono.
+  final String? prefixText;
+
+  /// Texto fijo después del valor (ej. `pts`, `kg`).
+  final String? suffixText;
+
   final Widget? suffix;
   final void Function(String)? onChanged;
   final void Function(String)? onSubmitted;
@@ -40,6 +48,8 @@ class SacTextField extends StatefulWidget {
     this.validator,
     this.keyboardType = TextInputType.text,
     this.prefixIcon,
+    this.prefixText,
+    this.suffixText,
     this.suffix,
     this.onChanged,
     this.onSubmitted,
@@ -152,6 +162,16 @@ class _SacTextFieldState extends State<SacTextField> {
                   hintText: widget.hint,
                   helperText: widget.helperText,
                   counterText: widget.maxLength != null ? '' : null,
+                  prefixText: widget.prefixText,
+                  prefixStyle: theme.textTheme.bodyMedium?.copyWith(
+                    color: context.sac.textSecondary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  suffixText: widget.suffixText,
+                  suffixStyle: theme.textTheme.bodyMedium?.copyWith(
+                    color: context.sac.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
                   // Bordes transparentes — el contenedor padre maneja el estilo visual
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppTheme.radiusSM),
@@ -173,7 +193,9 @@ class _SacTextFieldState extends State<SacTextField> {
                       ? context.sac.surface
                       : context.sac.surfaceVariant,
                   prefixIcon: _buildPrefixIcon(),
-                  prefixIconConstraints: FixedInputIconSlot.constraints,
+                  prefixIconConstraints: widget.prefixIcon != null
+                      ? FixedInputIconSlot.constraints
+                      : null,
                   suffixIcon: _buildSuffixIcon(),
                   // Ocultar error interno — se muestra debajo del contenedor
                   errorStyle: const TextStyle(height: 0, fontSize: 0),

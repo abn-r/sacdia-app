@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_loading.dart';
+import '../../../../core/widgets/sac_text_field.dart';
 import '../../domain/entities/investiture_member.dart';
 import '../../domain/entities/investiture_status.dart';
 import '../providers/investiture_providers.dart';
@@ -274,14 +275,11 @@ class _MemberSubmitCard extends ConsumerWidget {
                 style: const TextStyle(fontSize: 14),
               ),
               const SizedBox(height: 16),
-              TextField(
+              SacTextField(
                 controller: commentsCtrl,
+                label: 'investiture.submit.field_comments_label'.tr(),
+                hint: 'investiture.submit.field_comments_hint'.tr(),
                 maxLines: 3,
-                decoration: InputDecoration(
-                  labelText: 'investiture.submit.field_comments_label'.tr(),
-                  hintText: 'investiture.submit.field_comments_hint'.tr(),
-                  border: const OutlineInputBorder(),
-                ),
               ),
             ],
           ),

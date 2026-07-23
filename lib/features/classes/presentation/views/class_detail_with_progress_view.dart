@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/animations/animated_counter.dart';
+import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/auth/club_role_names.dart';
 import '../../../../core/config/route_names.dart';
@@ -851,32 +853,34 @@ class _HeroCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    // Big percentage
-                    RichText(
-                      text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: '$pct',
-                            style: TextStyle(
-                              fontSize: 44,
-                              fontWeight: FontWeight.w800,
-                              color: classColor,
-                              height: 1,
-                              letterSpacing: -1.3,
-                              fontFeatures: [FontFeature.tabularFigures()],
-                            ),
+                    // Big percentage — cuenta hacia el nuevo valor al validar
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        AnimatedCounter(
+                          value: pct,
+                          duration: const Duration(milliseconds: 700),
+                          style: TextStyle(
+                            fontSize: 44,
+                            fontWeight: FontWeight.w800,
+                            color: classColor,
+                            height: 1,
+                            letterSpacing: -1.3,
+                            fontFeatures: const [FontFeature.tabularFigures()],
                           ),
-                          TextSpan(
-                            text: '%',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w800,
-                              color: classColor,
-                              height: 1,
-                            ),
+                        ),
+                        Text(
+                          '%',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            color: classColor,
+                            height: 1,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                     if (hasTrackData) ...[
                       const SizedBox(height: 10),
@@ -1136,8 +1140,10 @@ class _AdvancedTrackSection extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 10),
-                Text(
-                  '$_percentage%',
+                AnimatedCounter(
+                  value: _percentage,
+                  suffix: '%',
+                  duration: const Duration(milliseconds: 500),
                   style: const TextStyle(
                     fontSize: 16,
                     color: AppColors.ink900,
@@ -1163,11 +1169,18 @@ class _AdvancedTrackSection extends StatelessWidget {
             const SizedBox(height: 9),
             ClipRRect(
               borderRadius: BorderRadius.circular(999),
-              child: LinearProgressIndicator(
-                value: _percentage / 100,
-                minHeight: 2,
-                backgroundColor: AppColors.ink150,
-                color: AppColors.sentColor.withValues(alpha: 0.6),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween<double>(begin: 0, end: _percentage / 100),
+                duration: SacMotion.reduceMotionOf(context)
+                    ? Duration.zero
+                    : const Duration(milliseconds: 600),
+                curve: SacMotion.easeOut,
+                builder: (context, value, _) => LinearProgressIndicator(
+                  value: value,
+                  minHeight: 2,
+                  backgroundColor: AppColors.ink150,
+                  color: AppColors.sentColor.withValues(alpha: 0.6),
+                ),
               ),
             ),
           ],
@@ -1202,6 +1215,7 @@ class _SearchBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
+      curve: SacMotion.easeOut,
       margin: const EdgeInsets.only(top: 12, bottom: 18),
       decoration: BoxDecoration(
         color: AppColors.paper,

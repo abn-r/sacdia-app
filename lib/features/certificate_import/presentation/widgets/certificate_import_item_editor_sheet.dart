@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 
 import '../../domain/entities/certificate_import_item.dart';
 
@@ -104,20 +105,20 @@ class _CertificateImportItemEditorSheetState
                 ],
               ),
               const SizedBox(height: 12),
-              _Field(
+              SacTextField(
                 label: 'Nombre detectado',
                 controller: _nameController,
                 textInputAction: TextInputAction.next,
               ),
               const SizedBox(height: 12),
-              _Field(
+              SacTextField(
                 label: 'ID catálogo',
                 controller: _catalogController,
                 keyboardType: TextInputType.number,
                 textInputAction: TextInputAction.next,
               ),
               const SizedBox(height: 12),
-              _Field(
+              SacTextField(
                 label: 'Fecha completada',
                 controller: _dateController,
                 keyboardType: TextInputType.datetime,
@@ -173,45 +174,5 @@ class _CertificateImportItemEditorSheetState
         catalogId != null &&
         completedAt != null &&
         name.trim().isNotEmpty;
-  }
-}
-
-class _Field extends StatelessWidget {
-  const _Field({
-    required this.label,
-    required this.controller,
-    this.keyboardType,
-    this.textInputAction,
-    this.hint,
-  });
-
-  final String label;
-  final TextEditingController controller;
-  final TextInputType? keyboardType;
-  final TextInputAction? textInputAction;
-  final String? hint;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      textInputAction: textInputAction,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        filled: true,
-        fillColor: c.surface,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: c.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: c.border),
-        ),
-      ),
-    );
   }
 }

@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_progress_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 
 import '../../../../features/auth/presentation/providers/auth_providers.dart';
 import '../../../../features/members/presentation/providers/members_providers.dart';
@@ -668,63 +669,53 @@ class _CategoryRow extends StatelessWidget {
     final controller = TextEditingController(
       text: '${category.normalizePoints(points)}',
     );
-    String? errorText;
+    final dialogFormKey = GlobalKey<FormState>();
     final material = MaterialLocalizations.of(context);
 
     final result = await showDialog<int>(
       context: context,
       builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Text(category.name),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('0 - ${category.maxPoints}'),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: controller,
-                    autofocus: true,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    onChanged: (_) {
-                      if (errorText != null) {
-                        setState(() => errorText = null);
-                      }
-                    },
-                    decoration: InputDecoration(
-                      isDense: true,
-                      errorText: errorText,
-                    ),
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: Text(material.cancelButtonLabel),
-                ),
-                TextButton(
-                  onPressed: () {
-                    final value = int.tryParse(controller.text);
-                    if (value == null ||
-                        value < 0 ||
-                        value > category.maxPoints) {
-                      setState(
-                        () => errorText =
-                            'Ingresá un entero entre 0 y ${category.maxPoints}.',
-                      );
-                      return;
+        return AlertDialog(
+          title: Text(category.name),
+          content: Form(
+            key: dialogFormKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('0 - ${category.maxPoints}'),
+                const SizedBox(height: 12),
+                SacTextField(
+                  controller: controller,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  validator: (value) {
+                    final parsed = int.tryParse(value ?? '');
+                    if (parsed == null ||
+                        parsed < 0 ||
+                        parsed > category.maxPoints) {
+                      return 'Ingresá un entero entre 0 y ${category.maxPoints}.';
                     }
-                    Navigator.of(dialogContext).pop(value);
+                    return null;
                   },
-                  child: Text(material.okButtonLabel),
                 ),
               ],
-            );
-          },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(material.cancelButtonLabel),
+            ),
+            TextButton(
+              onPressed: () {
+                if (dialogFormKey.currentState?.validate() != true) return;
+                Navigator.of(dialogContext)
+                    .pop(int.parse(controller.text.trim()));
+              },
+              child: Text(material.okButtonLabel),
+            ),
+          ],
         );
       },
     );

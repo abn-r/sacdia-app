@@ -8,10 +8,10 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/utils/icon_helper.dart';
-import '../../../../core/widgets/fixed_input_icon_slot.dart';
 import '../../../../core/widgets/evidence_staging/image_source_dialog.dart';
 import '../../domain/entities/finance_category.dart';
 import '../../domain/entities/transaction.dart';
@@ -144,20 +144,16 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                     // Amount
                     _SectionLabel('finances.add_transaction.amount_label'.tr()),
                     const SizedBox(height: 6),
-                    TextFormField(
+                    SacTextField(
                       controller: _amountController,
+                      hint: 'finances.add_transaction.amount_hint'.tr(),
+                      prefixText: '\$',
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
                             RegExp(r'^\d*\.?\d{0,2}')),
                       ],
-                      decoration: _inputDecoration(
-                        hint: 'finances.add_transaction.amount_hint'.tr(),
-                        prefix: '\$',
-                        prefixIcon: HugeIcons.strokeRoundedMoney01,
-                        context: context,
-                      ),
                       validator: (v) {
                         if (v == null || v.isEmpty) {
                           return 'finances.add_transaction.amount_required'
@@ -238,12 +234,9 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                     _SectionLabel(
                         'finances.add_transaction.description_label'.tr()),
                     const SizedBox(height: 6),
-                    TextFormField(
+                    SacTextField(
                       controller: _descController,
-                      decoration: _inputDecoration(
-                        hint: 'finances.add_transaction.description_hint'.tr(),
-                        context: context,
-                      ),
+                      hint: 'finances.add_transaction.description_hint'.tr(),
                       maxLength: 200,
                       validator: (v) => (v == null || v.trim().isEmpty)
                           ? 'finances.add_transaction.description_required'.tr()
@@ -265,13 +258,10 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                     // Notes (optional)
                     _SectionLabel('finances.add_transaction.notes_label'.tr()),
                     const SizedBox(height: 6),
-                    TextFormField(
+                    SacTextField(
                       controller: _notesController,
+                      hint: 'finances.add_transaction.notes_hint'.tr(),
                       maxLines: 3,
-                      decoration: _inputDecoration(
-                        hint: 'finances.add_transaction.notes_hint'.tr(),
-                        context: context,
-                      ),
                     ),
 
                     const SizedBox(height: 16),
@@ -492,45 +482,6 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     return file.mimeType ?? lookupMimeType(file.path) ?? 'image/jpeg';
   }
 
-  InputDecoration _inputDecoration({
-    required String hint,
-    required BuildContext context,
-    String? prefix,
-    HugeIconData? prefixIcon,
-  }) {
-    return InputDecoration(
-      hintText: hint,
-      prefixText: prefix,
-      prefixIconConstraints:
-          prefixIcon == null ? null : FixedInputIconSlot.constraints,
-      prefixIcon: prefixIcon == null
-          ? null
-          : FixedInputIconSlot(
-              icon: prefixIcon,
-              color: context.sac.textTertiary,
-              iconSize: 20,
-            ),
-      filled: true,
-      fillColor: Theme.of(context)
-          .colorScheme
-          .surfaceContainerHighest
-          .withValues(alpha: 0.4),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(
-          color: Theme.of(context).dividerColor.withValues(alpha: 0.4),
-        ),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.primary, width: 2),
-      ),
-    );
-  }
 }
 
 // ── Evidence picker ────────────────────────────────────────────────────────────
