@@ -105,8 +105,8 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                       ? 'finances.add_transaction.edit_title'.tr()
                       : 'finances.add_transaction.new_title'.tr(),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
@@ -195,8 +195,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                               : c.appliesToExpense;
                         }).toList();
 
-                        final dropdownValue =
-                            _selectedCategory != null &&
+                        final dropdownValue = _selectedCategory != null &&
                                 filtered.any(
                                   (c) => c.id == _selectedCategory!.id,
                                 )
@@ -212,7 +211,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                           initialValue: dropdownValue,
                           validator: (v) => v == null
                               ? 'finances.add_transaction.category_required'
-                                    .tr()
+                                  .tr()
                               : null,
                           builder: (field) => _CategoryPickerField(
                             value: field.value,
@@ -329,9 +328,9 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                             : Text(
                                 _isEditing
                                     ? 'finances.add_transaction.save_button'
-                                          .tr()
+                                        .tr()
                                     : 'finances.add_transaction.register_button'
-                                          .tr(),
+                                        .tr(),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 16,
@@ -366,24 +365,23 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     final clubIdAsync = await ref.read(currentClubIdProvider.future);
     if (clubIdAsync == null) return;
 
-    final success = await ref
-        .read(transactionFormNotifierProvider.notifier)
-        .save(
-          clubId: clubIdAsync,
-          categoryId: _selectedCategory!.id,
-          amount: amount,
-          description: _descController.text.trim(),
-          date: _selectedDate,
-          year: selectedMonth.year,
-          month: selectedMonth.month,
-          existingId: _isEditing ? widget.existing!.id : null,
-        );
+    final success =
+        await ref.read(transactionFormNotifierProvider.notifier).save(
+              clubId: clubIdAsync,
+              categoryId: _selectedCategory!.id,
+              amount: amount,
+              description: _descController.text.trim(),
+              date: _selectedDate,
+              year: selectedMonth.year,
+              month: selectedMonth.month,
+              existingId: _isEditing ? widget.existing!.id : null,
+            );
 
     if (!success || !mounted) return;
 
     final savedTransaction =
         ref.read(transactionFormNotifierProvider).savedTransaction ??
-        widget.existing;
+            widget.existing;
     final financeId = savedTransaction?.id;
     if (financeId == null) return;
 
@@ -478,7 +476,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
         setState(() {
           _evidenceError =
               ref.read(transactionFormNotifierProvider).errorMessage ??
-              'finances.errors.upload_evidence'.tr();
+                  'finances.errors.upload_evidence'.tr();
         });
         return false;
       }
@@ -602,7 +600,9 @@ class _EvidenceTile extends StatelessWidget {
   final XFile? file;
   final VoidCallback? onRemove;
 
-  const _EvidenceTile.network(this.url) : file = null, onRemove = null;
+  const _EvidenceTile.network(this.url)
+      : file = null,
+        onRemove = null;
 
   const _EvidenceTile.file(this.file, {required this.onRemove}) : url = null;
 
@@ -726,13 +726,12 @@ class _CategoryPickerField extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: hasValue
-                              ? FontWeight.w600
-                              : FontWeight.w500,
-                          color: hasValue
-                              ? context.sac.text
-                              : context.sac.textTertiary,
-                        ),
+                              fontWeight:
+                                  hasValue ? FontWeight.w600 : FontWeight.w500,
+                              color: hasValue
+                                  ? context.sac.text
+                                  : context.sac.textTertiary,
+                            ),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -830,8 +829,8 @@ class _CategoryPickerSheet extends StatelessWidget {
                     child: Text(
                       'finances.add_transaction.category_label'.tr(),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                   ),
                 ],
@@ -928,11 +927,10 @@ class _CategoryPickerOption extends StatelessWidget {
                   child: Text(
                     category.name,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: foreground,
-                      fontWeight: isSelected
-                          ? FontWeight.w700
-                          : FontWeight.w500,
-                    ),
+                          color: foreground,
+                          fontWeight:
+                              isSelected ? FontWeight.w700 : FontWeight.w500,
+                        ),
                   ),
                 ),
                 if (isSelected)
@@ -1009,9 +1007,8 @@ class _TypeChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: isSelected
-              ? color.withValues(alpha: 0.12)
-              : Colors.transparent,
+          color:
+              isSelected ? color.withValues(alpha: 0.12) : Colors.transparent,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isSelected ? color : Theme.of(context).dividerColor,
@@ -1122,9 +1119,9 @@ class _SectionLabel extends StatelessWidget {
     return Text(
       text,
       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-        fontWeight: FontWeight.w700,
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-      ),
+            fontWeight: FontWeight.w700,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
     );
   }
 }

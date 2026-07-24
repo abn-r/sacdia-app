@@ -55,7 +55,7 @@ void main() {
   }
 
   testWidgets(
-    'shows a money icon and only categories compatible with the movement type',
+    'shows a category icon and only compatible movement categories',
     (tester) async {
       await pumpSheet(tester, const [
         FinanceCategory(id: 1, name: 'Cuotas', typeCode: 0),
@@ -65,8 +65,7 @@ void main() {
       expect(
         find.byWidgetPredicate(
           (widget) =>
-              widget is HugeIcon &&
-              widget.icon == HugeIcons.strokeRoundedMoney01,
+              widget is HugeIcon && widget.icon == HugeIcons.strokeRoundedTag01,
         ),
         findsOneWidget,
       );

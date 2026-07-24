@@ -157,15 +157,14 @@ class _NextActionBar extends ConsumerWidget {
     }
 
     final target = MonthlyReportPeriod.forPreparation();
-    final report = await ref
-        .read(monthlyReportMutationProvider.notifier)
-        .getOrCreateDraft(
-          MonthlyReportDraftParams(
-            enrollmentId: enrollmentId,
-            month: target.month,
-            year: target.year,
-          ),
-        );
+    final report =
+        await ref.read(monthlyReportMutationProvider.notifier).getOrCreateDraft(
+              MonthlyReportDraftParams(
+                enrollmentId: enrollmentId,
+                month: target.month,
+                year: target.year,
+              ),
+            );
     if (!context.mounted) return;
     if (report == null) {
       final state = ref.read(monthlyReportMutationProvider);

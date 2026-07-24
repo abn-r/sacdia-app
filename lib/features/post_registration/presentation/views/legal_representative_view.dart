@@ -154,8 +154,8 @@ class _LegalRepresentativeViewState
             IconButton(
               icon: HugeIcon(icon: HugeIcons.strokeRoundedTick02, size: 24),
               onPressed: _handleSave,
-              tooltip: 'post_registration.legal_representative.save_tooltip'
-                  .tr(),
+              tooltip:
+                  'post_registration.legal_representative.save_tooltip'.tr(),
             ),
         ],
       ),
@@ -270,8 +270,8 @@ class _LegalRepresentativeViewState
               controller: _nameController,
               label: 'post_registration.legal_representative.first_name_label'
                   .tr(),
-              hint: 'post_registration.legal_representative.first_name_hint'
-                  .tr(),
+              hint:
+                  'post_registration.legal_representative.first_name_hint'.tr(),
               prefixIcon: HugeIcons.strokeRoundedUser,
               textCapitalization: TextCapitalization.words,
               validator: (value) {
