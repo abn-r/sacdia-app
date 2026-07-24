@@ -46,6 +46,7 @@ MockAdapter _adapterReturning(int statusCode, [Map<String, dynamic>? body]) {
 class MockAdapter implements HttpClientAdapter {
   final int statusCode;
   final Map<String, dynamic>? body;
+  RequestOptions? lastRequest;
 
   MockAdapter({required this.statusCode, this.body});
 
@@ -55,6 +56,7 @@ class MockAdapter implements HttpClientAdapter {
     Stream<List<int>>? requestStream,
     Future<void>? cancelFuture,
   ) async {
+    lastRequest = options;
     final responseBody = body != null
         ? body!.entries.map((e) => '"${e.key}":"${e.value}"').join(',')
         : '';
@@ -137,6 +139,26 @@ void main() {
       // Token must be cleared after successful deletion.
       final tokenAfter = await storage.read(AppConstants.tokenKey);
       expect(tokenAfter, isNull);
+    });
+  });
+
+  group('AuthRemoteDataSourceImpl.resetPassword', () {
+    test('should use the canonical password reset request endpoint', () async {
+      final adapter = _adapterReturning(200);
+      dio.httpClientAdapter = adapter;
+      dataSource = AuthRemoteDataSourceImpl(
+        dio: dio,
+        baseUrl: 'http://localhost:3000',
+        secureStorage: storage,
+      );
+
+      await dataSource.resetPassword('admin@example.com');
+
+      expect(
+        adapter.lastRequest?.uri.path,
+        '/auth/password/reset-request',
+      );
+      expect(adapter.lastRequest?.data, {'email': 'admin@example.com'});
     });
   });
 }
