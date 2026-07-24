@@ -120,9 +120,9 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
                         ? 'inventory.form.title_edit'.tr()
                         : 'inventory.form.title_new'.tr(),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: c.text,
-                        ),
+                      fontWeight: FontWeight.w700,
+                      color: c.text,
+                    ),
                   ),
                 ),
                 IconButton(
@@ -182,10 +182,12 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
                             ref.invalidate(inventoryCategoriesProvider),
                       ),
                       data: (cats) {
-                        final pickerValue = _selectedCategory != null &&
+                        final pickerValue =
+                            _selectedCategory != null &&
                                 cats.any((c) => c.id == _selectedCategory!.id)
                             ? cats.firstWhere(
-                                (c) => c.id == _selectedCategory!.id)
+                                (c) => c.id == _selectedCategory!.id,
+                              )
                             : null;
 
                         return FormField<InventoryCategory>(
@@ -223,9 +225,7 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
                       controller: _quantityController,
                       hint: 'inventory.form.quantity_hint'.tr(),
                       keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       validator: (v) {
                         if (v == null || v.isEmpty) {
                           return 'inventory.form.quantity_required'.tr();
@@ -324,11 +324,13 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
                       controller: _valueController,
                       hint: 'inventory.form.value_hint'.tr(),
                       prefixText: '\$',
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
-                            RegExp(r'^\d+\.?\d{0,2}')),
+                          RegExp(r'^\d+\.?\d{0,2}'),
+                        ),
                       ],
                     ),
 
@@ -406,8 +408,9 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
                         style: FilledButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(AppTheme.radiusSM),
+                            borderRadius: BorderRadius.circular(
+                              AppTheme.radiusSM,
+                            ),
                           ),
                         ),
                         child: formState.isLoading
@@ -415,7 +418,9 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
                                 width: 20,
                                 height: 20,
                                 child: CircularProgressIndicator(
-                                    color: Colors.white, strokeWidth: 2.5),
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
                               )
                             : Text(
                                 _isEditing
@@ -466,37 +471,39 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
         ? double.tryParse(_valueController.text)
         : null;
 
-    final success =
-        await ref.read(inventoryItemFormNotifierProvider.notifier).save(
-              clubId: clubId,
-              instanceType: instanceType,
-              name: _nameController.text.trim(),
-              categoryId: _selectedCategory!.id,
-              quantity: quantity,
-              condition: _condition,
-              description: _descController.text.trim().isEmpty
-                  ? null
-                  : _descController.text.trim(),
-              serialNumber: _serialController.text.trim().isEmpty
-                  ? null
-                  : _serialController.text.trim(),
-              purchaseDate: _purchaseDate,
-              estimatedValue: value,
-              location: _locationController.text.trim().isEmpty
-                  ? null
-                  : _locationController.text.trim(),
-              assignedTo: _assignedToController.text.trim().isEmpty
-                  ? null
-                  : _assignedToController.text.trim(),
-              notes: _notesController.text.trim().isEmpty
-                  ? null
-                  : _notesController.text.trim(),
-              existingId: _isEditing ? widget.existing!.id : null,
-            );
+    final success = await ref
+        .read(inventoryItemFormNotifierProvider.notifier)
+        .save(
+          clubId: clubId,
+          instanceType: instanceType,
+          name: _nameController.text.trim(),
+          categoryId: _selectedCategory!.id,
+          quantity: quantity,
+          condition: _condition,
+          description: _descController.text.trim().isEmpty
+              ? null
+              : _descController.text.trim(),
+          serialNumber: _serialController.text.trim().isEmpty
+              ? null
+              : _serialController.text.trim(),
+          purchaseDate: _purchaseDate,
+          estimatedValue: value,
+          location: _locationController.text.trim().isEmpty
+              ? null
+              : _locationController.text.trim(),
+          assignedTo: _assignedToController.text.trim().isEmpty
+              ? null
+              : _assignedToController.text.trim(),
+          notes: _notesController.text.trim().isEmpty
+              ? null
+              : _notesController.text.trim(),
+          existingId: _isEditing ? widget.existing!.id : null,
+        );
 
     if (!success || !mounted) return;
 
-    final savedItem = ref.read(inventoryItemFormNotifierProvider).savedItem ??
+    final savedItem =
+        ref.read(inventoryItemFormNotifierProvider).savedItem ??
         widget.existing;
     final itemId = savedItem?.id;
     if (itemId == null) return;
@@ -510,9 +517,11 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
       ref.read(inventoryItemFormNotifierProvider.notifier).reset();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_isEditing
-              ? 'inventory.form.updated_success'.tr()
-              : 'inventory.form.registered_success'.tr()),
+          content: Text(
+            _isEditing
+                ? 'inventory.form.updated_success'.tr()
+                : 'inventory.form.registered_success'.tr(),
+          ),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
         ),
@@ -577,7 +586,7 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
         setState(() {
           _evidenceError =
               ref.read(inventoryItemFormNotifierProvider).errorMessage ??
-                  'inventory.errors.upload_evidence'.tr();
+              'inventory.errors.upload_evidence'.tr();
         });
         return false;
       }
@@ -588,7 +597,6 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
   String _mimeFor(XFile file) {
     return file.mimeType ?? lookupMimeType(file.path) ?? 'image/jpeg';
   }
-
 }
 
 // ── Section header ──────────────────────────────────────────────────────────────
@@ -618,14 +626,12 @@ class _SectionHeader extends StatelessWidget {
         Text(
           title,
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: context.sac.text,
-                fontWeight: FontWeight.w700,
-              ),
+            color: context.sac.text,
+            fontWeight: FontWeight.w700,
+          ),
         ),
         const SizedBox(width: 8),
-        Expanded(
-          child: Divider(color: context.sac.border, thickness: 1),
-        ),
+        Expanded(child: Divider(color: context.sac.border, thickness: 1)),
       ],
     );
   }
@@ -643,9 +649,9 @@ class _SectionLabel extends StatelessWidget {
     return Text(
       text,
       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: context.sac.textSecondary,
-          ),
+        fontWeight: FontWeight.w700,
+        color: context.sac.textSecondary,
+      ),
     );
   }
 }
@@ -656,10 +662,7 @@ class _ConditionSelector extends StatelessWidget {
   final ItemCondition selected;
   final ValueChanged<ItemCondition> onChanged;
 
-  const _ConditionSelector({
-    required this.selected,
-    required this.onChanged,
-  });
+  const _ConditionSelector({required this.selected, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -775,11 +778,11 @@ class _DatePickerField extends StatelessWidget {
               child: Text(
                 formatted,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                      color: selectedDate != null
-                          ? null
-                          : Theme.of(context).hintColor,
-                    ),
+                  fontWeight: FontWeight.w500,
+                  color: selectedDate != null
+                      ? null
+                      : Theme.of(context).hintColor,
+                ),
               ),
             ),
             if (selectedDate != null)
@@ -848,10 +851,9 @@ class _CategoryPickerField extends StatelessWidget {
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .surfaceContainerHighest
-                      .withValues(alpha: 0.4),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: borderColor,
@@ -880,12 +882,13 @@ class _CategoryPickerField extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight:
-                                  hasValue ? FontWeight.w600 : FontWeight.w500,
-                              color: hasValue
-                                  ? context.sac.text
-                                  : context.sac.textTertiary,
-                            ),
+                          fontWeight: hasValue
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                          color: hasValue
+                              ? context.sac.text
+                              : context.sac.textTertiary,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -906,9 +909,9 @@ class _CategoryPickerField extends StatelessWidget {
             padding: const EdgeInsets.only(left: 12),
             child: Text(
               errorText!,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.error,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: AppColors.error),
             ),
           ),
         ],
@@ -927,10 +930,8 @@ Future<InventoryCategory?> _showCategoryPicker(
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: Colors.transparent,
-    builder: (_) => _CategoryPickerSheet(
-      categories: categories,
-      selected: selected,
-    ),
+    builder: (_) =>
+        _CategoryPickerSheet(categories: categories, selected: selected),
   );
 }
 
@@ -938,10 +939,7 @@ class _CategoryPickerSheet extends StatelessWidget {
   final List<InventoryCategory> categories;
   final InventoryCategory? selected;
 
-  const _CategoryPickerSheet({
-    required this.categories,
-    this.selected,
-  });
+  const _CategoryPickerSheet({required this.categories, this.selected});
 
   @override
   Widget build(BuildContext context) {
@@ -988,8 +986,8 @@ class _CategoryPickerSheet extends StatelessWidget {
                     child: Text(
                       'inventory.form.category_label'.tr(),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                 ],
@@ -1086,10 +1084,11 @@ class _CategoryPickerOption extends StatelessWidget {
                   child: Text(
                     category.name,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: foreground,
-                          fontWeight:
-                              isSelected ? FontWeight.w700 : FontWeight.w500,
-                        ),
+                      color: foreground,
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                    ),
                   ),
                 ),
                 if (isSelected)
@@ -1134,9 +1133,9 @@ class _EvidencePicker extends StatelessWidget {
       children: [
         Text(
           'inventory.form.evidence_hint'.tr(),
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: context.sac.textSecondary,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: context.sac.textSecondary),
         ),
         const SizedBox(height: 10),
         Wrap(
@@ -1147,29 +1146,28 @@ class _EvidencePicker extends StatelessWidget {
               (evidence) => _EvidenceTile.network(evidence.url),
             ),
             ...newFiles.map(
-              (file) => _EvidenceTile.file(
-                file,
-                onRemove: () => onRemoveNew(file),
-              ),
+              (file) =>
+                  _EvidenceTile.file(file, onRemove: () => onRemoveNew(file)),
             ),
             if (canAdd) _EvidenceAddTile(onTap: onAdd),
           ],
         ),
         const SizedBox(height: 8),
         Text(
-          'inventory.form.evidence_count'
-              .tr(namedArgs: {'count': total.toString()}),
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: context.sac.textTertiary,
-              ),
+          'inventory.form.evidence_count'.tr(
+            namedArgs: {'count': total.toString()},
+          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: context.sac.textTertiary),
         ),
         if (errorText != null) ...[
           const SizedBox(height: 6),
           Text(
             errorText!,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.error,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: AppColors.error),
           ),
         ],
       ],
@@ -1217,9 +1215,7 @@ class _EvidenceTile extends StatelessWidget {
   final XFile? file;
   final VoidCallback? onRemove;
 
-  const _EvidenceTile.network(this.url)
-      : file = null,
-        onRemove = null;
+  const _EvidenceTile.network(this.url) : file = null, onRemove = null;
 
   const _EvidenceTile.file(this.file, {required this.onRemove}) : url = null;
 
@@ -1316,10 +1312,7 @@ class _CategoryError extends StatelessWidget {
             style: const TextStyle(color: AppColors.error, fontSize: 13),
           ),
         ),
-        TextButton(
-          onPressed: onRetry,
-          child: Text('common.retry'.tr()),
-        ),
+        TextButton(onPressed: onRetry, child: Text('common.retry'.tr())),
       ],
     );
   }

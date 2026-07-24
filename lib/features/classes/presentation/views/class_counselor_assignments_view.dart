@@ -89,14 +89,15 @@ int _compareAssignments(
   final className = a.clazz.name.compareTo(b.clazz.name);
   if (className != 0) return className;
 
-  final responsibility = _responsibilityOrder(a.responsibilityType).compareTo(
-    _responsibilityOrder(b.responsibilityType),
-  );
+  final responsibility = _responsibilityOrder(
+    a.responsibilityType,
+  ).compareTo(_responsibilityOrder(b.responsibilityType));
   if (responsibility != 0) return responsibility;
 
-  return _safePersonName(a.user, a.userId).compareTo(
-    _safePersonName(b.user, b.userId),
-  );
+  return _safePersonName(
+    a.user,
+    a.userId,
+  ).compareTo(_safePersonName(b.user, b.userId));
 }
 
 String _responsibilityLabel(String? value) {
@@ -140,14 +141,16 @@ class ClassCounselorAssignmentsView extends ConsumerWidget {
       yearId: yearId,
       active: true,
     );
-    final assignmentsAsync =
-        ref.watch(classCounselorAssignmentsProvider(query));
+    final assignmentsAsync = ref.watch(
+      classCounselorAssignmentsProvider(query),
+    );
     final classesAsync = clubTypeId == null
         ? null
         : ref.watch(classesByClubTypeProvider(clubTypeId!));
     final membersAsync = ref.watch(membersNotifierProvider);
-    final actionState =
-        ref.watch(classCounselorAssignmentsNotifierProvider(query));
+    final actionState = ref.watch(
+      classCounselorAssignmentsNotifierProvider(query),
+    );
     final user = ref.watch(authNotifierProvider).valueOrNull;
     final canAssign = hasAnyPermission(user, const {'club_roles:assign'});
     final canRevoke = hasAnyPermission(user, const {'club_roles:revoke'});
@@ -180,30 +183,25 @@ class ClassCounselorAssignmentsView extends ConsumerWidget {
           },
           onAdd: canAssign
               ? () => _openAssignmentSheet(
-                    context,
-                    ref,
-                    query,
-                    classesAsync: classesAsync,
-                    membersAsync: membersAsync,
-                  )
+                  context,
+                  ref,
+                  query,
+                  classesAsync: classesAsync,
+                  membersAsync: membersAsync,
+                )
               : null,
           onEdit: canAssign
               ? (assignment) => _openAssignmentSheet(
-                    context,
-                    ref,
-                    query,
-                    classesAsync: classesAsync,
-                    membersAsync: membersAsync,
-                    initialAssignment: assignment,
-                  )
+                  context,
+                  ref,
+                  query,
+                  classesAsync: classesAsync,
+                  membersAsync: membersAsync,
+                  initialAssignment: assignment,
+                )
               : null,
           onRevoke: canRevoke
-              ? (assignment) => _confirmRevoke(
-                    context,
-                    ref,
-                    query,
-                    assignment,
-                  )
+              ? (assignment) => _confirmRevoke(context, ref, query, assignment)
               : null,
         ),
       ),
@@ -220,11 +218,11 @@ class ClassCounselorAssignmentsView extends ConsumerWidget {
   }) async {
     final isEditing = initialAssignment != null;
     final classes = classesAsync?.valueOrNull ?? const <ProgressiveClass>[];
-    final candidates = (membersAsync.valueOrNull?.members ??
-            const <ClubMember>[])
-        .where(_isAssignableResponsible)
-        .toList()
-      ..sort((a, b) => a.fullName.compareTo(b.fullName));
+    final candidates =
+        (membersAsync.valueOrNull?.members ?? const <ClubMember>[])
+            .where(_isAssignableResponsible)
+            .toList()
+          ..sort((a, b) => a.fullName.compareTo(b.fullName));
 
     if (!isEditing) {
       if (clubTypeId == null) {
@@ -302,10 +300,12 @@ class ClassCounselorAssignmentsView extends ConsumerWidget {
       builder: (dialogContext) => AlertDialog(
         title: Text('classes.class_assignments.revoke_title'.tr()),
         content: Text(
-          'classes.class_assignments.revoke_body'.tr(namedArgs: {
-            'name': _safePersonName(assignment.user, assignment.userId),
-            'className': assignment.clazz.name,
-          }),
+          'classes.class_assignments.revoke_body'.tr(
+            namedArgs: {
+              'name': _safePersonName(assignment.user, assignment.userId),
+              'className': assignment.clazz.name,
+            },
+          ),
         ),
         actions: [
           TextButton(
@@ -393,9 +393,7 @@ class _AssignmentsBody extends StatelessWidget {
       );
     } else {
       for (final group in groups.values) {
-        children.add(
-          _ClassGroupHeader(className: group.first.clazz.name),
-        );
+        children.add(_ClassGroupHeader(className: group.first.clazz.name));
         for (final assignment in group) {
           children.add(
             Padding(
@@ -406,8 +404,7 @@ class _AssignmentsBody extends StatelessWidget {
                 canEdit: onEdit != null,
                 canRevoke: canRevoke && onRevoke != null,
                 onEdit: onEdit == null ? null : () => onEdit!(assignment),
-                onRevoke:
-                    onRevoke == null ? null : () => onRevoke!(assignment),
+                onRevoke: onRevoke == null ? null : () => onRevoke!(assignment),
               ),
             ),
           );
@@ -448,10 +445,10 @@ class _ClassGroupHeader extends StatelessWidget {
           Text(
             className,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.ink900,
-                  letterSpacing: -0.2,
-                ),
+              fontWeight: FontWeight.w800,
+              color: AppColors.ink900,
+              letterSpacing: -0.2,
+            ),
           ),
         ],
       ),
@@ -483,9 +480,9 @@ class _AssignmentsHeader extends StatelessWidget {
                   ? 'classes.class_assignments.header_body'.tr()
                   : 'classes.class_assignments.readonly_body'.tr(),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.ink600,
-                    height: 1.35,
-                  ),
+                color: AppColors.ink600,
+                height: 1.35,
+              ),
             ),
           ),
           if (canAssign && onAdd != null) ...[
@@ -505,10 +502,7 @@ class _AssignmentAddAction extends StatefulWidget {
   final bool isLoading;
   final VoidCallback? onTap;
 
-  const _AssignmentAddAction({
-    required this.isLoading,
-    this.onTap,
-  });
+  const _AssignmentAddAction({required this.isLoading, this.onTap});
 
   @override
   State<_AssignmentAddAction> createState() => _AssignmentAddActionState();
@@ -571,9 +565,9 @@ class _AssignmentAddActionState extends State<_AssignmentAddAction> {
                 Text(
                   'classes.class_assignments.add_button'.tr(),
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: color,
-                        fontWeight: FontWeight.w800,
-                      ),
+                    color: color,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ],
             ),
@@ -607,7 +601,8 @@ class _AssignmentTile extends StatelessWidget {
     final roleName = assignment.classRoleAssignment?.roleName;
     final classColor = AppColors.classColor(assignment.clazz.name);
     final subtitleParts = <String>[
-      if (roleName != null && roleName.isNotEmpty) RoleUtils.translate(roleName),
+      if (roleName != null && roleName.isNotEmpty)
+        RoleUtils.translate(roleName),
       _responsibilityLabel(assignment.responsibilityType),
     ];
     final exceptionReason = assignment.exceptionReason?.trim() ?? '';
@@ -633,10 +628,10 @@ class _AssignmentTile extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.ink900,
-                          letterSpacing: -0.2,
-                        ),
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink900,
+                      letterSpacing: -0.2,
+                    ),
                   ),
                   const SizedBox(height: 3),
                   Row(
@@ -646,24 +641,21 @@ class _AssignmentTile extends StatelessWidget {
                           subtitleParts.join(' · '),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: AppColors.ink600,
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppColors.ink600),
                         ),
                       ),
                       if (assignment.exceptional) ...[
                         const SizedBox(width: 6),
                         _AssignmentChip(
-                          label:
-                              'classes.class_assignments.exceptional_chip'.tr(),
+                          label: 'classes.class_assignments.exceptional_chip'
+                              .tr(),
                           color: AppColors.accentDark,
                         ),
                       ],
                     ],
                   ),
-                  if (assignment.exceptional &&
-                      exceptionReason.isNotEmpty) ...[
+                  if (assignment.exceptional && exceptionReason.isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -682,9 +674,7 @@ class _AssignmentTile extends StatelessWidget {
                             exceptionReason,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
+                            style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   color: AppColors.accentDark,
                                   fontSize: 11.5,
@@ -774,9 +764,7 @@ class _AssignmentTile extends StatelessWidget {
                           personName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(sheetContext)
-                              .textTheme
-                              .titleMedium
+                          style: Theme.of(sheetContext).textTheme.titleMedium
                               ?.copyWith(
                                 fontWeight: FontWeight.w800,
                                 color: AppColors.ink900,
@@ -791,8 +779,7 @@ class _AssignmentTile extends StatelessWidget {
                               size: 18,
                               logoPadding: 2,
                               borderRadius: 6,
-                              fallbackIcon:
-                                  HugeIcons.strokeRoundedBookOpen01,
+                              fallbackIcon: HugeIcons.strokeRoundedBookOpen01,
                             ),
                             const SizedBox(width: 6),
                             Flexible(
@@ -873,9 +860,7 @@ class _AssignmentTile extends StatelessWidget {
                     child: Center(
                       child: Text(
                         'common.cancel'.tr(),
-                        style: Theme.of(sheetContext)
-                            .textTheme
-                            .bodyMedium
+                        style: Theme.of(sheetContext).textTheme.bodyMedium
                             ?.copyWith(
                               color: AppColors.ink600,
                               fontWeight: FontWeight.w700,
@@ -961,10 +946,10 @@ class _SheetActionState extends State<_SheetAction> {
                 child: Text(
                   widget.label,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: widget.labelColor,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.1,
-                      ),
+                    color: widget.labelColor,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.1,
+                  ),
                 ),
               ),
               HugeIcon(
@@ -984,10 +969,7 @@ class _PersonIdentityMark extends StatelessWidget {
   final ClassCounselorPerson person;
   final Color accent;
 
-  const _PersonIdentityMark({
-    required this.person,
-    required this.accent,
-  });
+  const _PersonIdentityMark({required this.person, required this.accent});
 
   @override
   Widget build(BuildContext context) {
@@ -1014,10 +996,10 @@ class _PersonIdentityMark extends StatelessWidget {
           ? Text(
               initials.isEmpty ? '?' : initials,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: accent,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.3,
-                  ),
+                color: accent,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.3,
+              ),
             )
           : CachedNetworkImage(
               imageUrl: image,
@@ -1029,9 +1011,9 @@ class _PersonIdentityMark extends StatelessWidget {
               errorWidget: (_, __, ___) => Text(
                 initials.isEmpty ? '?' : initials,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: accent,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  color: accent,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
     );
@@ -1042,10 +1024,7 @@ class _AssignmentChip extends StatelessWidget {
   final String label;
   final Color color;
 
-  const _AssignmentChip({
-    required this.label,
-    required this.color,
-  });
+  const _AssignmentChip({required this.label, required this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -1058,9 +1037,9 @@ class _AssignmentChip extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w800,
-            ),
+          color: color,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }
@@ -1086,10 +1065,7 @@ class _ClassOptionLabel extends StatelessWidget {
         const SizedBox(width: 10),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 220),
-          child: Text(
-            className,
-            overflow: TextOverflow.ellipsis,
-          ),
+          child: Text(className, overflow: TextOverflow.ellipsis),
         ),
       ],
     );
@@ -1129,17 +1105,20 @@ class _ClassCounselorAssignmentSheetState
   void initState() {
     super.initState();
     final initial = widget.initialAssignment;
-    _selectedClassId = initial?.classId ??
+    _selectedClassId =
+        initial?.classId ??
         (widget.classes.isNotEmpty ? widget.classes.first.id : null);
-    _selectedUserId = initial?.userId ??
+    _selectedUserId =
+        initial?.userId ??
         (widget.candidates.isNotEmpty ? widget.candidates.first.userId : null);
     _selectedResponsibilityType =
         _responsibilityTypes.contains(initial?.responsibilityType)
-            ? initial!.responsibilityType
-            : 'primary';
+        ? initial!.responsibilityType
+        : 'primary';
     _exceptional = initial?.exceptional ?? false;
-    _reasonController =
-        TextEditingController(text: initial?.exceptionReason ?? '');
+    _reasonController = TextEditingController(
+      text: initial?.exceptionReason ?? '',
+    );
   }
 
   @override
@@ -1150,8 +1129,9 @@ class _ClassCounselorAssignmentSheetState
 
   @override
   Widget build(BuildContext context) {
-    final actionState =
-        ref.watch(classCounselorAssignmentsNotifierProvider(widget.query));
+    final actionState = ref.watch(
+      classCounselorAssignmentsNotifierProvider(widget.query),
+    );
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
 
     return Padding(
@@ -1180,17 +1160,17 @@ class _ClassCounselorAssignmentSheetState
                     ? 'classes.class_assignments.edit_title'.tr()
                     : 'classes.class_assignments.create_title'.tr(),
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.ink900,
-                    ),
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink900,
+                ),
               ),
               const SizedBox(height: 6),
               Text(
                 'classes.class_assignments.form_body'.tr(),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.ink600,
-                      height: 1.35,
-                    ),
+                  color: AppColors.ink600,
+                  height: 1.35,
+                ),
               ),
               const SizedBox(height: 18),
               if (_isEditing) ...[
@@ -1234,8 +1214,8 @@ class _ClassCounselorAssignmentSheetState
                   initialValue: _selectedUserId,
                   isExpanded: true,
                   decoration: InputDecoration(
-                    labelText:
-                        'classes.class_assignments.responsible_label'.tr(),
+                    labelText: 'classes.class_assignments.responsible_label'
+                        .tr(),
                     border: const OutlineInputBorder(),
                   ),
                   items: widget.candidates
@@ -1261,8 +1241,8 @@ class _ClassCounselorAssignmentSheetState
               DropdownButtonFormField<String>(
                 initialValue: _selectedResponsibilityType,
                 decoration: InputDecoration(
-                  labelText:
-                      'classes.class_assignments.responsibility_label'.tr(),
+                  labelText: 'classes.class_assignments.responsibility_label'
+                      .tr(),
                   border: const OutlineInputBorder(),
                 ),
                 items: _responsibilityTypes
@@ -1276,9 +1256,8 @@ class _ClassCounselorAssignmentSheetState
                 onChanged: actionState.isLoading
                     ? null
                     : (value) => setState(
-                          () =>
-                              _selectedResponsibilityType = value ?? 'primary',
-                        ),
+                        () => _selectedResponsibilityType = value ?? 'primary',
+                      ),
               ),
               const SizedBox(height: 12),
               SwitchListTile.adaptive(
@@ -1315,9 +1294,9 @@ class _ClassCounselorAssignmentSheetState
                 const SizedBox(height: 12),
                 Text(
                   actionState.errorMessage!,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.error,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.error),
                 ),
               ],
               const SizedBox(height: 20),
@@ -1389,10 +1368,7 @@ class _ReadOnlyField extends StatelessWidget {
   final String label;
   final String value;
 
-  const _ReadOnlyField({
-    required this.label,
-    required this.value,
-  });
+  const _ReadOnlyField({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -1410,17 +1386,17 @@ class _ReadOnlyField extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: AppColors.ink500,
-                  fontWeight: FontWeight.w700,
-                ),
+              color: AppColors.ink500,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             value,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.ink900,
-                  fontWeight: FontWeight.w700,
-                ),
+              color: AppColors.ink900,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),
@@ -1432,10 +1408,7 @@ class _AssignmentsErrorState extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
 
-  const _AssignmentsErrorState({
-    required this.message,
-    required this.onRetry,
-  });
+  const _AssignmentsErrorState({required this.message, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -1453,17 +1426,17 @@ class _AssignmentsErrorState extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               'classes.class_assignments.load_error_title'.tr(),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.ink600,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.ink600),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
@@ -1502,25 +1475,21 @@ class _MessageState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            HugeIcon(
-              icon: icon,
-              size: 54,
-              color: AppColors.ink400,
-            ),
+            HugeIcon(icon: icon, size: 54, color: AppColors.ink400),
             const SizedBox(height: 14),
             Text(
               title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.ink600,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.ink600),
               textAlign: TextAlign.center,
             ),
           ],
@@ -1530,11 +1499,7 @@ class _MessageState extends StatelessWidget {
   }
 }
 
-void _showSnack(
-  BuildContext context,
-  String message, {
-  bool isError = false,
-}) {
+void _showSnack(BuildContext context, String message, {bool isError = false}) {
   if (!context.mounted) return;
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
