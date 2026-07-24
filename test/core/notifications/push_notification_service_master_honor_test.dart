@@ -129,7 +129,7 @@ void main() {
           queue.single.masterHonorNames,
           ['Maestría en Acuática', 'Maestría en Artesanía'],
         );
-        expect(find.text('Maestrías marcadas como No vigente'), findsOneWidget);
+        expect(find.text('Maestrías para revisar'), findsOneWidget);
 
         await tester.tap(find.text('Entendido'));
         await tester.pumpAndSettle();

@@ -24,9 +24,9 @@ void main() {
       ),
     );
 
-    expect(find.text('¡Nueva maestría obtenida!'), findsOneWidget);
+    expect(find.text('¡Nueva maestría para tu banda!'), findsOneWidget);
     expect(
-      find.text('Has obtenido la maestría Maestría en Acuática.'),
+      find.text('Tu banda suma la maestría Maestría en Acuática.'),
       findsOneWidget,
     );
   });
@@ -48,10 +48,10 @@ void main() {
       ),
     );
 
-    expect(find.text('Maestrías marcadas como No vigente'), findsOneWidget);
+    expect(find.text('Maestrías para revisar'), findsOneWidget);
     expect(
       find.text(
-        'Las validaciones requeridas para estas maestrías cambiaron. Actualmente no cumples con los requisitos, por lo que quedaron marcadas como No vigente.',
+        'Estas maestrías necesitan ajustes para volver a estar vigentes.',
       ),
       findsOneWidget,
     );

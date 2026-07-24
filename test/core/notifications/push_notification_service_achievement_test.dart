@@ -113,7 +113,7 @@ void main() {
 
       expect(find.byKey(const Key('achievement-unlocked-snackbar')),
           findsOneWidget);
-      expect(find.text('Logro desbloqueado'), findsOneWidget);
+      expect(find.text('Nuevo logro en tu camino'), findsOneWidget);
       expect(find.text('Primer Paso'), findsOneWidget);
       expect(find.text('GOLD · 25 pts'), findsOneWidget);
       expect(find.text('Ver logro'), findsOneWidget);

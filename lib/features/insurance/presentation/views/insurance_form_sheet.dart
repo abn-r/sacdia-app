@@ -103,8 +103,8 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                       ? 'insurance.form.title_edit'.tr()
                       : 'insurance.form.title_create'.tr(),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
@@ -219,9 +219,8 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                     ),
                     const SizedBox(height: 6),
                     _EvidenceUploader(
-                      currentFile: ref
-                          .watch(insuranceFormNotifierProvider)
-                          .selectedFile,
+                      currentFile:
+                          ref.watch(insuranceFormNotifierProvider).selectedFile,
                       existingFileUrl: _isEditing
                           ? widget.existingInsurance?.evidenceFileUrl
                           : null,
@@ -352,9 +351,7 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
         ? double.tryParse(_amountController.text)
         : null;
 
-    final success = await ref
-        .read(insuranceFormNotifierProvider.notifier)
-        .save(
+    final success = await ref.read(insuranceFormNotifierProvider.notifier).save(
           memberId: _memberId,
           insuranceType: _insuranceType,
           startDate: _startDate!,
@@ -366,9 +363,8 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
               ? null
               : _providerController.text.trim(),
           coverageAmount: amount,
-          existingInsuranceId: _isEditing
-              ? widget.existingInsurance!.insuranceId
-              : null,
+          existingInsuranceId:
+              _isEditing ? widget.existingInsurance!.insuranceId : null,
         );
 
     if (success && mounted) {
@@ -413,9 +409,8 @@ class _InsuranceTypeSelector extends StatelessWidget {
               duration: const Duration(milliseconds: 150),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primarySurface
-                    : Colors.transparent,
+                color:
+                    isSelected ? AppColors.primarySurface : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isSelected
@@ -443,11 +438,10 @@ class _InsuranceTypeSelector extends StatelessWidget {
                   Text(
                     t.label,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: isSelected
-                          ? FontWeight.w700
-                          : FontWeight.w400,
-                      color: isSelected ? AppColors.primaryDark : null,
-                    ),
+                          fontWeight:
+                              isSelected ? FontWeight.w700 : FontWeight.w400,
+                          color: isSelected ? AppColors.primaryDark : null,
+                        ),
                   ),
                 ],
               ),
@@ -510,11 +504,11 @@ class _DatePickerField extends StatelessWidget {
               child: Text(
                 formatted,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                  color: selectedDate != null
-                      ? null
-                      : Theme.of(context).hintColor,
-                ),
+                      fontWeight: FontWeight.w500,
+                      color: selectedDate != null
+                          ? null
+                          : Theme.of(context).hintColor,
+                    ),
               ),
             ),
             if (selectedDate != null)
@@ -946,9 +940,9 @@ class _SectionLabel extends StatelessWidget {
     return Text(
       text,
       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-        fontWeight: FontWeight.w700,
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-      ),
+            fontWeight: FontWeight.w700,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
     );
   }
 }

@@ -120,9 +120,9 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
                         ? 'inventory.form.title_edit'.tr()
                         : 'inventory.form.title_new'.tr(),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: c.text,
-                    ),
+                          fontWeight: FontWeight.w700,
+                          color: c.text,
+                        ),
                   ),
                 ),
                 IconButton(
@@ -182,8 +182,7 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
                             ref.invalidate(inventoryCategoriesProvider),
                       ),
                       data: (cats) {
-                        final pickerValue =
-                            _selectedCategory != null &&
+                        final pickerValue = _selectedCategory != null &&
                                 cats.any((c) => c.id == _selectedCategory!.id)
                             ? cats.firstWhere(
                                 (c) => c.id == _selectedCategory!.id,
@@ -471,39 +470,37 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
         ? double.tryParse(_valueController.text)
         : null;
 
-    final success = await ref
-        .read(inventoryItemFormNotifierProvider.notifier)
-        .save(
-          clubId: clubId,
-          instanceType: instanceType,
-          name: _nameController.text.trim(),
-          categoryId: _selectedCategory!.id,
-          quantity: quantity,
-          condition: _condition,
-          description: _descController.text.trim().isEmpty
-              ? null
-              : _descController.text.trim(),
-          serialNumber: _serialController.text.trim().isEmpty
-              ? null
-              : _serialController.text.trim(),
-          purchaseDate: _purchaseDate,
-          estimatedValue: value,
-          location: _locationController.text.trim().isEmpty
-              ? null
-              : _locationController.text.trim(),
-          assignedTo: _assignedToController.text.trim().isEmpty
-              ? null
-              : _assignedToController.text.trim(),
-          notes: _notesController.text.trim().isEmpty
-              ? null
-              : _notesController.text.trim(),
-          existingId: _isEditing ? widget.existing!.id : null,
-        );
+    final success =
+        await ref.read(inventoryItemFormNotifierProvider.notifier).save(
+              clubId: clubId,
+              instanceType: instanceType,
+              name: _nameController.text.trim(),
+              categoryId: _selectedCategory!.id,
+              quantity: quantity,
+              condition: _condition,
+              description: _descController.text.trim().isEmpty
+                  ? null
+                  : _descController.text.trim(),
+              serialNumber: _serialController.text.trim().isEmpty
+                  ? null
+                  : _serialController.text.trim(),
+              purchaseDate: _purchaseDate,
+              estimatedValue: value,
+              location: _locationController.text.trim().isEmpty
+                  ? null
+                  : _locationController.text.trim(),
+              assignedTo: _assignedToController.text.trim().isEmpty
+                  ? null
+                  : _assignedToController.text.trim(),
+              notes: _notesController.text.trim().isEmpty
+                  ? null
+                  : _notesController.text.trim(),
+              existingId: _isEditing ? widget.existing!.id : null,
+            );
 
     if (!success || !mounted) return;
 
-    final savedItem =
-        ref.read(inventoryItemFormNotifierProvider).savedItem ??
+    final savedItem = ref.read(inventoryItemFormNotifierProvider).savedItem ??
         widget.existing;
     final itemId = savedItem?.id;
     if (itemId == null) return;
@@ -586,7 +583,7 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
         setState(() {
           _evidenceError =
               ref.read(inventoryItemFormNotifierProvider).errorMessage ??
-              'inventory.errors.upload_evidence'.tr();
+                  'inventory.errors.upload_evidence'.tr();
         });
         return false;
       }
@@ -626,9 +623,9 @@ class _SectionHeader extends StatelessWidget {
         Text(
           title,
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            color: context.sac.text,
-            fontWeight: FontWeight.w700,
-          ),
+                color: context.sac.text,
+                fontWeight: FontWeight.w700,
+              ),
         ),
         const SizedBox(width: 8),
         Expanded(child: Divider(color: context.sac.border, thickness: 1)),
@@ -649,9 +646,9 @@ class _SectionLabel extends StatelessWidget {
     return Text(
       text,
       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-        fontWeight: FontWeight.w700,
-        color: context.sac.textSecondary,
-      ),
+            fontWeight: FontWeight.w700,
+            color: context.sac.textSecondary,
+          ),
     );
   }
 }
@@ -778,11 +775,11 @@ class _DatePickerField extends StatelessWidget {
               child: Text(
                 formatted,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                  color: selectedDate != null
-                      ? null
-                      : Theme.of(context).hintColor,
-                ),
+                      fontWeight: FontWeight.w500,
+                      color: selectedDate != null
+                          ? null
+                          : Theme.of(context).hintColor,
+                    ),
               ),
             ),
             if (selectedDate != null)
@@ -882,13 +879,12 @@ class _CategoryPickerField extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: hasValue
-                              ? FontWeight.w600
-                              : FontWeight.w500,
-                          color: hasValue
-                              ? context.sac.text
-                              : context.sac.textTertiary,
-                        ),
+                              fontWeight:
+                                  hasValue ? FontWeight.w600 : FontWeight.w500,
+                              color: hasValue
+                                  ? context.sac.text
+                                  : context.sac.textTertiary,
+                            ),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -986,8 +982,8 @@ class _CategoryPickerSheet extends StatelessWidget {
                     child: Text(
                       'inventory.form.category_label'.tr(),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                   ),
                 ],
@@ -1084,11 +1080,10 @@ class _CategoryPickerOption extends StatelessWidget {
                   child: Text(
                     category.name,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: foreground,
-                      fontWeight: isSelected
-                          ? FontWeight.w700
-                          : FontWeight.w500,
-                    ),
+                          color: foreground,
+                          fontWeight:
+                              isSelected ? FontWeight.w700 : FontWeight.w500,
+                        ),
                   ),
                 ),
                 if (isSelected)
@@ -1215,7 +1210,9 @@ class _EvidenceTile extends StatelessWidget {
   final XFile? file;
   final VoidCallback? onRemove;
 
-  const _EvidenceTile.network(this.url) : file = null, onRemove = null;
+  const _EvidenceTile.network(this.url)
+      : file = null,
+        onRemove = null;
 
   const _EvidenceTile.file(this.file, {required this.onRemove}) : url = null;
 

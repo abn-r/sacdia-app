@@ -243,8 +243,7 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
     }
 
     final deputyChanged = !_listsEqual(newDeputyIds, _deputyDirectorIds);
-    final changed =
-        deputyChanged ||
+    final changed = deputyChanged ||
         newSecretaryId != _secretaryId ||
         newTreasurerId != _treasurerId ||
         newSecretaryTreasurerId != _secretaryTreasurerId;
@@ -396,9 +395,8 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
         deputyDirectorIds: _deputyDirectorIds,
         secretaryId: _useSecretaryTreasurer ? null : _secretaryId,
         treasurerId: _useSecretaryTreasurer ? null : _treasurerId,
-        secretaryTreasurerId: widget.hasSecretaryTreasurerRole
-            ? _secretaryTreasurerId
-            : null,
+        secretaryTreasurerId:
+            widget.hasSecretaryTreasurerRole ? _secretaryTreasurerId : null,
       );
     } else {
       success = await notifier.create(
@@ -415,9 +413,8 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
         deputyDirectorIds: _deputyDirectorIds,
         secretaryId: _useSecretaryTreasurer ? null : _secretaryId,
         treasurerId: _useSecretaryTreasurer ? null : _treasurerId,
-        secretaryTreasurerId: widget.hasSecretaryTreasurerRole
-            ? _secretaryTreasurerId
-            : null,
+        secretaryTreasurerId:
+            widget.hasSecretaryTreasurerRole ? _secretaryTreasurerId : null,
       );
     }
 
@@ -468,14 +465,14 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
     // El director es el usuario actual con rol director (display-only)
     final directorMember = currentUserCtx?.isDirector == true
         ? members
-              .where(
-                (m) =>
-                    m.clubRole?.toLowerCase().contains('director') == true &&
-                    !m.clubRole!.toLowerCase().contains('sub') &&
-                    !m.clubRole!.toLowerCase().contains('vice') &&
-                    !m.clubRole!.toLowerCase().contains('deputy'),
-              )
-              .firstOrNull
+            .where(
+              (m) =>
+                  m.clubRole?.toLowerCase().contains('director') == true &&
+                  !m.clubRole!.toLowerCase().contains('sub') &&
+                  !m.clubRole!.toLowerCase().contains('vice') &&
+                  !m.clubRole!.toLowerCase().contains('deputy'),
+            )
+            .firstOrNull
         : null;
 
     return Scaffold(
@@ -500,9 +497,8 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
             color: c.text,
             size: 22,
           ),
-          onPressed: formState.isLoading
-              ? null
-              : () => Navigator.of(context).pop(),
+          onPressed:
+              formState.isLoading ? null : () => Navigator.of(context).pop(),
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
@@ -675,8 +671,8 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
               _ToggleRow(
                 icon: HugeIcons.strokeRoundedUserShield01,
                 label: 'enrollment.form.label_use_secretary_treasurer'.tr(),
-                subtitle: 'enrollment.form.subtitle_use_secretary_treasurer'
-                    .tr(),
+                subtitle:
+                    'enrollment.form.subtitle_use_secretary_treasurer'.tr(),
                 value: _secretaryTreasurerId != null,
                 enabled: !formState.isLoading,
                 onChanged: (v) => setState(() {
@@ -735,8 +731,8 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
                     ? null
                     : _secretaryTreasurerId,
                 members: members,
-                placeholder: 'enrollment.form.placeholder_secretary_treasurer'
-                    .tr(),
+                placeholder:
+                    'enrollment.form.placeholder_secretary_treasurer'.tr(),
                 emptyMessage: 'enrollment.form.empty_members'.tr(),
                 enabled: !formState.isLoading && members.isNotEmpty,
                 onChanged: (id) => setState(() => _secretaryTreasurerId = id),
@@ -901,8 +897,8 @@ class _LocationPickerField extends StatelessWidget {
             color: hasError
                 ? AppColors.error
                 : hasResult
-                ? AppColors.primary
-                : c.border,
+                    ? AppColors.primary
+                    : c.border,
             width: hasResult || hasError ? 1.5 : 1,
           ),
         ),
@@ -913,8 +909,8 @@ class _LocationPickerField extends StatelessWidget {
               color: hasError
                   ? AppColors.error
                   : hasResult
-                  ? AppColors.primary
-                  : c.textTertiary,
+                      ? AppColors.primary
+                      : c.textTertiary,
               size: 20,
             ),
             const SizedBox(width: 12),
@@ -1369,9 +1365,8 @@ class _MultiMemberSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final selectedMembers = members
-        .where((m) => selectedIds.contains(m.userId))
-        .toList();
+    final selectedMembers =
+        members.where((m) => selectedIds.contains(m.userId)).toList();
 
     return GestureDetector(
       onTap: enabled && members.isNotEmpty
@@ -1661,8 +1656,7 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                     itemBuilder: (_, i) {
                       final member = filtered[i];
                       final isSelected = _selected.contains(member.userId);
-                      final canSelect =
-                          isSelected ||
+                      final canSelect = isSelected ||
                           !widget.multiSelect ||
                           _selected.length < widget.maxSelect;
 

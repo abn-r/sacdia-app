@@ -35,10 +35,10 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
   String? _searchQ;
 
   CatalogQuery get _query => CatalogQuery(
-    cat: _selectedCat,
-    programaId: _selectedProgramaId,
-    q: _searchQ,
-  );
+        cat: _selectedCat,
+        programaId: _selectedProgramaId,
+        q: _searchQ,
+      );
 
   @override
   void dispose() {

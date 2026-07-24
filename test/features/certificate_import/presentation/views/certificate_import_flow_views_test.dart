@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/config/router.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_batch.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_file.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_item.dart';
@@ -195,9 +196,18 @@ void main() {
       await tester.tap(find.text('Corregir').first);
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.bySemanticsLabel('ID catálogo'), '10');
+      Finder inputWithLabel(String label) => find.descendant(
+            of: find.byWidgetPredicate(
+              (widget) => widget is SacTextField && widget.label == label,
+            ),
+            matching: find.byType(TextFormField),
+          );
+
+      await tester.enterText(inputWithLabel('ID catálogo'), '10');
       await tester.enterText(
-          find.bySemanticsLabel('Fecha completada'), '2026-04-12');
+        inputWithLabel('Fecha completada'),
+        '2026-04-12',
+      );
       await tester.tap(find.text('Guardar corrección'));
       await tester.pumpAndSettle();
 
