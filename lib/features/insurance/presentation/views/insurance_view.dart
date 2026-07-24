@@ -48,9 +48,8 @@ class _InsuranceViewState extends ConsumerState<InsuranceView> {
 
     return Scaffold(
       backgroundColor: context.sac.background,
-      floatingActionButton: canManage
-          ? _AddFab(onTap: () => _openAddSheet(context, null))
-          : null,
+      floatingActionButton:
+          canManage ? _AddFab(onTap: () => _openAddSheet(context, null)) : null,
       body: SafeArea(
         child: RefreshIndicator(
           color: AppColors.primary,
@@ -74,10 +73,10 @@ class _InsuranceViewState extends ConsumerState<InsuranceView> {
                 title: Text(
                   'insurance.view.title'.tr(),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: context.sac.text,
-                    letterSpacing: -0.2,
-                  ),
+                        fontWeight: FontWeight.w700,
+                        color: context.sac.text,
+                        letterSpacing: -0.2,
+                      ),
                 ),
                 centerTitle: false,
               ),
@@ -218,18 +217,18 @@ class _InsuranceBody extends ConsumerWidget {
           )
         else
           ...items.asMap().entries.map(
-            (entry) => StaggeredListItem(
-              index: entry.key,
-              staggerDelay: const Duration(milliseconds: 36),
-              duration: const Duration(milliseconds: 200),
-              slideOffset: 8,
-              child: MemberInsuranceCard(
-                insurance: entry.value,
-                canManage: canManage,
-                onTap: () => onItemTap(entry.value),
+                (entry) => StaggeredListItem(
+                  index: entry.key,
+                  staggerDelay: const Duration(milliseconds: 36),
+                  duration: const Duration(milliseconds: 200),
+                  slideOffset: 8,
+                  child: MemberInsuranceCard(
+                    insurance: entry.value,
+                    canManage: canManage,
+                    onTap: () => onItemTap(entry.value),
+                  ),
+                ),
               ),
-            ),
-          ),
 
         const SizedBox(height: 80), // FAB clearance
       ],
@@ -420,9 +419,9 @@ class _SortCountRow extends StatelessWidget {
           Text(
             key.tr(namedArgs: {'count': '$count'}),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w500,
-            ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
           ),
           const Spacer(),
           // Sort dropdown
@@ -451,9 +450,9 @@ class _SortCountRow extends StatelessWidget {
                   Text(
                     sortOrder.label,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 11,
-                    ),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 11,
+                        ),
                   ),
                 ],
               ),
@@ -583,8 +582,8 @@ class _ErrorBody extends StatelessWidget {
           Text(
             message,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -631,9 +630,9 @@ class _EmptyState extends StatelessWidget {
                 ? 'insurance.view.empty_filtered_title'.tr()
                 : 'insurance.view.empty_title'.tr(),
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
-            ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
@@ -641,13 +640,13 @@ class _EmptyState extends StatelessWidget {
             hasFilters
                 ? 'insurance.view.empty_filtered_subtitle'.tr()
                 : canManage
-                ? 'insurance.view.empty_subtitle_manager'.tr()
-                : 'insurance.view.empty_subtitle_member'.tr(),
+                    ? 'insurance.view.empty_subtitle_manager'.tr()
+                    : 'insurance.view.empty_subtitle_member'.tr(),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-            ),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                ),
             textAlign: TextAlign.center,
           ),
         ],

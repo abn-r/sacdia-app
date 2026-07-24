@@ -183,22 +183,22 @@ class ClassCounselorAssignmentsView extends ConsumerWidget {
           },
           onAdd: canAssign
               ? () => _openAssignmentSheet(
-                  context,
-                  ref,
-                  query,
-                  classesAsync: classesAsync,
-                  membersAsync: membersAsync,
-                )
+                    context,
+                    ref,
+                    query,
+                    classesAsync: classesAsync,
+                    membersAsync: membersAsync,
+                  )
               : null,
           onEdit: canAssign
               ? (assignment) => _openAssignmentSheet(
-                  context,
-                  ref,
-                  query,
-                  classesAsync: classesAsync,
-                  membersAsync: membersAsync,
-                  initialAssignment: assignment,
-                )
+                    context,
+                    ref,
+                    query,
+                    classesAsync: classesAsync,
+                    membersAsync: membersAsync,
+                    initialAssignment: assignment,
+                  )
               : null,
           onRevoke: canRevoke
               ? (assignment) => _confirmRevoke(context, ref, query, assignment)
@@ -218,11 +218,11 @@ class ClassCounselorAssignmentsView extends ConsumerWidget {
   }) async {
     final isEditing = initialAssignment != null;
     final classes = classesAsync?.valueOrNull ?? const <ProgressiveClass>[];
-    final candidates =
-        (membersAsync.valueOrNull?.members ?? const <ClubMember>[])
-            .where(_isAssignableResponsible)
-            .toList()
-          ..sort((a, b) => a.fullName.compareTo(b.fullName));
+    final candidates = (membersAsync.valueOrNull?.members ??
+            const <ClubMember>[])
+        .where(_isAssignableResponsible)
+        .toList()
+      ..sort((a, b) => a.fullName.compareTo(b.fullName));
 
     if (!isEditing) {
       if (clubTypeId == null) {
@@ -445,10 +445,10 @@ class _ClassGroupHeader extends StatelessWidget {
           Text(
             className,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: AppColors.ink900,
-              letterSpacing: -0.2,
-            ),
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink900,
+                  letterSpacing: -0.2,
+                ),
           ),
         ],
       ),
@@ -480,9 +480,9 @@ class _AssignmentsHeader extends StatelessWidget {
                   ? 'classes.class_assignments.header_body'.tr()
                   : 'classes.class_assignments.readonly_body'.tr(),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.ink600,
-                height: 1.35,
-              ),
+                    color: AppColors.ink600,
+                    height: 1.35,
+                  ),
             ),
           ),
           if (canAssign && onAdd != null) ...[
@@ -565,9 +565,9 @@ class _AssignmentAddActionState extends State<_AssignmentAddAction> {
                 Text(
                   'classes.class_assignments.add_button'.tr(),
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w800,
-                  ),
+                        color: color,
+                        fontWeight: FontWeight.w800,
+                      ),
                 ),
               ],
             ),
@@ -628,10 +628,10 @@ class _AssignmentTile extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.ink900,
-                      letterSpacing: -0.2,
-                    ),
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.ink900,
+                          letterSpacing: -0.2,
+                        ),
                   ),
                   const SizedBox(height: 3),
                   Row(
@@ -641,15 +641,17 @@ class _AssignmentTile extends StatelessWidget {
                           subtitleParts.join(' · '),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
                               ?.copyWith(color: AppColors.ink600),
                         ),
                       ),
                       if (assignment.exceptional) ...[
                         const SizedBox(width: 6),
                         _AssignmentChip(
-                          label: 'classes.class_assignments.exceptional_chip'
-                              .tr(),
+                          label:
+                              'classes.class_assignments.exceptional_chip'.tr(),
                           color: AppColors.accentDark,
                         ),
                       ],
@@ -674,12 +676,12 @@ class _AssignmentTile extends StatelessWidget {
                             exceptionReason,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: AppColors.accentDark,
-                                  fontSize: 11.5,
-                                  height: 1.3,
-                                ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: AppColors.accentDark,
+                                      fontSize: 11.5,
+                                      height: 1.3,
+                                    ),
                           ),
                         ),
                       ],
@@ -764,7 +766,9 @@ class _AssignmentTile extends StatelessWidget {
                           personName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(sheetContext).textTheme.titleMedium
+                          style: Theme.of(sheetContext)
+                              .textTheme
+                              .titleMedium
                               ?.copyWith(
                                 fontWeight: FontWeight.w800,
                                 color: AppColors.ink900,
@@ -860,7 +864,9 @@ class _AssignmentTile extends StatelessWidget {
                     child: Center(
                       child: Text(
                         'common.cancel'.tr(),
-                        style: Theme.of(sheetContext).textTheme.bodyMedium
+                        style: Theme.of(sheetContext)
+                            .textTheme
+                            .bodyMedium
                             ?.copyWith(
                               color: AppColors.ink600,
                               fontWeight: FontWeight.w700,
@@ -946,10 +952,10 @@ class _SheetActionState extends State<_SheetAction> {
                 child: Text(
                   widget.label,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: widget.labelColor,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.1,
-                  ),
+                        color: widget.labelColor,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.1,
+                      ),
                 ),
               ),
               HugeIcon(
@@ -996,10 +1002,10 @@ class _PersonIdentityMark extends StatelessWidget {
           ? Text(
               initials.isEmpty ? '?' : initials,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: accent,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.3,
-              ),
+                    color: accent,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                  ),
             )
           : CachedNetworkImage(
               imageUrl: image,
@@ -1011,9 +1017,9 @@ class _PersonIdentityMark extends StatelessWidget {
               errorWidget: (_, __, ___) => Text(
                 initials.isEmpty ? '?' : initials,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: accent,
-                  fontWeight: FontWeight.w800,
-                ),
+                      color: accent,
+                      fontWeight: FontWeight.w800,
+                    ),
               ),
             ),
     );
@@ -1037,9 +1043,9 @@ class _AssignmentChip extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: color,
-          fontWeight: FontWeight.w800,
-        ),
+              color: color,
+              fontWeight: FontWeight.w800,
+            ),
       ),
     );
   }
@@ -1105,16 +1111,14 @@ class _ClassCounselorAssignmentSheetState
   void initState() {
     super.initState();
     final initial = widget.initialAssignment;
-    _selectedClassId =
-        initial?.classId ??
+    _selectedClassId = initial?.classId ??
         (widget.classes.isNotEmpty ? widget.classes.first.id : null);
-    _selectedUserId =
-        initial?.userId ??
+    _selectedUserId = initial?.userId ??
         (widget.candidates.isNotEmpty ? widget.candidates.first.userId : null);
     _selectedResponsibilityType =
         _responsibilityTypes.contains(initial?.responsibilityType)
-        ? initial!.responsibilityType
-        : 'primary';
+            ? initial!.responsibilityType
+            : 'primary';
     _exceptional = initial?.exceptional ?? false;
     _reasonController = TextEditingController(
       text: initial?.exceptionReason ?? '',
@@ -1160,17 +1164,17 @@ class _ClassCounselorAssignmentSheetState
                     ? 'classes.class_assignments.edit_title'.tr()
                     : 'classes.class_assignments.create_title'.tr(),
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.ink900,
-                ),
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.ink900,
+                    ),
               ),
               const SizedBox(height: 6),
               Text(
                 'classes.class_assignments.form_body'.tr(),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.ink600,
-                  height: 1.35,
-                ),
+                      color: AppColors.ink600,
+                      height: 1.35,
+                    ),
               ),
               const SizedBox(height: 18),
               if (_isEditing) ...[
@@ -1214,8 +1218,8 @@ class _ClassCounselorAssignmentSheetState
                   initialValue: _selectedUserId,
                   isExpanded: true,
                   decoration: InputDecoration(
-                    labelText: 'classes.class_assignments.responsible_label'
-                        .tr(),
+                    labelText:
+                        'classes.class_assignments.responsible_label'.tr(),
                     border: const OutlineInputBorder(),
                   ),
                   items: widget.candidates
@@ -1241,8 +1245,8 @@ class _ClassCounselorAssignmentSheetState
               DropdownButtonFormField<String>(
                 initialValue: _selectedResponsibilityType,
                 decoration: InputDecoration(
-                  labelText: 'classes.class_assignments.responsibility_label'
-                      .tr(),
+                  labelText:
+                      'classes.class_assignments.responsibility_label'.tr(),
                   border: const OutlineInputBorder(),
                 ),
                 items: _responsibilityTypes
@@ -1256,8 +1260,9 @@ class _ClassCounselorAssignmentSheetState
                 onChanged: actionState.isLoading
                     ? null
                     : (value) => setState(
-                        () => _selectedResponsibilityType = value ?? 'primary',
-                      ),
+                          () =>
+                              _selectedResponsibilityType = value ?? 'primary',
+                        ),
               ),
               const SizedBox(height: 12),
               SwitchListTile.adaptive(
@@ -1386,17 +1391,17 @@ class _ReadOnlyField extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: AppColors.ink500,
-              fontWeight: FontWeight.w700,
-            ),
+                  color: AppColors.ink500,
+                  fontWeight: FontWeight.w700,
+                ),
           ),
           const SizedBox(height: 4),
           Text(
             value,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.ink900,
-              fontWeight: FontWeight.w700,
-            ),
+                  color: AppColors.ink900,
+                  fontWeight: FontWeight.w700,
+                ),
           ),
         ],
       ),

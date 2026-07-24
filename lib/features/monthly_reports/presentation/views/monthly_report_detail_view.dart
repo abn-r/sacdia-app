@@ -260,8 +260,8 @@ class _ReportDetail extends ConsumerWidget {
                         value: _yesNo(manual?.literatureDistributed),
                       ),
                       _InfoRow(
-                        label: 'monthly_reports.detail.baptized_this_month'
-                            .tr(),
+                        label:
+                            'monthly_reports.detail.baptized_this_month'.tr(),
                         value: _dash(manual?.baptizedThisMonth),
                       ),
                       _InfoRow(
@@ -271,8 +271,8 @@ class _ReportDetail extends ConsumerWidget {
                       if (manual?.clubParticipationDescription?.isNotEmpty ==
                           true)
                         _Paragraph(
-                          label: 'monthly_reports.detail.club_participation'
-                              .tr(),
+                          label:
+                              'monthly_reports.detail.club_participation'.tr(),
                           value: manual!.clubParticipationDescription!,
                         ),
                     ],
@@ -397,8 +397,8 @@ class _StickyActionBarState extends ConsumerState<_StickyActionBar> {
           text: widget.report.canEditManualData
               ? 'monthly_reports.detail.edit_manual_data'.tr()
               : (_isOpeningPdf
-                    ? 'monthly_reports.detail.downloading_pdf'.tr()
-                    : 'monthly_reports.detail.view_pdf_button'.tr()),
+                  ? 'monthly_reports.detail.downloading_pdf'.tr()
+                  : 'monthly_reports.detail.view_pdf_button'.tr()),
           icon: widget.report.canEditManualData
               ? HugeIcons.strokeRoundedNoteEdit
               : HugeIcons.strokeRoundedPdf01,

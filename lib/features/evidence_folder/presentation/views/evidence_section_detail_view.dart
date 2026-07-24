@@ -58,8 +58,7 @@ class _EvidenceSectionDetailViewState
       evidenceSectionNotifierProvider(widget.clubSectionId),
     );
 
-    final canModify =
-        (widget.section.status == EvidenceSectionStatus.pending ||
+    final canModify = (widget.section.status == EvidenceSectionStatus.pending ||
             widget.section.status == EvidenceSectionStatus.rejected) &&
         widget.folderIsOpen;
 
@@ -99,9 +98,9 @@ class _EvidenceSectionDetailViewState
           title: Text(
             'evidence_folder.section_title'.tr(),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: c.text,
-            ),
+                  fontWeight: FontWeight.w700,
+                  color: c.text,
+                ),
             overflow: TextOverflow.ellipsis,
           ),
           backgroundColor: c.background,
@@ -123,8 +122,7 @@ class _EvidenceSectionDetailViewState
                   _stagingManagerKey.currentState?.submitForValidation();
                 },
                 canSubmit: _canSubmitFromStagingManager(canModify),
-                isLoading:
-                    notifierState.isLoading ||
+                isLoading: notifierState.isLoading ||
                     (_stagingManagerKey.currentState?.isLoadingForActionBar ??
                         false),
               )
@@ -144,21 +142,21 @@ class _EvidenceSectionDetailViewState
                       children: [
                         Text(
                           'evidence_folder.section_detail_label'.tr(),
-                          style: Theme.of(context).textTheme.labelSmall
-                              ?.copyWith(
-                                color: c.textSecondary,
-                                letterSpacing: 0.8,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: c.textSecondary,
+                                    letterSpacing: 0.8,
+                                  ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           widget.section.name,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: c.text,
-                                height: 1.25,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: c.text,
+                                    height: 1.25,
+                                  ),
                         ),
                       ],
                     ),
@@ -177,9 +175,9 @@ class _EvidenceSectionDetailViewState
                     child: Text(
                       'evidence_folder.section_status_label'.tr(),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: c.textSecondary,
-                        letterSpacing: 0.8,
-                      ),
+                            color: c.textSecondary,
+                            letterSpacing: 0.8,
+                          ),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -205,9 +203,9 @@ class _EvidenceSectionDetailViewState
                       child: Text(
                         'evidence_folder.evaluation_result_title'.tr(),
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: c.text,
-                        ),
+                              fontWeight: FontWeight.w700,
+                              color: c.text,
+                            ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -225,9 +223,9 @@ class _EvidenceSectionDetailViewState
                     child: Text(
                       'evidence_folder.evidence_files_title'.tr(),
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: c.text,
-                      ),
+                            fontWeight: FontWeight.w700,
+                            color: c.text,
+                          ),
                     ),
                   ),
 
@@ -417,9 +415,9 @@ class _SectionMetaCard extends StatelessWidget {
             Text(
               section.description!,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: c.textSecondary,
-                height: 1.5,
-              ),
+                    color: c.textSecondary,
+                    height: 1.5,
+                  ),
             ),
             const SizedBox(height: 14),
             Divider(color: c.divider),
@@ -745,10 +743,10 @@ class _EvaluationResultCard extends StatelessWidget {
                         },
                       ),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: AppColors.accentDark,
-                        fontWeight: FontWeight.w600,
-                        height: 1.3,
-                      ),
+                            color: AppColors.accentDark,
+                            fontWeight: FontWeight.w600,
+                            height: 1.3,
+                          ),
                     ),
                   ),
                 ],
@@ -776,10 +774,10 @@ class _EvaluationResultCard extends StatelessWidget {
                         },
                       ),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: AppColors.secondaryDark,
-                        fontWeight: FontWeight.w600,
-                        height: 1.3,
-                      ),
+                            color: AppColors.secondaryDark,
+                            fontWeight: FontWeight.w600,
+                            height: 1.3,
+                          ),
                     ),
                   ),
                 ],
@@ -803,9 +801,9 @@ class _EvaluationResultCard extends StatelessWidget {
             Text(
               section.evaluationNotes!,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.secondaryDark,
-                height: 1.5,
-              ),
+                    color: AppColors.secondaryDark,
+                    height: 1.5,
+                  ),
             ),
           ],
         ],
@@ -841,9 +839,9 @@ class _ReviewerNotesBlock extends StatelessWidget {
           Text(
             'evidence_folder.reviewer_comments'.tr(),
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: context.sac.textSecondary,
-              letterSpacing: 0.8,
-            ),
+                  color: context.sac.textSecondary,
+                  letterSpacing: 0.8,
+                ),
           ),
           const SizedBox(height: 8),
           ...filesWithNotes.map(
@@ -881,13 +879,11 @@ class _ReviewerNoteCalloutState extends State<_ReviewerNoteCallout> {
 
     // Colores info (azul suave) — dark-mode aware, reutiliza los tokens de
     // AppColors.statusInfoBg* que ya existen para el estado "enviado".
-    final bgColor = isDark
-        ? AppColors.statusInfoBgDark
-        : AppColors.statusInfoBgLight;
+    final bgColor =
+        isDark ? AppColors.statusInfoBgDark : AppColors.statusInfoBgLight;
     final borderColor = AppColors.info.withValues(alpha: isDark ? 0.3 : 0.35);
-    final noteColor = isDark
-        ? AppColors.statusInfoTextDark
-        : AppColors.statusInfoText;
+    final noteColor =
+        isDark ? AppColors.statusInfoTextDark : AppColors.statusInfoText;
     final labelColor = isDark
         ? AppColors.statusInfoTextDark.withValues(alpha: 0.7)
         : AppColors.statusInfoText.withValues(alpha: 0.75);

@@ -50,10 +50,10 @@ class ClubRankingsScreen extends ConsumerWidget {
         title: Text(
           tr('rankings.annual_progress.title'),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-            color: c.text,
-            letterSpacing: -0.2,
-          ),
+                fontWeight: FontWeight.w800,
+                color: c.text,
+                letterSpacing: -0.2,
+              ),
         ),
         centerTitle: true,
         elevation: 0,
@@ -221,7 +221,11 @@ class _ProgressHeroCard extends StatelessWidget {
 
     return Semantics(
       label:
-          '${tr('rankings.annual_progress.header_title')}, ${_formatPoints(progress.currentPoints)} ${tr('rankings.annual_progress.points_of_total', namedArgs: {'total': _formatPoints(progress.maxPoints)})}, ${tr('rankings.annual_progress.progress_percentage', namedArgs: {'percent': progress.progressPercentage.toStringAsFixed(0)})}',
+          '${tr('rankings.annual_progress.header_title')}, ${_formatPoints(progress.currentPoints)} ${tr('rankings.annual_progress.points_of_total', namedArgs: {
+            'total': _formatPoints(progress.maxPoints)
+          })}, ${tr('rankings.annual_progress.progress_percentage', namedArgs: {
+            'percent': progress.progressPercentage.toStringAsFixed(0)
+          })}',
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
@@ -492,9 +496,8 @@ class _NextTierCard extends StatelessWidget {
     final pointsToReach = tier.pointsToReach;
     final palette = _tierPaletteFor(context, tier);
     final threshold = tier.fromPoints > 0 ? tier.fromPoints : tier.toPoints;
-    final toward = threshold > 0
-        ? (currentPoints / threshold).clamp(0.0, 1.0)
-        : 0.0;
+    final toward =
+        threshold > 0 ? (currentPoints / threshold).clamp(0.0, 1.0) : 0.0;
 
     return Container(
       width: double.infinity,
@@ -672,9 +675,8 @@ class _TierMedal extends StatelessWidget {
             ? HugeIcons.strokeRoundedLock
             : HugeIcons.strokeRoundedAward01,
         size: size * 0.48,
-        color: locked
-            ? palette.foreground
-            : Colors.white.withValues(alpha: 0.95),
+        color:
+            locked ? palette.foreground : Colors.white.withValues(alpha: 0.95),
       ),
     );
   }
