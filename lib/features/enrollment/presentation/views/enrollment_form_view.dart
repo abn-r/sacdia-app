@@ -243,7 +243,8 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
     }
 
     final deputyChanged = !_listsEqual(newDeputyIds, _deputyDirectorIds);
-    final changed = deputyChanged ||
+    final changed =
+        deputyChanged ||
         newSecretaryId != _secretaryId ||
         newTreasurerId != _treasurerId ||
         newSecretaryTreasurerId != _secretaryTreasurerId;
@@ -395,8 +396,9 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
         deputyDirectorIds: _deputyDirectorIds,
         secretaryId: _useSecretaryTreasurer ? null : _secretaryId,
         treasurerId: _useSecretaryTreasurer ? null : _treasurerId,
-        secretaryTreasurerId:
-            widget.hasSecretaryTreasurerRole ? _secretaryTreasurerId : null,
+        secretaryTreasurerId: widget.hasSecretaryTreasurerRole
+            ? _secretaryTreasurerId
+            : null,
       );
     } else {
       success = await notifier.create(
@@ -413,8 +415,9 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
         deputyDirectorIds: _deputyDirectorIds,
         secretaryId: _useSecretaryTreasurer ? null : _secretaryId,
         treasurerId: _useSecretaryTreasurer ? null : _treasurerId,
-        secretaryTreasurerId:
-            widget.hasSecretaryTreasurerRole ? _secretaryTreasurerId : null,
+        secretaryTreasurerId: widget.hasSecretaryTreasurerRole
+            ? _secretaryTreasurerId
+            : null,
       );
     }
 
@@ -423,13 +426,16 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_isEdit
-              ? 'enrollment.form.success_updated'.tr()
-              : 'enrollment.form.success_created'.tr()),
+          content: Text(
+            _isEdit
+                ? 'enrollment.form.success_updated'.tr()
+                : 'enrollment.form.success_created'.tr(),
+          ),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
       Navigator.of(context).pop(true);
@@ -462,12 +468,14 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
     // El director es el usuario actual con rol director (display-only)
     final directorMember = currentUserCtx?.isDirector == true
         ? members
-            .where((m) =>
-                m.clubRole?.toLowerCase().contains('director') == true &&
-                !m.clubRole!.toLowerCase().contains('sub') &&
-                !m.clubRole!.toLowerCase().contains('vice') &&
-                !m.clubRole!.toLowerCase().contains('deputy'))
-            .firstOrNull
+              .where(
+                (m) =>
+                    m.clubRole?.toLowerCase().contains('director') == true &&
+                    !m.clubRole!.toLowerCase().contains('sub') &&
+                    !m.clubRole!.toLowerCase().contains('vice') &&
+                    !m.clubRole!.toLowerCase().contains('deputy'),
+              )
+              .firstOrNull
         : null;
 
     return Scaffold(
@@ -492,8 +500,9 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
             color: c.text,
             size: 22,
           ),
-          onPressed:
-              formState.isLoading ? null : () => Navigator.of(context).pop(),
+          onPressed: formState.isLoading
+              ? null
+              : () => Navigator.of(context).pop(),
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
@@ -529,10 +538,7 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
             const SizedBox(height: 4),
             Text(
               'enrollment.form.schedule_hint'.tr(),
-              style: TextStyle(
-                fontSize: 12,
-                color: c.textTertiary,
-              ),
+              style: TextStyle(fontSize: 12, color: c.textTertiary),
             ),
             const SizedBox(height: 12),
 
@@ -669,8 +675,8 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
               _ToggleRow(
                 icon: HugeIcons.strokeRoundedUserShield01,
                 label: 'enrollment.form.label_use_secretary_treasurer'.tr(),
-                subtitle:
-                    'enrollment.form.subtitle_use_secretary_treasurer'.tr(),
+                subtitle: 'enrollment.form.subtitle_use_secretary_treasurer'
+                    .tr(),
                 value: _secretaryTreasurerId != null,
                 enabled: !formState.isLoading,
                 onChanged: (v) => setState(() {
@@ -721,15 +727,16 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
             if (widget.hasSecretaryTreasurerRole &&
                 _secretaryTreasurerId != null) ...[
               _FieldLabel(
-                  label: 'enrollment.form.label_secretary_treasurer'.tr()),
+                label: 'enrollment.form.label_secretary_treasurer'.tr(),
+              ),
               const SizedBox(height: 8),
               _SingleMemberSelector(
                 selectedId: _secretaryTreasurerId!.isEmpty
                     ? null
                     : _secretaryTreasurerId,
                 members: members,
-                placeholder:
-                    'enrollment.form.placeholder_secretary_treasurer'.tr(),
+                placeholder: 'enrollment.form.placeholder_secretary_treasurer'
+                    .tr(),
                 emptyMessage: 'enrollment.form.empty_members'.tr(),
                 enabled: !formState.isLoading && members.isNotEmpty,
                 onChanged: (id) => setState(() => _secretaryTreasurerId = id),
@@ -786,7 +793,6 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
       ),
     );
   }
-
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -895,8 +901,8 @@ class _LocationPickerField extends StatelessWidget {
             color: hasError
                 ? AppColors.error
                 : hasResult
-                    ? AppColors.primary
-                    : c.border,
+                ? AppColors.primary
+                : c.border,
             width: hasResult || hasError ? 1.5 : 1,
           ),
         ),
@@ -907,8 +913,8 @@ class _LocationPickerField extends StatelessWidget {
               color: hasError
                   ? AppColors.error
                   : hasResult
-                      ? AppColors.primary
-                      : c.textTertiary,
+                  ? AppColors.primary
+                  : c.textTertiary,
               size: 20,
             ),
             const SizedBox(width: 12),
@@ -930,10 +936,7 @@ class _LocationPickerField extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           '${result!.lat.toStringAsFixed(5)}, ${result!.long.toStringAsFixed(5)}',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: c.textTertiary,
-                          ),
+                          style: TextStyle(fontSize: 11, color: c.textTertiary),
                         ),
                       ],
                     )
@@ -1134,10 +1137,7 @@ class _ToggleRow extends StatelessWidget {
                 if (subtitle != null)
                   Text(
                     subtitle!,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: c.textSecondary,
-                    ),
+                    style: TextStyle(fontSize: 12, color: c.textSecondary),
                   ),
               ],
             ),
@@ -1159,10 +1159,7 @@ class _ReadOnlyMemberField extends StatelessWidget {
   final ClubMember? member;
   final String placeholder;
 
-  const _ReadOnlyMemberField({
-    this.member,
-    required this.placeholder,
-  });
+  const _ReadOnlyMemberField({this.member, required this.placeholder});
 
   @override
   Widget build(BuildContext context) {
@@ -1198,10 +1195,7 @@ class _ReadOnlyMemberField extends StatelessWidget {
                       Text(
                         member!.clubRole ??
                             'enrollment.form.role_director'.tr(),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: c.textSecondary,
-                        ),
+                        style: TextStyle(fontSize: 12, color: c.textSecondary),
                       ),
                     ],
                   )
@@ -1310,10 +1304,7 @@ class _SingleMemberSelector extends StatelessWidget {
                     )
                   : Text(
                       members.isEmpty ? emptyMessage : placeholder,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: c.textTertiary,
-                      ),
+                      style: TextStyle(fontSize: 14, color: c.textTertiary),
                     ),
             ),
             if (selected != null && onClear != null)
@@ -1378,8 +1369,9 @@ class _MultiMemberSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final selectedMembers =
-        members.where((m) => selectedIds.contains(m.userId)).toList();
+    final selectedMembers = members
+        .where((m) => selectedIds.contains(m.userId))
+        .toList();
 
     return GestureDetector(
       onTap: enabled && members.isNotEmpty
@@ -1589,14 +1581,13 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                     ),
                     if (widget.multiSelect)
                       Text(
-                        'enrollment.picker.selected_count'.tr(namedArgs: {
-                          'current': '${_selected.length}',
-                          'max': '${widget.maxSelect}',
-                        }),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: c.textSecondary,
+                        'enrollment.picker.selected_count'.tr(
+                          namedArgs: {
+                            'current': '${_selected.length}',
+                            'max': '${widget.maxSelect}',
+                          },
                         ),
+                        style: TextStyle(fontSize: 12, color: c.textSecondary),
                       ),
                   ],
                 ),
@@ -1641,11 +1632,15 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide:
-                      const BorderSide(color: AppColors.primary, width: 1.5),
+                  borderSide: const BorderSide(
+                    color: AppColors.primary,
+                    width: 1.5,
+                  ),
                 ),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
               ),
             ),
           ),
@@ -1666,14 +1661,16 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                     itemBuilder: (_, i) {
                       final member = filtered[i];
                       final isSelected = _selected.contains(member.userId);
-                      final canSelect = isSelected ||
+                      final canSelect =
+                          isSelected ||
                           !widget.multiSelect ||
                           _selected.length < widget.maxSelect;
 
                       return ListTile(
                         leading: CircleAvatar(
-                          backgroundColor:
-                              AppColors.primary.withValues(alpha: 0.15),
+                          backgroundColor: AppColors.primary.withValues(
+                            alpha: 0.15,
+                          ),
                           radius: 18,
                           child: Text(
                             member.initials,

@@ -19,7 +19,8 @@ class OrderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final hasFolio = order.folioReferencia != null &&
+    final hasFolio =
+        order.folioReferencia != null &&
         order.folioReferencia!.trim().isNotEmpty;
     final folio = hasFolio
         ? order.folioReferencia!

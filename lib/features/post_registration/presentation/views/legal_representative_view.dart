@@ -45,8 +45,9 @@ class _LegalRepresentativeViewState
             // Buscar el ID del tipo de relación que coincida con el nombre guardado
             final typesAsync = ref.read(relationshipTypesProvider);
             typesAsync.whenData((types) {
-              final match = types
-                  .where((t) => t.name.toLowerCase() == rep.type.toLowerCase());
+              final match = types.where(
+                (t) => t.name.toLowerCase() == rep.type.toLowerCase(),
+              );
               if (match.isNotEmpty && mounted) {
                 setState(() => _selectedTypeId = match.first.id);
               }
@@ -95,7 +96,8 @@ class _LegalRepresentativeViewState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                'post_registration.legal_representative.save_success'.tr()),
+              'post_registration.legal_representative.save_success'.tr(),
+            ),
             backgroundColor: AppColors.secondary,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -110,8 +112,9 @@ class _LegalRepresentativeViewState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'post_registration.legal_representative.error_saving'
-                  .tr(namedArgs: {'error': e.toString()}),
+              'post_registration.legal_representative.error_saving'.tr(
+                namedArgs: {'error': e.toString()},
+              ),
             ),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
@@ -151,8 +154,8 @@ class _LegalRepresentativeViewState
             IconButton(
               icon: HugeIcon(icon: HugeIcons.strokeRoundedTick02, size: 24),
               onPressed: _handleSave,
-              tooltip:
-                  'post_registration.legal_representative.save_tooltip'.tr(),
+              tooltip: 'post_registration.legal_representative.save_tooltip'
+                  .tr(),
             ),
         ],
       ),
@@ -167,16 +170,18 @@ class _LegalRepresentativeViewState
               decoration: BoxDecoration(
                 color: AppColors.accentLight,
                 borderRadius: BorderRadius.circular(8),
-                border:
-                    Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: AppColors.accent.withValues(alpha: 0.3),
+                ),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   HugeIcon(
-                      icon: HugeIcons.strokeRoundedInformationCircle,
-                      color: AppColors.accentDark,
-                      size: 20),
+                    icon: HugeIcons.strokeRoundedInformationCircle,
+                    color: AppColors.accentDark,
+                    size: 20,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -263,11 +268,10 @@ class _LegalRepresentativeViewState
             // Nombre
             SacTextField(
               controller: _nameController,
-              label:
-                  'post_registration.legal_representative.first_name_label'
-                      .tr(),
-              hint:
-                  'post_registration.legal_representative.first_name_hint'.tr(),
+              label: 'post_registration.legal_representative.first_name_label'
+                  .tr(),
+              hint: 'post_registration.legal_representative.first_name_hint'
+                  .tr(),
               prefixIcon: HugeIcons.strokeRoundedUser,
               textCapitalization: TextCapitalization.words,
               validator: (value) {
@@ -366,15 +370,14 @@ class _LegalRepresentativeViewState
               height: 48,
               child: ElevatedButton.icon(
                 icon: _isLoading
-                    ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: SacLoadingSmall(),
-                      )
+                    ? SizedBox(width: 20, height: 20, child: SacLoadingSmall())
                     : const HugeIcon(
-                        icon: HugeIcons.strokeRoundedFloppyDisk, size: 22),
+                        icon: HugeIcons.strokeRoundedFloppyDisk,
+                        size: 22,
+                      ),
                 label: Text(
-                    'post_registration.legal_representative.save_button'.tr()),
+                  'post_registration.legal_representative.save_button'.tr(),
+                ),
                 onPressed: _isLoading ? null : _handleSave,
               ),
             ),

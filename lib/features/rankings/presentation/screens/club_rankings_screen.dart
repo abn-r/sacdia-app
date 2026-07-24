@@ -50,10 +50,10 @@ class ClubRankingsScreen extends ConsumerWidget {
         title: Text(
           tr('rankings.annual_progress.title'),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: c.text,
-                letterSpacing: -0.2,
-              ),
+            fontWeight: FontWeight.w800,
+            color: c.text,
+            letterSpacing: -0.2,
+          ),
         ),
         centerTitle: true,
         elevation: 0,
@@ -221,11 +221,7 @@ class _ProgressHeroCard extends StatelessWidget {
 
     return Semantics(
       label:
-          '${tr('rankings.annual_progress.header_title')}, ${_formatPoints(progress.currentPoints)} ${tr('rankings.annual_progress.points_of_total', namedArgs: {
-            'total': _formatPoints(progress.maxPoints),
-          })}, ${tr('rankings.annual_progress.progress_percentage', namedArgs: {
-            'percent': progress.progressPercentage.toStringAsFixed(0),
-          })}',
+          '${tr('rankings.annual_progress.header_title')}, ${_formatPoints(progress.currentPoints)} ${tr('rankings.annual_progress.points_of_total', namedArgs: {'total': _formatPoints(progress.maxPoints)})}, ${tr('rankings.annual_progress.progress_percentage', namedArgs: {'percent': progress.progressPercentage.toStringAsFixed(0)})}',
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
@@ -466,11 +462,7 @@ class _CurrentTierBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _TierMedal(
-            tier: tier,
-            size: 26,
-            locked: !hasTier,
-          ),
+          _TierMedal(tier: tier, size: 26, locked: !hasTier),
           const SizedBox(width: 8),
           Text(
             label,
@@ -492,10 +484,7 @@ class _NextTierCard extends StatelessWidget {
   final RankingTier tier;
   final int currentPoints;
 
-  const _NextTierCard({
-    required this.tier,
-    required this.currentPoints,
-  });
+  const _NextTierCard({required this.tier, required this.currentPoints});
 
   @override
   Widget build(BuildContext context) {
@@ -520,9 +509,7 @@ class _NextTierCard extends StatelessWidget {
           ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: palette.foreground.withValues(alpha: 0.22),
-        ),
+        border: Border.all(color: palette.foreground.withValues(alpha: 0.22)),
         boxShadow: [
           BoxShadow(
             color: palette.foreground.withValues(alpha: 0.12),
@@ -537,12 +524,7 @@ class _NextTierCard extends StatelessWidget {
             right: -18,
             top: -22,
             // colorFilter evita Opacity+SVG (Impeller SetInheritedOpacity break).
-            child: _TierMedal(
-              tier: tier,
-              size: 110,
-              locked: false,
-              fade: 0.18,
-            ),
+            child: _TierMedal(tier: tier, size: 110, locked: false, fade: 0.18),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 14, 16, 14),
@@ -593,9 +575,7 @@ class _NextTierCard extends StatelessWidget {
                         Text(
                           tr(
                             'rankings.annual_progress.points_to_reach',
-                            namedArgs: {
-                              'points': _formatPoints(pointsToReach),
-                            },
+                            namedArgs: {'points': _formatPoints(pointsToReach)},
                           ),
                           style: TextStyle(
                             color: c.text.withValues(alpha: 0.72),
@@ -608,8 +588,9 @@ class _NextTierCard extends StatelessWidget {
                       const SizedBox(height: 10),
                       _AnimatedProgressBar(
                         value: toward,
-                        backgroundColor:
-                            palette.foreground.withValues(alpha: 0.12),
+                        backgroundColor: palette.foreground.withValues(
+                          alpha: 0.12,
+                        ),
                         color: palette.foreground,
                         height: 5,
                       ),
@@ -846,11 +827,7 @@ class _AxisSection extends StatelessWidget {
                   },
                 ),
                 style: TextStyle(
-                  color: _progressColorFor(
-                    percent,
-                    c,
-                    activeColor: accent,
-                  ),
+                  color: _progressColorFor(percent, c, activeColor: accent),
                   fontSize: 12.5,
                   fontWeight: FontWeight.w800,
                   fontFeatures: const [FontFeature.tabularFigures()],
@@ -969,9 +946,7 @@ class _PendingItemsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _SectionHeading(
-            title: tr('rankings.annual_progress.pending.title'),
-          ),
+          _SectionHeading(title: tr('rankings.annual_progress.pending.title')),
           const SizedBox(height: 12),
           if (!hasItems)
             Text(
@@ -1113,10 +1088,8 @@ class _AnimatedPoints extends StatelessWidget {
       tween: Tween<double>(begin: 0, end: value.toDouble()),
       duration: reduce ? Duration.zero : const Duration(milliseconds: 700),
       curve: SacMotion.easeOut,
-      builder: (context, animated, _) => Text(
-        _formatPoints(animated.round()),
-        style: style,
-      ),
+      builder: (context, animated, _) =>
+          Text(_formatPoints(animated.round()), style: style),
     );
   }
 }

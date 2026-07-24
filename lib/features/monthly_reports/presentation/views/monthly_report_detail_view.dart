@@ -71,8 +71,7 @@ class _ReportDetail extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final snapshot = report.snapshot;
     final manual = report.manualData;
-    final showSticky =
-        report.canEditManualData || report.canDownloadPdf;
+    final showSticky = report.canEditManualData || report.canDownloadPdf;
 
     return Column(
       children: [
@@ -84,9 +83,7 @@ class _ReportDetail extends ConsumerWidget {
             child: ListView(
               padding: EdgeInsets.fromLTRB(20, 8, 20, showSticky ? 24 : 36),
               children: [
-                MonthlyReportEntrance(
-                  child: _ReportHeaderCard(report: report),
-                ),
+                MonthlyReportEntrance(child: _ReportHeaderCard(report: report)),
                 const SizedBox(height: 18),
                 MonthlyReportEntrance(
                   index: 1,
@@ -117,15 +114,13 @@ class _ReportDetail extends ConsumerWidget {
                         value: _dash(manual?.parentMeetings),
                       ),
                       _InfoRow(
-                        label:
-                            'monthly_reports.detail.youth_council_attendance'
-                                .tr(),
+                        label: 'monthly_reports.detail.youth_council_attendance'
+                            .tr(),
                         value: _dash(manual?.youthCouncilAttendance),
                       ),
                       _InfoRow(
-                        label:
-                            'monthly_reports.detail.church_board_attendance'
-                                .tr(),
+                        label: 'monthly_reports.detail.church_board_attendance'
+                            .tr(),
                         value: _dash(manual?.churchBoardAttendance),
                       ),
                       if ((snapshot?.directiva ?? const []).isNotEmpty) ...[
@@ -187,8 +182,9 @@ class _ReportDetail extends ConsumerWidget {
                             subtitle: [
                               if (activity.type != null) activity.type,
                               if (activity.date != null)
-                                DateFormat('dd/MM/yyyy')
-                                    .format(activity.date!.toLocal()),
+                                DateFormat(
+                                  'dd/MM/yyyy',
+                                ).format(activity.date!.toLocal()),
                               if (activity.attendees != null)
                                 '${activity.attendees} asistentes',
                             ].join(' · '),
@@ -264,7 +260,8 @@ class _ReportDetail extends ConsumerWidget {
                         value: _yesNo(manual?.literatureDistributed),
                       ),
                       _InfoRow(
-                        label: 'monthly_reports.detail.baptized_this_month'.tr(),
+                        label: 'monthly_reports.detail.baptized_this_month'
+                            .tr(),
                         value: _dash(manual?.baptizedThisMonth),
                       ),
                       _InfoRow(
@@ -274,8 +271,8 @@ class _ReportDetail extends ConsumerWidget {
                       if (manual?.clubParticipationDescription?.isNotEmpty ==
                           true)
                         _Paragraph(
-                          label:
-                              'monthly_reports.detail.club_participation'.tr(),
+                          label: 'monthly_reports.detail.club_participation'
+                              .tr(),
                           value: manual!.clubParticipationDescription!,
                         ),
                     ],
@@ -349,8 +346,9 @@ class _StickyActionBarState extends ConsumerState<_StickyActionBar> {
           behavior: SnackBarBehavior.floating,
         ),
       );
-      final localPath =
-          await ref.read(monthlyReportPdfProvider(widget.report.id).future);
+      final localPath = await ref.read(
+        monthlyReportPdfProvider(widget.report.id).future,
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       SacPdfViewer.show(
@@ -399,8 +397,8 @@ class _StickyActionBarState extends ConsumerState<_StickyActionBar> {
           text: widget.report.canEditManualData
               ? 'monthly_reports.detail.edit_manual_data'.tr()
               : (_isOpeningPdf
-                  ? 'monthly_reports.detail.downloading_pdf'.tr()
-                  : 'monthly_reports.detail.view_pdf_button'.tr()),
+                    ? 'monthly_reports.detail.downloading_pdf'.tr()
+                    : 'monthly_reports.detail.view_pdf_button'.tr()),
           icon: widget.report.canEditManualData
               ? HugeIcons.strokeRoundedNoteEdit
               : HugeIcons.strokeRoundedPdf01,
@@ -437,8 +435,10 @@ class _ReportHeaderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final period = '${report.monthName} ${report.year}';
-    final clubContext =
-        [report.clubName, report.clubType].whereType<String>().join(' · ');
+    final clubContext = [
+      report.clubName,
+      report.clubType,
+    ].whereType<String>().join(' · ');
 
     return Container(
       width: double.infinity,
@@ -539,9 +539,7 @@ class _GeneratedNote extends StatelessWidget {
     final c = context.sac;
     return Text(
       'monthly_reports.visible.generated_on'.tr(
-        namedArgs: {
-          'date': DateFormat('dd/MM/yyyy').format(date.toLocal()),
-        },
+        namedArgs: {'date': DateFormat('dd/MM/yyyy').format(date.toLocal())},
       ),
       style: TextStyle(
         color: c.textTertiary,
@@ -561,45 +559,53 @@ class _KpiGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final finances = report.snapshot?.finances;
-    return Column(children: [
-      Row(children: [
-        Expanded(
-          child: _KpiCard(
-            label: 'monthly_reports.detail.stat_activities'.tr(),
-            value: _dash(
-              report.snapshot?.activities.total ?? report.totalActivities,
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _KpiCard(
+                label: 'monthly_reports.detail.stat_activities'.tr(),
+                value: _dash(
+                  report.snapshot?.activities.total ?? report.totalActivities,
+                ),
+                icon: HugeIcons.strokeRoundedCalendar01,
+              ),
             ),
-            icon: HugeIcons.strokeRoundedCalendar01,
-          ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _KpiCard(
+                label: 'monthly_reports.detail.stat_members'.tr(),
+                value: _dash(
+                  report.snapshot?.memberCount ?? report.totalMembers,
+                ),
+                icon: HugeIcons.strokeRoundedUserMultiple,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _KpiCard(
-            label: 'monthly_reports.detail.stat_members'.tr(),
-            value: _dash(report.snapshot?.memberCount ?? report.totalMembers),
-            icon: HugeIcons.strokeRoundedUserMultiple,
-          ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _KpiCard(
+                label: 'monthly_reports.detail.month_balance'.tr(),
+                value: _money(finances?.balance),
+                icon: HugeIcons.strokeRoundedAnalytics01,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _KpiCard(
+                label: 'monthly_reports.detail.club_total_balance'.tr(),
+                value: _money(finances?.totalBalance),
+                icon: HugeIcons.strokeRoundedAnalytics01,
+              ),
+            ),
+          ],
         ),
-      ]),
-      const SizedBox(height: 12),
-      Row(children: [
-        Expanded(
-          child: _KpiCard(
-            label: 'monthly_reports.detail.month_balance'.tr(),
-            value: _money(finances?.balance),
-            icon: HugeIcons.strokeRoundedAnalytics01,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _KpiCard(
-            label: 'monthly_reports.detail.club_total_balance'.tr(),
-            value: _money(finances?.totalBalance),
-            icon: HugeIcons.strokeRoundedAnalytics01,
-          ),
-        ),
-      ]),
-    ]);
+      ],
+    );
   }
 }
 
@@ -865,22 +871,13 @@ class _StatusConfig {
 _StatusConfig _statusConfig(MonthlyReportStatus status) {
   switch (status) {
     case MonthlyReportStatus.approved:
-      return const _StatusConfig(
-        bg: Color(0xFFD1FAE5),
-        fg: Color(0xFF047857),
-      );
+      return const _StatusConfig(bg: Color(0xFFD1FAE5), fg: Color(0xFF047857));
     case MonthlyReportStatus.rejected:
       return _StatusConfig(bg: AppColors.errorLight, fg: AppColors.errorDark);
     case MonthlyReportStatus.submitted:
-      return const _StatusConfig(
-        bg: Color(0xFFDBEAFE),
-        fg: Color(0xFF1D4ED8),
-      );
+      return const _StatusConfig(bg: Color(0xFFDBEAFE), fg: Color(0xFF1D4ED8));
     case MonthlyReportStatus.generated:
-      return const _StatusConfig(
-        bg: Color(0xFFDCFCE7),
-        fg: Color(0xFF15803D),
-      );
+      return const _StatusConfig(bg: Color(0xFFDCFCE7), fg: Color(0xFF15803D));
     case MonthlyReportStatus.draft:
       return _StatusConfig(bg: AppColors.accentLight, fg: AppColors.accentDark);
   }

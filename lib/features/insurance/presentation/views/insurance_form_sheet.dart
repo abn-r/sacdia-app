@@ -102,10 +102,9 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                   _isEditing
                       ? 'insurance.form.title_edit'.tr()
                       : 'insurance.form.title_create'.tr(),
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w700),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
@@ -200,11 +199,13 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                       controller: _amountController,
                       hint: 'insurance.form.hint_amount'.tr(),
                       prefixText: '\$',
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
-                            RegExp(r'^\d+\.?\d{0,2}')),
+                          RegExp(r'^\d+\.?\d{0,2}'),
+                        ),
                       ],
                     ),
 
@@ -218,8 +219,9 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                     ),
                     const SizedBox(height: 6),
                     _EvidenceUploader(
-                      currentFile:
-                          ref.watch(insuranceFormNotifierProvider).selectedFile,
+                      currentFile: ref
+                          .watch(insuranceFormNotifierProvider)
+                          .selectedFile,
                       existingFileUrl: _isEditing
                           ? widget.existingInsurance?.evidenceFileUrl
                           : null,
@@ -260,7 +262,9 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                         ),
                         child: formState.isLoading
                             ? const CircularProgressIndicator(
-                                color: Colors.white, strokeWidth: 2)
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              )
                             : Text(
                                 _isEditing
                                     ? 'insurance.form.button_save_edit'.tr()
@@ -348,7 +352,9 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
         ? double.tryParse(_amountController.text)
         : null;
 
-    final success = await ref.read(insuranceFormNotifierProvider.notifier).save(
+    final success = await ref
+        .read(insuranceFormNotifierProvider.notifier)
+        .save(
           memberId: _memberId,
           insuranceType: _insuranceType,
           startDate: _startDate!,
@@ -360,17 +366,20 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
               ? null
               : _providerController.text.trim(),
           coverageAmount: amount,
-          existingInsuranceId:
-              _isEditing ? widget.existingInsurance!.insuranceId : null,
+          existingInsuranceId: _isEditing
+              ? widget.existingInsurance!.insuranceId
+              : null,
         );
 
     if (success && mounted) {
       ref.read(insuranceFormNotifierProvider.notifier).reset();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_isEditing
-              ? 'insurance.form.success_updated'.tr()
-              : 'insurance.form.success_created'.tr()),
+          content: Text(
+            _isEditing
+                ? 'insurance.form.success_updated'.tr()
+                : 'insurance.form.success_created'.tr(),
+          ),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
         ),
@@ -378,7 +387,6 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
       Navigator.pop(context, true);
     }
   }
-
 }
 
 // ── Insurance type selector ───────────────────────────────────────────────────
@@ -405,8 +413,9 @@ class _InsuranceTypeSelector extends StatelessWidget {
               duration: const Duration(milliseconds: 150),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
-                color:
-                    isSelected ? AppColors.primarySurface : Colors.transparent,
+                color: isSelected
+                    ? AppColors.primarySurface
+                    : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isSelected
@@ -434,10 +443,11 @@ class _InsuranceTypeSelector extends StatelessWidget {
                   Text(
                     t.label,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight:
-                              isSelected ? FontWeight.w700 : FontWeight.w400,
-                          color: isSelected ? AppColors.primaryDark : null,
-                        ),
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w400,
+                      color: isSelected ? AppColors.primaryDark : null,
+                    ),
                   ),
                 ],
               ),
@@ -480,10 +490,9 @@ class _DatePickerField extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
-          color: Theme.of(context)
-              .colorScheme
-              .surfaceContainerHighest
-              .withValues(alpha: 0.4),
+          color: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: Theme.of(context).dividerColor.withValues(alpha: 0.4),
@@ -501,11 +510,11 @@ class _DatePickerField extends StatelessWidget {
               child: Text(
                 formatted,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                      color: selectedDate != null
-                          ? null
-                          : Theme.of(context).hintColor,
-                    ),
+                  fontWeight: FontWeight.w500,
+                  color: selectedDate != null
+                      ? null
+                      : Theme.of(context).hintColor,
+                ),
               ),
             ),
             if (selectedDate != null)
@@ -574,9 +583,7 @@ class _EvidenceUploader extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) => _FilePickerSheet(
-        onSelected: onFileSelected,
-      ),
+      builder: (_) => _FilePickerSheet(onSelected: onFileSelected),
     );
   }
 }
@@ -822,9 +829,9 @@ class _FilePickerSheet extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
             child: Text(
               'insurance.form.picker_title'.tr(),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
           ),
           ListTile(
@@ -916,9 +923,7 @@ class _FilePickerSheet extends StatelessWidget {
               // image_picker no soporta PDF directamente.
               // En producción usar file_picker para PDFs.
               // Por ahora se selecciona desde galería como fallback.
-              final file = await picker.pickImage(
-                source: ImageSource.gallery,
-              );
+              final file = await picker.pickImage(source: ImageSource.gallery);
               onSelected(file);
             },
           ),
@@ -941,9 +946,9 @@ class _SectionLabel extends StatelessWidget {
     return Text(
       text,
       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+        fontWeight: FontWeight.w700,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
     );
   }
 }

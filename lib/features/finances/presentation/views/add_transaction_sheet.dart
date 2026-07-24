@@ -105,8 +105,8 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                       ? 'finances.add_transaction.edit_title'.tr()
                       : 'finances.add_transaction.new_title'.tr(),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
@@ -148,11 +148,13 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                       controller: _amountController,
                       hint: 'finances.add_transaction.amount_hint'.tr(),
                       prefixText: '\$',
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
-                            RegExp(r'^\d*\.?\d{0,2}')),
+                          RegExp(r'^\d*\.?\d{0,2}'),
+                        ),
                       ],
                       validator: (v) {
                         if (v == null || v.isEmpty) {
@@ -171,7 +173,8 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
 
                     // Category
                     _SectionLabel(
-                        'finances.add_transaction.category_label'.tr()),
+                      'finances.add_transaction.category_label'.tr(),
+                    ),
                     const SizedBox(height: 6),
                     categoriesAsync.when(
                       loading: () => const LinearProgressIndicator(),
@@ -192,11 +195,14 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                               : c.appliesToExpense;
                         }).toList();
 
-                        final dropdownValue = _selectedCategory != null &&
-                                filtered
-                                    .any((c) => c.id == _selectedCategory!.id)
+                        final dropdownValue =
+                            _selectedCategory != null &&
+                                filtered.any(
+                                  (c) => c.id == _selectedCategory!.id,
+                                )
                             ? filtered.firstWhere(
-                                (c) => c.id == _selectedCategory!.id)
+                                (c) => c.id == _selectedCategory!.id,
+                              )
                             : null;
 
                         return FormField<FinanceCategory>(
@@ -206,7 +212,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                           initialValue: dropdownValue,
                           validator: (v) => v == null
                               ? 'finances.add_transaction.category_required'
-                                  .tr()
+                                    .tr()
                               : null,
                           builder: (field) => _CategoryPickerField(
                             value: field.value,
@@ -232,7 +238,8 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
 
                     // Description
                     _SectionLabel(
-                        'finances.add_transaction.description_label'.tr()),
+                      'finances.add_transaction.description_label'.tr(),
+                    ),
                     const SizedBox(height: 6),
                     SacTextField(
                       controller: _descController,
@@ -322,9 +329,9 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                             : Text(
                                 _isEditing
                                     ? 'finances.add_transaction.save_button'
-                                        .tr()
+                                          .tr()
                                     : 'finances.add_transaction.register_button'
-                                        .tr(),
+                                          .tr(),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 16,
@@ -359,23 +366,24 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     final clubIdAsync = await ref.read(currentClubIdProvider.future);
     if (clubIdAsync == null) return;
 
-    final success =
-        await ref.read(transactionFormNotifierProvider.notifier).save(
-              clubId: clubIdAsync,
-              categoryId: _selectedCategory!.id,
-              amount: amount,
-              description: _descController.text.trim(),
-              date: _selectedDate,
-              year: selectedMonth.year,
-              month: selectedMonth.month,
-              existingId: _isEditing ? widget.existing!.id : null,
-            );
+    final success = await ref
+        .read(transactionFormNotifierProvider.notifier)
+        .save(
+          clubId: clubIdAsync,
+          categoryId: _selectedCategory!.id,
+          amount: amount,
+          description: _descController.text.trim(),
+          date: _selectedDate,
+          year: selectedMonth.year,
+          month: selectedMonth.month,
+          existingId: _isEditing ? widget.existing!.id : null,
+        );
 
     if (!success || !mounted) return;
 
     final savedTransaction =
         ref.read(transactionFormNotifierProvider).savedTransaction ??
-            widget.existing;
+        widget.existing;
     final financeId = savedTransaction?.id;
     if (financeId == null) return;
 
@@ -470,7 +478,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
         setState(() {
           _evidenceError =
               ref.read(transactionFormNotifierProvider).errorMessage ??
-                  'finances.errors.upload_evidence'.tr();
+              'finances.errors.upload_evidence'.tr();
         });
         return false;
       }
@@ -481,7 +489,6 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
   String _mimeFor(XFile file) {
     return file.mimeType ?? lookupMimeType(file.path) ?? 'image/jpeg';
   }
-
 }
 
 // ── Evidence picker ────────────────────────────────────────────────────────────
@@ -511,9 +518,9 @@ class _EvidencePicker extends StatelessWidget {
       children: [
         Text(
           'finances.add_transaction.evidence_hint'.tr(),
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: context.sac.textSecondary,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: context.sac.textSecondary),
         ),
         const SizedBox(height: 10),
         Wrap(
@@ -524,29 +531,28 @@ class _EvidencePicker extends StatelessWidget {
               (evidence) => _EvidenceTile.network(evidence.url),
             ),
             ...newFiles.map(
-              (file) => _EvidenceTile.file(
-                file,
-                onRemove: () => onRemoveNew(file),
-              ),
+              (file) =>
+                  _EvidenceTile.file(file, onRemove: () => onRemoveNew(file)),
             ),
             if (canAdd) _EvidenceAddTile(onTap: onAdd),
           ],
         ),
         const SizedBox(height: 8),
         Text(
-          'finances.add_transaction.evidence_count'
-              .tr(namedArgs: {'count': total.toString()}),
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: context.sac.textTertiary,
-              ),
+          'finances.add_transaction.evidence_count'.tr(
+            namedArgs: {'count': total.toString()},
+          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: context.sac.textTertiary),
         ),
         if (errorText != null) ...[
           const SizedBox(height: 6),
           Text(
             errorText!,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.error,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: AppColors.error),
           ),
         ],
       ],
@@ -570,10 +576,9 @@ class _EvidenceAddTile extends StatelessWidget {
           width: 92,
           height: 92,
           decoration: BoxDecoration(
-            color: Theme.of(context)
-                .colorScheme
-                .surfaceContainerHighest
-                .withValues(alpha: 0.4),
+            color: Theme.of(
+              context,
+            ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: AppColors.primary.withValues(alpha: 0.35),
@@ -597,9 +602,7 @@ class _EvidenceTile extends StatelessWidget {
   final XFile? file;
   final VoidCallback? onRemove;
 
-  const _EvidenceTile.network(this.url)
-      : file = null,
-        onRemove = null;
+  const _EvidenceTile.network(this.url) : file = null, onRemove = null;
 
   const _EvidenceTile.file(this.file, {required this.onRemove}) : url = null;
 
@@ -692,10 +695,9 @@ class _CategoryPickerField extends StatelessWidget {
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .surfaceContainerHighest
-                      .withValues(alpha: 0.4),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: borderColor,
@@ -724,12 +726,13 @@ class _CategoryPickerField extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight:
-                                  hasValue ? FontWeight.w600 : FontWeight.w500,
-                              color: hasValue
-                                  ? context.sac.text
-                                  : context.sac.textTertiary,
-                            ),
+                          fontWeight: hasValue
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                          color: hasValue
+                              ? context.sac.text
+                              : context.sac.textTertiary,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -750,9 +753,9 @@ class _CategoryPickerField extends StatelessWidget {
             padding: const EdgeInsets.only(left: 12),
             child: Text(
               errorText!,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.error,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: AppColors.error),
             ),
           ),
         ],
@@ -771,10 +774,8 @@ Future<FinanceCategory?> _showCategoryPicker(
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: Colors.transparent,
-    builder: (_) => _CategoryPickerSheet(
-      categories: categories,
-      selected: selected,
-    ),
+    builder: (_) =>
+        _CategoryPickerSheet(categories: categories, selected: selected),
   );
 }
 
@@ -782,10 +783,7 @@ class _CategoryPickerSheet extends StatelessWidget {
   final List<FinanceCategory> categories;
   final FinanceCategory? selected;
 
-  const _CategoryPickerSheet({
-    required this.categories,
-    this.selected,
-  });
+  const _CategoryPickerSheet({required this.categories, this.selected});
 
   @override
   Widget build(BuildContext context) {
@@ -832,8 +830,8 @@ class _CategoryPickerSheet extends StatelessWidget {
                     child: Text(
                       'finances.add_transaction.category_label'.tr(),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                 ],
@@ -930,10 +928,11 @@ class _CategoryPickerOption extends StatelessWidget {
                   child: Text(
                     category.name,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: foreground,
-                          fontWeight:
-                              isSelected ? FontWeight.w700 : FontWeight.w500,
-                        ),
+                      color: foreground,
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                    ),
                   ),
                 ),
                 if (isSelected)
@@ -1010,8 +1009,9 @@ class _TypeChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color:
-              isSelected ? color.withValues(alpha: 0.12) : Colors.transparent,
+          color: isSelected
+              ? color.withValues(alpha: 0.12)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isSelected ? color : Theme.of(context).dividerColor,
@@ -1059,8 +1059,10 @@ class _DatePickerField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatted =
-        DateFormat('dd \'de\' MMMM \'de\' yyyy', 'es').format(selectedDate);
+    final formatted = DateFormat(
+      'dd \'de\' MMMM \'de\' yyyy',
+      'es',
+    ).format(selectedDate);
 
     return InkWell(
       onTap: () => _pickDate(context),
@@ -1068,10 +1070,9 @@ class _DatePickerField extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
-          color: Theme.of(context)
-              .colorScheme
-              .surfaceContainerHighest
-              .withValues(alpha: 0.4),
+          color: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: Theme.of(context).dividerColor.withValues(alpha: 0.4),
@@ -1087,9 +1088,9 @@ class _DatePickerField extends StatelessWidget {
             const SizedBox(width: 10),
             Text(
               formatted,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -1121,9 +1122,9 @@ class _SectionLabel extends StatelessWidget {
     return Text(
       text,
       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+        fontWeight: FontWeight.w700,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
     );
   }
 }

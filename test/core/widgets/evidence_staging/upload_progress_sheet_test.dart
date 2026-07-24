@@ -6,8 +6,9 @@ import 'package:sacdia_app/core/widgets/evidence_staging/staged_file.dart';
 import 'package:sacdia_app/core/widgets/evidence_staging/upload_progress_sheet.dart';
 
 void main() {
-  testWidgets('animates real upload progress for the batch and active file',
-      (tester) async {
+  testWidgets('animates real upload progress for the batch and active file', (
+    tester,
+  ) async {
     final progressController = StreamController<List<StagedFile>>.broadcast();
     addTearDown(progressController.close);
 
@@ -49,15 +50,19 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(
-      tester.widget<LinearProgressIndicator>(
-        find.byKey(const ValueKey('upload-overall-progress-bar')),
-      ).value,
+      tester
+          .widget<LinearProgressIndicator>(
+            find.byKey(const ValueKey('upload-overall-progress-bar')),
+          )
+          .value,
       closeTo(0.125, 0.001),
     );
     expect(
-      tester.widget<CircularProgressIndicator>(
-        find.byKey(const ValueKey('upload-file-progress-uploading-file')),
-      ).value,
+      tester
+          .widget<CircularProgressIndicator>(
+            find.byKey(const ValueKey('upload-file-progress-uploading-file')),
+          )
+          .value,
       closeTo(0.25, 0.001),
     );
     expect(find.text('25%'), findsOneWidget);
@@ -70,18 +75,21 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(
-      tester.widget<LinearProgressIndicator>(
-        find.byKey(const ValueKey('upload-overall-progress-bar')),
-      ).value,
+      tester
+          .widget<LinearProgressIndicator>(
+            find.byKey(const ValueKey('upload-overall-progress-bar')),
+          )
+          .value,
       closeTo(0.375, 0.001),
     );
     expect(
-      tester.widget<CircularProgressIndicator>(
-        find.byKey(const ValueKey('upload-file-progress-uploading-file')),
-      ).value,
+      tester
+          .widget<CircularProgressIndicator>(
+            find.byKey(const ValueKey('upload-file-progress-uploading-file')),
+          )
+          .value,
       closeTo(0.75, 0.001),
     );
     expect(find.text('75%'), findsOneWidget);
-
   });
 }

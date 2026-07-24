@@ -35,10 +35,10 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
   String? _searchQ;
 
   CatalogQuery get _query => CatalogQuery(
-        cat: _selectedCat,
-        programaId: _selectedProgramaId,
-        q: _searchQ,
-      );
+    cat: _selectedCat,
+    programaId: _selectedProgramaId,
+    q: _searchQ,
+  );
 
   @override
   void dispose() {
@@ -73,10 +73,7 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
         surfaceTintColor: Colors.transparent,
         title: Text(
           'materials.catalog.title'.tr(),
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            color: c.text,
-          ),
+          style: TextStyle(fontWeight: FontWeight.w700, color: c.text),
         ),
         actions: [
           IconButton(
@@ -181,8 +178,7 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
                       (p) => _FilterChip(
                         label: p.label,
                         selected: _selectedProgramaId == p.id,
-                        onTap: () =>
-                            setState(() => _selectedProgramaId = p.id),
+                        onTap: () => setState(() => _selectedProgramaId = p.id),
                       ),
                     ),
                   ],
@@ -212,8 +208,7 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
                         (cat) => _FilterChip(
                           label: cat.label,
                           selected: _selectedCat == cat.slug,
-                          onTap: () =>
-                              setState(() => _selectedCat = cat.slug),
+                          onTap: () => setState(() => _selectedCat = cat.slug),
                         ),
                       ),
                     ],
@@ -366,8 +361,9 @@ class _CatalogSkeleton extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                   color: c.border.withValues(alpha: 0.35),
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(16)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
+                  ),
                 ),
               ),
             ),
