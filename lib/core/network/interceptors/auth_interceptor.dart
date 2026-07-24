@@ -46,7 +46,7 @@ class AuthInterceptor extends QueuedInterceptor {
     '/auth/register',
     '/auth/refresh',
     '/auth/oauth',
-    '/auth/request-password-reset',
+    '/auth/password/reset-request',
     '/auth/reset-password',
   ];
 

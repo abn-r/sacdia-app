@@ -603,7 +603,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       AppLogger.i('Recuperación de contraseña solicitada', tag: _tag);
 
       final response = await _dio.post(
-        '$_baseUrl${ApiEndpoints.auth}/request-password-reset',
+        '$_baseUrl${ApiEndpoints.auth}/password/reset-request',
         data: {'email': email},
       );
 
