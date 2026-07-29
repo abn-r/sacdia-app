@@ -1,6 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/widgets/sac_network_image.dart';
 
 /// Displays an honor badge without forcing an oval or circular mask.
 ///
@@ -8,6 +8,8 @@ import 'package:hugeicons/hugeicons.dart';
 /// are often inverted triangles. The image asset already carries the correct
 /// silhouette, usually with transparent pixels around it, so the UI must keep
 /// the natural aspect and shape using [BoxFit.contain].
+///
+/// Supports raster (png/webp/jpg) and SVG URLs via [SacNetworkImage].
 class HonorBadgeImage extends StatelessWidget {
   final String? imageUrl;
   final double width;
@@ -45,7 +47,7 @@ class HonorBadgeImage extends StatelessWidget {
       height: height,
       child: Padding(
         padding: padding,
-        child: CachedNetworkImage(
+        child: SacNetworkImage(
           imageUrl: imageUrl!,
           memCacheWidth: memCacheWidth,
           memCacheHeight: memCacheHeight,

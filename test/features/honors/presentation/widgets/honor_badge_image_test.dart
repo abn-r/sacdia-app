@@ -1,6 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/core/widgets/sac_network_image.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/honor_badge_image.dart';
 
 void main() {
@@ -20,8 +20,8 @@ void main() {
       ),
     );
 
-    final image = tester.widget<CachedNetworkImage>(
-      find.byType(CachedNetworkImage),
+    final image = tester.widget<SacNetworkImage>(
+      find.byType(SacNetworkImage),
     );
 
     expect(image.fit, BoxFit.contain);

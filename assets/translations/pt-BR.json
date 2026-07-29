@@ -1313,7 +1313,10 @@
       "clear_button": "Limpar",
       "bulk_categories_title": "Aplicar uma categoria a todos",
       "max_button": "Máx.",
-      "boolean_category_hint": "Tudo ou nada"
+      "boolean_category_hint": "Tudo ou nada",
+      "bulk_action_button": "A todos",
+      "min_button": "Mín.",
+      "bulk_done_button": "Pronto"
     },
     "member_of_month": {
       "history_title": "Miembro del Mes — Historial",
@@ -2901,6 +2904,13 @@
       "retry": "Tentar novamente",
       "profile_summary_label": "Conquistas",
       "profile_summary_empty": "Você ainda não obteve conquistas.",
+      "summary_of": "de {total}",
+      "summary_points": "{points} pts",
+      "filter_all": "Todos",
+      "filter_unlocked": "Obtidos",
+      "filter_in_progress": "Em curso",
+      "filter_locked": "Bloqueados",
+      "filter_empty": "Nada neste filtro",
       "unlock_tap_to_close": "Toque para fechar",
       "detail_repeatable": "Repetível",
       "detail_times_completed": "Vezes concluído",
@@ -2908,7 +2918,9 @@
       "detail_progress": "Progresso",
       "detail_collection": "Coleção",
       "detail_streak": "Sequência",
-      "detail_prerequisite": "Requer: Conquista #{id}"
+      "detail_prerequisite": "Requer: Conquista #{id}",
+      "detail_streak_unit": "dias",
+      "detail_secret_hint": "Continue participando para descobrir esta conquista."
     },
     "tiers": {
       "bronze": "Bronze",

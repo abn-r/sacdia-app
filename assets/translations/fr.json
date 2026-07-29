@@ -1313,7 +1313,10 @@
       "clear_button": "Effacer",
       "bulk_categories_title": "Appliquer une catégorie à tous",
       "max_button": "Max.",
-      "boolean_category_hint": "Tout ou rien"
+      "boolean_category_hint": "Tout ou rien",
+      "bulk_action_button": "À tous",
+      "min_button": "Min.",
+      "bulk_done_button": "OK"
     },
     "member_of_month": {
       "history_title": "Miembro del Mes — Historial",
@@ -2901,6 +2904,13 @@
       "retry": "Réessayer",
       "profile_summary_label": "Réalisations",
       "profile_summary_empty": "Vous n'avez pas encore obtenu de réalisations.",
+      "summary_of": "sur {total}",
+      "summary_points": "{points} pts",
+      "filter_all": "Tous",
+      "filter_unlocked": "Obtenus",
+      "filter_in_progress": "En cours",
+      "filter_locked": "Verrouillés",
+      "filter_empty": "Rien dans ce filtre",
       "unlock_tap_to_close": "Appuyer pour fermer",
       "detail_repeatable": "Répétable",
       "detail_times_completed": "Fois complété",
@@ -2908,7 +2918,9 @@
       "detail_progress": "Progression",
       "detail_collection": "Collection",
       "detail_streak": "Série",
-      "detail_prerequisite": "Nécessite : Réalisation #{id}"
+      "detail_prerequisite": "Nécessite : Réalisation #{id}",
+      "detail_streak_unit": "jours",
+      "detail_secret_hint": "Continuez à participer pour découvrir cette réalisation."
     },
     "tiers": {
       "bronze": "Bronze",

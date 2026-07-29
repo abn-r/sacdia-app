@@ -1,6 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/widgets/sac_network_image.dart';
 
 import '../../../../core/theme/app_colors.dart';
 
@@ -63,7 +63,7 @@ class ClassIdentityBadge extends StatelessWidget {
           ? fallback()
           : ClipRRect(
               borderRadius: BorderRadius.circular(borderRadius),
-              child: CachedNetworkImage(
+              child: SacNetworkImage(
                 imageUrl: trimmedImageUrl,
                 memCacheWidth: cacheSize,
                 memCacheHeight: cacheSize,
