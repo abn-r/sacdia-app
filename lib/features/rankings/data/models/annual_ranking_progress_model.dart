@@ -137,6 +137,7 @@ class RankingTierModel {
   final int fromPoints;
   final int toPoints;
   final int? pointsToReach;
+  final String? imageUrl;
 
   const RankingTierModel({
     required this.name,
@@ -144,6 +145,7 @@ class RankingTierModel {
     required this.fromPoints,
     required this.toPoints,
     this.pointsToReach,
+    this.imageUrl,
   });
 
   factory RankingTierModel.fromJson(Map<String, dynamic> json) {
@@ -153,6 +155,7 @@ class RankingTierModel {
       fromPoints: _requiredInt(json, 'from_points'),
       toPoints: _requiredInt(json, 'to_points'),
       pointsToReach: safeIntOrNull(json['points_to_reach']),
+      imageUrl: _tierImageUrl(json),
     );
   }
 
@@ -163,8 +166,30 @@ class RankingTierModel {
       fromPoints: fromPoints,
       toPoints: toPoints,
       pointsToReach: pointsToReach,
+      imageUrl: imageUrl,
     );
   }
+}
+
+/// Resolves a remote medal URL from the tier payload.
+///
+/// Prefers `image_url`. Also accepts `icon` when it looks like a URL or
+/// image path (legacy seed values like `diamond` / `medal` are ignored).
+String? _tierImageUrl(Map<String, dynamic> json) {
+  final imageUrl = safeStringOrNull(json['image_url']);
+  if (imageUrl != null && imageUrl.isNotEmpty) return imageUrl;
+
+  final icon = safeStringOrNull(json['icon']);
+  if (icon == null || icon.isEmpty) return null;
+  final lower = icon.toLowerCase();
+  final looksLikeImage = icon.startsWith('http') ||
+      icon.contains('/') ||
+      lower.endsWith('.svg') ||
+      lower.endsWith('.png') ||
+      lower.endsWith('.webp') ||
+      lower.endsWith('.jpg') ||
+      lower.endsWith('.jpeg');
+  return looksLikeImage ? icon : null;
 }
 
 class RankingComponentProgressModel {

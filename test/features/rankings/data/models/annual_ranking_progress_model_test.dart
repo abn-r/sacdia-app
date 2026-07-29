@@ -36,6 +36,28 @@ void main() {
       );
     });
 
+    test('parses tier image_url and ignores seed icon tokens', () {
+      final withUrl = RankingTierModel.fromJson(const {
+        'name': 'Oro',
+        'slug': 'oro',
+        'from_points': 8500,
+        'to_points': 9499,
+        'image_url': 'https://cdn.example.com/tiers/oro.svg',
+        'icon': 'medal',
+      });
+      expect(withUrl.imageUrl, 'https://cdn.example.com/tiers/oro.svg');
+      expect(withUrl.toEntity().imageUrl, endsWith('.svg'));
+
+      final seedIconOnly = RankingTierModel.fromJson(const {
+        'name': 'Diamante',
+        'slug': 'diamante',
+        'from_points': 9500,
+        'to_points': 10000,
+        'icon': 'diamond',
+      });
+      expect(seedIconOnly.imageUrl, isNull);
+    });
+
     test('requires component fields', () {
       expect(
         () => RankingComponentProgressModel.fromJson(const {

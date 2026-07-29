@@ -78,12 +78,16 @@ class RankingTier extends Equatable {
   final int toPoints;
   final int? pointsToReach;
 
+  /// Optional remote medal image (svg/png/webp). Prefer over local assets.
+  final String? imageUrl;
+
   const RankingTier({
     required this.name,
     required this.slug,
     required this.fromPoints,
     required this.toPoints,
     this.pointsToReach,
+    this.imageUrl,
   });
 
   @override
@@ -93,6 +97,7 @@ class RankingTier extends Equatable {
         fromPoints,
         toPoints,
         pointsToReach,
+        imageUrl,
       ];
 }
 
