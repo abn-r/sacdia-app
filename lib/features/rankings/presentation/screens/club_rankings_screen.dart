@@ -13,6 +13,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_back_button.dart';
 import '../../../../core/widgets/sac_card.dart';
+import '../../../../core/widgets/sac_network_image.dart';
 import '../../../../features/auth/domain/entities/user_entity.dart';
 import '../../../../features/auth/domain/utils/authorization_utils.dart';
 import '../../../../features/auth/presentation/providers/auth_providers.dart';
@@ -20,6 +21,7 @@ import '../../../../features/members/presentation/providers/members_providers.da
 import '../../../../providers/catalogs_provider.dart';
 import '../../domain/entities/annual_ranking_progress.dart';
 import '../providers/annual_ranking_progress_provider.dart';
+import '../utils/ranking_tier_medal_assets.dart';
 import '../widgets/ranking_empty_state.dart';
 import '../widgets/ranking_skeleton.dart';
 
@@ -609,7 +611,9 @@ class _NextTierCard extends StatelessWidget {
   }
 }
 
-/// Medalla por tier. Bronce usa `fiel_bronce.svg`; resto: icono award tintado.
+/// Medalla por tier.
+///
+/// Orden: URL remota (`imageUrl`) → SVG local por slug → icono award tintado.
 class _TierMedal extends StatelessWidget {
   final RankingTier? tier;
   final double size;
@@ -625,22 +629,45 @@ class _TierMedal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final asset = _tierAssetFor(tier);
-    if (asset != null && !locked) {
+    final fadeFilter = fade < 1
+        ? ColorFilter.mode(
+            Colors.white.withValues(alpha: fade),
+            BlendMode.dstIn,
+          )
+        : null;
+
+    final remoteUrl = tier?.imageUrl?.trim();
+    if (!locked && remoteUrl != null && remoteUrl.isNotEmpty) {
+      final image = SacNetworkImage(
+        imageUrl: remoteUrl,
+        width: size,
+        height: size,
+        fit: BoxFit.contain,
+        memCacheWidth: (size * 3).round(),
+        memCacheHeight: (size * 3).round(),
+        errorWidget: (_, __, ___) => _iconMedal(context),
+      );
+      return fadeFilter == null
+          ? image
+          : ColorFiltered(colorFilter: fadeFilter, child: image);
+    }
+
+    final asset = rankingTierLocalSvgAsset(tier?.slug ?? tier?.name);
+    if (!locked && asset != null) {
       return SvgPicture.asset(
         asset,
         width: size,
         height: size,
         fit: BoxFit.contain,
-        colorFilter: fade < 1
-            ? ColorFilter.mode(
-                Colors.white.withValues(alpha: fade),
-                BlendMode.dstIn,
-              )
-            : null,
+        colorFilter: fadeFilter,
+        errorBuilder: (_, __, ___) => _iconMedal(context),
       );
     }
 
+    return _iconMedal(context);
+  }
+
+  Widget _iconMedal(BuildContext context) {
     final palette = locked
         ? const _TierPalette(
             foreground: Color(0xFFB86A2D),
@@ -1219,14 +1246,6 @@ _TierPalette _tierPaletteFor(BuildContext context, RankingTier? tier) {
           ]
         : const [Color(0xFFFFE0B8), Color(0xFFFFF4E4)],
   );
-}
-
-String? _tierAssetFor(RankingTier? tier) {
-  final key = (tier?.slug ?? tier?.name ?? '').toLowerCase();
-  if (key.contains('bronze') || key.contains('bronce')) {
-    return 'assets/svg/fiel_bronce.svg';
-  }
-  return null;
 }
 
 Color _axisAccentFor(String key) {
