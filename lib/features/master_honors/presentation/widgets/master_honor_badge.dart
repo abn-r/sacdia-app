@@ -1,7 +1,7 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_network_image.dart';
 import 'package:sacdia_app/features/master_honors/domain/entities/user_master_honor.dart';
 
 /// Badge visual de maestría para usar en la tarjeta virtual y en listas
@@ -141,7 +141,7 @@ class _HonorImage extends StatelessWidget {
       height: height,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(999),
-        child: CachedNetworkImage(
+        child: SacNetworkImage(
           imageUrl: image,
           fit: BoxFit.contain,
           memCacheWidth: (width * 3).round(),

@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
+import '../../../../core/utils/role_utils.dart';
 import '../../../../core/widgets/fixed_input_icon_slot.dart';
 import '../../../../core/widgets/sac_text_field.dart';
 import '../../domain/entities/unit.dart';
@@ -850,7 +851,10 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                         ),
                         subtitle: m.clubRole != null
                             ? Text(
-                                m.clubRole!,
+                                RoleUtils.translate(
+                                  m.clubRole,
+                                  gender: m.gender,
+                                ),
                                 style: theme.textTheme.bodySmall
                                     ?.copyWith(color: c.textSecondary),
                               )
@@ -1108,7 +1112,10 @@ class _MultiMemberPickerSheetState extends State<_MultiMemberPickerSheet> {
                         ),
                         subtitle: m.clubRole != null
                             ? Text(
-                                m.clubRole!,
+                                RoleUtils.translate(
+                                  m.clubRole,
+                                  gender: m.gender,
+                                ),
                                 style: theme.textTheme.bodySmall
                                     ?.copyWith(color: c.textSecondary),
                               )
@@ -1236,7 +1243,10 @@ class _MemberPickerField extends StatelessWidget {
                   ),
                   if (hasValue && selected!.clubRole != null)
                     Text(
-                      selected!.clubRole!,
+                      RoleUtils.translate(
+                        selected!.clubRole,
+                        gender: selected!.gender,
+                      ),
                       style: theme.textTheme.bodySmall
                           ?.copyWith(color: c.textSecondary),
                     ),

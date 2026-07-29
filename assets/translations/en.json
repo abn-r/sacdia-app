@@ -1313,7 +1313,10 @@
       "clear_button": "Clear",
       "bulk_categories_title": "Apply one category to all",
       "max_button": "Max",
-      "boolean_category_hint": "All or nothing"
+      "boolean_category_hint": "All or nothing",
+      "bulk_action_button": "To all",
+      "min_button": "Min",
+      "bulk_done_button": "Done"
     },
     "member_of_month": {
       "history_title": "Miembro del Mes — Historial",
@@ -2901,6 +2904,13 @@
       "retry": "Retry",
       "profile_summary_label": "Achievements",
       "profile_summary_empty": "You haven't earned any achievements yet.",
+      "summary_of": "of {total}",
+      "summary_points": "{points} pts",
+      "filter_all": "All",
+      "filter_unlocked": "Earned",
+      "filter_in_progress": "In progress",
+      "filter_locked": "Locked",
+      "filter_empty": "Nothing in this filter",
       "unlock_tap_to_close": "Tap to close",
       "detail_repeatable": "Repeatable",
       "detail_times_completed": "Times completed",
@@ -2908,7 +2918,9 @@
       "detail_progress": "Progress",
       "detail_collection": "Collection",
       "detail_streak": "Streak",
-      "detail_prerequisite": "Requires: Achievement #{id}"
+      "detail_prerequisite": "Requires: Achievement #{id}",
+      "detail_streak_unit": "days",
+      "detail_secret_hint": "Keep participating to discover this achievement."
     },
     "tiers": {
       "bronze": "Bronze",

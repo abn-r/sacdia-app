@@ -18,6 +18,7 @@ String? _readCategoryName(Map<String, dynamic> json) {
 }
 
 String? _buildImageUrl(String? raw) {
+  // Relative keys are joined to the CDN base. Supports svg/png/webp/jpg.
   if (raw == null || raw.isEmpty) return null;
   if (raw.startsWith('http')) return raw;
   return '$_honorImagesBase$raw';

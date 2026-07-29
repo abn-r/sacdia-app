@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 
 import '../../domain/entities/achievement.dart';
 import 'achievement_badge.dart';
@@ -36,36 +37,54 @@ class _AchievementProgressBarState extends State<AchievementProgressBar>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late Animation<double> _fillAnimation;
+  bool? _reduceMotion;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 700),
+      duration: SacMotion.standard,
     );
     _fillAnimation = Tween<double>(
       begin: 0.0,
       end: widget.progress.clamp(0.0, 1.0),
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    ).animate(CurvedAnimation(parent: _controller, curve: SacMotion.easeOut));
+  }
 
-    _controller.forward();
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduce = SacMotion.reduceMotionOf(context);
+    if (_reduceMotion == reduce) return;
+    _reduceMotion = reduce;
+
+    if (reduce) {
+      _controller.value = 1;
+    } else if (_controller.value == 0) {
+      _controller.forward();
+    }
   }
 
   @override
   void didUpdateWidget(AchievementProgressBar oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.progress != widget.progress) {
-      final current = _fillAnimation.value;
+      final reduce = _reduceMotion ?? SacMotion.reduceMotionOf(context);
+      final current = reduce ? widget.progress : _fillAnimation.value;
       _fillAnimation = Tween<double>(
-        begin: current,
+        begin: current.clamp(0.0, 1.0),
         end: widget.progress.clamp(0.0, 1.0),
       ).animate(
-        CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+        CurvedAnimation(parent: _controller, curve: SacMotion.easeOut),
       );
-      _controller
-        ..reset()
-        ..forward();
+      if (reduce) {
+        _controller.value = 1;
+      } else {
+        _controller
+          ..reset()
+          ..forward();
+      }
     }
   }
 
@@ -91,14 +110,12 @@ class _AchievementProgressBarState extends State<AchievementProgressBar>
                 builder: (context, _) {
                   return Stack(
                     children: [
-                      // Track background
                       Container(
                         decoration: BoxDecoration(
                           color: tierColor.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(100),
                         ),
                       ),
-                      // Filled portion with tier color
                       FractionallySizedBox(
                         widthFactor: _fillAnimation.value,
                         alignment: Alignment.centerLeft,

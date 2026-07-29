@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -12,6 +11,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_loading.dart';
+import '../../../../core/widgets/sac_network_image.dart';
 import '../../../../core/widgets/sac_text_field.dart';
 import '../../../activities/presentation/views/location_picker_view.dart';
 import '../../domain/entities/club_info.dart';
@@ -848,9 +848,9 @@ class _LogoPreview extends StatelessWidget {
           ],
         ),
         clipBehavior: Clip.antiAlias,
-        child: CachedNetworkImage(
+        child: SacNetworkImage(
           imageUrl: logoUrl,
-          fit: BoxFit.cover,
+          fit: BoxFit.contain,
           memCacheWidth: 300,
           memCacheHeight: 300,
           errorWidget: (_, __, ___) => Center(

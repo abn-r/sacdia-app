@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +8,7 @@ import 'package:sacdia_app/features/honors/presentation/theme/honor_category_pal
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_network_image.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/master_honors/presentation/widgets/master_honor_history_section.dart';
@@ -358,7 +358,7 @@ class _HonorGridItem extends StatelessWidget {
               fit: StackFit.expand,
               children: [
                 imageUrl != null && imageUrl.isNotEmpty
-                    ? CachedNetworkImage(
+                    ? SacNetworkImage(
                         imageUrl: imageUrl,
                         fit: BoxFit.contain,
                         memCacheWidth: 288,

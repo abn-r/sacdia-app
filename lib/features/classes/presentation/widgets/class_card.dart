@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -6,6 +5,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_network_image.dart';
 import 'package:sacdia_app/core/widgets/sac_progress_bar.dart';
 
 import '../../domain/entities/progressive_class.dart';
@@ -61,7 +61,7 @@ class ClassCard extends StatelessWidget {
                 child: progressiveClass.imageUrl != null
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: CachedNetworkImage(
+                        child: SacNetworkImage(
                           imageUrl: progressiveClass.imageUrl!,
                           memCacheWidth: 132, // 44 * 3 (max device pixel ratio)
                           memCacheHeight: 132, // 44 * 3

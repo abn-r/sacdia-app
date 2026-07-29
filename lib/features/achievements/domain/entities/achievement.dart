@@ -3,8 +3,9 @@ import 'package:equatable/equatable.dart';
 
 /// Base URL for achievement badge images stored in Cloudflare R2 via backend.
 ///
-/// The backend stores only the key (e.g. "badges/achievement-42.webp").
-/// This prefix is prepended when the key doesn't already start with "http".
+/// The backend stores only the key (e.g. "badges/achievement-42.svg").
+/// Supported formats: svg, png, webp, jpg. This prefix is prepended when the
+/// key doesn't already start with "http".
 const String _achievementBadgeBase =
     'https://sacdia-files.r2.dev/achievements/';
 

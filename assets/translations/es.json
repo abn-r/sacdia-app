@@ -1313,7 +1313,10 @@
       "clear_button": "Limpiar",
       "bulk_categories_title": "Aplicar una categoría a todos",
       "max_button": "Máx.",
-      "boolean_category_hint": "Todo o nada"
+      "boolean_category_hint": "Todo o nada",
+      "bulk_action_button": "A todos",
+      "min_button": "Mín.",
+      "bulk_done_button": "Listo"
     },
     "member_of_month": {
       "history_title": "Miembro del Mes — Historial",
@@ -2901,6 +2904,13 @@
       "retry": "Reintentar",
       "profile_summary_label": "Logros",
       "profile_summary_empty": "Aún no has obtenido logros.",
+      "summary_of": "de {total}",
+      "summary_points": "{points} pts",
+      "filter_all": "Todos",
+      "filter_unlocked": "Obtenidos",
+      "filter_in_progress": "En curso",
+      "filter_locked": "Bloqueados",
+      "filter_empty": "Nada en este filtro",
       "unlock_tap_to_close": "Toca para cerrar",
       "detail_repeatable": "Repetible",
       "detail_times_completed": "Veces completado",
@@ -2908,7 +2918,9 @@
       "detail_progress": "Progreso",
       "detail_collection": "Colección",
       "detail_streak": "Racha",
-      "detail_prerequisite": "Requiere: Logro #{id}"
+      "detail_prerequisite": "Requiere: Logro #{id}",
+      "detail_streak_unit": "días",
+      "detail_secret_hint": "Sigue participando para descubrir este logro."
     },
     "tiers": {
       "bronze": "Bronce",

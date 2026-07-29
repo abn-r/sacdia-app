@@ -1,16 +1,16 @@
 import 'dart:math' as math;
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_network_image.dart';
 
 import '../../domain/entities/achievement.dart'
     show AchievementTier, kDefaultLockedAchievementBadgeUrl;
 import '../../domain/entities/user_achievement.dart';
 
-/// Devuelve el color del tier de un logro.
+/// Color metálico del tier (glow, borde de badge, fill de progreso).
 Color achievementTierColor(AchievementTier tier) => switch (tier) {
       AchievementTier.bronze => const Color(0xFFCD7F32),
       AchievementTier.silver => const Color(0xFFC0C0C0),
@@ -19,6 +19,41 @@ Color achievementTierColor(AchievementTier tier) => switch (tier) {
       AchievementTier.diamond => const Color(0xFFB9F2FF),
       AchievementTier.unknown => Colors.grey,
     };
+
+/// Tinta legible del tier para chips/labels (plata/oro/platino claros fallan en UI).
+Color achievementTierInkColor(AchievementTier tier) => switch (tier) {
+      AchievementTier.bronze => const Color(0xFF8B5314),
+      AchievementTier.silver => const Color(0xFF4A5560),
+      AchievementTier.gold => const Color(0xFF9A7200),
+      AchievementTier.platinum => const Color(0xFF4E5664),
+      AchievementTier.diamond => const Color(0xFF0E7FA3),
+      AchievementTier.unknown => const Color(0xFF5A5A5A),
+    };
+
+/// Fondo de chip de tier con contraste suficiente sobre surface clara/oscura.
+Color achievementTierChipBackground(AchievementTier tier, Brightness brightness) {
+  final isDark = brightness == Brightness.dark;
+  return switch (tier) {
+    AchievementTier.bronze => isDark
+        ? const Color(0xFFCD7F32).withValues(alpha: 0.28)
+        : const Color(0xFFF3D9B8),
+    AchievementTier.silver => isDark
+        ? const Color(0xFF9AA3AD).withValues(alpha: 0.32)
+        : const Color(0xFFDDE2E8),
+    AchievementTier.gold => isDark
+        ? const Color(0xFFFFD700).withValues(alpha: 0.28)
+        : const Color(0xFFF8E7A0),
+    AchievementTier.platinum => isDark
+        ? const Color(0xFFB8BEC8).withValues(alpha: 0.30)
+        : const Color(0xFFE2E6EC),
+    AchievementTier.diamond => isDark
+        ? const Color(0xFFB9F2FF).withValues(alpha: 0.28)
+        : const Color(0xFFC9EEF8),
+    AchievementTier.unknown => isDark
+        ? Colors.grey.withValues(alpha: 0.28)
+        : const Color(0xFFE5E5E5),
+  };
+}
 
 /// Badge visual de logro con soporte para tres estados:
 /// LOCKED, IN_PROGRESS y UNLOCKED.
@@ -190,7 +225,7 @@ class _AchievementBadgeState extends State<AchievementBadge>
               : kDefaultLockedAchievementBadgeUrl)
           : kDefaultLockedAchievementBadgeUrl;
 
-      imageContent = CachedNetworkImage(
+      imageContent = SacNetworkImage(
         imageUrl: effectiveUrl,
         width: widget.size,
         height: widget.size,
