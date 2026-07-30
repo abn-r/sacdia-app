@@ -158,8 +158,8 @@ class DashboardView extends ConsumerWidget {
                           // Demo temporal para escoger motion language.
                           // TODO(remove-before-release): quitar antes de cerrar
                           // la rama de development.
-                          const _AnimationDemoLauncher(),
-                          const SizedBox(height: 16),
+                          //const _AnimationDemoLauncher(),
+                          //const SizedBox(height: 16),
 
                           // Upcoming activities
                           UpcomingActivitiesCard(

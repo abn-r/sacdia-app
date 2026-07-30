@@ -91,6 +91,7 @@ dependency_overrides:
 
 dev_dependencies:
   sentry_dart_plugin: ^3.3.0
+  flutter_launcher_icons: "^0.14.4"
   flutter_test:
     sdk: flutter
   integration_test:
@@ -154,6 +155,25 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+
+  # iOS
+  # image_path_ios: "assets/app_icon/app_icon_ios.png"
+  # remove_alpha_ios: true
+  # background_color_ios: "#2EA0DA"
+
+  # Android tradicional y Google Play
+  image_path_android: "assets/app_icon/app_icon_android_store.png"
+
+  # Android Adaptive Icon
+  adaptive_icon_background: "assets/app_icon/adaptive_background.png"
+  adaptive_icon_foreground: "assets/app_icon/adaptive_foreground.png"
+  adaptive_icon_monochrome: "assets/app_icon/adaptive_monochrome.png"
+  adaptive_icon_foreground_inset: 16
+
 
 sentry:
   upload_debug_symbols: true
