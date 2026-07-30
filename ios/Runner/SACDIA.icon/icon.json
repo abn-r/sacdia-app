@@ -1,0 +1,91 @@
+{
+  "fill" : {
+    "automatic-gradient" : "extended-srgb:0.00000,0.53333,1.00000,1.00000"
+  },
+  "groups" : [
+    {
+      "blur-material" : null,
+      "hidden" : false,
+      "layers" : [
+        {
+          "glass" : false,
+          "image-name-specializations" : [
+            {
+              "value" : "02_Foreground_Default_2048.png"
+            },
+            {
+              "appearance" : "light",
+              "value" : "02_Foreground_Default_2048.png"
+            },
+            {
+              "appearance" : "dark",
+              "value" : "02_Foreground_Dark_2048.png"
+            },
+            {
+              "appearance" : "tinted",
+              "value" : "02_Foreground_Mono_2048.png"
+            }
+          ],
+          "name" : "02_Foreground_Dark_2048",
+          "position" : {
+            "scale" : 0.5,
+            "translation-in-points" : [
+              0.25,
+              -22.75
+            ]
+          }
+        }
+      ],
+      "lighting" : "individual",
+      "name" : "Foreground",
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    },
+    {
+      "layers" : [
+        {
+          "glass" : true,
+          "image-name-specializations" : [
+            {
+              "value" : "01_Background_Default_2048.png"
+            },
+            {
+              "appearance" : "light",
+              "value" : "01_Background_Default_2048.png"
+            },
+            {
+              "appearance" : "dark",
+              "value" : "01_Background_Dark_2048.png"
+            },
+            {
+              "appearance" : "tinted",
+              "value" : "01_Background_Mono_2048.png"
+            }
+          ],
+          "name" : "01_Background_Dark_2048"
+        }
+      ],
+      "name" : "Background",
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}
