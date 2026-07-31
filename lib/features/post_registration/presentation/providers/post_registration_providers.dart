@@ -19,7 +19,7 @@ final postRegistrationRepositoryProvider =
   return PostRegistrationRepositoryImpl(
     remoteDataSource: PostRegistrationRemoteDataSourceImpl(
       dio: dio,
-      baseUrl: AppConstants.baseUrl,
+      baseUrl: AppConstants.apiBaseUrl,
     ),
     networkInfo: networkInfo,
   );

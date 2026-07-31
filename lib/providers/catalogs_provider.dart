@@ -101,7 +101,7 @@ final catalogsDataSourceProvider = Provider<CatalogsRemoteDataSource>((ref) {
   final dio = ref.read(dioProvider);
   return CatalogsRemoteDataSourceImpl(
     dio: dio,
-    baseUrl: AppConstants.baseUrl,
+    baseUrl: AppConstants.apiBaseUrl,
   );
 });
 

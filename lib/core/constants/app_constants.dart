@@ -1,31 +1,78 @@
-import 'package:flutter/foundation.dart';
-
 /// Constantes generales de la aplicación
 class AppConstants {
   AppConstants._();
 
   // API
   static const String apiBaseUrlDefineKey = 'API_BASE_URL';
-  // Local dev: --dart-define=API_BASE_URL=http://localhost:3000/api/v1
-  //static const String defaultBaseUrl = 'https://sacdia-backend.onrender.com/api/v1';
+  static const String releaseApiBaseUrlRequiredCode =
+      'RELEASE_API_BASE_URL_REQUIRED';
+  static const String releaseApiBaseUrlNotHttpsCode =
+      'RELEASE_API_BASE_URL_NOT_HTTPS';
 
-  static const String defaultBaseUrl = 'http://localhost:3000/api/v1';
+  static const String localDevelopmentBaseUrl = 'http://localhost:3000/api/v1';
+  static const bool _isProduct = bool.fromEnvironment('dart.vm.product');
+  static final String apiBaseUrl = resolveBaseUrl(
+    override: const String.fromEnvironment(apiBaseUrlDefineKey),
+    isProduct: _isProduct,
+  );
 
-  static final String baseUrl = resolveBaseUrl();
-
-  static String resolveBaseUrl({String? override}) {
-    final candidate = (override ??
-            const String.fromEnvironment(
-              apiBaseUrlDefineKey,
-              defaultValue: defaultBaseUrl,
-            ))
-        .trim();
-
-    final resolvedUrl = candidate.isEmpty ? defaultBaseUrl : candidate;
-    if (kReleaseMode && !resolvedUrl.startsWith('https://')) {
-      throw StateError('Production builds must use HTTPS');
+  static String resolveBaseUrl({
+    String? override,
+    bool isProduct = _isProduct,
+  }) {
+    final candidate =
+        override ?? const String.fromEnvironment(apiBaseUrlDefineKey);
+    if (!isProduct) {
+      return candidate.isEmpty ? localDevelopmentBaseUrl : candidate;
     }
-    return resolvedUrl;
+
+    return validateReleaseBaseUrl(candidate);
+  }
+
+  /// Validates the only API origin accepted by a release artifact.
+  ///
+  /// The separate method keeps the release policy testable without making a
+  /// test-only switch capable of weakening the runtime release decision.
+  static String validateReleaseBaseUrl(String value) {
+    if (value.isEmpty) {
+      throw StateError(releaseApiBaseUrlRequiredCode);
+    }
+
+    final uri = Uri.tryParse(value);
+    if (uri == null ||
+        !uri.isAbsolute ||
+        uri.scheme != 'https' ||
+        !uri.hasAuthority ||
+        uri.host.isEmpty ||
+        uri.userInfo.isNotEmpty ||
+        uri.authority.contains('@') ||
+        uri.hasPort ||
+        uri.hasFragment ||
+        uri.hasQuery ||
+        !_isAllowedReleaseDnsName(uri.host) ||
+        value !=
+            Uri(scheme: 'https', host: uri.host, path: '/api/v1').toString()) {
+      throw StateError(releaseApiBaseUrlNotHttpsCode);
+    }
+
+    return value;
+  }
+
+  static bool _isAllowedReleaseDnsName(String host) {
+    if (host.length > 253 ||
+        host.endsWith('.') ||
+        host == 'localhost' ||
+        host.endsWith('.localhost') ||
+        host.endsWith('.local')) {
+      return false;
+    }
+
+    final labels = host.split('.');
+    if (labels.length < 2) return false;
+
+    final labelPattern = RegExp(r'^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$');
+    return labels.every(labelPattern.hasMatch) &&
+        RegExp(r'^[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?$').hasMatch(labels.last);
   }
 
   // Timeouts (en segundos)

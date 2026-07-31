@@ -12,7 +12,7 @@ final _qrDioProvider = Provider((ref) => DioClient.createDio());
 final _qrRepositoryProvider = Provider<QrRepository>((ref) {
   final dio = ref.watch(_qrDioProvider);
   return QrRepositoryImpl(
-    remote: QrRemoteDataSourceImpl(dio: dio, baseUrl: AppConstants.baseUrl),
+    remote: QrRemoteDataSourceImpl(dio: dio, baseUrl: AppConstants.apiBaseUrl),
   );
 });
 

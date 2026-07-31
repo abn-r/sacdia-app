@@ -72,7 +72,7 @@ class AuthInterceptor extends QueuedInterceptor {
 
   static Dio _buildRefreshDio() {
     return Dio(BaseOptions(
-      baseUrl: AppConstants.baseUrl,
+      baseUrl: AppConstants.apiBaseUrl,
       connectTimeout: Duration(seconds: AppConstants.connectTimeout),
       receiveTimeout: Duration(seconds: AppConstants.receiveTimeout),
       headers: {
@@ -172,7 +172,7 @@ class AuthInterceptor extends QueuedInterceptor {
       // Usamos _refreshDio para que el reintento no pase por QueuedInterceptor
       // y no genere un segundo ciclo de refresh.
       final retryDio = Dio(BaseOptions(
-        baseUrl: AppConstants.baseUrl,
+        baseUrl: AppConstants.apiBaseUrl,
         connectTimeout: Duration(seconds: AppConstants.connectTimeout),
         sendTimeout: Duration(seconds: AppConstants.sendTimeout),
         receiveTimeout: Duration(seconds: AppConstants.receiveTimeout),

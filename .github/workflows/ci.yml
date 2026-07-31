@@ -90,7 +90,38 @@ jobs:
           fi
 
   # ──────────────────────────────────────────────────────────────────────────
-  # JOB 4: Build Android (APK smoke gate)
+  # JOB 4: Release API origin guard
+  # ──────────────────────────────────────────────────────────────────────────
+  # A release build is never attempted without an explicit HTTPS API origin.
+  # The URL is injected only into this job and the release build; neither job
+  # prints it. Forks without Google Services skip the complete release path.
+  # ──────────────────────────────────────────────────────────────────────────
+  verify-release-api-base-url:
+    name: Verify Release API Base URL
+    runs-on: ubuntu-latest
+    needs: [analyze, test, check-secrets]
+    if: needs.check-secrets.outputs.has_google_services == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.6'
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify release API origin
+        env:
+          API_BASE_URL: ${{ secrets.PILOT_API_BASE_URL }}
+        run: dart run tool/verify_release_api_base_url.dart
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # JOB 5: Build Android (APK smoke gate)
   # ──────────────────────────────────────────────────────────────────────────
   # Requires repo secret GOOGLE_SERVICES_JSON_BASE64 (base64-encoded content
   # of android/app/google-services.json). The job is skipped cleanly when the
@@ -103,7 +134,7 @@ jobs:
   build-android:
     name: Build Android APK
     runs-on: ubuntu-latest
-    needs: [analyze, test, check-secrets]
+    needs: [analyze, test, check-secrets, verify-release-api-base-url]
     if: needs.check-secrets.outputs.has_google_services == 'true'
     env:
       GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
@@ -144,11 +175,13 @@ jobs:
 
       - name: Build APK (release)
         env:
+          API_BASE_URL: ${{ secrets.PILOT_API_BASE_URL }}
           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
           GOOGLE_MAPS_GRADLE_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
         run: |
           # Pass GOOGLE_MAPS_API_KEY both as a dart-define (for Static Maps REST)
           # and as a gradle property (for the interactive Maps SDK manifest placeholder).
           flutter build apk --release \
+            --dart-define=API_BASE_URL="$API_BASE_URL" \
             --dart-define=GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_API_KEY}" \
             -P GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_GRADLE_KEY}"

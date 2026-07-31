@@ -32,7 +32,7 @@ import '../../../notifications/presentation/providers/unread_notifications_count
 
 /// Provider para la URL base de la API
 final apiBaseUrlProvider = Provider((ref) {
-  return AppConstants.baseUrl;
+  return AppConstants.apiBaseUrl;
 });
 
 /// Provider para el repositorio de autenticación

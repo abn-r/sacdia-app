@@ -1,10 +1,10 @@
 /// Centralized API endpoint path segments.
 ///
-/// [AppConstants.baseUrl] already includes the `/api/v1` prefix
+/// [AppConstants.apiBaseUrl] already includes the `/api/v1` prefix
 /// (e.g. `http://localhost:3000/api/v1`). These constants define only
 /// the resource path segments that follow the base URL.
 ///
-/// When the API version changes, only [AppConstants.baseUrl] needs updating.
+/// When the API version changes, only [AppConstants.apiBaseUrl] needs updating.
 /// When a resource path changes, only this file needs updating.
 ///
 /// Usage:

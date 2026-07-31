@@ -19,7 +19,7 @@ import 'interceptors/error_interceptor.dart';
 class DioClient {
   static Dio createDio({VoidCallback? onAuthExpired}) {
     final dio = Dio(BaseOptions(
-      baseUrl: AppConstants.baseUrl,
+      baseUrl: AppConstants.apiBaseUrl,
       connectTimeout: Duration(seconds: AppConstants.connectTimeout),
       sendTimeout: Duration(seconds: AppConstants.sendTimeout),
       receiveTimeout: Duration(seconds: AppConstants.receiveTimeout),

@@ -9,7 +9,7 @@ final rankingsRemoteDataSourceProvider =
     Provider<RankingsRemoteDataSource>((ref) {
   return RankingsRemoteDataSourceImpl(
     dio: ref.read(dioProvider),
-    baseUrl: AppConstants.baseUrl,
+    baseUrl: AppConstants.apiBaseUrl,
   );
 });
 
@@ -17,6 +17,6 @@ final annualRankingProgressRemoteDataSourceProvider =
     Provider<AnnualRankingProgressRemoteDataSource>((ref) {
   return AnnualRankingProgressRemoteDataSourceImpl(
     dio: ref.read(dioProvider),
-    baseUrl: AppConstants.baseUrl,
+    baseUrl: AppConstants.apiBaseUrl,
   );
 });

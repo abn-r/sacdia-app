@@ -93,13 +93,13 @@ showcaseview        # Onboarding contextual / coach marks
 
 ## Variables de Entorno
 
-Configurar en `lib/core/constants/env.dart`:
-
-- `API_BASE_URL`
-- `FCM_SENDER_ID`
+- En debug, la app usa `http://localhost:3000/api/v1` si no se pasa `API_BASE_URL`.
+- Para probar otra API en debug: `flutter run --dart-define=API_BASE_URL=<url>`.
+- Un artefacto release requiere `API_BASE_URL` explícita, HTTPS canónica y el path `/api/v1`; URLs locales se rechazan aunque se inyecten defines adicionales.
+- Nunca registrar ni documentar el valor de la URL de piloto ni otros secretos.
 
 ## Deployment
 
 - **Android**: Google Play Console
 - **iOS**: App Store Connect
-- **Build**: Usar Fastlane para automatización
+- **Build**: Usar Fastlane para automatización. El pipeline verifica la URL release antes del build e inyecta `API_BASE_URL` sólo en los pasos que la consumen.

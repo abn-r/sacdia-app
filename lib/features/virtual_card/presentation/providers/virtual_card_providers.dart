@@ -23,7 +23,7 @@ final virtualCardRemoteDataSourceProvider =
   final dio = ref.watch(_virtualCardDioProvider);
   return VirtualCardRemoteDataSourceImpl(
     dio: dio,
-    baseUrl: AppConstants.baseUrl,
+    baseUrl: AppConstants.apiBaseUrl,
   );
 });
 

@@ -21,7 +21,7 @@ final clubSelectionDataSourceProvider =
   final dio = ref.read(dioProvider);
   return ClubSelectionRemoteDataSourceImpl(
     dio: dio,
-    baseUrl: AppConstants.baseUrl,
+    baseUrl: AppConstants.apiBaseUrl,
   );
 });
 
