@@ -8,14 +8,15 @@ import '../models/investiture_history_entry_model.dart';
 
 /// Interfaz para la fuente de datos remota de investidura.
 abstract class InvestitureRemoteDataSource {
-  /// POST /api/v1/enrollments/:enrollmentId/submit-for-validation
+  /// POST /api/v1/investiture/enrollments/:enrollmentId/submit
   Future<void> submitForValidation({
     required int enrollmentId,
     required int clubId,
     String? comments,
   });
 
-  /// POST /api/v1/enrollments/:enrollmentId/validate
+  /// POST /api/v1/investiture/enrollments/:enrollmentId/coordinator-approve
+  /// o /reject, según [action].
   Future<void> validateEnrollment({
     required int enrollmentId,
     required String action,
@@ -37,7 +38,7 @@ abstract class InvestitureRemoteDataSource {
     CancelToken? cancelToken,
   });
 
-  /// GET /api/v1/enrollments/:enrollmentId/investiture-history
+  /// GET /api/v1/investiture/enrollments/:enrollmentId/history
   Future<List<InvestitureHistoryEntryModel>> getInvestitureHistory({
     required int enrollmentId,
     CancelToken? cancelToken,
@@ -118,7 +119,7 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
     return null;
   }
 
-  // ── POST /api/v1/enrollments/:enrollmentId/submit-for-validation ─────────────
+  // ── POST /api/v1/investiture/enrollments/:enrollmentId/submit ───────────────
 
   @override
   Future<void> submitForValidation({
@@ -133,7 +134,7 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
       }
 
       final response = await _dio.post(
-        '$_baseUrl${ApiEndpoints.enrollments}/$enrollmentId/submit-for-validation',
+        '$_baseUrl${ApiEndpoints.investiture}/enrollments/$enrollmentId/submit',
         data: body,
       );
 
@@ -153,7 +154,7 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
     }
   }
 
-  // ── POST /api/v1/enrollments/:enrollmentId/validate ─────────────────────────
+  // ── POST /api/v1/investiture/enrollments/:enrollmentId/{action} ─────────────
 
   @override
   Future<void> validateEnrollment({
@@ -162,13 +163,24 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
     String? comments,
   }) async {
     try {
-      final body = <String, dynamic>{'action': action};
-      if (comments != null && comments.isNotEmpty) {
+      final isApproval = action == 'APPROVED';
+      final isRejection = action == 'REJECTED';
+      if (!isApproval && !isRejection) {
+        throw ServerException(
+          message: tr('investiture.errors.invalid_state'),
+        );
+      }
+
+      final body = <String, dynamic>{};
+      if (isRejection) {
+        body['reason'] = comments ?? '';
+      } else if (comments != null && comments.isNotEmpty) {
         body['comments'] = comments;
       }
 
       final response = await _dio.post(
-        '$_baseUrl${ApiEndpoints.enrollments}/$enrollmentId/validate',
+        '$_baseUrl${ApiEndpoints.investiture}/enrollments/$enrollmentId/'
+        '${isApproval ? 'coordinator-approve' : 'reject'}',
         data: body,
       );
 
@@ -234,6 +246,7 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
   }) async {
     try {
       final queryParams = <String, dynamic>{
+        'status': 'CLUB_APPROVED',
         'page': page,
         'limit': limit,
       };
@@ -272,7 +285,7 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
     }
   }
 
-  // ── GET /api/v1/enrollments/:enrollmentId/investiture-history ───────────────
+  // ── GET /api/v1/investiture/enrollments/:enrollmentId/history ───────────────
 
   @override
   Future<List<InvestitureHistoryEntryModel>> getInvestitureHistory({
@@ -281,7 +294,7 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
   }) async {
     try {
       final response = await _dio.get(
-        '$_baseUrl${ApiEndpoints.enrollments}/$enrollmentId/investiture-history',
+        '$_baseUrl${ApiEndpoints.investiture}/enrollments/$enrollmentId/history',
         cancelToken: cancelToken,
       );
 
@@ -323,6 +336,8 @@ List<dynamic> extractInvestitureListFromResponse(
     if (data is Map) {
       final nested = data[nestedKey];
       if (nested is List) return nested;
+      final canonicalData = data['data'];
+      if (canonicalData is List) return canonicalData;
       final items = data['items'];
       if (items is List) return items;
     }

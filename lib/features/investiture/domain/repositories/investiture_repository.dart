@@ -7,7 +7,7 @@ import '../entities/investiture_history_entry.dart';
 /// Repositorio de investidura (interfaz del dominio).
 abstract class InvestitureRepository {
   /// Envía un enrollment para validación de investidura.
-  /// POST /api/v1/enrollments/:enrollmentId/submit-for-validation
+  /// POST /api/v1/investiture/enrollments/:enrollmentId/submit
   /// Rol requerido: director, counselor (ClubRolesGuard).
   Future<Either<Failure, void>> submitForValidation({
     required int enrollmentId,
@@ -16,7 +16,8 @@ abstract class InvestitureRepository {
   });
 
   /// Aprueba o rechaza un enrollment enviado.
-  /// POST /api/v1/enrollments/:enrollmentId/validate
+  /// POST /api/v1/investiture/enrollments/:enrollmentId/coordinator-approve
+  /// o /reject.
   /// Rol requerido: admin, coordinator (GlobalRolesGuard).
   Future<Either<Failure, void>> validateEnrollment({
     required int enrollmentId,
@@ -44,7 +45,7 @@ abstract class InvestitureRepository {
   });
 
   /// Obtiene el historial de acciones de investidura de un enrollment.
-  /// GET /api/v1/enrollments/:enrollmentId/investiture-history
+  /// GET /api/v1/investiture/enrollments/:enrollmentId/history
   /// Rol requerido: JwtAuthGuard (cualquier usuario autenticado).
   Future<Either<Failure, List<InvestitureHistoryEntry>>> getInvestitureHistory({
     required int enrollmentId,

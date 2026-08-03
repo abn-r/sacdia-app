@@ -56,13 +56,18 @@ class InvestiturePendingModel extends Equatable {
       submittedAt: json['submitted_at'] != null
           ? DateTime.tryParse(json['submitted_at'] as String)
           : null,
-      comments: json['comments'] as String?,
+      comments: (json['submitted_comment'] ?? json['comments']) as String?,
       userId:
           (user?['user_id'] ?? user?['id'] ?? json['user_id'] ?? '') as String,
-      userName: (user?['name'] ?? json['user_name'] ?? '') as String,
+      userName: (user?['first_name'] ??
+          user?['name'] ??
+          json['user_name'] ??
+          '') as String,
       userLastName: (user?['last_name'] ?? json['user_last_name']) as String?,
       userEmail: (user?['email'] ?? json['user_email']) as String?,
-      userPhotoUrl: (user?['photo_url'] ?? json['user_photo_url']) as String?,
+      userPhotoUrl: (user?['photo'] ??
+          user?['photo_url'] ??
+          json['user_photo_url']) as String?,
       classId: (classData?['class_id'] ?? classData?['id'] ?? json['class_id'])
           as int?,
       className: (classData?['name'] ?? json['class_name']) as String?,
