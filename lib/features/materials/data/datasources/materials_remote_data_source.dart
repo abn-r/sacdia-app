@@ -348,8 +348,14 @@ class MaterialsRemoteDataSourceImpl implements MaterialsRemoteDataSource {
   @override
   Future<OrderModel> cancelOrder(String folioOrId, String reason) async {
     try {
+      if (folioOrId.isEmpty) {
+        throw ServerException(
+          message: tr('materials.errors.cancel_order'),
+        );
+      }
+
       final response = await _dio.post(
-        '$_baseUrl${ApiEndpoints.materials}/orders//cancel',
+        '$_baseUrl${ApiEndpoints.materials}/orders/${Uri.encodeComponent(folioOrId)}/cancel',
         data: {'cancel_reason': reason},
       );
 
@@ -523,6 +529,17 @@ class MaterialsRemoteDataSourceImpl implements MaterialsRemoteDataSource {
   /// Respeta el patrón establecido en [EvidenceFolderRemoteDataSourceImpl].
   Never _rethrow(Object e) {
     if (e is DioException) {
+      final sourceError = e.error;
+      if (sourceError is ServerException) {
+        throw sourceError;
+      }
+      if (sourceError is AuthException) {
+        throw sourceError;
+      }
+      if (sourceError is NotFoundException) {
+        throw sourceError;
+      }
+
       final statusCode = e.response?.statusCode;
       final msg = _extractDioMessage(e);
       if (statusCode == 404) {
