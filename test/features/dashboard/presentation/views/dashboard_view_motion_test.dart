@@ -206,7 +206,7 @@ void main() {
         expect(outerColumn.crossAxisAlignment, CrossAxisAlignment.start);
 
         final children = _loadedSectionsColumn(tester).children;
-        expect(children, hasLength(14));
+        expect(children, hasLength(12));
         expect(children[0], isA<MembershipStatusBanner>());
         expect(children[1], isA<EnrollmentStatusCard>());
         expect(children[2], isA<BirthdayCelebrationGate>());
@@ -217,19 +217,12 @@ void main() {
         expect((children[7] as SizedBox).height, 16);
         expect(children[8], isA<QuickAccessGrid>());
         expect((children[9] as SizedBox).height, 16);
-        expect((children[11] as SizedBox).height, 16);
-        expect(children[12], isA<UpcomingActivitiesCard>());
-        expect((children[13] as SizedBox).height, 24);
-
-        final animationDemoTitle = find.text('Demo temporal de animaciones');
-        expect(animationDemoTitle, findsOneWidget);
+        expect(children[10], isA<UpcomingActivitiesCard>());
+        expect((children[11] as SizedBox).height, 24);
         expect(
-          tester.getTopLeft(find.byType(QuickAccessGrid)).dy,
-          lessThan(tester.getTopLeft(animationDemoTitle).dy),
-        );
-        expect(
-          tester.getTopLeft(animationDemoTitle).dy,
-          lessThan(tester.getTopLeft(find.byType(UpcomingActivitiesCard)).dy),
+          find.text('Demo temporal de animaciones'),
+          findsNothing,
+          reason: 'the temporary motion launcher is intentionally hidden',
         );
 
         final reportsShortcut = find.text('dashboard.quick_access.reports');

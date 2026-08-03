@@ -31,7 +31,8 @@ Color achievementTierInkColor(AchievementTier tier) => switch (tier) {
     };
 
 /// Fondo de chip de tier con contraste suficiente sobre surface clara/oscura.
-Color achievementTierChipBackground(AchievementTier tier, Brightness brightness) {
+Color achievementTierChipBackground(
+    AchievementTier tier, Brightness brightness) {
   final isDark = brightness == Brightness.dark;
   return switch (tier) {
     AchievementTier.bronze => isDark
@@ -49,9 +50,8 @@ Color achievementTierChipBackground(AchievementTier tier, Brightness brightness)
     AchievementTier.diamond => isDark
         ? const Color(0xFFB9F2FF).withValues(alpha: 0.28)
         : const Color(0xFFC9EEF8),
-    AchievementTier.unknown => isDark
-        ? Colors.grey.withValues(alpha: 0.28)
-        : const Color(0xFFE5E5E5),
+    AchievementTier.unknown =>
+      isDark ? Colors.grey.withValues(alpha: 0.28) : const Color(0xFFE5E5E5),
   };
 }
 

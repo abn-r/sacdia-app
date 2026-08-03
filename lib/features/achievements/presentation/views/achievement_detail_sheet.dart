@@ -156,9 +156,9 @@ class _AchievementDetailSheetState extends State<AchievementDetailSheet>
                                       isSecret: isSecret,
                                       tier: achievement.tier,
                                       tierColor: tierColor,
-                                      progress: userAchievement
-                                              ?.progressPercentage ??
-                                          0.0,
+                                      progress:
+                                          userAchievement?.progressPercentage ??
+                                              0.0,
                                     ),
                                   ),
                                 ),
@@ -203,8 +203,9 @@ class _AchievementDetailSheetState extends State<AchievementDetailSheet>
                                           _MetaChip(
                                             icon:
                                                 HugeIcons.strokeRoundedRefresh,
-                                            label: 'achievements.views.detail_repeatable'
-                                                .tr(),
+                                            label:
+                                                'achievements.views.detail_repeatable'
+                                                    .tr(),
                                             foreground: c.textSecondary,
                                             background: c.surfaceVariant,
                                           ),
@@ -256,8 +257,7 @@ class _AchievementDetailSheetState extends State<AchievementDetailSheet>
                                   SizedBox(
                                     width: double.infinity,
                                     child: _CompletedCaption(
-                                      completedAt:
-                                          userAchievement?.completedAt,
+                                      completedAt: userAchievement?.completedAt,
                                       timesCompleted: achievement.repeatable
                                           ? userAchievement?.timesCompleted
                                           : null,
@@ -285,8 +285,7 @@ class _AchievementDetailSheetState extends State<AchievementDetailSheet>
                                 if (achievement.prerequisiteId != null) ...[
                                   const SizedBox(height: 4),
                                   _PrerequisiteCard(
-                                    prerequisiteId:
-                                        achievement.prerequisiteId!,
+                                    prerequisiteId: achievement.prerequisiteId!,
                                   ),
                                 ],
                               ],
@@ -679,9 +678,7 @@ class _CollectionContent extends StatelessWidget {
                           ? HugeIcons.strokeRoundedCheckmarkCircle02
                           : HugeIcons.strokeRoundedCircle,
                       size: 18,
-                      color: isCollected
-                          ? AppColors.secondary
-                          : c.textTertiary,
+                      color: isCollected ? AppColors.secondary : c.textTertiary,
                     ),
                     const SizedBox(width: 10),
                     Expanded(

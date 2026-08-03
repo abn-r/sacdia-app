@@ -198,9 +198,8 @@ class _AchievementsViewState extends ConsumerState<AchievementsView> {
   List<AchievementWithProgress> _flattenSorted(
     UserAchievementsResponse response,
   ) {
-    final all = response.categories
-        .expand((group) => group.achievements)
-        .toList();
+    final all =
+        response.categories.expand((group) => group.achievements).toList();
 
     int rank(AchievementWithProgress item) {
       final state =
@@ -226,8 +225,7 @@ class _AchievementsViewState extends ConsumerState<AchievementsView> {
           item.userAchievement?.visualState ?? AchievementVisualState.locked;
       return switch (filter) {
         _AchievementFilter.all => true,
-        _AchievementFilter.unlocked =>
-          state == AchievementVisualState.unlocked,
+        _AchievementFilter.unlocked => state == AchievementVisualState.unlocked,
         _AchievementFilter.inProgress =>
           state == AchievementVisualState.inProgress,
         _AchievementFilter.locked => state == AchievementVisualState.locked,
@@ -503,7 +501,8 @@ class _FilterChipState extends State<_FilterChip> {
                 widget.label,
                 style: TextStyle(
                   fontSize: 13,
-                  fontWeight: widget.selected ? FontWeight.w700 : FontWeight.w500,
+                  fontWeight:
+                      widget.selected ? FontWeight.w700 : FontWeight.w500,
                   color: fg,
                 ),
               ),
