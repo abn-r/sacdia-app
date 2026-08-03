@@ -529,22 +529,23 @@ class MaterialsRemoteDataSourceImpl implements MaterialsRemoteDataSource {
   /// Respeta el patrón establecido en [EvidenceFolderRemoteDataSourceImpl].
   Never _rethrow(Object e) {
     if (e is DioException) {
-      final sourceError = e.error;
-      if (sourceError is ServerException) {
-        throw sourceError;
+      final statusCode = e.response?.statusCode;
+      final msg = _extractDioMessage(e);
+      if (statusCode == 404) {
+        throw NotFoundException(message: msg, code: statusCode);
       }
+
+      final sourceError = e.error;
       if (sourceError is AuthException) {
         throw sourceError;
       }
       if (sourceError is NotFoundException) {
         throw sourceError;
       }
-
-      final statusCode = e.response?.statusCode;
-      final msg = _extractDioMessage(e);
-      if (statusCode == 404) {
-        throw NotFoundException(message: msg, code: statusCode);
+      if (sourceError is ServerException) {
+        throw sourceError;
       }
+
       throw ServerException(message: msg, code: statusCode);
     }
     if (e is ServerException || e is AuthException || e is NotFoundException) {

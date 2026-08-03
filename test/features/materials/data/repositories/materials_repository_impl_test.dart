@@ -104,18 +104,18 @@ void main() {
       );
     });
 
-    test('maps a 409 cancellation conflict to ServerFailure', () async {
-      when(dataSource.cancelOrder('SOL-409', 'Cambio de planes')).thenThrow(
-        ServerException(message: 'state_machine_violation', code: 409),
+    test('maps a 422 state-transition error to ServerFailure', () async {
+      when(dataSource.cancelOrder('SOL-422', 'Cambio de planes')).thenThrow(
+        ServerException(message: 'state_machine_violation', code: 422),
       );
 
       final result =
-          await repository.cancelOrder('SOL-409', 'Cambio de planes');
+          await repository.cancelOrder('SOL-422', 'Cambio de planes');
 
       result.fold(
         (failure) {
           expect(failure, isA<ServerFailure>());
-          expect(failure.code, 409);
+          expect(failure.code, 422);
         },
         (_) => fail('Expected Left'),
       );

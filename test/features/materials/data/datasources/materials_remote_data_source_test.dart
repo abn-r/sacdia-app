@@ -128,12 +128,13 @@ void main() {
     });
 
     test('maps a missing order to NotFoundException', () async {
-      final response = _dioWith(
+      final (:dio, :adapter) = _dioWith(
         {'message': 'order_not_found'},
         statusCode: 404,
       );
+      dio.interceptors.add(ErrorInterceptor());
       final dataSource = MaterialsRemoteDataSourceImpl(
-        dio: response.dio,
+        dio: dio,
         baseUrl: baseUrl,
       );
 
@@ -145,23 +146,27 @@ void main() {
               .having((error) => error.message, 'message', 'order_not_found'),
         ),
       );
+      expect(adapter.lastOptions!.path,
+          '$baseUrl/materials/orders/SOL-404/cancel');
     });
 
-    test('maps a cancellation conflict to ServerException', () async {
-      final response = _dioWith(
+    test('maps a state-transition validation error to ServerException',
+        () async {
+      final (:dio, :adapter) = _dioWith(
         {'message': 'state_machine_violation'},
-        statusCode: 409,
+        statusCode: 422,
       );
+      dio.interceptors.add(ErrorInterceptor());
       final dataSource = MaterialsRemoteDataSourceImpl(
-        dio: response.dio,
+        dio: dio,
         baseUrl: baseUrl,
       );
 
       await expectLater(
-        dataSource.cancelOrder('SOL-409', 'Cambio de planes'),
+        dataSource.cancelOrder('SOL-422', 'Cambio de planes'),
         throwsA(
           isA<ServerException>()
-              .having((error) => error.code, 'code', 409)
+              .having((error) => error.code, 'code', 422)
               .having(
                 (error) => error.message,
                 'message',
@@ -169,6 +174,8 @@ void main() {
               ),
         ),
       );
+      expect(adapter.lastOptions!.path,
+          '$baseUrl/materials/orders/SOL-422/cancel');
     });
   });
 }
