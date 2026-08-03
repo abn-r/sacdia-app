@@ -112,8 +112,8 @@ class _AchievementGridCardState extends State<AchievementGridCard>
     final tierColor = achievementTierColor(achievement.tier);
     final tierInk = achievementTierInkColor(achievement.tier);
 
-    final showCounter = !isSecret &&
-        (isCompleted || (isInProgress && progressValue > 0));
+    final showCounter =
+        !isSecret && (isCompleted || (isInProgress && progressValue > 0));
     final counterLabel = isCompleted
         ? (achievement.repeatable && timesCompleted > 0
             ? timesCompleted.toString()
@@ -131,8 +131,7 @@ class _AchievementGridCardState extends State<AchievementGridCard>
 
     final borderColor = switch (visualState) {
       // Ink (not metallic) so silver/gold borders stay visible on white cards.
-      AchievementVisualState.unlocked =>
-        tierInk.withValues(alpha: 0.45),
+      AchievementVisualState.unlocked => tierInk.withValues(alpha: 0.45),
       AchievementVisualState.inProgress => c.border.withValues(alpha: 0.85),
       AchievementVisualState.locked => c.border.withValues(alpha: 0.45),
     };
@@ -300,9 +299,8 @@ class _CounterPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = isCompleted
-        ? tierColor.withValues(alpha: 0.16)
-        : context.sac.border;
+    final bgColor =
+        isCompleted ? tierColor.withValues(alpha: 0.16) : context.sac.border;
 
     return Container(
       constraints: const BoxConstraints(minWidth: 22),

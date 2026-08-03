@@ -39,9 +39,8 @@ class UnitDetailView extends ConsumerWidget {
 
     final canRegisterPoints = _canRegisterPoints(ref, unit);
     final members = state.members;
-    final showBulk = canRegisterPoints &&
-        state.categories.isNotEmpty &&
-        !state.isSavedToday;
+    final showBulk =
+        canRegisterPoints && state.categories.isNotEmpty && !state.isSavedToday;
 
     return Scaffold(
       backgroundColor: c.background,
@@ -328,7 +327,8 @@ class _MemberScoreListState extends State<_MemberScoreList> {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      padding: EdgeInsets.fromLTRB(16, widget.topPadding, 16, widget.bottomPadding),
+      padding:
+          EdgeInsets.fromLTRB(16, widget.topPadding, 16, widget.bottomPadding),
       itemCount: widget.members.length,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
@@ -433,10 +433,10 @@ class _MemberCard extends StatelessWidget {
                   Text(
                     '$total',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: hasPoints ? AppColors.primary : c.textTertiary,
-                          fontWeight: FontWeight.w700,
-                          fontFeatures: const [FontFeature.tabularFigures()],
-                        ),
+                      color: hasPoints ? AppColors.primary : c.textTertiary,
+                      fontWeight: FontWeight.w700,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
                   ),
                   if (categories.isNotEmpty) ...[
                     const SizedBox(width: 4),
@@ -465,8 +465,7 @@ class _MemberCard extends StatelessWidget {
                     padding: const EdgeInsets.fromLTRB(14, 0, 10, 10),
                     child: Column(
                       children: categories.map((category) {
-                        final points =
-                            scores[category.scoringCategoryId] ?? 0;
+                        final points = scores[category.scoringCategoryId] ?? 0;
                         return _CategoryRow(
                           category: category,
                           points: points,
@@ -603,10 +602,10 @@ class _CategoryRow extends StatelessWidget {
             Text(
               '$value',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: value > 0 ? c.text : c.textTertiary,
-                    fontWeight: FontWeight.w600,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
+                color: value > 0 ? c.text : c.textTertiary,
+                fontWeight: FontWeight.w600,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
             )
           else
             _Stepper(
@@ -709,14 +708,14 @@ class _Stepper extends StatelessWidget {
               child: Text(
                 '$value',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: !enabled
-                          ? c.textTertiary
-                          : value > 0
-                              ? c.text
-                              : c.textSecondary,
-                      fontWeight: FontWeight.w700,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
+                  color: !enabled
+                      ? c.textTertiary
+                      : value > 0
+                          ? c.text
+                          : c.textSecondary,
+                  fontWeight: FontWeight.w700,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
               ),
             ),
           ),
