@@ -340,10 +340,9 @@ class _StickyActionBarState extends ConsumerState<_StickyActionBar> {
     setState(() => _isOpeningPdf = true);
     try {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        monthlyReportSnackBar(
           content: Text('monthly_reports.detail.downloading_pdf'.tr()),
           duration: const Duration(seconds: 30),
-          behavior: SnackBarBehavior.floating,
         ),
       );
       final localPath = await ref.read(
@@ -365,7 +364,7 @@ class _StickyActionBarState extends ConsumerState<_StickyActionBar> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        monthlyReportSnackBar(
           content: Text(
             'monthly_reports.detail.pdf_error'.tr(
               namedArgs: {
@@ -373,7 +372,6 @@ class _StickyActionBarState extends ConsumerState<_StickyActionBar> {
               },
             ),
           ),
-          behavior: SnackBarBehavior.floating,
         ),
       );
     } finally {
