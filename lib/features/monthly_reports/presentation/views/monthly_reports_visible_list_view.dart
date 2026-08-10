@@ -137,9 +137,8 @@ class _NextActionBar extends ConsumerWidget {
     final enrollmentId = enrollment?.endpointId;
     if (enrollmentId == null || enrollmentId == '0') {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        monthlyReportSnackBar(
           content: Text('monthly_reports.visible.no_enrollment'.tr()),
-          behavior: SnackBarBehavior.floating,
         ),
       );
       return;
@@ -169,11 +168,10 @@ class _NextActionBar extends ConsumerWidget {
     if (report == null) {
       final state = ref.read(monthlyReportMutationProvider);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        monthlyReportSnackBar(
           content: Text(
             state.errorMessage ?? 'monthly_reports.visible.prepare_error'.tr(),
           ),
-          behavior: SnackBarBehavior.floating,
         ),
       );
       return;

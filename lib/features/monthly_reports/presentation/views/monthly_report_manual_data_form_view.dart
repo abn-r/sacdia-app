@@ -251,13 +251,12 @@ class _MonthlyReportManualDataFormViewState
     if (!mounted) return;
     final state = ref.read(monthlyReportMutationProvider);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+      monthlyReportSnackBar(
         content: Text(
           ok
               ? 'monthly_reports.form.saved'.tr()
               : state.errorMessage ?? 'monthly_reports.form.save_error'.tr(),
         ),
-        behavior: SnackBarBehavior.floating,
       ),
     );
     if (ok) Navigator.of(context).pop(true);
