@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/progressive_class.dart';
+import '../../domain/entities/class_prerequisite.dart';
 import '../../../../core/utils/json_helpers.dart';
 
 /// Modelo de clase progresiva para la capa de datos
@@ -24,10 +25,18 @@ class ClassModel extends Equatable {
   /// Mapeado desde el campo snake_case `asset_code` del backend.
   final String? assetCode;
 
+  final DateTime? enrollmentDate;
+  final DateTime? submittedAt;
+  final DateTime? validatedAt;
+  final String? ecclesiasticalYearLabel;
+
   final int? availableFromYearId;
   final int? availableUntilYearId;
   final int minDurationYears;
   final int maxDurationYears;
+
+  /// Clases previas que el usuario debe tener investidas para inscribirse.
+  final List<ClassPrerequisite> prerequisites;
 
   const ClassModel({
     required this.id,
@@ -39,10 +48,15 @@ class ClassModel extends Equatable {
     this.investitureStatus,
     this.overallProgress,
     this.assetCode,
+    this.enrollmentDate,
+    this.submittedAt,
+    this.validatedAt,
+    this.ecclesiasticalYearLabel,
     this.availableFromYearId,
     this.availableUntilYearId,
     this.minDurationYears = 1,
     this.maxDurationYears = 1,
+    this.prerequisites = const [],
   });
 
   /// Crea una instancia desde JSON.
@@ -63,6 +77,10 @@ class ClassModel extends Equatable {
       investitureStatus: safeStringOrNull(json['investiture_status']),
       overallProgress: safeIntOrNull(json['overall_progress']),
       assetCode: safeStringOrNull(json['asset_code']),
+      enrollmentDate: _parseDate(json['enrollment_date']),
+      submittedAt: _parseDate(json['submitted_at']),
+      validatedAt: _parseDate(json['validated_at']),
+      ecclesiasticalYearLabel: _yearLabel(json['ecclesiastical_year']),
       availableFromYearId: safeIntOrNull(
           json['available_from_year_id'] ?? json['availableFromYearId']),
       availableUntilYearId: safeIntOrNull(
@@ -71,7 +89,38 @@ class ClassModel extends Equatable {
           safeInt(json['min_duration_years'] ?? json['minDurationYears'], 1),
       maxDurationYears:
           safeInt(json['max_duration_years'] ?? json['maxDurationYears'], 1),
+      prerequisites: _parsePrerequisites(json['prerequisites']),
     );
+  }
+
+  static List<ClassPrerequisite> _parsePrerequisites(dynamic value) {
+    if (value is! List) return const [];
+    return value
+        .whereType<Map>()
+        .map((item) => ClassPrerequisite.fromJson(
+              Map<String, dynamic>.from(item),
+            ))
+        .toList();
+  }
+
+  static DateTime? _parseDate(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    if (value is String && value.isNotEmpty) {
+      return DateTime.tryParse(value);
+    }
+    return null;
+  }
+
+  static String? _yearLabel(dynamic value) {
+    if (value is! Map) return null;
+    final start = _parseDate(value['start_date'] ?? value['startDate']);
+    final end = _parseDate(value['end_date'] ?? value['endDate']);
+    if (start == null && end == null) return null;
+    if (start != null && end != null) {
+      return '${start.year}–${end.year}';
+    }
+    return '${(start ?? end)!.year}';
   }
 
   /// Convierte la instancia a JSON
@@ -86,10 +135,17 @@ class ClassModel extends Equatable {
       'investiture_status': investitureStatus,
       'overall_progress': overallProgress,
       'asset_code': assetCode,
+      'enrollment_date': enrollmentDate?.toIso8601String(),
+      'submitted_at': submittedAt?.toIso8601String(),
+      'validated_at': validatedAt?.toIso8601String(),
+      'ecclesiastical_year_label': ecclesiasticalYearLabel,
       'available_from_year_id': availableFromYearId,
       'available_until_year_id': availableUntilYearId,
       'min_duration_years': minDurationYears,
       'max_duration_years': maxDurationYears,
+      'prerequisites': prerequisites
+          .map((p) => {'class_id': p.classId, 'name': p.name})
+          .toList(),
     };
   }
 
@@ -105,10 +161,15 @@ class ClassModel extends Equatable {
       investitureStatus: investitureStatus,
       overallProgress: overallProgress,
       assetCode: assetCode,
+      enrollmentDate: enrollmentDate,
+      submittedAt: submittedAt,
+      validatedAt: validatedAt,
+      ecclesiasticalYearLabel: ecclesiasticalYearLabel,
       availableFromYearId: availableFromYearId,
       availableUntilYearId: availableUntilYearId,
       minDurationYears: minDurationYears,
       maxDurationYears: maxDurationYears,
+      prerequisites: prerequisites,
     );
   }
 
@@ -123,10 +184,15 @@ class ClassModel extends Equatable {
     String? investitureStatus,
     int? overallProgress,
     String? assetCode,
+    DateTime? enrollmentDate,
+    DateTime? submittedAt,
+    DateTime? validatedAt,
+    String? ecclesiasticalYearLabel,
     int? availableFromYearId,
     int? availableUntilYearId,
     int? minDurationYears,
     int? maxDurationYears,
+    List<ClassPrerequisite>? prerequisites,
   }) {
     return ClassModel(
       id: id ?? this.id,
@@ -138,10 +204,16 @@ class ClassModel extends Equatable {
       investitureStatus: investitureStatus ?? this.investitureStatus,
       overallProgress: overallProgress ?? this.overallProgress,
       assetCode: assetCode ?? this.assetCode,
+      enrollmentDate: enrollmentDate ?? this.enrollmentDate,
+      submittedAt: submittedAt ?? this.submittedAt,
+      validatedAt: validatedAt ?? this.validatedAt,
+      ecclesiasticalYearLabel:
+          ecclesiasticalYearLabel ?? this.ecclesiasticalYearLabel,
       availableFromYearId: availableFromYearId ?? this.availableFromYearId,
       availableUntilYearId: availableUntilYearId ?? this.availableUntilYearId,
       minDurationYears: minDurationYears ?? this.minDurationYears,
       maxDurationYears: maxDurationYears ?? this.maxDurationYears,
+      prerequisites: prerequisites ?? this.prerequisites,
     );
   }
 
@@ -156,9 +228,14 @@ class ClassModel extends Equatable {
         investitureStatus,
         overallProgress,
         assetCode,
+        enrollmentDate,
+        submittedAt,
+        validatedAt,
+        ecclesiasticalYearLabel,
         availableFromYearId,
         availableUntilYearId,
         minDurationYears,
         maxDurationYears,
+        prerequisites,
       ];
 }
