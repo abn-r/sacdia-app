@@ -1569,7 +1569,9 @@
       "submit_requirement": "Error submitting requirement for validation",
       "upload_file": "Error uploading evidence file",
       "delete_file": "Error deleting evidence file",
-      "upload_failed": "Upload failed"
+      "upload_failed": "Upload failed",
+      "fetch_honors": "Error fetching class honors",
+      "prerequisite_not_met": "You must be invested in the required previous classes to enroll."
     },
     "status": {
       "pending": "Pending",

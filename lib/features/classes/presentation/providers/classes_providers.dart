@@ -15,6 +15,7 @@ import '../../domain/entities/class_with_progress.dart';
 import '../../domain/entities/class_members_progress.dart';
 import '../../domain/entities/progress_scope.dart';
 import '../../domain/entities/class_counselor_assignment.dart';
+import '../../domain/entities/class_honor.dart';
 import '../../domain/repositories/classes_repository.dart';
 import '../../domain/usecases/get_user_classes.dart';
 import '../../domain/usecases/get_class_detail.dart';
@@ -175,6 +176,28 @@ final classModulesProvider = FutureProvider.autoDispose
   return result.fold(
     (failure) => throw Exception(failure.message),
     (modules) => modules,
+  );
+});
+
+/// Provider para las especialidades recomendadas/relacionadas de una clase.
+///
+/// autoDispose: la lista solo se necesita mientras la vista de detalle de
+/// clase está montada. El estado del usuario (`user_status`) llega resuelto
+/// por el backend a partir del token de auth adjuntado por el interceptor.
+final classHonorsProvider =
+    FutureProvider.autoDispose.family<List<ClassHonor>, int>((ref, classId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+
+  final repository = ref.read(classesRepositoryProvider);
+  final result = await repository.getClassHonors(
+    classId,
+    cancelToken: cancelToken,
+  );
+
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (honors) => honors,
   );
 });
 

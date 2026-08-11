@@ -1569,7 +1569,9 @@
       "submit_requirement": "Erro ao enviar requisito para validação",
       "upload_file": "Erro ao enviar arquivo de evidência",
       "delete_file": "Erro ao excluir arquivo de evidência",
-      "upload_failed": "Erro ao enviar arquivo de evidência"
+      "upload_failed": "Erro ao enviar arquivo de evidência",
+      "fetch_honors": "Erro ao buscar as especialidades da turma",
+      "prerequisite_not_met": "Você deve estar investido nas turmas anteriores exigidas para se inscrever."
     },
     "status": {
       "pending": "Pendente",
