@@ -3985,5 +3985,88 @@
       "rank_position": "Posición #{position}",
       "section_name": "Sección: {name}"
     }
+  },
+  "payment_orders": {
+    "list": {
+      "title": "Órdenes de pago",
+      "empty": "No hay órdenes de pago todavía",
+      "beneficiaries_count": "{count} beneficiario(s)"
+    },
+    "purpose": {
+      "insurance": "Seguro",
+      "camporee": "Camporee"
+    },
+    "status": {
+      "issued": "Emitida",
+      "proof_submitted": "Comprobante enviado",
+      "approved": "Aprobada",
+      "proof_rejected": "Comprobante rechazado",
+      "cancelled": "Cancelada",
+      "expired": "Vencida"
+    },
+    "timeline": {
+      "issued": "Orden emitida",
+      "proof_submitted": "Comprobante enviado",
+      "approved": "Pago aprobado"
+    },
+    "detail": {
+      "title": "Detalle de orden",
+      "total": "Total",
+      "unit_cost": "Costo unitario",
+      "expires": "Vence",
+      "beneficiaries": "Beneficiarios",
+      "timeline_title": "Estado",
+      "proof_title": "Comprobante de pago",
+      "view_pdf": "Ver orden (PDF)",
+      "upload_proof": "Subir comprobante",
+      "reupload_proof": "Volver a subir comprobante",
+      "proof_uploaded": "Comprobante enviado para revisión",
+      "proof_too_large": "El archivo supera el tamaño máximo de 10 MB",
+      "reject_reason": "Motivo de rechazo",
+      "cancel_order": "Cancelar orden",
+      "cancel_title": "¿Cancelar orden?",
+      "cancel_body": "La orden dejará de ser válida y los lugares no quedarán reservados.",
+      "cancel_confirm": "Sí, cancelar",
+      "cancelled": "Orden cancelada"
+    },
+    "issue": {
+      "title_insurance": "Emitir orden de seguro",
+      "title_camporee": "Emitir orden de camporee",
+      "select_members": "Seleccionar miembros",
+      "eligible_hint_insurance": "Solo se muestran miembros activos sin seguro vigente.",
+      "eligible_hint_camporee": "Solo se muestran miembros activos con seguro vigente.",
+      "no_eligible": "No hay miembros elegibles",
+      "no_cycle": "No hay un ciclo de seguro configurado para tu sección",
+      "unavailable": "Las órdenes de pago no están habilitadas en tu campo local",
+      "unit_cost_label": "Costo unitario: {cost}",
+      "deadline_label": "Fecha límite: {date}",
+      "total_label": "Total ({count} seleccionados)",
+      "submit": "Emitir orden",
+      "success": "Orden emitida correctamente"
+    },
+    "camporee_redirect": {
+      "title": "Inscripción con orden de pago",
+      "body": "Tu campo local usa órdenes de pago. Emite una orden, paga en el banco o en la caja del campo y sube tu comprobante; la inscripción se confirma al aprobarse el pago.",
+      "issue_button": "Emitir orden de pago",
+      "view_orders": "Ver órdenes de este camporee"
+    },
+    "errors": {
+      "flag_disabled": "Las órdenes de pago no están habilitadas en este campo local",
+      "legacy_disabled": "Este flujo fue reemplazado por las órdenes de pago",
+      "not_found": "No se encontró la orden de pago",
+      "forbidden": "No tienes permisos sobre esta orden",
+      "invalid_transition": "La orden no permite esta acción en su estado actual",
+      "expired": "La orden está vencida",
+      "cycle_invalid": "El ciclo de seguro no es válido para tu sección",
+      "camporee_invalid": "El camporee no está disponible para inscripción",
+      "cost_not_configured": "El costo de inscripción no está configurado",
+      "eligibility_failed": "Uno o más miembros no son elegibles",
+      "duplicate_beneficiary": "Uno o más miembros ya tienen una orden o cobertura activa",
+      "beneficiaries_required": "Selecciona al menos un beneficiario",
+      "proof_invalid_file": "Archivo no válido. Usa PDF, JPG o PNG de hasta 10 MB",
+      "reassignment_invalid": "La reasignación no es válida",
+      "reassignment_pending_exists": "Ya existe una solicitud de reasignación pendiente",
+      "download_document": "No se pudo descargar el documento"
+    }
   }
 }

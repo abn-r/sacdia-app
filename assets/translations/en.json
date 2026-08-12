@@ -3985,5 +3985,88 @@
       "rank_position": "Position #{position}",
       "section_name": "Section: {name}"
     }
+  },
+  "payment_orders": {
+    "list": {
+      "title": "Payment orders",
+      "empty": "No payment orders yet",
+      "beneficiaries_count": "{count} beneficiary(ies)"
+    },
+    "purpose": {
+      "insurance": "Insurance",
+      "camporee": "Camporee"
+    },
+    "status": {
+      "issued": "Issued",
+      "proof_submitted": "Proof submitted",
+      "approved": "Approved",
+      "proof_rejected": "Proof rejected",
+      "cancelled": "Cancelled",
+      "expired": "Expired"
+    },
+    "timeline": {
+      "issued": "Order issued",
+      "proof_submitted": "Proof submitted",
+      "approved": "Payment approved"
+    },
+    "detail": {
+      "title": "Order detail",
+      "total": "Total",
+      "unit_cost": "Unit cost",
+      "expires": "Expires",
+      "beneficiaries": "Beneficiaries",
+      "timeline_title": "Status",
+      "proof_title": "Payment proof",
+      "view_pdf": "View order (PDF)",
+      "upload_proof": "Upload proof",
+      "reupload_proof": "Re-upload proof",
+      "proof_uploaded": "Proof submitted for review",
+      "proof_too_large": "The file exceeds the 10 MB limit",
+      "reject_reason": "Rejection reason",
+      "cancel_order": "Cancel order",
+      "cancel_title": "Cancel order?",
+      "cancel_body": "The order will no longer be valid and no spots will be reserved.",
+      "cancel_confirm": "Yes, cancel",
+      "cancelled": "Order cancelled"
+    },
+    "issue": {
+      "title_insurance": "Issue insurance order",
+      "title_camporee": "Issue camporee order",
+      "select_members": "Select members",
+      "eligible_hint_insurance": "Only active members without current coverage are shown.",
+      "eligible_hint_camporee": "Only active members with valid insurance are shown.",
+      "no_eligible": "No eligible members",
+      "no_cycle": "No insurance cycle is configured for your section",
+      "unavailable": "Payment orders are not enabled in your local field",
+      "unit_cost_label": "Unit cost: {cost}",
+      "deadline_label": "Deadline: {date}",
+      "total_label": "Total ({count} selected)",
+      "submit": "Issue order",
+      "success": "Order issued successfully"
+    },
+    "camporee_redirect": {
+      "title": "Registration via payment order",
+      "body": "Your local field uses payment orders. Issue an order, pay at the bank or the field cashier, and upload your proof; registration is confirmed once the payment is approved.",
+      "issue_button": "Issue payment order",
+      "view_orders": "View this camporee's orders"
+    },
+    "errors": {
+      "flag_disabled": "Payment orders are not enabled in this local field",
+      "legacy_disabled": "This flow was replaced by payment orders",
+      "not_found": "Payment order not found",
+      "forbidden": "You don't have access to this order",
+      "invalid_transition": "This action is not allowed in the order's current state",
+      "expired": "The order has expired",
+      "cycle_invalid": "The insurance cycle is not valid for your section",
+      "camporee_invalid": "The camporee is not available for registration",
+      "cost_not_configured": "The registration cost is not configured",
+      "eligibility_failed": "One or more members are not eligible",
+      "duplicate_beneficiary": "One or more members already have an active order or coverage",
+      "beneficiaries_required": "Select at least one beneficiary",
+      "proof_invalid_file": "Invalid file. Use PDF, JPG or PNG up to 10 MB",
+      "reassignment_invalid": "The reassignment is not valid",
+      "reassignment_pending_exists": "A pending reassignment request already exists",
+      "download_document": "The document could not be downloaded"
+    }
   }
 }

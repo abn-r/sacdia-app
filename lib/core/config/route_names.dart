@@ -270,6 +270,20 @@ class RouteNames {
   static String materialsOrderReceipt(String folioOrId) =>
       '/home/materials/order/$folioOrId/receipt';
 
+  // Órdenes de pago territoriales
+  static const String paymentOrders = '/payment-orders';
+  static const String paymentOrderIssueInsurance =
+      '/payment-orders/issue-insurance';
+  static const String paymentOrderDetail = '/payment-orders/:orderId';
+  static const String camporeeIssuePaymentOrder =
+      '/camporee/:camporeeId/payment-orders/issue';
+
+  static String paymentOrderDetailPath(String orderId) =>
+      '/payment-orders/$orderId';
+
+  static String camporeeIssuePaymentOrderPath(int camporeeId) =>
+      '/camporee/$camporeeId/payment-orders/issue';
+
   // Rankings
   static const String homeClubRankings = '/home/club-rankings';
   static const String homeMyRanking = '/home/my-ranking';

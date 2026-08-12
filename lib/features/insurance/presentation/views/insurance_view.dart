@@ -1,13 +1,16 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
+import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/fixed_input_icon_slot.dart';
+import '../../../payment_orders/presentation/providers/payment_orders_providers.dart';
 import '../../domain/entities/member_insurance.dart';
 import '../providers/insurance_providers.dart';
 import '../widgets/insurance_loading_skeleton.dart';
@@ -45,11 +48,23 @@ class _InsuranceViewState extends ConsumerState<InsuranceView> {
     final filters = ref.watch(insuranceFiltersProvider);
 
     final canManage = canManageAsync.valueOrNull ?? false;
+    final ordersContext = ref.watch(paymentOrdersContextProvider).valueOrNull;
+    final ordersEnabled = ordersContext?.enabled ?? false;
+    final canIssueOrders =
+        ref.watch(canIssuePaymentOrdersProvider).valueOrNull ?? false;
 
     return Scaffold(
       backgroundColor: context.sac.background,
-      floatingActionButton:
-          canManage ? _AddFab(onTap: () => _openAddSheet(context, null)) : null,
+      // Con órdenes de pago activas, el alta directa se reemplaza por la
+      // emisión de una orden grupal (el backend bloquea el flujo legacy).
+      floatingActionButton: ordersEnabled && canIssueOrders
+          ? _AddFab(
+              onTap: () =>
+                  context.push(RouteNames.paymentOrderIssueInsurance),
+            )
+          : canManage
+              ? _AddFab(onTap: () => _openAddSheet(context, null))
+              : null,
       body: SafeArea(
         child: RefreshIndicator(
           color: AppColors.primary,
@@ -79,6 +94,20 @@ class _InsuranceViewState extends ConsumerState<InsuranceView> {
                       ),
                 ),
                 centerTitle: false,
+                actions: [
+                  if (ordersEnabled)
+                    IconButton(
+                      tooltip: 'payment_orders.list.title'.tr(),
+                      onPressed: () => context.push(
+                        '${RouteNames.paymentOrders}?purpose=INSURANCE',
+                      ),
+                      icon: HugeIcon(
+                        icon: HugeIcons.strokeRoundedInvoice01,
+                        color: context.sac.text,
+                        size: 22,
+                      ),
+                    ),
+                ],
               ),
 
               // Body content
