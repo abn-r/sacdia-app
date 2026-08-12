@@ -47,6 +47,10 @@ import 'package:sacdia_app/features/units/presentation/views/member_of_month_his
 import 'package:sacdia_app/features/units/presentation/views/units_list_view.dart';
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_payments_view.dart';
 import 'package:sacdia_app/features/monthly_reports/presentation/views/monthly_reports_list_view.dart';
+import 'package:sacdia_app/features/payment_orders/domain/entities/payment_order.dart';
+import 'package:sacdia_app/features/payment_orders/presentation/views/issue_payment_order_view.dart';
+import 'package:sacdia_app/features/payment_orders/presentation/views/payment_order_detail_view.dart';
+import 'package:sacdia_app/features/payment_orders/presentation/views/payment_orders_view.dart';
 import 'package:sacdia_app/features/monthly_reports/presentation/views/monthly_report_detail_view.dart';
 import 'package:sacdia_app/features/monthly_reports/presentation/views/monthly_reports_visible_list_view.dart';
 import 'package:sacdia_app/features/role_assignments/presentation/views/role_assignments_view.dart';
@@ -898,6 +902,66 @@ final routerProvider = Provider<GoRouter>((ref) {
               camporeeId: camporeeId,
               memberId: memberId,
               memberName: memberName,
+            ),
+          );
+        },
+      ),
+
+      // Órdenes de pago territoriales — lista
+      GoRoute(
+        path: RouteNames.paymentOrders,
+        pageBuilder: (context, state) {
+          final purposeParam = state.uri.queryParameters['purpose'];
+          final camporeeIdParam = state.uri.queryParameters['camporee_id'];
+          return _sharedAxisBuild(
+            context,
+            state,
+            PaymentOrdersView(
+              purpose: purposeParam == null
+                  ? null
+                  : PaymentOrderPurposeApi.fromApi(purposeParam),
+              camporeeId:
+                  camporeeIdParam == null ? null : int.tryParse(camporeeIdParam),
+            ),
+          );
+        },
+      ),
+
+      // Órdenes de pago — emitir orden de seguro
+      GoRoute(
+        path: RouteNames.paymentOrderIssueInsurance,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          const IssuePaymentOrderView(purpose: PaymentOrderPurpose.insurance),
+        ),
+      ),
+
+      // Órdenes de pago — detalle
+      GoRoute(
+        path: RouteNames.paymentOrderDetail,
+        pageBuilder: (context, state) {
+          final orderId = state.pathParameters['orderId']!;
+          return _sharedAxisBuild(
+            context,
+            state,
+            PaymentOrderDetailView(orderId: orderId),
+          );
+        },
+      ),
+
+      // Órdenes de pago — emitir orden de camporee
+      GoRoute(
+        path: RouteNames.camporeeIssuePaymentOrder,
+        pageBuilder: (context, state) {
+          final camporeeId =
+              int.tryParse(state.pathParameters['camporeeId']!) ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            IssuePaymentOrderView(
+              purpose: PaymentOrderPurpose.camporee,
+              camporeeId: camporeeId,
             ),
           );
         },

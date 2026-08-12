@@ -113,4 +113,7 @@ class ApiEndpoints {
 
   // ── Materials ────────────────────────────────────────────────────────────
   static const String materials = '/materials';
+
+  // ── Field Payment Orders ─────────────────────────────────────────────────
+  static const String paymentOrders = '/payment-orders';
 }

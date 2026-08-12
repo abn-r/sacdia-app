@@ -3984,5 +3984,88 @@
       "rank_position": "Position n°{position}",
       "section_name": "Section : {name}"
     }
+  },
+  "payment_orders": {
+    "list": {
+      "title": "Ordres de paiement",
+      "empty": "Aucun ordre de paiement pour l'instant",
+      "beneficiaries_count": "{count} bénéficiaire(s)"
+    },
+    "purpose": {
+      "insurance": "Assurance",
+      "camporee": "Camporée"
+    },
+    "status": {
+      "issued": "Émis",
+      "proof_submitted": "Justificatif envoyé",
+      "approved": "Approuvé",
+      "proof_rejected": "Justificatif rejeté",
+      "cancelled": "Annulé",
+      "expired": "Expiré"
+    },
+    "timeline": {
+      "issued": "Ordre émis",
+      "proof_submitted": "Justificatif envoyé",
+      "approved": "Paiement approuvé"
+    },
+    "detail": {
+      "title": "Détail de l'ordre",
+      "total": "Total",
+      "unit_cost": "Coût unitaire",
+      "expires": "Expire",
+      "beneficiaries": "Bénéficiaires",
+      "timeline_title": "Statut",
+      "proof_title": "Justificatif de paiement",
+      "view_pdf": "Voir l'ordre (PDF)",
+      "upload_proof": "Envoyer le justificatif",
+      "reupload_proof": "Renvoyer le justificatif",
+      "proof_uploaded": "Justificatif envoyé pour révision",
+      "proof_too_large": "Le fichier dépasse la limite de 10 Mo",
+      "reject_reason": "Motif du rejet",
+      "cancel_order": "Annuler l'ordre",
+      "cancel_title": "Annuler l'ordre ?",
+      "cancel_body": "L'ordre ne sera plus valide et aucune place ne sera réservée.",
+      "cancel_confirm": "Oui, annuler",
+      "cancelled": "Ordre annulé"
+    },
+    "issue": {
+      "title_insurance": "Émettre un ordre d'assurance",
+      "title_camporee": "Émettre un ordre de camporée",
+      "select_members": "Sélectionner des membres",
+      "eligible_hint_insurance": "Seuls les membres actifs sans couverture en cours sont affichés.",
+      "eligible_hint_camporee": "Seuls les membres actifs avec une assurance valide sont affichés.",
+      "no_eligible": "Aucun membre éligible",
+      "no_cycle": "Aucun cycle d'assurance n'est configuré pour votre section",
+      "unavailable": "Les ordres de paiement ne sont pas activés dans votre champ local",
+      "unit_cost_label": "Coût unitaire : {cost}",
+      "deadline_label": "Date limite : {date}",
+      "total_label": "Total ({count} sélectionnés)",
+      "submit": "Émettre l'ordre",
+      "success": "Ordre émis avec succès"
+    },
+    "camporee_redirect": {
+      "title": "Inscription par ordre de paiement",
+      "body": "Votre champ local utilise des ordres de paiement. Émettez un ordre, payez à la banque ou à la caisse du champ, puis envoyez votre justificatif ; l'inscription est confirmée à l'approbation du paiement.",
+      "issue_button": "Émettre un ordre de paiement",
+      "view_orders": "Voir les ordres de cette camporée"
+    },
+    "errors": {
+      "flag_disabled": "Les ordres de paiement ne sont pas activés dans ce champ local",
+      "legacy_disabled": "Ce flux a été remplacé par les ordres de paiement",
+      "not_found": "Ordre de paiement introuvable",
+      "forbidden": "Vous n'avez pas accès à cet ordre",
+      "invalid_transition": "Cette action n'est pas autorisée dans l'état actuel de l'ordre",
+      "expired": "L'ordre a expiré",
+      "cycle_invalid": "Le cycle d'assurance n'est pas valide pour votre section",
+      "camporee_invalid": "La camporée n'est pas disponible pour l'inscription",
+      "cost_not_configured": "Le coût d'inscription n'est pas configuré",
+      "eligibility_failed": "Un ou plusieurs membres ne sont pas éligibles",
+      "duplicate_beneficiary": "Un ou plusieurs membres ont déjà un ordre ou une couverture active",
+      "beneficiaries_required": "Sélectionnez au moins un bénéficiaire",
+      "proof_invalid_file": "Fichier non valide. Utilisez un PDF, JPG ou PNG de 10 Mo maximum",
+      "reassignment_invalid": "La réaffectation n'est pas valide",
+      "reassignment_pending_exists": "Une demande de réaffectation est déjà en attente",
+      "download_document": "Le document n'a pas pu être téléchargé"
+    }
   }
 }
