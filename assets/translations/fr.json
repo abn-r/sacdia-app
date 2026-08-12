@@ -2240,7 +2240,25 @@
       "get_certification_progress": "Erreur lors de la récupération de la progression de la certification",
       "enroll_certification": "Erreur lors de l'inscription à la certification",
       "update_section_progress": "Erreur lors de la mise à jour de la progression de la section",
-      "unenroll_certification": "Erreur lors de la désinscription de la certification"
+      "unenroll_certification": "Erreur lors de la désinscription de la certification",
+      "get_requirement": "Erreur lors de la récupération de l'exigence",
+      "save_draft": "Erreur lors de l'enregistrement du brouillon",
+      "submit_requirement": "Erreur lors de l'envoi de l'exigence pour révision",
+      "presign_evidence": "Erreur lors de la préparation de l'envoi de la preuve",
+      "confirm_evidence": "Erreur lors de la confirmation de la preuve",
+      "delete_evidence": "Erreur lors de la suppression de la preuve",
+      "presign_closeout_evidence": "Erreur lors de la préparation de l'envoi du justificatif de conseil",
+      "confirm_closeout_evidence": "Erreur lors de la confirmation du justificatif de conseil",
+      "submit_final": "Erreur lors de l'envoi de la certification en révision finale",
+      "cert_enrollment_not_found": "Nous n'avons pas trouvé ton inscription à cette certification",
+      "cert_section_invalid": "Cette section n'appartient pas à la certification",
+      "cert_requirement_locked": "Cette exigence ne peut plus être modifiée dans son état actuel",
+      "cert_requirement_incomplete": "Complète tous les composants obligatoires avant d'envoyer",
+      "cert_invalid_transition": "Cette action n'est pas possible dans l'état actuel",
+      "cert_evidence_invalid_type": "Le type de fichier n'est pas valide pour cette preuve",
+      "cert_evidence_too_large": "Le fichier dépasse la taille maximale autorisée",
+      "cert_closeout_incomplete": "Certaines exigences obligatoires doivent encore être approuvées avant de clôturer la certification",
+      "cert_concurrent_update": "Les informations ont changé pendant la modification ; recharge et réessaie"
     },
     "common": {
       "module": "module"
@@ -2281,7 +2299,9 @@
       "in_progress": "En cours",
       "modules_completed": "{completed} / {total} modules terminés",
       "no_sections_module": "Aucune section dans ce module.",
-      "load_error": "Erreur lors du chargement de la progression"
+      "load_error": "Erreur lors du chargement de la progression",
+      "closeout_cta": "Clôturer la certification",
+      "open_requirement": "Voir l'exigence"
     },
     "my": {
       "empty_title": "Vous n'êtes inscrit à aucune certification",
@@ -2303,6 +2323,37 @@
       "progress_label": "Progression",
       "progress_modules": "{percentage} % · {completed} / {total} modules",
       "unenroll_button": "Me désinscrire"
+    },
+    "requirement_status": {
+      "draft": "Brouillon",
+      "submitted": "Envoyé",
+      "changes_requested": "Modifications demandées",
+      "approved": "Approuvé"
+    },
+    "requirement_detail": {
+      "title": "Exigence",
+      "submit_success": "Exigence envoyée en révision",
+      "unsaved_changes": "Modifications non enregistrées",
+      "history_title": "HISTORIQUE",
+      "event_submitted": "Envoyé en révision",
+      "event_approved": "Approuvé",
+      "event_changes_requested": "Modifications demandées",
+      "save_draft": "Enregistrer le brouillon",
+      "submit": "Envoyer en révision",
+      "changes_requested_title": "Des modifications ont été demandées",
+      "text_response_hint": "Écris ta réponse ici",
+      "attestation_label": "Je confirme avoir accompli ce qui était demandé",
+      "linked_honor_hint": "ID du mérite approuvé",
+      "linked_activity_hint": "ID de l'activité",
+      "required_badge": "Obligatoire",
+      "auto_validation_hint": "Ce composant est validé automatiquement par le système",
+      "unknown_component_hint": "Ce type de composant n'est pas encore pris en charge par l'application"
+    },
+    "closeout": {
+      "title": "Clôture de la certification",
+      "description": "Téléverse le justificatif d'approbation du conseil et envoie la certification en révision finale. Cette étape n'est disponible qu'une fois les exigences obligatoires terminées.",
+      "submit_success": "Certification envoyée en révision finale",
+      "upload_failed": "Impossible de téléverser le justificatif"
     }
   },
   "catalogs": {

@@ -2240,7 +2240,25 @@
       "get_certification_progress": "Error fetching certification progress",
       "enroll_certification": "Error enrolling in certification",
       "update_section_progress": "Error updating section progress",
-      "unenroll_certification": "Error unenrolling from certification"
+      "unenroll_certification": "Error unenrolling from certification",
+      "get_requirement": "Error getting the requirement",
+      "save_draft": "Error saving the draft",
+      "submit_requirement": "Error submitting the requirement for review",
+      "presign_evidence": "Error preparing the evidence upload",
+      "confirm_evidence": "Error confirming the evidence",
+      "delete_evidence": "Error deleting the evidence",
+      "presign_closeout_evidence": "Error preparing the board proof upload",
+      "confirm_closeout_evidence": "Error confirming the board proof",
+      "submit_final": "Error submitting the certification for final review",
+      "cert_enrollment_not_found": "We couldn't find your enrollment in this certification",
+      "cert_section_invalid": "This section doesn't belong to the certification",
+      "cert_requirement_locked": "This requirement can no longer be edited in its current state",
+      "cert_requirement_incomplete": "Complete all required components before submitting",
+      "cert_invalid_transition": "This action isn't possible in the current state",
+      "cert_evidence_invalid_type": "The file type isn't valid for this evidence",
+      "cert_evidence_too_large": "The file exceeds the maximum allowed size",
+      "cert_closeout_incomplete": "Some required requirements still need approval before closing the certification",
+      "cert_concurrent_update": "The information changed while you were editing; reload and try again"
     },
     "common": {
       "module": "module"
@@ -2281,7 +2299,9 @@
       "in_progress": "In progress",
       "modules_completed": "{completed} / {total} modules completed",
       "no_sections_module": "No sections in this module.",
-      "load_error": "Error loading progress"
+      "load_error": "Error loading progress",
+      "closeout_cta": "Close out certification",
+      "open_requirement": "View requirement"
     },
     "my": {
       "empty_title": "You are not enrolled in any certification",
@@ -2303,6 +2323,37 @@
       "progress_label": "Progress",
       "progress_modules": "{percentage}% · {completed}/{total} modules",
       "unenroll_button": "Unenroll"
+    },
+    "requirement_status": {
+      "draft": "Draft",
+      "submitted": "Submitted",
+      "changes_requested": "Changes requested",
+      "approved": "Approved"
+    },
+    "requirement_detail": {
+      "title": "Requirement",
+      "submit_success": "Requirement submitted for review",
+      "unsaved_changes": "Unsaved changes",
+      "history_title": "HISTORY",
+      "event_submitted": "Submitted for review",
+      "event_approved": "Approved",
+      "event_changes_requested": "Changes requested",
+      "save_draft": "Save draft",
+      "submit": "Submit for review",
+      "changes_requested_title": "Changes were requested",
+      "text_response_hint": "Write your answer here",
+      "attestation_label": "I confirm I completed what was requested",
+      "linked_honor_hint": "Approved honor ID",
+      "linked_activity_hint": "Activity ID",
+      "required_badge": "Required",
+      "auto_validation_hint": "This component is validated automatically by the system",
+      "unknown_component_hint": "This component type isn't supported by the app yet"
+    },
+    "closeout": {
+      "title": "Certification closeout",
+      "description": "Upload the board's approval proof and submit the certification for final review. This step is only available once you've completed the required requirements.",
+      "submit_success": "Certification submitted for final review",
+      "upload_failed": "The proof couldn't be uploaded"
     }
   },
   "catalogs": {

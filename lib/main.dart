@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' as widgets;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -22,6 +23,7 @@ import 'core/theme/theme_provider.dart';
 import 'core/utils/app_logger.dart';
 import 'features/accessibility/presentation/providers/accessibility_provider.dart';
 import 'features/biometric/presentation/widgets/biometric_gate.dart';
+import 'features/certifications/data/local/certification_draft_local_data_source.dart';
 import 'firebase_options.dart';
 import 'providers/storage_provider.dart';
 
@@ -191,6 +193,11 @@ Future<void> main() async {
 
       final sharedPreferences = results[1] as SharedPreferences;
 
+      await Hive.initFlutter();
+      final certificationDraftBox = await Hive.openBox<String>(
+        CertificationDraftLocalDataSource.boxName,
+      );
+
       // Use SACDIA's bounded image cache for every CachedNetworkImage call site
       // by default. This avoids silently falling back to DefaultCacheManager
       // on high-volume screens such as honors/profile grids.
@@ -219,6 +226,9 @@ Future<void> main() async {
               overrides: [
                 // Proporcionamos la instancia de SharedPreferences a la aplicación
                 sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+                certificationDraftBoxProvider.overrideWithValue(
+                  certificationDraftBox,
+                ),
               ],
               child: const MyApp(),
             ),
