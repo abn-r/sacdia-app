@@ -6,6 +6,7 @@ import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/certification.dart';
 import '../../domain/entities/certification_detail.dart';
+import '../../domain/entities/certification_eligibility.dart';
 import '../../domain/entities/certification_evidence.dart';
 import '../../domain/entities/certification_requirement.dart';
 import '../../domain/entities/certification_requirement_component.dart';
@@ -86,6 +87,28 @@ class CertificationsRepositoryImpl implements CertificationsRepository {
         cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(models.map((m) => m.toEntity()).toList());
+    } on ServerException catch (e) {
+      return _serverFailure(e);
+    } on AuthException catch (e) {
+      return _authFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, CertificationEligibility>> getEligibility(
+    String userId,
+    int certificationId, {
+    RequestCancelToken? cancelToken,
+  }) async {
+    try {
+      final model = await remoteDataSource.getEligibility(
+        userId,
+        certificationId,
+        cancelToken: cancelToken.asDioCancelToken(),
+      );
+      return Right(model.toEntity());
     } on ServerException catch (e) {
       return _serverFailure(e);
     } on AuthException catch (e) {

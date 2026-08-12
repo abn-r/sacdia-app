@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" fill="none" role="img" aria-label="Actividades Vocacionales">
+  <circle cx="80" cy="80" r="64" fill="#CD2233" fill-opacity="0.12"/>
+  <!-- Briefcase body -->
+  <path fill="#CD2233" d="M36 70c0-4.4 3.6-8 8-8h72c4.4 0 8 3.6 8 8v48c0 4.4-3.6 8-8 8H44c-4.4 0-8-3.6-8-8V70Z"/>
+  <!-- Handle -->
+  <path fill="#3F3232" d="M62 54c0-4.4 3.6-8 8-8h20c4.4 0 8 3.6 8 8v10H62V54Z"/>
+  <path fill="#CD2233" d="M68 62h24v6H68z"/>
+  <!-- Accent latch -->
+  <rect x="72" y="88" width="16" height="12" rx="2" fill="#3F3232"/>
+  <!-- Accent gear -->
+  <circle cx="112" cy="108" r="14" fill="#3F3232"/>
+  <circle cx="112" cy="108" r="6" fill="#CD2233"/>
+  <path fill="#3F3232" d="M110 92h4v6h-4zm0 24h4v6h-4zm14-14h6v4h-6zm-24 0h6v4h-6zm18.5-10.5 4.2-4.2 4.2 4.2-4.2 4.2zm-16.4 16.4 4.2-4.2 4.2 4.2-4.2 4.2zm16.4 0 4.2 4.2-4.2 4.2-4.2-4.2zm-16.4-16.4 4.2 4.2-4.2 4.2-4.2-4.2z"/>
+</svg>

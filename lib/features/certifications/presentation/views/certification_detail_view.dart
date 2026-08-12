@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/features/certifications/domain/entities/certification_detail.dart';
+import 'package:sacdia_app/features/certifications/domain/entities/certification_eligibility.dart';
 import 'package:sacdia_app/features/certifications/domain/entities/certification_module.dart';
 
 import '../providers/certifications_providers.dart';
@@ -419,9 +420,31 @@ class _NotEnrolledCTA extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final eligibilityAsync =
+        ref.watch(certificationEligibilityProvider(certificationId));
+
+    return eligibilityAsync.when(
+      loading: () => const Center(child: SacLoading()),
+      // Si la consulta de elegibilidad falla, se muestra el CTA igualmente:
+      // el backend vuelve a validar las reglas al inscribir.
+      error: (_, __) => _enrollButton(context, ref, enabled: true),
+      data: (eligibility) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _EligibilitySection(eligibility: eligibility),
+          const SizedBox(height: 14),
+          _enrollButton(context, ref, enabled: eligibility.eligible),
+        ],
+      ),
+    );
+  }
+
+  Widget _enrollButton(BuildContext context, WidgetRef ref,
+      {required bool enabled}) {
     return SacButton.primary(
       text: 'certifications.detail.enroll_cta'.tr(),
       icon: HugeIcons.strokeRoundedAdd01,
+      isEnabled: enabled,
       onPressed: () => _enroll(context, ref),
     );
   }
@@ -482,6 +505,169 @@ class _NotEnrolledCTA extends ConsumerWidget {
         );
       }
     }
+  }
+}
+
+// ── Eligibility Section ───────────────────────────────────────────────────────
+
+/// Muestra los requisitos de inscripción evaluados por el backend
+/// (regla por regla) y, cuando aplica, el motivo del incumplimiento.
+class _EligibilitySection extends StatelessWidget {
+  final CertificationEligibility eligibility;
+
+  const _EligibilitySection({required this.eligibility});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    // Versión sin reglas configuradas: inscripción no disponible.
+    if (eligibility.rules.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.accentLight,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          children: [
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedAlert02,
+              size: 20,
+              color: AppColors.accentDark,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'certifications.detail.eligibility_no_rules'.tr(),
+                style: TextStyle(
+                  fontSize: 13,
+                  height: 1.4,
+                  color: AppColors.accentDark,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: c.surfaceVariant,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: c.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedShieldUser,
+                size: 18,
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'certifications.detail.eligibility_title'.tr(),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: c.text,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ...eligibility.rules.map(
+            (rule) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _EligibilityRuleRow(rule: rule),
+            ),
+          ),
+          if (!eligibility.eligible) ...[
+            const SizedBox(height: 4),
+            Text(
+              'certifications.detail.eligibility_not_eligible'.tr(),
+              style: TextStyle(
+                fontSize: 12,
+                height: 1.4,
+                color: AppColors.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _EligibilityRuleRow extends StatelessWidget {
+  final CertificationEligibilityRule rule;
+
+  const _EligibilityRuleRow({required this.rule});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final satisfied = rule.satisfied;
+
+    final labelKey = 'certifications.detail.eligibility_rules.${rule.type}';
+    final label = labelKey.tr();
+
+    String? reason;
+    if (!satisfied && rule.reasonCode != null) {
+      final reasonKey =
+          'certifications.detail.eligibility_reasons.${rule.reasonCode}';
+      final translated = reasonKey.tr();
+      // easy_localization devuelve la clave cuando no hay traducción.
+      reason = translated == reasonKey ? null : translated;
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        HugeIcon(
+          icon: satisfied
+              ? HugeIcons.strokeRoundedCheckmarkCircle01
+              : HugeIcons.strokeRoundedCancelCircle,
+          size: 18,
+          color: satisfied ? AppColors.secondary : AppColors.error,
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                // Tipo de regla sin traducción: mostrar el código crudo.
+                label == labelKey ? rule.type : label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: c.text,
+                ),
+              ),
+              if (reason != null)
+                Text(
+                  reason,
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.35,
+                    color: c.textSecondary,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }
 

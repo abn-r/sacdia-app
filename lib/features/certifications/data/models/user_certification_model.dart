@@ -31,6 +31,7 @@ class UserCertificationModel extends Equatable {
       enrollmentId: (json['enrollment_id'] ?? json['id']) as int,
       certificationId: (json['certification_id']) as int,
       certificationName: (json['certification_name'] ??
+          (json['certification'] as Map<String, dynamic>?)?['name'] ??
           (json['certifications'] as Map<String, dynamic>?)?['name'] ??
           '') as String,
       enrollmentDate: DateTime.parse(json['enrollment_date'] as String),

@@ -1656,6 +1656,8 @@
       "error_loading": "Error loading classes",
       "roadmap_chip_title": "View my full journey",
       "roadmap_chip_subtitle": "See your career progress",
+      "certifications_chip_title": "Certifications",
+      "certifications_chip_subtitle": "Browse and enroll in certifications",
       "section_current": "Current class",
       "section_others": "Other classes",
       "enroll_cta": "Enroll in another class",
@@ -2258,7 +2260,10 @@
       "cert_evidence_invalid_type": "The file type isn't valid for this evidence",
       "cert_evidence_too_large": "The file exceeds the maximum allowed size",
       "cert_closeout_incomplete": "Some required requirements still need approval before closing the certification",
-      "cert_concurrent_update": "The information changed while you were editing; reload and try again"
+      "cert_concurrent_update": "The information changed while you were editing; reload and try again",
+      "get_eligibility": "Error checking enrollment requirements",
+      "cert_eligibility_required": "You do not meet the requirements to enroll in this certification",
+      "cert_already_enrolled": "You are already enrolled in this certification"
     },
     "common": {
       "module": "module"
@@ -2277,7 +2282,26 @@
       "enroll_dialog_content": "Confirm enrollment in this certification?",
       "enroll_success": "Enrollment successful!",
       "no_sections_module": "No sections in this module.",
-      "load_error": "Error loading certification"
+      "load_error": "Error loading certification",
+      "eligibility_title": "Enrollment requirements",
+      "eligibility_not_eligible": "You do not meet all the requirements to enroll.",
+      "eligibility_no_rules": "This certification has no requirements configured yet; enrollment is not available.",
+      "eligibility_rules": {
+        "MIN_AGE": "Minimum age required",
+        "BAPTIZED": "Be baptized",
+        "INVESTED_CLASS": "Required invested progressive class",
+        "ACTIVE_CLUB_TYPE": "Active membership in the required club type",
+        "ACTIVE_ROLE": "Required active role"
+      },
+      "eligibility_reasons": {
+        "AGE_TOO_LOW": "You do not meet the minimum required age",
+        "BIRTHDAY_MISSING": "Your birth date is not registered in your profile",
+        "NOT_BAPTIZED": "Your profile does not record baptism",
+        "CLASS_NOT_INVESTED": "You do not have the required class investiture",
+        "CLUB_TYPE_NOT_ACTIVE": "You do not have an active membership in the required club type",
+        "ROLE_NOT_ACTIVE": "You do not have the required role active",
+        "RULE_MISCONFIGURED": "Misconfigured requirement; contact your administrator"
+      }
     },
     "list": {
       "no_certifications": "No certifications available",
@@ -3238,6 +3262,7 @@
       "qr_tooltip": "My QR credential",
       "section_progressive_classes": "Progressive Classes",
       "section_my_classes": "My Classes",
+      "section_my_certifications": "My Certifications",
       "section_honors": "Honors",
       "section_achievements": "Achievements",
       "edit_profile_title": "Edit profile",
@@ -3437,6 +3462,12 @@
       "no_classes": "No classes registered yet",
       "browse_classes": "Browse available classes",
       "my_classes_header": "My Classes"
+    },
+    "certifications_section": {
+      "error_load": "Error loading certifications",
+      "no_certifications": "No certifications registered yet",
+      "browse_certifications": "Browse available certifications",
+      "my_certifications_header": "My Certifications"
     },
     "honors_section": {
       "error_load": "Error loading honors",

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" fill="none" role="img" aria-label="Doctrinales">
+  <circle cx="80" cy="80" r="64" fill="#68C2AF" fill-opacity="0.16"/>
+  <!-- Book cover -->
+  <path fill="#68C2AF" d="M46 44c0-3.3 2.7-6 6-6h56c3.3 0 6 2.7 6 6v72c0 3.3-2.7 6-6 6H52c-3.3 0-6-2.7-6-6V44Z"/>
+  <!-- Pages accent -->
+  <path fill="#CFCF2A" d="M56 48h40v60H56z"/>
+  <!-- Text lines -->
+  <path stroke="#68C2AF" stroke-width="3" stroke-linecap="round" d="M64 62h24M64 74h24M64 86h16"/>
+  <!-- Accent bookmark -->
+  <path fill="#CFCF2A" d="M104 42h10v28l-5-4-5 4V42Z"/>
+  <!-- Accent light -->
+  <path stroke="#CFCF2A" stroke-width="3" stroke-linecap="round" d="M80 28v8M66 34l4 4M94 34l-4 4"/>
+</svg>

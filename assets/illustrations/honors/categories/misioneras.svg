@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" fill="none" role="img" aria-label="Crecimiento Espiritual y Misioneras">
+  <circle cx="80" cy="80" r="64" fill="#083F75" fill-opacity="0.12"/>
+  <!-- Open book left -->
+  <path fill="#083F75" d="M80 52c-18-10-34-10-42-8v56c10-2 28-2 42 8V52Z"/>
+  <!-- Open book right -->
+  <path fill="#083F75" d="M80 52c18-10 34-10 42-8v56c-10-2-28-2-42 8V52Z"/>
+  <!-- Spine highlight -->
+  <path stroke="#D8CB54" stroke-width="3" stroke-linecap="round" d="M80 54v52"/>
+  <!-- Accent cross -->
+  <path fill="#D8CB54" d="M77 36h6v10h10v6H83v10h-6V52H67v-6h10V36Z"/>
+  <!-- Accent rays -->
+  <path stroke="#D8CB54" stroke-width="3" stroke-linecap="round" d="M52 40l6 6M108 40l-6 6M44 56h8M108 56h8"/>
+</svg>

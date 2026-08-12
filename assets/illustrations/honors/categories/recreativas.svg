@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" fill="none" role="img" aria-label="Actividades Recreativas">
+  <circle cx="80" cy="80" r="64" fill="#047648" fill-opacity="0.12"/>
+  <!-- Tent -->
+  <path fill="#047648" d="M80 40 124 116H36L80 40Z"/>
+  <!-- Tent opening -->
+  <path fill="#EEF1F0" d="M80 70 96 116H64L80 70Z"/>
+  <!-- Accent ridge -->
+  <path stroke="#EEF1F0" stroke-width="4" stroke-linecap="round" d="M80 40v28"/>
+  <!-- Ground accent -->
+  <path fill="#047648" fill-opacity="0.35" d="M28 118h104c2 0 3 2 2 3.5-6 8-28 14-54 14s-48-6-54-14c-1-1.5 0-3.5 2-3.5Z"/>
+  <!-- Accent star / sun -->
+  <circle cx="118" cy="48" r="8" fill="#EEF1F0"/>
+  <path stroke="#EEF1F0" stroke-width="3" stroke-linecap="round" d="M118 34v6M118 56v6M104 48h6M126 48h6"/>
+</svg>

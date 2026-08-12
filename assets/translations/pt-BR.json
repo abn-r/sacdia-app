@@ -1656,6 +1656,8 @@
       "error_loading": "Erro ao carregar classes",
       "roadmap_chip_title": "Ver meu caminho completo",
       "roadmap_chip_subtitle": "Veja o progresso da sua carreira",
+      "certifications_chip_title": "Certificações",
+      "certifications_chip_subtitle": "Explore e inscreva-se em certificações",
       "section_current": "Classe atual",
       "section_others": "Outras classes",
       "enroll_cta": "Inscrever-me em outra classe",
@@ -2258,7 +2260,10 @@
       "cert_evidence_invalid_type": "O tipo de arquivo não é válido para esta evidência",
       "cert_evidence_too_large": "O arquivo excede o tamanho máximo permitido",
       "cert_closeout_incomplete": "Ainda faltam requisitos aprovados antes de encerrar a certificação",
-      "cert_concurrent_update": "As informações mudaram enquanto você editava; recarregue e tente novamente"
+      "cert_concurrent_update": "As informações mudaram enquanto você editava; recarregue e tente novamente",
+      "get_eligibility": "Erro ao consultar os requisitos de inscrição",
+      "cert_eligibility_required": "Você não atende aos requisitos para se inscrever nesta certificação",
+      "cert_already_enrolled": "Você já está inscrito nesta certificação"
     },
     "common": {
       "module": "módulo"
@@ -2277,7 +2282,26 @@
       "enroll_dialog_content": "Confirmar inscrição nesta certificação?",
       "enroll_success": "Inscrição realizada com sucesso!",
       "no_sections_module": "Não há seções neste módulo.",
-      "load_error": "Erro ao carregar a certificação"
+      "load_error": "Erro ao carregar a certificação",
+      "eligibility_title": "Requisitos de inscrição",
+      "eligibility_not_eligible": "Você não atende a todos os requisitos para se inscrever.",
+      "eligibility_no_rules": "Esta certificação ainda não tem requisitos configurados; a inscrição não está disponível.",
+      "eligibility_rules": {
+        "MIN_AGE": "Idade mínima exigida",
+        "BAPTIZED": "Ser batizado",
+        "INVESTED_CLASS": "Classe progressiva investida exigida",
+        "ACTIVE_CLUB_TYPE": "Filiação ativa no tipo de clube exigido",
+        "ACTIVE_ROLE": "Cargo ativo exigido"
+      },
+      "eligibility_reasons": {
+        "AGE_TOO_LOW": "Você não atinge a idade mínima exigida",
+        "BIRTHDAY_MISSING": "Sua data de nascimento não está registrada no seu perfil",
+        "NOT_BAPTIZED": "Seu perfil não registra batismo",
+        "CLASS_NOT_INVESTED": "Você não tem a investidura da classe exigida",
+        "CLUB_TYPE_NOT_ACTIVE": "Você não tem filiação ativa no tipo de clube exigido",
+        "ROLE_NOT_ACTIVE": "Você não tem o cargo exigido ativo",
+        "RULE_MISCONFIGURED": "Requisito mal configurado; contate seu administrador"
+      }
     },
     "list": {
       "no_certifications": "Não há certificações disponíveis",
@@ -3238,6 +3262,7 @@
       "qr_tooltip": "Minha credencial QR",
       "section_progressive_classes": "Classes Progressivas",
       "section_my_classes": "Minhas Classes",
+      "section_my_certifications": "Minhas Certificações",
       "section_honors": "Especialidades",
       "section_achievements": "Conquistas",
       "edit_profile_title": "Editar perfil",
@@ -3437,6 +3462,12 @@
       "no_classes": "Você ainda não tem classes registradas",
       "browse_classes": "Ver classes disponíveis",
       "my_classes_header": "Minhas Classes"
+    },
+    "certifications_section": {
+      "error_load": "Erro ao carregar certificações",
+      "no_certifications": "Você ainda não tem certificações registradas",
+      "browse_certifications": "Ver certificações disponíveis",
+      "my_certifications_header": "Minhas Certificações"
     },
     "honors_section": {
       "error_load": "Erro ao carregar especialidades",

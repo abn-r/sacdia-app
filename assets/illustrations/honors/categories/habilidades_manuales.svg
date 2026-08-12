@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" fill="none" role="img" aria-label="Artes y Actividades Manuales">
+  <circle cx="80" cy="80" r="64" fill="#248ABA" fill-opacity="0.12"/>
+  <!-- Hammer head -->
+  <path fill="#248ABA" d="M42 58c0-4.4 3.6-8 8-8h36c4.4 0 8 3.6 8 8v16c0 4.4-3.6 8-8 8H50c-4.4 0-8-3.6-8-8V58Z"/>
+  <!-- Handle -->
+  <path fill="#248ABA" d="M70 82h12v42c0 3.3-2.7 6-6 6h0c-3.3 0-6-2.7-6-6V82Z"/>
+  <!-- Accent chisel -->
+  <path fill="#E1CD4D" d="M98 48c2.2-2.2 5.8-2.2 8 0l22 22c2.2 2.2 2.2 5.8 0 8l-8 8c-2.2 2.2-5.8 2.2-8 0L90 64c-2.2-2.2-2.2-5.8 0-8l8-8Z"/>
+  <!-- Accent tip -->
+  <path fill="#E1CD4D" d="M108 94 94 108c-1.6 1.6-4.2 1.6-5.8 0l-4.2-4.2c-1.6-1.6-1.6-4.2 0-5.8L98 84l10 10Z"/>
+</svg>

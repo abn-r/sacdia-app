@@ -3,6 +3,7 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/certification.dart';
 import '../entities/certification_detail.dart';
+import '../entities/certification_eligibility.dart';
 import '../entities/certification_evidence.dart';
 import '../entities/certification_requirement.dart';
 import '../entities/certification_requirement_component.dart';
@@ -25,6 +26,13 @@ abstract class CertificationsRepository {
   /// Obtiene las certificaciones en las que un usuario está inscrito.
   Future<Either<Failure, List<UserCertification>>> getUserCertifications(
     String userId, {
+    RequestCancelToken? cancelToken,
+  });
+
+  /// Evalúa la elegibilidad del usuario para inscribirse a una certificación.
+  Future<Either<Failure, CertificationEligibility>> getEligibility(
+    String userId,
+    int certificationId, {
     RequestCancelToken? cancelToken,
   });
 

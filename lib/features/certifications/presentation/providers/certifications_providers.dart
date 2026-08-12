@@ -7,6 +7,7 @@ import '../../data/datasources/certifications_remote_data_source.dart';
 import '../../data/repositories/certifications_repository_impl.dart';
 import '../../domain/entities/certification.dart';
 import '../../domain/entities/certification_detail.dart';
+import '../../domain/entities/certification_eligibility.dart';
 import '../../domain/entities/user_certification.dart';
 import '../../domain/entities/certification_progress.dart';
 import '../../domain/repositories/certifications_repository.dart';
@@ -97,6 +98,37 @@ final userCertificationsProvider =
   return result.fold(
     (failure) => throw Exception(failure.message),
     (userCertifications) => userCertifications,
+  );
+});
+
+/// Provider para la elegibilidad del usuario autenticado en una certificación.
+///
+/// Family por [certificationId]. Devuelve el resultado explicable regla por
+/// regla que produce el backend (GET .../eligibility). Se usa en la vista de
+/// detalle para mostrar los requisitos de inscripción y bloquear el CTA
+/// cuando el usuario no es elegible.
+final certificationEligibilityProvider = FutureProvider.autoDispose
+    .family<CertificationEligibility, int>((ref, certificationId) async {
+  final userId = await ref.watch(
+    authNotifierProvider.selectAsync((user) => user?.id),
+  );
+
+  if (userId == null) {
+    throw Exception(tr('errors.user_not_authenticated'));
+  }
+
+  final repository = ref.read(certificationsRepositoryProvider);
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await repository.getEligibility(
+    userId,
+    certificationId,
+    cancelToken: cancelToken,
+  );
+
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (eligibility) => eligibility,
   );
 });
 

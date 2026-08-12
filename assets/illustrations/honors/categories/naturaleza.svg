@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" fill="none" role="img" aria-label="Estudio de la Naturaleza">
+  <!-- Soft plate uses warm accent (base fill is near-white) -->
+  <circle cx="80" cy="80" r="64" fill="#C08659" fill-opacity="0.14"/>
+  <!-- Leaf body -->
+  <path fill="#C08659" d="M80 36c28 14 44 36 44 60 0 18-12 28-28 28-10 0-18-4-24-12-6 8-14 12-24 12-16 0-28-10-28-28 0-24 16-46 44-60h16Z"/>
+  <!-- Vein accent (light plate color) -->
+  <path stroke="#F5F7F8" stroke-width="3.5" stroke-linecap="round" d="M80 48v64"/>
+  <path stroke="#F5F7F8" stroke-width="3" stroke-linecap="round" d="M80 68c-12 6-20 16-24 28M80 68c12 6 20 16 24 28M80 88c-10 4-16 10-18 18M80 88c10 4 16 10 18 18"/>
+  <!-- Stem -->
+  <path fill="#C08659" d="M76 124h8v12c0 2.2-1.8 4-4 4h0c-2.2 0-4-1.8-4-4v-12Z"/>
+</svg>

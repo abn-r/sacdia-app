@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" fill="none" role="img" aria-label="Ciencias de la Salud">
+  <circle cx="80" cy="80" r="64" fill="#6D4280" fill-opacity="0.12"/>
+  <!-- Shield -->
+  <path fill="#6D4280" d="M80 34c18 10 34 12 42 12v36c0 28-18 48-42 56-24-8-42-28-42-56V46c8 0 24-2 42-12Z"/>
+  <!-- Cross -->
+  <path fill="#DDE03B" d="M74 58h12v14h14v12H86v14H74V84H60V72h14V58Z"/>
+  <!-- Accent heartbeat -->
+  <path stroke="#DDE03B" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.9" d="M48 104h14l6-12 10 22 7-14h27"/>
+</svg>

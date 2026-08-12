@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" fill="none" role="img" aria-label="Actividades Agropecuarias">
+  <circle cx="80" cy="80" r="64" fill="#592F1B" fill-opacity="0.12"/>
+  <!-- Ground -->
+  <path fill="#592F1B" d="M36 112c8-10 22-16 44-16s36 6 44 16c2 2.4.4 6-2.8 6H38.8c-3.2 0-4.8-3.6-2.8-6Z"/>
+  <!-- Barn body -->
+  <path fill="#592F1B" d="M52 104V72l28-18 28 18v32H52Z"/>
+  <!-- Roof accent -->
+  <path fill="#DFBC2B" d="M48 74 80 52l32 22-6 4-26-18-26 18-6-4Z"/>
+  <!-- Door -->
+  <rect x="72" y="84" width="16" height="20" rx="2" fill="#DFBC2B"/>
+  <!-- Wheat stalk left -->
+  <path fill="#DFBC2B" d="M44 104c0-14 6-24 10-30-2 8-2 16 0 24 2-6 6-12 10-16-6 10-10 18-10 22H44Z"/>
+  <!-- Wheat stalk right -->
+  <path fill="#DFBC2B" d="M116 104c0-14-6-24-10-30 2 8 2 16 0 24-2-6-6-12-10-16 6 10 10 18 10 22h10Z"/>
+</svg>
