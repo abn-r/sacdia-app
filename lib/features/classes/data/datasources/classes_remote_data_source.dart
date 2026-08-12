@@ -11,6 +11,7 @@ import '../models/progress_scope_result_model.dart';
 import '../models/class_with_progress_model.dart';
 import '../models/class_counselor_assignment_model.dart';
 import '../models/requirement_evidence_model.dart';
+import '../models/class_honor_model.dart';
 
 /// Interfaz para la fuente de datos remota de clases progresivas
 abstract class ClassesRemoteDataSource {
@@ -18,6 +19,8 @@ abstract class ClassesRemoteDataSource {
       {int? clubTypeId, CancelToken? cancelToken});
   Future<ClassModel> getClassById(int classId, {CancelToken? cancelToken});
   Future<List<ClassModuleModel>> getClassModules(int classId,
+      {CancelToken? cancelToken});
+  Future<List<ClassHonorModel>> getClassHonors(int classId,
       {CancelToken? cancelToken});
   Future<List<ClassModel>> getUserClasses(String userId,
       {CancelToken? cancelToken});
@@ -140,6 +143,18 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     return e.message ?? tr('common.error_network');
   }
 
+  /// Extrae el código de error de negocio (`code`) del cuerpo de la
+  /// respuesta, cuando el backend lo incluye junto al `message` genérico.
+  String? _extractDioCode(DioException e) {
+    try {
+      final data = e.response?.data;
+      if (data is Map) return data['code']?.toString();
+    } catch (e) {
+      AppLogger.w('Error al parsear código de error', tag: _tag, error: e);
+    }
+    return null;
+  }
+
   Map<String, dynamic>? _enrollmentQuery(int? enrollmentId) =>
       enrollmentId == null ? null : {'enrollmentId': enrollmentId};
 
@@ -188,6 +203,18 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
         message: tr('classes.errors.enroll'),
         code: response.statusCode,
       );
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
+      final statusCode = e.response?.statusCode;
+      if (statusCode == 403 &&
+          _extractDioCode(e) == 'CLASS_PREREQUISITE_NOT_MET') {
+        throw ServerException(
+          message: tr('classes.errors.prerequisite_not_met'),
+          code: statusCode,
+        );
+      }
+      AppLogger.e('Error en enrollUser', tag: _tag, error: e);
+      _rethrow(e);
     } catch (e) {
       AppLogger.e('Error en enrollUser', tag: _tag, error: e);
       _rethrow(e);
@@ -278,6 +305,33 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     }
   }
 
+  // ── GET /classes/:classId/honors ────────────────────────────────────────────
+
+  @override
+  Future<List<ClassHonorModel>> getClassHonors(int classId,
+      {CancelToken? cancelToken}) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.classes}/$classId/honors',
+        cancelToken: cancelToken,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final List<dynamic> data = response.data as List<dynamic>;
+        return data
+            .map((json) => ClassHonorModel.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+
+      throw ServerException(
+          message: tr('classes.errors.fetch_honors'),
+          code: response.statusCode);
+    } catch (e) {
+      AppLogger.e('Error en getClassHonors', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
   // ── GET /users/:userId/classes ──────────────────────────────────────────────
 
   @override
@@ -307,6 +361,18 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
           }
           if (e.containsKey('enrollment_id')) {
             classJson['enrollment_id'] = e['enrollment_id'];
+          }
+          if (e.containsKey('enrollment_date')) {
+            classJson['enrollment_date'] = e['enrollment_date'];
+          }
+          if (e.containsKey('submitted_at')) {
+            classJson['submitted_at'] = e['submitted_at'];
+          }
+          if (e.containsKey('validated_at')) {
+            classJson['validated_at'] = e['validated_at'];
+          }
+          if (e.containsKey('ecclesiastical_year')) {
+            classJson['ecclesiastical_year'] = e['ecclesiastical_year'];
           }
           return ClassModel.fromJson(classJson);
         }).toList();

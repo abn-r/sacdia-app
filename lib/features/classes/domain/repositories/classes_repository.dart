@@ -9,6 +9,7 @@ import '../entities/class_members_progress.dart';
 import '../entities/progress_scope.dart';
 import '../entities/requirement_evidence.dart';
 import '../entities/class_counselor_assignment.dart';
+import '../entities/class_honor.dart';
 
 /// Repositorio de clases progresivas (interfaz del dominio)
 abstract class ClassesRepository {
@@ -22,6 +23,11 @@ abstract class ClassesRepository {
 
   /// Obtiene los modulos de una clase especifica.
   Future<Either<Failure, List<ClassModule>>> getClassModules(int classId,
+      {RequestCancelToken? cancelToken});
+
+  /// Obtiene las especialidades relacionadas a una clase (`class_honors`),
+  /// con el estado del usuario autenticado cuando aplica.
+  Future<Either<Failure, List<ClassHonor>>> getClassHonors(int classId,
       {RequestCancelToken? cancelToken});
 
   /// Obtiene las clases de un usuario.

@@ -15,11 +15,14 @@ import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_dialog.dart';
+import '../../../../core/widgets/sac_network_image.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../investiture/domain/entities/investiture_status.dart';
 import '../../../investiture/presentation/providers/investiture_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
+import '../../domain/entities/class_honor.dart';
 import '../../domain/entities/class_module_detail.dart';
+import '../../domain/entities/class_prerequisite.dart';
 import '../../domain/entities/class_requirement.dart';
 import '../../domain/entities/class_with_progress.dart';
 import '../../domain/entities/requirement_track.dart';
@@ -55,6 +58,7 @@ class ClassDetailWithProgressView extends ConsumerWidget {
       targetUserId: targetUserId,
     );
     final classAsync = ref.watch(classWithProgressProvider(progressQuery));
+    final prerequisitesAsync = ref.watch(classDetailProvider(classId));
 
     return Scaffold(
       backgroundColor: AppColors.canvas,
@@ -78,8 +82,13 @@ class ClassDetailWithProgressView extends ConsumerWidget {
             classId: classId,
             enrollmentId: enrollmentId ?? classWithProgress.enrollmentId,
             targetUserId: targetUserId,
-            onRefresh: () async =>
-                ref.invalidate(classWithProgressProvider(progressQuery)),
+            prerequisites: prerequisitesAsync.valueOrNull?.prerequisites ??
+                const [],
+            onRefresh: () async {
+              ref.invalidate(classWithProgressProvider(progressQuery));
+              ref.invalidate(classDetailProvider(classId));
+              ref.invalidate(classHonorsProvider(classId));
+            },
           ),
         ),
       ),
@@ -94,6 +103,7 @@ class _ClassBody extends ConsumerStatefulWidget {
   final int classId;
   final int? enrollmentId;
   final String? targetUserId;
+  final List<ClassPrerequisite> prerequisites;
   final Future<void> Function() onRefresh;
 
   const _ClassBody({
@@ -101,6 +111,7 @@ class _ClassBody extends ConsumerStatefulWidget {
     required this.classId,
     this.enrollmentId,
     this.targetUserId,
+    this.prerequisites = const [],
     required this.onRefresh,
   });
 
@@ -343,6 +354,8 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
                 children: [
                   _HeroCard(classData: classData, classColor: classColor),
                   if (classData.isExpired) const _ExpiredTrajectoryBanner(),
+                  if (widget.prerequisites.isNotEmpty)
+                    _PrerequisitesBanner(prerequisites: widget.prerequisites),
                   _PillsRow(classData: classData),
                   if (showInvestitureCard)
                     _InvestitureCompletionCard(
@@ -440,6 +453,11 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
                 ),
               );
             },
+          ),
+
+          // ── Especialidades recomendadas ─────────────────────────────────────
+          SliverToBoxAdapter(
+            child: _RecommendedHonorsSection(classId: widget.classId),
           ),
         ],
       ),
@@ -798,6 +816,58 @@ class _ExpiredTrajectoryBanner extends StatelessWidget {
           color: AppColors.errorDark,
           height: 1.35,
         ),
+      ),
+    );
+  }
+}
+
+class _PrerequisitesBanner extends StatelessWidget {
+  final List<ClassPrerequisite> prerequisites;
+
+  const _PrerequisitesBanner({required this.prerequisites});
+
+  @override
+  Widget build(BuildContext context) {
+    final names = prerequisites.map((p) => p.name).join(', ');
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.sentBg,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.sentColor.withValues(alpha: 0.24)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedInformationCircle,
+            size: 18,
+            color: AppColors.sentDark,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.sentDark,
+                  height: 1.4,
+                ),
+                children: [
+                  const TextSpan(text: 'Requiere: '),
+                  TextSpan(
+                    text: names,
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1444,6 +1514,195 @@ class _RequirementListCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+// ── Especialidades recomendadas ─────────────────────────────────────────────────
+
+class _RecommendedHonorsSection extends ConsumerWidget {
+  final int classId;
+
+  const _RecommendedHonorsSection({required this.classId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final honorsAsync = ref.watch(classHonorsProvider(classId));
+
+    return honorsAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (honors) {
+        if (honors.isEmpty) return const SizedBox.shrink();
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 0, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(right: 16),
+                child: _SectionLabel(text: 'ESPECIALIDADES RECOMENDADAS'),
+              ),
+              SizedBox(
+                height: 148,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  clipBehavior: Clip.none,
+                  padding: const EdgeInsets.only(right: 16),
+                  itemCount: honors.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 10),
+                  itemBuilder: (context, index) {
+                    final honor = honors[index];
+                    return _HonorCard(
+                      honor: honor,
+                      onTap: () => context.push(
+                        RouteNames.honorDetailPath(honor.honorId.toString()),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _HonorCard extends StatelessWidget {
+  final ClassHonor honor;
+  final VoidCallback onTap;
+
+  const _HonorCard({required this.honor, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final badgeStyle = _honorRelationBadgeStyle(honor.relationType);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 118,
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AppColors.paper,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.ink150),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 64,
+                    child: Container(
+                      color: AppColors.canvas,
+                      child: honor.honorImage != null
+                          ? SacNetworkImage(
+                              imageUrl: honor.honorImage!,
+                              fit: BoxFit.contain,
+                              errorWidget: (_, __, ___) => Center(
+                                child: HugeIcon(
+                                  icon: HugeIcons.strokeRoundedStar,
+                                  size: 24,
+                                  color: AppColors.ink300,
+                                ),
+                              ),
+                            )
+                          : Center(
+                              child: HugeIcon(
+                                icon: HugeIcons.strokeRoundedStar,
+                                size: 24,
+                                color: AppColors.ink300,
+                              ),
+                            ),
+                    ),
+                  ),
+                ),
+                if (honor.isCompletedByUser)
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: Container(
+                      width: 20,
+                      height: 20,
+                      decoration: const BoxDecoration(
+                        color: AppColors.validatedColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.check,
+                        size: 13,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              honor.honorName,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink800,
+                height: 1.25,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+              decoration: BoxDecoration(
+                color: badgeStyle.background,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                honor.relationType.label,
+                style: TextStyle(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w800,
+                  color: badgeStyle.foreground,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HonorBadgeStyle {
+  final Color background;
+  final Color foreground;
+
+  const _HonorBadgeStyle({required this.background, required this.foreground});
+}
+
+_HonorBadgeStyle _honorRelationBadgeStyle(ClassHonorRelationType type) {
+  switch (type) {
+    case ClassHonorRelationType.required:
+      return const _HonorBadgeStyle(
+        background: AppColors.rejectedBg,
+        foreground: AppColors.rejectedDark,
+      );
+    case ClassHonorRelationType.elective:
+      return const _HonorBadgeStyle(
+        background: AppColors.sentBg,
+        foreground: AppColors.sentDark,
+      );
+    case ClassHonorRelationType.recommended:
+      return const _HonorBadgeStyle(
+        background: AppColors.validatedBg,
+        foreground: AppColors.validatedDark,
+      );
   }
 }
 

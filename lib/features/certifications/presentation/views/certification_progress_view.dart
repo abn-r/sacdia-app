@@ -2,8 +2,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -19,6 +21,12 @@ import '../providers/certifications_providers.dart';
 /// Acordeón por módulo, checkbox por sección (toggle via PATCH).
 /// Barra de progreso por módulo y global.
 /// Secciones completadas en verde, pendientes en gris.
+///
+/// NOTA: el endpoint de progreso (`GET .../certifications/:certificationId/
+/// progress`) sigue keyed por `certificationId`, pero las rutas de ejecución
+/// (requisitos, evidencias y cierre) usan el contrato del plan base basado en
+/// `enrollmentId` (`.../certification-enrollments/:enrollmentId/...`), por lo
+/// que [enrollmentId] debe propagarse a esas pantallas.
 class CertificationProgressView extends ConsumerWidget {
   final int enrollmentId;
   final int certificationId;
@@ -32,7 +40,7 @@ class CertificationProgressView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final progressAsync = ref.watch(
-      certificationProgressProvider(enrollmentId),
+      certificationProgressProvider(certificationId),
     );
     final c = context.sac;
 
@@ -44,7 +52,7 @@ class CertificationProgressView extends ConsumerWidget {
           error: (error, _) => _ErrorBody(
             message: error.toString().replaceFirst('Exception: ', ''),
             onRetry: () =>
-                ref.invalidate(certificationProgressProvider(enrollmentId)),
+                ref.invalidate(certificationProgressProvider(certificationId)),
           ),
           data: (progress) => _ProgressBody(
             progress: progress,
@@ -77,7 +85,7 @@ class _ProgressBody extends ConsumerWidget {
     return RefreshIndicator(
       color: AppColors.primary,
       onRefresh: () async {
-        ref.invalidate(certificationProgressProvider(enrollmentId));
+        ref.invalidate(certificationProgressProvider(certificationId));
       },
       child: CustomScrollView(
         physics: const BouncingScrollPhysics(
@@ -105,7 +113,16 @@ class _ProgressBody extends ConsumerWidget {
 
           // Header con progreso global
           SliverToBoxAdapter(
-            child: _GlobalProgressCard(progress: progress),
+            child: _GlobalProgressCard(
+              progress: progress,
+              onCloseoutTap: () => context.push(
+                RouteNames.certificationCloseoutPath(
+                  certificationId,
+                  enrollmentId: enrollmentId,
+                  certificationName: progress.certificationName,
+                ),
+              ),
+            ),
           ),
 
           // Título sección
@@ -146,6 +163,7 @@ class _ProgressBody extends ConsumerWidget {
                     child: _ModuleProgressSection(
                       module: module,
                       certificationId: certificationId,
+                      enrollmentId: enrollmentId,
                     ),
                   );
                 },
@@ -164,8 +182,12 @@ class _ProgressBody extends ConsumerWidget {
 
 class _GlobalProgressCard extends StatelessWidget {
   final CertificationProgress progress;
+  final VoidCallback onCloseoutTap;
 
-  const _GlobalProgressCard({required this.progress});
+  const _GlobalProgressCard({
+    required this.progress,
+    required this.onCloseoutTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -263,6 +285,18 @@ class _GlobalProgressCard extends StatelessWidget {
               ),
             ],
           ),
+          if (isComplete) ...[
+            const SizedBox(height: 14),
+            SacButton(
+              text: 'certifications.progress.closeout_cta'.tr(),
+              icon: HugeIcons.strokeRoundedCertificate01,
+              variant: SacButtonVariant.secondary,
+              fullWidth: true,
+              backgroundColor: Colors.white,
+              textColor: AppColors.secondaryDark,
+              onPressed: onCloseoutTap,
+            ),
+          ],
         ],
       ),
     );
@@ -274,10 +308,12 @@ class _GlobalProgressCard extends StatelessWidget {
 class _ModuleProgressSection extends ConsumerStatefulWidget {
   final ModuleProgress module;
   final int certificationId;
+  final int enrollmentId;
 
   const _ModuleProgressSection({
     required this.module,
     required this.certificationId,
+    required this.enrollmentId,
   });
 
   @override
@@ -411,6 +447,7 @@ class _ModuleProgressSectionState
                       section: section,
                       certificationId: widget.certificationId,
                       moduleId: widget.module.moduleId,
+                      enrollmentId: widget.enrollmentId,
                     );
                   }).toList(),
                 ),
@@ -428,11 +465,13 @@ class _SectionCheckTile extends ConsumerStatefulWidget {
   final SectionProgress section;
   final int certificationId;
   final int moduleId;
+  final int enrollmentId;
 
   const _SectionCheckTile({
     required this.section,
     required this.certificationId,
     required this.moduleId,
+    required this.enrollmentId,
   });
 
   @override
@@ -541,12 +580,32 @@ class _SectionCheckTileState extends ConsumerState<_SectionCheckTile> {
                 ),
               ),
             ),
-            if (isCompleted)
+            if (isCompleted) ...[
               HugeIcon(
                 icon: HugeIcons.strokeRoundedCheckmarkCircle01,
                 size: 16,
                 color: AppColors.secondary,
               ),
+              const SizedBox(width: 4),
+            ],
+            IconButton(
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              tooltip: 'certifications.progress.open_requirement'.tr(),
+              onPressed: () => context.push(
+                RouteNames.certificationRequirementDetailPath(
+                  widget.certificationId,
+                  widget.section.sectionId,
+                  enrollmentId: widget.enrollmentId,
+                ),
+              ),
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
+                size: 16,
+                color: c.textTertiary,
+              ),
+            ),
           ],
         ),
       ),

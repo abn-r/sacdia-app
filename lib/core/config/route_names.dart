@@ -51,6 +51,12 @@ class RouteNames {
   static const String certificationProgress =
       '/certification/:certificationId/progress/:enrollmentId';
 
+  // Ejecución de requisitos y cierre de certificación (Fase 5)
+  static const String certificationRequirementDetail =
+      '/certification/:certificationId/requirement/:sectionId';
+  static const String certificationCloseout =
+      '/certification/:certificationId/closeout';
+
   // Camporees
   static const String homeCamporees = '/home/camporees';
   static const String camporeeDetail = '/camporee/:camporeeId';
@@ -107,6 +113,24 @@ class RouteNames {
     String enrollmentId,
   ) =>
       '/certification/$certificationId/progress/$enrollmentId';
+  static String certificationRequirementDetailPath(
+    int certificationId,
+    int sectionId, {
+    required int enrollmentId,
+  }) =>
+      '/certification/$certificationId/requirement/$sectionId'
+      '?enrollmentId=$enrollmentId';
+  static String certificationCloseoutPath(
+    int certificationId, {
+    required int enrollmentId,
+    String? certificationName,
+  }) {
+    final base = '/certification/$certificationId/closeout'
+        '?enrollmentId=$enrollmentId';
+    if (certificationName == null || certificationName.isEmpty) return base;
+    return '$base&name=${Uri.encodeComponent(certificationName)}';
+  }
+
   static String investitureHistoryPath(String enrollmentId) =>
       '/investiture/enrollment/$enrollmentId/history';
   static String certificateImportProcessingPath(String batchId) =>

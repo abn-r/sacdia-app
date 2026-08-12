@@ -13,6 +13,7 @@ import '../../domain/entities/class_members_progress.dart';
 import '../../domain/entities/progress_scope.dart';
 import '../../domain/entities/requirement_evidence.dart';
 import '../../domain/entities/class_counselor_assignment.dart';
+import '../../domain/entities/class_honor.dart';
 import '../../domain/repositories/classes_repository.dart';
 import '../datasources/classes_remote_data_source.dart';
 
@@ -82,6 +83,25 @@ class ClassesRepositoryImpl implements ClassesRepository {
       {RequestCancelToken? cancelToken}) async {
     try {
       final models = await remoteDataSource.getClassModules(classId,
+          cancelToken: cancelToken.asDioCancelToken());
+      return Right(models.map((m) => m.toEntity()).toList());
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
+      return _unexpectedFailure(e);
+    } on ServerException catch (e) {
+      return _serverFailure(e);
+    } on AuthException catch (e) {
+      return _authFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<ClassHonor>>> getClassHonors(int classId,
+      {RequestCancelToken? cancelToken}) async {
+    try {
+      final models = await remoteDataSource.getClassHonors(classId,
           cancelToken: cancelToken.asDioCancelToken());
       return Right(models.map((m) => m.toEntity()).toList());
     } on DioException catch (e) {

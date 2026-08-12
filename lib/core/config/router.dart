@@ -11,6 +11,8 @@ import 'package:sacdia_app/features/activities/presentation/views/activities_lis
 import 'package:sacdia_app/features/certifications/presentation/views/certifications_list_view.dart';
 import 'package:sacdia_app/features/certifications/presentation/views/certification_detail_view.dart';
 import 'package:sacdia_app/features/certifications/presentation/views/certification_progress_view.dart';
+import 'package:sacdia_app/features/certifications/presentation/views/requirement_detail_view.dart';
+import 'package:sacdia_app/features/certifications/presentation/views/certification_closeout_view.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_item.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_processing_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_review_view.dart';
@@ -633,6 +635,53 @@ final routerProvider = Provider<GoRouter>((ref) {
             CertificationProgressView(
               enrollmentId: enrollmentId,
               certificationId: certificationId,
+            ),
+          );
+        },
+      ),
+
+      // Detalle de requisito (sección) de certificación — ejecución (Fase 5)
+      GoRoute(
+        path: RouteNames.certificationRequirementDetail,
+        pageBuilder: (context, state) {
+          final certificationId =
+              int.tryParse(state.pathParameters['certificationId']!) ?? 0;
+          final sectionId =
+              int.tryParse(state.pathParameters['sectionId']!) ?? 0;
+          final enrollmentId = int.tryParse(
+                state.uri.queryParameters['enrollmentId'] ?? '',
+              ) ??
+              0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            CertificationRequirementDetailView(
+              certificationId: certificationId,
+              sectionId: sectionId,
+              enrollmentId: enrollmentId,
+            ),
+          );
+        },
+      ),
+
+      // Cierre de certificación — comprobante de junta + envío final (Fase 5)
+      GoRoute(
+        path: RouteNames.certificationCloseout,
+        pageBuilder: (context, state) {
+          final certificationId =
+              int.tryParse(state.pathParameters['certificationId']!) ?? 0;
+          final enrollmentId = int.tryParse(
+                state.uri.queryParameters['enrollmentId'] ?? '',
+              ) ??
+              0;
+          final certificationName = state.uri.queryParameters['name'];
+          return _sharedAxisBuild(
+            context,
+            state,
+            CertificationCloseoutView(
+              certificationId: certificationId,
+              enrollmentId: enrollmentId,
+              certificationName: certificationName,
             ),
           );
         },

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/core/errors/exceptions.dart';
 import 'package:sacdia_app/features/classes/data/datasources/classes_remote_data_source.dart';
 
 void main() {
@@ -403,6 +404,113 @@ void main() {
           'https://api.test/api/v1/class-counselor-assignments/assign-1');
       expect(result.assignmentId, 'assign-1');
       expect(result.active, isFalse);
+    });
+
+    test('requests class honors and parses relation + user status', () async {
+      late RequestOptions captured;
+      final dio = Dio();
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            captured = options;
+            handler.resolve(
+              Response<List<dynamic>>(
+                requestOptions: options,
+                statusCode: 200,
+                data: [
+                  {
+                    'class_honor_id': 10,
+                    'relation_type': 'RECOMMENDED',
+                    'honor': {
+                      'honor_id': 55,
+                      'name': 'Primeros Auxilios',
+                      'honor_image': 'primeros-auxilios.png',
+                      'honors_category_id': 3,
+                      'skill_level': 1,
+                    },
+                    'user_status': 'APPROVED',
+                  },
+                  {
+                    'class_honor_id': 11,
+                    'relation_type': 'REQUIRED',
+                    'honor': {
+                      'honor_id': 56,
+                      'name': 'Nudos',
+                    },
+                    'user_status': null,
+                  },
+                ],
+              ),
+            );
+          },
+        ),
+      );
+
+      final dataSource = ClassesRemoteDataSourceImpl(
+        dio: dio,
+        baseUrl: 'https://api.test/api/v1',
+      );
+
+      final result = await dataSource.getClassHonors(13);
+
+      expect(
+        captured.path,
+        'https://api.test/api/v1/classes/13/honors',
+      );
+      expect(result, hasLength(2));
+      expect(result.first.honorName, 'Primeros Auxilios');
+      expect(result.first.userStatus, 'APPROVED');
+      expect(result.last.honorId, 56);
+      expect(result.last.userStatus, isNull);
+    });
+
+    test('maps CLASS_PREREQUISITE_NOT_MET enroll error to friendly message',
+        () async {
+      final dio = Dio();
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            handler.reject(
+              DioException(
+                requestOptions: options,
+                response: Response(
+                  requestOptions: options,
+                  statusCode: 403,
+                  data: {
+                    'statusCode': 403,
+                    'code': 'CLASS_PREREQUISITE_NOT_MET',
+                    'message': 'Class prerequisite not met',
+                  },
+                ),
+                type: DioExceptionType.badResponse,
+              ),
+            );
+          },
+        ),
+      );
+
+      final dataSource = ClassesRemoteDataSourceImpl(
+        dio: dio,
+        baseUrl: 'https://api.test/api/v1',
+      );
+
+      // easy_localization isn't initialized in plain unit tests, so `tr()`
+      // falls back to the translation key itself. This still proves the
+      // dedicated CLASS_PREREQUISITE_NOT_MET branch is taken instead of the
+      // generic Dio message ("Class prerequisite not met" from the response
+      // body). The actual Spanish copy is covered by the translations test.
+      await expectLater(
+        dataSource.enrollUser('user-1', 13, 2026),
+        throwsA(
+          isA<ServerException>()
+              .having((e) => e.code, 'code', 403)
+              .having(
+                (e) => e.message,
+                'message',
+                'classes.errors.prerequisite_not_met',
+              ),
+        ),
+      );
     });
   });
 }

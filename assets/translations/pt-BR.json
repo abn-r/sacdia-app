@@ -1569,7 +1569,9 @@
       "submit_requirement": "Erro ao enviar requisito para validação",
       "upload_file": "Erro ao enviar arquivo de evidência",
       "delete_file": "Erro ao excluir arquivo de evidência",
-      "upload_failed": "Erro ao enviar arquivo de evidência"
+      "upload_failed": "Erro ao enviar arquivo de evidência",
+      "fetch_honors": "Erro ao buscar as especialidades da turma",
+      "prerequisite_not_met": "Você deve estar investido nas turmas anteriores exigidas para se inscrever."
     },
     "status": {
       "pending": "Pendente",
@@ -2238,7 +2240,25 @@
       "get_certification_progress": "Erro ao obter progresso da certificação",
       "enroll_certification": "Erro ao inscrever-se na certificação",
       "update_section_progress": "Erro ao atualizar progresso da seção",
-      "unenroll_certification": "Erro ao cancelar inscrição na certificação"
+      "unenroll_certification": "Erro ao cancelar inscrição na certificação",
+      "get_requirement": "Erro ao obter o requisito",
+      "save_draft": "Erro ao salvar o rascunho",
+      "submit_requirement": "Erro ao enviar o requisito para revisão",
+      "presign_evidence": "Erro ao preparar o envio da evidência",
+      "confirm_evidence": "Erro ao confirmar a evidência",
+      "delete_evidence": "Erro ao excluir a evidência",
+      "presign_closeout_evidence": "Erro ao preparar o envio do comprovante da diretoria",
+      "confirm_closeout_evidence": "Erro ao confirmar o comprovante da diretoria",
+      "submit_final": "Erro ao enviar a certificação para revisão final",
+      "cert_enrollment_not_found": "Não encontramos sua inscrição nesta certificação",
+      "cert_section_invalid": "Esta seção não pertence à certificação",
+      "cert_requirement_locked": "Este requisito não pode mais ser editado no estado atual",
+      "cert_requirement_incomplete": "Complete todos os componentes obrigatórios antes de enviar",
+      "cert_invalid_transition": "Esta ação não é possível no estado atual",
+      "cert_evidence_invalid_type": "O tipo de arquivo não é válido para esta evidência",
+      "cert_evidence_too_large": "O arquivo excede o tamanho máximo permitido",
+      "cert_closeout_incomplete": "Ainda faltam requisitos aprovados antes de encerrar a certificação",
+      "cert_concurrent_update": "As informações mudaram enquanto você editava; recarregue e tente novamente"
     },
     "common": {
       "module": "módulo"
@@ -2279,7 +2299,9 @@
       "in_progress": "Em andamento",
       "modules_completed": "{completed} / {total} módulos concluídos",
       "no_sections_module": "Não há seções neste módulo.",
-      "load_error": "Erro ao carregar o progresso"
+      "load_error": "Erro ao carregar o progresso",
+      "closeout_cta": "Encerrar certificação",
+      "open_requirement": "Ver requisito"
     },
     "my": {
       "empty_title": "Você não está inscrito em nenhuma certificação",
@@ -2301,6 +2323,37 @@
       "progress_label": "Progresso",
       "progress_modules": "{percentage}% · {completed}/{total} módulos",
       "unenroll_button": "Cancelar inscrição"
+    },
+    "requirement_status": {
+      "draft": "Rascunho",
+      "submitted": "Enviado",
+      "changes_requested": "Alterações solicitadas",
+      "approved": "Aprovado"
+    },
+    "requirement_detail": {
+      "title": "Requisito",
+      "submit_success": "Requisito enviado para revisão",
+      "unsaved_changes": "Alterações não salvas",
+      "history_title": "HISTÓRICO",
+      "event_submitted": "Enviado para revisão",
+      "event_approved": "Aprovado",
+      "event_changes_requested": "Alterações solicitadas",
+      "save_draft": "Salvar rascunho",
+      "submit": "Enviar para revisão",
+      "changes_requested_title": "Alterações foram solicitadas",
+      "text_response_hint": "Escreva sua resposta aqui",
+      "attestation_label": "Confirmo que cumpri o que foi solicitado",
+      "linked_honor_hint": "ID da especialidade aprovada",
+      "linked_activity_hint": "ID da atividade",
+      "required_badge": "Obrigatório",
+      "auto_validation_hint": "Este componente é validado automaticamente pelo sistema",
+      "unknown_component_hint": "Este tipo de componente ainda não é compatível com o app"
+    },
+    "closeout": {
+      "title": "Encerramento da certificação",
+      "description": "Envie o comprovante de aprovação da diretoria e envie a certificação para revisão final. Esta etapa só está disponível depois que você concluir os requisitos obrigatórios.",
+      "submit_success": "Certificação enviada para revisão final",
+      "upload_failed": "Não foi possível enviar o comprovante"
     }
   },
   "catalogs": {
