@@ -52,21 +52,21 @@ abstract class CertificationsRepository {
   Future<Either<Failure, void>> unenrollCertification(
       String userId, int certificationId);
 
-  // ── Ejecución de requisitos (Fase 5) ────────────────────────────────────
+  // ── Ejecución de requisitos (Fase 5 — contrato por enrollmentId) ─────────
 
-  /// Obtiene el estado de un requisito (sección) de la inscripción.
+  /// Obtiene el estado de un requisito de la inscripción.
   Future<Either<Failure, CertificationRequirement>> getRequirement(
     String userId,
-    int certificationId,
-    int sectionId, {
+    int enrollmentId,
+    int requirementId, {
     RequestCancelToken? cancelToken,
   });
 
   /// Guarda (o actualiza) el borrador de respuestas de un requisito.
   Future<Either<Failure, CertificationRequirement>> saveRequirementDraft(
     String userId,
-    int certificationId,
-    int sectionId,
+    int enrollmentId,
+    int requirementId,
     List<CertificationComponentDraftInput> responses,
   );
 
@@ -77,8 +77,8 @@ abstract class CertificationsRepository {
   Future<Either<Failure, CertificationRequirementSubmitResult>>
       submitRequirement(
     String userId,
-    int certificationId,
-    int sectionId, {
+    int enrollmentId,
+    int requirementId, {
     required int lockVersion,
   });
 
@@ -87,8 +87,8 @@ abstract class CertificationsRepository {
   Future<Either<Failure, CertificationEvidenceUploadTicket>>
       presignRequirementEvidence(
     String userId,
-    int certificationId,
-    int sectionId, {
+    int enrollmentId,
+    int requirementId, {
     required int componentId,
     required String fileName,
     required String mimeType,
@@ -98,8 +98,8 @@ abstract class CertificationsRepository {
   /// Confirma que la evidencia fue subida a R2.
   Future<Either<Failure, CertificationEvidence>> confirmRequirementEvidence(
     String userId,
-    int certificationId,
-    int sectionId, {
+    int enrollmentId,
+    int requirementId, {
     required int evidenceId,
     String? checksumSha256,
   });
@@ -107,7 +107,7 @@ abstract class CertificationsRepository {
   /// Elimina (soft-delete) una evidencia de requisito.
   Future<Either<Failure, void>> deleteRequirementEvidence(
     String userId,
-    int certificationId,
+    int enrollmentId,
     int evidenceId,
   );
 
@@ -115,7 +115,7 @@ abstract class CertificationsRepository {
   Future<Either<Failure, CertificationCloseoutUploadTicket>>
       presignCloseoutEvidence(
     String userId,
-    int certificationId, {
+    int enrollmentId, {
     required String fileName,
     required String mimeType,
     required int fileSize,
@@ -125,7 +125,7 @@ abstract class CertificationsRepository {
   Future<Either<Failure, CertificationCloseoutEvidence>>
       confirmCloseoutEvidence(
     String userId,
-    int certificationId, {
+    int enrollmentId, {
     required int closeoutEvidenceId,
     String? checksumSha256,
   });
@@ -133,7 +133,7 @@ abstract class CertificationsRepository {
   /// Envía la inscripción a revisión final (cierre).
   Future<Either<Failure, CertificationSubmitFinalResult>> submitFinal(
     String userId,
-    int certificationId,
+    int enrollmentId,
   );
 
   /// Sube los bytes de un archivo directamente a una URL firmada de R2.

@@ -122,11 +122,13 @@ class RouteNames {
       '?enrollmentId=$enrollmentId';
   static String certificationCloseoutPath(
     int certificationId, {
+    required int enrollmentId,
     String? certificationName,
   }) {
-    final base = '/certification/$certificationId/closeout';
+    final base = '/certification/$certificationId/closeout'
+        '?enrollmentId=$enrollmentId';
     if (certificationName == null || certificationName.isEmpty) return base;
-    return '$base?name=${Uri.encodeComponent(certificationName)}';
+    return '$base&name=${Uri.encodeComponent(certificationName)}';
   }
 
   static String investitureHistoryPath(String enrollmentId) =>

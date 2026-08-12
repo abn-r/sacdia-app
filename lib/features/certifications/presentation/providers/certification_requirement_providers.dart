@@ -11,9 +11,10 @@ import 'certifications_providers.dart';
 
 /// Identifica de forma única un requisito (sección) en ejecución.
 ///
-/// `certificationId` conduce todas las llamadas al backend (ver nota en
-/// [CertificationProgressView]); `enrollmentId` se usa únicamente como
-/// contexto para la clave del borrador local (Hive).
+/// `enrollmentId` conduce todas las llamadas al backend (contrato del plan
+/// base: rutas `.../certification-enrollments/:enrollmentId/...`) y la clave
+/// del borrador local (Hive); `certificationId` se conserva solo para
+/// invalidar el provider de progreso, que sigue keyed por certificación.
 class CertificationRequirementQuery extends Equatable {
   final int certificationId;
   final int sectionId;
@@ -159,7 +160,7 @@ class CertificationRequirementNotifier extends AutoDisposeFamilyNotifier<
     final result =
         await ref.read(certificationsRepositoryProvider).getRequirement(
               _userId,
-              _query.certificationId,
+              _query.enrollmentId,
               _query.sectionId,
             );
 
@@ -211,7 +212,7 @@ class CertificationRequirementNotifier extends AutoDisposeFamilyNotifier<
     final result =
         await ref.read(certificationsRepositoryProvider).saveRequirementDraft(
               _userId,
-              _query.certificationId,
+              _query.enrollmentId,
               _query.sectionId,
               state.localValues.values.toList(),
             );
@@ -253,7 +254,7 @@ class CertificationRequirementNotifier extends AutoDisposeFamilyNotifier<
     final result =
         await ref.read(certificationsRepositoryProvider).submitRequirement(
               _userId,
-              _query.certificationId,
+              _query.enrollmentId,
               _query.sectionId,
               lockVersion: state.lockVersion,
             );
@@ -298,7 +299,7 @@ class CertificationRequirementNotifier extends AutoDisposeFamilyNotifier<
 
     final presignResult = await repo.presignRequirementEvidence(
       _userId,
-      _query.certificationId,
+      _query.enrollmentId,
       _query.sectionId,
       componentId: componentId,
       fileName: fileName,
@@ -326,7 +327,7 @@ class CertificationRequirementNotifier extends AutoDisposeFamilyNotifier<
 
     final confirmResult = await repo.confirmRequirementEvidence(
       _userId,
-      _query.certificationId,
+      _query.enrollmentId,
       _query.sectionId,
       evidenceId: ticket.evidenceId,
     );
@@ -345,7 +346,7 @@ class CertificationRequirementNotifier extends AutoDisposeFamilyNotifier<
 
     final result = await ref
         .read(certificationsRepositoryProvider)
-        .deleteRequirementEvidence(_userId, _query.certificationId, evidenceId);
+        .deleteRequirementEvidence(_userId, _query.enrollmentId, evidenceId);
 
     result.fold(
       (failure) => throw Exception(failure.message),
@@ -408,14 +409,31 @@ class CertificationCloseoutState extends Equatable {
       ];
 }
 
-/// Notifier del cierre institucional — family por `certificationId`.
-class CertificationCloseoutNotifier
-    extends AutoDisposeFamilyNotifier<CertificationCloseoutState, int> {
+/// Identifica el flujo de cierre de una inscripción.
+///
+/// `enrollmentId` conduce las llamadas al backend; `certificationId` se
+/// conserva solo para invalidar el provider de progreso.
+class CertificationCloseoutQuery extends Equatable {
+  final int certificationId;
+  final int enrollmentId;
+
+  const CertificationCloseoutQuery({
+    required this.certificationId,
+    required this.enrollmentId,
+  });
+
   @override
-  CertificationCloseoutState build(int certificationId) =>
+  List<Object?> get props => [certificationId, enrollmentId];
+}
+
+/// Notifier del cierre institucional — family por [CertificationCloseoutQuery].
+class CertificationCloseoutNotifier extends AutoDisposeFamilyNotifier<
+    CertificationCloseoutState, CertificationCloseoutQuery> {
+  @override
+  CertificationCloseoutState build(CertificationCloseoutQuery query) =>
       const CertificationCloseoutState();
 
-  int get _certificationId => arg;
+  CertificationCloseoutQuery get _query => arg;
 
   String get _userId {
     final authState = ref.read(authNotifierProvider);
@@ -435,7 +453,7 @@ class CertificationCloseoutNotifier
 
     final presignResult = await repo.presignCloseoutEvidence(
       _userId,
-      _certificationId,
+      _query.enrollmentId,
       fileName: fileName,
       mimeType: mimeType,
       fileSize: fileSize,
@@ -467,7 +485,7 @@ class CertificationCloseoutNotifier
 
     final confirmResult = await repo.confirmCloseoutEvidence(
       _userId,
-      _certificationId,
+      _query.enrollmentId,
       closeoutEvidenceId: ticket.closeoutEvidenceId,
     );
 
@@ -494,7 +512,7 @@ class CertificationCloseoutNotifier
 
     final result = await ref
         .read(certificationsRepositoryProvider)
-        .submitFinal(_userId, _certificationId);
+        .submitFinal(_userId, _query.enrollmentId);
 
     return result.fold(
       (failure) {
@@ -504,7 +522,9 @@ class CertificationCloseoutNotifier
       },
       (_) {
         state = state.copyWith(isSubmitting: false, submitSuccess: true);
-        ref.invalidate(certificationProgressProvider(_certificationId));
+        ref.invalidate(
+          certificationProgressProvider(_query.certificationId),
+        );
         return true;
       },
     );
@@ -514,6 +534,7 @@ class CertificationCloseoutNotifier
 }
 
 final certificationCloseoutNotifierProvider = NotifierProvider.autoDispose
-    .family<CertificationCloseoutNotifier, CertificationCloseoutState, int>(
+    .family<CertificationCloseoutNotifier, CertificationCloseoutState,
+        CertificationCloseoutQuery>(
   CertificationCloseoutNotifier.new,
 );

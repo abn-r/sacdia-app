@@ -670,12 +670,17 @@ final routerProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) {
           final certificationId =
               int.tryParse(state.pathParameters['certificationId']!) ?? 0;
+          final enrollmentId = int.tryParse(
+                state.uri.queryParameters['enrollmentId'] ?? '',
+              ) ??
+              0;
           final certificationName = state.uri.queryParameters['name'];
           return _sharedAxisBuild(
             context,
             state,
             CertificationCloseoutView(
               certificationId: certificationId,
+              enrollmentId: enrollmentId,
               certificationName: certificationName,
             ),
           );

@@ -22,13 +22,11 @@ import '../providers/certifications_providers.dart';
 /// Barra de progreso por módulo y global.
 /// Secciones completadas en verde, pendientes en gris.
 ///
-/// NOTA: todos los endpoints de progreso/ejecución del backend
-/// (`GET .../certifications/:certificationId/progress`, requisitos y cierre)
-/// operan sobre `certificationId`, no sobre `enrollmentId` — el backend no
-/// expone un identificador de inscripción independiente en estas rutas.
-/// [enrollmentId] se conserva únicamente como contexto/visualización
-/// (p.ej. para pantallas que lo requieran a futuro) y NUNCA debe usarse para
-/// resolver providers o llamadas a la API.
+/// NOTA: el endpoint de progreso (`GET .../certifications/:certificationId/
+/// progress`) sigue keyed por `certificationId`, pero las rutas de ejecución
+/// (requisitos, evidencias y cierre) usan el contrato del plan base basado en
+/// `enrollmentId` (`.../certification-enrollments/:enrollmentId/...`), por lo
+/// que [enrollmentId] debe propagarse a esas pantallas.
 class CertificationProgressView extends ConsumerWidget {
   final int enrollmentId;
   final int certificationId;
@@ -120,6 +118,7 @@ class _ProgressBody extends ConsumerWidget {
               onCloseoutTap: () => context.push(
                 RouteNames.certificationCloseoutPath(
                   certificationId,
+                  enrollmentId: enrollmentId,
                   certificationName: progress.certificationName,
                 ),
               ),

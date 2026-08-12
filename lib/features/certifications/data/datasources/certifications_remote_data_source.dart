@@ -60,41 +60,41 @@ abstract class CertificationsRemoteDataSource {
   /// DELETE /certifications/users/:userId/certifications/:certificationId
   Future<void> unenrollCertification(String userId, int certificationId);
 
-  // ── Ejecución de requisitos (Fase 5) ────────────────────────────────────
+  // ── Ejecución de requisitos (Fase 5 — contrato por enrollmentId) ─────────
 
-  /// Obtiene el estado de un requisito (sección) de la inscripción.
-  /// GET /certifications/users/:userId/certifications/:certificationId/requirements/:sectionId
+  /// Obtiene el estado de un requisito de la inscripción.
+  /// GET /certifications/users/:userId/certification-enrollments/:enrollmentId/requirements/:requirementId
   Future<CertificationRequirementModel> getRequirement(
     String userId,
-    int certificationId,
-    int sectionId, {
+    int enrollmentId,
+    int requirementId, {
     CancelToken? cancelToken,
   });
 
   /// Guarda el borrador de respuestas de un requisito.
-  /// PUT .../requirements/:sectionId/draft
+  /// PATCH .../requirements/:requirementId/draft
   Future<CertificationRequirementModel> saveDraft(
     String userId,
-    int certificationId,
-    int sectionId,
+    int enrollmentId,
+    int requirementId,
     List<Map<String, dynamic>> responses,
   );
 
   /// Envía un requisito a revisión.
-  /// POST .../requirements/:sectionId/submit
+  /// POST .../requirements/:requirementId/submit
   Future<CertificationRequirementSubmitResultModel> submitRequirement(
     String userId,
-    int certificationId,
-    int sectionId, {
+    int enrollmentId,
+    int requirementId, {
     required int lockVersion,
   });
 
   /// Solicita URL firmada para subir evidencia de un requisito.
-  /// POST .../requirements/:sectionId/evidences/presign
+  /// POST .../requirements/:requirementId/evidences/presign
   Future<CertificationEvidenceUploadTicketModel> presignEvidence(
     String userId,
-    int certificationId,
-    int sectionId, {
+    int enrollmentId,
+    int requirementId, {
     required int componentId,
     required String fileName,
     required String mimeType,
@@ -102,25 +102,24 @@ abstract class CertificationsRemoteDataSource {
   });
 
   /// Confirma que la evidencia fue subida a R2.
-  /// POST .../requirements/:sectionId/evidences/confirm
+  /// POST .../requirements/:requirementId/evidences/confirm
   Future<CertificationEvidenceModel> confirmEvidence(
     String userId,
-    int certificationId,
-    int sectionId, {
+    int enrollmentId,
+    int requirementId, {
     required int evidenceId,
     String? checksumSha256,
   });
 
   /// Elimina (soft-delete) una evidencia.
-  /// DELETE /certifications/users/:userId/certifications/:certificationId/evidences/:evidenceId
-  Future<void> deleteEvidence(
-      String userId, int certificationId, int evidenceId);
+  /// DELETE /certifications/users/:userId/certification-enrollments/:enrollmentId/evidences/:evidenceId
+  Future<void> deleteEvidence(String userId, int enrollmentId, int evidenceId);
 
   /// Solicita URL firmada para subir el comprobante de junta.
   /// POST .../closeout-evidence/presign
   Future<CertificationCloseoutUploadTicketModel> presignCloseoutEvidence(
     String userId,
-    int certificationId, {
+    int enrollmentId, {
     required String fileName,
     required String mimeType,
     required int fileSize,
@@ -130,7 +129,7 @@ abstract class CertificationsRemoteDataSource {
   /// POST .../closeout-evidence/confirm
   Future<CertificationCloseoutEvidenceModel> confirmCloseoutEvidence(
     String userId,
-    int certificationId, {
+    int enrollmentId, {
     required int closeoutEvidenceId,
     String? checksumSha256,
   });
@@ -139,7 +138,7 @@ abstract class CertificationsRemoteDataSource {
   /// POST .../submit-final
   Future<CertificationSubmitFinalResultModel> submitFinal(
     String userId,
-    int certificationId,
+    int enrollmentId,
   );
 
   /// Sube los bytes de un archivo directamente a una URL firmada de R2
@@ -441,23 +440,23 @@ class CertificationsRemoteDataSourceImpl
     }
   }
 
-  // ── Ejecución de requisitos (Fase 5) ────────────────────────────────────
+  // ── Ejecución de requisitos (Fase 5 — contrato por enrollmentId) ─────────
 
-  String _requirementsBase(String userId, int certificationId) =>
-      '$_baseUrl${ApiEndpoints.certifications}/users/$userId/certifications/$certificationId';
+  String _enrollmentBase(String userId, int enrollmentId) =>
+      '$_baseUrl${ApiEndpoints.certifications}/users/$userId/certification-enrollments/$enrollmentId';
 
-  // ── GET .../requirements/:sectionId ─────────────────────────────────────
+  // ── GET .../requirements/:requirementId ──────────────────────────────────
 
   @override
   Future<CertificationRequirementModel> getRequirement(
     String userId,
-    int certificationId,
-    int sectionId, {
+    int enrollmentId,
+    int requirementId, {
     CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get(
-        '${_requirementsBase(userId, certificationId)}/requirements/$sectionId',
+        '${_enrollmentBase(userId, enrollmentId)}/requirements/$requirementId',
         cancelToken: cancelToken,
       );
 
@@ -480,18 +479,18 @@ class CertificationsRemoteDataSourceImpl
     }
   }
 
-  // ── PUT .../requirements/:sectionId/draft ───────────────────────────────
+  // ── PATCH .../requirements/:requirementId/draft ──────────────────────────
 
   @override
   Future<CertificationRequirementModel> saveDraft(
     String userId,
-    int certificationId,
-    int sectionId,
+    int enrollmentId,
+    int requirementId,
     List<Map<String, dynamic>> responses,
   ) async {
     try {
-      final response = await _dio.put(
-        '${_requirementsBase(userId, certificationId)}/requirements/$sectionId/draft',
+      final response = await _dio.patch(
+        '${_enrollmentBase(userId, enrollmentId)}/requirements/$requirementId/draft',
         data: {'responses': responses},
       );
 
@@ -514,18 +513,18 @@ class CertificationsRemoteDataSourceImpl
     }
   }
 
-  // ── POST .../requirements/:sectionId/submit ─────────────────────────────
+  // ── POST .../requirements/:requirementId/submit ──────────────────────────
 
   @override
   Future<CertificationRequirementSubmitResultModel> submitRequirement(
     String userId,
-    int certificationId,
-    int sectionId, {
+    int enrollmentId,
+    int requirementId, {
     required int lockVersion,
   }) async {
     try {
       final response = await _dio.post(
-        '${_requirementsBase(userId, certificationId)}/requirements/$sectionId/submit',
+        '${_enrollmentBase(userId, enrollmentId)}/requirements/$requirementId/submit',
         data: {'lock_version': lockVersion},
       );
 
@@ -548,13 +547,13 @@ class CertificationsRemoteDataSourceImpl
     }
   }
 
-  // ── POST .../requirements/:sectionId/evidences/presign ──────────────────
+  // ── POST .../requirements/:requirementId/evidences/presign ───────────────
 
   @override
   Future<CertificationEvidenceUploadTicketModel> presignEvidence(
     String userId,
-    int certificationId,
-    int sectionId, {
+    int enrollmentId,
+    int requirementId, {
     required int componentId,
     required String fileName,
     required String mimeType,
@@ -562,7 +561,7 @@ class CertificationsRemoteDataSourceImpl
   }) async {
     try {
       final response = await _dio.post(
-        '${_requirementsBase(userId, certificationId)}/requirements/$sectionId/evidences/presign',
+        '${_enrollmentBase(userId, enrollmentId)}/requirements/$requirementId/evidences/presign',
         data: {
           'component_id': componentId,
           'file_name': fileName,
@@ -590,19 +589,19 @@ class CertificationsRemoteDataSourceImpl
     }
   }
 
-  // ── POST .../requirements/:sectionId/evidences/confirm ──────────────────
+  // ── POST .../requirements/:requirementId/evidences/confirm ───────────────
 
   @override
   Future<CertificationEvidenceModel> confirmEvidence(
     String userId,
-    int certificationId,
-    int sectionId, {
+    int enrollmentId,
+    int requirementId, {
     required int evidenceId,
     String? checksumSha256,
   }) async {
     try {
       final response = await _dio.post(
-        '${_requirementsBase(userId, certificationId)}/requirements/$sectionId/evidences/confirm',
+        '${_enrollmentBase(userId, enrollmentId)}/requirements/$requirementId/evidences/confirm',
         data: {
           'evidence_id': evidenceId,
           if (checksumSha256 != null) 'checksum_sha256': checksumSha256,
@@ -632,10 +631,10 @@ class CertificationsRemoteDataSourceImpl
 
   @override
   Future<void> deleteEvidence(
-      String userId, int certificationId, int evidenceId) async {
+      String userId, int enrollmentId, int evidenceId) async {
     try {
       final response = await _dio.delete(
-        '${_requirementsBase(userId, certificationId)}/evidences/$evidenceId',
+        '${_enrollmentBase(userId, enrollmentId)}/evidences/$evidenceId',
       );
 
       if (response.statusCode == 200 ||
@@ -661,14 +660,14 @@ class CertificationsRemoteDataSourceImpl
   @override
   Future<CertificationCloseoutUploadTicketModel> presignCloseoutEvidence(
     String userId,
-    int certificationId, {
+    int enrollmentId, {
     required String fileName,
     required String mimeType,
     required int fileSize,
   }) async {
     try {
       final response = await _dio.post(
-        '${_requirementsBase(userId, certificationId)}/closeout-evidence/presign',
+        '${_enrollmentBase(userId, enrollmentId)}/closeout-evidence/presign',
         data: {
           'file_name': fileName,
           'mime_type': mimeType,
@@ -700,13 +699,13 @@ class CertificationsRemoteDataSourceImpl
   @override
   Future<CertificationCloseoutEvidenceModel> confirmCloseoutEvidence(
     String userId,
-    int certificationId, {
+    int enrollmentId, {
     required int closeoutEvidenceId,
     String? checksumSha256,
   }) async {
     try {
       final response = await _dio.post(
-        '${_requirementsBase(userId, certificationId)}/closeout-evidence/confirm',
+        '${_enrollmentBase(userId, enrollmentId)}/closeout-evidence/confirm',
         data: {
           'closeout_evidence_id': closeoutEvidenceId,
           if (checksumSha256 != null) 'checksum_sha256': checksumSha256,
@@ -737,11 +736,11 @@ class CertificationsRemoteDataSourceImpl
   @override
   Future<CertificationSubmitFinalResultModel> submitFinal(
     String userId,
-    int certificationId,
+    int enrollmentId,
   ) async {
     try {
       final response = await _dio.post(
-        '${_requirementsBase(userId, certificationId)}/submit-final',
+        '${_enrollmentBase(userId, enrollmentId)}/submit-final',
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

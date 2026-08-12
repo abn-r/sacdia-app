@@ -173,20 +173,20 @@ class CertificationsRepositoryImpl implements CertificationsRepository {
     }
   }
 
-  // ── Ejecución de requisitos (Fase 5) ────────────────────────────────────
+  // ── Ejecución de requisitos (Fase 5 — contrato por enrollmentId) ─────────
 
   @override
   Future<Either<Failure, CertificationRequirement>> getRequirement(
     String userId,
-    int certificationId,
-    int sectionId, {
+    int enrollmentId,
+    int requirementId, {
     RequestCancelToken? cancelToken,
   }) async {
     try {
       final model = await remoteDataSource.getRequirement(
         userId,
-        certificationId,
-        sectionId,
+        enrollmentId,
+        requirementId,
         cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(model.toEntity());
@@ -202,15 +202,15 @@ class CertificationsRepositoryImpl implements CertificationsRepository {
   @override
   Future<Either<Failure, CertificationRequirement>> saveRequirementDraft(
     String userId,
-    int certificationId,
-    int sectionId,
+    int enrollmentId,
+    int requirementId,
     List<CertificationComponentDraftInput> responses,
   ) async {
     try {
       final model = await remoteDataSource.saveDraft(
         userId,
-        certificationId,
-        sectionId,
+        enrollmentId,
+        requirementId,
         responses.map((r) => r.toJson()).toList(),
       );
       return Right(model.toEntity());
@@ -227,15 +227,15 @@ class CertificationsRepositoryImpl implements CertificationsRepository {
   Future<Either<Failure, CertificationRequirementSubmitResult>>
       submitRequirement(
     String userId,
-    int certificationId,
-    int sectionId, {
+    int enrollmentId,
+    int requirementId, {
     required int lockVersion,
   }) async {
     try {
       final model = await remoteDataSource.submitRequirement(
         userId,
-        certificationId,
-        sectionId,
+        enrollmentId,
+        requirementId,
         lockVersion: lockVersion,
       );
       return Right(model.toEntity());
@@ -252,8 +252,8 @@ class CertificationsRepositoryImpl implements CertificationsRepository {
   Future<Either<Failure, CertificationEvidenceUploadTicket>>
       presignRequirementEvidence(
     String userId,
-    int certificationId,
-    int sectionId, {
+    int enrollmentId,
+    int requirementId, {
     required int componentId,
     required String fileName,
     required String mimeType,
@@ -262,8 +262,8 @@ class CertificationsRepositoryImpl implements CertificationsRepository {
     try {
       final model = await remoteDataSource.presignEvidence(
         userId,
-        certificationId,
-        sectionId,
+        enrollmentId,
+        requirementId,
         componentId: componentId,
         fileName: fileName,
         mimeType: mimeType,
@@ -282,16 +282,16 @@ class CertificationsRepositoryImpl implements CertificationsRepository {
   @override
   Future<Either<Failure, CertificationEvidence>> confirmRequirementEvidence(
     String userId,
-    int certificationId,
-    int sectionId, {
+    int enrollmentId,
+    int requirementId, {
     required int evidenceId,
     String? checksumSha256,
   }) async {
     try {
       final model = await remoteDataSource.confirmEvidence(
         userId,
-        certificationId,
-        sectionId,
+        enrollmentId,
+        requirementId,
         evidenceId: evidenceId,
         checksumSha256: checksumSha256,
       );
@@ -308,13 +308,13 @@ class CertificationsRepositoryImpl implements CertificationsRepository {
   @override
   Future<Either<Failure, void>> deleteRequirementEvidence(
     String userId,
-    int certificationId,
+    int enrollmentId,
     int evidenceId,
   ) async {
     try {
       await remoteDataSource.deleteEvidence(
         userId,
-        certificationId,
+        enrollmentId,
         evidenceId,
       );
       return const Right(null);
@@ -331,7 +331,7 @@ class CertificationsRepositoryImpl implements CertificationsRepository {
   Future<Either<Failure, CertificationCloseoutUploadTicket>>
       presignCloseoutEvidence(
     String userId,
-    int certificationId, {
+    int enrollmentId, {
     required String fileName,
     required String mimeType,
     required int fileSize,
@@ -339,7 +339,7 @@ class CertificationsRepositoryImpl implements CertificationsRepository {
     try {
       final model = await remoteDataSource.presignCloseoutEvidence(
         userId,
-        certificationId,
+        enrollmentId,
         fileName: fileName,
         mimeType: mimeType,
         fileSize: fileSize,
@@ -358,14 +358,14 @@ class CertificationsRepositoryImpl implements CertificationsRepository {
   Future<Either<Failure, CertificationCloseoutEvidence>>
       confirmCloseoutEvidence(
     String userId,
-    int certificationId, {
+    int enrollmentId, {
     required int closeoutEvidenceId,
     String? checksumSha256,
   }) async {
     try {
       final model = await remoteDataSource.confirmCloseoutEvidence(
         userId,
-        certificationId,
+        enrollmentId,
         closeoutEvidenceId: closeoutEvidenceId,
         checksumSha256: checksumSha256,
       );
@@ -382,12 +382,12 @@ class CertificationsRepositoryImpl implements CertificationsRepository {
   @override
   Future<Either<Failure, CertificationSubmitFinalResult>> submitFinal(
     String userId,
-    int certificationId,
+    int enrollmentId,
   ) async {
     try {
       final model = await remoteDataSource.submitFinal(
         userId,
-        certificationId,
+        enrollmentId,
       );
       return Right(model.toEntity());
     } on ServerException catch (e) {

@@ -52,8 +52,8 @@ class _RemoteDataSource implements CertificationsRemoteDataSource {
   @override
   Future<CertificationRequirementModel> getRequirement(
     String userId,
-    int certificationId,
-    int sectionId, {
+    int enrollmentId,
+    int requirementId, {
     CancelToken? cancelToken,
   }) async {
     _throwIfNeeded();
@@ -63,8 +63,8 @@ class _RemoteDataSource implements CertificationsRemoteDataSource {
   @override
   Future<CertificationRequirementModel> saveDraft(
     String userId,
-    int certificationId,
-    int sectionId,
+    int enrollmentId,
+    int requirementId,
     List<Map<String, dynamic>> responses,
   ) async {
     _throwIfNeeded();
@@ -75,8 +75,8 @@ class _RemoteDataSource implements CertificationsRemoteDataSource {
   @override
   Future<CertificationRequirementSubmitResultModel> submitRequirement(
     String userId,
-    int certificationId,
-    int sectionId, {
+    int enrollmentId,
+    int requirementId, {
     required int lockVersion,
   }) async {
     _throwIfNeeded();
@@ -87,8 +87,8 @@ class _RemoteDataSource implements CertificationsRemoteDataSource {
   @override
   Future<CertificationEvidenceUploadTicketModel> presignEvidence(
     String userId,
-    int certificationId,
-    int sectionId, {
+    int enrollmentId,
+    int requirementId, {
     required int componentId,
     required String fileName,
     required String mimeType,
@@ -101,8 +101,8 @@ class _RemoteDataSource implements CertificationsRemoteDataSource {
   @override
   Future<CertificationEvidenceModel> confirmEvidence(
     String userId,
-    int certificationId,
-    int sectionId, {
+    int enrollmentId,
+    int requirementId, {
     required int evidenceId,
     String? checksumSha256,
   }) async {
@@ -112,7 +112,7 @@ class _RemoteDataSource implements CertificationsRemoteDataSource {
 
   @override
   Future<void> deleteEvidence(
-      String userId, int certificationId, int evidenceId) async {
+      String userId, int enrollmentId, int evidenceId) async {
     _throwIfNeeded();
     lastDeletedEvidenceId = evidenceId;
   }
@@ -120,7 +120,7 @@ class _RemoteDataSource implements CertificationsRemoteDataSource {
   @override
   Future<CertificationCloseoutUploadTicketModel> presignCloseoutEvidence(
     String userId,
-    int certificationId, {
+    int enrollmentId, {
     required String fileName,
     required String mimeType,
     required int fileSize,
@@ -132,7 +132,7 @@ class _RemoteDataSource implements CertificationsRemoteDataSource {
   @override
   Future<CertificationCloseoutEvidenceModel> confirmCloseoutEvidence(
     String userId,
-    int certificationId, {
+    int enrollmentId, {
     required int closeoutEvidenceId,
     String? checksumSha256,
   }) async {
@@ -143,7 +143,7 @@ class _RemoteDataSource implements CertificationsRemoteDataSource {
   @override
   Future<CertificationSubmitFinalResultModel> submitFinal(
     String userId,
-    int certificationId,
+    int enrollmentId,
   ) async {
     _throwIfNeeded();
     return submitFinalResponse;

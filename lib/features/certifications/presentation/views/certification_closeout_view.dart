@@ -20,24 +20,28 @@ import '../providers/certification_requirement_providers.dart';
 /// al completarse, dispara `submit-final`.
 class CertificationCloseoutView extends ConsumerWidget {
   final int certificationId;
+  final int enrollmentId;
   final String? certificationName;
 
   const CertificationCloseoutView({
     super.key,
     required this.certificationId,
+    required this.enrollmentId,
     this.certificationName,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state =
-        ref.watch(certificationCloseoutNotifierProvider(certificationId));
-    final notifier = ref
-        .read(certificationCloseoutNotifierProvider(certificationId).notifier);
+    final query = CertificationCloseoutQuery(
+      certificationId: certificationId,
+      enrollmentId: enrollmentId,
+    );
+    final state = ref.watch(certificationCloseoutNotifierProvider(query));
+    final notifier =
+        ref.read(certificationCloseoutNotifierProvider(query).notifier);
     final c = context.sac;
 
-    ref.listen(certificationCloseoutNotifierProvider(certificationId),
-        (prev, next) {
+    ref.listen(certificationCloseoutNotifierProvider(query), (prev, next) {
       if (next.errorMessage != null && next.errorMessage!.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
