@@ -78,15 +78,33 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       has_google_services: ${{ steps.check.outputs.has_google_services }}
+      has_release_keystore: ${{ steps.check.outputs.has_release_keystore }}
+      has_sentry_token: ${{ steps.check.outputs.has_sentry_token }}
     steps:
       - id: check
         env:
           GS_SECRET: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+          KEYSTORE_SECRET: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          SENTRY_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: |
           if [ -n "$GS_SECRET" ]; then
             echo "has_google_services=true" >> "$GITHUB_OUTPUT"
           else
             echo "has_google_services=false" >> "$GITHUB_OUTPUT"
+          fi
+          # Release signing requires the full set of keystore secrets.
+          if [ -n "$KEYSTORE_SECRET" ] && [ -n "$KEYSTORE_PASSWORD" ] && [ -n "$KEY_PASSWORD" ] && [ -n "$KEY_ALIAS" ]; then
+            echo "has_release_keystore=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_release_keystore=false" >> "$GITHUB_OUTPUT"
+          fi
+          if [ -n "$SENTRY_TOKEN" ]; then
+            echo "has_sentry_token=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_sentry_token=false" >> "$GITHUB_OUTPUT"
           fi
 
   # ──────────────────────────────────────────────────────────────────────────
@@ -171,6 +189,32 @@ jobs:
             exit 1
           fi
 
+      # ──────────────────────────────────────────────────────────────────────
+      # Release keystore (optional): when the ANDROID_KEYSTORE_* secrets are
+      # configured the build is signed with the real upload key and an AAB is
+      # produced; otherwise the job stays an APK smoke gate signed with the
+      # debug keystore (never publishable). See android/KEYSTORE.md.
+      #
+      # One-time setup (repo admin):
+      #   base64 -i ~/sacdia-release-key.jks | pbcopy   # → ANDROID_KEYSTORE_BASE64
+      #   + ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_PASSWORD / ANDROID_KEY_ALIAS
+      # ──────────────────────────────────────────────────────────────────────
+      - name: Set up release keystore
+        if: needs.check-secrets.outputs.has_release_keystore == 'true'
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode --ignore-garbage > android/release-key.jks
+          cat > android/key.properties <<EOF
+          storeFile=release-key.jks
+          storePassword=${ANDROID_KEYSTORE_PASSWORD}
+          keyAlias=${ANDROID_KEY_ALIAS}
+          keyPassword=${ANDROID_KEY_PASSWORD}
+          EOF
+
       - name: Build APK (release)
         env:
           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
@@ -185,3 +229,37 @@ jobs:
             --dart-define=API_BASE_URL="${API_BASE_URL}" \
             --dart-define=GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_API_KEY}" \
             -P GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_GRADLE_KEY}"
+
+      - name: Build AAB (signed, obfuscated)
+        if: needs.check-secrets.outputs.has_release_keystore == 'true'
+        env:
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+          GOOGLE_MAPS_GRADLE_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+        run: |
+          # Play Store artifact: signed with the upload key, Dart obfuscation on,
+          # split-debug-info symbols kept for Sentry symbolication.
+          flutter build appbundle --release \
+            --obfuscate \
+            --split-debug-info=build/app/outputs/symbols \
+            --dart-define=API_BASE_URL="${API_BASE_URL}" \
+            --dart-define=GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_API_KEY}" \
+            -P GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_GRADLE_KEY}"
+
+      - name: Upload debug symbols to Sentry
+        if: needs.check-secrets.outputs.has_release_keystore == 'true' && needs.check-secrets.outputs.has_sentry_token == 'true'
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: dart run sentry_dart_plugin
+
+      - name: Upload AAB artifact
+        if: needs.check-secrets.outputs.has_release_keystore == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 30
+
+      - name: Clean up keystore
+        if: always() && needs.check-secrets.outputs.has_release_keystore == 'true'
+        run: rm -f android/release-key.jks android/key.properties

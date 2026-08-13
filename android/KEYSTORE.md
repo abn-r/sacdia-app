@@ -122,42 +122,31 @@ Steps:
 
 ---
 
-## 7. CI/CD integration
+## 7. CI/CD integration (implemented in `.github/workflows/ci.yml`)
 
-For automated builds (Fastlane, Codemagic, GitHub Actions), store secrets as
-environment variables and generate `key.properties` at build time:
+The `build-android` job signs the release and produces an AAB when these
+GitHub Actions secrets exist (skipped cleanly otherwise):
 
-```bash
-# Example CI step (bash)
-cat > android/key.properties <<EOF
-storeFile=${KEYSTORE_PATH}
-storePassword=${KEYSTORE_PASSWORD}
-keyAlias=${KEY_ALIAS}
-keyPassword=${KEY_PASSWORD}
-EOF
-```
+| Secret | Content |
+|---|---|
+| `ANDROID_KEYSTORE_BASE64` | `base64 -i ~/sacdia-release-key.jks` |
+| `ANDROID_KEYSTORE_PASSWORD` | store password |
+| `ANDROID_KEY_PASSWORD` | key password |
+| `ANDROID_KEY_ALIAS` | `sacdia` |
+| `SENTRY_AUTH_TOKEN` | (optional) enables debug-symbol upload via `sentry_dart_plugin` |
 
-Decode the base64-encoded `.jks` from a CI secret:
-
-```bash
-echo "$KEYSTORE_BASE64" | base64 --decode > ~/sacdia-release-key.jks
-```
+The job decodes the keystore, writes `android/key.properties` at build time,
+builds `flutter build appbundle --obfuscate --split-debug-info`, uploads the
+AAB as a workflow artifact, and deletes the keystore afterwards.
 
 ---
 
-## 8. Recommended next steps
+## 8. Obfuscation status
 
-- **Obfuscation**: Run release builds with:
-  ```bash
-  flutter build appbundle \
-    --obfuscate \
-    --split-debug-info=build/app/outputs/symbols
-  ```
-  Upload the symbols to Firebase Crashlytics or Sentry for de-obfuscated crash reports.
-  The necessary comments are already in `android/app/build.gradle`.
-
-- **ProGuard/R8**: Uncomment `minifyEnabled` and `shrinkResources` in `build.gradle`
-  once ProGuard rules are validated to not break the app.
-
+- **R8/ProGuard**: enabled (`minifyEnabled` + `shrinkResources` in `build.gradle`,
+  rules in `android/app/proguard-rules.pro`). Validate a signed release build on a
+  physical device before each store submission — R8 issues do not surface in tests.
+- **Dart obfuscation**: CI builds the AAB with `--obfuscate --split-debug-info` and
+  uploads symbols to Sentry when `SENTRY_AUTH_TOKEN` is configured.
 - **Key rotation policy**: Plan for upload key rotation every 2-3 years or immediately
   upon any suspected compromise. Contact Google Play support for rotation procedures.
