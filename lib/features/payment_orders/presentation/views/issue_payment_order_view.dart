@@ -27,10 +27,15 @@ class IssuePaymentOrderView extends ConsumerWidget {
   final PaymentOrderPurpose purpose;
   final int? camporeeId;
 
+  /// 'local' | 'union' — v1.1: para camporees de unión el Campo Local del
+  /// emisor sigue cobrando; solo cambia el endpoint de emisión.
+  final String camporeeType;
+
   const IssuePaymentOrderView({
     super.key,
     required this.purpose,
     this.camporeeId,
+    this.camporeeType = 'local',
   }) : assert(
           purpose != PaymentOrderPurpose.camporee || camporeeId != null,
           'camporeeId es requerido para órdenes de camporee',
@@ -70,6 +75,7 @@ class IssuePaymentOrderView extends ConsumerWidget {
             return _IssueOrderForm(
               purpose: purpose,
               camporeeId: camporeeId,
+              camporeeType: camporeeType,
               cycle: purpose == PaymentOrderPurpose.insurance
                   ? ordersContext.insuranceCycles.first
                   : null,
@@ -84,11 +90,13 @@ class IssuePaymentOrderView extends ConsumerWidget {
 class _IssueOrderForm extends ConsumerWidget {
   final PaymentOrderPurpose purpose;
   final int? camporeeId;
+  final String camporeeType;
   final InsuranceCycleOption? cycle;
 
   const _IssueOrderForm({
     required this.purpose,
     required this.camporeeId,
+    required this.camporeeType,
     required this.cycle,
   });
 
@@ -268,7 +276,10 @@ class _IssueOrderForm extends ConsumerWidget {
     final notifier = ref.read(issueOrderNotifierProvider.notifier);
     final order = purpose == PaymentOrderPurpose.insurance
         ? await notifier.submitInsurance(cycleConfigId: cycle!.cycleConfigId)
-        : await notifier.submitCamporee(camporeeId: camporeeId!);
+        : await notifier.submitCamporee(
+            camporeeId: camporeeId!,
+            camporeeType: camporeeType,
+          );
 
     if (order != null && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

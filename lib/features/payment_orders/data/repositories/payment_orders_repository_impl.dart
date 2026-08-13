@@ -56,11 +56,13 @@ class PaymentOrdersRepositoryImpl implements PaymentOrdersRepository {
   Future<Either<Failure, PaymentOrder>> createCamporeeOrder({
     required int camporeeId,
     required List<String> beneficiaryUserIds,
+    String camporeeType = 'local',
   }) {
     return _guard(() async {
       final model = await remoteDataSource.createCamporeeOrder(
         camporeeId: camporeeId,
         beneficiaryUserIds: beneficiaryUserIds,
+        camporeeType: camporeeType,
       );
       return model.toEntity();
     });
@@ -71,6 +73,7 @@ class PaymentOrdersRepositoryImpl implements PaymentOrdersRepository {
     PaymentOrderPurpose? purpose,
     PaymentOrderStatus? status,
     int? camporeeId,
+    int? unionCamporeeId,
     RequestCancelToken? cancelToken,
   }) {
     return _guard(() async {
@@ -78,6 +81,7 @@ class PaymentOrdersRepositoryImpl implements PaymentOrdersRepository {
         purpose: purpose?.apiValue,
         status: status?.apiValue,
         camporeeId: camporeeId,
+        unionCamporeeId: unionCamporeeId,
         cancelToken: cancelToken.asDioCancelToken(),
       );
       return models.map((m) => m.toEntity()).toList();

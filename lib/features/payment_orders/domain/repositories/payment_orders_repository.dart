@@ -18,12 +18,14 @@ abstract class PaymentOrdersRepository {
   Future<Either<Failure, PaymentOrder>> createCamporeeOrder({
     required int camporeeId,
     required List<String> beneficiaryUserIds,
+    String camporeeType = 'local',
   });
 
   Future<Either<Failure, List<PaymentOrder>>> listOrders({
     PaymentOrderPurpose? purpose,
     PaymentOrderStatus? status,
     int? camporeeId,
+    int? unionCamporeeId,
     RequestCancelToken? cancelToken,
   });
 

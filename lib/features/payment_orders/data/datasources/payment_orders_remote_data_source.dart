@@ -20,10 +20,13 @@ abstract class PaymentOrdersRemoteDataSource {
     required List<String> beneficiaryUserIds,
   });
 
-  /// POST /camporees/:camporeeId/payment-orders — emite orden de camporee.
+  /// POST /camporees/:camporeeId/payment-orders (local) o
+  /// POST /union-camporees/:camporeeId/payment-orders (unión) — emite orden
+  /// de camporee. En ambos casos cobra el Campo Local del emisor.
   Future<PaymentOrderModel> createCamporeeOrder({
     required int camporeeId,
     required List<String> beneficiaryUserIds,
+    String camporeeType = 'local',
   });
 
   /// GET /payment-orders — lista órdenes del alcance del actor.
@@ -31,6 +34,7 @@ abstract class PaymentOrdersRemoteDataSource {
     String? purpose,
     String? status,
     int? camporeeId,
+    int? unionCamporeeId,
     CancelToken? cancelToken,
   });
 
@@ -122,10 +126,14 @@ class PaymentOrdersRemoteDataSourceImpl implements PaymentOrdersRemoteDataSource
   Future<PaymentOrderModel> createCamporeeOrder({
     required int camporeeId,
     required List<String> beneficiaryUserIds,
+    String camporeeType = 'local',
   }) async {
     try {
+      final basePath = camporeeType == 'union'
+          ? ApiEndpoints.unionCamporees
+          : ApiEndpoints.camporees;
       final response = await _dio.post(
-        '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/payment-orders',
+        '$_baseUrl$basePath/$camporeeId/payment-orders',
         data: {'beneficiary_user_ids': beneficiaryUserIds},
       );
       return PaymentOrderModel.fromJson(_unwrapMap(response.data));
@@ -140,6 +148,7 @@ class PaymentOrdersRemoteDataSourceImpl implements PaymentOrdersRemoteDataSource
     String? purpose,
     String? status,
     int? camporeeId,
+    int? unionCamporeeId,
     CancelToken? cancelToken,
   }) async {
     try {
@@ -147,6 +156,7 @@ class PaymentOrdersRemoteDataSourceImpl implements PaymentOrdersRemoteDataSource
         if (purpose != null) 'purpose': purpose,
         if (status != null) 'status': status,
         if (camporeeId != null) 'camporee_id': camporeeId,
+        if (unionCamporeeId != null) 'union_camporee_id': unionCamporeeId,
       };
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.paymentOrders}',
