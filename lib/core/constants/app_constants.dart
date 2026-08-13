@@ -6,26 +6,31 @@ class AppConstants {
 
   // API
   static const String apiBaseUrlDefineKey = 'API_BASE_URL';
-  // Local dev: --dart-define=API_BASE_URL=http://localhost:3000/api/v1
-  //static const String defaultBaseUrl = 'https://sacdia-backend.onrender.com/api/v1';
 
+  /// Fallback SOLO para debug/profile. Los builds de release exigen
+  /// `--dart-define=API_BASE_URL=https://...` y fallan al arrancar si falta.
   static const String defaultBaseUrl = 'http://localhost:3000/api/v1';
 
   static final String baseUrl = resolveBaseUrl();
 
-  static String resolveBaseUrl({String? override}) {
-    final candidate = (override ??
-            const String.fromEnvironment(
-              apiBaseUrlDefineKey,
-              defaultValue: defaultBaseUrl,
-            ))
-        .trim();
+  static String resolveBaseUrl({String? override, bool? releaseMode}) {
+    final candidate =
+        (override ?? const String.fromEnvironment(apiBaseUrlDefineKey)).trim();
+    final isRelease = releaseMode ?? kReleaseMode;
 
-    final resolvedUrl = candidate.isEmpty ? defaultBaseUrl : candidate;
-    if (kReleaseMode && !resolvedUrl.startsWith('https://')) {
-      throw StateError('Production builds must use HTTPS');
+    if (isRelease) {
+      if (candidate.isEmpty) {
+        throw StateError(
+          'Release builds require --dart-define=API_BASE_URL=https://<host>/api/v1',
+        );
+      }
+      if (!candidate.startsWith('https://')) {
+        throw StateError('Production builds must use HTTPS');
+      }
+      return candidate;
     }
-    return resolvedUrl;
+
+    return candidate.isEmpty ? defaultBaseUrl : candidate;
   }
 
   // Timeouts (en segundos)
