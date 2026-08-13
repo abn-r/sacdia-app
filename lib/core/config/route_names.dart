@@ -19,7 +19,6 @@ class RouteNames {
 
   // Paths completos para tabs del home
   static const String homeDashboard = '/home/dashboard';
-  static const String homeAnimationDemo = '/home/dashboard/animation-demo';
   static const String homeClasses = '/home/classes';
   static const String homeActivities = '/home/activities';
   static const String homeProfile = '/home/profile';

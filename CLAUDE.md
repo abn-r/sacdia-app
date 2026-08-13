@@ -93,10 +93,19 @@ showcaseview        # Onboarding contextual / coach marks
 
 ## Variables de Entorno
 
-Configurar en `lib/core/constants/env.dart`:
+Se inyectan vía `--dart-define` y se resuelven en `lib/core/constants/app_constants.dart`:
 
-- `API_BASE_URL`
-- `FCM_SENDER_ID`
+- `API_BASE_URL` — **obligatoria en builds de release** y debe ser HTTPS
+  (`AppConstants.resolveBaseUrl` lanza `StateError` si falta o no es HTTPS).
+  En debug/profile cae a `http://localhost:3000/api/v1`.
+  El CI la valida y la pasa desde el secret `API_BASE_URL`.
+
+```bash
+flutter build apk --release \
+  --dart-define=API_BASE_URL=https://<host>/api/v1 \
+  --dart-define=GOOGLE_MAPS_API_KEY=<key> \
+  -P GOOGLE_MAPS_API_KEY=<key>
+```
 
 ## Deployment
 

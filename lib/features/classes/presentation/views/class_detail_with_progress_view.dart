@@ -82,8 +82,8 @@ class ClassDetailWithProgressView extends ConsumerWidget {
             classId: classId,
             enrollmentId: enrollmentId ?? classWithProgress.enrollmentId,
             targetUserId: targetUserId,
-            prerequisites: prerequisitesAsync.valueOrNull?.prerequisites ??
-                const [],
+            prerequisites:
+                prerequisitesAsync.valueOrNull?.prerequisites ?? const [],
             onRefresh: () async {
               ref.invalidate(classWithProgressProvider(progressQuery));
               ref.invalidate(classDetailProvider(classId));
@@ -1635,10 +1635,12 @@ class _HonorCard extends StatelessWidget {
                         color: AppColors.validatedColor,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
-                        Icons.check,
-                        size: 13,
-                        color: Colors.white,
+                      child: const Center(
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedTick02,
+                          size: 13,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),

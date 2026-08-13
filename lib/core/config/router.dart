@@ -89,7 +89,6 @@ import '../../features/auth/presentation/views/login_view.dart';
 import '../../features/auth/presentation/views/register_view.dart';
 import '../../features/auth/presentation/views/splash_view.dart';
 import '../../features/post_registration/presentation/views/post_registration_shell.dart';
-import '../../features/dashboard/presentation/views/animation_demo_view.dart';
 import '../../features/dashboard/presentation/views/dashboard_view.dart';
 import '../../features/classes/presentation/views/classes_tabs_view.dart';
 import '../../features/classes/presentation/views/class_detail_with_progress_view.dart';
@@ -323,16 +322,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: RouteNames.homeDashboard,
                 pageBuilder: (context, state) =>
                     _fadeThroughBuild(context, state, const DashboardView()),
-                routes: [
-                  GoRoute(
-                    path: 'animation-demo',
-                    pageBuilder: (context, state) => _sharedAxisBuild(
-                      context,
-                      state,
-                      const AnimationDemoView(),
-                    ),
-                  ),
-                ],
               ),
 
               // Quick-access modules: shell-visible, but not branch-preserved.
@@ -920,8 +909,9 @@ final routerProvider = Provider<GoRouter>((ref) {
               purpose: purposeParam == null
                   ? null
                   : PaymentOrderPurposeApi.fromApi(purposeParam),
-              camporeeId:
-                  camporeeIdParam == null ? null : int.tryParse(camporeeIdParam),
+              camporeeId: camporeeIdParam == null
+                  ? null
+                  : int.tryParse(camporeeIdParam),
             ),
           );
         },
