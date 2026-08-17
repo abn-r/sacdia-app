@@ -280,8 +280,13 @@ class RouteNames {
   static String paymentOrderDetailPath(String orderId) =>
       '/payment-orders/$orderId';
 
-  static String camporeeIssuePaymentOrderPath(int camporeeId) =>
-      '/camporee/$camporeeId/payment-orders/issue';
+  static String camporeeIssuePaymentOrderPath(
+    int camporeeId, {
+    String camporeeType = 'local',
+  }) =>
+      camporeeType == 'union'
+          ? '/camporee/$camporeeId/payment-orders/issue?type=union'
+          : '/camporee/$camporeeId/payment-orders/issue';
 
   // Rankings
   static const String homeClubRankings = '/home/club-rankings';

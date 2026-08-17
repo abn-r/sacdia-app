@@ -26,6 +26,7 @@ class _FakeRepository implements PaymentOrdersRepository {
   List<String>? lastBeneficiaries;
   int createCamporeeCalls = 0;
   int? lastCamporeeId;
+  String? lastCamporeeType;
 
   @override
   Future<Either<Failure, PaymentOrder>> createInsuranceOrder({
@@ -42,9 +43,11 @@ class _FakeRepository implements PaymentOrdersRepository {
   Future<Either<Failure, PaymentOrder>> createCamporeeOrder({
     required int camporeeId,
     required List<String> beneficiaryUserIds,
+    String camporeeType = 'local',
   }) async {
     createCamporeeCalls++;
     lastCamporeeId = camporeeId;
+    lastCamporeeType = camporeeType;
     lastBeneficiaries = beneficiaryUserIds;
     return createResult;
   }
@@ -54,6 +57,7 @@ class _FakeRepository implements PaymentOrdersRepository {
     PaymentOrderPurpose? purpose,
     PaymentOrderStatus? status,
     int? camporeeId,
+    int? unionCamporeeId,
     RequestCancelToken? cancelToken,
   }) async =>
       const Right([]);
@@ -193,6 +197,18 @@ void main() {
 
       expect(repository.createCamporeeCalls, 1);
       expect(repository.lastCamporeeId, 12);
+      expect(repository.lastCamporeeType, 'local');
+    });
+
+    test('emite orden de camporee de unión con el tipo correcto', () async {
+      final notifier = container.read(issueOrderNotifierProvider.notifier);
+      notifier.toggle('user-1');
+
+      await notifier.submitCamporee(camporeeId: 90, camporeeType: 'union');
+
+      expect(repository.createCamporeeCalls, 1);
+      expect(repository.lastCamporeeId, 90);
+      expect(repository.lastCamporeeType, 'union');
     });
 
     test('el fallo del repositorio queda en errorMessage', () async {

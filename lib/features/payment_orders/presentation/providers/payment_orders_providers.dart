@@ -156,11 +156,15 @@ class IssueOrderNotifier extends AutoDisposeNotifier<IssueOrderState> {
     );
   }
 
-  Future<PaymentOrder?> submitCamporee({required int camporeeId}) {
+  Future<PaymentOrder?> submitCamporee({
+    required int camporeeId,
+    String camporeeType = 'local',
+  }) {
     return _submit(
       (repo) => repo.createCamporeeOrder(
         camporeeId: camporeeId,
         beneficiaryUserIds: state.selectedUserIds.toList(),
+        camporeeType: camporeeType,
       ),
     );
   }

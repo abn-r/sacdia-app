@@ -50,6 +50,7 @@ class ApiEndpoints {
 
   // ── Camporees ─────────────────────────────────────────────────────────────
   static const String camporees = '/camporees';
+  static const String unionCamporees = '/union-camporees';
 
   // ── Annual Folders ────────────────────────────────────────────────────────
   static const String annualFolders = '/annual-folders';

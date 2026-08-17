@@ -158,6 +158,30 @@ void main() {
         'beneficiary_user_ids': ['user-1'],
       });
     });
+
+    test(
+        'POST /union-camporees/:id/payment-orders cuando camporeeType es union',
+        () async {
+      final (:dio, :adapter) = _dioWith({
+        'status': 'success',
+        'data': _orderJson(),
+      });
+
+      await _dataSource(dio).createCamporeeOrder(
+        camporeeId: 90,
+        beneficiaryUserIds: const ['user-1'],
+        camporeeType: 'union',
+      );
+
+      expect(adapter.lastOptions?.method, 'POST');
+      expect(
+        adapter.lastOptions?.path,
+        '/api/v1/union-camporees/90/payment-orders',
+      );
+      expect(adapter.lastBody, {
+        'beneficiary_user_ids': ['user-1'],
+      });
+    });
   });
 
   group('listOrders', () {

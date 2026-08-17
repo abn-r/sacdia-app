@@ -940,18 +940,22 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // Órdenes de pago — emitir orden de camporee
+      // Órdenes de pago — emitir orden de camporee (local o de unión vía
+      // ?type=union; en ambos casos cobra el Campo Local del emisor)
       GoRoute(
         path: RouteNames.camporeeIssuePaymentOrder,
         pageBuilder: (context, state) {
           final camporeeId =
               int.tryParse(state.pathParameters['camporeeId']!) ?? 0;
+          final camporeeType =
+              state.uri.queryParameters['type'] == 'union' ? 'union' : 'local';
           return _sharedAxisBuild(
             context,
             state,
             IssuePaymentOrderView(
               purpose: PaymentOrderPurpose.camporee,
               camporeeId: camporeeId,
+              camporeeType: camporeeType,
             ),
           );
         },
