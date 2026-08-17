@@ -36,9 +36,6 @@ class ClubSection extends Equatable {
   /// Nombre legible del tipo (ej: 'Conquistadores').
   final String clubTypeName;
 
-  /// Nombre propio de la sección.
-  final String? name;
-
   /// Teléfono de contacto.
   final String? phone;
 
@@ -68,7 +65,6 @@ class ClubSection extends Equatable {
     required this.mainClubId,
     required this.clubTypeId,
     required this.clubTypeName,
-    this.name,
     this.phone,
     this.email,
     this.website,
@@ -85,7 +81,6 @@ class ClubSection extends Equatable {
         mainClubId,
         clubTypeId,
         clubTypeName,
-        name,
         phone,
         email,
         website,
@@ -95,4 +90,14 @@ class ClubSection extends Equatable {
         long,
         active,
       ];
+}
+
+/// Canonical section label: `{club.name} · {club_types.name}`.
+String clubSectionDisplayLabel(String? clubName, String? clubTypeName) {
+  final club = clubName?.trim() ?? '';
+  final type = clubTypeName?.trim() ?? '';
+  if (club.isNotEmpty && type.isNotEmpty) {
+    return '$club · $type';
+  }
+  return club.isNotEmpty ? club : type;
 }

@@ -106,7 +106,7 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final json = _unwrapMap(response.data);
         AppLogger.d(
-          'getClubSection raw → name=${json['name']}, '
+          'getClubSection raw → type=${json['club_types']}, '
           'phone=${json['phone']}, email=${json['email']}, '
           'address=${json['address']}, club_types=${json['club_types']}',
           tag: _tag,

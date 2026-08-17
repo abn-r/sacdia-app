@@ -35,7 +35,6 @@ class _ClubViewState extends ConsumerState<ClubView> {
   final _formKey = GlobalKey<FormState>();
 
   // Controladores de texto
-  final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _websiteController = TextEditingController();
@@ -53,7 +52,6 @@ class _ClubViewState extends ConsumerState<ClubView> {
 
   @override
   void dispose() {
-    _nameController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
     _websiteController.dispose();
@@ -66,7 +64,6 @@ class _ClubViewState extends ConsumerState<ClubView> {
   /// Rellena los controladores con los datos de la sección.
   void _populateFields(ClubSection section) {
     _loadedSection = section;
-    _nameController.text = section.name ?? '';
     _phoneController.text = section.phone ?? '';
     _emailController.text = section.email ?? '';
     _websiteController.text = section.website ?? '';
@@ -147,9 +144,6 @@ class _ClubViewState extends ConsumerState<ClubView> {
     final success = await notifier.save(
       clubId: section.mainClubId,
       sectionId: section.id,
-      name: _nameController.text.trim().isEmpty
-          ? null
-          : _nameController.text.trim(),
       phone: _phoneController.text.trim().isEmpty
           ? null
           : _phoneController.text.trim(),
@@ -337,9 +331,22 @@ class _ClubViewState extends ConsumerState<ClubView> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              if (sectionAsync.valueOrNull?.clubTypeName != null)
+              if (sectionAsync.valueOrNull != null)
                 Text(
-                  sectionAsync.valueOrNull!.clubTypeName,
+                  () {
+                    final section = sectionAsync.valueOrNull!;
+                    final clubName = section.mainClubId.isEmpty
+                        ? null
+                        : ref
+                            .watch(clubInfoProvider(section.mainClubId))
+                            .valueOrNull
+                            ?.name;
+                    final label = clubSectionDisplayLabel(
+                      clubName,
+                      section.clubTypeName,
+                    );
+                    return label.isEmpty ? section.clubTypeName : label;
+                  }(),
                   style: TextStyle(
                     color: c.textSecondary,
                     fontSize: 12,
@@ -398,30 +405,28 @@ class _ClubViewState extends ConsumerState<ClubView> {
           ),
           const SizedBox(height: 12),
 
-          // Nombre de la instancia
-          _isEditing
-              ? SacTextField(
-                  controller: _nameController,
-                  label: 'club.name_label'.tr(),
-                  hint: 'club.name_hint'.tr(),
-                  prefixIcon: HugeIcons.strokeRoundedBuilding01,
-                  enabled: !isUpdating,
-                  textCapitalization: TextCapitalization.sentences,
-                  onChanged: (_) => _markChanged(),
-                )
-              : _InfoRow(
-                  icon: HugeIcons.strokeRoundedBuilding01,
-                  label: 'club.name'.tr(),
-                  value: section.name ?? '—',
-                ),
+          // Nombre del club contenedor + tipo de sección (sin nombre propio)
+          _InfoRow(
+            icon: HugeIcons.strokeRoundedBuilding01,
+            label: 'club.name'.tr(),
+            value: () {
+              if (section.mainClubId.isEmpty) return '—';
+              final clubName = ref
+                  .watch(clubInfoProvider(section.mainClubId))
+                  .valueOrNull
+                  ?.name;
+              return (clubName != null && clubName.trim().isNotEmpty)
+                  ? clubName
+                  : '—';
+            }(),
+          ),
 
           const SizedBox(height: 16),
 
-          // Tipo de sección (solo lectura)
           _InfoRow(
             icon: HugeIcons.strokeRoundedUserGroup,
             label: 'club.type_label'.tr(),
-            value: section.clubTypeName,
+            value: section.clubTypeName.isNotEmpty ? section.clubTypeName : '—',
           ),
 
           const SizedBox(height: 24),

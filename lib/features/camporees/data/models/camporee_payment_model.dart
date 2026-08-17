@@ -116,7 +116,7 @@ class CamporeeEnrolledClubModel extends Equatable {
       ),
       clubName: safeStringOrNull(club?['name']) ??
           safeStringOrNull(json['clubName'] ?? json['club_name']),
-      sectionName: safeStringOrNull(section?['name']) ??
+      sectionName: _sectionTypeName(section) ??
           safeStringOrNull(json['sectionName'] ?? json['section_name']),
       enrolledAt: (json['registeredAt'] ?? json['created_at']) != null
           ? DateTime.tryParse(
@@ -146,4 +146,13 @@ class CamporeeEnrolledClubModel extends Equatable {
         sectionName,
         enrolledAt,
       ];
+}
+
+String? _sectionTypeName(Map<String, dynamic>? section) {
+  if (section == null) return null;
+  final nested = section['club_types'] ?? section['club_type'];
+  if (nested is Map) {
+    return safeStringOrNull(nested['name']);
+  }
+  return null;
 }

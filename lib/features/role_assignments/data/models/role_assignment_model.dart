@@ -41,8 +41,13 @@ class RoleAssignmentModel extends Equatable {
       roleId: (json['role_id'] ?? role?['id'] ?? 0) as int,
       roleName: role?['name'] as String? ?? json['role_name'] as String?,
       clubName: club?['name'] as String? ?? json['club_name'] as String?,
-      sectionName:
-          section?['name'] as String? ?? json['section_name'] as String?,
+      sectionName: () {
+        final nested = section?['club_types'] ?? section?['club_type'];
+        if (nested is Map && nested['name'] is String) {
+          return nested['name'] as String;
+        }
+        return json['section_name'] as String?;
+      }(),
       status: json['status'] as String? ?? 'pending',
       assignedAt: json['assigned_at'] != null
           ? DateTime.tryParse(json['assigned_at'] as String)
