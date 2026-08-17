@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
@@ -186,6 +187,17 @@ void main() {
       // Both clubs appear in the list
       expect(find.text('Club Conquistadores Norte'), findsOneWidget);
       expect(find.text('Club Aventureros Sur'), findsOneWidget);
+    });
+
+    testWidgets('should show a back button to leave the clubs list',
+        (tester) async {
+      await _pumpView(
+        tester,
+        clubsState: const AsyncData([]),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SacBackButton), findsOneWidget);
     });
   });
 }
