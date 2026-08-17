@@ -67,7 +67,7 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
         children: [
           // ── Subtitle ─────────────────────────────────────────────────────
           Text(
-            'Revisá los datos antes de confirmar tu pedido.',
+            'Revisa los datos antes de confirmar tu pedido.',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: AppColors.lightTextSecondary,
             ),

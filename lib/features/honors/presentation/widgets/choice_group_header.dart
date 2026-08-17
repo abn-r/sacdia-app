@@ -7,10 +7,10 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 /// Badge-style header for a choice group requirement.
 ///
-/// Displays "Completá N de M" with a running count of how many children
+/// Displays "Completa N de M" with a running count of how many children
 /// have been completed so far. Renders inline above the child list.
 ///
-/// Example: "Completá 3 de 5  —  1 completado"
+/// Example: "Completa 3 de 5  —  1 completado"
 class ChoiceGroupHeader extends StatelessWidget {
   /// Minimum number of children required to complete the parent.
   final int choiceMin;

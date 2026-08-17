@@ -100,7 +100,7 @@ class _CertificateImportProcessingViewState
                 Text(
                   _error == null
                       ? 'Extraemos honores, clases y fechas para que confirmes los datos.'
-                      : 'Podés reintentar OCR o completar los datos manualmente. No te dejamos en un callejón sin salida.',
+                      : 'Puedes reintentar OCR o completar los datos manualmente. No te dejamos en un callejón sin salida.',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: c.textSecondary,

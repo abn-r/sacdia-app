@@ -1,8 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:secure_application/secure_application_native.dart';
+
+import '../utils/app_logger.dart';
 
 /// Wraps a sensitive screen with platform-level content protection:
 ///
@@ -102,9 +103,7 @@ class _SecureScreenState extends State<SecureScreen>
     try {
       await call();
     } catch (error) {
-      if (kDebugMode) {
-        debugPrint('SecureScreen native $action failed: $error');
-      }
+      AppLogger.w('native $action failed', tag: 'SecureScreen', error: error);
     }
   }
 }

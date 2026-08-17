@@ -107,7 +107,7 @@ class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
   Future<void> _submit() async {
     // Validate file selection
     if (_selectedFile == null) {
-      setState(() => _fileError = 'Seleccioná un archivo para continuar.');
+      setState(() => _fileError = 'Selecciona un archivo para continuar.');
       return;
     }
 
@@ -116,7 +116,7 @@ class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
 
     if (_fechaPago == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Seleccioná la fecha de pago.')),
+        const SnackBar(content: Text('Selecciona la fecha de pago.')),
       );
       return;
     }
@@ -329,7 +329,7 @@ class _FormBody extends StatelessWidget {
             hint: 'Ej: SOL20260001',
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
-                return 'Ingresá la referencia que usaste.';
+                return 'Ingresa la referencia que usaste.';
               }
               return null;
             },

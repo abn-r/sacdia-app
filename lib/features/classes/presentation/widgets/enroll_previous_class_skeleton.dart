@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 ///
 /// Structure mirrored (inside the sheet, below the static header):
 ///   1. YearInfo row  — calendar icon + label text + year value pill
-///   2. "Seleccioná una clase" label
+///   2. "Selecciona una clase" label
 ///   3. N skeleton ClassItem rows — radio circle + logo square + name text
 ///   4. Confirm button placeholder
 class EnrollPreviousClassSkeleton extends StatefulWidget {

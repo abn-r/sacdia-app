@@ -290,7 +290,7 @@ class _ActionCard extends ConsumerWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Tu pedido fue aprobado. Realizá la transferencia y subí el comprobante.',
+                    'Tu pedido fue aprobado. Realiza la transferencia y sube el comprobante.',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: AppColors.accentDark,
                     ),
@@ -477,7 +477,7 @@ class _ActionCard extends ConsumerWidget {
       final reason = reasonController.text.trim();
       if (reason.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ingresá un motivo de cancelación.')),
+          const SnackBar(content: Text('Ingresa un motivo de cancelación.')),
         );
         return;
       }

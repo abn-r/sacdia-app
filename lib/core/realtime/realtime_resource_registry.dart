@@ -1,9 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/activities/presentation/providers/activities_providers.dart';
 import '../../features/members/presentation/providers/members_providers.dart';
 import '../../providers/catalogs_provider.dart';
+import '../utils/app_logger.dart';
 import 'realtime_ref.dart';
 
 /// Callback signature for provider invalidation handlers.
@@ -52,7 +52,10 @@ class RealtimeResourceRegistry {
   static void invalidate(RealtimeRef ref, String resource, int sectionId) {
     final handler = _handlers[resource];
     if (handler == null) {
-      debugPrint('[RealtimeRegistry] Unknown resource: "$resource" — skipping');
+      AppLogger.w(
+        'Unknown resource: "$resource" — skipping',
+        tag: 'RealtimeRegistry',
+      );
       return;
     }
     handler(ref, sectionId);
@@ -85,9 +88,11 @@ class RealtimeResourceRegistry {
       try {
         entry.value(ref, sectionId);
       } catch (e, st) {
-        debugPrint(
-          '[RealtimeRegistry] invalidateAll: handler "${entry.key}" threw '
-          '$e\n$st',
+        AppLogger.e(
+          'invalidateAll: handler "${entry.key}" threw',
+          tag: 'RealtimeRegistry',
+          error: e,
+          stackTrace: st,
         );
       }
     }
@@ -101,14 +106,18 @@ class RealtimeResourceRegistry {
       ref.invalidate(ecclesiasticalYearsProvider);
       ref.invalidate(currentEcclesiasticalYearProvider);
     } catch (e, st) {
-      debugPrint(
-        '[RealtimeRegistry] invalidateAll: catalog invalidation threw $e\n$st',
+      AppLogger.e(
+        'invalidateAll: catalog invalidation threw',
+        tag: 'RealtimeRegistry',
+        error: e,
+        stackTrace: st,
       );
     }
 
-    debugPrint(
-      '[RealtimeRegistry] invalidateAll: dispatched to '
+    AppLogger.i(
+      'invalidateAll: dispatched to '
       '${_handlers.length} handlers + catalogs (section=$sectionId)',
+      tag: 'RealtimeRegistry',
     );
   }
 
@@ -134,16 +143,18 @@ class RealtimeResourceRegistry {
     final ctx = ctxAsync.valueOrNull;
 
     if (ctx == null) {
-      debugPrint(
-        '[RealtimeRegistry] activities: no active club context, skipping',
+      AppLogger.i(
+        'activities: no active club context, skipping',
+        tag: 'RealtimeRegistry',
       );
       return;
     }
 
     if (ctx.sectionId != sectionId) {
-      debugPrint(
-        '[RealtimeRegistry] activities: section $sectionId does not match '
+      AppLogger.i(
+        'activities: section $sectionId does not match '
         'active section ${ctx.sectionId} — skipping invalidation',
+        tag: 'RealtimeRegistry',
       );
       return;
     }
@@ -154,9 +165,10 @@ class RealtimeResourceRegistry {
     );
     ref.invalidate(clubActivitiesProvider(params));
 
-    debugPrint(
-      '[RealtimeRegistry] activities: invalidated clubActivitiesProvider '
+    AppLogger.i(
+      'activities: invalidated clubActivitiesProvider '
       'for clubId=${ctx.clubId} (section=$sectionId)',
+      tag: 'RealtimeRegistry',
     );
   }
 
@@ -175,25 +187,28 @@ class RealtimeResourceRegistry {
     final ctx = ctxAsync.valueOrNull;
 
     if (ctx == null) {
-      debugPrint(
-        '[RealtimeRegistry] members: no active club context, skipping',
+      AppLogger.i(
+        'members: no active club context, skipping',
+        tag: 'RealtimeRegistry',
       );
       return;
     }
 
     if (ctx.sectionId != sectionId) {
-      debugPrint(
-        '[RealtimeRegistry] members: section $sectionId does not match '
+      AppLogger.i(
+        'members: section $sectionId does not match '
         'active section ${ctx.sectionId} — skipping invalidation',
+        tag: 'RealtimeRegistry',
       );
       return;
     }
 
     ref.invalidate(membersNotifierProvider);
 
-    debugPrint(
-      '[RealtimeRegistry] members: invalidated membersNotifierProvider '
+    AppLogger.i(
+      'members: invalidated membersNotifierProvider '
       'for clubId=${ctx.clubId} (section=$sectionId)',
+      tag: 'RealtimeRegistry',
     );
   }
 }
