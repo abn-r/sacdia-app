@@ -133,7 +133,7 @@ class CartView extends ConsumerWidget {
       builder: (ctx) => AlertDialog(
         title: const Text('Vaciar carrito'),
         content:
-            const Text('¿Querés eliminar todos los productos del carrito?'),
+            const Text('¿Quieres eliminar todos los productos del carrito?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -292,7 +292,7 @@ class _EmptyCart extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Agregá productos desde el catálogo',
+            'Agrega productos desde el catálogo',
             style: TextStyle(color: AppColors.lightTextTertiary),
           ),
           const SizedBox(height: 24),

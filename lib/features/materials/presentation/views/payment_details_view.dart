@@ -135,7 +135,7 @@ class _PagoBody extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Realizá la transferencia a la CLABE de arriba. '
-                  'Usá la referencia como concepto de pago para que el '
+                  'Usa la referencia como concepto de pago para que el '
                   'campo local identifique tu depósito.',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: AppColors.statusInfoText,

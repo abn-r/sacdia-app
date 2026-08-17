@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/config/cache_config.dart';
 import '../../../../core/storage/local_storage.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/cache_info.dart';
 import '../../domain/entities/sync_result.dart';
 import '../../domain/repositories/cache_repository.dart';
@@ -66,7 +67,8 @@ class CacheRepositoryImpl implements CacheRepository {
       sacBytes = await _safeStoreSize(SacCacheManager.instance);
       defaultBytes = await _safeStoreSize(DefaultCacheManager());
     } catch (e, st) {
-      debugPrint('[CacheRepo] cache-manager size failed: $e\n$st');
+      AppLogger.e('cache-manager size failed',
+          tag: 'CacheRepo', error: e, stackTrace: st);
     }
 
     // Temp directory — recursive scan can be slow on cold FS, run in an
@@ -77,7 +79,8 @@ class CacheRepositoryImpl implements CacheRepository {
       tempBytes = await compute(_sumDirectoryBytes, tempDir.path)
           .timeout(const Duration(seconds: 5), onTimeout: () => 0);
     } catch (e, st) {
-      debugPrint('[CacheRepo] temp size failed: $e\n$st');
+      AppLogger.e('temp size failed',
+          tag: 'CacheRepo', error: e, stackTrace: st);
     }
 
     // In-memory decoded images. Cheap, synchronous read.
@@ -111,18 +114,20 @@ class CacheRepositoryImpl implements CacheRepository {
     try {
       await SacCacheManager.instance.emptyCache();
     } catch (e) {
-      debugPrint('[CacheRepo] SacCacheManager.emptyCache failed: $e');
+      AppLogger.w('SacCacheManager.emptyCache failed',
+          tag: 'CacheRepo', error: e);
     }
     try {
       await DefaultCacheManager().emptyCache();
     } catch (e) {
-      debugPrint('[CacheRepo] DefaultCacheManager.emptyCache failed: $e');
+      AppLogger.w('DefaultCacheManager.emptyCache failed',
+          tag: 'CacheRepo', error: e);
     }
     try {
       PaintingBinding.instance.imageCache.clear();
       PaintingBinding.instance.imageCache.clearLiveImages();
     } catch (e) {
-      debugPrint('[CacheRepo] imageCache.clear failed: $e');
+      AppLogger.w('imageCache.clear failed', tag: 'CacheRepo', error: e);
     }
   }
 
@@ -141,12 +146,14 @@ class CacheRepositoryImpl implements CacheRepository {
           try {
             await entity.delete(recursive: true);
           } catch (e) {
-            debugPrint('[CacheRepo] delete ${entity.path} failed: $e');
+            AppLogger.w('delete ${entity.path} failed',
+                tag: 'CacheRepo', error: e);
           }
         }
       }
     } catch (e, st) {
-      debugPrint('[CacheRepo] temp wipe failed: $e\n$st');
+      AppLogger.e('temp wipe failed',
+          tag: 'CacheRepo', error: e, stackTrace: st);
     }
 
     // Selective SharedPreferences clear.
@@ -161,8 +168,8 @@ class CacheRepositoryImpl implements CacheRepository {
         await prefs.remove(key);
       }
     } catch (e, st) {
-      debugPrint(
-          '[CacheRepo] SharedPreferences selective clear failed: $e\n$st');
+      AppLogger.e('SharedPreferences selective clear failed',
+          tag: 'CacheRepo', error: e, stackTrace: st);
     }
   }
 
@@ -177,7 +184,8 @@ class CacheRepositoryImpl implements CacheRepository {
       );
       return SyncResult.ok(syncedAt);
     } catch (e, st) {
-      debugPrint('[CacheRepo] recordSuccessfulSync threw: $e\n$st');
+      AppLogger.e('recordSuccessfulSync threw',
+          tag: 'CacheRepo', error: e, stackTrace: st);
       // Translated key — fallback to the raw message if translations are
       // not ready (e.g. running outside an app context in a test).
       String msg;
@@ -213,7 +221,7 @@ class CacheRepositoryImpl implements CacheRepository {
       final result = await (store.getCacheSize() as Future);
       if (result is int) return result;
     } catch (e) {
-      debugPrint('[CacheRepo] store.getCacheSize failed: $e');
+      AppLogger.w('store.getCacheSize failed', tag: 'CacheRepo', error: e);
     }
     return 0;
   }

@@ -37,7 +37,7 @@ class AppAuthService {
 
   static AppAuthService? _instance;
 
-  /// Instancia global de conveniencia.  Usá el provider de Riverpod en vez de
+  /// Instancia global de conveniencia.  Usa el provider de Riverpod en vez de
   /// esta propiedad siempre que sea posible.
   static AppAuthService get instance {
     _instance ??= AppAuthService();

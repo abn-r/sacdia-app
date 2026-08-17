@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../core/utils/app_logger.dart';
 import '../data/roadmap_data.dart';
 import '../theme/roadmap_tokens.dart';
 import 'va_node.dart';
@@ -71,10 +72,10 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
         curve: Curves.easeInOut,
         alignment: 0.3, // 30 % desde el tope visible — deja espacio arriba.
       );
-    } catch (e, st) {
+    } catch (e) {
       // No crashear si el Scrollable todavía no está listo (e.g., hot-reload
       // parcial o reparenteo durante animación de entrada).
-      debugPrint('[RoadmapScreen] ensureVisible failed: $e\n$st');
+      AppLogger.w('ensureVisible failed', tag: 'RoadmapScreen', error: e);
     }
   }
 
