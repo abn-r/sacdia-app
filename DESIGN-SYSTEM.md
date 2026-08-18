@@ -54,6 +54,18 @@ All colors are defined in `lib/core/theme/app_colors.dart`.
 | `AppColors.errorLight` | `#FEE2E2` | Error badge background |
 | `AppColors.errorDark` | `#991B1B` | Error text |
 
+### 2.1b Login brand — `logo-sacdia.png`
+
+Exclusive to splash/login. Do **not** replace coral `primary` in the rest of the app.
+
+| Token | Value | Role |
+|-------|-------|------|
+| `AppColors.loginBrandBlue` | `#0B84F0` | Capsule CTA, splash loader |
+| `AppColors.loginBrandBlueDark` | `#0666C9` | Text links on white (contrast) |
+| `AppColors.loginBrandGold` | `#F0B000` | Hairline under the wordmark |
+
+These tokens are the same in light and dark (logo-locked). Using `AppColors.loginBrand*` in auth paint is the exception to §2.7.
+
 ### 2.2 Surface Tokens — Light Mode
 
 | Token | Value | Role |
@@ -977,12 +989,13 @@ Bottom sheet radius is always `top: Radius.circular(20)` (from `BottomSheetTheme
 - `lib/features/auth/presentation/views/splash_view.dart`
 
 **Login pattern:**
-- White background (`lightBackground`)
-- SVG logo at top
-- `SacCard` wrapping the form (clean separation)
-- `SacTextField` for email/password
+- White background (`context.sac.background`) — same canvas as the rest of the app
+- Brand mark: `SacBrandMark` from `assets/img/logo-sacdia.png` (squircle + soft shadow)
+- Gold hairline (`AppColors.loginBrandGold`) under the wordmark
+- `SacTextField` for email/password (do not restyle the field itself)
 - Rate limiting: 3 failed attempts → 30s cooldown with countdown display
-- `SacButton.primary` for submit
+- Capsule CTA using `AppColors.loginBrandBlue` (logo blue; does **not** replace coral `AppColors.primary` elsewhere)
+- Entrance: `StaggeredColumn` with `SacMotion` tokens; splash uses fade+scale from `SacMotion.enterScale` (0.96)
 
 ### 12.6 Onboarding / Post-Registration
 

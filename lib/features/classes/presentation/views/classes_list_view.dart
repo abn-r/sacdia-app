@@ -171,6 +171,10 @@ class ClassesListViewBody extends ConsumerWidget {
             children: [
               // ── Roadmap entry chip ─────────────────────────────────────────
               _RoadmapChip(hPad: hPad),
+              const SizedBox(height: 12),
+
+              // ── Certifications entry chip ──────────────────────────────────
+              const _CertificationsChip(),
               const SizedBox(height: 20),
 
               if (currentClass != null) ...[
@@ -384,6 +388,79 @@ class _RoadmapChip extends StatelessWidget {
   }
 }
 
+// ── Certifications chip ───────────────────────────────────────────────────────
+
+/// Entrada al módulo de certificaciones (Guías Mayores) desde el tab Clases.
+/// Mismo patrón visual que [_RoadmapChip].
+class _CertificationsChip extends StatelessWidget {
+  const _CertificationsChip();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Material(
+      color: colorScheme.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(16),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => context.push(RouteNames.homeCertifications),
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.secondaryLight,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Center(
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedCertificate01,
+                    size: 22,
+                    color: AppColors.secondary,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'classes.list.certifications_chip_title'.tr(),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'classes.list.certifications_chip_subtitle'.tr(),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
+                size: 20,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // ── Inline enroll button ──────────────────────────────────────────────────────
 
 class _EnrollButton extends StatelessWidget {
@@ -430,6 +507,8 @@ class _EmptyBody extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 32),
       children: [
         _RoadmapChip(hPad: hPad),
+        const SizedBox(height: 12),
+        const _CertificationsChip(),
         const SizedBox(height: 40),
         Center(
           child: Column(

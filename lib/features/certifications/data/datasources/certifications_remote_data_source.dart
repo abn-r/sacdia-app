@@ -244,6 +244,33 @@ class CertificationsRemoteDataSourceImpl
     }
   }
 
+  /// Envelope canónico `{ status, data }` (listas paginadas incluyen `meta`).
+  dynamic _payload(dynamic body) {
+    if (body is Map && body.containsKey('data')) {
+      return body['data'];
+    }
+    return body;
+  }
+
+  List<dynamic> _unwrapList(dynamic body) {
+    final payload = _payload(body);
+    if (payload is List) return payload;
+    return const [];
+  }
+
+  Map<String, dynamic> _unwrapMap(dynamic body) {
+    final payload = _payload(body);
+    if (payload is Map<String, dynamic>) return payload;
+    if (payload is Map) return Map<String, dynamic>.from(payload);
+    throw ServerException(message: tr('common.error_network'));
+  }
+
+  Map<String, dynamic> _asStringKeyedMap(dynamic json) {
+    if (json is Map<String, dynamic>) return json;
+    if (json is Map) return Map<String, dynamic>.from(json);
+    throw ServerException(message: tr('common.error_network'));
+  }
+
   // ── GET /certifications/certifications ──────────────────────────────────────
 
   @override
@@ -257,10 +284,8 @@ class CertificationsRemoteDataSourceImpl
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final List<dynamic> data = response.data as List<dynamic>;
-        return data
-            .map((json) =>
-                CertificationModel.fromJson(json as Map<String, dynamic>))
+        return _unwrapList(response.data)
+            .map((json) => CertificationModel.fromJson(_asStringKeyedMap(json)))
             .toList();
       }
 
@@ -287,8 +312,7 @@ class CertificationsRemoteDataSourceImpl
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return CertificationDetailModel.fromJson(
-            response.data as Map<String, dynamic>);
+        return CertificationDetailModel.fromJson(_unwrapMap(response.data));
       }
 
       throw ServerException(
@@ -314,10 +338,9 @@ class CertificationsRemoteDataSourceImpl
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final List<dynamic> data = response.data as List<dynamic>;
-        return data
+        return _unwrapList(response.data)
             .map((json) =>
-                UserCertificationModel.fromJson(json as Map<String, dynamic>))
+                UserCertificationModel.fromJson(_asStringKeyedMap(json)))
             .toList();
       }
 
@@ -345,8 +368,7 @@ class CertificationsRemoteDataSourceImpl
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return CertificationProgressModel.fromJson(
-            response.data as Map<String, dynamic>);
+        return CertificationProgressModel.fromJson(_unwrapMap(response.data));
       }
 
       throw ServerException(
@@ -404,7 +426,7 @@ class CertificationsRemoteDataSourceImpl
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return response.data as Map<String, dynamic>;
+        return _unwrapMap(response.data);
       }
 
       throw ServerException(

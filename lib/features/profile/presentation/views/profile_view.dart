@@ -20,12 +20,14 @@ import 'package:sacdia_app/features/honors/presentation/providers/honors_provide
 import 'package:sacdia_app/features/post_registration/presentation/providers/post_registration_providers.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../certifications/presentation/providers/certifications_providers.dart';
 import '../../domain/entities/user_detail.dart';
 import '../providers/profile_providers.dart';
 import '../utils/profile_context_resolver.dart';
 import '../../../achievements/presentation/widgets/achievement_profile_summary.dart';
 import '../widgets/class_status_circles.dart';
 import '../widgets/profile_classes_section.dart';
+import '../widgets/profile_certifications_section.dart';
 import '../widgets/profile_honors_section.dart';
 import '../widgets/setting_tile.dart';
 import '../../../virtual_card/presentation/views/virtual_card_view.dart';
@@ -202,10 +204,13 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 await ref.read(profileNotifierProvider.notifier).refresh();
                 ref.invalidate(userClassesProvider);
                 ref.invalidate(userHonorsProvider);
+                ref.invalidate(userCertificationsProvider);
                 // userHonorStatsLocalProvider recomputes automatically when
                 // userHonorsProvider is invalidated.
               },
               onRefreshClasses: () => ref.invalidate(userClassesProvider),
+              onRefreshCertifications: () =>
+                  ref.invalidate(userCertificationsProvider),
               onRefreshHonors: () {
                 ref.invalidate(userHonorsProvider);
                 // userHonorStatsLocalProvider recomputes automatically.
@@ -289,6 +294,7 @@ class _ProfileScrollBody extends StatelessWidget {
   final VoidCallback? onChangePhoto;
   final Future<void> Function() onRefresh;
   final VoidCallback onRefreshClasses;
+  final VoidCallback onRefreshCertifications;
   final VoidCallback onRefreshHonors;
   final VoidCallback onSettings;
   final VoidCallback onQr;
@@ -301,6 +307,7 @@ class _ProfileScrollBody extends StatelessWidget {
     required this.hPad,
     required this.onRefresh,
     required this.onRefreshClasses,
+    required this.onRefreshCertifications,
     required this.onRefreshHonors,
     required this.onSettings,
     required this.onQr,
@@ -500,6 +507,50 @@ class _ProfileScrollBody extends StatelessWidget {
             const SizedBox(height: 8),
 
             const ProfileClassesSection(),
+
+            const SizedBox(height: 20),
+
+            // ── 5b. Certificaciones del Usuario ──────────────────
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: hPad),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _SectionLabel(
+                      label: 'profile.view.section_my_certifications'.tr()),
+                  SizedBox(
+                    width: 32,
+                    height: 32,
+                    child: Material(
+                      color: c.surface,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: BorderSide(color: c.border),
+                      ),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: onRefreshCertifications,
+                        child: Semantics(
+                          label: 'common.retry'.tr(),
+                          button: true,
+                          child: Center(
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedRefresh,
+                              color: c.textTertiary,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            const ProfileCertificationsSection(),
 
             const SizedBox(height: 20),
 

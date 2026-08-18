@@ -1,10 +1,11 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:easy_localization/easy_localization.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/utils/validators.dart';
@@ -12,12 +13,13 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/features/auth/presentation/widgets/auth_sky_wash.dart';
+import 'package:sacdia_app/features/auth/presentation/widgets/sac_brand_mark.dart';
 
-/// Vista de registro - Estilo "Scout Vibrante"
+/// Vista de registro.
 ///
-/// Fondo blanco, formulario limpio, indicador de fortaleza de contraseña,
-/// botón indigo. Responsive: ConstrainedBox limita el ancho en tablets,
-/// padding se adapta al tamaño de pantalla.
+/// Misma atmósfera que login (cielo azul, CTA cápsula) sin marca ni
+/// logos flotantes. [SacTextField] y el acomodo del formulario no cambian.
 class RegisterView extends ConsumerStatefulWidget {
   const RegisterView({super.key});
 
@@ -126,205 +128,227 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
         : Theme.of(context).textTheme.displayMedium;
 
     return Scaffold(
-      backgroundColor: context.sac.surface,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: Responsive.formPadding(context),
+      backgroundColor: context.sac.background,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          const AuthSkyWash(),
+          SafeArea(
             child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: Responsive.maxFormWidth,
-                ),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SizedBox(height: 12),
-
-                      // Back button
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Row(
-                          children: [
-                            IconButton(
-                              onPressed: () => context.pop(),
-                              icon: HugeIcon(
-                                icon: HugeIcons.strokeRoundedArrowLeft01,
-                                color: context.sac.text,
-                              ),
-                              style: IconButton.styleFrom(
-                                backgroundColor: context.sac.background,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Text(
-                              'auth.register_title'.tr(),
-                              style: titleStyle,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Name fields
-                      SacTextField(
-                        controller: _nameController,
-                        label: 'auth.name_label'.tr(),
-                        hint: 'auth.name_hint'.tr(),
-                        keyboardType: TextInputType.name,
-                        prefixIcon: HugeIcons.strokeRoundedUser,
-                        validator: Validators.validateName,
-                        textInputAction: TextInputAction.next,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Surnames in a row
-                      Row(
+              child: SingleChildScrollView(
+                padding: Responsive.formPadding(context),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxWidth: Responsive.maxFormWidth,
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Expanded(
-                            child: SacTextField(
-                              controller: _paternalController,
-                              label: 'auth.paternal_surname_label'.tr(),
-                              hint: 'auth.paternal_surname_hint'.tr(),
-                              keyboardType: TextInputType.name,
-                              validator: (v) => Validators.validateRequired(
-                                  v, 'auth.paternal_surname_field_name'.tr()),
-                              textInputAction: TextInputAction.next,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: SacTextField(
-                              controller: _maternalController,
-                              label: 'auth.maternal_surname_label'.tr(),
-                              hint: 'auth.maternal_surname_hint'.tr(),
-                              keyboardType: TextInputType.name,
-                              validator: (v) => Validators.validateRequired(
-                                  v, 'auth.maternal_surname_field_name'.tr()),
-                              textInputAction: TextInputAction.next,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Email
-                      SacTextField(
-                        controller: _emailController,
-                        label: 'auth.email_label'.tr(),
-                        hint: 'auth.email_hint'.tr(),
-                        keyboardType: TextInputType.emailAddress,
-                        prefixIcon: HugeIcons.strokeRoundedMail01,
-                        validator: Validators.validateEmail,
-                        textInputAction: TextInputAction.next,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Password
-                      SacTextField(
-                        controller: _passwordController,
-                        label: 'auth.password_label'.tr(),
-                        hint: 'auth.password_hint'.tr(),
-                        obscureText: true,
-                        prefixIcon: HugeIcons.strokeRoundedLockKey,
-                        validator: Validators.validatePassword,
-                        textInputAction: TextInputAction.next,
-                        onChanged: (_) => setState(() {}),
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Password strength indicator
-                      _PasswordStrengthIndicator(
-                        password: _passwordController.text,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Confirm password
-                      SacTextField(
-                        controller: _confirmPasswordController,
-                        label: 'auth.confirm_password_label'.tr(),
-                        hint: 'auth.confirm_password_hint'.tr(),
-                        obscureText: true,
-                        prefixIcon: HugeIcons.strokeRoundedLockKey,
-                        validator: _validateConfirmPassword,
-                        textInputAction: TextInputAction.done,
-                        onSubmitted: (_) => _isButtonEnabled ? _signUp() : null,
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Error message
-                      if (errorMessage != null) ...[
-                        SacCard(
-                          backgroundColor: AppColors.errorLight,
-                          borderColor: AppColors.error.withValues(alpha: 0.3),
-                          padding: const EdgeInsets.all(12),
-                          child: Row(
-                            children: [
-                              HugeIcon(
-                                icon: HugeIcons.strokeRoundedAlert02,
-                                size: 20,
-                                color: AppColors.errorDark,
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  errorMessage,
-                                  style: const TextStyle(
-                                    color: AppColors.errorDark,
-                                    fontSize: 14,
+                          const SizedBox(height: 12),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Row(
+                              children: [
+                                IconButton(
+                                  onPressed: () => context.pop(),
+                                  icon: HugeIcon(
+                                    icon: HugeIcons.strokeRoundedArrowLeft01,
+                                    color: context.sac.text,
+                                  ),
+                                  style: IconButton.styleFrom(
+                                    backgroundColor: context.sac.surface
+                                        .withValues(alpha: 0.86),
+                                    minimumSize: const Size(44, 44),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-
-                      // Register button
-                      SacButton.primary(
-                        text: 'auth.register_button'.tr(),
-                        isLoading: isLoading,
-                        isEnabled: _isButtonEnabled,
-                        onPressed: _isButtonEnabled ? _signUp : null,
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Link to login
-                      Center(
-                        child: RichText(
-                          text: TextSpan(
-                            text: 'auth.have_account'.tr(),
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: context.sac.textSecondary,
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Text(
+                                    'auth.register_title'.tr(),
+                                    style: titleStyle?.copyWith(
+                                      letterSpacing: -0.6,
+                                      height: 1.05,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
                                 ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const SacBrandHairline(),
+                          const SizedBox(height: 24),
+
+                          // Name fields
+                          SacTextField(
+                            controller: _nameController,
+                            label: 'auth.name_label'.tr(),
+                            hint: 'auth.name_hint'.tr(),
+                            keyboardType: TextInputType.name,
+                            prefixIcon: HugeIcons.strokeRoundedUser,
+                            validator: Validators.validateName,
+                            textInputAction: TextInputAction.next,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Surnames in a row
+                          Row(
                             children: [
-                              TextSpan(
-                                text: 'auth.login_link'.tr(),
-                                style: const TextStyle(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w600,
+                              Expanded(
+                                child: SacTextField(
+                                  controller: _paternalController,
+                                  label: 'auth.paternal_surname_label'.tr(),
+                                  hint: 'auth.paternal_surname_hint'.tr(),
+                                  keyboardType: TextInputType.name,
+                                  validator: (v) => Validators.validateRequired(
+                                      v,
+                                      'auth.paternal_surname_field_name'.tr()),
+                                  textInputAction: TextInputAction.next,
                                 ),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () => context.pop(),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: SacTextField(
+                                  controller: _maternalController,
+                                  label: 'auth.maternal_surname_label'.tr(),
+                                  hint: 'auth.maternal_surname_hint'.tr(),
+                                  keyboardType: TextInputType.name,
+                                  validator: (v) => Validators.validateRequired(
+                                      v,
+                                      'auth.maternal_surname_field_name'.tr()),
+                                  textInputAction: TextInputAction.next,
+                                ),
                               ),
                             ],
                           ),
-                        ),
+                          const SizedBox(height: 16),
+
+                          // Email
+                          SacTextField(
+                            controller: _emailController,
+                            label: 'auth.email_label'.tr(),
+                            hint: 'auth.email_hint'.tr(),
+                            keyboardType: TextInputType.emailAddress,
+                            prefixIcon: HugeIcons.strokeRoundedMail01,
+                            validator: Validators.validateEmail,
+                            textInputAction: TextInputAction.next,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Password
+                          SacTextField(
+                            controller: _passwordController,
+                            label: 'auth.password_label'.tr(),
+                            hint: 'auth.password_hint'.tr(),
+                            obscureText: true,
+                            prefixIcon: HugeIcons.strokeRoundedLockKey,
+                            validator: Validators.validatePassword,
+                            textInputAction: TextInputAction.next,
+                            onChanged: (_) => setState(() {}),
+                          ),
+                          const SizedBox(height: 8),
+
+                          // Password strength indicator
+                          _PasswordStrengthIndicator(
+                            password: _passwordController.text,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Confirm password
+                          SacTextField(
+                            controller: _confirmPasswordController,
+                            label: 'auth.confirm_password_label'.tr(),
+                            hint: 'auth.confirm_password_hint'.tr(),
+                            obscureText: true,
+                            prefixIcon: HugeIcons.strokeRoundedLockKey,
+                            validator: _validateConfirmPassword,
+                            textInputAction: TextInputAction.done,
+                            onSubmitted: (_) =>
+                                _isButtonEnabled ? _signUp() : null,
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Error message
+                          if (errorMessage != null) ...[
+                            SacCard(
+                              backgroundColor: AppColors.errorLight,
+                              borderColor:
+                                  AppColors.error.withValues(alpha: 0.3),
+                              padding: const EdgeInsets.all(12),
+                              child: Row(
+                                children: [
+                                  HugeIcon(
+                                    icon: HugeIcons.strokeRoundedAlert02,
+                                    size: 20,
+                                    color: AppColors.errorDark,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      errorMessage,
+                                      style: const TextStyle(
+                                        color: AppColors.errorDark,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+
+                          // Register button
+                          SacButton(
+                            text: 'auth.register_button'.tr(),
+                            variant: SacButtonVariant.primary,
+                            size: SacButtonSize.large,
+                            fullWidth: true,
+                            backgroundColor: AppColors.loginBrandBlue,
+                            borderRadius: AppTheme.radiusFull,
+                            isLoading: isLoading,
+                            isEnabled: _isButtonEnabled,
+                            onPressed: _isButtonEnabled ? _signUp : null,
+                          ),
+                          const SizedBox(height: 24),
+
+                          Center(
+                            child: RichText(
+                              text: TextSpan(
+                                text: 'auth.have_account'.tr(),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      color: context.sac.textSecondary,
+                                    ),
+                                children: [
+                                  TextSpan(
+                                    text: 'auth.login_link'.tr(),
+                                    style: const TextStyle(
+                                      color: AppColors.loginBrandBlueDark,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () => context.pop(),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                        ],
                       ),
-                      const SizedBox(height: 32),
-                    ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

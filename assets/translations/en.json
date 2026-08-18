@@ -1656,6 +1656,8 @@
       "error_loading": "Error loading classes",
       "roadmap_chip_title": "View my full journey",
       "roadmap_chip_subtitle": "See your career progress",
+      "certifications_chip_title": "Certifications",
+      "certifications_chip_subtitle": "Browse and enroll in certifications",
       "section_current": "Current class",
       "section_others": "Other classes",
       "enroll_cta": "Enroll in another class",
@@ -2564,7 +2566,8 @@
     "view": {
       "title": "Club Insurance",
       "search_hint": "Search member...",
-      "coverage_title": "Insurance Coverage",
+      "coverage_title": "Coverage",
+      "coverage_of": "{insured} of {total} insured",
       "expiring_banner_one": "{count} insurance expires in the next 30 days",
       "expiring_banner_other": "{count} insurances expire in the next 30 days",
       "member_count_one": "{count} member",
@@ -3238,6 +3241,7 @@
       "qr_tooltip": "My QR credential",
       "section_progressive_classes": "Progressive Classes",
       "section_my_classes": "My Classes",
+      "section_my_certifications": "My Certifications",
       "section_honors": "Honors",
       "section_achievements": "Achievements",
       "edit_profile_title": "Edit profile",
@@ -3437,6 +3441,12 @@
       "no_classes": "No classes registered yet",
       "browse_classes": "Browse available classes",
       "my_classes_header": "My Classes"
+    },
+    "certifications_section": {
+      "error_load": "Error loading certifications",
+      "no_certifications": "No certifications registered yet",
+      "browse_certifications": "Browse available certifications",
+      "my_certifications_header": "My Certifications"
     },
     "honors_section": {
       "error_load": "Error loading honors",

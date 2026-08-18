@@ -1656,6 +1656,8 @@
       "error_loading": "Erreur lors du chargement des classes",
       "roadmap_chip_title": "Voir mon parcours complet",
       "roadmap_chip_subtitle": "Voir la progression de votre carrière",
+      "certifications_chip_title": "Certifications",
+      "certifications_chip_subtitle": "Découvrez et inscrivez-vous aux certifications",
       "section_current": "Classe actuelle",
       "section_others": "Autres classes",
       "enroll_cta": "M'inscrire à une autre classe",
@@ -2564,7 +2566,8 @@
     "view": {
       "title": "Assurances du Club",
       "search_hint": "Rechercher un membre...",
-      "coverage_title": "Couverture d'Assurance",
+      "coverage_title": "Couverture",
+      "coverage_of": "{insured} sur {total} assurés",
       "expiring_banner_one": "{count} assurance expire dans les 30 prochains jours",
       "expiring_banner_other": "{count} assurances expirent dans les 30 prochains jours",
       "member_count_one": "{count} membre",
@@ -3238,6 +3241,7 @@
       "qr_tooltip": "Mon identifiant QR",
       "section_progressive_classes": "Classes progressives",
       "section_my_classes": "Mes classes",
+      "section_my_certifications": "Mes certifications",
       "section_honors": "Spécialités",
       "section_achievements": "Réalisations",
       "edit_profile_title": "Modifier le profil",
@@ -3437,6 +3441,12 @@
       "no_classes": "Aucune classe enregistrée pour l’instant",
       "browse_classes": "Voir les classes disponibles",
       "my_classes_header": "Mes classes"
+    },
+    "certifications_section": {
+      "error_load": "Erreur lors du chargement des certifications",
+      "no_certifications": "Aucune certification enregistrée pour l’instant",
+      "browse_certifications": "Voir les certifications disponibles",
+      "my_certifications_header": "Mes certifications"
     },
     "honors_section": {
       "error_load": "Erreur lors du chargement des spécialités",

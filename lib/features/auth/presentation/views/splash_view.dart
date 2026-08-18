@@ -1,15 +1,18 @@
-import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/providers/app_bootstrap_provider.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
-import '../../../../core/providers/app_bootstrap_provider.dart';
+import 'package:sacdia_app/features/auth/presentation/widgets/sac_brand_mark.dart';
 
-/// Vista de Splash Screen - Estilo "Scout Vibrante"
+/// Splash de arranque. Navegación la resuelve GoRouter via redirect.
 ///
-/// Fondo blanco con logo centrado, indicador de carga sutil con color
-/// primario. La navegación es manejada automáticamente por GoRouter redirect.
+/// Primera impresión: logo nuevo centrado sobre blanco, fade+scale desde
+/// [SacMotion.enterScale] (nunca desde 0). Reduced motion = solo opacidad.
 class SplashView extends ConsumerStatefulWidget {
   const SplashView({super.key});
 
@@ -19,39 +22,44 @@ class SplashView extends ConsumerStatefulWidget {
 
 class _SplashViewState extends ConsumerState<SplashView>
     with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
+  late final AnimationController _controller;
+  late final Animation<double> _fade;
+  late final Animation<double> _scale;
+  late final Animation<double> _metaFade;
 
   @override
   void initState() {
     super.initState();
 
-    _animationController = AnimationController(
+    // Rare / first-time: delight allowed, still under 500ms.
+    _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 420),
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    _fade = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.0, 0.7, curve: SacMotion.easeOut),
+    );
+
+    _scale = Tween<double>(begin: SacMotion.enterScale, end: 1.0).animate(
       CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+        parent: _controller,
+        curve: const Interval(0.0, 0.7, curve: SacMotion.easeOut),
       ),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeOutBack),
-      ),
+    _metaFade = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.35, 1.0, curve: SacMotion.easeOut),
     );
 
-    _animationController.forward();
+    _controller.forward();
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -59,11 +67,11 @@ class _SplashViewState extends ConsumerState<SplashView>
     final bootstrapAsync = ref.watch(appBootstrapProvider);
 
     return bootstrapAsync.when(
-      loading: () => const SacLoading(),
+      loading: () => const SacLoading(color: AppColors.loginBrandBlue),
       error: (_, __) => _buildErrorWidget('auth.error_unexpected'.tr()),
       data: (state) => switch (state) {
         AppBootstrapError(:final message) => _buildErrorWidget(message),
-        _ => const SacLoading(),
+        _ => const SacLoading(color: AppColors.loginBrandBlue),
       },
     );
   }
@@ -97,84 +105,82 @@ class _SplashViewState extends ConsumerState<SplashView>
 
   @override
   Widget build(BuildContext context) {
+    final reduceMotion = SacMotion.reduceMotionOf(context);
+
+    Widget logo = const SacBrandMark(size: 128);
+
+    if (!reduceMotion) {
+      logo = FadeTransition(
+        opacity: _fade,
+        child: ScaleTransition(
+          scale: _scale,
+          child: logo,
+        ),
+      );
+    }
+
+    final wordmark = Text(
+      'SACDIA',
+      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+            color: context.sac.text,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.4,
+            height: 1.1,
+          ),
+    );
+
     return Scaffold(
       backgroundColor: context.sac.background,
-      body: SizedBox(
-        width: double.infinity,
-        height: double.infinity,
+      body: SizedBox.expand(
         child: Stack(
           alignment: Alignment.center,
           children: [
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Animated logo
-                FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: context.sac.shadow,
-                            blurRadius: 30,
-                            spreadRadius: 10,
-                            offset: const Offset(0, 0),
-                          ),
-                        ],
+                logo,
+                const SizedBox(height: 28),
+                reduceMotion
+                    ? wordmark
+                    : FadeTransition(opacity: _metaFade, child: wordmark),
+                const SizedBox(height: 8),
+                reduceMotion
+                    ? const SacBrandHairline()
+                    : FadeTransition(
+                        opacity: _metaFade,
+                        child: const SacBrandHairline(),
                       ),
-                      child: Image.asset(
-                        'assets/img/LogoSACDIA.png',
-                        width: 140,
-                        height: 140,
-                        cacheWidth: 420,
-                        cacheHeight: 420,
-                      ),
-                    ),
-                  ),
-                ),
                 const SizedBox(height: 24),
-
-                // App name
-                FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: Text(
-                    'SACDIA',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: context.sac.text,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 2,
-                        ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Loading indicator or error/retry
-                FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: _buildStatusWidget(),
-                ),
+                reduceMotion
+                    ? _buildStatusWidget()
+                    : FadeTransition(
+                        opacity: _metaFade,
+                        child: _buildStatusWidget(),
+                      ),
               ],
             ),
-
-            // Footer text
             Positioned(
-              bottom: 20,
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: Text(
-                  'by Sarza Roja',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: context.sac.textTertiary,
-                      fontWeight: FontWeight.w500),
-                ),
-              ),
+              bottom: 28,
+              child: reduceMotion
+                  ? _footer(context)
+                  : FadeTransition(
+                      opacity: _metaFade,
+                      child: _footer(context),
+                    ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _footer(BuildContext context) {
+    return Text(
+      'by Sarza Roja',
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: context.sac.textTertiary,
+            fontWeight: FontWeight.w500,
+          ),
     );
   }
 }

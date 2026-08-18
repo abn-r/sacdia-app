@@ -1656,6 +1656,8 @@
       "error_loading": "Error al cargar clases",
       "roadmap_chip_title": "Ver mi camino completo",
       "roadmap_chip_subtitle": "Conoce el progreso de tu carrera",
+      "certifications_chip_title": "Certificaciones",
+      "certifications_chip_subtitle": "Explora e inscríbete en certificaciones",
       "section_current": "Clase actual",
       "section_others": "Otras clases",
       "enroll_cta": "Inscribirme a otra clase",
@@ -2564,7 +2566,8 @@
     "view": {
       "title": "Seguros del Club",
       "search_hint": "Buscar miembro...",
-      "coverage_title": "Cobertura de Seguros",
+      "coverage_title": "Cobertura",
+      "coverage_of": "{insured} de {total} asegurados",
       "expiring_banner_one": "{count} seguro vence en los próximos 30 días",
       "expiring_banner_other": "{count} seguros vencen en los próximos 30 días",
       "member_count_one": "{count} miembro",
@@ -3238,6 +3241,7 @@
       "qr_tooltip": "Mi credencial QR",
       "section_progressive_classes": "Clases Progresivas",
       "section_my_classes": "Mis Clases",
+      "section_my_certifications": "Mis Certificaciones",
       "section_honors": "Especialidades",
       "section_achievements": "Logros",
       "edit_profile_title": "Editar perfil",
@@ -3437,6 +3441,12 @@
       "no_classes": "Aún no tienes clases registradas",
       "browse_classes": "Ver clases disponibles",
       "my_classes_header": "Mis Clases"
+    },
+    "certifications_section": {
+      "error_load": "Error al cargar certificaciones",
+      "no_certifications": "Aún no tienes certificaciones registradas",
+      "browse_certifications": "Ver certificaciones disponibles",
+      "my_certifications_header": "Mis Certificaciones"
     },
     "honors_section": {
       "error_load": "Error al cargar especialidades",

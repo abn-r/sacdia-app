@@ -1,13 +1,16 @@
 import 'dart:async';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:easy_localization/easy_localization.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/utils/validators.dart';
@@ -15,12 +18,14 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/features/auth/presentation/widgets/auth_sky_wash.dart';
+import 'package:sacdia_app/features/auth/presentation/widgets/login_club_constellation.dart';
+import 'package:sacdia_app/features/auth/presentation/widgets/sac_brand_mark.dart';
 
-/// Vista de login - Estilo "Scout Vibrante"
+/// Vista de login.
 ///
-/// Fondo blanco, logo compacto, campos limpios, botón indigo.
-/// Responsive: ConstrainedBox limita el ancho en tablets, logo se reduce
-/// en landscape, padding se adapta al tamaño de pantalla.
+/// Canvas blanco (igual que el resto de la app), marca del icono SACDIA,
+/// [SacTextField] sin cambios, CTA cápsula en azul del logo.
 class LoginView extends ConsumerStatefulWidget {
   const LoginView({super.key});
 
@@ -33,7 +38,6 @@ class _LoginViewState extends ConsumerState<LoginView> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  // ── Rate limiting ───────────────────────────────────────────────────────────
   static const _maxFailedAttempts = 3;
   static const _cooldownSeconds = 30;
 
@@ -79,8 +83,6 @@ class _LoginViewState extends ConsumerState<LoginView> {
         );
 
     if (!mounted) return;
-    // Navigation handled by the router watching authNotifierProvider.
-    // Error surfaced via ref.watch in build().
     final authState = ref.read(authNotifierProvider);
     if (authState.hasError) {
       _failedAttempts++;
@@ -88,7 +90,6 @@ class _LoginViewState extends ConsumerState<LoginView> {
         _startCooldown();
       }
     } else {
-      // Successful login — reset counter.
       _failedAttempts = 0;
     }
   }
@@ -105,252 +106,216 @@ class _LoginViewState extends ConsumerState<LoginView> {
             .tr(namedArgs: {'seconds': '$_cooldownRemaining'})
         : null;
 
-    final logoSize = Responsive.authLogoSize(context) * 1.5;
+    final logoSize = Responsive.isLandscape(context) ? 72.0 : 108.0;
     final logoBottomSpacing = Responsive.authLogoBottomSpacing(context);
+    final reduceMotion = SacMotion.reduceMotionOf(context);
 
     return Scaffold(
-      backgroundColor: AppColors.loginScaffoldGreen,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: Responsive.formPadding(context),
+      backgroundColor: context.sac.background,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          const AuthSkyWash(),
+          const LoginClubConstellation(),
+          SafeArea(
             child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: Responsive.maxFormWidth,
-                ),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SizedBox(height: 22),
-
-                      // Logo — smaller in landscape to save vertical space
-                      Center(
-                        child: Image.asset(
-                          'assets/img/LogoSACDIA.png',
-                          width: logoSize,
-                          height: logoSize,
-                          cacheWidth: (logoSize * 3).round(),
-                          cacheHeight: (logoSize * 3).round(),
-                        ),
-                      ),
-                      SizedBox(height: logoBottomSpacing),
-
-                      // Título
-                      Text(
-                        'SACDIA',
-                        style: Theme.of(context).textTheme.displayMedium,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'auth.login_subtitle'.tr(),
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: context.sac.textSecondary,
-                            ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 30),
-
-                      // Campo email
-                      SacTextField(
-                        controller: _emailController,
-                        label: 'auth.email_label'.tr(),
-                        hint: 'auth.email_hint'.tr(),
-                        keyboardType: TextInputType.emailAddress,
-                        prefixIcon: HugeIcons.strokeRoundedMail01,
-                        validator: Validators.validateEmail,
-                        textInputAction: TextInputAction.next,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Campo password
-                      SacTextField(
-                        controller: _passwordController,
-                        label: 'auth.password_label'.tr(),
-                        hint: 'auth.password_hint_login'.tr(),
-                        obscureText: true,
-                        prefixIcon: HugeIcons.strokeRoundedLockKey,
-                        validator: Validators.validatePassword,
-                        textInputAction: TextInputAction.done,
-                        onSubmitted: (_) => _signIn(),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Forgot password link
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () =>
-                              context.push(RouteNames.forgotPassword),
-                          child: Text(
-                            'auth.forgot_password'.tr(),
-                            style: TextStyle(
-                                color: context.sac.text,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Error message
-                      if (errorMessage != null && !_isCoolingDown) ...[
-                        SacCard(
-                          backgroundColor: AppColors.errorLight,
-                          borderColor: AppColors.error.withValues(alpha: 0.3),
-                          padding: const EdgeInsets.all(12),
-                          child: Row(
+              child: SingleChildScrollView(
+                padding: Responsive.formPadding(context),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxWidth: Responsive.maxFormWidth,
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(height: 28),
+                          StaggeredColumn(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            initialDelay: Duration.zero,
+                            staggerDelay: SacMotion.stagger,
+                            duration: SacMotion.standard,
+                            slideOffset: 8,
+                            animate: !reduceMotion,
                             children: [
-                              HugeIcon(
-                                icon: HugeIcons.strokeRoundedAlert02,
-                                size: 20,
-                                color: AppColors.errorDark,
+                              Center(
+                                child: SacBrandMark(size: logoSize),
                               ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  errorMessage,
-                                  style: const TextStyle(
+                              SizedBox(height: logoBottomSpacing),
+                              Column(
+                                children: [
+                                  Text(
+                                    'SACDIA',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .displayMedium
+                                        ?.copyWith(
+                                          letterSpacing: -0.6,
+                                          height: 1.05,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  const SacBrandHairline(),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    'auth.login_subtitle'.tr(),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          color: context.sac.textSecondary,
+                                        ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 32),
+                              SacTextField(
+                                controller: _emailController,
+                                label: 'auth.email_label'.tr(),
+                                hint: 'auth.email_hint'.tr(),
+                                keyboardType: TextInputType.emailAddress,
+                                prefixIcon: HugeIcons.strokeRoundedMail01,
+                                validator: Validators.validateEmail,
+                                textInputAction: TextInputAction.next,
+                              ),
+                              const SizedBox(height: 16),
+                              SacTextField(
+                                controller: _passwordController,
+                                label: 'auth.password_label'.tr(),
+                                hint: 'auth.password_hint_login'.tr(),
+                                obscureText: true,
+                                prefixIcon: HugeIcons.strokeRoundedLockKey,
+                                validator: Validators.validatePassword,
+                                textInputAction: TextInputAction.done,
+                                onSubmitted: (_) => _signIn(),
+                              ),
+                              const SizedBox(height: 4),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: TextButton(
+                                  onPressed: () =>
+                                      context.push(RouteNames.forgotPassword),
+                                  child: Text(
+                                    'auth.forgot_password'.tr(),
+                                    style: const TextStyle(
+                                      color: AppColors.loginBrandBlueDark,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          if (errorMessage != null && !_isCoolingDown) ...[
+                            SacCard(
+                              backgroundColor: AppColors.errorLight,
+                              borderColor:
+                                  AppColors.error.withValues(alpha: 0.3),
+                              padding: const EdgeInsets.all(12),
+                              child: Row(
+                                children: [
+                                  HugeIcon(
+                                    icon: HugeIcons.strokeRoundedAlert02,
+                                    size: 20,
                                     color: AppColors.errorDark,
-                                    fontSize: 14,
                                   ),
-                                ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      errorMessage,
+                                      style: const TextStyle(
+                                        color: AppColors.errorDark,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-
-                      // Cooldown message
-                      if (cooldownMessage != null) ...[
-                        SacCard(
-                          backgroundColor: AppColors.accentLight,
-                          borderColor: AppColors.accent.withValues(alpha: 0.3),
-                          padding: const EdgeInsets.all(12),
-                          child: Row(
-                            children: [
-                              HugeIcon(
-                                icon: HugeIcons.strokeRoundedClock01,
-                                size: 20,
-                                color: AppColors.accentDark,
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  cooldownMessage,
-                                  style: const TextStyle(
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                          if (cooldownMessage != null) ...[
+                            SacCard(
+                              backgroundColor: AppColors.accentLight,
+                              borderColor:
+                                  AppColors.accent.withValues(alpha: 0.3),
+                              padding: const EdgeInsets.all(12),
+                              child: Row(
+                                children: [
+                                  HugeIcon(
+                                    icon: HugeIcons.strokeRoundedClock01,
+                                    size: 20,
                                     color: AppColors.accentDark,
-                                    fontSize: 14,
                                   ),
-                                ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      cooldownMessage,
+                                      style: const TextStyle(
+                                        color: AppColors.accentDark,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                          SacButton(
+                            text: 'auth.submit_idle'.tr(),
+                            variant: SacButtonVariant.primary,
+                            size: SacButtonSize.large,
+                            fullWidth: true,
+                            backgroundColor: AppColors.loginBrandBlue,
+                            borderRadius: AppTheme.radiusFull,
+                            isLoading: isLoading,
+                            isEnabled: !_isCoolingDown,
+                            onPressed: _signIn,
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-
-                      // Botón login
-                      SacButton.primary(
-                        text: 'auth.submit_idle'.tr(),
-                        backgroundColor: AppColors.loginButtonGreen,
-                        isLoading: isLoading,
-                        isEnabled: !_isCoolingDown,
-                        onPressed: _signIn,
-                      ),
-                      const SizedBox(height: 34),
-
-                      // Divider "o continúa con"
-                      // Row(
-                      //   children: [
-                      //     Expanded(
-                      //       child: Container(
-                      //         height: 1,
-                      //         color: context.sac.border,
-                      //       ),
-                      //     ),
-                      //     Padding(
-                      //       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      //       child: Text(
-                      //         'o continúa con',
-                      //         style: Theme.of(context)
-                      //             .textTheme
-                      //             .bodySmall
-                      //             ?.copyWith(
-                      //               color: AppColors.lightText,
-                      //             ),
-                      //       ),
-                      //     ),
-                      //     Expanded(
-                      //       child: Container(
-                      //         height: 1,
-                      //         color: context.sac.border,
-                      //       ),
-                      //     ),
-                      //   ],
-                      // ),
-                      // const SizedBox(height: 16),
-
-                      // // Botones OAuth
-                      // Row(
-                      //   children: [
-                      //     Expanded(
-                      //       child: _OAuthButton(
-                      //         onPressed: isLoading ? null : _signInWithGoogle,
-                      //         iconPath: 'assets/svg/google_logo.svg',
-                      //         label: 'Google',
-                      //       ),
-                      //     ),
-                      //     const SizedBox(width: 14),
-                      //     Expanded(
-                      //       child: _OAuthButton(
-                      //         onPressed: isLoading ? null : _signInWithApple,
-                      //         iconPath: 'assets/svg/apple_logo.svg',
-                      //         label: 'Apple',
-                      //       ),
-                      //     ),
-                      //   ],
-                      // ),
-                      // const SizedBox(height: 40),
-
-                      // Link a registro
-                      Center(
-                        child: RichText(
-                          text: TextSpan(
-                            text: 'auth.no_account'.tr(),
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: context.sac.text,
-                                ),
-                            children: [
-                              TextSpan(
-                                text: 'auth.register_link'.tr(),
-                                style: TextStyle(
-                                  color: context.sac.text,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap =
-                                      () => context.push(RouteNames.register),
+                          const SizedBox(height: 28),
+                          Center(
+                            child: RichText(
+                              text: TextSpan(
+                                text: 'auth.no_account'.tr(),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      color: context.sac.textSecondary,
+                                    ),
+                                children: [
+                                  TextSpan(
+                                    text: 'auth.register_link'.tr(),
+                                    style: const TextStyle(
+                                      color: AppColors.loginBrandBlueDark,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () =>
+                                          context.push(RouteNames.register),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 32),
+                        ],
                       ),
-                      const SizedBox(height: 32),
-                    ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

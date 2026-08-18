@@ -204,14 +204,18 @@ class AppColors {
   static const Color statusInfoTextDark = Color(0xFF60A5FA);
 
   // ═══════════════════════════════════════════════════════════
-  // COLORES DE LOGIN — usados exclusivamente en LoginView
+  // COLORES DE LOGIN — extraídos de assets/img/logo-sacdia.png
+  // No sustituyen AppColors.primary (coral) del resto de la app.
   // ═══════════════════════════════════════════════════════════
 
-  /// Fondo scaffold de la pantalla de login (#4FBF9F)
-  static const Color loginScaffoldGreen = Color(0xFF4FBF9F);
+  /// Azul eléctrico del icono — CTA de login/splash
+  static const Color loginBrandBlue = Color(0xFF0B84F0);
 
-  /// Color del botón primario en la pantalla de login (#43A78A)
-  static const Color loginButtonGreen = Color(0xFF43A78A);
+  /// Azul más profundo del icono — pressed / énfasis
+  static const Color loginBrandBlueDark = Color(0xFF0666C9);
+
+  /// Oro de la carpeta del icono — acento de marca en auth
+  static const Color loginBrandGold = Color(0xFFF0B000);
 
   // ═══════════════════════════════════════════════════════════
   // COLORES DE CLASES (tradición scout - NO cambiar)

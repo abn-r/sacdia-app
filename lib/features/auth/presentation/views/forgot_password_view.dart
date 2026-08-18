@@ -1,20 +1,23 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:easy_localization/easy_localization.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/utils/validators.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/features/auth/presentation/widgets/auth_sky_wash.dart';
 
-/// Vista de recuperación de contraseña - Estilo "Scout Vibrante"
+/// Recuperar contraseña.
 ///
-/// Pantalla minimalista con un solo campo de correo y mensaje
-/// explicativo claro.
+/// Misma atmósfera que login/registro (cielo azul, CTA cápsula) sin marca
+/// ni logos flotantes. [SacTextField] no cambia.
 class ForgotPasswordView extends ConsumerStatefulWidget {
   const ForgotPasswordView({super.key});
 
@@ -67,177 +70,215 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
   Widget build(BuildContext context) {
     final forgotPasswordState = ref.watch(forgotPasswordNotifierProvider);
     final isLoading = forgotPasswordState.isLoading;
+    final isSmallPhone = Responsive.isSmallPhone(context);
+    final titleStyle = isSmallPhone
+        ? Theme.of(context).textTheme.headlineLarge
+        : Theme.of(context).textTheme.displayMedium;
 
     return Scaffold(
-      backgroundColor: context.sac.surface,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Form(
-            key: _formKey,
+      backgroundColor: context.sac.background,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          const AuthSkyWash(),
+          SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 12),
-
-                // Back button
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: IconButton(
-                    onPressed: () => context.pop(),
-                    icon: HugeIcon(
-                      icon: HugeIcons.strokeRoundedArrowLeft01,
-                      color: context.sac.text,
-                    ),
-                    style: IconButton.styleFrom(
-                      backgroundColor: context.sac.background,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 8, top: 4),
+                    child: IconButton(
+                      onPressed: () => context.pop(),
+                      icon: HugeIcon(
+                        icon: HugeIcons.strokeRoundedArrowLeft01,
+                        color: context.sac.text,
+                      ),
+                      style: IconButton.styleFrom(
+                        backgroundColor:
+                            context.sac.surface.withValues(alpha: 0.86),
+                        minimumSize: const Size(44, 44),
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
-
-                // Icon
-                Center(
-                  child: Container(
-                    width: 82,
-                    height: 82,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryLight,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: Responsive.formPadding(context).copyWith(top: 8),
                     child: Center(
-                      child: HugeIcon(
-                        icon: HugeIcons.strokeRoundedLockPassword,
-                        size: 40,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Title
-                Text(
-                  'auth.forgot_password_title'.tr(),
-                  style: Theme.of(context).textTheme.displayMedium,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'auth.forgot_password_description'.tr(),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: context.sac.textSecondary,
-                        height: 1.5,
-                      ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 40),
-
-                if (_emailSent) ...[
-                  // Success state
-                  SacCard(
-                    backgroundColor: AppColors.secondaryLight,
-                    borderColor: AppColors.secondary.withValues(alpha: 0.3),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        HugeIcon(
-                          icon: HugeIcons.strokeRoundedMailOpen01,
-                          size: 48,
-                          color: AppColors.secondary,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: Responsive.maxFormWidth,
                         ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'auth.forgot_password_success_title'.tr(),
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.secondaryDark,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'auth.forgot_password_success_body'.tr(namedArgs: {
-                            'email': _emailController.text.trim()
-                          }),
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: AppColors.secondaryDark,
-                            height: 1.4,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  SacButton.outline(
-                    text: 'auth.back_to_login'.tr(),
-                    onPressed: () => context.pop(),
-                  ),
-                ] else ...[
-                  // Email input
-                  SacTextField(
-                    controller: _emailController,
-                    label: 'auth.email_label'.tr(),
-                    hint: 'auth.email_hint'.tr(),
-                    keyboardType: TextInputType.emailAddress,
-                    prefixIcon: HugeIcons.strokeRoundedMail01,
-                    validator: Validators.validateEmail,
-                    textInputAction: TextInputAction.done,
-                    onSubmitted: (_) {
-                      if (!isLoading) _handleSubmit();
-                    },
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Error message
-                  if (_errorMessage != null) ...[
-                    SacCard(
-                      backgroundColor: AppColors.errorLight,
-                      borderColor: AppColors.error.withValues(alpha: 0.3),
-                      padding: const EdgeInsets.all(12),
-                      child: Row(
-                        children: [
-                          HugeIcon(
-                            icon: HugeIcons.strokeRoundedAlert02,
-                            size: 20,
-                            color: AppColors.errorDark,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              _errorMessage!,
-                              style: const TextStyle(
-                                color: AppColors.errorDark,
-                                fontSize: 14,
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Center(
+                                child: Container(
+                                  width: 82,
+                                  height: 82,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.loginBrandBlue
+                                        .withValues(alpha: 0.14),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: const Center(
+                                    child: HugeIcon(
+                                      icon: HugeIcons.strokeRoundedLockPassword,
+                                      size: 40,
+                                      color: AppColors.loginBrandBlue,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
+                              const SizedBox(height: 20),
+                              Text(
+                                'auth.forgot_password_title'.tr(),
+                                style: titleStyle?.copyWith(
+                                  letterSpacing: -0.6,
+                                  height: 1.05,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'auth.forgot_password_description'.tr(),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      color: context.sac.textSecondary,
+                                      height: 1.5,
+                                    ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 32),
+                              if (_emailSent) ...[
+                                SacCard(
+                                  backgroundColor: AppColors.secondaryLight,
+                                  borderColor: AppColors.secondary
+                                      .withValues(alpha: 0.3),
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    children: [
+                                      HugeIcon(
+                                        icon: HugeIcons.strokeRoundedMailOpen01,
+                                        size: 48,
+                                        color: AppColors.secondary,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        'auth.forgot_password_success_title'
+                                            .tr(),
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.secondaryDark,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'auth.forgot_password_success_body'.tr(
+                                          namedArgs: {
+                                            'email':
+                                                _emailController.text.trim(),
+                                          },
+                                        ),
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          color: AppColors.secondaryDark,
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 40),
+                                SacButton.outline(
+                                  text: 'auth.back_to_login'.tr(),
+                                  borderColor: AppColors.loginBrandBlue,
+                                  textColor: AppColors.loginBrandBlueDark,
+                                  borderRadius: AppTheme.radiusFull,
+                                  onPressed: () => context.pop(),
+                                ),
+                              ] else ...[
+                                SacTextField(
+                                  controller: _emailController,
+                                  label: 'auth.email_label'.tr(),
+                                  hint: 'auth.email_hint'.tr(),
+                                  keyboardType: TextInputType.emailAddress,
+                                  prefixIcon: HugeIcons.strokeRoundedMail01,
+                                  validator: Validators.validateEmail,
+                                  textInputAction: TextInputAction.done,
+                                  onSubmitted: (_) {
+                                    if (!isLoading) _handleSubmit();
+                                  },
+                                ),
+                                const SizedBox(height: 24),
+                                if (_errorMessage != null) ...[
+                                  SacCard(
+                                    backgroundColor: AppColors.errorLight,
+                                    borderColor:
+                                        AppColors.error.withValues(alpha: 0.3),
+                                    padding: const EdgeInsets.all(12),
+                                    child: Row(
+                                      children: [
+                                        HugeIcon(
+                                          icon: HugeIcons.strokeRoundedAlert02,
+                                          size: 20,
+                                          color: AppColors.errorDark,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Text(
+                                            _errorMessage!,
+                                            style: const TextStyle(
+                                              color: AppColors.errorDark,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                ],
+                                SacButton(
+                                  text: 'auth.forgot_password_button'.tr(),
+                                  variant: SacButtonVariant.primary,
+                                  size: SacButtonSize.large,
+                                  fullWidth: true,
+                                  backgroundColor: AppColors.loginBrandBlue,
+                                  borderRadius: AppTheme.radiusFull,
+                                  isLoading: isLoading,
+                                  onPressed: _handleSubmit,
+                                ),
+                                const SizedBox(height: 28),
+                                Center(
+                                  child: SacButton.ghost(
+                                    text: 'auth.back_to_login'.tr(),
+                                    textColor: AppColors.loginBrandBlueDark,
+                                    onPressed: () => context.pop(),
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: 32),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                  ],
-
-                  // Submit button
-                  SacButton.primary(
-                    text: 'auth.forgot_password_button'.tr(),
-                    isLoading: isLoading,
-                    onPressed: _handleSubmit,
                   ),
-                  const SizedBox(height: 40),
-                  SacButton.ghost(
-                    text: 'auth.back_to_login'.tr(),
-                    onPressed: () => context.pop(),
-                  ),
-                ],
-
-                const SizedBox(height: 32),
+                ),
               ],
             ),
           ),
-        ),
+        ],
       ),
     );
   }
