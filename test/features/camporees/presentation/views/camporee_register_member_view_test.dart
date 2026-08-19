@@ -15,6 +15,8 @@ import 'package:sacdia_app/features/camporees/presentation/providers/camporees_p
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_register_member_view.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_participant_access_gate.dart';
 import 'package:sacdia_app/features/insurance/presentation/providers/insurance_providers.dart';
+import 'package:sacdia_app/features/payment_orders/domain/entities/payment_order.dart';
+import 'package:sacdia_app/features/payment_orders/presentation/providers/payment_orders_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _TestAuthNotifier extends AuthNotifier {
@@ -308,6 +310,116 @@ void main() {
       expect(registeredIdsLoads, 1);
     });
   }
+
+  testWidgets('contexto de órdenes en loading no pinta el register legacy',
+      (tester) async {
+    final contextCompleter = Completer<PaymentOrdersContext?>();
+    var insuranceLoads = 0;
+    var registeredIdsLoads = 0;
+
+    await _pumpView(
+      tester,
+      registration: _registration(CamporeeSectionRegistrationStatus.registered),
+      paymentOrdersContextFuture: contextCompleter.future,
+      onInsuranceLoad: () => insuranceLoads += 1,
+      onRegisteredIdsLoad: () => registeredIdsLoads += 1,
+    );
+
+    expect(find.text('Seleccionar miembros'), findsNothing);
+    expect(find.text('Inscripción con orden de pago'), findsNothing);
+    expect(find.text('Consultando el flujo de inscripción'), findsOneWidget);
+    expect(insuranceLoads, 0);
+    expect(registeredIdsLoads, 0);
+
+    final semantics = tester.widget<Semantics>(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Semantics &&
+            widget.properties.label == 'Consultando el flujo de inscripción',
+      ),
+    );
+    expect(semantics.properties.liveRegion, isTrue);
+  });
+
+  testWidgets('contexto de órdenes con flag ON redirige a emitir orden',
+      (tester) async {
+    var insuranceLoads = 0;
+    var registeredIdsLoads = 0;
+
+    await _pumpView(
+      tester,
+      registration: _registration(CamporeeSectionRegistrationStatus.registered),
+      paymentOrdersContext: const PaymentOrdersContext(
+        enabled: true,
+        localFieldId: 4,
+        clubSectionId: 12,
+      ),
+      onInsuranceLoad: () => insuranceLoads += 1,
+      onRegisteredIdsLoad: () => registeredIdsLoads += 1,
+    );
+
+    expect(find.text('Seleccionar miembros'), findsNothing);
+    expect(find.text('Inscripción con orden de pago'), findsOneWidget);
+    expect(find.text('Emitir orden de pago'), findsOneWidget);
+    expect(insuranceLoads, 0);
+    expect(registeredIdsLoads, 0);
+  });
+
+  testWidgets('contexto de órdenes con flag OFF conserva el flujo legacy',
+      (tester) async {
+    await _pumpView(
+      tester,
+      registration: _registration(CamporeeSectionRegistrationStatus.registered),
+      paymentOrdersContext: const PaymentOrdersContext(
+        enabled: false,
+        localFieldId: 4,
+        clubSectionId: 12,
+      ),
+      onInsuranceLoad: () {},
+      onRegisteredIdsLoad: () {},
+    );
+
+    expect(find.text('Seleccionar miembros'), findsOneWidget);
+    expect(find.text('Inscripción con orden de pago'), findsNothing);
+  });
+
+  testWidgets('error de contexto no cae a legacy y retry recarga',
+      (tester) async {
+    var contextLoads = 0;
+    var insuranceLoads = 0;
+
+    await _pumpView(
+      tester,
+      registration: _registration(CamporeeSectionRegistrationStatus.registered),
+      paymentOrdersContextLoader: () async {
+        contextLoads += 1;
+        if (contextLoads == 1) throw Exception('socket');
+        return const PaymentOrdersContext(
+          enabled: true,
+          localFieldId: 4,
+          clubSectionId: 12,
+        );
+      },
+      onInsuranceLoad: () => insuranceLoads += 1,
+      onRegisteredIdsLoad: () {},
+    );
+
+    expect(find.text('No pudimos consultar el flujo de órdenes de pago.'),
+        findsOneWidget);
+    expect(find.textContaining('socket'), findsNothing);
+    expect(find.text('Seleccionar miembros'), findsNothing);
+    expect(insuranceLoads, 0);
+
+    await tester.tap(find.text('Reintentar'));
+    await tester.pump();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(contextLoads, 2);
+    expect(find.text('Inscripción con orden de pago'), findsOneWidget);
+    expect(find.text('Seleccionar miembros'), findsNothing);
+    expect(insuranceLoads, 0);
+  });
 }
 
 Future<void> _pumpView(
@@ -318,6 +430,9 @@ Future<void> _pumpView(
   UserEntity? user = _defaultDirector,
   Future<UserEntity?>? authFuture,
   Future<UserEntity?> Function()? authLoader,
+  PaymentOrdersContext? paymentOrdersContext,
+  Future<PaymentOrdersContext?>? paymentOrdersContextFuture,
+  Future<PaymentOrdersContext?> Function()? paymentOrdersContextLoader,
   required VoidCallback onInsuranceLoad,
   required VoidCallback onRegisteredIdsLoad,
 }) async {
@@ -337,6 +452,15 @@ Future<void> _pumpView(
           if (registrationLoader != null) return registrationLoader();
           if (registrationFuture != null) return registrationFuture;
           return registration!;
+        }),
+        paymentOrdersContextProvider.overrideWith((ref) async {
+          if (paymentOrdersContextLoader != null) {
+            return paymentOrdersContextLoader();
+          }
+          if (paymentOrdersContextFuture != null) {
+            return paymentOrdersContextFuture;
+          }
+          return paymentOrdersContext;
         }),
         membersInsuranceProvider.overrideWith((ref) async {
           onInsuranceLoad();

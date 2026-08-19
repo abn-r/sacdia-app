@@ -20,6 +20,7 @@ import 'package:sacdia_app/features/camporees/domain/entities/camporee_event.dar
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_location_card.dart';
+import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_leaderboard_panel.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_participant_access_gate.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_section_registration_panel.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_section_registration_sheet.dart';
@@ -142,6 +143,9 @@ class _DetailBody extends ConsumerWidget {
         : const AsyncData<List<CamporeeMember>>(<CamporeeMember>[]);
     final eventsAsync =
         canViewEvents ? ref.watch(camporeeEventsProvider(camporeeId)) : null;
+    final leaderboardAsync = canViewEvents
+        ? ref.watch(camporeeLeaderboardProvider(camporeeId))
+        : null;
     final description = camporee.description?.trim();
 
     return RefreshIndicator(
@@ -154,6 +158,7 @@ class _DetailBody extends ConsumerWidget {
         }
         if (canViewEvents) {
           ref.invalidate(camporeeEventsProvider(camporeeId));
+          ref.invalidate(camporeeLeaderboardProvider(camporeeId));
         }
       },
       child: ListView(
@@ -205,6 +210,14 @@ class _DetailBody extends ConsumerWidget {
             _EventsSection(
               eventsAsync: eventsAsync,
               onRetry: () => ref.invalidate(camporeeEventsProvider(camporeeId)),
+            ),
+          ],
+          if (leaderboardAsync != null) ...[
+            const SizedBox(height: 24),
+            CamporeeLeaderboardPanel(
+              leaderboardAsync: leaderboardAsync,
+              onRetry: () =>
+                  ref.invalidate(camporeeLeaderboardProvider(camporeeId)),
             ),
           ],
         ],
@@ -276,7 +289,7 @@ class _CamporeeDetailBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${dateFormat.format(camporee.startDate.toLocal())} – ${dateFormat.format(camporee.endDate.toLocal())}',
+                  '${dateFormat.format(camporee.startDate)} – ${dateFormat.format(camporee.endDate)}',
                   style: TextStyle(
                     color: c.textSecondary,
                     fontSize: 13,
@@ -349,7 +362,7 @@ class _CamporeeFactsPanel extends StatelessWidget {
       customPattern: '¤#,##0',
     );
     final dateRange =
-        '${dateFormat.format(camporee.startDate.toLocal())} – ${dateFormat.format(camporee.endDate.toLocal())}';
+        '${dateFormat.format(camporee.startDate)} – ${dateFormat.format(camporee.endDate)}';
 
     return _SurfacePanel(
       child: Column(

@@ -41,10 +41,7 @@ class JudgeAssignmentsView extends ConsumerWidget {
           child: assignmentsAsync.when(
             data: (assignments) {
               final primaryAssignments = assignments
-                  .where((assignment) =>
-                      assignment.active &&
-                      assignment.isPrimary &&
-                      assignment.canSubmitScore)
+                  .where((assignment) => assignment.canCaptureOfficialScore)
                   .toList();
 
               if (primaryAssignments.isEmpty) {

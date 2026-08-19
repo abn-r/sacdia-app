@@ -11,6 +11,7 @@ import 'package:sacdia_app/core/network/network_info.dart';
 import 'package:sacdia_app/features/camporees/data/datasources/camporees_remote_data_source.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_event_model.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_judge_assignment_model.dart';
+import 'package:sacdia_app/features/camporees/data/models/camporee_leaderboard_model.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_member_model.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_model.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_payment_model.dart';
@@ -32,6 +33,7 @@ class _StubDataSource implements CamporeesRemoteDataSource {
   Object? getMembersResult; // PaginatedResult<CamporeeMemberModel> or Exception
   Object?
       judgeAssignmentsResult; // List<CamporeeJudgeAssignmentModel> or Exception
+  Object? leaderboardResult; // CamporeeLeaderboardModel or Exception
   Object? rubricsResult; // List<CamporeeRubricModel> or Exception
   Object? submitScoreResult; // null or Exception
   Object? getSectionRegistrationResult;
@@ -149,6 +151,17 @@ class _StubDataSource implements CamporeesRemoteDataSource {
     final r = judgeAssignmentsResult;
     if (r is Exception) throw r;
     return r as List<CamporeeJudgeAssignmentModel>;
+  }
+
+  @override
+  Future<CamporeeLeaderboardModel> getCamporeeLeaderboard(
+    int camporeeId, {
+    String camporeeType = 'local',
+    CancelToken? cancelToken,
+  }) async {
+    final r = leaderboardResult;
+    if (r is Exception) throw r;
+    return r as CamporeeLeaderboardModel;
   }
 
   @override
@@ -553,6 +566,38 @@ void main() {
           expect(assignments, hasLength(1));
           expect(assignments.first.isPrimary, isTrue);
           expect(assignments.first.canSubmitScore, isTrue);
+        },
+      );
+    });
+
+    test('maps leaderboard envelope to domain rows', () async {
+      dataSource.leaderboardResult = const CamporeeLeaderboardModel(
+        scopeType: 'local',
+        camporeeId: 73,
+        rows: [
+          CamporeeLeaderboardRowModel(
+            rank: 1,
+            camporeeClubId: 5,
+            clubSectionId: 2,
+            clubName: 'ACV',
+            sectionName: 'Conquistadores',
+            totalAwardedPoints: 85,
+            totalMaxPoints: 100,
+            percentage: 85,
+          ),
+        ],
+      );
+
+      final result = await repository.getCamporeeLeaderboard(73);
+
+      expect(result.isRight(), isTrue);
+      result.fold(
+        (_) => fail('Expected Right'),
+        (leaderboard) {
+          expect(leaderboard.camporeeId, 73);
+          expect(leaderboard.rows, hasLength(1));
+          expect(leaderboard.rows.first.clubName, 'ACV');
+          expect(leaderboard.rows.first.percentage, 85);
         },
       );
     });

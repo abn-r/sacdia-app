@@ -13,7 +13,9 @@ import 'package:sacdia_app/features/insurance/domain/entities/member_insurance.d
 import 'package:sacdia_app/features/insurance/presentation/providers/insurance_providers.dart';
 import 'package:sacdia_app/features/insurance/presentation/widgets/insurance_status_badge.dart';
 
+import '../../../camporees/presentation/providers/camporees_providers.dart';
 import '../../domain/entities/payment_order.dart';
+import '../../domain/utils/payment_order_eligibility.dart';
 import '../providers/payment_orders_providers.dart';
 import '../widgets/payment_order_widgets.dart';
 
@@ -100,175 +102,172 @@ class _IssueOrderForm extends ConsumerWidget {
     required this.cycle,
   });
 
-  bool _isEligible(MemberInsurance member) {
-    if (purpose == PaymentOrderPurpose.insurance) {
-      // Elegible para asegurar: aún no tiene cobertura activa.
-      return member.status != InsuranceStatus.asegurado;
-    }
-    // Camporee: requiere seguro activo.
-    return member.status == InsuranceStatus.asegurado;
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final issueState = ref.watch(issueOrderNotifierProvider);
     final membersAsync = ref.watch(membersInsuranceProvider);
+    final registeredIdsAsync = purpose == PaymentOrderPurpose.camporee
+        ? ref.watch(camporeeRegisteredUserIdsProvider(camporeeId!))
+        : const AsyncValue<Set<String>>.data({});
     final c = context.sac;
 
     final unitCost = cycle?.unitCostCentavos;
     final selectedCount = issueState.selectedUserIds.length;
     final totalCentavos = unitCost != null ? unitCost * selectedCount : null;
 
-    return membersAsync.when(
-      loading: () => const Center(child: SacLoading()),
-      error: (error, _) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+    if (membersAsync.isLoading || registeredIdsAsync.isLoading) {
+      return const Center(child: SacLoading());
+    }
+    if (membersAsync.hasError) {
+      return _IssueLoadError(
+        message: membersAsync.error.toString().replaceFirst('Exception: ', ''),
+        onRetry: () => ref.invalidate(membersInsuranceProvider),
+      );
+    }
+    if (registeredIdsAsync.hasError) {
+      return _IssueLoadError(
+        message: registeredIdsAsync.error
+            .toString()
+            .replaceFirst('Exception: ', ''),
+        onRetry: () =>
+            ref.invalidate(camporeeRegisteredUserIdsProvider(camporeeId!)),
+      );
+    }
+
+    final members = membersAsync.valueOrNull ?? const <MemberInsurance>[];
+    final registeredIds = registeredIdsAsync.valueOrNull ?? const <String>{};
+    final eligible = members
+        .where(
+          (member) => isEligiblePaymentOrderBeneficiary(
+            purpose: purpose,
+            member: member,
+            registeredCamporeeUserIds: registeredIds,
+          ),
+        )
+        .toList()
+      ..sort((a, b) => a.memberName.compareTo(b.memberName));
+
+    return Column(
+      children: [
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.all(20),
             children: [
+              if (cycle != null) ...[
+                _CycleSummaryCard(cycle: cycle!),
+                const SizedBox(height: 16),
+              ],
+              if (issueState.errorMessage != null) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.error.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppColors.error.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Text(
+                    issueState.errorMessage!,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.error,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+              ],
               Text(
-                error.toString().replaceFirst('Exception: ', ''),
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: c.textSecondary),
+                'payment_orders.issue.select_members'.tr(),
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: c.text,
+                ),
               ),
-              const SizedBox(height: 14),
-              SacButton.outline(
-                text: 'common.retry'.tr(),
-                onPressed: () => ref.invalidate(membersInsuranceProvider),
+              const SizedBox(height: 4),
+              Text(
+                purpose == PaymentOrderPurpose.insurance
+                    ? 'payment_orders.issue.eligible_hint_insurance'.tr()
+                    : 'payment_orders.issue.eligible_hint_camporee'.tr(),
+                style: TextStyle(fontSize: 12.5, color: c.textSecondary),
+              ),
+              const SizedBox(height: 12),
+              if (eligible.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 30),
+                  child: Text(
+                    'payment_orders.issue.no_eligible'.tr(),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 13, color: c.textSecondary),
+                  ),
+                )
+              else
+                ...eligible.map(
+                  (member) => Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: _EligibleMemberTile(
+                      member: member,
+                      selected:
+                          issueState.selectedUserIds.contains(member.memberId),
+                      onTap: () => ref
+                          .read(issueOrderNotifierProvider.notifier)
+                          .toggle(member.memberId),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+          decoration: BoxDecoration(
+            color: c.surface,
+            border: Border(top: BorderSide(color: c.border)),
+          ),
+          child: Column(
+            children: [
+              if (totalCentavos != null && selectedCount > 0) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'payment_orders.issue.total_label'.tr(
+                        namedArgs: {'count': selectedCount.toString()},
+                      ),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: c.textSecondary,
+                      ),
+                    ),
+                    Text(
+                      formatCentavos(totalCentavos),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: c.text,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+              ],
+              SacButton.primary(
+                text: 'payment_orders.issue.submit'.tr(
+                  namedArgs: {'count': selectedCount.toString()},
+                ),
+                icon: HugeIcons.strokeRoundedInvoice01,
+                isLoading: issueState.isSubmitting,
+                isEnabled: selectedCount > 0,
+                onPressed: selectedCount == 0 || issueState.isSubmitting
+                    ? null
+                    : () => _submit(context, ref),
               ),
             ],
           ),
         ),
-      ),
-      data: (members) {
-        final eligible = members.where(_isEligible).toList()
-          ..sort((a, b) => a.memberName.compareTo(b.memberName));
-
-        return Column(
-          children: [
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.all(20),
-                children: [
-                  if (cycle != null) ...[
-                    _CycleSummaryCard(cycle: cycle!),
-                    const SizedBox(height: 16),
-                  ],
-                  if (issueState.errorMessage != null) ...[
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.error.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppColors.error.withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: Text(
-                        issueState.errorMessage!,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: AppColors.error,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                  ],
-                  Text(
-                    'payment_orders.issue.select_members'.tr(),
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: c.text,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    purpose == PaymentOrderPurpose.insurance
-                        ? 'payment_orders.issue.eligible_hint_insurance'.tr()
-                        : 'payment_orders.issue.eligible_hint_camporee'.tr(),
-                    style: TextStyle(fontSize: 12.5, color: c.textSecondary),
-                  ),
-                  const SizedBox(height: 12),
-                  if (eligible.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 30),
-                      child: Text(
-                        'payment_orders.issue.no_eligible'.tr(),
-                        textAlign: TextAlign.center,
-                        style:
-                            TextStyle(fontSize: 13, color: c.textSecondary),
-                      ),
-                    )
-                  else
-                    ...eligible.map(
-                      (member) => Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: _EligibleMemberTile(
-                          member: member,
-                          selected: issueState.selectedUserIds
-                              .contains(member.memberId),
-                          onTap: () => ref
-                              .read(issueOrderNotifierProvider.notifier)
-                              .toggle(member.memberId),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-              decoration: BoxDecoration(
-                color: c.surface,
-                border: Border(top: BorderSide(color: c.border)),
-              ),
-              child: Column(
-                children: [
-                  if (totalCentavos != null && selectedCount > 0) ...[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'payment_orders.issue.total_label'.tr(
-                            namedArgs: {'count': selectedCount.toString()},
-                          ),
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: c.textSecondary,
-                          ),
-                        ),
-                        Text(
-                          formatCentavos(totalCentavos),
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: c.text,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                  ],
-                  SacButton.primary(
-                    text: 'payment_orders.issue.submit'.tr(
-                      namedArgs: {'count': selectedCount.toString()},
-                    ),
-                    icon: HugeIcons.strokeRoundedInvoice01,
-                    isLoading: issueState.isSubmitting,
-                    isEnabled: selectedCount > 0,
-                    onPressed: selectedCount == 0 || issueState.isSubmitting
-                        ? null
-                        : () => _submit(context, ref),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
+      ],
     );
   }
 
@@ -432,6 +431,41 @@ class _EligibleMemberTile extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _IssueLoadError extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const _IssueLoadError({
+    required this.message,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: c.textSecondary),
+            ),
+            const SizedBox(height: 14),
+            SacButton.outline(
+              text: 'common.retry'.tr(),
+              onPressed: onRetry,
+            ),
+          ],
         ),
       ),
     );

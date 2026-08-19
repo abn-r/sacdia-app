@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../../../core/utils/date_formatter.dart';
 import '../../domain/entities/camporee_approval.dart';
 
 // ── CamporeeItemModel ─────────────────────────────────────────────────────────
@@ -38,9 +39,13 @@ class CamporeeItemModel extends Equatable {
       id: id,
       name: (json['name'] ?? '') as String,
       description: json['description'] as String?,
-      startDate: DateTime.tryParse((json['start_date'] ?? '') as String) ??
+      startDate: SacDateFormatter.tryParseCalendarDate(
+            json['start_date'] as String?,
+          ) ??
           DateTime.now(),
-      endDate: DateTime.tryParse((json['end_date'] ?? '') as String) ??
+      endDate: SacDateFormatter.tryParseCalendarDate(
+            json['end_date'] as String?,
+          ) ??
           DateTime.now(),
       scope: scope,
       active: (json['active'] ?? true) as bool,

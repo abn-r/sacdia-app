@@ -5,6 +5,7 @@ import '../../../../core/models/paginated_result.dart';
 import '../entities/camporee.dart';
 import '../entities/camporee_event.dart';
 import '../entities/camporee_judge_assignment.dart';
+import '../entities/camporee_leaderboard.dart';
 import '../entities/camporee_member.dart';
 import '../entities/camporee_payment.dart';
 import '../entities/camporee_rubric.dart';
@@ -94,6 +95,13 @@ abstract class CamporeesRepository {
   /// Obtiene asignaciones del juez autenticado para scoring de camporee.
   Future<Either<Failure, List<CamporeeJudgeAssignment>>> getMyJudgeAssignments(
       {RequestCancelToken? cancelToken});
+
+  /// Obtiene la clasificación oficial del camporee.
+  Future<Either<Failure, CamporeeLeaderboard>> getCamporeeLeaderboard(
+    int camporeeId, {
+    String camporeeType = 'local',
+    RequestCancelToken? cancelToken,
+  });
 
   /// Obtiene rúbricas activas de un evento puntuable.
   Future<Either<Failure, List<CamporeeRubric>>> getCamporeeEventRubrics(

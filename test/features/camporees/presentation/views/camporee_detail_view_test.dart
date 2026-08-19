@@ -11,6 +11,8 @@ import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee.dart';
+import 'package:sacdia_app/features/camporees/domain/entities/camporee_event.dart';
+import 'package:sacdia_app/features/camporees/domain/entities/camporee_leaderboard.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
 import 'package:sacdia_app/features/camporees/presentation/providers/camporees_providers.dart';
@@ -146,6 +148,38 @@ void main() {
     );
     expect(semantics.properties.liveRegion, isTrue);
   });
+
+  testWidgets('muestra clasificación oficial debajo de eventos', (tester) async {
+    await _pumpDetail(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      ),
+      onMembersLoad: () {},
+      leaderboard: const CamporeeLeaderboard(
+        scopeType: 'local',
+        camporeeId: 41,
+        rows: [
+          CamporeeLeaderboardRow(
+            rank: 1,
+            camporeeClubId: 5,
+            clubSectionId: 12,
+            clubName: 'ACV',
+            sectionName: 'Conquistadores',
+            totalAwardedPoints: 85,
+            totalMaxPoints: 100,
+            percentage: 85,
+          ),
+        ],
+      ),
+    );
+
+    await tester.ensureVisible(find.text('Clasificación'));
+    await tester.pump();
+    expect(find.text('Clasificación'), findsOneWidget);
+    expect(find.text('ACV'), findsOneWidget);
+    expect(find.text('85 / 100'), findsOneWidget);
+  });
 }
 
 Future<void> _pumpDetail(
@@ -155,6 +189,7 @@ Future<void> _pumpDetail(
   UserEntity? user = _director,
   bool failMembersOnce = false,
   bool keepMembersLoading = false,
+  CamporeeLeaderboard? leaderboard,
 }) async {
   var failed = false;
   final loading = Completer<List<CamporeeMember>>();
@@ -165,6 +200,16 @@ Future<void> _pumpDetail(
         camporeeDetailProvider.overrideWith((ref, id) async => _camporee),
         camporeeSectionRegistrationProvider
             .overrideWith((ref, id) async => registration),
+        camporeeEventsProvider.overrideWith((ref, id) async => const <CamporeeEvent>[]),
+        camporeeLeaderboardProvider.overrideWith(
+          (ref, id) async =>
+              leaderboard ??
+              const CamporeeLeaderboard(
+                scopeType: 'local',
+                camporeeId: 41,
+                rows: [],
+              ),
+        ),
         camporeeMembersProvider.overrideWith((ref, id) async {
           onMembersLoad();
           if (keepMembersLoading) return loading.future;

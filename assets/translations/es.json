@@ -1763,7 +1763,9 @@
       "create_payment": "Error al registrar pago",
       "fetch_member_payments": "Error al obtener pagos del miembro",
       "fetch_camporee_payments": "Error al obtener pagos del camporee",
-      "fetch_events": "Error al obtener eventos del camporee"
+      "fetch_events": "Error al obtener eventos del camporee",
+      "fetch_leaderboard": "No se pudo cargar la clasificación del camporee.",
+      "fetch_judge_assignments": "No se pudieron cargar tus asignaciones de juez."
     },
     "common": {
       "free": "Gratuito",
@@ -1824,7 +1826,13 @@
       "view_schedules": "Ver horarios",
       "hide_schedules": "Ocultar horarios",
       "event_staff_responsible": "Responsable: {names}",
-      "event_staff_supporting": "Apoyan: {names}"
+      "event_staff_supporting": "Apoyan: {names}",
+      "leaderboard_title": "Clasificación",
+      "leaderboard_subtitle": "Puntajes oficiales de las secciones inscritas.",
+      "leaderboard_empty": "Aparecerá cuando se registren puntajes oficiales.",
+      "leaderboard_error": "No se pudo cargar la clasificación.",
+      "leaderboard_unknown_club": "Club",
+      "leaderboard_section_fallback": "Sección #{id}"
     },
     "members": {
       "title": "Miembros inscritos",
@@ -3563,6 +3571,7 @@
       "club": "Club",
       "evidence_folder": "Carpeta Anual de Evidencias",
       "camporees": "Camporees",
+      "camporee_judge": "Evaluar camporee",
       "finances": "Finanzas",
       "units": "Unidades",
       "grouped_class": "Clase Agrupada",
@@ -4044,7 +4053,7 @@
       "title_camporee": "Emitir orden de camporee",
       "select_members": "Seleccionar miembros",
       "eligible_hint_insurance": "Solo se muestran miembros activos sin seguro vigente.",
-      "eligible_hint_camporee": "Solo se muestran miembros activos con seguro vigente.",
+      "eligible_hint_camporee": "Solo se muestran miembros activos con seguro vigente que aún no estén inscritos.",
       "no_eligible": "No hay miembros elegibles",
       "no_cycle": "No hay un ciclo de seguro configurado para tu sección",
       "unavailable": "Las órdenes de pago no están habilitadas en tu campo local",
@@ -4058,7 +4067,10 @@
       "title": "Inscripción con orden de pago",
       "body": "Tu campo local usa órdenes de pago. Emite una orden, paga en el banco o en la caja del campo y sube tu comprobante; la inscripción se confirma al aprobarse el pago.",
       "issue_button": "Emitir orden de pago",
-      "view_orders": "Ver órdenes de este camporee"
+      "view_orders": "Ver órdenes de este camporee",
+      "context_loading": "Consultando el flujo de inscripción",
+      "context_error": "No pudimos consultar el flujo de órdenes de pago.",
+      "context_error_hint": "Sin este dato no podemos saber si debes emitir una orden o registrar miembros directo."
     },
     "errors": {
       "flag_disabled": "Las órdenes de pago no están habilitadas en este campo local",

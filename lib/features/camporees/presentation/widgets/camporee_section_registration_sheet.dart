@@ -142,7 +142,7 @@ class _CamporeeSectionRegistrationSheetState
                 camporeeName: widget.camporee.name,
                 cost: costLabel,
                 startDate:
-                    dateFormat.format(widget.camporee.startDate.toLocal()),
+                    dateFormat.format(widget.camporee.startDate),
               ),
               const SizedBox(height: 16),
               Container(

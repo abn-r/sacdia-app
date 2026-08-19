@@ -26,6 +26,10 @@ class CamporeeJudgeAssignment extends Equatable {
 
   bool get isPrimary => judgeRole == 'primary';
 
+  /// Official capture is only for an active primary assignment that can submit.
+  bool get canCaptureOfficialScore =>
+      active && isPrimary && canSubmitScore;
+
   @override
   List<Object?> get props => [
         assignmentId,

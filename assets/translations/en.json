@@ -1763,7 +1763,9 @@
       "create_payment": "Error creating payment",
       "fetch_member_payments": "Error fetching member payments",
       "fetch_camporee_payments": "Error fetching camporee payments",
-      "fetch_events": "Error fetching camporee events"
+      "fetch_events": "Error fetching camporee events",
+      "fetch_leaderboard": "Could not load the camporee ranking.",
+      "fetch_judge_assignments": "Could not load your judge assignments."
     },
     "common": {
       "free": "Free",
@@ -1824,7 +1826,13 @@
       "view_schedules": "View schedules",
       "hide_schedules": "Hide schedules",
       "event_staff_responsible": "Responsible: {names}",
-      "event_staff_supporting": "Supporting: {names}"
+      "event_staff_supporting": "Supporting: {names}",
+      "leaderboard_title": "Ranking",
+      "leaderboard_subtitle": "Official scores of enrolled sections.",
+      "leaderboard_empty": "It will appear when official scores are recorded.",
+      "leaderboard_error": "Could not load the ranking.",
+      "leaderboard_unknown_club": "Club",
+      "leaderboard_section_fallback": "Section #{id}"
     },
     "members": {
       "title": "Enrolled members",
@@ -3563,6 +3571,7 @@
       "club": "Club",
       "evidence_folder": "Annual Evidence Folder",
       "camporees": "Camporees",
+      "camporee_judge": "Score camporee",
       "finances": "Finances",
       "units": "Units",
       "grouped_class": "Group Class",
@@ -4044,7 +4053,7 @@
       "title_camporee": "Issue camporee order",
       "select_members": "Select members",
       "eligible_hint_insurance": "Only active members without current coverage are shown.",
-      "eligible_hint_camporee": "Only active members with valid insurance are shown.",
+      "eligible_hint_camporee": "Only active members with valid insurance who are not already registered are shown.",
       "no_eligible": "No eligible members",
       "no_cycle": "No insurance cycle is configured for your section",
       "unavailable": "Payment orders are not enabled in your local field",
@@ -4058,7 +4067,10 @@
       "title": "Registration via payment order",
       "body": "Your local field uses payment orders. Issue an order, pay at the bank or the field cashier, and upload your proof; registration is confirmed once the payment is approved.",
       "issue_button": "Issue payment order",
-      "view_orders": "View this camporee's orders"
+      "view_orders": "View this camporee's orders",
+      "context_loading": "Checking the registration flow",
+      "context_error": "We could not load the payment-order flow.",
+      "context_error_hint": "Without this, we cannot tell whether you should issue an order or register members directly."
     },
     "errors": {
       "flag_disabled": "Payment orders are not enabled in this local field",

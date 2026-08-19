@@ -1,11 +1,50 @@
 import 'package:intl/intl.dart';
 
-/// Utilidad centralizada para formatear fechas UTC a zona horaria local.
+final _isoDatePrefix = RegExp(r'^(\d{4})-(\d{2})-(\d{2})');
+
+/// Utilidad centralizada para formatear fechas.
 ///
-/// Todas las fechas del backend llegan en UTC. Esta clase garantiza
-/// la conversión a zona horaria local del dispositivo antes de formatear.
+/// Timestamps (`created_at`, `paid_at`, etc.): [format] convierte UTC → local.
+/// Fechas de calendario (`start_date` / `end_date` como `YYYY-MM-DD`):
+/// [parseCalendarDate] + [formatCalendar]. No usar [DateTime.parse] + [toLocal]
+/// en esos campos: medianoche UTC en México muestra el día anterior.
 class SacDateFormatter {
   SacDateFormatter._();
+
+  /// Día de calendario desde prefijo ISO `YYYY-MM-DD`.
+  ///
+  /// `2026-08-21T00:00:00.000Z` queda 21 ago, no 20, fuera de UTC.
+  static DateTime parseCalendarDate(String raw) {
+    final match = _isoDatePrefix.firstMatch(raw.trim());
+    if (match != null) {
+      final year = int.parse(match.group(1)!);
+      final month = int.parse(match.group(2)!);
+      final day = int.parse(match.group(3)!);
+      if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+        return DateTime(year, month, day);
+      }
+    }
+    return DateTime.parse(raw);
+  }
+
+  static DateTime? tryParseCalendarDate(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return null;
+    try {
+      return parseCalendarDate(raw);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Formatea una fecha de calendario sin convertir zona horaria.
+  static String formatCalendar(
+    DateTime? date,
+    String pattern, {
+    String locale = 'es',
+  }) {
+    if (date == null) return '';
+    return DateFormat(pattern, locale).format(date);
+  }
 
   /// Formatea una fecha UTC a local con el patrón dado.
   /// Retorna cadena vacía si la fecha es null.

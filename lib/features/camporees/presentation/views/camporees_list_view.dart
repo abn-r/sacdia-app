@@ -128,8 +128,8 @@ class _CamporeeCard extends StatelessWidget {
       customPattern: '¤#,##0',
     );
     final dateRange = _smartDateRange(
-      camporee.startDate.toLocal(),
-      camporee.endDate.toLocal(),
+      camporee.startDate,
+      camporee.endDate,
       context.locale.toString(),
     );
 

@@ -1763,7 +1763,9 @@
       "create_payment": "Erreur lors de la creation du paiement",
       "fetch_member_payments": "Erreur lors de la recuperation des paiements du membre",
       "fetch_camporee_payments": "Erreur lors de la recuperation des paiements du camporee",
-      "fetch_events": "Erreur lors de la recuperation des événements du camporee"
+      "fetch_events": "Erreur lors de la recuperation des événements du camporee",
+      "fetch_leaderboard": "Impossible de charger le classement du camporee.",
+      "fetch_judge_assignments": "Impossible de charger vos affectations de juge."
     },
     "common": {
       "free": "Gratuit",
@@ -1824,7 +1826,13 @@
       "view_schedules": "Voir les horaires",
       "hide_schedules": "Masquer les horaires",
       "event_staff_responsible": "Responsable : {names}",
-      "event_staff_supporting": "Soutien : {names}"
+      "event_staff_supporting": "Soutien : {names}",
+      "leaderboard_title": "Classement",
+      "leaderboard_subtitle": "Scores officiels des sections inscrites.",
+      "leaderboard_empty": "Il apparaîtra lorsque des scores officiels seront enregistrés.",
+      "leaderboard_error": "Impossible de charger le classement.",
+      "leaderboard_unknown_club": "Club",
+      "leaderboard_section_fallback": "Section #{id}"
     },
     "members": {
       "title": "Membres inscrits",
@@ -3563,6 +3571,7 @@
       "club": "Club",
       "evidence_folder": "Dossier annuel de preuves",
       "camporees": "Camporees",
+      "camporee_judge": "Évaluer le camporee",
       "finances": "Finances",
       "units": "Unités",
       "grouped_class": "Classe groupée",
@@ -4043,7 +4052,7 @@
       "title_camporee": "Émettre un ordre de camporée",
       "select_members": "Sélectionner des membres",
       "eligible_hint_insurance": "Seuls les membres actifs sans couverture en cours sont affichés.",
-      "eligible_hint_camporee": "Seuls les membres actifs avec une assurance valide sont affichés.",
+      "eligible_hint_camporee": "Seuls les membres actifs avec une assurance valide et non déjà inscrits sont affichés.",
       "no_eligible": "Aucun membre éligible",
       "no_cycle": "Aucun cycle d'assurance n'est configuré pour votre section",
       "unavailable": "Les ordres de paiement ne sont pas activés dans votre champ local",
@@ -4057,7 +4066,10 @@
       "title": "Inscription par ordre de paiement",
       "body": "Votre champ local utilise des ordres de paiement. Émettez un ordre, payez à la banque ou à la caisse du champ, puis envoyez votre justificatif ; l'inscription est confirmée à l'approbation du paiement.",
       "issue_button": "Émettre un ordre de paiement",
-      "view_orders": "Voir les ordres de cette camporée"
+      "view_orders": "Voir les ordres de cette camporée",
+      "context_loading": "Vérification du flux d'inscription",
+      "context_error": "Impossible de consulter le flux des ordres de paiement.",
+      "context_error_hint": "Sans cette information, nous ne pouvons pas savoir s'il faut émettre un ordre ou inscrire les membres directement."
     },
     "errors": {
       "flag_disabled": "Les ordres de paiement ne sont pas activés dans ce champ local",
