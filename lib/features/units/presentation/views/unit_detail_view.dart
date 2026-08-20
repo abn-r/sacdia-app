@@ -14,8 +14,8 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
+import '../../../../features/auth/domain/utils/authorization_utils.dart';
 import '../../../../features/auth/presentation/providers/auth_providers.dart';
-import '../../../../features/members/presentation/providers/members_providers.dart';
 import '../../domain/entities/scoring_category.dart';
 import '../../domain/entities/unit.dart';
 import '../../domain/entities/unit_member.dart';
@@ -143,26 +143,18 @@ class UnitDetailView extends ConsumerWidget {
   }
 
   bool _canRegisterPoints(WidgetRef ref, Unit unit) {
-    return ref.watch(clubContextProvider).maybeWhen(
-          data: (ctx) {
-            if (ctx == null) return false;
-            final role = ctx.roleName?.toLowerCase() ?? '';
-            if ([
-              'director',
-              'sub_director',
-              'secretario',
-              'secretario_tesorero',
-            ].contains(role)) {
-              return true;
-            }
-            final userId = ref.read(authNotifierProvider).value?.id ?? '';
-            if (userId.isEmpty) return false;
-            return unit.advisorId == userId ||
-                unit.substituteAdvisorId == userId ||
-                unit.captainId == userId;
-          },
-          orElse: () => false,
-        );
+    final user = ref.watch(authNotifierProvider).valueOrNull;
+    if (!hasAnyPermission(user, const {'units:update'})) {
+      return false;
+    }
+    if (hasAnyPermission(user, const {'units:create'})) {
+      return true;
+    }
+    final userId = user?.id ?? '';
+    if (userId.isEmpty) return false;
+    return unit.advisorId == userId ||
+        unit.substituteAdvisorId == userId ||
+        unit.captainId == userId;
   }
 
   void _handleSave(BuildContext context, UnitsNotifier notifier) {
