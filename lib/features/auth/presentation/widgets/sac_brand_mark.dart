@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
-import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 /// Marca SACDIA a partir de `logo-sacdia.png`.
 ///
@@ -54,7 +53,7 @@ class SacBrandMark extends StatelessWidget {
               borderRadius: radius,
               boxShadow: [
                 BoxShadow(
-                  color: context.sac.shadow,
+                  color: Colors.black.withValues(alpha: 0.22),
                   offset: const Offset(0, 8),
                   blurRadius: 24,
                   spreadRadius: 0,

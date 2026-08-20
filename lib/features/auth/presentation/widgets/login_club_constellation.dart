@@ -49,8 +49,8 @@ class _LoginClubConstellationState extends State<LoginClubConstellation>
   static const _enterTotalMs = 320.0;
   static const _amplitude = 6.0;
   static const _rotation = 0.035;
-  static const _idleOpacity = 0.57;
-  static const _reducedOpacity = 0.50;
+  static const _idleOpacity = 1.0;
+  static const _reducedOpacity = 1.0;
 
   late final AnimationController _enter;
   late final AnimationController _drift;
@@ -135,11 +135,12 @@ class _LoginClubConstellationState extends State<LoginClubConstellation>
     final reduce = SacMotion.reduceMotionOf(context);
     final safe = MediaQuery.paddingOf(context);
     final width = MediaQuery.sizeOf(context).width;
-    final size = width < 360
-        ? 52.0
-        : width >= 600
-            ? 72.0
-            : 64.0;
+    final size = (width < 360
+            ? 52.0
+            : width >= 600
+                ? 72.0
+                : 64.0) *
+        1.3;
 
     final specs = <_EmblemSpec>[
       _EmblemSpec(
@@ -256,6 +257,20 @@ class _Emblem extends StatelessWidget {
           cacheWidth: cacheSize,
           excludeFromSemantics: true,
           opacity: AlwaysStoppedAnimation(opacity),
+        );
+
+        child = DecoratedBox(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Color.fromRGBO(0, 0, 0, 0.24 * opacity),
+                offset: const Offset(0, 6),
+                blurRadius: 16,
+              ),
+            ],
+          ),
+          child: child,
         );
 
         if (reduceMotion) return child;

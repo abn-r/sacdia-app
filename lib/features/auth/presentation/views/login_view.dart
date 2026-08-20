@@ -106,7 +106,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
             .tr(namedArgs: {'seconds': '$_cooldownRemaining'})
         : null;
 
-    final logoSize = Responsive.isLandscape(context) ? 72.0 : 108.0;
+    final logoSize = (Responsive.isLandscape(context) ? 72.0 : 108.0) * 1.2;
     final logoBottomSpacing = Responsive.authLogoBottomSpacing(context);
     final reduceMotion = SacMotion.reduceMotionOf(context);
 
