@@ -105,9 +105,11 @@ class _AssignmentTile extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'camporees.judge.section_label'.tr(
-              namedArgs: {'sectionId': '${assignment.clubSectionId}'},
-            ),
+            assignment.displayClubLabel.isNotEmpty
+                ? assignment.displayClubLabel
+                : 'camporees.judge.section_label'.tr(
+                    namedArgs: {'sectionId': '${assignment.clubSectionId}'},
+                  ),
             style: TextStyle(
               color: c.textSecondary,
               fontSize: 13,
@@ -125,6 +127,13 @@ class _AssignmentTile extends StatelessWidget {
                   assignment.eventId,
                   assignment.clubSectionId,
                   eventTitle: eventTitle,
+                  clubLabel: assignment.displayClubLabel.isNotEmpty
+                      ? assignment.displayClubLabel
+                      : 'camporees.judge.section_label'.tr(
+                          namedArgs: {
+                            'sectionId': '${assignment.clubSectionId}',
+                          },
+                        ),
                 ),
               );
             },

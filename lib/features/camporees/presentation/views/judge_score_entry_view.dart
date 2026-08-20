@@ -19,12 +19,14 @@ class JudgeScoreEntryView extends ConsumerStatefulWidget {
   final int eventId;
   final int clubSectionId;
   final String? eventTitle;
+  final String? clubLabel;
 
   const JudgeScoreEntryView({
     super.key,
     required this.eventId,
     required this.clubSectionId,
     this.eventTitle,
+    this.clubLabel,
   });
 
   @override
@@ -163,7 +165,13 @@ class _JudgeScoreEntryViewState extends ConsumerState<JudgeScoreEntryView> {
               children: [
                 _ScoreHeader(
                   title: title,
-                  clubSectionId: widget.clubSectionId,
+                  clubLabel: widget.clubLabel?.trim().isNotEmpty == true
+                      ? widget.clubLabel!
+                      : 'camporees.judge.section_label'.tr(
+                          namedArgs: {
+                            'sectionId': '${widget.clubSectionId}',
+                          },
+                        ),
                 ),
                 const SizedBox(height: 16),
                 _TotalCard(
@@ -220,11 +228,11 @@ class _JudgeScoreEntryViewState extends ConsumerState<JudgeScoreEntryView> {
 
 class _ScoreHeader extends StatelessWidget {
   final String title;
-  final int clubSectionId;
+  final String clubLabel;
 
   const _ScoreHeader({
     required this.title,
-    required this.clubSectionId,
+    required this.clubLabel,
   });
 
   @override
@@ -248,9 +256,7 @@ class _ScoreHeader extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'camporees.judge.section_label'.tr(
-              namedArgs: {'sectionId': '$clubSectionId'},
-            ),
+            clubLabel,
             style: TextStyle(
               color: context.sac.textSecondary,
               fontWeight: FontWeight.w700,

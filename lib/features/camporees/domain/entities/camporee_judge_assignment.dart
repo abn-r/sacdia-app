@@ -10,6 +10,8 @@ class CamporeeJudgeAssignment extends Equatable {
   final String judgeRole;
   final bool active;
   final String? eventTitle;
+  final String? clubName;
+  final String? sectionName;
   final bool canSubmitScore;
 
   const CamporeeJudgeAssignment({
@@ -21,6 +23,8 @@ class CamporeeJudgeAssignment extends Equatable {
     required this.judgeRole,
     required this.active,
     this.eventTitle,
+    this.clubName,
+    this.sectionName,
     required this.canSubmitScore,
   });
 
@@ -29,6 +33,15 @@ class CamporeeJudgeAssignment extends Equatable {
   /// Official capture is only for an active primary assignment that can submit.
   bool get canCaptureOfficialScore =>
       active && isPrimary && canSubmitScore;
+
+  /// Club name, else section type, else empty for the caller to fall back.
+  String get displayClubLabel {
+    final club = clubName?.trim();
+    if (club != null && club.isNotEmpty) return club;
+    final section = sectionName?.trim();
+    if (section != null && section.isNotEmpty) return section;
+    return '';
+  }
 
   @override
   List<Object?> get props => [
@@ -40,6 +53,8 @@ class CamporeeJudgeAssignment extends Equatable {
         judgeRole,
         active,
         eventTitle,
+        clubName,
+        sectionName,
         canSubmitScore,
       ];
 }

@@ -553,6 +553,8 @@ void main() {
           judgeRole: 'primary',
           active: true,
           eventTitle: 'Nudos',
+          clubName: 'Estella',
+          sectionName: 'Conquistadores',
           canSubmitScore: true,
         ),
       ];
@@ -566,6 +568,8 @@ void main() {
           expect(assignments, hasLength(1));
           expect(assignments.first.isPrimary, isTrue);
           expect(assignments.first.canSubmitScore, isTrue);
+          expect(assignments.first.clubName, 'Estella');
+          expect(assignments.first.displayClubLabel, 'Estella');
         },
       );
     });

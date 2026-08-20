@@ -154,10 +154,18 @@ class RouteNames {
     int eventId,
     int clubSectionId, {
     String? eventTitle,
+    String? clubLabel,
   }) {
     final base = '/camporee-events/$eventId/sections/$clubSectionId/score';
-    if (eventTitle == null || eventTitle.trim().isEmpty) return base;
-    return '$base?eventTitle=${Uri.encodeComponent(eventTitle)}';
+    final params = <String, String>{};
+    if (eventTitle != null && eventTitle.trim().isNotEmpty) {
+      params['eventTitle'] = eventTitle;
+    }
+    if (clubLabel != null && clubLabel.trim().isNotEmpty) {
+      params['clubLabel'] = clubLabel;
+    }
+    if (params.isEmpty) return base;
+    return '$base?${Uri(queryParameters: params).query}';
   }
 
   // Traslados helpers

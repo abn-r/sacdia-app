@@ -831,6 +831,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           final clubSectionId =
               int.tryParse(state.pathParameters['clubSectionId']!) ?? 0;
           final eventTitle = state.uri.queryParameters['eventTitle'];
+          final clubLabel = state.uri.queryParameters['clubLabel'];
           return _sharedAxisBuild(
             context,
             state,
@@ -838,6 +839,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               eventId: eventId,
               clubSectionId: clubSectionId,
               eventTitle: eventTitle,
+              clubLabel: clubLabel,
             ),
           );
         },
