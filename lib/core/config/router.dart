@@ -779,6 +779,17 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
+      // Static judge inbox before `/camporee/:camporeeId` so it cannot be
+      // parsed as a camporee id. Path is `/judge-assignments`, not nested.
+      GoRoute(
+        path: RouteNames.camporeeJudgeAssignments,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          const JudgeAssignmentsView(),
+        ),
+      ),
+
       // Detalle de camporee
       GoRoute(
         path: RouteNames.camporeeDetail,
@@ -810,16 +821,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           );
         },
-      ),
-
-      // Asignaciones de juez principal para scoring de camporee
-      GoRoute(
-        path: RouteNames.camporeeJudgeAssignments,
-        pageBuilder: (context, state) => _sharedAxisBuild(
-          context,
-          state,
-          const JudgeAssignmentsView(),
-        ),
       ),
 
       // Captura de puntaje por rúbrica para juez principal

@@ -61,7 +61,9 @@ class RouteNames {
   static const String camporeeDetail = '/camporee/:camporeeId';
   static const String camporeeMembers = '/camporee/:camporeeId/members';
   static const String camporeeRegisterMember = '/camporee/:camporeeId/register';
-  static const String camporeeJudgeAssignments = '/camporee/judge-assignments';
+  // Keep this outside `/camporee/:camporeeId` or GoRouter treats
+  // "judge-assignments" as a camporee id and opens CamporeeDetailView(0).
+  static const String camporeeJudgeAssignments = '/judge-assignments';
   static const String camporeeJudgeScoreEntry =
       '/camporee-events/:eventId/sections/:clubSectionId/score';
 
