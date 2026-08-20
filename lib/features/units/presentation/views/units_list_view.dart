@@ -14,6 +14,7 @@ import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../members/presentation/providers/members_providers.dart';
 import '../../domain/entities/member_of_month.dart';
 import '../../domain/entities/unit.dart';
 import '../providers/units_providers.dart';
