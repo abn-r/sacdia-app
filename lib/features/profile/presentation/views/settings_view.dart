@@ -9,9 +9,10 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
-import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/in_app_browser.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/widgets/zarza_roja_credit.dart';
@@ -66,6 +67,20 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
       setState(() {
         _appVersion = '${info.version} (${info.buildNumber})';
       });
+    }
+  }
+
+  Future<void> _openLegalDocument(String url) async {
+    final opened = await openInAppDocument(Uri.parse(url));
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('settings.open_document_failed'.tr()),
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
     }
   }
 
@@ -777,23 +792,13 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               SettingTile(
                 icon: HugeIcons.strokeRoundedSecurityCheck,
                 title: 'profile.settings.privacy_policy'.tr(),
-                onTap: () async {
-                  await launchUrl(
-                    Uri.parse('https://sacdia.com/privacy'),
-                    mode: LaunchMode.externalApplication,
-                  );
-                },
+                onTap: () => _openLegalDocument(AppConstants.privacyPolicyUrl),
               ),
               _groupDivider(),
               SettingTile(
                 icon: HugeIcons.strokeRoundedLegalDocument01,
                 title: 'profile.settings.terms'.tr(),
-                onTap: () async {
-                  await launchUrl(
-                    Uri.parse('https://sacdia.com/terms'),
-                    mode: LaunchMode.externalApplication,
-                  );
-                },
+                onTap: () => _openLegalDocument(AppConstants.termsUrl),
               ),
             ],
           ),
