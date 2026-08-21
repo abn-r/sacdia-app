@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -173,9 +174,9 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
                     .tr(namedArgs: {'error': error.toString()}),
               ),
               const SizedBox(height: 16),
-              ElevatedButton.icon(
-                icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 20),
-                label: Text('common.retry'.tr()),
+              SacButton(
+                text: 'common.retry'.tr(),
+                icon: HugeIcons.strokeRoundedRefresh,
                 onPressed: () => ref.refresh(relationshipTypesProvider),
               ),
             ],
@@ -302,22 +303,13 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
               const SizedBox(height: 24),
 
               // Botón de guardar
-              SizedBox(
-                height: 48,
-                child: ElevatedButton.icon(
-                  icon: _isLoading
-                      ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: SacLoadingSmall(),
-                        )
-                      : HugeIcon(
-                          icon: HugeIcons.strokeRoundedFloppyDisk, size: 22),
-                  label: Text(_isEditing
-                      ? 'post_registration.contact_form.update_button'.tr()
-                      : 'post_registration.contact_form.save_button'.tr()),
-                  onPressed: _isLoading ? null : _handleSave,
-                ),
+              SacButton.primary(
+                text: _isEditing
+                    ? 'post_registration.contact_form.update_button'.tr()
+                    : 'post_registration.contact_form.save_button'.tr(),
+                icon: HugeIcons.strokeRoundedFloppyDisk,
+                isLoading: _isLoading,
+                onPressed: _isLoading ? null : _handleSave,
               ),
 
               const SizedBox(height: 16),

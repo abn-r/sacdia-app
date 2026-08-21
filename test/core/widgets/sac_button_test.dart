@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -36,7 +37,7 @@ void main() {
     );
     expect(label.maxLines, 2);
     expect(label.overflow, TextOverflow.visible);
-    expect(tester.getSize(find.byType(ElevatedButton)).height, greaterThan(48));
+    expect(tester.getSize(find.byType(SacButton)).height, greaterThan(48));
     expect(tester.takeException(), isNull);
   });
 
@@ -57,11 +58,11 @@ void main() {
       ),
     );
 
-    final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
-    expect(button.style?.backgroundColor?.resolve({}), background);
-    expect(button.style?.foregroundColor?.resolve({}), foreground);
-    final shape = button.style?.shape?.resolve({}) as RoundedRectangleBorder;
-    expect(shape.side.color, border);
+    final decoration = _buttonDecoration(tester, 'Reintentar');
+    final label = tester.widget<Text>(find.text('Reintentar'));
+    expect(decoration.color, background);
+    expect(label.style?.color, foreground);
+    expect((decoration.border! as Border).top.color, border);
   });
 
   testWidgets('loading anuncia estado traducido como live region',
@@ -100,17 +101,15 @@ void main() {
         brightness: brightness,
       );
 
-      final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
-      final background = button.style!.backgroundColor!.resolve({})!;
-      final foreground = button.style!.foregroundColor!.resolve({})!;
+      final decoration = _buttonDecoration(tester);
+      final background = decoration.color!;
       final spinner = tester.widget<CircularProgressIndicator>(
         find.byType(CircularProgressIndicator),
       );
 
       expect(background, AppColors.primary);
-      expect(foreground, AppColors.ink900);
-      expect(spinner.color, foreground);
-      expect(_contrastRatio(foreground, background), greaterThanOrEqualTo(4.5));
+      expect(spinner.color, AppColors.ink900);
+      expect(_contrastRatio(spinner.color!, background), greaterThanOrEqualTo(4.5));
     });
   }
 
@@ -122,18 +121,45 @@ void main() {
     );
 
     final gesture = await tester.startGesture(
-      tester.getCenter(find.byType(ElevatedButton)),
+      tester.getCenter(find.byType(SacButton)),
     );
     await tester.pump(const Duration(milliseconds: 100));
 
-    final transition = tester.widget<ScaleTransition>(
-      find.byWidgetPredicate(
-        (widget) => widget is ScaleTransition && widget.child is ElevatedButton,
-      ),
-    );
-    expect(transition.scale.value, 1);
+    final scale = tester.widget<AnimatedScale>(find.byType(AnimatedScale));
+    expect(scale.scale, 1);
     await gesture.up();
   });
+
+  testWidgets('press usa scale Scout y no ElevatedButton', (tester) async {
+    await _pumpButton(
+      tester,
+      SacButton.primary(text: 'Continuar', onPressed: () {}),
+    );
+
+    expect(find.byType(ElevatedButton), findsNothing);
+    expect(find.byType(TextButton), findsNothing);
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byType(SacButton)),
+    );
+    await tester.pump(SacMotion.press);
+
+    final scale = tester.widget<AnimatedScale>(find.byType(AnimatedScale));
+    expect(scale.scale, SacMotion.pressScale);
+    await gesture.up();
+  });
+}
+
+BoxDecoration _buttonDecoration(WidgetTester tester, [String? label]) {
+  final decorated = tester.widget<DecoratedBox>(
+    find.descendant(
+      of: label == null
+          ? find.byType(SacButton)
+          : find.widgetWithText(SacButton, label),
+      matching: find.byType(DecoratedBox),
+    ),
+  );
+  return decorated.decoration! as BoxDecoration;
 }
 
 Future<void> _pumpButton(

@@ -10,6 +10,7 @@ import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/utils/role_utils.dart';
 import '../../../../core/widgets/fixed_input_icon_slot.dart';
 import '../../../../core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import '../../domain/entities/unit.dart';
 import '../../domain/usecases/get_unit_detail.dart';
 import '../../../members/domain/entities/club_member.dart';
@@ -1010,17 +1011,12 @@ class _MultiMemberPickerSheetState extends State<_MultiMemberPickerSheet> {
                     ],
                   ),
                 ),
-                FilledButton(
+                SacButton(
+                  text: 'units.form.done'.tr(),
+                  variant: SacButtonVariant.primary,
+                  size: SacButtonSize.small,
+                  fullWidth: false,
                   onPressed: _confirm,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-                    ),
-                  ),
-                  child: Text('units.form.done'.tr()),
                 ),
               ],
             ),
@@ -1429,45 +1425,22 @@ class _BottomActionBar extends StatelessWidget {
         children: [
           // Cancel button
           Expanded(
-            child: OutlinedButton(
+            child: SacButton.outline(
+              text: 'common.cancel'.tr(),
+              textColor: c.textSecondary,
+              borderColor: c.border,
               onPressed: isSaving ? null : onCancel,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: c.textSecondary,
-                side: BorderSide(color: c.border),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-                ),
-              ),
-              child: Text('common.cancel'.tr()),
             ),
           ),
           const SizedBox(width: 12),
-          // Save / Create button
           Expanded(
             flex: 2,
-            child: FilledButton(
+            child: SacButton.primary(
+              text: isEditMode
+                  ? 'common.save'.tr()
+                  : 'units.form.create'.tr(),
+              isLoading: isSaving,
               onPressed: isSaving ? null : onSave,
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                disabledBackgroundColor: AppColors.primaryLight,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-                ),
-              ),
-              child: isSaving
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : Text(isEditMode
-                      ? 'common.save'.tr()
-                      : 'units.form.create'.tr()),
             ),
           ),
         ],

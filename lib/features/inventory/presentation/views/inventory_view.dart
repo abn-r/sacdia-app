@@ -16,6 +16,8 @@ import 'add_inventory_item_sheet.dart';
 import 'inventory_filter_sheet.dart';
 import 'inventory_item_detail_view.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 
 /// Pantalla principal del módulo de Inventario del club.
 ///
@@ -236,51 +238,30 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
     );
   }
 
-  void _confirmDelete(BuildContext context, InventoryItem item) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('inventory.detail.delete_title'.tr()),
-        content: Text('inventory.detail.delete_confirm'
-            .tr(namedArgs: {'name': item.name})),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text('common.cancel'.tr()),
-          ),
-          Consumer(
-            builder: (consumerContext, ref, _) {
-              final deleteState = ref.watch(inventoryDeleteNotifierProvider);
-              return FilledButton(
-                onPressed: deleteState.isLoading
-                    ? null
-                    : () async {
-                        Navigator.pop(ctx);
-                        final success = await ref
-                            .read(inventoryDeleteNotifierProvider.notifier)
-                            .deleteItem(item.id);
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                success
-                                    ? 'inventory.detail.deleted_success'.tr()
-                                    : 'inventory.detail.delete_error'.tr(),
-                              ),
-                              backgroundColor: success
-                                  ? AppColors.secondary
-                                  : AppColors.error,
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                        }
-                      },
-                style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-                child: Text('common.delete'.tr()),
-              );
-            },
-          ),
-        ],
+  Future<void> _confirmDelete(BuildContext context, InventoryItem item) async {
+    final confirmed = await SacDialog.show(
+      context,
+      title: 'inventory.detail.delete_title'.tr(),
+      content:
+          'inventory.detail.delete_confirm'.tr(namedArgs: {'name': item.name}),
+      confirmLabel: 'common.delete'.tr(),
+      confirmIsDestructive: true,
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    final success = await ref
+        .read(inventoryDeleteNotifierProvider.notifier)
+        .deleteItem(item.id);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? 'inventory.detail.deleted_success'.tr()
+              : 'inventory.detail.delete_error'.tr(),
+        ),
+        backgroundColor: success ? AppColors.secondary : AppColors.error,
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -519,15 +500,10 @@ class _ErrorBody extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-          FilledButton.icon(
+          SacButton(
+            text: 'common.retry'.tr(),
+            icon: HugeIcons.strokeRoundedRefresh,
             onPressed: onRetry,
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedRefresh,
-              size: 18,
-              color: Colors.white,
-            ),
-            label: Text('common.retry'.tr()),
-            style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
           ),
         ],
       ),
@@ -616,27 +592,10 @@ class _EmptyState extends StatelessWidget {
 
           if (canAdd && onAddTap != null) ...[
             const SizedBox(height: 28),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: onAddTap,
-                icon: const HugeIcon(
-                  icon: HugeIcons.strokeRoundedAdd01,
-                  size: 18,
-                  color: Colors.white,
-                ),
-                label: Text(
-                  'inventory.view.add_first_item'.tr(),
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  minimumSize: const Size(0, 52),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-                  ),
-                ),
-              ),
+            SacButton.primary(
+              text: 'inventory.view.add_first_item'.tr(),
+              icon: HugeIcons.strokeRoundedAdd01,
+              onPressed: onAddTap,
             ),
           ],
         ],

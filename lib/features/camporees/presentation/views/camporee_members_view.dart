@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.dart';
@@ -104,28 +105,13 @@ class CamporeeMembersView extends ConsumerWidget {
     WidgetRef ref,
     CamporeeMember member,
   ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('camporees.members.remove_title'.tr()),
-        content: Text(
-          'camporees.members.remove_confirm'
-              .tr(namedArgs: {'name': member.userName ?? member.userId}),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('common.cancel'.tr()),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.error,
-            ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text('camporees.members.remove'.tr()),
-          ),
-        ],
-      ),
+    final confirmed = await SacDialog.show(
+      context,
+      title: 'camporees.members.remove_title'.tr(),
+      content: 'camporees.members.remove_confirm'
+          .tr(namedArgs: {'name': member.userName ?? member.userId}),
+      confirmLabel: 'camporees.members.remove'.tr(),
+      confirmIsDestructive: true,
     );
 
     if (confirmed != true) return;

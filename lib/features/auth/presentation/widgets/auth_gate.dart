@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 
 import '../providers/auth_providers.dart';
 import '../../presentation/views/login_view.dart';
@@ -46,9 +47,11 @@ class AuthGate extends ConsumerWidget {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
-                  ElevatedButton(
+                  SacButton(
+                    text: 'common.retry'.tr(),
+                    variant: SacButtonVariant.primary,
+                    fullWidth: false,
                     onPressed: () => ref.invalidate(authNotifierProvider),
-                    child: Text('common.retry'.tr()),
                   ),
                 ],
               ),

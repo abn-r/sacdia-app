@@ -335,8 +335,10 @@ Widget buildIcon(dynamic icon, {double size = 24, Color? color}) {
 
 **File:** `lib/core/widgets/sac_button.dart`
 
-The primary button widget. Wraps `ElevatedButton` or `TextButton` with scale
-press animation (0.96) and haptic feedback.
+The primary button widget. Custom pressable: `GestureDetector` + `DecoratedBox`.
+Press is `AnimatedScale(0.97)` over 140ms with `SacMotion.easeOut` and
+`HapticFeedback.lightImpact()`. No Material splash / `ElevatedButton`.
+Keyboard activation uses `FocusableActionDetector` (`ActivateIntent`).
 
 **Variants (`SacButtonVariant`):**
 
@@ -345,7 +347,7 @@ press animation (0.96) and haptic feedback.
 | `primary` | `AppColors.primary` | white | none |
 | `secondary` | `AppColors.primaryLight` | `AppColors.primaryDark` | none |
 | `outline` | transparent | `AppColors.primary` | `AppColors.primary 1.5px` |
-| `ghost` | transparent | `AppColors.primary` | none (TextButton) |
+| `ghost` | transparent | `AppColors.primary` | none |
 | `destructive` | `AppColors.error` | white | none |
 | `success` | `AppColors.secondary` | white | none |
 
@@ -525,13 +527,52 @@ final confirmed = await SacDialog.show(
 if (confirmed == true) { ... }
 ```
 
+Actions use `SacButton` (scout press, no Material ripple).
+
+**Optional `body` for forms:**
+
+Use `body` when the dialog needs fields (`SacTextField`, `Form`). Title and
+`content` stay as copy; `body` sits below them. For custom actions or
+validation before pop, use `SacDialog.present` instead of `show`.
+
+```dart
+final confirmed = await SacDialog.present<bool>(
+  context,
+  builder: (ctx) => SacDialog(
+    title: 'Rechazar',
+    content: 'Escribe el motivo.',
+    body: Form(
+      key: formKey,
+      child: SacTextField(controller: reasonCtrl, validator: ...),
+    ),
+    actions: [
+      SacDialogAction(
+        label: 'Cancelar',
+        style: SacDialogActionStyle.cancel,
+        onPressed: () => Navigator.pop(ctx, false),
+      ),
+      SacDialogAction(
+        label: 'Rechazar',
+        style: SacDialogActionStyle.destructive,
+        onPressed: () {
+          if (formKey.currentState!.validate()) {
+            Navigator.pop(ctx, true);
+          }
+        },
+      ),
+    ],
+  ),
+);
+```
+
 **Action styles (`SacDialogActionStyle`):**
 
 | Style | Color | Weight |
 |-------|-------|--------|
-| `confirm` | `AppColors.primary` | w600 |
+| `confirm` | `AppColors.coral700` | w600 |
+| `success` | `AppColors.secondary` | w600 |
 | `destructive` | `AppColors.error` | w600 |
-| `cancel` | `context.sac.textSecondary` | w400 |
+| `cancel` | `context.sac.textSecondary` | w600 |
 
 ### 6.6 SacLoading / SacLoadingSmall
 
@@ -639,16 +680,15 @@ import 'package:sacdia_app/core/widgets/sac_widgets.dart';
 
 ### 6.11 Legacy Widgets — Deprecated
 
-The following widgets are deprecated and must NOT be used in new code:
+The following widget is deprecated and must NOT be used in new code:
 
 | Deprecated | Canonical replacement | Prop mapping |
 |------------|----------------------|-------------|
-| `CustomButton` (`custom_button.dart`) | `SacButton` (`sac_widgets.dart`) | `text` → `text`, `onPressed` → `onPressed`, `isLoading` → `isLoading`, `backgroundColor` → use `variant` |
 | `CustomTextField` (`custom_text_field.dart`) | `SacTextField` (`sac_widgets.dart`) | `controller` → `controller`, `labelText` → `label`, `hintText` → `hint`, `validator` → `validator`, `prefixIcon` → `prefixIcon` |
 
-Both classes are annotated with `@Deprecated(...)` at the class level. The Dart analyzer will emit warnings in any file that references them. Do not suppress those warnings — they are intentional signals to migrate.
+`CustomButton` was removed. Use `SacButton`. `CustomTextField` is annotated with `@Deprecated(...)` at the class level. The Dart analyzer will emit warnings in any file that references it. Do not suppress those warnings — they are intentional signals to migrate.
 
-**Migration — existing consumers:** There are existing callers of `CustomButton` and `CustomTextField` throughout the codebase. Do NOT mass-migrate them in a single commit — migrate per feature/screen as part of normal development. The `@Deprecated` annotation is the tracking mechanism.
+**Migration — existing consumers:** There are existing callers of `CustomTextField` throughout the codebase. Do NOT mass-migrate them in a single commit — migrate per feature/screen as part of normal development. The `@Deprecated` annotation is the tracking mechanism.
 
 ---
 
@@ -1109,9 +1149,10 @@ Use `sharedAxisPage`, `fadeThroughPage`, or `slideUpPage` in the router
 
 ### 14.4 Scale Press on Buttons
 
-`SacButton` applies `ScaleTransition(scale: 0.96)` on `TapDown` with
-`HapticFeedback.lightImpact()`. Do NOT add redundant `GestureDetector` wrappers
-around `SacButton` — the animation is already built in.
+`SacButton` applies `AnimatedScale(scale: 0.97)` on `TapDown` (140ms,
+`SacMotion.easeOut`) with `HapticFeedback.lightImpact()`. Reduced motion
+keeps scale at 1. Do NOT add redundant `GestureDetector` wrappers around
+`SacButton` — the animation is already built in.
 
 ### 14.5 Celebration Overlay
 

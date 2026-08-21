@@ -15,6 +15,7 @@ import '../../../biometric/presentation/providers/biometric_provider.dart';
 import '../../domain/entities/data_export.dart';
 import '../providers/data_export_providers.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -248,46 +249,15 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
           const SizedBox(height: 20),
 
           // ── Botón de solicitud ─────────────────────────────────────
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: isButtonDisabled ? null : _handleRequestExport,
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                disabledBackgroundColor:
-                    AppColors.primary.withValues(alpha: 0.4),
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-              icon: _isRequesting
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : HugeIcon(
-                      icon: HugeIcons.strokeRoundedDownload02,
-                      size: 18,
-                      color: Colors.white,
-                    ),
-              label: Text(
-                _isRequesting
-                    ? 'profile.data_export.ui.requesting'.tr()
-                    : hasActiveExport
-                        ? 'profile.data_export.ui.in_progress'.tr()
-                        : 'profile.data_export.ui.request_button'.tr(),
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ),
+          SacButton.primary(
+            text: _isRequesting
+                ? 'profile.data_export.ui.requesting'.tr()
+                : hasActiveExport
+                    ? 'profile.data_export.ui.in_progress'.tr()
+                    : 'profile.data_export.ui.request_button'.tr(),
+            icon: HugeIcons.strokeRoundedDownload02,
+            isLoading: _isRequesting,
+            onPressed: isButtonDisabled ? null : _handleRequestExport,
           ),
           const SizedBox(height: 28),
 
@@ -575,14 +545,10 @@ class _ErrorState extends StatelessWidget {
               style: TextStyle(fontSize: 15, color: c.textSecondary),
             ),
             const SizedBox(height: 20),
-            FilledButton.icon(
+            SacButton(
+              text: 'profile.data_export.ui.action_retry'.tr(),
+              icon: HugeIcons.strokeRoundedRefresh,
               onPressed: onRetry,
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedRefresh,
-                size: 16,
-                color: Colors.white,
-              ),
-              label: Text('profile.data_export.ui.action_retry'.tr()),
             ),
           ],
         ),

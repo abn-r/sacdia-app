@@ -15,6 +15,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/honor.dart';
@@ -601,22 +602,11 @@ class _HonorDetailContent extends ConsumerWidget {
     BuildContext context,
     HonorCompletionMode mode,
   ) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('honors.work_mode.confirm_title'.tr()),
-        content: Text(_completionModeConfirmationMessageKey(mode).tr()),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text('common.cancel'.tr()),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text('common.confirm'.tr()),
-          ),
-        ],
-      ),
+    final result = await SacDialog.show(
+      context,
+      title: 'honors.work_mode.confirm_title'.tr(),
+      content: _completionModeConfirmationMessageKey(mode).tr(),
+      confirmLabel: 'common.confirm'.tr(),
     );
 
     return result ?? false;

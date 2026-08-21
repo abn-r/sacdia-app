@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/sac_button.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/biometric_provider.dart';
 
@@ -111,34 +112,11 @@ class _AppLockViewState extends ConsumerState<AppLockView> {
                 textAlign: TextAlign.center,
               ),
               const Spacer(),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: _authenticating ? null : _tryAuthenticate,
-                  icon: _authenticating
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : HugeIcon(
-                          icon: HugeIcons.strokeRoundedFingerPrint,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                  label: Text('biometric.authenticate_cta'.tr()),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
+              SacButton.primary(
+                text: 'biometric.authenticate_cta'.tr(),
+                icon: HugeIcons.strokeRoundedFingerPrint,
+                isLoading: _authenticating,
+                onPressed: _authenticating ? null : _tryAuthenticate,
               ),
               if (_showPasswordFallback) ...[
                 const SizedBox(height: 12),

@@ -12,6 +12,7 @@ import '../providers/config_provider.dart';
 import '../providers/create_order_provider.dart';
 import '../utils/money_format.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 
 /// Pantalla de resumen y confirmación de pedido.
@@ -223,36 +224,12 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
               isTotal: true,
             ),
             const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed:
-                    createState.isLoading ? null : () => _confirm(context, ref),
-                child: createState.isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
-                    : const Text(
-                        'Confirmar pedido',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-              ),
+            SacButton.primary(
+              text: 'Confirmar pedido',
+              isLoading: createState.isLoading,
+              onPressed: createState.isLoading
+                  ? null
+                  : () => _confirm(context, ref),
             ),
           ],
         ),

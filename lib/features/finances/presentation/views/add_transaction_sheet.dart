@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -302,41 +303,15 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                       ),
 
                     // Save button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: FilledButton(
-                        onPressed: formState.isLoading
-                            ? null
-                            : () => _submit(selectedMonth),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          minimumSize: const Size(double.infinity, 52),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        child: formState.isLoading
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2.5,
-                                ),
-                              )
-                            : Text(
-                                _isEditing
-                                    ? 'finances.add_transaction.save_button'
-                                        .tr()
-                                    : 'finances.add_transaction.register_button'
-                                        .tr(),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 16,
-                                ),
-                              ),
-                      ),
+                    SacButton.primary(
+                      text: _isEditing
+                          ? 'finances.add_transaction.save_button'.tr()
+                          : 'finances.add_transaction.register_button'.tr(),
+                      isLoading: formState.isLoading,
+                      onPressed: formState.isLoading
+                          ? null
+                          : () => _submit(selectedMonth),
+                      borderRadius: 14,
                     ),
                   ],
                 ),

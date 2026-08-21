@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_card.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/class_section.dart';
@@ -112,60 +113,52 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
             ),
             const SizedBox(height: 24),
             // Botón para marcar como completado/pendiente
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () async {
-                  if (userId == null) return;
+            SacButton(
+              onPressed: () async {
+                if (userId == null) return;
 
-                  final newStatus = !_isCompleted;
-                  final messenger = ScaffoldMessenger.of(context);
+                final newStatus = !_isCompleted;
+                final messenger = ScaffoldMessenger.of(context);
 
-                  // Actualizar progreso
-                  await ref
-                      .read(classProgressNotifierProvider.notifier)
-                      .updateProgress(
-                    userId,
-                    widget.classId,
-                    {
-                      'section_id': widget.section.id,
-                      'is_completed': newStatus,
-                    },
-                  );
+                // Actualizar progreso
+                await ref
+                    .read(classProgressNotifierProvider.notifier)
+                    .updateProgress(
+                  userId,
+                  widget.classId,
+                  {
+                    'section_id': widget.section.id,
+                    'is_completed': newStatus,
+                  },
+                );
 
-                  if (!mounted) return;
+                if (!mounted) return;
 
-                  setState(() {
-                    _isCompleted = newStatus;
-                  });
+                setState(() {
+                  _isCompleted = newStatus;
+                });
 
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        newStatus
-                            ? 'classes.section_detail.mark_completed_snack'.tr()
-                            : 'classes.section_detail.mark_pending_snack'.tr(),
-                      ),
-                      backgroundColor:
-                          newStatus ? AppColors.success : AppColors.warning,
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      newStatus
+                          ? 'classes.section_detail.mark_completed_snack'.tr()
+                          : 'classes.section_detail.mark_pending_snack'.tr(),
                     ),
-                  );
-                },
-                icon: HugeIcon(
-                    icon: _isCompleted
-                        ? HugeIcons.strokeRoundedCancel01
-                        : HugeIcons.strokeRoundedTick02,
-                    color: Colors.white,
-                    size: 24),
-                label: Text(_isCompleted
-                    ? 'classes.section_detail.button_completed'.tr()
-                    : 'classes.section_detail.button_pending'.tr()),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      _isCompleted ? AppColors.warning : AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
+                    backgroundColor:
+                        newStatus ? AppColors.success : AppColors.warning,
+                  ),
+                );
+              },
+              text: _isCompleted
+                  ? 'classes.section_detail.button_completed'.tr()
+                  : 'classes.section_detail.button_pending'.tr(),
+              icon: _isCompleted
+                  ? HugeIcons.strokeRoundedCancel01
+                  : HugeIcons.strokeRoundedTick02,
+              fullWidth: true,
+              backgroundColor:
+                  _isCompleted ? AppColors.warning : AppColors.primary,
             ),
           ],
         ),

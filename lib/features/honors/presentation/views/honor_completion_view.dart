@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 
 import '../../domain/entities/honor.dart';
 import '../../domain/entities/user_honor.dart';
@@ -250,57 +251,19 @@ class _CompletionBody extends StatelessWidget {
                   const SizedBox(height: 32),
 
                   // Primary CTA — "Ver más especialidades"
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: () {
-                        // Pop to catalog — go back until we leave the honor flow
-                        context.pop();
-                      },
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.info,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        'honors.completion.see_more'.tr(),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
+                  SacButton.primary(
+                    text: 'honors.completion.see_more'.tr(),
+                    backgroundColor: AppColors.info,
+                    onPressed: () {
+                      context.pop();
+                    },
                   ),
                   const SizedBox(height: 10),
-
-                  // Secondary — "Volver"
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () => context.pop(),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF64748B),
-                        side: const BorderSide(
-                          color: Color(0xFFE1E6E7),
-                          width: 1.5,
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        'honors.completion.back'.tr(),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+                  SacButton.outline(
+                    text: 'honors.completion.back'.tr(),
+                    textColor: const Color(0xFF64748B),
+                    borderColor: const Color(0xFFE1E6E7),
+                    onPressed: () => context.pop(),
                   ),
                 ],
               ),

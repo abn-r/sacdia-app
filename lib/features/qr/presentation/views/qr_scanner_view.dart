@@ -8,6 +8,7 @@ import '../../../../core/errors/exceptions.dart';
 import '../../domain/entities/qr_scan_result.dart';
 import '../providers/qr_scan_provider.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 
 class QrScannerView extends ConsumerStatefulWidget {
   const QrScannerView({super.key, this.activityId});
@@ -270,9 +271,11 @@ class _SuccessBody extends StatelessWidget {
           ),
         ],
         const SizedBox(height: 20),
-        ElevatedButton(
+        SacButton(
+          text: 'qr.scan_another'.tr(),
+          variant: SacButtonVariant.primary,
+          fullWidth: false,
           onPressed: () => Navigator.of(context).pop(),
-          child: Text('qr.scan_another'.tr()),
         ),
       ],
     );
@@ -309,9 +312,11 @@ class _ErrorBody extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 20),
-        ElevatedButton(
+        SacButton(
+          text: 'common.retry'.tr(),
+          variant: SacButtonVariant.primary,
+          fullWidth: false,
           onPressed: () => Navigator.of(context).pop(),
-          child: Text('common.retry'.tr()),
         ),
       ],
     );

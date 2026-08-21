@@ -8,6 +8,8 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import '../../domain/entities/investiture_member.dart';
 import '../../domain/entities/investiture_status.dart';
 import '../providers/investiture_providers.dart';
@@ -236,21 +238,12 @@ class _MemberSubmitCard extends ConsumerWidget {
                     color: AppColors.primary,
                   ),
                 )
-              : ElevatedButton(
+              : SacButton(
+                  text: 'investiture.submit.btn_send'.tr(),
+                  variant: SacButtonVariant.primary,
+                  size: SacButtonSize.small,
+                  fullWidth: false,
                   onPressed: () => _showSubmitDialog(context, ref),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
-                    ),
-                    textStyle: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  child: Text('investiture.submit.btn_send'.tr()),
                 ),
         ],
       ),
@@ -261,40 +254,27 @@ class _MemberSubmitCard extends ConsumerWidget {
     final commentsCtrl = TextEditingController();
 
     try {
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text('investiture.submit.dialog_title'.tr()),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'investiture.submit.dialog_body'
-                    .tr(namedArgs: {'name': member.fullName}),
-                style: const TextStyle(fontSize: 14),
-              ),
-              const SizedBox(height: 16),
-              SacTextField(
-                controller: commentsCtrl,
-                label: 'investiture.submit.field_comments_label'.tr(),
-                hint: 'investiture.submit.field_comments_hint'.tr(),
-                maxLines: 3,
-              ),
-            ],
+      final confirmed = await SacDialog.present<bool>(
+        context,
+        builder: (ctx) => SacDialog(
+          title: 'investiture.submit.dialog_title'.tr(),
+          content: 'investiture.submit.dialog_body'
+              .tr(namedArgs: {'name': member.fullName}),
+          body: SacTextField(
+            controller: commentsCtrl,
+            label: 'investiture.submit.field_comments_label'.tr(),
+            hint: 'investiture.submit.field_comments_hint'.tr(),
+            maxLines: 3,
           ),
           actions: [
-            TextButton(
+            SacDialogAction(
+              label: 'common.cancel'.tr(),
+              style: SacDialogActionStyle.cancel,
               onPressed: () => Navigator.pop(ctx, false),
-              child: Text('common.cancel'.tr()),
             ),
-            ElevatedButton(
+            SacDialogAction(
+              label: 'investiture.submit.btn_send'.tr(),
               onPressed: () => Navigator.pop(ctx, true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-              ),
-              child: Text('investiture.submit.btn_send'.tr()),
             ),
           ],
         ),

@@ -20,6 +20,7 @@ import 'add_transaction_sheet.dart';
 import 'all_transactions_view.dart';
 import 'transaction_detail_view.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 
 /// Pantalla principal del módulo de Finanzas.
 ///
@@ -339,15 +340,10 @@ class _ErrorBody extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-          FilledButton.icon(
+          SacButton(
+            text: 'common.retry'.tr(),
+            icon: HugeIcons.strokeRoundedRefresh,
             onPressed: onRetry,
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedRefresh,
-              size: 18,
-              color: Colors.white,
-            ),
-            label: Text('common.retry'.tr()),
-            style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
           ),
         ],
       ),

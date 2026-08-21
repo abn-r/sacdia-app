@@ -8,6 +8,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -248,32 +249,13 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                       ),
 
                     // Save button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: FilledButton(
-                        onPressed: formState.isLoading ? null : _submit,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        child: formState.isLoading
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              )
-                            : Text(
-                                _isEditing
-                                    ? 'insurance.form.button_save_edit'.tr()
-                                    : 'insurance.form.button_save_create'.tr(),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 16,
-                                ),
-                              ),
-                      ),
+                    SacButton.primary(
+                      text: _isEditing
+                          ? 'insurance.form.button_save_edit'.tr()
+                          : 'insurance.form.button_save_create'.tr(),
+                      isLoading: formState.isLoading,
+                      onPressed: formState.isLoading ? null : _submit,
+                      borderRadius: 14,
                     ),
                   ],
                 ),

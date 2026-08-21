@@ -11,6 +11,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
@@ -618,12 +619,12 @@ class _CategoryRow extends StatelessWidget {
     final formKey = GlobalKey<FormState>();
     final material = MaterialLocalizations.of(context);
 
-    final result = await showDialog<int>(
-      context: context,
+    final result = await SacDialog.present<int>(
+      context,
       builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(category.name),
-          content: Form(
+        return SacDialog(
+          title: category.name,
+          body: Form(
             key: formKey,
             child: SacTextField(
               controller: controller,
@@ -641,17 +642,18 @@ class _CategoryRow extends StatelessWidget {
             ),
           ),
           actions: [
-            TextButton(
+            SacDialogAction(
+              label: material.cancelButtonLabel,
+              style: SacDialogActionStyle.cancel,
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(material.cancelButtonLabel),
             ),
-            TextButton(
+            SacDialogAction(
+              label: material.okButtonLabel,
               onPressed: () {
                 if (formKey.currentState?.validate() != true) return;
                 Navigator.of(dialogContext)
                     .pop(int.parse(controller.text.trim()));
               },
-              child: Text(material.okButtonLabel),
             ),
           ],
         );

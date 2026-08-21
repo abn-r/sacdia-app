@@ -8,6 +8,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 
@@ -471,25 +472,14 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
             ),
           ),
           const SizedBox(height: 24),
-          FilledButton.icon(
+          SacButton(
+            text: 'honors.catalog.retry'.tr(),
+            icon: HugeIcons.strokeRoundedRefresh,
             onPressed: () {
               ref.invalidate(honorsGroupedByCategoryProvider);
               ref.invalidate(allHonorsProvider);
               ref.invalidate(userHonorsProvider);
             },
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedRefresh,
-              size: 18,
-              color: Colors.white,
-            ),
-            label: Text('honors.catalog.retry'.tr()),
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
           ),
         ],
       ),

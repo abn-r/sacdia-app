@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
@@ -169,6 +170,7 @@ void main() {
 
       // Error icon or retry button should be present
       expect(
+          find.byType(SacButton).evaluate().isNotEmpty ||
           find.byType(ElevatedButton).evaluate().isNotEmpty ||
               find.byType(TextButton).evaluate().isNotEmpty ||
               find.byIcon(Icons.refresh).evaluate().isNotEmpty ||

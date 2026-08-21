@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 
 import '../../../../core/widgets/evidence_staging/image_source_dialog.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -399,38 +400,12 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
                       ),
 
                     // Save button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: FilledButton(
-                        onPressed: formState.isLoading ? null : _submit,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              AppTheme.radiusSM,
-                            ),
-                          ),
-                        ),
-                        child: formState.isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2.5,
-                                ),
-                              )
-                            : Text(
-                                _isEditing
-                                    ? 'common.save'.tr()
-                                    : 'inventory.form.register_button'.tr(),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 16,
-                                ),
-                              ),
-                      ),
+                    SacButton.primary(
+                      text: _isEditing
+                          ? 'common.save'.tr()
+                          : 'inventory.form.register_button'.tr(),
+                      isLoading: formState.isLoading,
+                      onPressed: formState.isLoading ? null : _submit,
                     ),
                   ],
                 ),

@@ -16,6 +16,8 @@ import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/widgets/evidence_staging/staged_file.dart';
 import 'package:sacdia_app/core/widgets/evidence_staging/upload_progress_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -659,12 +661,9 @@ class _ModeGuardScaffold extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            OutlinedButton(
+            SacButton.outline(
+              text: 'honors.evidence.mode_guard_back'.tr(),
               onPressed: () => context.pop(),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(44),
-              ),
-              child: Text('honors.evidence.mode_guard_back'.tr()),
             ),
           ],
         ),
@@ -1188,23 +1187,15 @@ class _CompletedFormatCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: onUploadCompletedFormat,
-                  icon: const HugeIcon(
-                    icon: HugeIcons.strokeRoundedUpload01,
-                    size: 18,
-                  ),
-                  label: Text(hasDocument
+                child: SacButton.outline(
+                  text: hasDocument
                       ? 'honors.evidence.replace_completed_format'.tr()
-                      : 'honors.evidence.upload_completed_format'.tr()),
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(44),
-                    foregroundColor: categoryColor,
-                    side: BorderSide(color: categoryColor),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+                      : 'honors.evidence.upload_completed_format'.tr(),
+                  icon: HugeIcons.strokeRoundedUpload01,
+                  textColor: categoryColor,
+                  borderColor: categoryColor,
+                  iconSize: 18,
+                  onPressed: onUploadCompletedFormat,
                 ),
               ),
               if (hasDocument) ...[
@@ -1568,33 +1559,17 @@ class _EvidenceThumbnail extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       onLongPress: canDelete
-          ? () {
+          ? () async {
               HapticFeedback.mediumImpact();
-              showDialog(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: Text('honors.evidence.delete_title'.tr()),
-                  content: Text(
-                    'honors.evidence.delete_content'.tr(),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      child: Text('honors.evidence.delete_cancel'.tr()),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        onDelete();
-                      },
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppColors.error,
-                      ),
-                      child: Text('honors.evidence.delete_confirm'.tr()),
-                    ),
-                  ],
-                ),
+              final confirmed = await SacDialog.show(
+                context,
+                title: 'honors.evidence.delete_title'.tr(),
+                content: 'honors.evidence.delete_content'.tr(),
+                cancelLabel: 'honors.evidence.delete_cancel'.tr(),
+                confirmLabel: 'honors.evidence.delete_confirm'.tr(),
+                confirmIsDestructive: true,
               );
+              if (confirmed == true) onDelete();
             }
           : null,
       child: ClipRRect(
@@ -1934,46 +1909,14 @@ class _CtaButton extends StatelessWidget {
     final foregroundColor = _heroForegroundColor(context, color);
     final disabledForegroundColor = Colors.white.withValues(alpha: 0.70);
 
-    return SizedBox(
-      width: double.infinity,
-      height: 52,
-      child: FilledButton(
-        onPressed: isLoading ? null : onPressed,
-        style: FilledButton.styleFrom(
-          backgroundColor: isDisabled ? AppColors.pendingColor : color,
-          foregroundColor:
-              isDisabled ? disabledForegroundColor : foregroundColor,
-          disabledBackgroundColor: AppColors.pendingColor,
-          disabledForegroundColor: disabledForegroundColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 14),
-        ),
-        child: isLoading
-            ? SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  color: foregroundColor,
-                ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  HugeIcon(icon: icon, size: 18),
-                  const SizedBox(width: 8),
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-      ),
+    return SacButton.primary(
+      text: label,
+      icon: icon,
+      isLoading: isLoading,
+      backgroundColor: isDisabled ? AppColors.pendingColor : color,
+      textColor: isDisabled ? disabledForegroundColor : foregroundColor,
+      onPressed: isLoading ? null : onPressed,
+      borderRadius: 14,
     );
   }
 }

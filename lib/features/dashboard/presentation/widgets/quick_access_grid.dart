@@ -68,7 +68,7 @@ final List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
   // Administrative: club management — clubs:update is held by secretary+
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.club',
-    icon: HugeIcons.strokeRoundedBuilding01,
+    icon: HugeIcons.strokeRoundedFlag01,
     color: AppColors.secondary,
     route: RouteNames.homeClub,
     requiredPermissions: {'clubs:update'},

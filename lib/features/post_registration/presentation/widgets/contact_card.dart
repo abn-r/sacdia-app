@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/sac_button.dart';
 import '../../data/models/emergency_contact_model.dart';
 
 /// Card que muestra un contacto de emergencia con opciones de edición y eliminación.
@@ -227,27 +228,20 @@ class _ActionPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: SizedBox(
-        height: 44,
-        child: OutlinedButton.icon(
-          onPressed: onPressed,
-          icon: HugeIcon(icon: icon, size: 17, color: color),
-          label: Text(label),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: color,
-            side: BorderSide(color: color.withValues(alpha: 0.22)),
-            backgroundColor: color.withValues(alpha: 0.04),
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            minimumSize: const Size(0, 44),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
-            textStyle: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ),
+      child: SacButton(
+        text: label,
+        icon: icon,
+        onPressed: onPressed,
+        variant: SacButtonVariant.outline,
+        fullWidth: true,
+        size: SacButtonSize.small,
+        textColor: color,
+        borderColor: color.withValues(alpha: 0.22),
+        backgroundColor: color.withValues(alpha: 0.04),
+        iconSize: 17,
+        fontSize: 13,
+        borderRadius: 14,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
       ),
     );
   }

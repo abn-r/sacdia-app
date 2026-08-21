@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
@@ -59,8 +60,8 @@ void main() {
       ),
       findsOneWidget,
     );
-    final enrollButton = tester.widget<ElevatedButton>(
-      find.widgetWithText(ElevatedButton, 'Inscribir'),
+    final enrollButton = tester.widget<SacButton>(
+      find.widgetWithText(SacButton, 'Inscribir'),
     );
     expect(enrollButton.onPressed, isNull);
   });
@@ -78,8 +79,8 @@ void main() {
 
     expect(memberLoads, 1);
     expect(find.text('Inscribir participantes'), findsOneWidget);
-    final enrollButton = tester.widget<ElevatedButton>(
-      find.widgetWithText(ElevatedButton, 'Inscribir'),
+    final enrollButton = tester.widget<SacButton>(
+      find.widgetWithText(SacButton, 'Inscribir'),
     );
     expect(enrollButton.onPressed, isNotNull);
   });
@@ -98,8 +99,8 @@ void main() {
 
     expect(memberLoads, 1);
     expect(find.text('Inscribir participantes'), findsNothing);
-    final enrollButton = tester.widget<ElevatedButton>(
-      find.widgetWithText(ElevatedButton, 'Inscribir'),
+    final enrollButton = tester.widget<SacButton>(
+      find.widgetWithText(SacButton, 'Inscribir'),
     );
     expect(enrollButton.onPressed, isNull);
   });

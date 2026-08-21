@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 
 /// Widget para mostrar errores de manera consistente
 ///
@@ -48,13 +49,10 @@ class ErrorDisplay extends StatelessWidget {
             ),
             if (onRetry != null) ...[
               const SizedBox(height: 24),
-              ElevatedButton.icon(
+              SacButton(
+                text: retryLabel ?? 'common.retry'.tr(),
+                icon: HugeIcons.strokeRoundedRefresh,
                 onPressed: onRetry,
-                icon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedRefresh,
-                    color: Colors.white,
-                    size: 20),
-                label: Text(retryLabel ?? 'common.retry'.tr()),
               ),
             ],
           ],

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -526,16 +527,14 @@ class _AllergiesSelectionViewState
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
-                FilledButton.icon(
+                SacButton(
+                  text: 'common.retry'.tr(),
+                  icon: HugeIcons.strokeRoundedRefresh,
+                  variant: SacButtonVariant.primary,
+                  fullWidth: false,
+                  backgroundColor: MedicoTokens.coral500,
+                  textColor: MedicoTokens.paper,
                   onPressed: () => ref.refresh(allergiesCatalogProvider),
-                  style: FilledButton.styleFrom(
-                      backgroundColor: MedicoTokens.coral500),
-                  icon: const HugeIcon(
-                    icon: HugeIcons.strokeRoundedRefresh,
-                    size: 20,
-                    color: MedicoTokens.paper,
-                  ),
-                  label: Text('common.retry'.tr()),
                 ),
               ],
             ),
@@ -1256,34 +1255,14 @@ class _StickyFooter extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          FilledButton(
+          SacButton(
+            text: 'common.save'.tr(),
+            variant: SacButtonVariant.primary,
+            fullWidth: false,
+            isLoading: isSaving,
+            backgroundColor: MedicoTokens.coral500,
+            textColor: MedicoTokens.paper,
             onPressed: canSave && !isSaving ? onSave : null,
-            style: FilledButton.styleFrom(
-              backgroundColor: MedicoTokens.coral500,
-              disabledBackgroundColor: MedicoTokens.ink150,
-              minimumSize: const Size(0, 48),
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-            ),
-            child: isSaving
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: MedicoTokens.paper,
-                    ),
-                  )
-                : Text(
-                    isSaving ? 'common.saving'.tr() : 'common.save'.tr(),
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.1,
-                      color: MedicoTokens.paper,
-                    ),
-                  ),
           ),
         ],
       ),

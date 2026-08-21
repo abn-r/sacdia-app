@@ -13,6 +13,7 @@ import '../providers/virtual_card_providers.dart';
 import '../widgets/credencial/action_pill.dart';
 import '../widgets/credencial/credencial_card.dart';
 import '../widgets/credencial/credencial_qr_fullscreen.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import '../widgets/credencial/credencial_tokens.dart';
 import '../widgets/credencial/credencial_view_model.dart';
 import '../widgets/credencial/credential_parallax.dart';
@@ -284,9 +285,11 @@ class _ErrorState extends StatelessWidget {
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 18),
-          FilledButton(
+          SacButton(
+            text: 'virtual_card.retry'.tr(),
+            variant: SacButtonVariant.primary,
+            fullWidth: false,
             onPressed: onRetry,
-            child: Text('virtual_card.retry'.tr()),
           ),
         ],
       ),

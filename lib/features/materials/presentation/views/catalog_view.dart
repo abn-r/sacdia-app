@@ -11,6 +11,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 
 import '../providers/cart_provider.dart';
 import '../providers/catalog_provider.dart';
@@ -457,10 +458,11 @@ class _ErrorState extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          FilledButton(
+          SacButton(
+            text: 'common.retry'.tr(),
+            variant: SacButtonVariant.primary,
+            fullWidth: false,
             onPressed: onRetry,
-            style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
-            child: Text('common.retry'.tr()),
           ),
         ],
       ),
@@ -479,15 +481,11 @@ class _LoadMoreButton extends StatelessWidget {
     return Center(
       child: isLoading
           ? const CircularProgressIndicator(color: AppColors.primary)
-          : OutlinedButton(
+          : SacButton(
+              text: 'materials.catalog.load_more'.tr(),
+              variant: SacButtonVariant.outline,
+              fullWidth: false,
               onPressed: onTap,
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: AppColors.primary),
-              ),
-              child: Text(
-                'materials.catalog.load_more'.tr(),
-                style: const TextStyle(color: AppColors.primary),
-              ),
             ),
     );
   }

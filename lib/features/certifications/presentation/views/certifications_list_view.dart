@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/certifications/domain/entities/certification.dart';
 
@@ -211,26 +212,13 @@ class CertificationsListView extends ConsumerWidget {
     WidgetRef ref,
     Certification certification,
   ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('certifications.list.enroll_dialog_title'.tr()),
-        content: Text(
-          'certifications.list.enroll_dialog_content'.tr(namedArgs: {
-            'name': certification.name,
-          }),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('common.cancel'.tr()),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text('certifications.list.enroll_button'.tr()),
-          ),
-        ],
-      ),
+    final confirmed = await SacDialog.show(
+      context,
+      title: 'certifications.list.enroll_dialog_title'.tr(),
+      content: 'certifications.list.enroll_dialog_content'.tr(namedArgs: {
+        'name': certification.name,
+      }),
+      confirmLabel: 'certifications.list.enroll_button'.tr(),
     );
 
     if (confirmed != true) return;

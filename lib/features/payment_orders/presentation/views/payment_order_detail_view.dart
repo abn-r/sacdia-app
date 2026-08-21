@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 
@@ -151,25 +152,12 @@ class PaymentOrderDetailView extends ConsumerWidget {
   }
 
   Future<void> _confirmCancel(BuildContext context, WidgetRef ref) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('payment_orders.detail.cancel_title'.tr()),
-        content: Text('payment_orders.detail.cancel_body'.tr()),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text('common.cancel'.tr()),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(
-              'payment_orders.detail.cancel_confirm'.tr(),
-              style: const TextStyle(color: AppColors.error),
-            ),
-          ),
-        ],
-      ),
+    final confirmed = await SacDialog.show(
+      context,
+      title: 'payment_orders.detail.cancel_title'.tr(),
+      content: 'payment_orders.detail.cancel_body'.tr(),
+      confirmLabel: 'payment_orders.detail.cancel_confirm'.tr(),
+      confirmIsDestructive: true,
     );
     if (confirmed != true) return;
 

@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_progress_bar.dart';
 import 'package:sacdia_app/features/certifications/domain/entities/user_certification.dart';
@@ -273,27 +274,14 @@ class MyCertificationsView extends ConsumerWidget {
     WidgetRef ref,
     UserCertification uc,
   ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('certifications.my.unenroll_dialog_title'.tr()),
-        content: Text(
-          'certifications.my.unenroll_dialog_content'.tr(namedArgs: {
-            'name': uc.certificationName,
-          }),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('common.cancel'.tr()),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text('certifications.my.unenroll_dialog_confirm'.tr()),
-          ),
-        ],
-      ),
+    final confirmed = await SacDialog.show(
+      context,
+      title: 'certifications.my.unenroll_dialog_title'.tr(),
+      content: 'certifications.my.unenroll_dialog_content'.tr(namedArgs: {
+        'name': uc.certificationName,
+      }),
+      confirmLabel: 'certifications.my.unenroll_dialog_confirm'.tr(),
+      confirmIsDestructive: true,
     );
 
     if (confirmed != true) return;

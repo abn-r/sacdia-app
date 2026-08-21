@@ -18,6 +18,7 @@ abstract final class SacMotion {
   static const Duration idleDrift = Duration(milliseconds: 3200);
 
   static const double enterScale = 0.96;
+  static const double pressScale = 0.97;
 
   static bool reduceMotionOf(BuildContext context) =>
       MediaQuery.maybeOf(context)?.disableAnimations ?? false;

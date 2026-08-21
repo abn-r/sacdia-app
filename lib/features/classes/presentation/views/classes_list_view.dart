@@ -93,33 +93,15 @@ class ClassesListView extends ConsumerWidget {
           if (hasActiveClub)
             Padding(
               padding: const EdgeInsets.only(right: 8),
-              child: OutlinedButton.icon(
+              child: SacButton(
                 onPressed: () => _openEnrollSheet(context),
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedBookmarkAdd02,
-                  size: 18,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                label: Text(
-                  'classes.list.enroll_cta_short'.tr(),
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                style: OutlinedButton.styleFrom(
-                  shape: const StadiumBorder(),
-                  side: BorderSide(
-                    color: Theme.of(context).colorScheme.outlineVariant,
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  minimumSize: const Size(0, 40),
-                  tapTargetSize: MaterialTapTargetSize.padded,
-                  foregroundColor: Theme.of(context).colorScheme.onSurface,
-                ),
+                text: 'classes.list.enroll_cta_short'.tr(),
+                icon: HugeIcons.strokeRoundedBookmarkAdd02,
+                variant: SacButtonVariant.outline,
+                fullWidth: false,
+                size: SacButtonSize.small,
+                textColor: Theme.of(context).colorScheme.onSurface,
+                borderColor: Theme.of(context).colorScheme.outlineVariant,
               ),
             ),
         ],
@@ -470,18 +452,10 @@ class _EnrollButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 48,
-      child: FilledButton.icon(
-        onPressed: onPressed,
-        icon: const HugeIcon(
-          icon: HugeIcons.strokeRoundedAdd01,
-          size: 20,
-          color: Colors.white,
-        ),
-        label: Text('classes.list.enroll_cta'.tr()),
-      ),
+    return SacButton.primary(
+      text: 'classes.list.enroll_cta'.tr(),
+      icon: HugeIcons.strokeRoundedAdd01,
+      onPressed: onPressed,
     );
   }
 }

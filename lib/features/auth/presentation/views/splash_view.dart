@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/providers/app_bootstrap_provider.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/zarza_roja_credit.dart';
 import 'package:sacdia_app/features/auth/presentation/widgets/sac_brand_mark.dart';
@@ -95,10 +96,10 @@ class _SplashViewState extends ConsumerState<SplashView>
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 16),
-        FilledButton.icon(
+        SacButton(
+          text: 'common.retry'.tr(),
+          icon: HugeIcons.strokeRoundedRefresh,
           onPressed: () => ref.read(appBootstrapProvider.notifier).retry(),
-          icon: const HugeIcon(icon: HugeIcons.strokeRoundedRefresh),
-          label: Text('common.retry'.tr()),
         ),
       ],
     );

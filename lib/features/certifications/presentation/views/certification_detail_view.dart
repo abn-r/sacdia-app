@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/features/certifications/domain/entities/certification_detail.dart';
@@ -427,24 +428,11 @@ class _NotEnrolledCTA extends ConsumerWidget {
   }
 
   Future<void> _enroll(BuildContext context, WidgetRef ref) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('certifications.detail.enroll_dialog_title'.tr()),
-        content: Text(
-          'certifications.detail.enroll_dialog_content'.tr(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('common.cancel'.tr()),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text('common.confirm'.tr()),
-          ),
-        ],
-      ),
+    final confirmed = await SacDialog.show(
+      context,
+      title: 'certifications.detail.enroll_dialog_title'.tr(),
+      content: 'certifications.detail.enroll_dialog_content'.tr(),
+      confirmLabel: 'common.confirm'.tr(),
     );
 
     if (confirmed != true) return;
