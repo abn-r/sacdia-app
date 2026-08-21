@@ -254,4 +254,49 @@ void main() {
       expect(card.bloodType, 'O_POSITIVE');
     },
   );
+
+  test(
+    'keeps Guías Mayores on the credential when the active context is Aventureros',
+    () async {
+      final repository = _FakeVirtualCardRepository(
+        remoteError: ConnectionException(message: 'timeout'),
+        cachedCard: VirtualCard(
+          userId: 'user-123',
+          fullName: 'Ana Lopez',
+          qrToken: 'token',
+          qrExpiresAt: DateTime.utc(2099, 1, 1),
+          isActive: true,
+          sectionName: 'Aventureros',
+        ),
+      );
+      final user = _sampleUser(
+        authorization: const AuthorizationSnapshot(
+          clubAssignments: [
+            AuthorizationGrant(
+              assignmentId: 'av',
+              roleName: 'Director',
+              clubTypeName: 'Aventureros',
+            ),
+            AuthorizationGrant(
+              assignmentId: 'gm',
+              roleName: 'Guía Mayor',
+              clubTypeName: 'Guías Mayores',
+            ),
+          ],
+          activeAssignmentId: 'av',
+        ),
+      );
+      final container = _buildContainer(
+        repository: repository,
+        connected: true,
+        user: user,
+      );
+      addTearDown(container.dispose);
+
+      final card = await container.read(virtualCardFetcherProvider.future);
+
+      expect(card.sectionName, 'Guías Mayores');
+      expect(card.isOffline, isTrue);
+    },
+  );
 }

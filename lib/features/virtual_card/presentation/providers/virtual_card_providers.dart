@@ -15,6 +15,7 @@ import '../../data/datasources/virtual_card_remote_data_source.dart';
 import '../../data/repositories/virtual_card_repository_impl.dart';
 import '../../domain/entities/virtual_card.dart';
 import '../../domain/repositories/virtual_card_repository.dart';
+import '../utils/credential_club_type.dart';
 
 final _virtualCardDioProvider = Provider<Dio>((ref) => DioClient.createDio());
 
@@ -54,10 +55,10 @@ final virtualCardFetcherProvider =
     try {
       final remote = await repository.getRemoteCard();
       await repository.saveCachedCard(remote);
-      return remote.copyWith(isOffline: false);
+      return _withIdentity(remote.copyWith(isOffline: false), user);
     } on ConnectionException {
       if (cached != null) {
-        return cached.copyWith(isOffline: true);
+        return _withIdentity(cached.copyWith(isOffline: true), user);
       }
       return _buildFallbackCard(ref, user, isOffline: true);
     } on ServerException catch (error) {
@@ -65,14 +66,14 @@ final virtualCardFetcherProvider =
 
       _notifyVirtualCardRateLimit(ref);
       if (cached != null) {
-        return cached.copyWith(isOffline: true);
+        return _withIdentity(cached.copyWith(isOffline: true), user);
       }
       return _buildFallbackCard(ref, user, isOffline: true);
     }
   }
 
   if (cached != null) {
-    return cached.copyWith(isOffline: true);
+    return _withIdentity(cached.copyWith(isOffline: true), user);
   }
 
   return _buildFallbackCard(ref, user, isOffline: true);
@@ -107,6 +108,9 @@ Future<VirtualCard> _buildFallbackCard(
   }
 
   final activeGrant = user.authorization?.activeGrant;
+  final identityClubType = resolveCredentialClubType(
+    user.authorization?.clubAssignments ?? const [],
+  );
   final displayName =
       _pickNonEmpty([profile?.fullName, user.name, user.email]) ?? user.email;
 
@@ -117,6 +121,7 @@ Future<VirtualCard> _buildFallbackCard(
     activeGrant?.clubTypeName,
   ]);
   final sectionName = _pickNonEmpty([
+    identityClubType,
     profile?.clubType,
     activeGrant?.clubTypeName,
   ]);
@@ -157,6 +162,13 @@ String? _pickNonEmpty(Iterable<String?> values) {
     }
   }
   return null;
+}
+
+VirtualCard _withIdentity(VirtualCard card, UserEntity user) {
+  return applyCredentialIdentity(
+    card: card,
+    assignments: user.authorization?.clubAssignments ?? const [],
+  );
 }
 
 bool isVirtualCardRateLimit(Object error) {

@@ -4,12 +4,11 @@ import 'credencial_tokens.dart';
 /// Lightweight view-model that bridges [VirtualCard] to the data the
 /// immersive credential card (CredencialCard / CredencialQrFullscreen) needs.
 ///
-/// Section detection uses `.contains()` on the combined lowercased
-/// clubName + roleCode + sectionName strings, matching the pattern already
-/// used by `_clubFallbackAsset` in virtual_card_face.dart:
-///   avent*          → AV
-///   conq*/conquistador* → CQ
+/// Section detection uses the card's [sectionName] first (club-type identity),
+/// then role, then club name:
 ///   guia*/mayor*    → GM
+///   conq*/pathfinder* → CQ
+///   avent*          → AV
 ///   unknown / null  → CQ (default)
 class CredencialViewModel {
   final String nombre;
@@ -145,28 +144,35 @@ class CredencialViewModel {
 
   // ── Private helpers ────────────────────────────────────────────────────────
 
-  /// Derives [SeccionCode] from the combined club / role / section strings.
+  /// Derives [SeccionCode] from the card.
   ///
-  /// Same substring-matching strategy used by `_clubFallbackAsset` in
-  /// `virtual_card_face.dart`. Order matters: AV before CQ because
-  /// "aventurero" doesn't overlap with "conq", but be explicit anyway.
+  /// [sectionName] is the club-type identity (Aventureros / Conquistadores /
+  /// Guías Mayores). Match it first so a club whose *name* contains
+  /// "Aventureros" does not paint a Guía Mayor credential blue.
+  /// Within a single string, GM > CQ > AV.
   static SeccionCode _seccionFromCard(VirtualCard card) {
-    final source =
-        '${card.clubName ?? ''} ${card.roleCode ?? ''} ${card.sectionName ?? ''}'
-            .toLowerCase();
-    if (source.contains('avent')) {
-      return SeccionCode.AV;
-    }
+    return _seccionFromName(card.sectionName) ??
+        _seccionFromName(card.roleCode) ??
+        _seccionFromName(card.clubName) ??
+        SeccionCode.CQ;
+  }
+
+  static SeccionCode? _seccionFromName(String? raw) {
+    if (raw == null) return null;
+    final source = raw.toLowerCase();
     if (source.contains('guia') ||
         source.contains('guía') ||
-        source.contains('mayor')) {
+        source.contains('mayor') ||
+        source.contains('master guide')) {
       return SeccionCode.GM;
     }
-    if (source.contains('conq')) {
+    if (source.contains('conq') || source.contains('pathfinder')) {
       return SeccionCode.CQ;
     }
-    // Default to CQ — the most common section in SACDIA clubs.
-    return SeccionCode.CQ;
+    if (source.contains('avent') || source.contains('adventurer')) {
+      return SeccionCode.AV;
+    }
+    return null;
   }
 
   static bool _isRedundantSectionIdentity(String value, String section) {
