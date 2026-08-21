@@ -4,7 +4,7 @@ import UIKit
 import GoogleMaps
 
 @main
-@objc class AppDelegate: FlutterAppDelegate {
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   private var audioPlayer: AVPlayer?
 
   override func application(
@@ -25,19 +25,18 @@ import GoogleMaps
     GMSServices.setMetalRendererEnabled(false)
     #endif
 
-    GeneratedPluginRegistrant.register(with: self)
-    configureAudioPlayerChannel()
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
-  private func configureAudioPlayerChannel() {
-    guard let controller = window?.rootViewController as? FlutterViewController else {
-      return
-    }
+  func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+    GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    configureAudioPlayerChannel(messenger: engineBridge.applicationRegistrar.messenger())
+  }
 
+  private func configureAudioPlayerChannel(messenger: FlutterBinaryMessenger) {
     let channel = FlutterMethodChannel(
       name: "sacdia/audio_player",
-      binaryMessenger: controller.binaryMessenger
+      binaryMessenger: messenger
     )
 
     channel.setMethodCallHandler { [weak self] call, result in
@@ -82,12 +81,13 @@ import GoogleMaps
       result(nil)
 
     case "position":
-      let positionSeconds = audioPlayer?.currentTime().seconds ?? 0
-      let durationSeconds = audioPlayer?.currentItem?.duration.seconds ?? 0
+      let player = audioPlayer
+      let status = player?.timeControlStatus
+      let isPlaying = status == .playing || status == .waitingToPlayAtSpecifiedRate
       result([
-        "positionMs": milliseconds(from: positionSeconds),
-        "durationMs": milliseconds(from: durationSeconds),
-        "isPlaying": audioPlayer?.timeControlStatus == .playing
+        "positionMs": milliseconds(from: player?.currentTime().seconds ?? 0),
+        "durationMs": milliseconds(from: player?.currentItem?.duration.seconds ?? 0),
+        "isPlaying": isPlaying
       ])
 
     default:
@@ -96,9 +96,9 @@ import GoogleMaps
   }
 
   private func milliseconds(from seconds: Double) -> Int {
-    guard seconds.isFinite, seconds > 0 else {
+    guard seconds.isFinite, seconds >= 0 else {
       return 0
     }
-    return Int(seconds * 1000)
+    return Int((seconds * 1000).rounded())
   }
 }

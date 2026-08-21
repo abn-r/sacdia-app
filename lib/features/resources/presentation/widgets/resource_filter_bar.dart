@@ -120,13 +120,13 @@ class _FilterChipState extends State<_FilterChip> {
         onTapUp: (_) => setState(() => _pressed = false),
         onTapCancel: () => setState(() => _pressed = false),
         onTap: widget.onTap,
-        child: AnimatedScale(
-          scale: (!reduce && _pressed) ? 0.97 : 1,
-          duration: SacMotion.press,
-          curve: Curves.easeOut,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            curve: Curves.easeOut,
+          child: AnimatedScale(
+            scale: (!reduce && _pressed) ? 0.97 : 1,
+            duration: SacMotion.press,
+            curve: SacMotion.easeOut,
+            child: AnimatedContainer(
+              duration: SacMotion.standard,
+              curve: SacMotion.easeOut,
             constraints: const BoxConstraints(minHeight: 44),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(

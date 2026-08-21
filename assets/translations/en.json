@@ -110,7 +110,8 @@
       "one": "{} day ago",
       "other": "{} days ago"
     },
-    "accessibility_tile": "Accessibility"
+    "accessibility_tile": "Accessibility",
+    "open_document_failed": "We couldn't open this document."
   },
   "accessibility": {
     "title": "Accessibility",
@@ -264,8 +265,8 @@
     },
     "report_device_info": "{platform} {osVersion}\n{model}\nApp {appVersion} ({buildNumber})",
     "hub_badge": "Help trail",
-    "hub_title": "Find the right trail for your question",
-    "hub_intro": "Get quick answers, email support, or send a report with technical context.",
+    "hub_title": "How can we help?",
+    "hub_intro": "Search for an answer or choose how to reach us.",
     "route_faq_label": "First stop",
     "route_contact_label": "Direct channel",
     "route_report_label": "Trail log",
@@ -281,7 +282,12 @@
       "profile": "Profile",
       "support": "Support",
       "onboarding": "Start"
-    }
+    },
+    "hub_search_hint": "Search help…",
+    "faq_count": "{} questions",
+    "contact_copy": "Copy email",
+    "contact_copied": "Email copied",
+    "report_pick_category": "Choose a category"
   },
   "biometric": {
     "tile_title": "App biometric protection",

@@ -94,5 +94,9 @@
             <action android:name="android.intent.action.VIEW"/>
             <data android:scheme="waze"/>
         </intent>
+        <!-- url_launcher LaunchMode.inAppBrowserView (Chrome Custom Tabs) -->
+        <intent>
+            <action android:name="android.support.customtabs.action.CustomTabsService" />
+        </intent>
     </queries>
 </manifest>

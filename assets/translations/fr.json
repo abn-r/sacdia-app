@@ -110,7 +110,8 @@
       "one": "il y a {} jour",
       "other": "il y a {} jours"
     },
-    "accessibility_tile": "Accessibilité"
+    "accessibility_tile": "Accessibilité",
+    "open_document_failed": "Impossible d’ouvrir ce document."
   },
   "accessibility": {
     "title": "Accessibilité",
@@ -264,8 +265,8 @@
     },
     "report_device_info": "{platform} {osVersion}\n{model}\nApp {appVersion} ({buildNumber})",
     "hub_badge": "Parcours d’aide",
-    "hub_title": "Trouvez le bon sentier pour votre question",
-    "hub_intro": "Consultez des réponses rapides, écrivez au support ou envoyez un signalement avec contexte technique.",
+    "hub_title": "Comment pouvons-nous aider ?",
+    "hub_intro": "Cherchez une réponse ou choisissez comment nous contacter.",
     "route_faq_label": "Premier arrêt",
     "route_contact_label": "Canal direct",
     "route_report_label": "Carnet de route",
@@ -281,7 +282,12 @@
       "profile": "Profil",
       "support": "Support",
       "onboarding": "Départ"
-    }
+    },
+    "hub_search_hint": "Rechercher dans l’aide…",
+    "faq_count": "{} questions",
+    "contact_copy": "Copier l’e-mail",
+    "contact_copied": "E-mail copié",
+    "report_pick_category": "Choisir une catégorie"
   },
   "biometric": {
     "tile_title": "Protection biométrique de l’app",

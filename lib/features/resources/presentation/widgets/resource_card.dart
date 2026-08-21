@@ -1,10 +1,14 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_network_image.dart';
 import '../../domain/entities/resource.dart';
+import '../providers/resources_providers.dart';
+import '../utils/resource_preview.dart';
 
 /// Color semántico por tipo de recurso.
 Color resourceTypeColor(BuildContext context, String resourceType) {
@@ -66,24 +70,22 @@ String _formatFileSize(int? bytes) {
   return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
 }
 
-/// Card de recurso — un solo canal de tipo (icon tile tintado).
-class ResourceCard extends StatefulWidget {
+/// Tile de recurso en grilla: preview + título.
+class ResourceCard extends ConsumerStatefulWidget {
   final Resource resource;
   final VoidCallback onTap;
-  final Duration animationDelay;
 
   const ResourceCard({
     super.key,
     required this.resource,
     required this.onTap,
-    this.animationDelay = Duration.zero,
   });
 
   @override
-  State<ResourceCard> createState() => _ResourceCardState();
+  ConsumerState<ResourceCard> createState() => _ResourceCardState();
 }
 
-class _ResourceCardState extends State<ResourceCard> {
+class _ResourceCardState extends ConsumerState<ResourceCard> {
   bool _pressed = false;
 
   void _setPressed(bool value) {
@@ -94,18 +96,27 @@ class _ResourceCardState extends State<ResourceCard> {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final color = resourceTypeColor(context, widget.resource.resourceType);
-    final icon = resourceTypeIcon(widget.resource.resourceType);
-    final sizeStr = _formatFileSize(widget.resource.fileSize);
+    final resource = widget.resource;
+    final sizeStr = _formatFileSize(resource.fileSize);
     final reduce = SacMotion.reduceMotionOf(context);
     final meta = [
-      if (widget.resource.categoryName != null) widget.resource.categoryName!,
+      if (resource.categoryName != null) resource.categoryName!,
       if (sizeStr.isNotEmpty) sizeStr,
     ].join(' · ');
 
+    final cachedSigned = resource.signedUrl;
+    final shouldFetch = resourceWantsSignedPreview(resource);
+    final fetched = shouldFetch
+        ? ref.watch(resourcePreviewSignedUrlProvider(resource.resourceId))
+        : null;
+    final imageUrl = (cachedSigned != null && cachedSigned.isNotEmpty)
+        ? cachedSigned
+        : fetched?.valueOrNull;
+    final videoThumb = videoPreviewUrl(resource.externalUrl);
+
     return Semantics(
       button: true,
-      label: widget.resource.title,
+      label: '${resource.title}, ${resourceTypeLabel(resource.resourceType)}',
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTapDown: (_) => _setPressed(true),
@@ -113,54 +124,58 @@ class _ResourceCardState extends State<ResourceCard> {
         onTapCancel: () => _setPressed(false),
         onTap: widget.onTap,
         child: AnimatedScale(
-          scale: (!reduce && _pressed) ? 0.985 : 1,
+          scale: (!reduce && _pressed) ? 0.97 : 1,
           duration: SacMotion.press,
-          curve: Curves.easeOut,
-          child: SacCard(
-            // Sin accent bar — el icon tile ya comunica el tipo.
-            animate: true,
-            animationDelay: widget.animationDelay,
-            margin: const EdgeInsets.only(bottom: 10),
-            padding: const EdgeInsets.all(14),
-            child: Row(
+          curve: SacMotion.easeOut,
+          child: Container(
+            decoration: BoxDecoration(
+              color: c.surface,
+              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+              border: Border.all(color: c.border),
+              boxShadow: [
+                BoxShadow(
+                  color: c.shadow,
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  alignment: Alignment.center,
-                  child: HugeIcon(
-                    icon: icon,
-                    size: 22,
-                    color: color,
+                Expanded(
+                  child: ResourcePreviewPane(
+                    resource: resource,
+                    imageUrl: imageUrl,
+                    videoThumbUrl: videoThumb,
+                    isImageLoading: fetched?.isLoading ?? false,
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
+                Padding(
+                  padding:
+                      const EdgeInsets.fromLTRB(10, 10, 10, 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        widget.resource.title,
+                        resource.title,
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: 13,
                           fontWeight: FontWeight.w700,
                           color: c.text,
-                          height: 1.25,
+                          height: 1.2,
                           letterSpacing: -0.15,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                       if (meta.isNotEmpty) ...[
-                        const SizedBox(height: 5),
+                        const SizedBox(height: 4),
                         Text(
                           meta,
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 11,
                             fontWeight: FontWeight.w500,
                             color: c.textTertiary,
                             height: 1.2,
@@ -172,15 +187,195 @@ class _ResourceCardState extends State<ResourceCard> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedArrowRight01,
-                  size: 16,
-                  color: c.textTertiary,
-                ),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class ResourcePreviewPane extends StatelessWidget {
+  final Resource resource;
+  final String? imageUrl;
+  final String? videoThumbUrl;
+  final bool isImageLoading;
+  final bool showTypeBadge;
+  final int textMaxLines;
+
+  const ResourcePreviewPane({
+    super.key,
+    required this.resource,
+    required this.imageUrl,
+    required this.videoThumbUrl,
+    required this.isImageLoading,
+    this.showTypeBadge = true,
+    this.textMaxLines = 6,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final color = resourceTypeColor(context, resource.resourceType);
+    final icon = resourceTypeIcon(resource.resourceType);
+
+    return ColoredBox(
+      color: color.withValues(alpha: 0.12),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          _previewBody(context, c, color, icon),
+          if (showTypeBadge)
+            Positioned(
+              top: 8,
+              left: 8,
+              child: _TypeBadge(
+                label: resourceTypeLabel(resource.resourceType),
+              ),
+            ),
+          if (resource.resourceType == 'video_link')
+            Center(
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.55),
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedPlay,
+                  size: 18,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _previewBody(
+    BuildContext context,
+    SacColors c,
+    Color color,
+    List<List<dynamic>> icon,
+  ) {
+    if (imageUrl != null && imageUrl!.isNotEmpty) {
+      return SacNetworkImage(
+        imageUrl: imageUrl!,
+        fit: BoxFit.cover,
+        memCacheWidth: 800,
+        placeholder: (_, __) => _TypeGlyph(color: color, icon: icon),
+        errorWidget: (_, __, ___) => _TypeGlyph(color: color, icon: icon),
+      );
+    }
+
+    if (resource.resourceType == 'video_link' &&
+        videoThumbUrl != null &&
+        videoThumbUrl!.isNotEmpty) {
+      return SacNetworkImage(
+        imageUrl: videoThumbUrl!,
+        fit: BoxFit.cover,
+        memCacheWidth: 800,
+        placeholder: (_, __) => _TypeGlyph(color: color, icon: icon),
+        errorWidget: (_, __, ___) => _TypeGlyph(color: color, icon: icon),
+      );
+    }
+
+    if (resource.resourceType == 'text' &&
+        resource.content != null &&
+        resource.content!.trim().isNotEmpty) {
+      return Padding(
+        padding: EdgeInsets.fromLTRB(12, showTypeBadge ? 36 : 16, 12, 12),
+        child: Text(
+          resource.content!.trim(),
+          maxLines: textMaxLines,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 13,
+            height: 1.4,
+            color: c.textSecondary,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      );
+    }
+
+    if (isImageLoading) {
+      return _TypeGlyph(color: color, icon: icon);
+    }
+
+    return _TypeGlyph(
+      color: color,
+      icon: icon,
+      caption: resource.fileName,
+    );
+  }
+}
+
+class _TypeGlyph extends StatelessWidget {
+  final Color color;
+  final List<List<dynamic>> icon;
+  final String? caption;
+
+  const _TypeGlyph({
+    required this.color,
+    required this.icon,
+    this.caption,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 28, 12, 12),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          HugeIcon(icon: icon, size: 36, color: color),
+          if (caption != null && caption!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              caption!,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: c.textTertiary,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _TypeBadge extends StatelessWidget {
+  final String label;
+
+  const _TypeBadge({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+          height: 1.1,
+          letterSpacing: 0.1,
         ),
       ),
     );

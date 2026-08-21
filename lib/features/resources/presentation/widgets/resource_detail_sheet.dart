@@ -7,12 +7,14 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/media/sac_audio_player_controller.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../domain/entities/resource.dart';
 import '../providers/resources_providers.dart';
+import '../utils/resource_preview.dart';
 import 'resource_card.dart';
 
 /// Bottom sheet con el detalle completo de un recurso.
@@ -141,29 +143,36 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
     final c = context.sac;
     final signedUrlState = ref.watch(signedUrlNotifierProvider);
     final color = resourceTypeColor(context, _resource.resourceType);
-    final icon = resourceTypeIcon(_resource.resourceType);
+    final cachedSigned = _resource.signedUrl;
+    final shouldFetch = resourceWantsSignedPreview(_resource);
+    final fetched = shouldFetch
+        ? ref.watch(resourcePreviewSignedUrlProvider(_resource.resourceId))
+        : null;
+    final imageUrl = (cachedSigned != null && cachedSigned.isNotEmpty)
+        ? cachedSigned
+        : fetched?.valueOrNull;
     final initialChildSize = switch (_resource.resourceType) {
-      'text' => 0.75,
-      'image' => 0.68,
-      'audio' => 0.72,
-      _ => 0.55,
+      'text' => 0.82,
+      'image' => 0.78,
+      'audio' => 0.78,
+      'video_link' => 0.72,
+      _ => 0.62,
     };
 
     return DraggableScrollableSheet(
       initialChildSize: initialChildSize,
-      minChildSize: 0.35,
-      maxChildSize: 0.92,
+      minChildSize: 0.4,
+      maxChildSize: 0.94,
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
-            color: c.background,
+            color: c.surface,
             borderRadius: const BorderRadius.vertical(
               top: Radius.circular(20),
             ),
           ),
           child: Column(
             children: [
-              // ── Drag handle ────────────────────────────────────────
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Container(
@@ -175,7 +184,6 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
                   ),
                 ),
               ),
-
               Expanded(
                 child: SingleChildScrollView(
                   controller: scrollController,
@@ -183,84 +191,72 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ── Icon + type badge ────────────────────────
-                      Container(
-                        width: 56,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.10),
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.radiusMD),
-                        ),
-                        child: Center(
-                          child: HugeIcon(
-                            icon: icon,
-                            size: 28,
-                            color: color,
+                      ClipRRect(
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusMD),
+                        child: SizedBox(
+                          height: 180,
+                          width: double.infinity,
+                          child: ResourcePreviewPane(
+                            resource: _resource,
+                            imageUrl: imageUrl,
+                            videoThumbUrl:
+                                videoPreviewUrl(_resource.externalUrl),
+                            isImageLoading: fetched?.isLoading ?? false,
+                            textMaxLines: 10,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 14),
-
-                      // ── Title ────────────────────────────────────
+                      const SizedBox(height: 16),
                       Text(
                         _resource.title,
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 20,
                           fontWeight: FontWeight.w700,
                           color: c.text,
-                          height: 1.3,
+                          height: 1.2,
+                          letterSpacing: -0.3,
                         ),
                       ),
-                      if (_resource.categoryName != null) ...[
-                        const SizedBox(height: 4),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          SacBadge(
+                            label: resourceTypeLabel(_resource.resourceType),
+                            variant: SacBadgeVariant.neutral,
+                          ),
+                          if (_resource.categoryName != null)
+                            SacBadge(
+                              label: _resource.categoryName!,
+                              variant: SacBadgeVariant.neutral,
+                            ),
+                        ],
+                      ),
+                      if (_resource.fileSize != null) ...[
+                        const SizedBox(height: 10),
                         Text(
-                          _resource.categoryName!,
+                          _formatFileSize(_resource.fileSize),
                           style: TextStyle(
                             fontSize: 13,
-                            color: color,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w500,
+                            color: c.textTertiary,
                           ),
                         ),
                       ],
-
-                      // ── Meta row ─────────────────────────────────
-                      if (_resource.fileSize != null) ...[
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            HugeIcon(
-                              icon: HugeIcons.strokeRoundedInformationCircle,
-                              size: 14,
-                              color: c.textTertiary,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              _formatFileSize(_resource.fileSize),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: c.textTertiary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-
-                      // ── Description ──────────────────────────────
                       if (_resource.description != null &&
                           _resource.description!.isNotEmpty) ...[
                         const SizedBox(height: 14),
                         Text(
                           _resource.description!,
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 15,
                             color: c.textSecondary,
-                            height: 1.5,
+                            height: 1.45,
                           ),
                         ),
                       ],
-
-                      // ── Text content ─────────────────────────────
                       if (_resource.resourceType == 'text' &&
                           _resource.content != null &&
                           _resource.content!.isNotEmpty) ...[
@@ -269,7 +265,7 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: c.surface,
+                            color: c.surfaceVariant,
                             borderRadius:
                                 BorderRadius.circular(AppTheme.radiusMD),
                             border: Border.all(color: c.border),
@@ -277,14 +273,13 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
                           child: Text(
                             _resource.content!,
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 15,
                               color: c.text,
-                              height: 1.6,
+                              height: 1.55,
                             ),
                           ),
                         ),
                       ],
-
                       if (_resource.resourceType == 'audio') ...[
                         const SizedBox(height: 16),
                         _ResourceAudioPlayer(
@@ -294,10 +289,7 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
                           onError: _showError,
                         ),
                       ],
-
                       const SizedBox(height: 24),
-
-                      // ── Error from signed URL ────────────────────
                       if (signedUrlState.hasError)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12),
@@ -309,9 +301,7 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
                             ),
                           ),
                         ),
-
-                      // ── Action buttons ───────────────────────────
-                      _buildActionButtons(context, color),
+                      _buildActionButtons(context),
                     ],
                   ),
                 ),
@@ -323,24 +313,23 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context, Color color) {
+  Widget _buildActionButtons(BuildContext context) {
     final type = _resource.resourceType;
-    final bool isText = type == 'text';
-
-    // Sin acción de apertura para texto (ya se muestra inline)
-    if (isText) return const SizedBox.shrink();
+    if (type == 'text') return const SizedBox.shrink();
 
     if (type == 'video_link') {
       return _ResourceActionButton(
         text: 'resources.action.watch_video'.tr(),
         loadingText: 'resources.action.opening'.tr(),
         icon: HugeIcons.strokeRoundedPlayCircle,
-        color: color,
         isLoading: _loadingAction == _ResourceAction.openVideo,
         disabled: _loadingAction != null,
         onPressed: _openExternalUrl,
       );
     }
+
+    final downloadIsSecondary =
+        type == 'audio' || type == 'image' || _isPdfDocument;
 
     final actions = <Widget>[
       if (type == 'image')
@@ -348,7 +337,6 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
           text: 'resources.action.view_image'.tr(),
           loadingText: 'resources.action.opening'.tr(),
           icon: HugeIcons.strokeRoundedImage01,
-          color: color,
           isLoading: _loadingAction == _ResourceAction.viewImage,
           disabled: _loadingAction != null,
           onPressed: _viewImage,
@@ -358,7 +346,6 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
           text: 'resources.action.view_pdf'.tr(),
           loadingText: 'resources.action.opening'.tr(),
           icon: HugeIcons.strokeRoundedFile01,
-          color: color,
           isLoading: _loadingAction == _ResourceAction.viewPdf,
           disabled: _loadingAction != null,
           onPressed: _viewPdf,
@@ -367,11 +354,10 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
         text: 'resources.action.download'.tr(),
         loadingText: 'resources.action.opening'.tr(),
         icon: HugeIcons.strokeRoundedDownload01,
-        color: color,
         isLoading: _loadingAction == _ResourceAction.download,
         disabled: _loadingAction != null,
         onPressed: _openDownload,
-        secondary: type == 'audio' || type == 'image' || _isPdfDocument,
+        secondary: downloadIsSecondary,
       ),
     ];
 
@@ -408,7 +394,6 @@ class _ResourceActionButton extends StatelessWidget {
   final String text;
   final String loadingText;
   final List<List<dynamic>> icon;
-  final Color color;
   final bool isLoading;
   final bool disabled;
   final VoidCallback onPressed;
@@ -418,7 +403,6 @@ class _ResourceActionButton extends StatelessWidget {
     required this.text,
     required this.loadingText,
     required this.icon,
-    required this.color,
     required this.isLoading,
     required this.disabled,
     required this.onPressed,
@@ -427,18 +411,22 @@ class _ResourceActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
+    if (secondary) {
+      return SacButton.outline(
+        text: isLoading ? loadingText : text,
+        icon: icon,
+        isLoading: isLoading,
+        isEnabled: !disabled,
+        onPressed: disabled ? null : onPressed,
+      );
+    }
 
-    return SacButton(
+    return SacButton.primary(
       text: isLoading ? loadingText : text,
       icon: icon,
       isLoading: isLoading,
-      fullWidth: true,
-      backgroundColor: secondary ? c.surface : color,
-      textColor: secondary ? color : Colors.white,
-      borderRadius: AppTheme.radiusMD,
+      isEnabled: !disabled,
       onPressed: disabled ? null : onPressed,
-      variant: secondary ? SacButtonVariant.outline : SacButtonVariant.primary,
     );
   }
 }
@@ -511,7 +499,6 @@ class _ResourceAudioPlayerState extends State<_ResourceAudioPlayer> {
       if (!mounted) return;
       setState(() => _status = _AudioStatus.playing);
       _startPositionTimer();
-      await _refreshPosition();
     } catch (_) {
       _fail('resources.error.audio_playback'.tr());
     }
@@ -533,7 +520,6 @@ class _ResourceAudioPlayerState extends State<_ResourceAudioPlayer> {
       await _player.resume();
       if (mounted) setState(() => _status = _AudioStatus.playing);
       _startPositionTimer();
-      await _refreshPosition();
     } catch (_) {
       _fail('resources.error.audio_playback'.tr());
     }
@@ -548,9 +534,10 @@ class _ResourceAudioPlayerState extends State<_ResourceAudioPlayer> {
   void _startPositionTimer() {
     _positionTimer?.cancel();
     _positionTimer = Timer.periodic(
-      const Duration(seconds: 1),
+      const Duration(milliseconds: 250),
       (_) => _refreshPosition(),
     );
+    _refreshPosition();
   }
 
   Future<void> _refreshPosition() async {
@@ -559,8 +546,10 @@ class _ResourceAudioPlayerState extends State<_ResourceAudioPlayer> {
       if (!mounted) return;
       setState(() {
         _position = playback.position;
-        _duration = playback.duration;
-        if (_status == _AudioStatus.playing && !playback.isPlaying) {
+        if (playback.duration > Duration.zero) {
+          _duration = playback.duration;
+        }
+        if (_status == _AudioStatus.playing && hasAudioReachedEnd(playback)) {
           _status = _AudioStatus.paused;
           _positionTimer?.cancel();
         }
@@ -599,11 +588,20 @@ class _ResourceAudioPlayerState extends State<_ResourceAudioPlayer> {
           const SizedBox(height: 12),
           ClipRRect(
             borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-            child: LinearProgressIndicator(
-              minHeight: 6,
-              value: progress,
-              backgroundColor: c.border,
-              valueColor: AlwaysStoppedAnimation<Color>(widget.accentColor),
+            child: SizedBox(
+              height: 6,
+              width: double.infinity,
+              child: ColoredBox(
+                color: c.border,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: FractionallySizedBox(
+                    widthFactor: progress,
+                    heightFactor: 1,
+                    child: ColoredBox(color: widget.accentColor),
+                  ),
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -623,15 +621,12 @@ class _ResourceAudioPlayerState extends State<_ResourceAudioPlayer> {
             ],
           ),
           const SizedBox(height: 12),
-          SacButton(
+          SacButton.primary(
             text: _buttonLabel,
             icon: _isPlaying
                 ? HugeIcons.strokeRoundedPause
                 : HugeIcons.strokeRoundedPlayCircle,
             isLoading: _isBusy,
-            fullWidth: true,
-            backgroundColor: widget.accentColor,
-            borderRadius: AppTheme.radiusMD,
             onPressed: _isBusy ? null : _toggle,
           ),
         ],

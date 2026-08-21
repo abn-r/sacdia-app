@@ -279,3 +279,12 @@ final signedUrlNotifierProvider =
     AutoDisposeNotifierProvider<SignedUrlNotifier, AsyncValue<String?>>(
   SignedUrlNotifier.new,
 );
+
+/// Signed URL per resource for grid previews. Family so tiles do not clobber
+/// each other (unlike [signedUrlNotifierProvider]).
+final resourcePreviewSignedUrlProvider =
+    FutureProvider.autoDispose.family<String?, String>((ref, resourceId) async {
+  final getSignedUrl = ref.read(getResourceSignedUrlProvider);
+  final result = await getSignedUrl(resourceId);
+  return result.fold((_) => null, (url) => url);
+});

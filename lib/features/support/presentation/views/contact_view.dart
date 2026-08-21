@@ -1,35 +1,44 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/utils/responsive.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../profile/presentation/widgets/setting_tile.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import '../widgets/support_chrome.dart';
 
-/// Contacto directo con el equipo de SACDIA.
-///
-/// Canales disponibles:
-/// - Email: sacdia.app@gmail.com (mailto con asunto prellenado).
 class ContactView extends StatelessWidget {
   const ContactView({super.key});
 
   static const String routeName = '/settings/support/contact';
-
-  // Canales centralizados aquí para cambiarlos rápido sin tocar i18n.
-  static const String _supportEmail = 'sacdia.app@gmail.com';
+  static const String supportEmail = 'sacdia.app@gmail.com';
 
   Future<void> _openEmail(BuildContext context) async {
     final uri = Uri(
       scheme: 'mailto',
-      path: _supportEmail,
+      path: supportEmail,
       queryParameters: {
         'subject': 'support.email_subject'.tr(),
       },
     );
     final ok = await _tryLaunch(uri);
     if (!ok && context.mounted) {
-      _showFallback(context, _supportEmail);
+      _showMessage(
+        context,
+        'support.channel_launch_failed'.tr(args: [supportEmail]),
+      );
+    }
+  }
+
+  Future<void> _copyEmail(BuildContext context) async {
+    await Clipboard.setData(const ClipboardData(text: supportEmail));
+    if (context.mounted) {
+      _showMessage(context, 'support.contact_copied'.tr());
     }
   }
 
@@ -39,15 +48,15 @@ class ContactView extends StatelessWidget {
         return launchUrl(uri, mode: LaunchMode.externalApplication);
       }
     } catch (_) {
-      // ignore — caemos al fallback
+      // Fall through to the copy hint.
     }
     return false;
   }
 
-  void _showFallback(BuildContext context, String value) {
+  void _showMessage(BuildContext context, String value) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('support.channel_launch_failed'.tr(args: [value])),
+        content: Text(value),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -55,59 +64,137 @@ class ContactView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
+    final scheme = Theme.of(context).colorScheme;
+    final padding = Responsive.horizontalPadding(context);
+
     return Scaffold(
-      appBar: AppBar(
-          automaticallyImplyLeading: false,
-          leading: sacAutoBackButton(context),
-          title: Text('support.contact_title'.tr())),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              child: Text(
-                'support.contact_intro'.tr(),
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ),
-            _Card(children: [
-              SettingTile(
-                icon: HugeIcons.strokeRoundedMail01,
-                title: 'support.contact_email_title'.tr(),
-                subtitle: _supportEmail,
-                iconColor: AppColors.primary,
-                onTap: () => _openEmail(context),
-              ),
-            ]),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Text(
-                'support.contact_hours'.tr(),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ),
-          ],
+      backgroundColor: c.background,
+      appBar: supportAppBar(context, title: 'support.contact_title'.tr()),
+      body: ListView(
+        padding: EdgeInsets.fromLTRB(
+          padding,
+          8,
+          padding,
+          28 + MediaQuery.paddingOf(context).bottom,
         ),
+        children: [
+          StaggeredListItem(
+            index: 0,
+            staggerDelay: SacMotion.stagger,
+            duration: SacMotion.standard,
+            slideOffset: 8,
+            child: Text(
+              'support.contact_intro'.tr(),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: c.textSecondary,
+                    height: 1.45,
+                  ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          StaggeredListItem(
+            index: 1,
+            staggerDelay: SacMotion.stagger,
+            duration: SacMotion.standard,
+            slideOffset: 8,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: c.surface,
+                borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+                border: Border.all(color: c.border),
+                boxShadow: [
+                  BoxShadow(
+                    color: c.shadow,
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: scheme.secondary.withValues(alpha: 0.12),
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusSM),
+                          ),
+                          child: Center(
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedMail01,
+                              color: scheme.secondary,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'support.contact_email_title'.tr(),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(
+                                      color: c.text,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                supportEmail,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(color: c.textSecondary),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    SacButton.primary(
+                      text: 'support.contact_email_title'.tr(),
+                      icon: HugeIcons.strokeRoundedSent02,
+                      onPressed: () => _openEmail(context),
+                    ),
+                    const SizedBox(height: 8),
+                    SacButton.outline(
+                      text: 'support.contact_copy'.tr(),
+                      icon: HugeIcons.strokeRoundedCopy01,
+                      onPressed: () => _copyEmail(context),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          StaggeredListItem(
+            index: 2,
+            staggerDelay: SacMotion.stagger,
+            duration: SacMotion.standard,
+            slideOffset: 8,
+            child: Text(
+              'support.contact_hours'.tr(),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: c.textTertiary,
+                    height: 1.4,
+                  ),
+            ),
+          ),
+        ],
       ),
-    );
-  }
-}
-
-class _Card extends StatelessWidget {
-  const _Card({required this.children});
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Column(children: children),
     );
   }
 }

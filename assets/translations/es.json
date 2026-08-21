@@ -110,7 +110,8 @@
       "one": "hace {} día",
       "other": "hace {} días"
     },
-    "accessibility_tile": "Accesibilidad"
+    "accessibility_tile": "Accesibilidad",
+    "open_document_failed": "No pudimos abrir este documento."
   },
   "accessibility": {
     "title": "Accesibilidad",
@@ -264,8 +265,8 @@
     },
     "report_device_info": "{platform} {osVersion}\n{model}\nApp {appVersion} ({buildNumber})",
     "hub_badge": "Ruta de ayuda",
-    "hub_title": "Encuentra la ruta correcta para tu duda",
-    "hub_intro": "Encuentra respuestas rápidas, escríbenos por correo o envía un reporte con contexto técnico.",
+    "hub_title": "¿En qué podemos ayudarte?",
+    "hub_intro": "Busca una respuesta o elige cómo contactarnos.",
     "route_faq_label": "Primera parada",
     "route_contact_label": "Canal directo",
     "route_report_label": "Bitácora",
@@ -281,7 +282,12 @@
       "profile": "Perfil",
       "support": "Soporte",
       "onboarding": "Inicio"
-    }
+    },
+    "hub_search_hint": "Buscar en ayuda…",
+    "faq_count": "{} preguntas",
+    "contact_copy": "Copiar correo",
+    "contact_copied": "Correo copiado",
+    "report_pick_category": "Elegir categoría"
   },
   "biometric": {
     "tile_title": "Protección biométrica de la app",
