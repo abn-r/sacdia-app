@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/providers/app_bootstrap_provider.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/zarza_roja_credit.dart';
 import 'package:sacdia_app/features/auth/presentation/widgets/sac_brand_mark.dart';
 
 /// Splash de arranque. Navegación la resuelve GoRouter via redirect.
@@ -161,26 +162,13 @@ class _SplashViewState extends ConsumerState<SplashView>
             ),
             Positioned(
               bottom: 28,
-              child: reduceMotion
-                  ? _footer(context)
-                  : FadeTransition(
-                      opacity: _metaFade,
-                      child: _footer(context),
-                    ),
+              child: ZarzaRojaCredit(
+                opacity: reduceMotion ? null : _metaFade,
+              ),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _footer(BuildContext context) {
-    return Text(
-      'by Sarza Roja',
-      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: context.sac.textTertiary,
-            fontWeight: FontWeight.w500,
-          ),
     );
   }
 }

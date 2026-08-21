@@ -14,6 +14,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/theme/theme_provider.dart';
+import '../../../../core/widgets/zarza_roja_credit.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -823,6 +824,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
             ],
           ),
           const SizedBox(height: 32),
+          const ZarzaRojaCredit(),
+          SizedBox(height: 24 + MediaQuery.paddingOf(context).bottom),
         ],
       ),
     );
