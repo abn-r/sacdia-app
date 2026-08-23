@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../../core/widgets/secure_screen.dart';
@@ -163,9 +164,12 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
                                     vm: vm,
                                     onQrTap: card.canShowQr
                                         ? () => Navigator.of(context).push(
-                                              _credencialQrFullscreenRoute(
-                                                vm,
-                                                heroTag,
+                                              SacFadeThroughRoute(
+                                                builder: (_) =>
+                                                    CredencialQrFullscreen(
+                                                  vm: vm,
+                                                  heroTag: heroTag,
+                                                ),
                                               ),
                                             )
                                         : _refresh,
@@ -342,22 +346,3 @@ String virtualCardErrorMessageKey(Object error) {
   return 'virtual_card.errors.load_failed';
 }
 
-Route<void> _credencialQrFullscreenRoute(
-  CredencialViewModel vm,
-  String heroTag,
-) {
-  return PageRouteBuilder<void>(
-    transitionDuration: const Duration(milliseconds: 260),
-    reverseTransitionDuration: const Duration(milliseconds: 220),
-    pageBuilder: (_, __, ___) =>
-        CredencialQrFullscreen(vm: vm, heroTag: heroTag),
-    transitionsBuilder: (_, animation, __, child) {
-      final curved = CurvedAnimation(
-        parent: animation,
-        curve: Curves.easeOutCubic,
-        reverseCurve: Curves.easeInCubic,
-      );
-      return FadeTransition(opacity: curved, child: child);
-    },
-  );
-}

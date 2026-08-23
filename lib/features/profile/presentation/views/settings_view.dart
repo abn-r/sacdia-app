@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 
+import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/in_app_browser.dart';
@@ -1241,18 +1242,29 @@ class _ScaleFadeInState extends State<_ScaleFadeIn>
   late final AnimationController _controller;
   late final Animation<double> _scale;
   late final Animation<double> _fade;
+  bool _started = false;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 220),
+      duration: SacMotion.standard,
     );
-    _scale = CurvedAnimation(parent: _controller, curve: Curves.easeOutBack)
-        .drive(Tween<double>(begin: 0.82, end: 1.0));
-    _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut)
+    _scale = CurvedAnimation(parent: _controller, curve: SacMotion.easeOut)
+        .drive(Tween<double>(begin: SacMotion.enterScale, end: 1.0));
+    _fade = CurvedAnimation(parent: _controller, curve: SacMotion.easeOut)
         .drive(Tween<double>(begin: 0.0, end: 1.0));
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    if (SacMotion.reduceMotionOf(context)) {
+      _controller.duration = SacMotion.reducedFade;
+    }
     _controller.forward();
   }
 
@@ -1268,7 +1280,12 @@ class _ScaleFadeInState extends State<_ScaleFadeIn>
       animation: _controller,
       builder: (context, child) => FadeTransition(
         opacity: _fade,
-        child: ScaleTransition(scale: _scale, child: child),
+        child: ScaleTransition(
+          scale: SacMotion.reduceMotionOf(context)
+              ? const AlwaysStoppedAnimation(1)
+              : _scale,
+          child: child,
+        ),
       ),
       child: widget.child,
     );

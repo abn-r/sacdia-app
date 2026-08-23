@@ -718,8 +718,10 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
               builder: (_, isChronologicalView, __) {
                 return ClipRect(
                   child: AnimatedSize(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
+                    duration: SacMotion.reduceMotionOf(context)
+                        ? Duration.zero
+                        : SacMotion.standard,
+                    curve: SacMotion.easeInOut,
                     child: isChronologicalView
                         ? const SizedBox(height: 0)
                         : ValueListenableBuilder<DateTime?>(

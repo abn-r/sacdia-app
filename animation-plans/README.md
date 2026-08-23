@@ -13,6 +13,10 @@
 | [007](007-show-sac-sheet.md) | One sheet language: showSacSheet + SacMotion.drawer | MEDIUM | DONE |
 | [008](008-sac-pressable.md) | One press primitive: SacPressable | MEDIUM | DONE |
 | [009](009-skeleton-reduced-motion.md) | Freeze loading skeletons under Reduced Motion | MEDIUM | DONE |
+| [010](010-theme-picker-enter-scale.md) | Theme picker: enter from 0.96, drop easeOutBack | HIGH | DONE |
+| [011](011-activities-date-strip-size.md) | Activities date strip: token duration, honor Reduced Motion | MEDIUM | DONE |
+| [012](012-virtual-card-qr-fade.md) | Virtual-card QR: SacFadeThroughRoute, drop easeInCubic | MEDIUM | DONE |
+| [013](013-inventory-error-enter-scale.md) | Inventory error icon: enter from 0.96, drop elasticOut | MEDIUM | DONE |
 
 ## Recommended execution order
 
@@ -27,6 +31,15 @@
 
 `006` ∥ `008` ∥ `009` can run in parallel. `007` has no code dependency on them; order is for review load.
 
+**This batch (findings 9–12):**
+
+1. `010` — only leftover `easeOutBack` + scale `0.82`. Same enter recipe as unlock.
+2. `012` — swap one private route for `SacFadeThroughRoute`. Isolated.
+3. `013` — only leftover `elasticOut`. Isolated (`_ErrorBody`, not the 009 skeleton).
+4. `011` — one `AnimatedSize` in the activities list. Isolated.
+
+`010` ∥ `012` ∥ `013` ∥ `011` can run in parallel (four files, no overlap).
+
 ## Dependencies
 
 - Tokens already exist in `lib/core/animations/motion_tokens.dart`. Do not invent new curves or durations.
@@ -34,9 +47,10 @@
 - `008` must keep Club address as `listenOnly: true` (child owns the tap).
 - `009` must not touch `ranking_skeleton.dart` (already correct — copy it).
 - No new packages.
-- New plans stamped against `bff0a6bf`.
-- Do not revert login/splash/Club/`SacCard` motion from 002–005.
+- Plans 006–009 stamped against `bff0a6bf`. Plans 010–013 stamped against `fbee25b1`.
+- Do not revert login/splash/Club/`SacCard`/sheet/`SacPressable` motion from 002–009.
+- `013` must not revert inventory skeleton RM from 009.
 
 ## Out of this batch
 
-Findings 9–12 (theme-picker `easeOutBack`, activities date-strip `AnimatedSize`, virtual-card `easeInCubic`, inventory `elasticOut`) have no plans yet.
+Other `AnimatedSize` expanders (create/edit activity joint/virtual fields, FAQ, finances range sheet, post-registration, units) are not in 010–013. Token-align later if they still feel off.

@@ -470,32 +470,37 @@ class _ErrorBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final icon = Container(
+      width: 72,
+      height: 72,
+      decoration: BoxDecoration(
+        color: AppColors.error.withValues(alpha: 0.10),
+        shape: BoxShape.circle,
+      ),
+      child: const Center(
+        child: HugeIcon(
+          icon: HugeIcons.strokeRoundedAlert02,
+          size: 36,
+          color: AppColors.error,
+        ),
+      ),
+    );
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(32, 48, 32, 16),
       child: Column(
         children: [
-          TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0.8, end: 1.0),
-            duration: const Duration(milliseconds: 600),
-            curve: Curves.elasticOut,
-            builder: (context, scale, child) =>
-                Transform.scale(scale: scale, child: child),
-            child: Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color: AppColors.error.withValues(alpha: 0.10),
-                shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedAlert02,
-                  size: 36,
-                  color: AppColors.error,
-                ),
-              ),
+          if (SacMotion.reduceMotionOf(context))
+            icon
+          else
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: SacMotion.enterScale, end: 1.0),
+              duration: SacMotion.standard,
+              curve: SacMotion.easeOut,
+              builder: (context, scale, child) =>
+                  Transform.scale(scale: scale, child: child),
+              child: icon,
             ),
-          ),
           const SizedBox(height: 16),
           Text(
             'inventory.view.error_load'.tr(),
