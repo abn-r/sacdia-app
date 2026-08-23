@@ -24,7 +24,7 @@ class _EvidenceFolderLoadingSkeletonState
     );
 
     _shimmer = Tween<double>(begin: -2, end: 2).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _controller, curve: SacMotion.easeInOut),
     );
   }
 

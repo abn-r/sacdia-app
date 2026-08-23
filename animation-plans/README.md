@@ -19,6 +19,7 @@
 | [013](013-inventory-error-enter-scale.md) | Inventory error icon: enter from 0.96, drop elasticOut | MEDIUM | DONE |
 | [014](014-remaining-animated-size-tokens.md) | Remaining AnimatedSize expanders: tokens + Reduced Motion | MEDIUM | DONE |
 | [015](015-leftover-list-step-motion.md) | Leftover list/step motion: tokens, drop Material cubics | MEDIUM | DONE |
+| [016](016-progress-parallax-celebration-shimmer.md) | Progress, parallax, celebration, shimmer: tokens + RM | MEDIUM | DONE |
 
 ## Recommended execution order
 
@@ -59,6 +60,8 @@
 
 **015** (after 014): date-strip/chrono scroll, monthly-report entrance, post-reg wizard, class module expand. Do not retune shimmer/progress/celebration.
 
+**016** (after 015): progress/upload/SLA curves, credential parallax settle, celebration start gated by RM, shimmer curve token. Fill 700/900/800, shimmer 1400/1100/900, celebration 2200 stay.
+
 ## Out of this batch
 
-Feel-check on device still pending. Progress bars, parallax, celebration keep their own durations.
+Feel-check on device still pending. Honors/catalog/resources leftover Material cubics are lower leverage.

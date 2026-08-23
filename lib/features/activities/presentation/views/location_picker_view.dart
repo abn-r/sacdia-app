@@ -631,7 +631,7 @@ class _ShimmerLineState extends State<_ShimmerLine>
       duration: const Duration(milliseconds: 900),
     );
     _anim = Tween<double>(begin: 0.3, end: 0.8).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _ctrl, curve: SacMotion.easeInOut),
     );
   }
 

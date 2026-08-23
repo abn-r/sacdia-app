@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
+import '../../animations/motion_tokens.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/sac_colors.dart';
 import '../sac_dialog.dart';
@@ -408,11 +409,12 @@ class _AnimatedOverallProgress extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final targetProgress = progress.clamp(0.0, 1.0);
+    final reduce = SacMotion.reduceMotionOf(context);
 
     return TweenAnimationBuilder<double>(
       tween: Tween(end: targetProgress),
-      duration: const Duration(milliseconds: 260),
-      curve: Curves.easeOutCubic,
+      duration: reduce ? Duration.zero : SacMotion.modal,
+      curve: SacMotion.easeOut,
       builder: (context, animatedProgress, _) {
         return Column(
           children: [
@@ -454,11 +456,12 @@ class _AnimatedFileUploadStatus extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final targetProgress = file.uploadProgress.clamp(0.0, 1.0);
+    final reduce = SacMotion.reduceMotionOf(context);
 
     return TweenAnimationBuilder<double>(
       tween: Tween(end: targetProgress),
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOutCubic,
+      duration: reduce ? Duration.zero : SacMotion.standard,
+      curve: SacMotion.easeOut,
       builder: (context, animatedProgress, _) {
         return Row(
           mainAxisSize: MainAxisSize.min,

@@ -8,10 +8,10 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 /// Animated progress ring — Apple Health / Fitness style.
 ///
-/// On mount the arc fills from 0 to [progress] using a spring-like
-/// [Curves.easeOutCubic] curve. Progress changes after mount animate
-/// smoothly to the new value. Set [animate] to false for static rendering;
-/// system Reduced Motion is honored automatically.
+/// On mount the arc fills from 0 to [progress] using [SacMotion.easeOut].
+/// Progress changes after mount animate smoothly to the new value.
+/// Set [animate] to false for static rendering; system Reduced Motion
+/// is honored automatically.
 ///
 /// The painter uses a sweep gradient (indigo → emerald) that rotates as the
 /// arc grows, and rounded stroke caps for a polished look.
@@ -92,7 +92,7 @@ class _SacProgressRingState extends State<SacProgressRing>
       _settleToTarget();
     } else if (firstDependencyRead) {
       // Small delay so the ring appears after the card entrance animation.
-      _delayedStart = Timer(const Duration(milliseconds: 250), () {
+      _delayedStart = Timer(SacMotion.modal, () {
         if (mounted && _reduceMotion == false) _controller.forward();
       });
     }

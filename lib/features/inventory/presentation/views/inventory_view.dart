@@ -422,7 +422,7 @@ class _SkeletonBoxState extends State<_SkeletonBox>
       duration: const Duration(milliseconds: 1100),
     );
     _anim = Tween<double>(begin: 0.4, end: 1.0).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _ctrl, curve: SacMotion.easeInOut),
     );
   }
 

@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/sla_dashboard.dart';
@@ -98,8 +99,10 @@ class SlaPipelineChart extends StatelessWidget {
                         // widths animate to their updated values, giving the
                         // user visible feedback that the counts changed.
                         AnimatedContainer(
-                          duration: const Duration(milliseconds: 600),
-                          curve: Curves.easeOut,
+                          duration: SacMotion.reduceMotionOf(context)
+                              ? Duration.zero
+                              : const Duration(milliseconds: 600),
+                          curve: SacMotion.easeOut,
                           height: 8,
                           width: constraints.maxWidth * fraction,
                           decoration: BoxDecoration(

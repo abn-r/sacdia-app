@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 
 /// Confetti / particle celebration overlay — Duolingo streak-complete style.
@@ -64,6 +65,8 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
   late final AnimationController _controller;
   List<_Particle> _particles = const [];
   final math.Random _rng = math.Random();
+  bool _started = false;
+  bool _completed = false;
 
   // SACDIA Scout Vibrante palette + festive extras
   static const List<Color> _palette = [
@@ -85,16 +88,32 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
       duration: widget.duration,
     )..addStatusListener((status) {
         if (status == AnimationStatus.completed) {
-          widget.onComplete?.call();
+          _notifyComplete();
         }
       });
+  }
 
-    // Generate particles — deferred until first layout so we have screen size.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (SacMotion.reduceMotionOf(context)) {
+      if (_controller.isAnimating) {
+        _controller.stop();
+      }
+      _notifyComplete();
+      return;
+    }
+    if (_started) return;
+    _started = true;
+    _particles = _generateParticles(MediaQuery.sizeOf(context));
+    _controller.forward();
+  }
+
+  void _notifyComplete() {
+    if (_completed) return;
+    _completed = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final size = MediaQuery.of(context).size;
-      _particles = _generateParticles(size);
-      _controller.forward();
+      if (mounted) widget.onComplete?.call();
     });
   }
 
@@ -127,7 +146,7 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
 
   @override
   Widget build(BuildContext context) {
-    if (MediaQuery.of(context).disableAnimations) {
+    if (SacMotion.reduceMotionOf(context)) {
       return const SizedBox.shrink();
     }
 

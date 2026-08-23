@@ -7,6 +7,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/animations/celebration_overlay.dart';
+import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/birthday_utils.dart';
@@ -99,7 +100,7 @@ class _BirthdayCelebrationBannerState extends State<BirthdayCelebrationBanner>
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || MediaQuery.of(context).disableAnimations) return;
+      if (!mounted || SacMotion.reduceMotionOf(context)) return;
       _controller.repeat(reverse: true);
     });
   }
@@ -113,7 +114,7 @@ class _BirthdayCelebrationBannerState extends State<BirthdayCelebrationBanner>
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final shouldAnimate = !MediaQuery.of(context).disableAnimations;
+    final shouldAnimate = !SacMotion.reduceMotionOf(context);
 
     return Semantics(
       button: true,
@@ -233,7 +234,7 @@ class _BirthdayCelebrationDialogState extends State<_BirthdayCelebrationDialog>
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || MediaQuery.of(context).disableAnimations) return;
+      if (!mounted || SacMotion.reduceMotionOf(context)) return;
       _controller.repeat(reverse: true);
       _showConfettiBurst();
       _confettiTimer = Timer.periodic(const Duration(milliseconds: 1800), (_) {
@@ -264,7 +265,7 @@ class _BirthdayCelebrationDialogState extends State<_BirthdayCelebrationDialog>
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final shouldAnimate = !MediaQuery.of(context).disableAnimations;
+    final shouldAnimate = !SacMotion.reduceMotionOf(context);
 
     return Dialog(
       backgroundColor: Colors.transparent,

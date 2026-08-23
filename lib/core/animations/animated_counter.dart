@@ -29,7 +29,7 @@ class AnimatedCounter extends StatefulWidget {
   /// Animation duration. Defaults to 900 ms for a satisfying count.
   final Duration duration;
 
-  /// Curve governing the count speed. [Curves.easeOutCubic] feels organic.
+  /// Curve governing the count speed. Defaults to [SacMotion.easeOut].
   final Curve curve;
 
   /// Optional suffix appended after the number (e.g. '%', 'pts').
@@ -51,7 +51,7 @@ class AnimatedCounter extends StatefulWidget {
     this.begin = 0,
     this.style,
     this.duration = const Duration(milliseconds: 900),
-    this.curve = Curves.easeOutCubic,
+    this.curve = SacMotion.easeOut,
     this.suffix = '',
     this.prefix = '',
     this.animate = true,
@@ -95,7 +95,7 @@ class _AnimatedCounterState extends State<AnimatedCounter>
       _controller.value = 1.0;
     } else if (firstDependencyRead) {
       // Let the containing screen finish its own entrance first.
-      _delayedStart = Timer(const Duration(milliseconds: 300), () {
+      _delayedStart = Timer(SacMotion.modal, () {
         if (mounted && _reduceMotion == false) _controller.forward();
       });
     }
