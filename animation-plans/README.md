@@ -10,7 +10,7 @@
 | [004](004-sac-card-press-scale.md) | SacCard press scale instead of InkWell splash | HIGH | DONE |
 | [005](005-honor-enroll-cta-press.md) | Honor enroll CTA: press on down, enroll immediately | HIGH | DONE |
 | [006](006-achievement-unlock-enter-scale.md) | Achievement unlock: enter from 0.96, honor Reduced Motion | HIGH | DONE |
-| [007](007-show-sac-sheet.md) | One sheet language: showSacSheet + SacMotion.drawer | MEDIUM | TODO |
+| [007](007-show-sac-sheet.md) | One sheet language: showSacSheet + SacMotion.drawer | MEDIUM | DONE |
 | [008](008-sac-pressable.md) | One press primitive: SacPressable | MEDIUM | DONE |
 | [009](009-skeleton-reduced-motion.md) | Freeze loading skeletons under Reduced Motion | MEDIUM | DONE |
 

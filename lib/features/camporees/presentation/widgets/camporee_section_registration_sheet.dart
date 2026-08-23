@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
 import 'package:sacdia_app/features/camporees/presentation/providers/camporees_providers.dart';
@@ -26,8 +27,7 @@ class CamporeeSectionRegistrationSheet extends ConsumerStatefulWidget {
     required Camporee camporee,
     required CamporeeSectionRegistration registration,
   }) {
-    final disableAnimations = MediaQuery.disableAnimationsOf(context);
-    return showModalBottomSheet<bool>(
+    return showSacSheet<bool>(
       context: context,
       isScrollControlled: true,
       isDismissible: false,
@@ -35,12 +35,6 @@ class CamporeeSectionRegistrationSheet extends ConsumerStatefulWidget {
       useSafeArea: true,
       backgroundColor: context.sac.surface,
       barrierColor: context.sac.barrierColor,
-      sheetAnimationStyle: disableAnimations
-          ? AnimationStyle.noAnimation
-          : const AnimationStyle(
-              duration: Duration(milliseconds: 200),
-              reverseDuration: Duration(milliseconds: 180),
-            ),
       builder: (_) => CamporeeSectionRegistrationSheet(
         camporee: camporee,
         registration: registration,

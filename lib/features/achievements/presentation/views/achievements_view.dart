@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../domain/entities/user_achievement.dart';
 import '../../domain/repositories/achievements_repository.dart';
@@ -237,7 +238,7 @@ class _AchievementsViewState extends ConsumerState<AchievementsView> {
     BuildContext context,
     AchievementWithProgress item,
   ) {
-    showModalBottomSheet(
+    showSacSheet(
       context: context,
       isScrollControlled: true,
       useRootNavigator: true,

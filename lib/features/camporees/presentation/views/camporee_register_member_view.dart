@@ -16,6 +16,7 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_participant_access_gate.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/payment_orders/presentation/providers/payment_orders_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../domain/utils/camporee_registration_payment_flow.dart';
 import '../providers/camporees_providers.dart';
@@ -98,7 +99,7 @@ class _CamporeeRegisterMemberViewState
   }
 
   Future<void> _openMemberPicker(BuildContext context) async {
-    final selected = await showModalBottomSheet<Set<String>>(
+    final selected = await showSacSheet<Set<String>>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,

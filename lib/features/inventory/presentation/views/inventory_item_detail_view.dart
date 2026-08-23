@@ -17,6 +17,7 @@ import 'add_inventory_item_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 /// Pantalla de detalle de un ítem del inventario.
 ///
@@ -282,7 +283,7 @@ class InventoryItemDetailView extends ConsumerWidget {
   }
 
   void _openEdit(BuildContext context, InventoryItem selectedItem) {
-    showModalBottomSheet(
+    showSacSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,

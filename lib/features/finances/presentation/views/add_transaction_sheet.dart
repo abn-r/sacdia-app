@@ -10,6 +10,7 @@ import 'package:mime/mime.dart';
 
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -743,7 +744,7 @@ Future<FinanceCategory?> _showCategoryPicker(
   required List<FinanceCategory> categories,
   FinanceCategory? selected,
 }) {
-  return showModalBottomSheet<FinanceCategory>(
+  return showSacSheet<FinanceCategory>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,

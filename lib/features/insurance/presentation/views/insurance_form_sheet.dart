@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -556,7 +557,7 @@ class _EvidenceUploader extends StatelessWidget {
   }
 
   void _showPicker(BuildContext context) {
-    showModalBottomSheet(
+    showSacSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (_) => _FilePickerSheet(onSelected: onFileSelected),

@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../domain/entities/camporee_payment.dart';
 import '../providers/camporees_providers.dart';
@@ -135,7 +136,7 @@ class CamporeePaymentsView extends ConsumerWidget {
   }
 
   void _openPaymentForm(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet(
+    showSacSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,

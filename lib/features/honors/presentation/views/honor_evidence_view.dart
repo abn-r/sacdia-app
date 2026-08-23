@@ -21,6 +21,7 @@ import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -194,7 +195,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
   void _showFilePickerOptions({required _ExternalUploadKind kind}) {
     final isCompletedFormat = kind == _ExternalUploadKind.completedFormat;
 
-    showModalBottomSheet(
+    showSacSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),

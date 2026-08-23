@@ -14,6 +14,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../../../features/auth/domain/utils/authorization_utils.dart';
 import '../../../../features/auth/presentation/providers/auth_providers.dart';
@@ -182,7 +183,7 @@ class UnitDetailView extends ConsumerWidget {
     required void Function(ScoringCategory, int) onSetForAll,
   }) {
     final c = context.sac;
-    return showModalBottomSheet<void>(
+    return showSacSheet<void>(
       context: context,
       showDragHandle: true,
       isScrollControlled: true,
@@ -479,7 +480,7 @@ class _MemberCard extends StatelessWidget {
   }
 
   Future<void> _showMemberActions(BuildContext context) async {
-    final result = await showModalBottomSheet<String>(
+    final result = await showSacSheet<String>(
       context: context,
       showDragHandle: true,
       backgroundColor: context.sac.surface,

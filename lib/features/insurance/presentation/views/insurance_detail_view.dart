@@ -12,6 +12,7 @@ import '../providers/insurance_providers.dart';
 import '../widgets/insurance_status_badge.dart';
 import 'insurance_form_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 /// Pantalla de detalle completo del seguro de un miembro.
 class InsuranceDetailView extends ConsumerWidget {
@@ -165,7 +166,7 @@ class InsuranceDetailView extends ConsumerWidget {
   }
 
   void _openEdit(BuildContext context) {
-    showModalBottomSheet(
+    showSacSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,

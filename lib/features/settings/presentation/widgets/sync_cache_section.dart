@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../../../core/realtime/realtime_ref.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -94,7 +95,7 @@ class SyncCacheSection extends ConsumerWidget {
 
   Future<void> _showClearMenu(BuildContext context, WidgetRef ref) async {
     final c = context.sac;
-    final mode = await showModalBottomSheet<ClearCacheMode>(
+    final mode = await showSacSheet<ClearCacheMode>(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (sheetCtx) => Container(

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/sac_colors.dart';
@@ -37,7 +38,7 @@ Future<UploadSheetResult?> showUploadProgressSheet({
   required List<StagedFile> initialFiles,
   required Stream<List<StagedFile>> uploadStream,
 }) {
-  return showModalBottomSheet<UploadSheetResult>(
+  return showSacSheet<UploadSheetResult>(
     context: context,
     isDismissible: false,
     enableDrag: false,

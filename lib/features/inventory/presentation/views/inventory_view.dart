@@ -19,6 +19,7 @@ import 'inventory_item_detail_view.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 /// Pantalla principal del módulo de Inventario del club.
 ///
@@ -201,7 +202,7 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
   }
 
   void _openAddSheet(BuildContext context) {
-    showModalBottomSheet(
+    showSacSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -211,7 +212,7 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
   }
 
   void _openEdit(BuildContext context, InventoryItem item) {
-    showModalBottomSheet(
+    showSacSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -221,7 +222,7 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
   }
 
   void _openFilterSheet(BuildContext context) {
-    showModalBottomSheet(
+    showSacSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,

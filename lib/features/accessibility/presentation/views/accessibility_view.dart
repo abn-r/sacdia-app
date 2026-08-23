@@ -10,6 +10,7 @@ import '../../../profile/presentation/widgets/setting_tile.dart';
 import '../../domain/entities/accessibility_settings.dart';
 import '../providers/accessibility_provider.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 class AccessibilityView extends ConsumerWidget {
   const AccessibilityView({super.key});
@@ -89,7 +90,7 @@ class AccessibilityView extends ConsumerWidget {
 
   Future<void> _showTextSizePicker(BuildContext context, WidgetRef ref) async {
     final current = ref.read(accessibilityProvider).textSize;
-    final picked = await showModalBottomSheet<TextSizeOption>(
+    final picked = await showSacSheet<TextSizeOption>(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (_) => _TextSizePickerSheet(current: current),

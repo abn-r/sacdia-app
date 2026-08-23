@@ -20,6 +20,7 @@ import 'package:sacdia_app/features/honors/presentation/theme/honor_category_pal
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/choice_group_header.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/requirement_tree_item.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 // ── Local state helpers ───────────────────────────────────────────────────────
 
@@ -293,7 +294,7 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
   }
 
   void _showRequirementEvidenceOptions(HonorRequirement requirement) {
-    showModalBottomSheet(
+    showSacSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),

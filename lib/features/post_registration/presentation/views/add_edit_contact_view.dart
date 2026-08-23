@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -394,7 +395,7 @@ class _RelationshipPickerField extends StatelessWidget {
         GestureDetector(
           onTap: enabled
               ? () async {
-                  await showModalBottomSheet<void>(
+                  await showSacSheet<void>(
                     context: context,
                     isScrollControlled: true,
                     useSafeArea: true,

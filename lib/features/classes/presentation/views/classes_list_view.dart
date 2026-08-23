@@ -18,6 +18,7 @@ import '../sheets/enroll_previous_class_sheet.dart';
 import '../widgets/class_card.dart';
 import 'class_detail_with_progress_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 // ── Top-level helper — reachable from AppBar and from ClassesListViewBody ───────
 
@@ -53,7 +54,7 @@ _ClassesListDerivation _deriveClassesList(List<ProgressiveClass> classes) {
 }
 
 void _openEnrollSheet(BuildContext context) {
-  showModalBottomSheet(
+  showSacSheet(
     context: context,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(

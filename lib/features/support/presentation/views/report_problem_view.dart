@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../domain/entities/support_category.dart';
 import '../../domain/entities/support_report.dart';
@@ -113,7 +114,7 @@ class _ReportProblemViewState extends ConsumerState<ReportProblemView> {
   }
 
   Future<void> _pickCategory() async {
-    final selected = await showModalBottomSheet<SupportCategory>(
+    final selected = await showSacSheet<SupportCategory>(
       context: context,
       backgroundColor: context.sac.surface,
       barrierColor: context.sac.barrierColor,

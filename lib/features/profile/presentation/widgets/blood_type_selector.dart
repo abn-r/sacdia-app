@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/utils/blood_type.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 export 'package:sacdia_app/core/utils/blood_type.dart' show BloodType;
 
@@ -11,7 +12,7 @@ Future<BloodType?> showBloodTypeSelector(
   BuildContext context, {
   BloodType? current,
 }) {
-  return showModalBottomSheet<BloodType>(
+  return showSacSheet<BloodType>(
     context: context,
     isScrollControlled: false,
     showDragHandle: true,

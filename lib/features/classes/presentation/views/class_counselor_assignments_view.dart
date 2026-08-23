@@ -13,6 +13,7 @@ import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/domain/entities/club_member.dart';
@@ -265,7 +266,7 @@ class ClassCounselorAssignmentsView extends ConsumerWidget {
       }
     }
 
-    final changed = await showModalBottomSheet<bool>(
+    final changed = await showSacSheet<bool>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -712,7 +713,7 @@ class _AssignmentTile extends StatelessWidget {
   ) async {
     final classColor = AppColors.classColor(assignment.clazz.name);
 
-    final action = await showModalBottomSheet<String>(
+    final action = await showSacSheet<String>(
       context: context,
       backgroundColor: AppColors.canvas,
       shape: const RoundedRectangleBorder(

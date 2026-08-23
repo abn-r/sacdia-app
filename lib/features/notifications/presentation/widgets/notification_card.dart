@@ -10,6 +10,7 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../domain/entities/notification_item.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import '../providers/notifications_providers.dart';
 import 'notification_type_badge.dart';
 
@@ -36,7 +37,7 @@ class NotificationCard extends ConsumerWidget {
       'dd/MM/yyyy HH:mm',
     ).format(notification.createdAt.toLocal());
 
-    return showModalBottomSheet<void>(
+    return showSacSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,

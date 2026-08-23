@@ -10,6 +10,7 @@ import 'package:mime/mime.dart';
 
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../../../core/widgets/evidence_staging/image_source_dialog.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -896,7 +897,7 @@ Future<InventoryCategory?> _showCategoryPicker(
   required List<InventoryCategory> categories,
   InventoryCategory? selected,
 }) {
-  return showModalBottomSheet<InventoryCategory>(
+  return showSacSheet<InventoryCategory>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,

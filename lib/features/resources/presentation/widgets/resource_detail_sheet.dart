@@ -11,6 +11,7 @@ import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../domain/entities/resource.dart';
 import '../providers/resources_providers.dart';
@@ -32,7 +33,7 @@ class ResourceDetailSheet extends ConsumerStatefulWidget {
 
   /// Abre el sheet como modal bottom sheet
   static Future<void> show(BuildContext context, Resource resource) {
-    return showModalBottomSheet(
+    return showSacSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,

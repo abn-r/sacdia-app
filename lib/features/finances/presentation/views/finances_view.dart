@@ -21,6 +21,7 @@ import 'all_transactions_view.dart';
 import 'transaction_detail_view.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 /// Pantalla principal del módulo de Finanzas.
 ///
@@ -129,7 +130,7 @@ class FinancesView extends ConsumerWidget {
   }
 
   void _openAddSheet(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet(
+    showSacSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,

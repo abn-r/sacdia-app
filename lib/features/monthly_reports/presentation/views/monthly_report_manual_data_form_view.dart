@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../domain/entities/monthly_report.dart';
 import '../providers/monthly_reports_providers.dart';
@@ -20,7 +21,7 @@ class MonthlyReportManualDataFormView extends ConsumerStatefulWidget {
 
   /// Modal sheet from the sticky CTA (spatial origin = trigger).
   static Future<bool?> show(BuildContext context, MonthlyReport report) {
-    return showModalBottomSheet<bool>(
+    return showSacSheet<bool>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,

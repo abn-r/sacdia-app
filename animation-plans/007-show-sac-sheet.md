@@ -1,6 +1,6 @@
 # 007 — One sheet language: showSacSheet + SacMotion.drawer
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: `bff0a6bf`
 - **Severity**: MEDIUM
 - **Category**: Cohesion / easing & duration / accessibility

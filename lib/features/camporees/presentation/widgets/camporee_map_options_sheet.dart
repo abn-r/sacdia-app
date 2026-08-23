@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../domain/entities/camporee.dart';
@@ -12,7 +13,7 @@ Future<void> showCamporeeMapOptions(
   BuildContext context,
   Camporee camporee,
 ) {
-  return showModalBottomSheet<void>(
+  return showSacSheet<void>(
     context: context,
     backgroundColor: Colors.transparent,
     builder: (_) => _CamporeeMapOptionsSheet(camporee: camporee),

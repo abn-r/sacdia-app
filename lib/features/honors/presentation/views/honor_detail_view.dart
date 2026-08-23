@@ -28,6 +28,7 @@ import '../widgets/honor_signed_evidence_image.dart';
 import '../widgets/honor_work_mode_selector.dart';
 import '../../domain/entities/user_honor.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 
@@ -1093,7 +1094,7 @@ class _StaggeredCardsState extends State<_StaggeredCards>
   Future<void> _showChangeWorkModeSheet(
     HonorCompletionMode currentMode,
   ) async {
-    final selectedMode = await showModalBottomSheet<HonorCompletionMode>(
+    final selectedMode = await showSacSheet<HonorCompletionMode>(
       context: context,
       useSafeArea: true,
       backgroundColor: Colors.transparent,

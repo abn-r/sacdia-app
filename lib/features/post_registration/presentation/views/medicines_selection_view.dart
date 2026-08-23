@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../data/models/medicine_model.dart';
 import '../providers/personal_info_providers.dart';
@@ -243,7 +244,7 @@ class _MedicinesSelectionViewState
     int id,
     String name,
   ) async {
-    await showModalBottomSheet<void>(
+    await showSacSheet<void>(
       context: context,
       backgroundColor: MedicoTokens.paper,
       shape: const RoundedRectangleBorder(

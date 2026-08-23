@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/animations/page_transitions.dart';
@@ -169,7 +170,7 @@ class _InsuranceViewState extends ConsumerState<InsuranceView> {
   }
 
   void _openAddSheet(BuildContext context, String? preselectedMemberId) {
-    showModalBottomSheet(
+    showSacSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -474,7 +475,7 @@ class _SortCountRow extends StatelessWidget {
   }
 
   void _showSortMenu(BuildContext context) {
-    showModalBottomSheet(
+    showSacSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (ctx) =>
