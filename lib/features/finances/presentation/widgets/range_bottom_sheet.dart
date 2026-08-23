@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -110,7 +111,10 @@ class _RangeBottomSheetState extends State<RangeBottomSheet> {
             ),
           ),
           AnimatedSize(
-            duration: const Duration(milliseconds: 200),
+            duration: SacMotion.reduceMotionOf(context)
+                ? Duration.zero
+                : SacMotion.standard,
+            curve: SacMotion.easeInOut,
             child: _selectedPreset == DateRangePreset.custom
                 ? _CustomDateFields(
                     startDate: _customStart,

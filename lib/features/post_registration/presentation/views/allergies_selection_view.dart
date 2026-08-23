@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -947,8 +948,10 @@ class _AvailableTile extends StatelessWidget {
         ),
       ),
       child: AnimatedSize(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
+        duration: SacMotion.reduceMotionOf(context)
+            ? Duration.zero
+            : SacMotion.standard,
+        curve: SacMotion.easeInOut,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

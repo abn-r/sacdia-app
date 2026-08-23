@@ -17,6 +17,7 @@
 | [011](011-activities-date-strip-size.md) | Activities date strip: token duration, honor Reduced Motion | MEDIUM | DONE |
 | [012](012-virtual-card-qr-fade.md) | Virtual-card QR: SacFadeThroughRoute, drop easeInCubic | MEDIUM | DONE |
 | [013](013-inventory-error-enter-scale.md) | Inventory error icon: enter from 0.96, drop elasticOut | MEDIUM | DONE |
+| [014](014-remaining-animated-size-tokens.md) | Remaining AnimatedSize expanders: tokens + Reduced Motion | MEDIUM | DONE |
 
 ## Recommended execution order
 
@@ -51,6 +52,8 @@
 - Do not revert login/splash/Club/`SacCard`/sheet/`SacPressable` motion from 002–009.
 - `013` must not revert inventory skeleton RM from 009.
 
+**014** (after 010–013): leftover `AnimatedSize` expanders. FAQ / units / date-strip already correct — do not touch them.
+
 ## Out of this batch
 
-Other `AnimatedSize` expanders (create/edit activity joint/virtual fields, FAQ, finances range sheet, post-registration, units) are not in 010–013. Token-align later if they still feel off.
+Motion 001–014 closed. Next leftovers are feel-check on device and push (`development` ahead of origin).
