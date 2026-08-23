@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -98,11 +99,15 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
   void _goToStep(int step) {
     setState(() => _currentStep = step);
     ref.read(currentStepProvider.notifier).state = step;
-    _pageController?.animateToPage(
-      step - 1,
-      duration: const Duration(milliseconds: 340),
-      curve: Curves.easeOutCubic,
-    );
+    if (SacMotion.reduceMotionOf(context)) {
+      _pageController?.jumpToPage(step - 1);
+    } else {
+      _pageController?.animateToPage(
+        step - 1,
+        duration: SacMotion.modal,
+        curve: SacMotion.easeOut,
+      );
+    }
   }
 
   void _onBack() {

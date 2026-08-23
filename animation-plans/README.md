@@ -18,6 +18,7 @@
 | [012](012-virtual-card-qr-fade.md) | Virtual-card QR: SacFadeThroughRoute, drop easeInCubic | MEDIUM | DONE |
 | [013](013-inventory-error-enter-scale.md) | Inventory error icon: enter from 0.96, drop elasticOut | MEDIUM | DONE |
 | [014](014-remaining-animated-size-tokens.md) | Remaining AnimatedSize expanders: tokens + Reduced Motion | MEDIUM | DONE |
+| [015](015-leftover-list-step-motion.md) | Leftover list/step motion: tokens, drop Material cubics | MEDIUM | DONE |
 
 ## Recommended execution order
 
@@ -56,4 +57,8 @@
 
 ## Out of this batch
 
-Motion 001–014 closed. Next leftovers are feel-check on device and push (`development` ahead of origin).
+**015** (after 014): date-strip/chrono scroll, monthly-report entrance, post-reg wizard, class module expand. Do not retune shimmer/progress/celebration.
+
+## Out of this batch
+
+Feel-check on device still pending. Progress bars, parallax, celebration keep their own durations.

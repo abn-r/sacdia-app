@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
@@ -243,16 +244,24 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
     _expanded = widget.initiallyExpanded;
     _chevronController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 200),
+      duration: SacMotion.standard,
       value: _expanded ? 1.0 : 0.0,
     );
     _chevronAngle = Tween<double>(begin: 0.0, end: 0.5).animate(
-      CurvedAnimation(parent: _chevronController, curve: Curves.easeOut),
+      CurvedAnimation(parent: _chevronController, curve: SacMotion.easeOut),
     );
     _expandAnimation = CurvedAnimation(
       parent: _chevronController,
-      curve: Curves.easeOut,
+      curve: SacMotion.easeOut,
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _chevronController.duration = SacMotion.reduceMotionOf(context)
+        ? Duration.zero
+        : SacMotion.standard;
   }
 
   @override

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 /// Short stagger entrance — keep under ~200ms total for frequent screens.
@@ -28,10 +29,12 @@ class _MonthlyReportEntranceState extends State<MonthlyReportEntrance> {
   @override
   void initState() {
     super.initState();
-    _timer =
-        Timer(Duration(milliseconds: (widget.index * 36).clamp(0, 144)), () {
-      if (mounted) setState(() => _visible = true);
-    });
+    _timer = Timer(
+      Duration(milliseconds: (widget.index * 40).clamp(0, 160)),
+      () {
+        if (mounted) setState(() => _visible = true);
+      },
+    );
   }
 
   @override
@@ -42,16 +45,16 @@ class _MonthlyReportEntranceState extends State<MonthlyReportEntrance> {
 
   @override
   Widget build(BuildContext context) {
-    if (_reduceMotion(context)) return widget.child;
+    if (SacMotion.reduceMotionOf(context)) return widget.child;
 
     return AnimatedSlide(
       offset: _visible ? Offset.zero : Offset(0, widget.offsetY / 100),
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOutCubic,
+      duration: SacMotion.standard,
+      curve: SacMotion.easeOut,
       child: AnimatedOpacity(
         opacity: _visible ? 1 : 0,
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOut,
+        duration: SacMotion.standard,
+        curve: SacMotion.easeOut,
         child: widget.child,
       ),
     );
@@ -283,10 +286,4 @@ class _SkeletonBlock extends StatelessWidget {
       ),
     );
   }
-}
-
-bool _reduceMotion(BuildContext context) {
-  final media = MediaQuery.maybeOf(context);
-  return media?.disableAnimations == true ||
-      media?.accessibleNavigation == true;
 }
