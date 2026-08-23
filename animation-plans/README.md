@@ -9,24 +9,34 @@
 | [003](003-replace-material-page-routes.md) | Replace leftover MaterialPageRoute with Sac routes | HIGH | DONE |
 | [004](004-sac-card-press-scale.md) | SacCard press scale instead of InkWell splash | HIGH | DONE |
 | [005](005-honor-enroll-cta-press.md) | Honor enroll CTA: press on down, enroll immediately | HIGH | DONE |
+| [006](006-achievement-unlock-enter-scale.md) | Achievement unlock: enter from 0.96, honor Reduced Motion | HIGH | DONE |
+| [007](007-show-sac-sheet.md) | One sheet language: showSacSheet + SacMotion.drawer | MEDIUM | TODO |
+| [008](008-sac-pressable.md) | One press primitive: SacPressable | MEDIUM | DONE |
+| [009](009-skeleton-reduced-motion.md) | Freeze loading skeletons under Reduced Motion | MEDIUM | DONE |
 
 ## Recommended execution order
 
-1. `002` — changes the shared list primitive. Do this first; later feel-checks assume 200ms / 40ms lists.
-2. `004` — one widget, high traffic. Independent of 002/003.
-3. `005` — one CTA. Independent. Same press numbers as 004 (`0.97` / `140ms` / `SacMotion.easeOut`).
-4. `003` — largest diff (mechanical route swaps). Do last so review stays a table of replacements, not mixed with motion-token edits.
+**Already shipped** (`bff0a6bf`): 002 → 004 → 005 → 003.
 
-`002` ∥ `004` ∥ `005` can run in parallel. `003` has no code dependency on them; order is for review load only.
+**This batch (findings 5–8):**
+
+1. `008` — small shared widget. Press numbers must match `SacButton` / `SacCard` before more surfaces copy a local variant.
+2. `006` — isolated unlock overlay. No file overlap with 008/009.
+3. `009` — isolated skeleton files. No overlap with 006/008.
+4. `007` — largest diff (~48 sheet call sites). Do last so review stays a swap table.
+
+`006` ∥ `008` ∥ `009` can run in parallel. `007` has no code dependency on them; order is for review load.
 
 ## Dependencies
 
 - Tokens already exist in `lib/core/animations/motion_tokens.dart`. Do not invent new curves or durations.
-- `003` uses existing `SacSharedAxisRoute` / `SacSlideUpRoute` / `SacFadeThroughRoute`. Only additive change: `fullscreenDialog` on those constructors.
+- `007` uses Flutter `AnimationStyle` (already used in `camporee_section_registration_sheet.dart`). Lift that into `showSacSheet`; then that file uses the helper.
+- `008` must keep Club address as `listenOnly: true` (child owns the tap).
+- `009` must not touch `ranking_skeleton.dart` (already correct — copy it).
 - No new packages.
-- Stamped against `0ef841cd`.
-- Do not revert login/splash/Club motion. Those screens already consume tokens.
+- New plans stamped against `bff0a6bf`.
+- Do not revert login/splash/Club/`SacCard` motion from 002–005.
 
 ## Out of this batch
 
-Audit findings 5–12 (unlock `scale(0)`, sheets, skeleton reduced-motion, theme-picker bounce, date-strip `AnimatedSize`, etc.) have no plans yet.
+Findings 9–12 (theme-picker `easeOutBack`, activities date-strip `AnimatedSize`, virtual-card `easeInCubic`, inventory `elasticOut`) have no plans yet.

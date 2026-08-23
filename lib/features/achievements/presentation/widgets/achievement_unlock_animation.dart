@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 
 import '../../domain/entities/achievement.dart';
@@ -12,8 +13,8 @@ import 'achievement_badge.dart';
 /// Overlay de animación de desbloqueo de logro.
 ///
 /// Muestra un overlay semi-transparente con:
-/// - Badge escalando desde 0 → 1.2 → 1.0 con curva bounceOut
-/// - Burst de partículas del color del tier
+/// - Badge scaling from [SacMotion.enterScale] → 1.06 → 1.0
+/// - Burst de partículas del color del tier (skipped under Reduced Motion)
 /// - Texto "¡Nuevo logro en tu camino!" + nombre del logro
 /// - Auto-dismiss en 3 segundos o tap para cerrar
 ///
@@ -62,6 +63,7 @@ class _UnlockOverlayState extends State<_UnlockOverlay>
   late final Animation<double> _scaleAnimation;
   late final Animation<double> _textFadeAnimation;
   late final Animation<double> _particleAnimation;
+  bool _started = false;
 
   @override
   void initState() {
@@ -69,12 +71,12 @@ class _UnlockOverlayState extends State<_UnlockOverlay>
 
     _badgeController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 500),
     );
 
     _textController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: SacMotion.standard,
     );
 
     _particlesController = AnimationController(
@@ -82,39 +84,53 @@ class _UnlockOverlayState extends State<_UnlockOverlay>
       duration: const Duration(milliseconds: 1200),
     );
 
-    // Badge: 0 → 1.2 → 1.0 (bounceOut style)
     _scaleAnimation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 0.0, end: 1.2)
-            .chain(CurveTween(curve: Curves.easeOutBack)),
+        tween: Tween<double>(begin: SacMotion.enterScale, end: 1.06)
+            .chain(CurveTween(curve: SacMotion.easeOut)),
         weight: 70,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.2, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeInOut)),
+        tween: Tween<double>(begin: 1.06, end: 1.0)
+            .chain(CurveTween(curve: SacMotion.easeInOut)),
         weight: 30,
       ),
     ]).animate(_badgeController);
 
     _textFadeAnimation = CurvedAnimation(
       parent: _textController,
-      curve: Curves.easeOut,
+      curve: SacMotion.easeOut,
     );
 
     _particleAnimation = CurvedAnimation(
       parent: _particlesController,
-      curve: Curves.easeOut,
+      curve: SacMotion.easeOut,
     );
 
-    // Start sequence
-    _badgeController.forward().then((_) {
-      if (mounted) _textController.forward();
-      if (mounted) _particlesController.forward();
-    });
-
-    // Auto dismiss after 3 seconds
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) widget.onDismiss();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduce = SacMotion.reduceMotionOf(context);
+    if (_started) return;
+    _started = true;
+
+    if (reduce) {
+      _badgeController.duration = SacMotion.reducedFade;
+      _textController.duration = SacMotion.reducedFade;
+      _badgeController.value = 1;
+      _textController.forward();
+      return;
+    }
+
+    _badgeController.forward().then((_) {
+      if (!mounted) return;
+      _textController.forward();
+      _particlesController.forward();
     });
   }
 
@@ -145,35 +161,39 @@ class _UnlockOverlayState extends State<_UnlockOverlay>
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    // Particle burst
-                    RepaintBoundary(
-                      child: AnimatedBuilder(
-                        animation: _particleAnimation,
-                        builder: (context, _) => CustomPaint(
-                          size: const Size(200, 200),
-                          painter: _ParticlePainter(
-                            progress: _particleAnimation.value,
-                            color: tierColor,
+                    if (!SacMotion.reduceMotionOf(context))
+                      RepaintBoundary(
+                        child: AnimatedBuilder(
+                          animation: _particleAnimation,
+                          builder: (context, _) => CustomPaint(
+                            size: const Size(200, 200),
+                            painter: _ParticlePainter(
+                              progress: _particleAnimation.value,
+                              color: tierColor,
+                            ),
                           ),
                         ),
                       ),
-                    ),
 
-                    // Glow ring
                     AnimatedBuilder(
                       animation: _badgeController,
-                      builder: (context, _) => Container(
-                        width: 130 * _scaleAnimation.value,
-                        height: 130 * _scaleAnimation.value,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: tierColor.withValues(alpha: 0.5),
-                              blurRadius: 40,
-                              spreadRadius: 20,
-                            ),
-                          ],
+                      builder: (context, _) => Transform.scale(
+                        scale: SacMotion.reduceMotionOf(context)
+                            ? 1
+                            : _scaleAnimation.value,
+                        child: Container(
+                          width: 130,
+                          height: 130,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: tierColor.withValues(alpha: 0.5),
+                                blurRadius: 40,
+                                spreadRadius: 20,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -182,7 +202,9 @@ class _UnlockOverlayState extends State<_UnlockOverlay>
                     AnimatedBuilder(
                       animation: _scaleAnimation,
                       builder: (context, child) => Transform.scale(
-                        scale: _scaleAnimation.value,
+                        scale: SacMotion.reduceMotionOf(context)
+                            ? 1
+                            : _scaleAnimation.value,
                         child: child,
                       ),
                       child: AchievementBadge(

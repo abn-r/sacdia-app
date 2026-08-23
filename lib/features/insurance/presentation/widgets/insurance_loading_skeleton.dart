@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 
 /// Skeleton que espeja el layout plano de [InsuranceView]:
 /// cifra de cobertura, barra, stats, búsqueda, lista agrupada.
@@ -21,11 +22,23 @@ class _InsuranceLoadingSkeletonState extends State<InsuranceLoadingSkeleton>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1400),
-    )..repeat();
+    );
 
     _shimmer = Tween<double>(begin: -2, end: 2).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduce = SacMotion.reduceMotionOf(context);
+    if (reduce) {
+      _controller.stop();
+      _controller.value = 0;
+    } else if (!_controller.isAnimating) {
+      _controller.repeat();
+    }
   }
 
   @override

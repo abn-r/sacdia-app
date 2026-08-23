@@ -13,6 +13,7 @@ import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee.dart';
 
 import '../providers/camporees_providers.dart';
@@ -140,7 +141,7 @@ class _CamporeeCard extends StatelessWidget {
       hint: 'camporees.detail.description'.tr(),
       child: Padding(
         padding: const EdgeInsets.only(bottom: 12),
-        child: _Pressable(
+        child: SacPressable(
           onTap: onTap,
           child: Container(
             clipBehavior: Clip.antiAlias,
@@ -310,44 +311,6 @@ class _CardBanner extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Press feedback: scale en touch-down (respuesta instantánea, Apple §1).
-class _Pressable extends StatefulWidget {
-  final Widget child;
-  final VoidCallback? onTap;
-
-  const _Pressable({required this.child, this.onTap});
-
-  @override
-  State<_Pressable> createState() => _PressableState();
-}
-
-class _PressableState extends State<_Pressable> {
-  bool _pressed = false;
-
-  void _setPressed(bool value) {
-    if (_pressed == value || widget.onTap == null) return;
-    setState(() => _pressed = value);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final reduce = SacMotion.reduceMotionOf(context);
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapDown: (_) => _setPressed(true),
-      onTapUp: (_) => _setPressed(false),
-      onTapCancel: () => _setPressed(false),
-      onTap: widget.onTap,
-      child: AnimatedScale(
-        scale: (!reduce && _pressed) ? 0.98 : 1,
-        duration: SacMotion.press,
-        curve: Curves.easeOut,
-        child: widget.child,
       ),
     );
   }

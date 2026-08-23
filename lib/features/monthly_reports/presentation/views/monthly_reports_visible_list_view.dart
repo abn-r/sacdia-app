@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/features/enrollment/presentation/providers/enrollment_providers.dart';
 
 import '../../domain/entities/monthly_report.dart';
@@ -371,9 +372,8 @@ class _VisibleReportRow extends StatelessWidget {
       report.clubType,
     ].whereType<String>().where((value) => value.trim().isNotEmpty).join(' · ');
 
-    return MonthlyReportPressable(
+    return SacPressable(
       onTap: onTap,
-      pressedScale: 0.985,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
         child: Row(

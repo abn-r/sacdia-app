@@ -58,52 +58,6 @@ class _MonthlyReportEntranceState extends State<MonthlyReportEntrance> {
   }
 }
 
-/// Press feedback: scale on touch-down (Apple response + Emil button craft).
-class MonthlyReportPressable extends StatefulWidget {
-  final Widget child;
-  final VoidCallback? onTap;
-  final BorderRadius? borderRadius;
-  final double pressedScale;
-
-  const MonthlyReportPressable({
-    super.key,
-    required this.child,
-    this.onTap,
-    this.borderRadius,
-    this.pressedScale = 0.97,
-  });
-
-  @override
-  State<MonthlyReportPressable> createState() => _MonthlyReportPressableState();
-}
-
-class _MonthlyReportPressableState extends State<MonthlyReportPressable> {
-  bool _pressed = false;
-
-  void _setPressed(bool value) {
-    if (_pressed == value || widget.onTap == null) return;
-    setState(() => _pressed = value);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final reduce = _reduceMotion(context);
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapDown: (_) => _setPressed(true),
-      onTapUp: (_) => _setPressed(false),
-      onTapCancel: () => _setPressed(false),
-      onTap: widget.onTap,
-      child: AnimatedScale(
-        scale: (!reduce && _pressed) ? widget.pressedScale : 1,
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.easeOut,
-        child: widget.child,
-      ),
-    );
-  }
-}
-
 /// SnackBars shown from the monthly-report flow must coexist with the shell's
 /// bottom NavigationBar. A floating SnackBar can be laid out above the
 /// available viewport and trigger Flutter's off-screen assertion, so this

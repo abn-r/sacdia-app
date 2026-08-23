@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -418,10 +419,22 @@ class _SkeletonBoxState extends State<_SkeletonBox>
     _ctrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1100),
-    )..repeat(reverse: true);
+    );
     _anim = Tween<double>(begin: 0.4, end: 1.0).animate(
       CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduce = SacMotion.reduceMotionOf(context);
+    if (reduce) {
+      _ctrl.stop();
+      _ctrl.value = 0;
+    } else if (!_ctrl.isAnimating) {
+      _ctrl.repeat(reverse: true);
+    }
   }
 
   @override

@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 
@@ -191,7 +192,7 @@ class _ReportProblemViewState extends ConsumerState<ReportProblemView> {
                           ),
                     ),
                     const SizedBox(height: 6),
-                    SupportPressable(
+                    SacPressable(
                       onTap: _pickCategory,
                       semanticLabel: 'support.report_pick_category'.tr(),
                       child: DecoratedBox(
@@ -416,7 +417,7 @@ class _CategoryOption extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final scheme = Theme.of(context).colorScheme;
-    return SupportPressable(
+    return SacPressable(
       onTap: onTap,
       semanticLabel: category.i18nKey.tr(),
       child: Padding(

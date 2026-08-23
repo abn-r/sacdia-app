@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 
 /// Shimmer-style skeleton that mirrors the ActivitiesListView loaded layout.
 ///
@@ -30,11 +31,23 @@ class _ActivitiesLoadingSkeletonState extends State<ActivitiesLoadingSkeleton>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1400),
-    )..repeat();
+    );
 
     _shimmer = Tween<double>(begin: -2, end: 2).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduce = SacMotion.reduceMotionOf(context);
+    if (reduce) {
+      _controller.stop();
+      _controller.value = 0;
+    } else if (!_controller.isAnimating) {
+      _controller.repeat();
+    }
   }
 
   @override

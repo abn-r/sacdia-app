@@ -12,6 +12,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
+import '../../../../core/widgets/sac_pressable.dart';
 import '../../../../core/widgets/sac_dialog.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_network_image.dart';
@@ -454,7 +455,8 @@ class _ClubViewState extends ConsumerState<ClubView> {
                     label: 'club.address'.tr(),
                   ),
                   const SizedBox(height: 12),
-                  _ClubPressable(
+                  SacPressable(
+                    listenOnly: true,
                     enabled: editable,
                     child: SacTextField(
                       controller: _addressController,
@@ -656,53 +658,6 @@ class _SectionHeader extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-/// Press scale on pointer-down. Does not steal the child's tap.
-class _ClubPressable extends StatefulWidget {
-  final Widget child;
-  final bool enabled;
-
-  const _ClubPressable({
-    required this.child,
-    required this.enabled,
-  });
-
-  @override
-  State<_ClubPressable> createState() => _ClubPressableState();
-}
-
-class _ClubPressableState extends State<_ClubPressable> {
-  bool _pressed = false;
-
-  void _setPressed(bool value) {
-    if (_pressed == value || !widget.enabled) return;
-    setState(() => _pressed = value);
-  }
-
-  @override
-  void didUpdateWidget(covariant _ClubPressable oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (!widget.enabled && _pressed) {
-      _pressed = false;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final reduce = SacMotion.reduceMotionOf(context);
-    return Listener(
-      onPointerDown: widget.enabled ? (_) => _setPressed(true) : null,
-      onPointerUp: widget.enabled ? (_) => _setPressed(false) : null,
-      onPointerCancel: widget.enabled ? (_) => _setPressed(false) : null,
-      child: AnimatedScale(
-        scale: (!reduce && _pressed) ? 0.97 : 1,
-        duration: SacMotion.press,
-        curve: SacMotion.easeOut,
-        child: widget.child,
-      ),
     );
   }
 }

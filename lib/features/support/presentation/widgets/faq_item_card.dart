@@ -7,9 +7,10 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
+
 import '../../domain/entities/faq_item.dart';
 import 'faq_category_strip.dart';
-import 'support_chrome.dart';
 
 class FaqItemCard extends StatelessWidget {
   const FaqItemCard({
@@ -35,7 +36,7 @@ class FaqItemCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SupportPressable(
+          SacPressable(
             onTap: onTap,
             semanticLabel: item.question,
             child: Column(

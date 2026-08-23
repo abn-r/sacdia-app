@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 
 import '../../domain/entities/material_item.dart';
 import '../utils/money_format.dart';
-import 'materials_pressable.dart';
 
 /// Tarjeta de producto del catálogo (grid 2 columnas).
 class ProductCard extends StatelessWidget {
@@ -24,7 +24,7 @@ class ProductCard extends StatelessWidget {
     final c = context.sac;
     final hasStock = item.stock > 0;
 
-    return MaterialsPressable(
+    return SacPressable(
       onTap: onTap,
       child: Semantics(
         button: true,
