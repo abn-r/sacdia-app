@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -15,6 +16,7 @@ import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.d
 
 import '../providers/camporees_providers.dart';
 import 'camporee_register_member_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Vista de miembros inscritos en un camporee.
 ///
@@ -92,7 +94,7 @@ class CamporeeMembersView extends ConsumerWidget {
   void _openRegisterMember(BuildContext context, WidgetRef ref) {
     Navigator.push(
       context,
-      MaterialPageRoute(
+      SacSharedAxisRoute(
         builder: (context) => CamporeeRegisterMemberView(
           camporeeId: camporeeId,
         ),
@@ -245,7 +247,7 @@ class _EligibleMembersBody extends ConsumerWidget {
                     return StaggeredListItem(
                       index: index,
                       initialDelay: const Duration(milliseconds: 60),
-                      staggerDelay: const Duration(milliseconds: 50),
+                      staggerDelay: SacMotion.stagger,
                       child: _MemberTile(
                         member: member,
                         onRemove: canRemoveParticipants

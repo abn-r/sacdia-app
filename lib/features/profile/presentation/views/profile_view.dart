@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
@@ -34,6 +35,7 @@ import '../../../virtual_card/presentation/views/virtual_card_view.dart';
 import 'edit_profile_view.dart';
 import 'medical_info_view.dart';
 import 'settings_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 
@@ -194,11 +196,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               onChangePhoto: _isUploadingPhoto ? null : _changePhoto,
               onSettings: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const SettingsView()),
+                SacSharedAxisRoute(builder: (_) => const SettingsView()),
               ),
               onQr: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const VirtualCardView()),
+                SacSharedAxisRoute(builder: (_) => const VirtualCardView()),
               ),
               onRefresh: () async {
                 await ref.read(profileNotifierProvider.notifier).refresh();
@@ -403,7 +405,7 @@ class _ProfileScrollBody extends StatelessWidget {
                 onEditProfile: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
+                    SacSharedAxisRoute(
                       builder: (context) => const EditProfileView(),
                     ),
                   );
@@ -427,7 +429,7 @@ class _ProfileScrollBody extends StatelessWidget {
                   iconColor: AppColors.error,
                   onTap: () => Navigator.push(
                     context,
-                    MaterialPageRoute(
+                    SacSharedAxisRoute(
                       builder: (_) => const MedicalInfoView(),
                     ),
                   ),
@@ -441,7 +443,7 @@ class _ProfileScrollBody extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: hPad),
               child: StaggeredColumn(
                 initialDelay: const Duration(milliseconds: 100),
-                staggerDelay: const Duration(milliseconds: 65),
+                staggerDelay: SacMotion.stagger,
                 children: [
                   // ── 4. Clases Progresivas ─────────────────────────
                   _SectionLabel(

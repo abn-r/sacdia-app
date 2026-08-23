@@ -18,6 +18,7 @@ import '../../views/class_detail_with_progress_view.dart';
 import '../data/roadmap_data.dart';
 import '../providers/roadmap_providers.dart';
 import 'roadmap_screen.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Versión conectada del roadmap de clases.
 ///
@@ -38,7 +39,7 @@ class RoadmapScreenConnected extends ConsumerWidget {
 
     Navigator.push(
       context,
-      MaterialPageRoute(
+      SacSharedAxisRoute(
         builder: (_) => ClassDetailWithProgressView(
           classId: classId,
           enrollmentId: item.enrollmentId,

@@ -17,6 +17,7 @@ import '../../../members/domain/entities/club_member.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import '../../domain/entities/enrollment.dart';
 import '../providers/enrollment_providers.dart';
+import '../../../../core/animations/page_transitions.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Pantalla para crear o actualizar la inscripción anual al club.
@@ -304,13 +305,12 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
   Future<void> _openLocationPicker() async {
     final result = await Navigator.push<LocationPickerResult>(
       context,
-      MaterialPageRoute(
+      SacSlideUpRoute(
         builder: (_) => LocationPickerView(
           initialLocation: _selectedLocation != null
               ? LatLng(_selectedLocation!.lat, _selectedLocation!.long)
               : null,
         ),
-        fullscreenDialog: true,
       ),
     );
 

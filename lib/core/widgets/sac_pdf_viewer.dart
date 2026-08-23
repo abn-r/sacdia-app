@@ -7,6 +7,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// A full-screen PDF viewer that accepts either a local file path or a public
 /// remote URL.
@@ -37,7 +38,7 @@ class SacPdfViewer extends StatefulWidget {
     String? title,
   }) {
     Navigator.of(context).push(
-      MaterialPageRoute(
+      SacFadeThroughRoute(
         builder: (_) => SacPdfViewer(pdfSource: pdfSource, title: title),
       ),
     );

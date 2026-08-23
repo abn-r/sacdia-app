@@ -24,6 +24,7 @@ import '../widgets/medico/medical_chip.dart';
 import '../widgets/medico/contact_tile.dart';
 import '../widgets/medico/medicament_tile.dart';
 import '../widgets/medico/empty_hint.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Mapea [AllergySeverity] a [SeverityTone] para renderizar chips.
 SeverityTone _severityTone(AllergySeverity severity) => switch (severity) {
@@ -161,7 +162,7 @@ class MedicalInfoView extends ConsumerWidget {
                       title: 'profile.medical_info.emergency_contacts'.tr(),
                       actionLabel: 'profile.medical_info.action_manage'.tr(),
                       onAction: () => Navigator.of(context).push(
-                        MaterialPageRoute(
+                        SacSharedAxisRoute(
                           builder: (_) => const EmergencyContactsView(),
                         ),
                       ),
@@ -183,7 +184,7 @@ class MedicalInfoView extends ConsumerWidget {
                                   'profile.medical_info.empty.add_contact_cta'
                                       .tr(),
                               onAction: () => Navigator.of(context).push(
-                                MaterialPageRoute(
+                                SacSharedAxisRoute(
                                   builder: (_) => const EmergencyContactsView(),
                                 ),
                               ),
@@ -214,7 +215,7 @@ class MedicalInfoView extends ConsumerWidget {
                       title: 'profile.medical_info.allergies'.tr(),
                       actionLabel: 'profile.medical_info.action_edit'.tr(),
                       onAction: () => Navigator.of(context).push(
-                        MaterialPageRoute(
+                        SacSharedAxisRoute(
                           builder: (_) => const AllergiesSelectionView(),
                         ),
                       ),
@@ -234,7 +235,7 @@ class MedicalInfoView extends ConsumerWidget {
                               actionLabel:
                                   'profile.medical_info.action_edit'.tr(),
                               onAction: () => Navigator.of(context).push(
-                                MaterialPageRoute(
+                                SacSharedAxisRoute(
                                   builder: (_) =>
                                       const AllergiesSelectionView(),
                                 ),
@@ -263,7 +264,7 @@ class MedicalInfoView extends ConsumerWidget {
                       title: 'profile.medical_info.diseases'.tr(),
                       actionLabel: 'profile.medical_info.action_edit'.tr(),
                       onAction: () => Navigator.of(context).push(
-                        MaterialPageRoute(
+                        SacSharedAxisRoute(
                           builder: (_) => const DiseasesSelectionView(),
                         ),
                       ),
@@ -283,7 +284,7 @@ class MedicalInfoView extends ConsumerWidget {
                               actionLabel:
                                   'profile.medical_info.action_edit'.tr(),
                               onAction: () => Navigator.of(context).push(
-                                MaterialPageRoute(
+                                SacSharedAxisRoute(
                                   builder: (_) => const DiseasesSelectionView(),
                                 ),
                               ),
@@ -312,7 +313,7 @@ class MedicalInfoView extends ConsumerWidget {
                       title: 'profile.medical_info.medicines'.tr(),
                       actionLabel: 'profile.medical_info.action_edit'.tr(),
                       onAction: () => Navigator.of(context).push(
-                        MaterialPageRoute(
+                        SacSharedAxisRoute(
                           builder: (_) => const MedicinesSelectionView(),
                         ),
                       ),
@@ -332,7 +333,7 @@ class MedicalInfoView extends ConsumerWidget {
                               actionLabel:
                                   'profile.medical_info.action_edit'.tr(),
                               onAction: () => Navigator.of(context).push(
-                                MaterialPageRoute(
+                                SacSharedAxisRoute(
                                   builder: (_) =>
                                       const MedicinesSelectionView(),
                                 ),
@@ -365,7 +366,7 @@ class MedicalInfoView extends ConsumerWidget {
                           title: 'profile.medical_info.legal_rep'.tr(),
                           actionLabel: 'profile.medical_info.action_edit'.tr(),
                           onAction: () => Navigator.of(context).push(
-                            MaterialPageRoute(
+                            SacSharedAxisRoute(
                               builder: (_) => const LegalRepresentativeView(),
                             ),
                           ),

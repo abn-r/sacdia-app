@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/auth/club_role_names.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
@@ -28,6 +29,7 @@ import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_sect
 import '../providers/camporees_providers.dart';
 import 'camporee_members_view.dart';
 import 'camporee_register_member_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Vista de detalle de un camporee.
 ///
@@ -229,7 +231,7 @@ class _DetailBody extends ConsumerWidget {
     HapticFeedback.selectionClick();
     Navigator.push(
       context,
-      MaterialPageRoute(
+      SacSharedAxisRoute(
         builder: (context) => CamporeeRegisterMemberView(
           camporeeId: camporeeId,
         ),
@@ -463,7 +465,7 @@ class _EventsSection extends StatelessWidget {
                     StaggeredListItem(
                       index: index,
                       initialDelay: Duration.zero,
-                      staggerDelay: const Duration(milliseconds: 35),
+                      staggerDelay: SacMotion.stagger,
                       child: _EventTile(
                         key: ValueKey(events[index].camporeeEventId),
                         event: events[index],
@@ -513,7 +515,7 @@ class _EventTile extends StatelessWidget {
             HapticFeedback.selectionClick();
             Navigator.push(
               context,
-              MaterialPageRoute(
+              SacSharedAxisRoute(
                 builder: (_) => _CamporeeEventDetailPage(event: event),
               ),
             );
@@ -987,7 +989,7 @@ class _MembersSection extends StatelessWidget {
                     HapticFeedback.selectionClick();
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
+                      SacSharedAxisRoute(
                         builder: (context) => CamporeeRegisterMemberView(
                           camporeeId: camporeeId,
                         ),
@@ -1131,7 +1133,7 @@ class _MembersPreview extends StatelessWidget {
           StaggeredListItem(
             index: index,
             initialDelay: Duration.zero,
-            staggerDelay: const Duration(milliseconds: 40),
+            staggerDelay: SacMotion.stagger,
             child: _MemberPreviewTile(member: preview[index]),
           ),
         const SizedBox(height: 12),
@@ -1143,7 +1145,7 @@ class _MembersPreview extends StatelessWidget {
             HapticFeedback.selectionClick();
             Navigator.push(
               context,
-              MaterialPageRoute(
+              SacSharedAxisRoute(
                 builder: (context) => CamporeeMembersView(
                   camporeeId: camporeeId,
                   camporeeName: camporeeName,

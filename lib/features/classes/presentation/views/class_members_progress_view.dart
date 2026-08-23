@@ -11,6 +11,7 @@ import '../../domain/entities/class_members_progress.dart';
 import '../providers/classes_providers.dart';
 import '../widgets/class_identity_badge.dart';
 import 'class_detail_with_progress_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 class ClassMembersProgressView extends ConsumerWidget {
   final int clubId;
@@ -117,7 +118,7 @@ class _MembersBody extends StatelessWidget {
             member: member,
             classColor: classColor,
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
+              SacSharedAxisRoute<void>(
                 builder: (_) => ClassDetailWithProgressView(
                   classId: member.classId,
                   enrollmentId: member.enrollmentId,

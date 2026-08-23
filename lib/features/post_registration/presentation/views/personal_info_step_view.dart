@@ -17,6 +17,7 @@ import 'legal_representative_view.dart';
 import 'allergies_selection_view.dart';
 import 'diseases_selection_view.dart';
 import 'medicines_selection_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Vista del paso 2: Información Personal - Estilo "Scout Vibrante"
 ///
@@ -699,7 +700,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
 
   Future<void> _navigateToEmergencyContacts() async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      SacSharedAxisRoute(
         builder: (context) => const EmergencyContactsView(),
       ),
     );
@@ -707,7 +708,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
 
   Future<void> _navigateToLegalRepresentative() async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      SacSharedAxisRoute(
         builder: (context) => const LegalRepresentativeView(),
       ),
     );
@@ -715,7 +716,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
 
   Future<void> _navigateToAllergiesSelection() async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      SacSharedAxisRoute(
         builder: (context) => const AllergiesSelectionView(),
       ),
     );
@@ -723,7 +724,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
 
   Future<void> _navigateToDiseasesSelection() async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      SacSharedAxisRoute(
         builder: (context) => const DiseasesSelectionView(),
       ),
     );
@@ -731,7 +732,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
 
   Future<void> _navigateToMedicinesSelection() async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      SacSharedAxisRoute(
         builder: (context) => const MedicinesSelectionView(),
       ),
     );

@@ -15,6 +15,7 @@ import '../../../post_registration/presentation/views/club_selection_step_view.d
 import '../../../profile/presentation/providers/profile_providers.dart';
 import '../../domain/entities/transfer_request.dart';
 import '../providers/transfer_providers.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Pantalla principal de solicitudes de traslado.
 ///
@@ -101,7 +102,7 @@ class TransferRequestsView extends ConsumerWidget {
 
   void _openNewRequest(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute(
+      SacSharedAxisRoute(
         builder: (_) => const TransferRequestFormView(),
       ),
     );

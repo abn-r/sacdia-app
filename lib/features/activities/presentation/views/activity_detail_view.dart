@@ -25,6 +25,7 @@ import '../widgets/activity_info_strip.dart';
 import '../widgets/activity_location_row.dart';
 import '../widgets/activity_virtual_banner.dart';
 import 'edit_activity_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Activity detail screen — consolidated layout (revised 2026-04).
 ///
@@ -138,7 +139,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
   Future<void> _navigateToEdit(Activity activity) async {
     final result = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(builder: (_) => EditActivityView(activity: activity)),
+      SacSharedAxisRoute(builder: (_) => EditActivityView(activity: activity)),
     );
     if (result == true && mounted) {
       ref.invalidate(activityDetailProvider(widget.activityId));
@@ -470,7 +471,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
 
   void _openQrScanner() {
     Navigator.of(context).push(
-      MaterialPageRoute(
+      SacSharedAxisRoute(
         builder: (_) => QrScannerView(activityId: widget.activityId),
       ),
     );
@@ -478,7 +479,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
 
   void _openMyQr() {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const VirtualCardView()),
+      SacSharedAxisRoute(builder: (_) => const VirtualCardView()),
     );
   }
 

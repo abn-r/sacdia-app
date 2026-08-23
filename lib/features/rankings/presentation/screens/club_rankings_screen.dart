@@ -199,8 +199,8 @@ class AnnualRankingProgressContent extends StatelessWidget {
         itemCount: sections.length,
         itemBuilder: (context, index) => StaggeredListItem(
           index: index ~/ 2,
-          staggerDelay: const Duration(milliseconds: 36),
-          duration: const Duration(milliseconds: 200),
+          staggerDelay: SacMotion.stagger,
+          duration: SacMotion.standard,
           slideOffset: 8,
           child: sections[index],
         ),

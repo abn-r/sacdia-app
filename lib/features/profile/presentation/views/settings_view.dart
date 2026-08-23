@@ -35,6 +35,7 @@ import '../../../virtual_card/presentation/views/virtual_card_view.dart';
 import 'active_sessions_view.dart';
 import 'data_export_view.dart';
 import 'edit_profile_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 const Set<String> _attendanceScannerRoles = {
   ClubRoleNames.director,
@@ -707,7 +708,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 iconColor: AppColors.primary,
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(
+                  SacSharedAxisRoute(
                     builder: (_) => const VirtualCardView(),
                   ),
                 ),
@@ -720,7 +721,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 iconColor: AppColors.primary,
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(
+                  SacSharedAxisRoute(
                     builder: (_) => const TransferRequestFormView(),
                   ),
                 ),
@@ -734,7 +735,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                   iconColor: AppColors.primary,
                   onTap: () => Navigator.push(
                     context,
-                    MaterialPageRoute(
+                    SacSharedAxisRoute(
                       builder: (_) => const QrScannerView(),
                     ),
                   ),
@@ -747,7 +748,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 iconColor: AppColors.primary,
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(
+                  SacSharedAxisRoute(
                     builder: (_) => const ActiveSessionsView(),
                   ),
                 ),
@@ -759,7 +760,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 iconColor: AppColors.primary,
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(
+                  SacSharedAxisRoute(
                     builder: (_) => const DataExportView(),
                   ),
                 ),
@@ -862,7 +863,7 @@ class _AccountHeaderTile extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const EditProfileView()),
+          SacSharedAxisRoute(builder: (_) => const EditProfileView()),
         );
       },
       child: Container(

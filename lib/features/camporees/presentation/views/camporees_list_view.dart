@@ -17,6 +17,7 @@ import 'package:sacdia_app/features/camporees/domain/entities/camporee.dart';
 
 import '../providers/camporees_providers.dart';
 import 'camporee_detail_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Vista de lista de camporees.
 ///
@@ -78,14 +79,14 @@ class CamporeesListView extends ConsumerWidget {
                   return StaggeredListItem(
                     index: index,
                     initialDelay: const Duration(milliseconds: 40),
-                    staggerDelay: const Duration(milliseconds: 45),
+                    staggerDelay: SacMotion.stagger,
                     child: _CamporeeCard(
                       camporee: camporee,
                       onTap: () {
                         HapticFeedback.selectionClick();
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
+                          SacSharedAxisRoute(
                             builder: (context) => CamporeeDetailView(
                               camporeeId: camporee.camporeeId,
                             ),

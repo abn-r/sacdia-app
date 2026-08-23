@@ -16,6 +16,7 @@ import '../providers/investiture_providers.dart';
 import '../widgets/investiture_status_badge.dart';
 import 'investiture_history_view.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Vista para directores/consejeros: enviar un enrollment a validación.
 ///
@@ -363,7 +364,7 @@ class _MemberStatusCard extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
+                SacSharedAxisRoute(
                   builder: (_) => InvestitureHistoryView(
                     enrollmentId: member.enrollmentId,
                   ),

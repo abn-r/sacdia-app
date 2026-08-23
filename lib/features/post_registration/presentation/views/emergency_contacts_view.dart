@@ -11,6 +11,7 @@ import '../../../../core/theme/sac_colors.dart';
 import '../providers/personal_info_providers.dart';
 import '../widgets/contact_card.dart';
 import 'add_edit_contact_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Vista para gestionar contactos de emergencia
 class EmergencyContactsView extends ConsumerWidget {
@@ -72,7 +73,7 @@ class EmergencyContactsView extends ConsumerWidget {
   Future<void> _navigateToAddEdit(BuildContext context,
       {dynamic contact}) async {
     final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
+      SacSharedAxisRoute(
         builder: (context) => AddEditContactView(contact: contact),
       ),
     );

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
@@ -51,6 +52,12 @@ class _SacCardState extends State<SacCard> with SingleTickerProviderStateMixin {
   late final Animation<double> _scale;
   Timer? _delayedStart;
   bool? _reduceMotion;
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() => _pressed = value);
+  }
 
   @override
   void initState() {
@@ -97,6 +104,7 @@ class _SacCardState extends State<SacCard> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final reduce = SacMotion.reduceMotionOf(context);
     final c = context.sac;
     final defaultBorder = c.border;
     final defaultBg = widget.backgroundColor ?? c.surface;
@@ -137,12 +145,23 @@ class _SacCardState extends State<SacCard> with SingleTickerProviderStateMixin {
     );
 
     if (widget.onTap != null) {
-      content = Material(
-        color: Colors.transparent,
-        child: InkWell(
+      content = Semantics(
+        button: true,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: (_) {
+            HapticFeedback.lightImpact();
+            _setPressed(true);
+          },
+          onTapUp: (_) => _setPressed(false),
+          onTapCancel: () => _setPressed(false),
           onTap: widget.onTap,
-          borderRadius: radius,
-          child: content,
+          child: AnimatedScale(
+            scale: (!reduce && _pressed) ? SacMotion.pressScale : 1,
+            duration: SacMotion.press,
+            curve: SacMotion.easeOut,
+            child: content,
+          ),
         ),
       );
     }

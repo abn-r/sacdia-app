@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/animations/animated_counter.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -303,7 +304,7 @@ class MyHonorsView extends ConsumerWidget {
           return StaggeredListItem(
             index: index,
             initialDelay: const Duration(milliseconds: 60),
-            staggerDelay: const Duration(milliseconds: 55),
+            staggerDelay: SacMotion.stagger,
             child: HonorCard(
               honor: minimalHonor,
               userHonor: userHonor,

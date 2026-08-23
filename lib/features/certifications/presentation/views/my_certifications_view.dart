@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -14,6 +15,7 @@ import 'package:sacdia_app/features/certifications/domain/entities/user_certific
 
 import '../providers/certifications_providers.dart';
 import 'certification_progress_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Vista de certificaciones del usuario (inscripciones).
 ///
@@ -157,7 +159,7 @@ class MyCertificationsView extends ConsumerWidget {
                           return StaggeredListItem(
                             index: index,
                             initialDelay: const Duration(milliseconds: 60),
-                            staggerDelay: const Duration(milliseconds: 55),
+                            staggerDelay: SacMotion.stagger,
                             child: _UserCertificationCard(
                               userCertification: uc,
                               hPad: hPad,
@@ -194,7 +196,7 @@ class MyCertificationsView extends ConsumerWidget {
                           return StaggeredListItem(
                             index: active.length + index,
                             initialDelay: const Duration(milliseconds: 60),
-                            staggerDelay: const Duration(milliseconds: 55),
+                            staggerDelay: SacMotion.stagger,
                             child: _UserCertificationCard(
                               userCertification: uc,
                               hPad: hPad,
@@ -260,7 +262,7 @@ class MyCertificationsView extends ConsumerWidget {
   void _navigateToProgress(BuildContext context, UserCertification uc) {
     Navigator.push(
       context,
-      MaterialPageRoute(
+      SacSharedAxisRoute(
         builder: (context) => CertificationProgressView(
           enrollmentId: uc.enrollmentId,
           certificationId: uc.certificationId,

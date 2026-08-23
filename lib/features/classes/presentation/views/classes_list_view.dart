@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -16,6 +17,7 @@ import '../providers/classes_providers.dart';
 import '../sheets/enroll_previous_class_sheet.dart';
 import '../widgets/class_card.dart';
 import 'class_detail_with_progress_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 // ── Top-level helper — reachable from AppBar and from ClassesListViewBody ───────
 
@@ -172,7 +174,7 @@ class ClassesListViewBody extends ConsumerWidget {
                 StaggeredListItem(
                   index: 0,
                   initialDelay: const Duration(milliseconds: 80),
-                  staggerDelay: const Duration(milliseconds: 65),
+                  staggerDelay: SacMotion.stagger,
                   child: Consumer(
                     builder: (context, progressRef, _) {
                       final progressQuery =
@@ -190,7 +192,7 @@ class ClassesListViewBody extends ConsumerWidget {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
+                            SacSharedAxisRoute(
                               builder: (context) => ClassDetailWithProgressView(
                                 classId: currentClass.id,
                                 enrollmentId: currentClass.enrollmentId,
@@ -219,7 +221,7 @@ class ClassesListViewBody extends ConsumerWidget {
                   StaggeredListItem(
                     index: i + 1,
                     initialDelay: const Duration(milliseconds: 80),
-                    staggerDelay: const Duration(milliseconds: 65),
+                    staggerDelay: SacMotion.stagger,
                     child: Consumer(
                       builder: (context, progressRef, _) {
                         final progressiveClass = otherClasses[i];
@@ -238,7 +240,7 @@ class ClassesListViewBody extends ConsumerWidget {
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(
+                              SacSharedAxisRoute(
                                 builder: (context) =>
                                     ClassDetailWithProgressView(
                                   classId: progressiveClass.id,

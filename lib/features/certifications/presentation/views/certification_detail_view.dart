@@ -15,6 +15,7 @@ import 'package:sacdia_app/features/certifications/domain/entities/certification
 
 import '../providers/certifications_providers.dart';
 import 'certification_progress_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Vista de detalle de certificación.
 ///
@@ -397,7 +398,7 @@ class _EnrolledCTA extends StatelessWidget {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
+              SacSharedAxisRoute(
                 builder: (context) => CertificationProgressView(
                   enrollmentId: enrollmentId,
                   certificationId: certificationId,

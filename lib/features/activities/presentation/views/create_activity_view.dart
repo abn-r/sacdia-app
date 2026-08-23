@@ -17,6 +17,7 @@ import '../providers/activities_providers.dart';
 import '../widgets/activity_form_widgets.dart';
 import 'location_picker_view.dart';
 import '../../../members/presentation/providers/members_providers.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Vista para crear una nueva actividad en el club.
 ///
@@ -144,13 +145,12 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
   Future<void> _openLocationPicker() async {
     final result = await Navigator.push<LocationPickerResult>(
       context,
-      MaterialPageRoute(
+      SacSlideUpRoute(
         builder: (_) => LocationPickerView(
           initialLocation: _selectedLocation != null
               ? LatLng(_selectedLocation!.lat, _selectedLocation!.long)
               : null,
         ),
-        fullscreenDialog: true,
       ),
     );
 

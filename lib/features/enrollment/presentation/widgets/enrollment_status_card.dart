@@ -12,6 +12,7 @@ import '../../../members/presentation/providers/members_providers.dart';
 import '../../domain/entities/enrollment.dart';
 import '../providers/enrollment_providers.dart';
 import '../views/enrollment_form_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 const _enrollmentCreatePermissions = {'club_instances:create'};
 
@@ -71,7 +72,7 @@ class EnrollmentStatusCard extends ConsumerWidget {
                         (ctx) {
                           if (ctx == null) return;
                           Navigator.of(context).push(
-                            MaterialPageRoute(
+                            SacSharedAxisRoute(
                               builder: (_) => EnrollmentFormView(
                                 clubId: ctx.clubId.toString(),
                                 sectionId: ctx.sectionId,
@@ -98,7 +99,7 @@ class EnrollmentStatusCard extends ConsumerWidget {
                       (ctx) {
                         if (ctx == null) return;
                         Navigator.of(context).push(
-                          MaterialPageRoute(
+                          SacSharedAxisRoute(
                             builder: (_) => EnrollmentFormView(
                               clubId: ctx.clubId.toString(),
                               sectionId: ctx.sectionId,

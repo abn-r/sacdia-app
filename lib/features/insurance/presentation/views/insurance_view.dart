@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/config/route_names.dart';
@@ -293,8 +294,8 @@ class _MemberGroup extends StatelessWidget {
     if (index >= 6) return child;
     return StaggeredListItem(
       index: index,
-      staggerDelay: const Duration(milliseconds: 40),
-      duration: const Duration(milliseconds: 200),
+      staggerDelay: SacMotion.stagger,
+      duration: SacMotion.standard,
       slideOffset: 8,
       child: child,
     );

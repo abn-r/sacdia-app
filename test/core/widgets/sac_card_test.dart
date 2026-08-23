@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
 void main() {
@@ -55,6 +56,69 @@ void main() {
 
     expect(_fade(tester).opacity.value, 1);
     expect(_scale(tester).scale.value, 1);
+  });
+
+  testWidgets('press scales tappable card to pressScale', (tester) async {
+    final reduceMotion = ValueNotifier<bool>(false);
+    addTearDown(reduceMotion.dispose);
+
+    await tester.pumpWidget(
+      _MotionHarness(
+        reduceMotion: reduceMotion,
+        child: SacCard(
+          onTap: () {},
+          child: const Text('card'),
+        ),
+      ),
+    );
+
+    final gesture = await tester.press(find.text('card'));
+    await tester.pump();
+
+    expect(
+      tester.widget<AnimatedScale>(find.byType(AnimatedScale)).scale,
+      SacMotion.pressScale,
+    );
+
+    await gesture.up();
+  });
+
+  testWidgets('reduced motion keeps tappable card at scale 1', (tester) async {
+    final reduceMotion = ValueNotifier<bool>(true);
+    addTearDown(reduceMotion.dispose);
+
+    await tester.pumpWidget(
+      _MotionHarness(
+        reduceMotion: reduceMotion,
+        child: SacCard(
+          onTap: () {},
+          child: const Text('card'),
+        ),
+      ),
+    );
+
+    await tester.press(find.text('card'));
+    await tester.pump();
+
+    expect(
+      tester.widget<AnimatedScale>(find.byType(AnimatedScale)).scale,
+      1,
+    );
+  });
+
+  testWidgets('static card has no press scale or InkWell', (tester) async {
+    final reduceMotion = ValueNotifier<bool>(false);
+    addTearDown(reduceMotion.dispose);
+
+    await tester.pumpWidget(
+      _MotionHarness(
+        reduceMotion: reduceMotion,
+        child: const SacCard(child: Text('card')),
+      ),
+    );
+
+    expect(find.byType(InkWell), findsNothing);
+    expect(find.byType(AnimatedScale), findsNothing);
   });
 }
 
