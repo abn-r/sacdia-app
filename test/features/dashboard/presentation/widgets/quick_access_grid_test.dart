@@ -186,7 +186,8 @@ void main() {
 
         await _pumpQuickAccessGrid(tester, user);
 
-        expect(find.text('dashboard.quick_access.camporee_judge'), findsNothing);
+        expect(
+            find.text('dashboard.quick_access.camporee_judge'), findsNothing);
       },
     );
   });

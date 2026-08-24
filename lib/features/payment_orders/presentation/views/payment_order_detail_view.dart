@@ -260,8 +260,7 @@ class _OrderDetailBody extends StatelessWidget {
                 ),
                 _DetailRow(
                   label: 'payment_orders.detail.unit_cost'.tr(),
-                  value:
-                      formatCentavos(order.unitCostCentavos, order.currency),
+                  value: formatCentavos(order.unitCostCentavos, order.currency),
                 ),
                 _DetailRow(
                   label: 'payment_orders.detail.beneficiaries'.tr(),

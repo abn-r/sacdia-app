@@ -26,7 +26,8 @@ class PaymentOrdersView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final filter = PaymentOrdersFilter(purpose: purpose, camporeeId: camporeeId);
+    final filter =
+        PaymentOrdersFilter(purpose: purpose, camporeeId: camporeeId);
     final ordersAsync = ref.watch(paymentOrdersListProvider(filter));
     final c = context.sac;
 

@@ -344,9 +344,7 @@ class CamporeeEventScheduleBlockModel extends Equatable {
         ? json['club_section'] as Map<String, dynamic>
         : null;
     final nested = section?['club_types'] ?? section?['club_type'];
-    final sectionName = nested is Map
-        ? safeStringOrNull(nested['name'])
-        : null;
+    final sectionName = nested is Map ? safeStringOrNull(nested['name']) : null;
     final club = section?['clubs'] is Map<String, dynamic>
         ? section!['clubs'] as Map<String, dynamic>
         : null;

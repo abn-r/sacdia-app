@@ -27,7 +27,8 @@ void main() {
       await gesture.up();
     });
 
-    testWidgets('should stay at scale 1 when motion is reduced', (tester) async {
+    testWidgets('should stay at scale 1 when motion is reduced',
+        (tester) async {
       await tester.pumpWidget(
         _MotionHarness(
           reduceMotion: true,

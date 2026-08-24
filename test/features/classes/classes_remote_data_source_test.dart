@@ -502,9 +502,7 @@ void main() {
       await expectLater(
         dataSource.enrollUser('user-1', 13, 2026),
         throwsA(
-          isA<ServerException>()
-              .having((e) => e.code, 'code', 403)
-              .having(
+          isA<ServerException>().having((e) => e.code, 'code', 403).having(
                 (e) => e.message,
                 'message',
                 'classes.errors.prerequisite_not_met',

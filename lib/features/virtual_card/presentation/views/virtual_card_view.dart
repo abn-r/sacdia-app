@@ -345,4 +345,3 @@ String virtualCardErrorMessageKey(Object error) {
   }
   return 'virtual_card.errors.load_failed';
 }
-

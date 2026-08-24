@@ -259,9 +259,8 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _chevronController.duration = SacMotion.reduceMotionOf(context)
-        ? Duration.zero
-        : SacMotion.standard;
+    _chevronController.duration =
+        SacMotion.reduceMotionOf(context) ? Duration.zero : SacMotion.standard;
   }
 
   @override

@@ -230,8 +230,8 @@ class QuickAccessGrid extends ConsumerWidget {
     }).toList();
 
     final showJudgeTile = ref.watch(camporeeJudgeAssignmentsProvider).maybeWhen(
-          data: (assignments) =>
-              assignments.any((assignment) => assignment.canCaptureOfficialScore),
+          data: (assignments) => assignments
+              .any((assignment) => assignment.canCaptureOfficialScore),
           orElse: () => false,
         );
     if (showJudgeTile) {

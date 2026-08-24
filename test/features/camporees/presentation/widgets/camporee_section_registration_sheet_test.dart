@@ -72,8 +72,7 @@ void main() {
       },
     );
 
-    final confirm =
-        find.widgetWithText(SacButton, 'Confirmar inscripción');
+    final confirm = find.widgetWithText(SacButton, 'Confirmar inscripción');
     await tester.tap(confirm);
     await tester.tap(confirm);
     await tester.pump();

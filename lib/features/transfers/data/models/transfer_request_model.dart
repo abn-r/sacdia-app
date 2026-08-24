@@ -42,7 +42,8 @@ class TransferRequestModel extends TransferRequest {
 
     // to_section nested object (optional)
     final sectionNested = json['to_section'] as Map<String, dynamic>?;
-    final nestedType = sectionNested?['club_types'] ?? sectionNested?['club_type'];
+    final nestedType =
+        sectionNested?['club_types'] ?? sectionNested?['club_type'];
     final toSectionName = json['to_section_name'] as String? ??
         (nestedType is Map ? nestedType['name'] as String? : null);
     final toClubName = json['to_club_name'] as String? ??

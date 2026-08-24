@@ -193,9 +193,8 @@ class InsuranceCycleOptionModel {
         : double.tryParse(rawCost?.toString() ?? '') ?? 0;
     return InsuranceCycleOptionModel(
       cycleConfigId: (json['insurance_cycle_config_id'] as num?)?.toInt() ?? 0,
-      productName: (json['product'] as Map<String, dynamic>?)?['name']
-              ?.toString() ??
-          '',
+      productName:
+          (json['product'] as Map<String, dynamic>?)?['name']?.toString() ?? '',
       unitCostCentavos: (costPesos * 100).round(),
       purchaseDeadline:
           DateTime.tryParse(json['purchase_deadline']?.toString() ?? ''),

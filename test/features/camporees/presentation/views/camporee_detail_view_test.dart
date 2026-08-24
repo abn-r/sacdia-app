@@ -150,7 +150,8 @@ void main() {
     expect(semantics.properties.liveRegion, isTrue);
   });
 
-  testWidgets('muestra clasificación oficial debajo de eventos', (tester) async {
+  testWidgets('muestra clasificación oficial debajo de eventos',
+      (tester) async {
     await _pumpDetail(
       tester,
       registration: _registration(
@@ -201,7 +202,8 @@ Future<void> _pumpDetail(
         camporeeDetailProvider.overrideWith((ref, id) async => _camporee),
         camporeeSectionRegistrationProvider
             .overrideWith((ref, id) async => registration),
-        camporeeEventsProvider.overrideWith((ref, id) async => const <CamporeeEvent>[]),
+        camporeeEventsProvider
+            .overrideWith((ref, id) async => const <CamporeeEvent>[]),
         camporeeLeaderboardProvider.overrideWith(
           (ref, id) async =>
               leaderboard ??

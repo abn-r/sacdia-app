@@ -193,8 +193,7 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       ClipRRect(
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.radiusMD),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                         child: SizedBox(
                           height: 180,
                           width: double.infinity,

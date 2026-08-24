@@ -52,8 +52,8 @@ class ResourceModel extends Equatable {
       categoryName: json['category_name'] as String? ??
           _nestedName(json['resource_categories']),
       clubTypeId: json['club_type_id'] as int?,
-      clubTypeName: json['club_type_name'] as String? ??
-          _nestedName(json['club_types']),
+      clubTypeName:
+          json['club_type_name'] as String? ?? _nestedName(json['club_types']),
       scopeLevel: json['scope_level'] as String? ?? 'system',
       scopeId: json['scope_id'] as int?,
       fileName: json['file_name'] as String?,

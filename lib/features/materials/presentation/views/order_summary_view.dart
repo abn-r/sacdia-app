@@ -227,9 +227,8 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
             SacButton.primary(
               text: 'Confirmar pedido',
               isLoading: createState.isLoading,
-              onPressed: createState.isLoading
-                  ? null
-                  : () => _confirm(context, ref),
+              onPressed:
+                  createState.isLoading ? null : () => _confirm(context, ref),
             ),
           ],
         ),

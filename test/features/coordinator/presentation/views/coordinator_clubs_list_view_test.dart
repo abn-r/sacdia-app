@@ -171,7 +171,7 @@ void main() {
       // Error icon or retry button should be present
       expect(
           find.byType(SacButton).evaluate().isNotEmpty ||
-          find.byType(ElevatedButton).evaluate().isNotEmpty ||
+              find.byType(ElevatedButton).evaluate().isNotEmpty ||
               find.byType(TextButton).evaluate().isNotEmpty ||
               find.byIcon(Icons.refresh).evaluate().isNotEmpty ||
               find.text('Reintentar').evaluate().isNotEmpty ||

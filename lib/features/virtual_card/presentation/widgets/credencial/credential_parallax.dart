@@ -87,9 +87,8 @@ class _CredentialParallaxState extends State<CredentialParallax> {
       onPointerCancel: (_) => _reset(),
       child: AnimatedContainer(
         key: credentialParallaxTransformKey,
-        duration: _isInteracting
-            ? const Duration(milliseconds: 80)
-            : SacMotion.modal,
+        duration:
+            _isInteracting ? const Duration(milliseconds: 80) : SacMotion.modal,
         curve: SacMotion.easeOut,
         transform: _transformFor(_position),
         transformAlignment: Alignment.center,

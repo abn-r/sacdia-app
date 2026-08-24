@@ -19,7 +19,8 @@ final paymentOrdersRemoteDataSourceProvider =
   );
 });
 
-final paymentOrdersRepositoryProvider = Provider<PaymentOrdersRepository>((ref) {
+final paymentOrdersRepositoryProvider =
+    Provider<PaymentOrdersRepository>((ref) {
   return PaymentOrdersRepositoryImpl(
     remoteDataSource: ref.read(paymentOrdersRemoteDataSourceProvider),
   );
@@ -223,12 +224,13 @@ class OrderActionsNotifier extends AutoDisposeNotifier<OrderActionsState> {
     required String mimeType,
   }) async {
     return _run(() async {
-      final result = await ref.read(paymentOrdersRepositoryProvider).uploadProof(
-            orderId: orderId,
-            filePath: filePath,
-            fileName: fileName,
-            mimeType: mimeType,
-          );
+      final result =
+          await ref.read(paymentOrdersRepositoryProvider).uploadProof(
+                orderId: orderId,
+                filePath: filePath,
+                fileName: fileName,
+                mimeType: mimeType,
+              );
       return result;
     }, invalidateOrderId: orderId);
   }

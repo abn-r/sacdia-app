@@ -31,8 +31,7 @@ class CamporeeJudgeAssignment extends Equatable {
   bool get isPrimary => judgeRole == 'primary';
 
   /// Official capture is only for an active primary assignment that can submit.
-  bool get canCaptureOfficialScore =>
-      active && isPrimary && canSubmitScore;
+  bool get canCaptureOfficialScore => active && isPrimary && canSubmitScore;
 
   /// Club name, else section type, else empty for the caller to fall back.
   String get displayClubLabel {

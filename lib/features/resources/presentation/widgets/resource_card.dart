@@ -153,8 +153,7 @@ class _ResourceCardState extends ConsumerState<ResourceCard> {
                   ),
                 ),
                 Padding(
-                  padding:
-                      const EdgeInsets.fromLTRB(10, 10, 10, 10),
+                  padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

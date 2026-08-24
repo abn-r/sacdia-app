@@ -410,8 +410,7 @@ class _SacButtonState extends State<SacButton> {
                   _setPressed(true);
                 },
           onTapUp: _effectivelyDisabled ? null : (_) => _setPressed(false),
-          onTapCancel:
-              _effectivelyDisabled ? null : () => _setPressed(false),
+          onTapCancel: _effectivelyDisabled ? null : () => _setPressed(false),
           onTap: _effectivelyDisabled ? null : _handlePressed,
           child: AnimatedScale(
             scale: (!reduce && _pressed) ? SacMotion.pressScale : 1,
