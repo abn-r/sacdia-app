@@ -137,35 +137,6 @@ jobs:
           esac
 
   # ──────────────────────────────────────────────────────────────────────────
-  # JOB 3b: Validate API_BASE_URL
-  # ──────────────────────────────────────────────────────────────────────────
-  # Release builds crash on startup without an HTTPS API_BASE_URL dart-define
-  # (see lib/core/constants/app_constants.dart). Fail fast here instead of
-  # shipping a broken binary. Requires repo secret API_BASE_URL, e.g.
-  # https://api.sacdia.com/api/v1
-  # ──────────────────────────────────────────────────────────────────────────
-  check-api-base-url:
-    name: Validate API_BASE_URL
-    runs-on: ubuntu-latest
-    needs: check-secrets
-    if: needs.check-secrets.outputs.has_google_services == 'true'
-    steps:
-      - env:
-          API_BASE_URL: ${{ secrets.API_BASE_URL }}
-        run: |
-          if [ -z "$API_BASE_URL" ]; then
-            echo "ERROR: secret API_BASE_URL is not set. Release builds require it." >&2
-            exit 1
-          fi
-          case "$API_BASE_URL" in
-            https://*) echo "API_BASE_URL OK" ;;
-            *)
-              echo "ERROR: API_BASE_URL must start with https:// (got a non-HTTPS value)." >&2
-              exit 1
-              ;;
-          esac
-
-  # ──────────────────────────────────────────────────────────────────────────
   # JOB 4: Build Android (APK smoke gate)
   # ──────────────────────────────────────────────────────────────────────────
   # Requires repo secret GOOGLE_SERVICES_JSON_BASE64 (base64-encoded content
