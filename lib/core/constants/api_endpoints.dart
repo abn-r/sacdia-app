@@ -117,4 +117,9 @@ class ApiEndpoints {
 
   // ── Field Payment Orders ─────────────────────────────────────────────────
   static const String paymentOrders = '/payment-orders';
+
+  // ── Pedidos de camporee (merchandise; no confundir con inscripción) ──────
+  static const String camporeeOrders = '/camporee-orders';
+  static const String camporeeOrderProducts = '/camporee-order-products';
+  static const String paymentObligations = '/payment-obligations';
 }
