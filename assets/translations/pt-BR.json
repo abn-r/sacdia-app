@@ -4095,5 +4095,98 @@
       "reassignment_pending_exists": "Já existe uma solicitação de reatribuição pendente",
       "download_document": "Não foi possível baixar o documento"
     }
+  },
+  "camporee_orders": {
+    "cta": {
+      "label": "Pedidos",
+      "closed": "O período de pedidos está encerrado",
+      "not_open": "Os pedidos ainda não estão abertos"
+    },
+    "catalog": {
+      "title": "Pedidos",
+      "new_order": "Novo pedido",
+      "history_title": "Pedidos da seção",
+      "empty": "Esta seção ainda não tem pedidos",
+      "offerings_empty": "Não há artigos disponíveis",
+      "disabled": "Os pedidos não estão habilitados para este campori",
+      "closed": "O período de pedidos está encerrado",
+      "not_open": "Os pedidos ainda não estão abertos"
+    },
+    "capture": {
+      "title": "Montar pedido",
+      "empty_roster": "Não há inscritos ativos para pedir",
+      "select_size": "Tamanho",
+      "qty": "Quantidade",
+      "continue": "Revisar pedido",
+      "no_lines": "Adicione pelo menos um artigo",
+      "lines_count": "{count} artigo(s)"
+    },
+    "review": {
+      "title": "Revisar pedido",
+      "summary_title": "Consolidado",
+      "named_title": "Por pessoa",
+      "submit": "Emitir pedido",
+      "success": "Pedido emitido",
+      "empty": "O pedido está vazio"
+    },
+    "detail": {
+      "title": "Detalhe do pedido",
+      "total": "Total",
+      "expires": "Vence",
+      "distribution": "Entrega aos membros",
+      "view_pdf": "Ver pedido (PDF)",
+      "upload_proof": "Enviar comprovante",
+      "reupload_proof": "Enviar comprovante novamente",
+      "proof_uploaded": "Comprovante enviado para revisão",
+      "proof_too_large": "O arquivo excede o tamanho máximo de 10 MB",
+      "proof_title": "Comprovante de pagamento",
+      "cancel_order": "Cancelar pedido",
+      "cancel_title": "Cancelar pedido?",
+      "cancel_body": "O pedido deixará de ser válido. Você poderá emitir outro se a janela ainda estiver aberta.",
+      "cancel_confirm": "Sim, cancelar",
+      "cancelled": "Pedido cancelado",
+      "deliver": "Marcar como entregue",
+      "delivered_to_member": "Entregue ao membro"
+    },
+    "status": {
+      "issued": "Emitido",
+      "proof_submitted": "Comprovante enviado",
+      "proof_rejected": "Comprovante rejeitado",
+      "paid": "Pago",
+      "delivered": "Entregue à seção",
+      "cancelled": "Cancelado",
+      "expired": "Vencido"
+    },
+    "distribution": {
+      "not_started": "Não iniciado",
+      "partial": "Entrega parcial",
+      "complete": "Entrega completa"
+    },
+    "pending": {
+      "title": "Pagamentos pendentes",
+      "empty": "Não há pagamentos pendentes",
+      "purpose": {
+        "camporee_materials": "Pedido de campori",
+        "camporee": "Inscrição de campori",
+        "insurance": "Seguro",
+        "materials": "Materiais"
+      }
+    },
+    "errors": {
+      "not_found": "Pedido não encontrado",
+      "forbidden": "Você não tem acesso a este pedido",
+      "invalid_transition": "Esta ação não é permitida no estado atual do pedido",
+      "lines_required": "Adicione pelo menos um artigo",
+      "member_not_eligible": "Um ou mais inscritos não são elegíveis",
+      "offering_invalid": "Um ou mais artigos não estão disponíveis",
+      "option_required": "Selecione um tamanho",
+      "option_forbidden": "Este tamanho não se aplica ao artigo",
+      "payment_config_required": "Falta a configuração de pagamento do campo local",
+      "proof_invalid_file": "Arquivo inválido. Use PDF, JPG, PNG ou WebP de até 10 MB",
+      "proof_not_found": "Comprovante não encontrado",
+      "not_delivered_to_section": "O pedido ainda não foi entregue à seção",
+      "distribution_forbidden": "Você não pode registrar a entrega aos membros",
+      "download_document": "Não foi possível baixar o documento"
+    }
   }
 }
