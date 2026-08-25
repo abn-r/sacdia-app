@@ -1,6 +1,5 @@
-import '../../../payment_orders/domain/entities/payment_obligation.dart';
+import '../../domain/entities/payment_obligation.dart';
 
-/// Modelo del read model de obligaciones pendientes.
 class PaymentObligationModel {
   final String source;
   final String sourceId;
@@ -10,7 +9,9 @@ class PaymentObligationModel {
   final String currency;
   final String status;
   final String actionRequired;
-  final PaymentObligationCamporeeModel? camporee;
+  final String? camporeeType;
+  final int? camporeeId;
+  final String? camporeeName;
   final DateTime createdAt;
 
   const PaymentObligationModel({
@@ -23,23 +24,27 @@ class PaymentObligationModel {
     required this.status,
     required this.actionRequired,
     required this.createdAt,
-    this.camporee,
+    this.camporeeType,
+    this.camporeeId,
+    this.camporeeName,
   });
 
   factory PaymentObligationModel.fromJson(Map<String, dynamic> json) {
-    final camporeeJson = json['camporee'];
+    final camporee = json['camporee'];
+    final camporeeMap =
+        camporee is Map<String, dynamic> ? camporee : null;
     return PaymentObligationModel(
-      source: json['source']?.toString() ?? 'CAMPOREE_ORDER',
+      source: json['source']?.toString() ?? 'FIELD_PAYMENT_ORDER',
       sourceId: json['source_id']?.toString() ?? '',
-      purpose: json['purpose']?.toString() ?? 'CAMPOREE_MATERIALS',
+      purpose: json['purpose']?.toString() ?? 'INSURANCE',
       folio: json['folio']?.toString() ?? '',
       totalCentavos: (json['total_centavos'] as num?)?.toInt() ?? 0,
       currency: json['currency']?.toString() ?? 'MXN',
       status: json['status']?.toString() ?? 'PAYMENT_DUE',
       actionRequired: json['action_required']?.toString() ?? 'UPLOAD_PROOF',
-      camporee: camporeeJson is Map<String, dynamic>
-          ? PaymentObligationCamporeeModel.fromJson(camporeeJson)
-          : null,
+      camporeeType: camporeeMap?['type']?.toString(),
+      camporeeId: (camporeeMap?['id'] as num?)?.toInt(),
+      camporeeName: camporeeMap?['name']?.toString(),
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
     );
@@ -54,34 +59,13 @@ class PaymentObligationModel {
         currency: currency,
         status: PaymentObligationStatusApi.fromApi(status),
         actionRequired: PaymentObligationActionApi.fromApi(actionRequired),
-        camporee: camporee?.toEntity(),
+        camporee: camporeeId != null && camporeeType != null
+            ? PaymentObligationCamporee(
+                type: camporeeType!,
+                id: camporeeId!,
+                name: camporeeName ?? '',
+              )
+            : null,
         createdAt: createdAt,
-      );
-}
-
-/// Modelo del camporee anidado en una obligación.
-class PaymentObligationCamporeeModel {
-  final String type;
-  final int id;
-  final String name;
-
-  const PaymentObligationCamporeeModel({
-    required this.type,
-    required this.id,
-    required this.name,
-  });
-
-  factory PaymentObligationCamporeeModel.fromJson(Map<String, dynamic> json) {
-    return PaymentObligationCamporeeModel(
-      type: json['type']?.toString() ?? 'local',
-      id: (json['id'] as num?)?.toInt() ?? 0,
-      name: json['name']?.toString() ?? '',
-    );
-  }
-
-  PaymentObligationCamporee toEntity() => PaymentObligationCamporee(
-        type: type,
-        id: id,
-        name: name,
       );
 }

@@ -5,22 +5,21 @@ import 'package:sacdia_app/core/errors/exceptions.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/features/camporee_orders/data/datasources/camporee_orders_remote_data_source.dart';
 import 'package:sacdia_app/features/camporee_orders/data/models/camporee_order_model.dart';
-import 'package:sacdia_app/features/camporee_orders/data/models/camporee_order_offering_model.dart';
 import 'package:sacdia_app/features/camporee_orders/data/models/camporee_order_product_model.dart';
 import 'package:sacdia_app/features/camporee_orders/data/repositories/camporee_orders_repository_impl.dart';
 import 'package:sacdia_app/features/camporee_orders/domain/entities/camporee_order.dart';
 import 'package:sacdia_app/features/payment_orders/data/models/payment_obligation_model.dart';
 
 class _FakeRemote implements CamporeeOrdersRemoteDataSource {
-  List<Map<String, dynamic>>? lastCreateLines;
-  String? lastCamporeeType;
+  List<CamporeeOrderLineInput>? lastCreateLines;
+  CamporeeKind? lastCamporeeType;
   String? lastIdempotencyKey;
 
   @override
   Future<CamporeeOrderModel> createOrder({
     required int camporeeId,
-    required String camporeeType,
-    required List<Map<String, dynamic>> lines,
+    required List<CamporeeOrderLineInput> lines,
+    CamporeeKind camporeeType = CamporeeKind.local,
     String? idempotencyKey,
   }) async {
     lastCreateLines = lines;
@@ -60,9 +59,9 @@ class _FakeRemote implements CamporeeOrdersRemoteDataSource {
   }
 
   @override
-  Future<CamporeeOrderOfferingsResultModel> getOfferings({
+  Future<CamporeeOrderOfferingsCatalogModel> getOfferings({
     required int camporeeId,
-    required String camporeeType,
+    CamporeeKind camporeeType = CamporeeKind.local,
     CancelToken? cancelToken,
   }) {
     throw UnimplementedError();
@@ -77,13 +76,16 @@ class _FakeRemote implements CamporeeOrdersRemoteDataSource {
   }
 
   @override
-  Future<CamporeeOrderProofModel> getProof(String orderId) {
+  Future<CamporeeOrderProofDownloadModel> getProof(
+    String orderId, {
+    CancelToken? cancelToken,
+  }) {
     throw UnimplementedError();
   }
 
   @override
   Future<List<CamporeeOrderModel>> listOrders({
-    int? localCamporeeId,
+    int? camporeeId,
     int? unionCamporeeId,
     String? status,
     CancelToken? cancelToken,
@@ -102,7 +104,6 @@ class _FakeRemote implements CamporeeOrdersRemoteDataSource {
 
   @override
   Future<List<CamporeeOrderProductModel>> listProducts({
-    bool? active,
     CancelToken? cancelToken,
   }) {
     throw UnimplementedError();
@@ -126,9 +127,9 @@ void main() {
 
     final result = await repo.createOrder(
       camporeeId: 17,
-      camporeeType: 'local',
+      camporeeType: CamporeeKind.local,
       lines: const [
-        CamporeeOrderCreateLine(
+        CamporeeOrderLineInput(
           camporeeMemberId: 801,
           offeringId: 'off-1',
           optionId: 'opt-1',
@@ -139,9 +140,9 @@ void main() {
     );
 
     expect(result.isRight(), isTrue);
-    expect(remote.lastCamporeeType, 'local');
+    expect(remote.lastCamporeeType, CamporeeKind.local);
     expect(remote.lastIdempotencyKey, 'idem-1');
-    expect(remote.lastCreateLines, [
+    expect(remote.lastCreateLines!.map((l) => l.toJson()).toList(), [
       {
         'camporee_member_id': 801,
         'offering_id': 'off-1',

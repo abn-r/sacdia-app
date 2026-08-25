@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sacdia_app/features/camporee_orders/data/models/camporee_order_offering_model.dart';
 import 'package:sacdia_app/features/camporee_orders/data/models/camporee_order_product_model.dart';
 import 'package:sacdia_app/features/camporee_orders/domain/entities/camporee_order_product.dart';
 
@@ -48,9 +47,9 @@ void main() {
     });
   });
 
-  group('CamporeeOrderOfferingsResultModel', () {
+  group('CamporeeOrderOfferingsCatalogModel', () {
     test('parsea settings + items con producto anidado', () {
-      final result = CamporeeOrderOfferingsResultModel.fromJson({
+      final result = CamporeeOrderOfferingsCatalogModel.fromJson({
         'settings': {
           'orders_enabled': true,
           'orders_opens_at': '2026-08-01T00:00:00.000Z',

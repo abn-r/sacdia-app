@@ -1,6 +1,5 @@
 import '../../domain/entities/camporee_order.dart';
 
-/// Modelo de línea nominada de un pedido de camporee.
 class CamporeeOrderLineModel {
   final String lineId;
   final int sequence;
@@ -77,7 +76,6 @@ class CamporeeOrderLineModel {
       );
 }
 
-/// Modelo del consolidado derivado. Se parsea; no se recalcula.
 class CamporeeOrderSummaryItemModel {
   final String productTitleSnapshot;
   final String? optionLabelSnapshot;
@@ -108,53 +106,50 @@ class CamporeeOrderSummaryItemModel {
       );
 }
 
-/// Modelo de comprobante (GET /camporee-orders/:id/proof).
-class CamporeeOrderProofModel {
-  final String? url;
-  final int? expiresIn;
+class CamporeeOrderProofDownloadModel {
+  final String url;
+  final int expiresIn;
   final String fileName;
   final String mimeType;
   final String status;
-  final String? uploadedById;
   final DateTime createdAt;
 
-  const CamporeeOrderProofModel({
+  const CamporeeOrderProofDownloadModel({
+    required this.url,
+    required this.expiresIn,
     required this.fileName,
     required this.mimeType,
     required this.status,
     required this.createdAt,
-    this.url,
-    this.expiresIn,
-    this.uploadedById,
   });
 
-  factory CamporeeOrderProofModel.fromJson(Map<String, dynamic> json) {
-    return CamporeeOrderProofModel(
-      url: json['url']?.toString(),
-      expiresIn: (json['expires_in'] as num?)?.toInt(),
+  factory CamporeeOrderProofDownloadModel.fromJson(Map<String, dynamic> json) {
+    return CamporeeOrderProofDownloadModel(
+      url: json['url']?.toString() ?? '',
+      expiresIn: (json['expires_in'] as num?)?.toInt() ?? 0,
       fileName: json['file_name']?.toString() ?? '',
       mimeType: json['mime_type']?.toString() ?? '',
       status: json['status']?.toString() ?? 'SUBMITTED',
-      uploadedById: json['uploaded_by_id']?.toString(),
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
     );
   }
 
-  CamporeeOrderProof toEntity() => CamporeeOrderProof(
+  CamporeeOrderProofDownload toEntity() => CamporeeOrderProofDownload(
         url: url,
         expiresIn: expiresIn,
         fileName: fileName,
         mimeType: mimeType,
-        status: CamporeeOrderProofStatusApi.fromApi(status),
-        uploadedById: uploadedById,
+        status: status,
         createdAt: createdAt,
       );
 }
 
-/// Modelo de pedido de mercancía (CamporeeOrderView).
 class CamporeeOrderModel {
   final String orderId;
+  final int localFieldId;
+  final int clubId;
+  final int clubSectionId;
   final int? localCamporeeId;
   final int? unionCamporeeId;
   final String folioReference;
@@ -164,18 +159,17 @@ class CamporeeOrderModel {
   final DateTime expiresAt;
   final DateTime createdAt;
   final bool authorizedWithoutProof;
-  final String distributionStatus;
+  final String? authorizationReason;
+  final DateTime? deliveredToSectionAt;
   final List<CamporeeOrderLineModel> lines;
   final List<CamporeeOrderSummaryItemModel> summary;
-  final String? bankName;
-  final String? bankAccount;
-  final String? bankClabe;
-  final String? bankHolder;
-  final String? cashInstructions;
-  final String? extraNotes;
+  final String distributionStatus;
 
   const CamporeeOrderModel({
     required this.orderId,
+    required this.localFieldId,
+    required this.clubId,
+    required this.clubSectionId,
     required this.folioReference,
     required this.status,
     required this.currency,
@@ -186,69 +180,70 @@ class CamporeeOrderModel {
     required this.distributionStatus,
     this.localCamporeeId,
     this.unionCamporeeId,
+    this.authorizationReason,
+    this.deliveredToSectionAt,
     this.lines = const [],
     this.summary = const [],
-    this.bankName,
-    this.bankAccount,
-    this.bankClabe,
-    this.bankHolder,
-    this.cashInstructions,
-    this.extraNotes,
   });
 
   factory CamporeeOrderModel.fromJson(Map<String, dynamic> json) {
-    final lines = (json['lines'] as List<dynamic>? ?? [])
-        .map((e) => CamporeeOrderLineModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+    final nestedOrder = json['order'];
+    final root = nestedOrder is Map<String, dynamic> ? nestedOrder : json;
     return CamporeeOrderModel(
-      orderId: json['camporee_order_id']?.toString() ?? '',
-      localCamporeeId: (json['local_camporee_id'] as num?)?.toInt(),
-      unionCamporeeId: (json['union_camporee_id'] as num?)?.toInt(),
-      folioReference: json['folio_reference']?.toString() ?? '',
-      status: json['status']?.toString() ?? 'ISSUED',
-      currency: json['currency']?.toString() ?? 'MXN',
-      totalCentavos: (json['total_centavos'] as num?)?.toInt() ?? 0,
-      expiresAt: DateTime.tryParse(json['expires_at']?.toString() ?? '') ??
+      orderId: root['camporee_order_id']?.toString() ?? '',
+      localFieldId: (root['local_field_id'] as num?)?.toInt() ?? 0,
+      clubId: (root['club_id'] as num?)?.toInt() ?? 0,
+      clubSectionId: (root['club_section_id'] as num?)?.toInt() ?? 0,
+      localCamporeeId: (root['local_camporee_id'] as num?)?.toInt(),
+      unionCamporeeId: (root['union_camporee_id'] as num?)?.toInt(),
+      folioReference: root['folio_reference']?.toString() ?? '',
+      status: root['status']?.toString() ?? 'ISSUED',
+      currency: root['currency']?.toString() ?? 'MXN',
+      totalCentavos: (root['total_centavos'] as num?)?.toInt() ?? 0,
+      expiresAt: DateTime.tryParse(root['expires_at']?.toString() ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
-      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+      createdAt: DateTime.tryParse(root['created_at']?.toString() ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
-      authorizedWithoutProof: json['authorized_without_proof'] == true,
-      distributionStatus:
-          json['distribution_status']?.toString() ?? 'NOT_STARTED',
-      lines: lines,
-      summary: (json['summary'] as List<dynamic>? ?? [])
-          .map((e) =>
-              CamporeeOrderSummaryItemModel.fromJson(e as Map<String, dynamic>))
+      authorizedWithoutProof: root['authorized_without_proof'] == true,
+      authorizationReason: root['authorization_reason']?.toString(),
+      deliveredToSectionAt:
+          DateTime.tryParse(root['delivered_to_section_at']?.toString() ?? ''),
+      lines: (root['lines'] as List<dynamic>? ?? [])
+          .map((e) => CamporeeOrderLineModel.fromJson(e as Map<String, dynamic>))
           .toList(),
-      bankName: json['bank_name']?.toString(),
-      bankAccount: json['bank_account']?.toString(),
-      bankClabe: json['bank_clabe']?.toString(),
-      bankHolder: json['bank_holder']?.toString(),
-      cashInstructions: json['cash_instructions']?.toString(),
-      extraNotes: json['extra_notes']?.toString(),
+      summary: (root['summary'] as List<dynamic>? ?? [])
+          .map(
+            (e) => CamporeeOrderSummaryItemModel.fromJson(
+              e as Map<String, dynamic>,
+            ),
+          )
+          .toList(),
+      distributionStatus: root['distribution_status']?.toString() ?? 'NOT_STARTED',
     );
   }
 
-  CamporeeOrder toEntity() => CamporeeOrder(
-        orderId: orderId,
-        localCamporeeId: localCamporeeId,
-        unionCamporeeId: unionCamporeeId,
-        folioReference: folioReference,
-        status: CamporeeOrderStatusApi.fromApi(status),
-        currency: currency,
-        totalCentavos: totalCentavos,
-        expiresAt: expiresAt,
-        createdAt: createdAt,
-        authorizedWithoutProof: authorizedWithoutProof,
-        distributionStatus:
-            CamporeeOrderDistributionStatusApi.fromApi(distributionStatus),
-        lines: lines.map((l) => l.toEntity()).toList(),
-        summary: summary.map((s) => s.toEntity()).toList(),
-        bankName: bankName,
-        bankAccount: bankAccount,
-        bankClabe: bankClabe,
-        bankHolder: bankHolder,
-        cashInstructions: cashInstructions,
-        extraNotes: extraNotes,
-      );
+  CamporeeOrder toEntity() {
+    final lineEntities = lines.map((l) => l.toEntity()).toList();
+    return CamporeeOrder(
+      orderId: orderId,
+      localFieldId: localFieldId,
+      clubId: clubId,
+      clubSectionId: clubSectionId,
+      localCamporeeId: localCamporeeId,
+      unionCamporeeId: unionCamporeeId,
+      folioReference: folioReference,
+      status: CamporeeOrderStatusApi.fromApi(status),
+      currency: currency,
+      totalCentavos: totalCentavos,
+      expiresAt: expiresAt,
+      createdAt: createdAt,
+      authorizedWithoutProof: authorizedWithoutProof,
+      authorizationReason: authorizationReason,
+      deliveredToSectionAt: deliveredToSectionAt,
+      lines: lineEntities,
+      summary: summary.map((s) => s.toEntity()).toList(),
+      distributionStatus:
+          CamporeeOrderDistributionStatusApi.fromApi(distributionStatus),
+    );
+  }
 }

@@ -7,10 +7,27 @@ import '../entities/camporee_order.dart';
 import '../entities/camporee_order_offering.dart';
 import '../entities/camporee_order_product.dart';
 
-/// Contrato del repositorio de pedidos de mercancía de camporee.
+/// Contrato de pedidos de mercancía de camporee (no inscripción).
 abstract class CamporeeOrdersRepository {
+  Future<Either<Failure, CamporeeOrderOfferingsCatalog>> getOfferings({
+    required int camporeeId,
+    CamporeeKind camporeeType = CamporeeKind.local,
+    RequestCancelToken? cancelToken,
+  });
+
+  Future<Either<Failure, List<CamporeeOrderProduct>>> listProducts({
+    RequestCancelToken? cancelToken,
+  });
+
+  Future<Either<Failure, CamporeeOrder>> createOrder({
+    required int camporeeId,
+    required List<CamporeeOrderLineInput> lines,
+    CamporeeKind camporeeType = CamporeeKind.local,
+    String? idempotencyKey,
+  });
+
   Future<Either<Failure, List<CamporeeOrder>>> listOrders({
-    int? localCamporeeId,
+    int? camporeeId,
     int? unionCamporeeId,
     CamporeeOrderStatus? status,
     RequestCancelToken? cancelToken,
@@ -21,25 +38,12 @@ abstract class CamporeeOrdersRepository {
     RequestCancelToken? cancelToken,
   });
 
-  Future<Either<Failure, CamporeeOrder>> createOrder({
-    required int camporeeId,
-    required String camporeeType,
-    required List<CamporeeOrderCreateLine> lines,
-    String? idempotencyKey,
-  });
-
-  Future<Either<Failure, CamporeeOrderOfferingsResult>> getOfferings({
-    required int camporeeId,
-    required String camporeeType,
-    RequestCancelToken? cancelToken,
-  });
-
-  Future<Either<Failure, List<CamporeeOrderProduct>>> listProducts({
-    bool? active,
-    RequestCancelToken? cancelToken,
-  });
-
   Future<Either<Failure, String>> downloadOrderPdf(
+    String orderId, {
+    RequestCancelToken? cancelToken,
+  });
+
+  Future<Either<Failure, CamporeeOrderProofDownload>> getProof(
     String orderId, {
     RequestCancelToken? cancelToken,
   });
@@ -51,8 +55,6 @@ abstract class CamporeeOrdersRepository {
     required String mimeType,
   });
 
-  Future<Either<Failure, CamporeeOrderProof>> getProof(String orderId);
-
   Future<Either<Failure, CamporeeOrder>> cancelOrder(String orderId);
 
   Future<Either<Failure, CamporeeOrder>> deliverLineToMember({
@@ -60,7 +62,6 @@ abstract class CamporeeOrdersRepository {
     required String lineId,
   });
 
-  /// GET /payment-obligations/pending — read model transversal, sin merge.
   Future<Either<Failure, List<PaymentObligation>>> listPendingObligations({
     int? camporeeId,
     int? unionCamporeeId,

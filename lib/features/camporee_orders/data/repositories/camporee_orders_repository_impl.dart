@@ -11,7 +11,6 @@ import '../../domain/entities/camporee_order_product.dart';
 import '../../domain/repositories/camporee_orders_repository.dart';
 import '../datasources/camporee_orders_remote_data_source.dart';
 
-/// Implementación del repositorio de pedidos de mercancía de camporee.
 class CamporeeOrdersRepositoryImpl implements CamporeeOrdersRepository {
   final CamporeeOrdersRemoteDataSource remoteDataSource;
 
@@ -30,15 +29,61 @@ class CamporeeOrdersRepositoryImpl implements CamporeeOrdersRepository {
   }
 
   @override
+  Future<Either<Failure, CamporeeOrderOfferingsCatalog>> getOfferings({
+    required int camporeeId,
+    CamporeeKind camporeeType = CamporeeKind.local,
+    RequestCancelToken? cancelToken,
+  }) {
+    return _guard(() async {
+      final model = await remoteDataSource.getOfferings(
+        camporeeId: camporeeId,
+        camporeeType: camporeeType,
+        cancelToken: cancelToken.asDioCancelToken(),
+      );
+      return model.toEntity();
+    });
+  }
+
+  @override
+  Future<Either<Failure, List<CamporeeOrderProduct>>> listProducts({
+    RequestCancelToken? cancelToken,
+  }) {
+    return _guard(() async {
+      final models = await remoteDataSource.listProducts(
+        cancelToken: cancelToken.asDioCancelToken(),
+      );
+      return models.map((m) => m.toEntity()).toList();
+    });
+  }
+
+  @override
+  Future<Either<Failure, CamporeeOrder>> createOrder({
+    required int camporeeId,
+    required List<CamporeeOrderLineInput> lines,
+    CamporeeKind camporeeType = CamporeeKind.local,
+    String? idempotencyKey,
+  }) {
+    return _guard(() async {
+      final model = await remoteDataSource.createOrder(
+        camporeeId: camporeeId,
+        lines: lines,
+        camporeeType: camporeeType,
+        idempotencyKey: idempotencyKey,
+      );
+      return model.toEntity();
+    });
+  }
+
+  @override
   Future<Either<Failure, List<CamporeeOrder>>> listOrders({
-    int? localCamporeeId,
+    int? camporeeId,
     int? unionCamporeeId,
     CamporeeOrderStatus? status,
     RequestCancelToken? cancelToken,
   }) {
     return _guard(() async {
       final models = await remoteDataSource.listOrders(
-        localCamporeeId: localCamporeeId,
+        camporeeId: camporeeId,
         unionCamporeeId: unionCamporeeId,
         status: status?.apiValue,
         cancelToken: cancelToken.asDioCancelToken(),
@@ -62,54 +107,6 @@ class CamporeeOrdersRepositoryImpl implements CamporeeOrdersRepository {
   }
 
   @override
-  Future<Either<Failure, CamporeeOrder>> createOrder({
-    required int camporeeId,
-    required String camporeeType,
-    required List<CamporeeOrderCreateLine> lines,
-    String? idempotencyKey,
-  }) {
-    return _guard(() async {
-      final model = await remoteDataSource.createOrder(
-        camporeeId: camporeeId,
-        camporeeType: camporeeType,
-        lines: lines.map((line) => line.toJson()).toList(),
-        idempotencyKey: idempotencyKey,
-      );
-      return model.toEntity();
-    });
-  }
-
-  @override
-  Future<Either<Failure, CamporeeOrderOfferingsResult>> getOfferings({
-    required int camporeeId,
-    required String camporeeType,
-    RequestCancelToken? cancelToken,
-  }) {
-    return _guard(() async {
-      final model = await remoteDataSource.getOfferings(
-        camporeeId: camporeeId,
-        camporeeType: camporeeType,
-        cancelToken: cancelToken.asDioCancelToken(),
-      );
-      return model.toEntity();
-    });
-  }
-
-  @override
-  Future<Either<Failure, List<CamporeeOrderProduct>>> listProducts({
-    bool? active,
-    RequestCancelToken? cancelToken,
-  }) {
-    return _guard(() async {
-      final models = await remoteDataSource.listProducts(
-        active: active,
-        cancelToken: cancelToken.asDioCancelToken(),
-      );
-      return models.map((m) => m.toEntity()).toList();
-    });
-  }
-
-  @override
   Future<Either<Failure, String>> downloadOrderPdf(
     String orderId, {
     RequestCancelToken? cancelToken,
@@ -119,6 +116,20 @@ class CamporeeOrdersRepositoryImpl implements CamporeeOrdersRepository {
         orderId,
         cancelToken: cancelToken.asDioCancelToken(),
       );
+    });
+  }
+
+  @override
+  Future<Either<Failure, CamporeeOrderProofDownload>> getProof(
+    String orderId, {
+    RequestCancelToken? cancelToken,
+  }) {
+    return _guard(() async {
+      final model = await remoteDataSource.getProof(
+        orderId,
+        cancelToken: cancelToken.asDioCancelToken(),
+      );
+      return model.toEntity();
     });
   }
 
@@ -136,14 +147,6 @@ class CamporeeOrdersRepositoryImpl implements CamporeeOrdersRepository {
         fileName: fileName,
         mimeType: mimeType,
       );
-      return model.toEntity();
-    });
-  }
-
-  @override
-  Future<Either<Failure, CamporeeOrderProof>> getProof(String orderId) {
-    return _guard(() async {
-      final model = await remoteDataSource.getProof(orderId);
       return model.toEntity();
     });
   }

@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-/// Origen de una obligación de pago pendiente (sin fusionar folios).
+/// Fuente de una fila de Pagos pendientes. Nunca fusiona folios.
 enum PaymentObligationSource {
   camporeeOrder,
   fieldPaymentOrder,
@@ -21,18 +21,17 @@ extension PaymentObligationSourceApi on PaymentObligationSource {
 
   static PaymentObligationSource fromApi(String value) {
     switch (value) {
-      case 'FIELD_PAYMENT_ORDER':
-        return PaymentObligationSource.fieldPaymentOrder;
+      case 'CAMPOREE_ORDER':
+        return PaymentObligationSource.camporeeOrder;
       case 'MATERIAL_ORDER':
         return PaymentObligationSource.materialOrder;
-      case 'CAMPOREE_ORDER':
+      case 'FIELD_PAYMENT_ORDER':
       default:
-        return PaymentObligationSource.camporeeOrder;
+        return PaymentObligationSource.fieldPaymentOrder;
     }
   }
 }
 
-/// Propósito de negocio de la obligación.
 enum PaymentObligationPurpose {
   camporeeMaterials,
   camporee,
@@ -43,20 +42,19 @@ enum PaymentObligationPurpose {
 extension PaymentObligationPurposeApi on PaymentObligationPurpose {
   static PaymentObligationPurpose fromApi(String value) {
     switch (value) {
+      case 'CAMPOREE_MATERIALS':
+        return PaymentObligationPurpose.camporeeMaterials;
       case 'CAMPOREE':
         return PaymentObligationPurpose.camporee;
-      case 'INSURANCE':
-        return PaymentObligationPurpose.insurance;
       case 'MATERIALS':
         return PaymentObligationPurpose.materials;
-      case 'CAMPOREE_MATERIALS':
+      case 'INSURANCE':
       default:
-        return PaymentObligationPurpose.camporeeMaterials;
+        return PaymentObligationPurpose.insurance;
     }
   }
 }
 
-/// Estado agregado de la obligación (no es el status de cada kernel).
 enum PaymentObligationStatus {
   paymentDue,
   underReview,
@@ -80,7 +78,6 @@ extension PaymentObligationStatusApi on PaymentObligationStatus {
   }
 }
 
-/// Acción que el cliente debe presentar.
 enum PaymentObligationAction {
   uploadProof,
   waitReview,
@@ -104,7 +101,6 @@ extension PaymentObligationActionApi on PaymentObligationAction {
   }
 }
 
-/// Camporee asociado a la obligación, si aplica.
 class PaymentObligationCamporee extends Equatable {
   final String type;
   final int id;
@@ -116,28 +112,11 @@ class PaymentObligationCamporee extends Equatable {
     required this.name,
   });
 
-  bool get isUnion => type == 'union';
-
   @override
-  List<Object?> get props => [type, id, name];
+  List<Object?> get props => [type, id];
 }
 
-/// Ruta de detalle según `source`. No registra GoRoute (eso es Task 10).
-String paymentObligationDetailRoute({
-  required PaymentObligationSource source,
-  required String sourceId,
-}) {
-  switch (source) {
-    case PaymentObligationSource.fieldPaymentOrder:
-      return '/payment-orders/$sourceId';
-    case PaymentObligationSource.materialOrder:
-      return '/home/materials/order/$sourceId';
-    case PaymentObligationSource.camporeeOrder:
-      return '/camporee-orders/$sourceId';
-  }
-}
-
-/// Fila del read model de pagos pendientes. Dos folios = dos filas.
+/// Obligación pendiente de lectura agregada (inscripción, materiales, pedidos).
 class PaymentObligation extends Equatable {
   final PaymentObligationSource source;
   final String sourceId;
@@ -163,12 +142,18 @@ class PaymentObligation extends Equatable {
     this.camporee,
   });
 
-  /// Deep link al flujo propietario de la fuente.
-  String get detailRoute => paymentObligationDetailRoute(
-        source: source,
-        sourceId: sourceId,
-      );
+  /// Ruta de detalle propietaria. Task 10 registra el GoRoute de pedidos.
+  String get detailPath {
+    switch (source) {
+      case PaymentObligationSource.fieldPaymentOrder:
+        return '/payment-orders/$sourceId';
+      case PaymentObligationSource.materialOrder:
+        return '/home/materials/order/$sourceId';
+      case PaymentObligationSource.camporeeOrder:
+        return '/camporee-orders/$sourceId';
+    }
+  }
 
   @override
-  List<Object?> get props => [source, sourceId, folio, status];
+  List<Object?> get props => [source, sourceId, folio];
 }

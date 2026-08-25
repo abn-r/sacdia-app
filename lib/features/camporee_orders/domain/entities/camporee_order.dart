@@ -1,30 +1,9 @@
 import 'package:equatable/equatable.dart';
 
-/// Tipo de camporee al que pertenece el pedido (XOR local/unión).
-enum CamporeeOrderCamporeeType { local, union }
+/// Tipo de camporee al que pertenece un pedido (XOR local/unión).
+enum CamporeeKind { local, union }
 
-extension CamporeeOrderCamporeeTypeApi on CamporeeOrderCamporeeType {
-  String get apiValue {
-    switch (this) {
-      case CamporeeOrderCamporeeType.local:
-        return 'local';
-      case CamporeeOrderCamporeeType.union:
-        return 'union';
-    }
-  }
-
-  static CamporeeOrderCamporeeType fromApi(String value) {
-    switch (value) {
-      case 'union':
-        return CamporeeOrderCamporeeType.union;
-      case 'local':
-      default:
-        return CamporeeOrderCamporeeType.local;
-    }
-  }
-}
-
-/// Estado financiero del pedido de mercancía (no es inscripción).
+/// Estado de un pedido de mercancía de camporee (no inscripción).
 enum CamporeeOrderStatus {
   issued,
   proofSubmitted,
@@ -76,7 +55,7 @@ extension CamporeeOrderStatusApi on CamporeeOrderStatus {
   }
 }
 
-/// Avance de distribución sección → miembro (derivado de las líneas).
+/// Avance derivado de entrega nominada (sección → miembro).
 enum CamporeeOrderDistributionStatus { notStarted, partial, complete }
 
 extension CamporeeOrderDistributionStatusApi on CamporeeOrderDistributionStatus {
@@ -104,72 +83,25 @@ extension CamporeeOrderDistributionStatusApi on CamporeeOrderDistributionStatus 
   }
 }
 
-/// Estado del comprobante de pago del pedido.
-enum CamporeeOrderProofStatus { submitted, approved, rejected }
-
-extension CamporeeOrderProofStatusApi on CamporeeOrderProofStatus {
-  static CamporeeOrderProofStatus fromApi(String value) {
-    switch (value) {
-      case 'APPROVED':
-        return CamporeeOrderProofStatus.approved;
-      case 'REJECTED':
-        return CamporeeOrderProofStatus.rejected;
-      case 'SUBMITTED':
-      default:
-        return CamporeeOrderProofStatus.submitted;
-    }
-  }
-}
-
-/// Deriva el avance de distribución a partir de `delivered_to_member_at`.
-///
-/// Coincide con el helper del backend: vacío o ninguna fecha → NOT_STARTED;
-/// todas con fecha → COMPLETE; mezcla → PARTIAL.
+/// Deriva el progreso desde líneas nominadas. Fuente de verdad = fechas, no un agregado persistido.
 CamporeeOrderDistributionStatus deriveDistributionStatus(
-  Iterable<CamporeeOrderLine> lines,
+  List<CamporeeOrderLine> lines,
 ) {
-  final list = lines.toList();
-  if (list.isEmpty) {
+  if (lines.isEmpty) {
     return CamporeeOrderDistributionStatus.notStarted;
   }
   final delivered =
-      list.where((line) => line.deliveredToMemberAt != null).length;
+      lines.where((line) => line.deliveredToMemberAt != null).length;
   if (delivered == 0) {
     return CamporeeOrderDistributionStatus.notStarted;
   }
-  if (delivered == list.length) {
+  if (delivered == lines.length) {
     return CamporeeOrderDistributionStatus.complete;
   }
   return CamporeeOrderDistributionStatus.partial;
 }
 
-/// Línea de emisión: el cliente nunca manda montos ni autoridad de club.
-class CamporeeOrderCreateLine extends Equatable {
-  final int camporeeMemberId;
-  final String offeringId;
-  final String? optionId;
-  final int qty;
-
-  const CamporeeOrderCreateLine({
-    required this.camporeeMemberId,
-    required this.offeringId,
-    required this.qty,
-    this.optionId,
-  });
-
-  /// Payload de create. Omite `option_id` cuando el esquema de talla es NONE.
-  Map<String, dynamic> toJson() => {
-        'camporee_member_id': camporeeMemberId,
-        'offering_id': offeringId,
-        if (optionId != null) 'option_id': optionId,
-        'qty': qty,
-      };
-
-  @override
-  List<Object?> get props => [camporeeMemberId, offeringId, optionId, qty];
-}
-
-/// Línea nominada (persona + oferta + talla). Fuente de verdad del pedido.
+/// Línea nominada: inscrito + oferta + talla + cantidad. El servidor fija precios.
 class CamporeeOrderLine extends Equatable {
   final String lineId;
   final int sequence;
@@ -205,18 +137,13 @@ class CamporeeOrderLine extends Equatable {
     this.deliveredToMemberById,
   });
 
+  bool get deliveredToMember => deliveredToMemberAt != null;
+
   @override
-  List<Object?> get props => [
-        lineId,
-        sequence,
-        camporeeMemberId,
-        optionId,
-        qty,
-        deliveredToMemberAt,
-      ];
+  List<Object?> get props => [lineId, camporeeMemberId, deliveredToMemberAt];
 }
 
-/// Consolidado derivado que el API calcula; el cliente solo lo parsea.
+/// Consolidado derivado `SUM(qty)` / `SUM(line_total)` por producto+talla.
 class CamporeeOrderSummaryItem extends Equatable {
   final String productTitleSnapshot;
   final String? optionLabelSnapshot;
@@ -231,37 +158,66 @@ class CamporeeOrderSummaryItem extends Equatable {
   });
 
   @override
-  List<Object?> get props =>
-      [productTitleSnapshot, optionLabelSnapshot, qty, subtotalCentavos];
+  List<Object?> get props => [productTitleSnapshot, optionLabelSnapshot, qty];
 }
 
-/// Comprobante vigente (URL firmada de lectura).
-class CamporeeOrderProof extends Equatable {
-  final String? url;
-  final int? expiresIn;
+/// Input de emisión. El cliente nunca manda montos ni ids de club/campo.
+typedef CamporeeOrderCreateLine = CamporeeOrderLineInput;
+
+class CamporeeOrderLineInput extends Equatable {
+  final int camporeeMemberId;
+  final String offeringId;
+  final String? optionId;
+  final int qty;
+
+  const CamporeeOrderLineInput({
+    required this.camporeeMemberId,
+    required this.offeringId,
+    required this.qty,
+    this.optionId,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'camporee_member_id': camporeeMemberId,
+      'offering_id': offeringId,
+      if (optionId != null) 'option_id': optionId,
+      'qty': qty,
+    };
+  }
+
+  @override
+  List<Object?> get props => [camporeeMemberId, offeringId, optionId, qty];
+}
+
+/// URL firmada del comprobante vigente.
+class CamporeeOrderProofDownload extends Equatable {
+  final String url;
+  final int expiresIn;
   final String fileName;
   final String mimeType;
-  final CamporeeOrderProofStatus status;
-  final String? uploadedById;
+  final String status;
   final DateTime createdAt;
 
-  const CamporeeOrderProof({
+  const CamporeeOrderProofDownload({
+    required this.url,
+    required this.expiresIn,
     required this.fileName,
     required this.mimeType,
     required this.status,
     required this.createdAt,
-    this.url,
-    this.expiresIn,
-    this.uploadedById,
   });
 
   @override
-  List<Object?> get props => [fileName, status, url];
+  List<Object?> get props => [url, status];
 }
 
-/// Pedido de mercancía de camporee (no es Field Payment Order de inscripción).
+/// Pedido de sección: un folio independiente (puede haber varios por camporee).
 class CamporeeOrder extends Equatable {
   final String orderId;
+  final int localFieldId;
+  final int clubId;
+  final int clubSectionId;
   final int? localCamporeeId;
   final int? unionCamporeeId;
   final String folioReference;
@@ -271,18 +227,17 @@ class CamporeeOrder extends Equatable {
   final DateTime expiresAt;
   final DateTime createdAt;
   final bool authorizedWithoutProof;
-  final CamporeeOrderDistributionStatus distributionStatus;
+  final String? authorizationReason;
+  final DateTime? deliveredToSectionAt;
   final List<CamporeeOrderLine> lines;
   final List<CamporeeOrderSummaryItem> summary;
-  final String? bankName;
-  final String? bankAccount;
-  final String? bankClabe;
-  final String? bankHolder;
-  final String? cashInstructions;
-  final String? extraNotes;
+  final CamporeeOrderDistributionStatus distributionStatus;
 
   const CamporeeOrder({
     required this.orderId,
+    required this.localFieldId,
+    required this.clubId,
+    required this.clubSectionId,
     required this.folioReference,
     required this.status,
     required this.currency,
@@ -293,17 +248,17 @@ class CamporeeOrder extends Equatable {
     required this.distributionStatus,
     this.localCamporeeId,
     this.unionCamporeeId,
+    this.authorizationReason,
+    this.deliveredToSectionAt,
     this.lines = const [],
     this.summary = const [],
-    this.bankName,
-    this.bankAccount,
-    this.bankClabe,
-    this.bankHolder,
-    this.cashInstructions,
-    this.extraNotes,
   });
 
-  bool get isUnionCamporee => unionCamporeeId != null;
+  CamporeeKind? get camporeeKind {
+    if (localCamporeeId != null) return CamporeeKind.local;
+    if (unionCamporeeId != null) return CamporeeKind.union;
+    return null;
+  }
 
   bool get canUploadProof =>
       status == CamporeeOrderStatus.issued ||
@@ -316,15 +271,8 @@ class CamporeeOrder extends Equatable {
       status == CamporeeOrderStatus.issued ||
       status == CamporeeOrderStatus.proofRejected;
 
-  bool get canDistributeToMember => status == CamporeeOrderStatus.delivered;
+  bool get canDistribute => status == CamporeeOrderStatus.delivered;
 
   @override
-  List<Object?> get props => [
-        orderId,
-        localCamporeeId,
-        unionCamporeeId,
-        status,
-        authorizedWithoutProof,
-        distributionStatus,
-      ];
+  List<Object?> get props => [orderId, status, folioReference];
 }
