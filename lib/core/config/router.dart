@@ -47,6 +47,11 @@ import 'package:sacdia_app/features/units/presentation/views/member_of_month_his
 import 'package:sacdia_app/features/units/presentation/views/units_list_view.dart';
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_payments_view.dart';
 import 'package:sacdia_app/features/monthly_reports/presentation/views/monthly_reports_list_view.dart';
+import 'package:sacdia_app/features/camporee_orders/presentation/providers/camporee_orders_providers.dart';
+import 'package:sacdia_app/features/camporee_orders/presentation/views/camporee_member_order_view.dart';
+import 'package:sacdia_app/features/camporee_orders/presentation/views/camporee_order_catalog_view.dart';
+import 'package:sacdia_app/features/camporee_orders/presentation/views/camporee_order_detail_view.dart';
+import 'package:sacdia_app/features/camporee_orders/presentation/views/camporee_order_review_view.dart';
 import 'package:sacdia_app/features/payment_orders/domain/entities/payment_order.dart';
 import 'package:sacdia_app/features/payment_orders/presentation/views/issue_payment_order_view.dart';
 import 'package:sacdia_app/features/payment_orders/presentation/views/payment_order_detail_view.dart';
@@ -875,6 +880,70 @@ final routerProvider = Provider<GoRouter>((ref) {
             context,
             state,
             CamporeeRegisterMemberView(camporeeId: camporeeId),
+          );
+        },
+      ),
+
+      // Pedidos de mercancía — captura y consolidado (más específicos primero)
+      GoRoute(
+        path: RouteNames.camporeeOrdersCapture,
+        pageBuilder: (context, state) {
+          final camporeeId =
+              int.tryParse(state.pathParameters['camporeeId']!) ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            CamporeeMemberOrderView(
+              camporeeId: camporeeId,
+              camporeeType: camporeeKindFromQuery(
+                state.uri.queryParameters['type'],
+              ),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: RouteNames.camporeeOrdersReview,
+        pageBuilder: (context, state) {
+          final camporeeId =
+              int.tryParse(state.pathParameters['camporeeId']!) ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            CamporeeOrderReviewView(
+              camporeeId: camporeeId,
+              camporeeType: camporeeKindFromQuery(
+                state.uri.queryParameters['type'],
+              ),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: RouteNames.camporeeOrders,
+        pageBuilder: (context, state) {
+          final camporeeId =
+              int.tryParse(state.pathParameters['camporeeId']!) ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            CamporeeOrderCatalogView(
+              camporeeId: camporeeId,
+              camporeeType: camporeeKindFromQuery(
+                state.uri.queryParameters['type'],
+              ),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: RouteNames.camporeeOrderDetail,
+        pageBuilder: (context, state) {
+          final orderId = state.pathParameters['orderId']!;
+          return _sharedAxisBuild(
+            context,
+            state,
+            CamporeeOrderDetailView(orderId: orderId),
           );
         },
       ),

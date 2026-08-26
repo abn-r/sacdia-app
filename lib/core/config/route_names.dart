@@ -253,6 +253,38 @@ class RouteNames {
   static String camporeePaymentsPath(int camporeeId, String memberId) =>
       '/camporee/$camporeeId/member/$memberId/payments';
 
+  // Pedidos de mercancía de camporee (no inscripción)
+  static const String camporeeOrders = '/camporee/:camporeeId/orders';
+  static const String camporeeOrdersCapture =
+      '/camporee/:camporeeId/orders/capture';
+  static const String camporeeOrdersReview =
+      '/camporee/:camporeeId/orders/review';
+  static const String camporeeOrderDetail = '/camporee-orders/:orderId';
+
+  static String camporeeOrdersPath(int camporeeId, {String type = 'local'}) =>
+      type == 'union'
+          ? '/camporee/$camporeeId/orders?type=union'
+          : '/camporee/$camporeeId/orders';
+
+  static String camporeeOrdersCapturePath(
+    int camporeeId, {
+    String type = 'local',
+  }) =>
+      type == 'union'
+          ? '/camporee/$camporeeId/orders/capture?type=union'
+          : '/camporee/$camporeeId/orders/capture';
+
+  static String camporeeOrdersReviewPath(
+    int camporeeId, {
+    String type = 'local',
+  }) =>
+      type == 'union'
+          ? '/camporee/$camporeeId/orders/review?type=union'
+          : '/camporee/$camporeeId/orders/review';
+
+  static String camporeeOrderDetailPath(String orderId) =>
+      '/camporee-orders/$orderId';
+
   // Materials (orders)
   static const String homeMaterials = '/home/materials';
   static const String materialsProductDetail = '/home/materials/product/:id';

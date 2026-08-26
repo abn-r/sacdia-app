@@ -4096,5 +4096,98 @@
       "reassignment_pending_exists": "A pending reassignment request already exists",
       "download_document": "The document could not be downloaded"
     }
+  },
+  "camporee_orders": {
+    "cta": {
+      "label": "Orders",
+      "closed": "The ordering window is closed",
+      "not_open": "Orders are not open yet"
+    },
+    "catalog": {
+      "title": "Orders",
+      "new_order": "New order",
+      "history_title": "Section orders",
+      "empty": "This section has no orders yet",
+      "offerings_empty": "No items are available",
+      "disabled": "Orders are not enabled for this camporee",
+      "closed": "The ordering window is closed",
+      "not_open": "Orders are not open yet"
+    },
+    "capture": {
+      "title": "Build order",
+      "empty_roster": "There are no active registered members to order for",
+      "select_size": "Size",
+      "qty": "Quantity",
+      "continue": "Review order",
+      "no_lines": "Add at least one item",
+      "lines_count": "{count} item(s)"
+    },
+    "review": {
+      "title": "Review order",
+      "summary_title": "Consolidated",
+      "named_title": "By person",
+      "submit": "Issue order",
+      "success": "Order issued",
+      "empty": "The order is empty"
+    },
+    "detail": {
+      "title": "Order detail",
+      "total": "Total",
+      "expires": "Expires",
+      "distribution": "Delivery to members",
+      "view_pdf": "View order (PDF)",
+      "upload_proof": "Upload proof",
+      "reupload_proof": "Upload proof again",
+      "proof_uploaded": "Proof submitted for review",
+      "proof_too_large": "The file exceeds the 10 MB limit",
+      "proof_title": "Payment proof",
+      "cancel_order": "Cancel order",
+      "cancel_title": "Cancel order?",
+      "cancel_body": "The order will no longer be valid. You can issue a new one if the window is still open.",
+      "cancel_confirm": "Yes, cancel",
+      "cancelled": "Order cancelled",
+      "deliver": "Mark delivered",
+      "delivered_to_member": "Delivered to member"
+    },
+    "status": {
+      "issued": "Issued",
+      "proof_submitted": "Proof submitted",
+      "proof_rejected": "Proof rejected",
+      "paid": "Paid",
+      "delivered": "Delivered to section",
+      "cancelled": "Cancelled",
+      "expired": "Expired"
+    },
+    "distribution": {
+      "not_started": "Not started",
+      "partial": "Partial delivery",
+      "complete": "Delivery complete"
+    },
+    "pending": {
+      "title": "Pending payments",
+      "empty": "There are no pending payments",
+      "purpose": {
+        "camporee_materials": "Camporee merchandise",
+        "camporee": "Camporee registration",
+        "insurance": "Insurance",
+        "materials": "Materials"
+      }
+    },
+    "errors": {
+      "not_found": "Order not found",
+      "forbidden": "You do not have access to this order",
+      "invalid_transition": "This action is not allowed in the current order status",
+      "lines_required": "Add at least one item",
+      "member_not_eligible": "One or more members are not eligible",
+      "offering_invalid": "One or more items are not available",
+      "option_required": "Select a size",
+      "option_forbidden": "This size does not apply to the item",
+      "payment_config_required": "Local field payment settings are missing",
+      "proof_invalid_file": "Invalid file. Use PDF, JPG, PNG or WebP up to 10 MB",
+      "proof_not_found": "Proof not found",
+      "not_delivered_to_section": "The order has not been delivered to the section yet",
+      "distribution_forbidden": "You cannot record delivery to members",
+      "download_document": "The document could not be downloaded"
+    }
   }
 }
