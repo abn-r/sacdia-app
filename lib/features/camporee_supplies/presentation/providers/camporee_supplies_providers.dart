@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../providers/dio_provider.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../camporee_orders/domain/entities/camporee_order.dart';
 import '../../../camporee_orders/presentation/providers/camporee_orders_providers.dart';
 import '../../data/datasources/camporee_supplies_remote_data_source.dart';

@@ -137,7 +137,8 @@ class CamporeeSuppliesRemoteDataSourceImpl
     'CAMPOREE_SUPPLIES_SECTION_NOT_ELIGIBLE':
         'camporee_supplies.errors.not_eligible',
     'CAMPOREE_SUPPLIES_DAY_LOCKED': 'camporee_supplies.errors.day_locked',
-    'CAMPOREE_SUPPLIES_LINES_REQUIRED': 'camporee_supplies.errors.lines_required',
+    'CAMPOREE_SUPPLIES_LINES_REQUIRED':
+        'camporee_supplies.errors.lines_required',
     'CAMPOREE_SUPPLIES_PLAN_NOT_DRAFT': 'camporee_supplies.errors.not_draft',
     'CAMPOREE_SUPPLIES_PLAN_NOT_SUBMITTED':
         'camporee_supplies.errors.not_submitted',

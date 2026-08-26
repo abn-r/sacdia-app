@@ -11,7 +11,6 @@ import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/camporee_orders/domain/entities/camporee_order.dart';
-import 'package:sacdia_app/features/camporee_orders/presentation/providers/camporee_orders_providers.dart';
 import 'package:sacdia_app/features/camporee_supplies/domain/entities/camporee_supply_plan.dart';
 import 'package:sacdia_app/features/camporee_supplies/presentation/providers/camporee_supplies_providers.dart';
 import 'package:sacdia_app/features/camporees/presentation/providers/camporees_providers.dart';
@@ -86,7 +85,8 @@ class CamporeeSupplyPlanView extends ConsumerStatefulWidget {
       _CamporeeSupplyPlanViewState();
 }
 
-class _CamporeeSupplyPlanViewState extends ConsumerState<CamporeeSupplyPlanView> {
+class _CamporeeSupplyPlanViewState
+    extends ConsumerState<CamporeeSupplyPlanView> {
   String? _date;
   String? _slotId;
   String? _productId;
@@ -273,11 +273,12 @@ class _CamporeeSupplyPlanViewState extends ConsumerState<CamporeeSupplyPlanView>
   }
 
   Future<void> _save() async {
-    final result = await ref.read(camporeeSuppliesRepositoryProvider).replaceDraft(
-          camporeeId: widget.camporeeId,
-          camporeeType: widget.camporeeType,
-          lines: _draftLines,
-        );
+    final result =
+        await ref.read(camporeeSuppliesRepositoryProvider).replaceDraft(
+              camporeeId: widget.camporeeId,
+              camporeeType: widget.camporeeType,
+              lines: _draftLines,
+            );
     result.fold(
       (failure) => _toast(failure.message),
       (_) {
@@ -288,11 +289,12 @@ class _CamporeeSupplyPlanViewState extends ConsumerState<CamporeeSupplyPlanView>
   }
 
   Future<void> _submit() async {
-    final saved = await ref.read(camporeeSuppliesRepositoryProvider).replaceDraft(
-          camporeeId: widget.camporeeId,
-          camporeeType: widget.camporeeType,
-          lines: _draftLines,
-        );
+    final saved =
+        await ref.read(camporeeSuppliesRepositoryProvider).replaceDraft(
+              camporeeId: widget.camporeeId,
+              camporeeType: widget.camporeeType,
+              lines: _draftLines,
+            );
     final savedOk = saved.fold((failure) {
       _toast(failure.message);
       return false;
@@ -313,7 +315,8 @@ class _CamporeeSupplyPlanViewState extends ConsumerState<CamporeeSupplyPlanView>
 
   void _toast(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
@@ -402,7 +405,7 @@ class _AddRow extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-                  SacButton.outline(
+        SacButton.outline(
           text: 'camporee_supplies.plan.add'.tr(),
           onPressed: onAdd,
         ),

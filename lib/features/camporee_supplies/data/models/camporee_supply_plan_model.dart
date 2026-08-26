@@ -30,10 +30,7 @@ class CamporeeSupplyPlanModel {
       startDate: json['start_date']?.toString() ?? '',
       endDate: json['end_date']?.toString() ?? '',
       slots: slots is List
-          ? slots
-              .whereType<Map<String, dynamic>>()
-              .map(slotFromJson)
-              .toList()
+          ? slots.whereType<Map<String, dynamic>>().map(slotFromJson).toList()
           : const [],
       products: products is List
           ? products
