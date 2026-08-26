@@ -178,7 +178,14 @@ void main() {
       ),
     );
 
-    await tester.ensureVisible(find.text('Clasificación'));
+    await tester.scrollUntilVisible(
+      find.text('Clasificación'),
+      400,
+      scrollable: find.descendant(
+        of: find.byType(ListView),
+        matching: find.byType(Scrollable),
+      ),
+    );
     await tester.pump();
     expect(find.text('Clasificación'), findsOneWidget);
     expect(find.text('ACV'), findsOneWidget);

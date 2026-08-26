@@ -52,6 +52,7 @@ import 'package:sacdia_app/features/camporee_orders/presentation/views/camporee_
 import 'package:sacdia_app/features/camporee_orders/presentation/views/camporee_order_catalog_view.dart';
 import 'package:sacdia_app/features/camporee_orders/presentation/views/camporee_order_detail_view.dart';
 import 'package:sacdia_app/features/camporee_orders/presentation/views/camporee_order_review_view.dart';
+import 'package:sacdia_app/features/camporee_supplies/presentation/views/camporee_supply_plan_view.dart';
 import 'package:sacdia_app/features/payment_orders/domain/entities/payment_order.dart';
 import 'package:sacdia_app/features/payment_orders/presentation/views/issue_payment_order_view.dart';
 import 'package:sacdia_app/features/payment_orders/presentation/views/payment_order_detail_view.dart';
@@ -928,6 +929,23 @@ final routerProvider = Provider<GoRouter>((ref) {
             context,
             state,
             CamporeeOrderCatalogView(
+              camporeeId: camporeeId,
+              camporeeType: camporeeKindFromQuery(
+                state.uri.queryParameters['type'],
+              ),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: RouteNames.camporeeSupplies,
+        pageBuilder: (context, state) {
+          final camporeeId =
+              int.tryParse(state.pathParameters['camporeeId']!) ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            CamporeeSupplyPlanView(
               camporeeId: camporeeId,
               camporeeType: camporeeKindFromQuery(
                 state.uri.queryParameters['type'],

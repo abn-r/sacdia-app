@@ -4188,5 +4188,37 @@
       "distribution_forbidden": "Você não pode registrar a entrega aos membros",
       "download_document": "Não foi possível baixar o documento"
     }
+  },
+  "camporee_supplies": {
+    "cta": {
+      "label": "Insumos"
+    },
+    "plan": {
+      "title": "Insumos da seção",
+      "cutoff": "Corte para o dia seguinte: {time}",
+      "catalog_empty": "O organizador ainda não definiu horários nem produtos",
+      "empty": "O plano ainda não tem linhas",
+      "date": "Dia",
+      "slot": "Horário",
+      "product": "Produto",
+      "qty": "Quantidade",
+      "add": "Adicionar ao plano",
+      "save": "Salvar rascunho",
+      "submit": "Enviar plano",
+      "saved": "Rascunho salvo",
+      "submitted": "Plano enviado. Folio principal emitido.",
+      "adjusted": "Ajuste registrado",
+      "net": "Líquido {amount}"
+    },
+    "errors": {
+      "not_found": "Plano de insumos não encontrado",
+      "forbidden": "Você não pode operar insumos deste camporee",
+      "not_eligible": "Sua seção não está inscrita neste camporee",
+      "day_locked": "Esse dia está congelado",
+      "lines_required": "Adicione pelo menos uma linha",
+      "not_draft": "O plano já não é um rascunho",
+      "not_submitted": "O plano ainda não foi enviado",
+      "qty_invalid": "A quantidade é inválida"
+    }
   }
 }
