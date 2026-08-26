@@ -123,7 +123,8 @@ void main() {
           ],
         ),
       ).toEntity();
-      expect(none.distributionStatus, CamporeeOrderDistributionStatus.notStarted);
+      expect(
+          none.distributionStatus, CamporeeOrderDistributionStatus.notStarted);
       expect(deriveDistributionStatus(none.lines),
           CamporeeOrderDistributionStatus.notStarted);
 
@@ -259,7 +260,8 @@ void main() {
       }).toEntity();
       expect(catalog.settings.ordersEnabled, isTrue);
       expect(catalog.items.first.priceCentavos, 19900);
-      expect(catalog.items.first.product.sizeScheme, CamporeeOrderSizeScheme.numeric);
+      expect(catalog.items.first.product.sizeScheme,
+          CamporeeOrderSizeScheme.numeric);
     });
   });
 }

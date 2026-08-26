@@ -31,8 +31,7 @@ class PaymentObligationModel {
 
   factory PaymentObligationModel.fromJson(Map<String, dynamic> json) {
     final camporee = json['camporee'];
-    final camporeeMap =
-        camporee is Map<String, dynamic> ? camporee : null;
+    final camporeeMap = camporee is Map<String, dynamic> ? camporee : null;
     return PaymentObligationModel(
       source: json['source']?.toString() ?? 'FIELD_PAYMENT_ORDER',
       sourceId: json['source_id']?.toString() ?? '',

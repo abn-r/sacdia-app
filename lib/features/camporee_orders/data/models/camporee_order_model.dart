@@ -209,7 +209,8 @@ class CamporeeOrderModel {
       deliveredToSectionAt:
           DateTime.tryParse(root['delivered_to_section_at']?.toString() ?? ''),
       lines: (root['lines'] as List<dynamic>? ?? [])
-          .map((e) => CamporeeOrderLineModel.fromJson(e as Map<String, dynamic>))
+          .map(
+              (e) => CamporeeOrderLineModel.fromJson(e as Map<String, dynamic>))
           .toList(),
       summary: (root['summary'] as List<dynamic>? ?? [])
           .map(
@@ -218,7 +219,8 @@ class CamporeeOrderModel {
             ),
           )
           .toList(),
-      distributionStatus: root['distribution_status']?.toString() ?? 'NOT_STARTED',
+      distributionStatus:
+          root['distribution_status']?.toString() ?? 'NOT_STARTED',
     );
   }
 
