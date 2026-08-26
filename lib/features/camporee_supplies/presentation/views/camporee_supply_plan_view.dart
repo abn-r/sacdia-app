@@ -34,38 +34,21 @@ class CamporeeSuppliesCta extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final scope = CamporeeSuppliesScope(
-      camporeeId: camporeeId,
-      type: camporeeType,
-    );
-    final planAsync = ref.watch(camporeeSupplyPlanProvider(scope));
-
-    return planAsync.when(
-      loading: () => const SizedBox.shrink(),
-      error: (error, _) {
-        final code = error is Failure ? error.code : null;
-        if (code == 403 || code == 404) return const SizedBox.shrink();
-        return const SizedBox.shrink();
-      },
-      data: (envelope) {
-        if (!envelope.catalog.isReady) return const SizedBox.shrink();
-        return Padding(
-          padding: const EdgeInsets.only(top: 16),
-          child: SacButton.primary(
-            key: const Key('camporee-supplies-cta'),
-            text: 'camporee_supplies.cta.label'.tr(),
-            icon: HugeIcons.strokeRoundedInvoice01,
-            onPressed: () => context.push(
-              RouteNames.camporeeSuppliesPath(
-                camporeeId,
-                type: camporeeType == CamporeeKind.union ? 'union' : 'local',
-              ),
-            ),
-            labelMaxLines: 2,
-            labelOverflow: TextOverflow.visible,
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: SacButton.primary(
+        key: const Key('camporee-supplies-cta'),
+        text: 'camporee_supplies.cta.label'.tr(),
+        icon: HugeIcons.strokeRoundedInvoice01,
+        onPressed: () => context.push(
+          RouteNames.camporeeSuppliesPath(
+            camporeeId,
+            type: camporeeType == CamporeeKind.union ? 'union' : 'local',
           ),
-        );
-      },
+        ),
+        labelMaxLines: 2,
+        labelOverflow: TextOverflow.visible,
+      ),
     );
   }
 }
@@ -440,7 +423,7 @@ class _LineTile extends StatelessWidget {
           ? null
           : IconButton(
               onPressed: onRemove,
-              icon: const Icon(Icons.close),
+              icon: const HugeIcon(icon: HugeIcons.strokeRoundedCancel01),
             ),
     );
   }
