@@ -474,8 +474,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
                                 size: 18,
                                 color: c.textSecondary,
                               ),
-                              onPressed:
-                                  editable ? _openLocationPicker : null,
+                              onPressed: editable ? _openLocationPicker : null,
                             )
                           : null,
                     ),
@@ -546,8 +545,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
                 ],
               ),
               if (_isEditing ||
-                  (section.logoUrl != null &&
-                      section.logoUrl!.isNotEmpty)) ...[
+                  (section.logoUrl != null && section.logoUrl!.isNotEmpty)) ...[
                 const SizedBox(height: 28),
                 _stagger(
                   index: 3,

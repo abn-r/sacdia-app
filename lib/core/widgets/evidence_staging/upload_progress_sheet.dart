@@ -258,7 +258,6 @@ class _UploadProgressSheetContentState
               namedArgs: {'count': '$_errorCount'}),
           onPressed: () => Navigator.pop(context, UploadSheetResult.retry),
         ),
-
         if (!_allFailed) ...[
           const SizedBox(height: 8),
           SacButton.outline(
@@ -269,15 +268,13 @@ class _UploadProgressSheetContentState
             onPressed: () => _confirmContinuePartial(context),
           ),
         ],
-
         const SizedBox(height: 8),
         SacButton(
           text: tr('core.evidence_staging.cancel'),
           variant: SacButtonVariant.ghost,
           fullWidth: true,
           textColor: c.textSecondary,
-          onPressed: () =>
-              Navigator.pop(context, UploadSheetResult.cancelled),
+          onPressed: () => Navigator.pop(context, UploadSheetResult.cancelled),
         ),
       ],
     );

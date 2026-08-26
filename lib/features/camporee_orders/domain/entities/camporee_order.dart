@@ -58,7 +58,8 @@ extension CamporeeOrderStatusApi on CamporeeOrderStatus {
 /// Avance derivado de entrega nominada (sección → miembro).
 enum CamporeeOrderDistributionStatus { notStarted, partial, complete }
 
-extension CamporeeOrderDistributionStatusApi on CamporeeOrderDistributionStatus {
+extension CamporeeOrderDistributionStatusApi
+    on CamporeeOrderDistributionStatus {
   String get apiValue {
     switch (this) {
       case CamporeeOrderDistributionStatus.notStarted:

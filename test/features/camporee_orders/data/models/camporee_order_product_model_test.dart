@@ -81,8 +81,8 @@ void main() {
       expect(result.items, hasLength(1));
       expect(result.items.single.priceCentavos, 5000);
       expect(result.items.single.requiresOption, isFalse);
-      expect(result.items.single.product.sizeScheme,
-          CamporeeOrderSizeScheme.none);
+      expect(
+          result.items.single.product.sizeScheme, CamporeeOrderSizeScheme.none);
     });
   });
 }

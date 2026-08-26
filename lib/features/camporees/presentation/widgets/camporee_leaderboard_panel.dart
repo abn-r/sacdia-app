@@ -75,7 +75,8 @@ class CamporeeLeaderboardPanel extends StatelessWidget {
               }
               return Column(
                 children: [
-                  for (final row in leaderboard.rows) _LeaderboardRowTile(row: row),
+                  for (final row in leaderboard.rows)
+                    _LeaderboardRowTile(row: row),
                 ],
               );
             },

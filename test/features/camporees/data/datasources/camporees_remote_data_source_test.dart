@@ -377,8 +377,8 @@ void main() {
                 'assignments': [
                   {
                     'club_section': {
-                      'name': 'Conquistadores',
                       'clubs': {'name': 'Estrellas'},
+                      'club_types': {'name': 'Conquistadores'},
                     },
                   },
                 ],

@@ -200,8 +200,7 @@ class NotificationCard extends ConsumerWidget {
                         const SizedBox(height: 18),
                         SacButton.primary(
                           text: 'notifications.inbox.detail_accept'.tr(),
-                          onPressed: () =>
-                              Navigator.of(sheetContext).pop(),
+                          onPressed: () => Navigator.of(sheetContext).pop(),
                           borderRadius: 16,
                         ),
                       ],

@@ -65,7 +65,8 @@ class SacAudioPlayerController {
 
   Future<SacAudioPlayerPosition> position() async {
     try {
-      final result = await _channel.invokeMapMethod<String, dynamic>('position');
+      final result =
+          await _channel.invokeMapMethod<String, dynamic>('position');
       return SacAudioPlayerPosition.fromMap(result ?? const {});
     } on MissingPluginException {
       return const SacAudioPlayerPosition(

@@ -126,9 +126,8 @@ class _IssueOrderForm extends ConsumerWidget {
     }
     if (registeredIdsAsync.hasError) {
       return _IssueLoadError(
-        message: registeredIdsAsync.error
-            .toString()
-            .replaceFirst('Exception: ', ''),
+        message:
+            registeredIdsAsync.error.toString().replaceFirst('Exception: ', ''),
         onRetry: () =>
             ref.invalidate(camporeeRegisteredUserIdsProvider(camporeeId!)),
       );

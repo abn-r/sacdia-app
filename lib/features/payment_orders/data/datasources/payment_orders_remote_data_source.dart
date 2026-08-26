@@ -74,7 +74,8 @@ abstract class PaymentOrdersRemoteDataSource {
 }
 
 /// Implementación con Dio de la fuente de datos de órdenes de pago.
-class PaymentOrdersRemoteDataSourceImpl implements PaymentOrdersRemoteDataSource {
+class PaymentOrdersRemoteDataSourceImpl
+    implements PaymentOrdersRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
 
@@ -331,8 +332,7 @@ class PaymentOrdersRemoteDataSourceImpl implements PaymentOrdersRemoteDataSource
 
   /// Claves i18n para los códigos de negocio del backend.
   static const Map<String, String> _businessErrorKeys = {
-    'FIELD_PAYMENT_ORDER_FLAG_DISABLED':
-        'payment_orders.errors.flag_disabled',
+    'FIELD_PAYMENT_ORDER_FLAG_DISABLED': 'payment_orders.errors.flag_disabled',
     'FIELD_PAYMENT_ORDER_EXPIRED': 'payment_orders.errors.expired',
     'FIELD_PAYMENT_ORDER_DUPLICATE_BENEFICIARY':
         'payment_orders.errors.duplicate_beneficiary',
@@ -342,8 +342,7 @@ class PaymentOrdersRemoteDataSourceImpl implements PaymentOrdersRemoteDataSource
         'payment_orders.errors.invalid_transition',
     'FIELD_PAYMENT_ORDER_COST_NOT_CONFIGURED':
         'payment_orders.errors.cost_not_configured',
-    'FIELD_PAYMENT_ORDER_CYCLE_INVALID':
-        'payment_orders.errors.cycle_invalid',
+    'FIELD_PAYMENT_ORDER_CYCLE_INVALID': 'payment_orders.errors.cycle_invalid',
     'FIELD_PAYMENT_ORDER_CAMPOREE_INVALID':
         'payment_orders.errors.camporee_invalid',
     'FIELD_PAYMENT_ORDER_ELIGIBILITY_FAILED':

@@ -5,6 +5,7 @@ import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/features/camporees/presentation/providers/camporees_providers.dart';
 import 'package:sacdia_app/features/dashboard/domain/entities/dashboard_summary.dart';
 import 'package:sacdia_app/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:sacdia_app/features/dashboard/presentation/views/dashboard_view.dart';
@@ -96,6 +97,7 @@ Future<void> _pumpLoadedDashboard(
         ),
         profileNotifierProvider.overrideWith(_NullProfileNotifier.new),
         currentEnrollmentProvider.overrideWith((ref) async => null),
+        camporeeJudgeAssignmentsProvider.overrideWith((ref) async => []),
       ],
       child: const MaterialApp(home: DashboardView()),
     ),

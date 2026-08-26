@@ -109,7 +109,8 @@ void main() {
 
       expect(background, AppColors.primary);
       expect(spinner.color, AppColors.ink900);
-      expect(_contrastRatio(spinner.color!, background), greaterThanOrEqualTo(4.5));
+      expect(_contrastRatio(spinner.color!, background),
+          greaterThanOrEqualTo(4.5));
     });
   }
 

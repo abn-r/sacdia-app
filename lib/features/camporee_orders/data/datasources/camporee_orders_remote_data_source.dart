@@ -119,7 +119,8 @@ class CamporeeOrdersRemoteDataSourceImpl
       );
       return _unwrapList(response.data)
           .map(
-            (e) => CamporeeOrderProductModel.fromJson(e as Map<String, dynamic>),
+            (e) =>
+                CamporeeOrderProductModel.fromJson(e as Map<String, dynamic>),
           )
           .toList();
     } catch (e) {

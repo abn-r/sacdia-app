@@ -14,9 +14,8 @@ void main() {
           'assets/translations/$locale.json',
         );
         final json = jsonDecode(raw) as Map<String, dynamic>;
-        final errors =
-            (json['classes'] as Map<String, dynamic>)['errors']
-                as Map<String, dynamic>;
+        final errors = (json['classes'] as Map<String, dynamic>)['errors']
+            as Map<String, dynamic>;
 
         expect(errors['fetch_honors'], isA<String>());
         expect((errors['fetch_honors'] as String).isNotEmpty, isTrue);
@@ -29,9 +28,8 @@ void main() {
         () async {
       final raw = await rootBundle.loadString('assets/translations/es.json');
       final json = jsonDecode(raw) as Map<String, dynamic>;
-      final errors =
-          (json['classes'] as Map<String, dynamic>)['errors']
-              as Map<String, dynamic>;
+      final errors = (json['classes'] as Map<String, dynamic>)['errors']
+          as Map<String, dynamic>;
 
       expect(
         errors['prerequisite_not_met'],
