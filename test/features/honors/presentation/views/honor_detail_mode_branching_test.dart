@@ -303,7 +303,7 @@ void main() {
     expect(find.text('honors.work_mode.confirm_title'), findsOneWidget);
     expect(recorder.callCount, 0);
 
-    await tester.tap(find.text('common.cancel'));
+    await tester.tap(find.text('core.dialog.cancel'));
     await tester.pumpAndSettle();
 
     expect(find.text('honors.work_mode.confirm_title'), findsNothing);

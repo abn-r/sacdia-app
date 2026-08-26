@@ -123,6 +123,22 @@ void main() {
     return fade.opacity.value;
   }
 
+  /// Press [AnimatedScale] on tappable cards uses [ScaleTransition] internally.
+  /// Entrance motion is a [ScaleTransition] that is not under [AnimatedScale].
+  void expectNoEntranceScale(Finder root) {
+    final entranceScales = find
+        .descendant(
+          of: root,
+          matching: find.byType(ScaleTransition),
+        )
+        .evaluate()
+        .where(
+          (element) =>
+              element.findAncestorWidgetOfExactType<AnimatedScale>() == null,
+        );
+    expect(entranceScales, isEmpty);
+  }
+
   void expectNoPositionalOrScaleMotion(Finder switcher) {
     expect(
       find.descendant(
@@ -131,13 +147,7 @@ void main() {
       ),
       findsNothing,
     );
-    expect(
-      find.descendant(
-        of: switcher,
-        matching: find.byType(ScaleTransition),
-      ),
-      findsNothing,
-    );
+    expectNoEntranceScale(switcher);
   }
 
   testWidgets('does not add an entrance scale to an activity card',
@@ -154,13 +164,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(
-      find.descendant(
-        of: find.byType(ActivityCard),
-        matching: find.byType(ScaleTransition),
-      ),
-      findsNothing,
-    );
+    expectNoEntranceScale(find.byType(ActivityCard));
   });
 
   testWidgets('builds activity rows without staggered slide or scale entrances',
@@ -187,13 +191,7 @@ void main() {
       ),
       findsNothing,
     );
-    expect(
-      find.descendant(
-        of: find.byType(ActivityCard),
-        matching: find.byType(ScaleTransition),
-      ),
-      findsNothing,
-    );
+    expectNoEntranceScale(find.byType(ActivityCard));
   });
 
   testWidgets('replaces card mode with one standard ease-out fade',
