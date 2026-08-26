@@ -285,6 +285,13 @@ class RouteNames {
   static String camporeeOrderDetailPath(String orderId) =>
       '/camporee-orders/$orderId';
 
+  static const String camporeeSupplies = '/camporee/:camporeeId/supplies';
+
+  static String camporeeSuppliesPath(int camporeeId, {String type = 'local'}) =>
+      type == 'union'
+          ? '/camporee/$camporeeId/supplies?type=union'
+          : '/camporee/$camporeeId/supplies';
+
   // Materials (orders)
   static const String homeMaterials = '/home/materials';
   static const String materialsProductDetail = '/home/materials/product/:id';

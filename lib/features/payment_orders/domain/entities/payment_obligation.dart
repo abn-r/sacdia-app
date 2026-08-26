@@ -3,6 +3,8 @@ import 'package:equatable/equatable.dart';
 /// Fuente de una fila de Pagos pendientes. Nunca fusiona folios.
 enum PaymentObligationSource {
   camporeeOrder,
+  camporeeSupplyCharge,
+  camporeeSupplyRefund,
   fieldPaymentOrder,
   materialOrder,
 }
@@ -12,6 +14,10 @@ extension PaymentObligationSourceApi on PaymentObligationSource {
     switch (this) {
       case PaymentObligationSource.camporeeOrder:
         return 'CAMPOREE_ORDER';
+      case PaymentObligationSource.camporeeSupplyCharge:
+        return 'CAMPOREE_SUPPLY_CHARGE';
+      case PaymentObligationSource.camporeeSupplyRefund:
+        return 'CAMPOREE_SUPPLY_REFUND';
       case PaymentObligationSource.fieldPaymentOrder:
         return 'FIELD_PAYMENT_ORDER';
       case PaymentObligationSource.materialOrder:
@@ -23,6 +29,10 @@ extension PaymentObligationSourceApi on PaymentObligationSource {
     switch (value) {
       case 'CAMPOREE_ORDER':
         return PaymentObligationSource.camporeeOrder;
+      case 'CAMPOREE_SUPPLY_CHARGE':
+        return PaymentObligationSource.camporeeSupplyCharge;
+      case 'CAMPOREE_SUPPLY_REFUND':
+        return PaymentObligationSource.camporeeSupplyRefund;
       case 'MATERIAL_ORDER':
         return PaymentObligationSource.materialOrder;
       case 'FIELD_PAYMENT_ORDER':
@@ -34,6 +44,7 @@ extension PaymentObligationSourceApi on PaymentObligationSource {
 
 enum PaymentObligationPurpose {
   camporeeMaterials,
+  camporeeSupplies,
   camporee,
   insurance,
   materials,
@@ -44,6 +55,8 @@ extension PaymentObligationPurposeApi on PaymentObligationPurpose {
     switch (value) {
       case 'CAMPOREE_MATERIALS':
         return PaymentObligationPurpose.camporeeMaterials;
+      case 'CAMPOREE_SUPPLIES':
+        return PaymentObligationPurpose.camporeeSupplies;
       case 'CAMPOREE':
         return PaymentObligationPurpose.camporee;
       case 'MATERIALS':
@@ -83,6 +96,8 @@ enum PaymentObligationAction {
   waitReview,
   resubmitProof,
   waitApproval,
+  payAtCamp,
+  processRefund,
 }
 
 extension PaymentObligationActionApi on PaymentObligationAction {
@@ -94,6 +109,10 @@ extension PaymentObligationActionApi on PaymentObligationAction {
         return PaymentObligationAction.resubmitProof;
       case 'WAIT_APPROVAL':
         return PaymentObligationAction.waitApproval;
+      case 'PAY_AT_CAMP':
+        return PaymentObligationAction.payAtCamp;
+      case 'PROCESS_REFUND':
+        return PaymentObligationAction.processRefund;
       case 'UPLOAD_PROOF':
       default:
         return PaymentObligationAction.uploadProof;
@@ -151,6 +170,12 @@ class PaymentObligation extends Equatable {
         return '/home/materials/order/$sourceId';
       case PaymentObligationSource.camporeeOrder:
         return '/camporee-orders/$sourceId';
+      case PaymentObligationSource.camporeeSupplyCharge:
+      case PaymentObligationSource.camporeeSupplyRefund:
+        if (camporee == null) return '/camporees';
+        return camporee!.type == 'union'
+            ? '/camporee/${camporee!.id}/supplies?type=union'
+            : '/camporee/${camporee!.id}/supplies';
     }
   }
 

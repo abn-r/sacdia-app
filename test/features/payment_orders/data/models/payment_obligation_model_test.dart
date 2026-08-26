@@ -49,6 +49,22 @@ void main() {
       expect(pedido.detailPath, '/camporee-orders/co-3');
       expect(pedido.camporee?.type, 'union');
       expect(pedido.status, PaymentObligationStatus.proofRejected);
+
+      final supplies = PaymentObligationModel.fromJson({
+        'source': 'CAMPOREE_SUPPLY_CHARGE',
+        'source_id': 'ins-1',
+        'purpose': 'CAMPOREE_SUPPLIES',
+        'folio': 'INS20260001',
+        'total_centavos': 80000,
+        'currency': 'MXN',
+        'status': 'PAYMENT_DUE',
+        'action_required': 'PAY_AT_CAMP',
+        'camporee': {'type': 'local', 'id': 21, 'name': 'Camporí'},
+        'created_at': '2026-08-24T00:00:00.000Z',
+      }).toEntity();
+      expect(supplies.detailPath, '/camporee/21/supplies');
+      expect(supplies.purpose, PaymentObligationPurpose.camporeeSupplies);
+      expect(supplies.actionRequired, PaymentObligationAction.payAtCamp);
     });
 
     test('dos pedidos de la misma sección siguen siendo dos filas', () {

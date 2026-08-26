@@ -220,6 +220,8 @@ class _ObligationCard extends StatelessWidget {
     switch (purpose) {
       case PaymentObligationPurpose.camporeeMaterials:
         return 'camporee_orders.pending.purpose.camporee_materials'.tr();
+      case PaymentObligationPurpose.camporeeSupplies:
+        return 'camporee_supplies.cta.label'.tr();
       case PaymentObligationPurpose.camporee:
         return 'camporee_orders.pending.purpose.camporee'.tr();
       case PaymentObligationPurpose.materials:

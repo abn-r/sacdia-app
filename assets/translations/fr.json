@@ -4188,5 +4188,37 @@
       "distribution_forbidden": "Vous ne pouvez pas enregistrer la remise aux membres",
       "download_document": "Le document n'a pas pu être téléchargé"
     }
+  },
+  "camporee_supplies": {
+    "cta": {
+      "label": "Fournitures"
+    },
+    "plan": {
+      "title": "Fournitures de la section",
+      "cutoff": "Limite pour le lendemain : {time}",
+      "catalog_empty": "L'organisateur n'a pas encore défini créneaux ni produits",
+      "empty": "Le plan n'a pas encore de lignes",
+      "date": "Jour",
+      "slot": "Créneau",
+      "product": "Produit",
+      "qty": "Quantité",
+      "add": "Ajouter au plan",
+      "save": "Enregistrer le brouillon",
+      "submit": "Soumettre le plan",
+      "saved": "Brouillon enregistré",
+      "submitted": "Plan soumis. Folio principal émis.",
+      "adjusted": "Ajustement enregistré",
+      "net": "Net {amount}"
+    },
+    "errors": {
+      "not_found": "Plan de fournitures introuvable",
+      "forbidden": "Vous ne pouvez pas gérer les fournitures de ce camporee",
+      "not_eligible": "Votre section n'est pas inscrite à ce camporee",
+      "day_locked": "Ce jour est gelé",
+      "lines_required": "Ajoutez au moins une ligne",
+      "not_draft": "Le plan n'est plus un brouillon",
+      "not_submitted": "Le plan n'a pas encore été soumis",
+      "qty_invalid": "La quantité est invalide"
+    }
   }
 }

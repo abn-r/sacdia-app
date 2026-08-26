@@ -31,6 +31,7 @@ import 'camporee_members_view.dart';
 import 'camporee_register_member_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/features/camporee_orders/presentation/views/camporee_order_catalog_view.dart';
+import 'package:sacdia_app/features/camporee_supplies/presentation/views/camporee_supply_plan_view.dart';
 
 /// Vista de detalle de un camporee.
 ///
@@ -198,6 +199,7 @@ class _DetailBody extends ConsumerWidget {
             showParticipantAction: canRegisterParticipants,
           ),
           CamporeeOrdersCta(camporeeId: camporeeId),
+          CamporeeSuppliesCta(camporeeId: camporeeId),
           const SizedBox(height: 24),
           _MembersSection(
             camporeeId: camporeeId,

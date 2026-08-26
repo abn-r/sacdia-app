@@ -4189,5 +4189,37 @@
       "distribution_forbidden": "You cannot record delivery to members",
       "download_document": "The document could not be downloaded"
     }
+  },
+  "camporee_supplies": {
+    "cta": {
+      "label": "Supplies"
+    },
+    "plan": {
+      "title": "Section supplies",
+      "cutoff": "Cutoff for the next day: {time}",
+      "catalog_empty": "The organizer has not defined slots or products yet",
+      "empty": "The plan has no lines yet",
+      "date": "Day",
+      "slot": "Slot",
+      "product": "Product",
+      "qty": "Quantity",
+      "add": "Add to plan",
+      "save": "Save draft",
+      "submit": "Submit plan",
+      "saved": "Draft saved",
+      "submitted": "Plan submitted. Principal folio issued.",
+      "adjusted": "Adjustment recorded",
+      "net": "Net {amount}"
+    },
+    "errors": {
+      "not_found": "Supply plan not found",
+      "forbidden": "You cannot operate supplies for this camporee",
+      "not_eligible": "Your section is not enrolled in this camporee",
+      "day_locked": "That day is frozen",
+      "lines_required": "Add at least one line",
+      "not_draft": "The plan is no longer a draft",
+      "not_submitted": "The plan has not been submitted yet",
+      "qty_invalid": "Quantity is invalid"
+    }
   }
 }
