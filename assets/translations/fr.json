@@ -4095,5 +4095,98 @@
       "reassignment_pending_exists": "Une demande de réaffectation est déjà en attente",
       "download_document": "Le document n'a pas pu être téléchargé"
     }
+  },
+  "camporee_orders": {
+    "cta": {
+      "label": "Commandes",
+      "closed": "La période de commandes est close",
+      "not_open": "Les commandes ne sont pas encore ouvertes"
+    },
+    "catalog": {
+      "title": "Commandes",
+      "new_order": "Nouvelle commande",
+      "history_title": "Commandes de la section",
+      "empty": "Cette section n'a pas encore de commandes",
+      "offerings_empty": "Aucun article disponible",
+      "disabled": "Les commandes ne sont pas activées pour ce camporée",
+      "closed": "La période de commandes est close",
+      "not_open": "Les commandes ne sont pas encore ouvertes"
+    },
+    "capture": {
+      "title": "Composer la commande",
+      "empty_roster": "Aucun inscrit actif pour commander",
+      "select_size": "Taille",
+      "qty": "Quantité",
+      "continue": "Vérifier la commande",
+      "no_lines": "Ajoutez au moins un article",
+      "lines_count": "{count} article(s)"
+    },
+    "review": {
+      "title": "Vérifier la commande",
+      "summary_title": "Consolidé",
+      "named_title": "Par personne",
+      "submit": "Émettre la commande",
+      "success": "Commande émise",
+      "empty": "La commande est vide"
+    },
+    "detail": {
+      "title": "Détail de la commande",
+      "total": "Total",
+      "expires": "Expire",
+      "distribution": "Remise aux membres",
+      "view_pdf": "Voir la commande (PDF)",
+      "upload_proof": "Téléverser le justificatif",
+      "reupload_proof": "Téléverser à nouveau le justificatif",
+      "proof_uploaded": "Justificatif envoyé pour révision",
+      "proof_too_large": "Le fichier dépasse la taille maximale de 10 Mo",
+      "proof_title": "Justificatif de paiement",
+      "cancel_order": "Annuler la commande",
+      "cancel_title": "Annuler la commande ?",
+      "cancel_body": "La commande ne sera plus valable. Vous pourrez en émettre une nouvelle si la fenêtre est encore ouverte.",
+      "cancel_confirm": "Oui, annuler",
+      "cancelled": "Commande annulée",
+      "deliver": "Marquer comme remis",
+      "delivered_to_member": "Remis au membre"
+    },
+    "status": {
+      "issued": "Émise",
+      "proof_submitted": "Justificatif envoyé",
+      "proof_rejected": "Justificatif rejeté",
+      "paid": "Payée",
+      "delivered": "Remise à la section",
+      "cancelled": "Annulée",
+      "expired": "Expirée"
+    },
+    "distribution": {
+      "not_started": "Non commencée",
+      "partial": "Remise partielle",
+      "complete": "Remise complète"
+    },
+    "pending": {
+      "title": "Paiements en attente",
+      "empty": "Aucun paiement en attente",
+      "purpose": {
+        "camporee_materials": "Commande de camporée",
+        "camporee": "Inscription au camporée",
+        "insurance": "Assurance",
+        "materials": "Matériel"
+      }
+    },
+    "errors": {
+      "not_found": "Commande introuvable",
+      "forbidden": "Vous n'avez pas accès à cette commande",
+      "invalid_transition": "Cette action n'est pas autorisée dans l'état actuel",
+      "lines_required": "Ajoutez au moins un article",
+      "member_not_eligible": "Un ou plusieurs inscrits ne sont pas éligibles",
+      "offering_invalid": "Un ou plusieurs articles ne sont pas disponibles",
+      "option_required": "Sélectionnez une taille",
+      "option_forbidden": "Cette taille ne s'applique pas à l'article",
+      "payment_config_required": "La configuration de paiement du champ local manque",
+      "proof_invalid_file": "Fichier non valide. Utilisez PDF, JPG, PNG ou WebP jusqu'à 10 Mo",
+      "proof_not_found": "Justificatif introuvable",
+      "not_delivered_to_section": "La commande n'a pas encore été remise à la section",
+      "distribution_forbidden": "Vous ne pouvez pas enregistrer la remise aux membres",
+      "download_document": "Le document n'a pas pu être téléchargé"
+    }
   }
 }

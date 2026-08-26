@@ -16,6 +16,8 @@ import 'package:sacdia_app/features/camporees/domain/entities/camporee_event.dar
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_leaderboard.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
+import 'package:sacdia_app/features/camporee_orders/domain/entities/camporee_order_offering.dart';
+import 'package:sacdia_app/features/camporee_orders/presentation/providers/camporee_orders_providers.dart';
 import 'package:sacdia_app/features/camporees/presentation/providers/camporees_providers.dart';
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_detail_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -222,6 +224,11 @@ Future<void> _pumpDetail(
           }
           return const <CamporeeMember>[];
         }),
+        camporeeOrderOfferingsProvider.overrideWith(
+          (ref, scope) async => const CamporeeOrderOfferingsCatalog(
+            settings: CamporeeOrderSettings(ordersEnabled: false),
+          ),
+        ),
       ],
       child: EasyLocalization(
         supportedLocales: const [Locale('es')],
