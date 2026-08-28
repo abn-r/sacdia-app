@@ -8,6 +8,7 @@ import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
+import '../../../../core/widgets/sac_dialog.dart';
 import '../../../auth/domain/entities/authorization_snapshot.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -266,22 +267,12 @@ void _navigateToReapply(BuildContext context) {
 }
 
 Future<void> _cancelPendingRequest(BuildContext context, WidgetRef ref) async {
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: Text(tr('dashboard.banner.cancel_request_title')),
-      content: Text(tr('dashboard.banner.cancel_request_body')),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: Text(tr('common.cancel')),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: Text(tr('dashboard.banner.cancel_request_confirm')),
-        ),
-      ],
-    ),
+  final confirmed = await SacDialog.show(
+    context,
+    title: tr('dashboard.banner.cancel_request_title'),
+    content: tr('dashboard.banner.cancel_request_body'),
+    confirmLabel: tr('dashboard.banner.cancel_request_confirm'),
+    confirmIsDestructive: true,
   );
 
   if (confirmed != true || !context.mounted) return;

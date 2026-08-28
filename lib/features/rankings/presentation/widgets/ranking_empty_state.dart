@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import '../../../../core/utils/icon_helper.dart';
 
 /// Razones por las que el ranking no se puede mostrar.
@@ -76,12 +77,11 @@ class RankingEmptyState extends StatelessWidget {
             if (reason == RankingEmptyReason.networkError &&
                 onRetry != null) ...[
               const SizedBox(height: 24),
-              ElevatedButton(
+              SacButton(
+                text: tr('rankings.empty_state.retry'),
+                variant: SacButtonVariant.primary,
+                fullWidth: false,
                 onPressed: onRetry,
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(88, 44),
-                ),
-                child: Text(tr('rankings.empty_state.retry')),
               ),
             ],
           ],

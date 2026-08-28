@@ -13,6 +13,7 @@ import '../sac_pdf_viewer.dart';
 import '../sac_dialog.dart';
 import 'staged_file.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import '../../animations/page_transitions.dart';
 
 /// Unified grid for displaying both remote (uploaded) and local (staged) files.
 ///
@@ -460,7 +461,7 @@ class _StagedFileCell extends StatelessWidget {
     } else if (file.isLocal && file.localPath != null && file.isImage) {
       // Local images: full-screen preview with InteractiveViewer
       Navigator.of(context).push(
-        MaterialPageRoute(
+        SacFadeThroughRoute(
           builder: (_) => Scaffold(
             backgroundColor: Colors.black,
             appBar: AppBar(

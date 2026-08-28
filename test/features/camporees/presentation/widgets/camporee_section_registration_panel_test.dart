@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_section_registration_panel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -163,11 +164,15 @@ void main() {
         brightness: brightness,
       );
 
-      final button = tester.widget<ElevatedButton>(
-        find.widgetWithText(ElevatedButton, 'Inscribir mi sección'),
+      final label = tester.widget<Text>(find.text('Inscribir mi sección'));
+      final decorated = tester.widget<DecoratedBox>(
+        find.descendant(
+          of: find.widgetWithText(SacButton, 'Inscribir mi sección'),
+          matching: find.byType(DecoratedBox),
+        ),
       );
-      final foreground = button.style!.foregroundColor!.resolve({})!;
-      final background = button.style!.backgroundColor!.resolve({})!;
+      final foreground = label.style!.color!;
+      final background = (decorated.decoration! as BoxDecoration).color!;
 
       expect(foreground, AppColors.ink900);
       expect(_contrastRatio(foreground, background), greaterThanOrEqualTo(4.5));

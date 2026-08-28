@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import '../../domain/entities/inventory_item.dart';
 import '../providers/inventory_providers.dart';
 
@@ -138,23 +139,9 @@ class InventoryFilterSheet extends ConsumerWidget {
                     const SizedBox(height: 28),
 
                     // Apply button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: FilledButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(AppTheme.radiusSM),
-                          ),
-                        ),
-                        child: Text(
-                          'inventory.filter_sheet.apply'.tr(),
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                      ),
+                    SacButton.primary(
+                      text: 'inventory.filter_sheet.apply'.tr(),
+                      onPressed: () => Navigator.pop(context),
                     ),
                   ],
                 ),

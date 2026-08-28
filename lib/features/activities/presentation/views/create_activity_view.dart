@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -17,6 +18,7 @@ import '../providers/activities_providers.dart';
 import '../widgets/activity_form_widgets.dart';
 import 'location_picker_view.dart';
 import '../../../members/presentation/providers/members_providers.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Vista para crear una nueva actividad en el club.
 ///
@@ -144,13 +146,12 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
   Future<void> _openLocationPicker() async {
     final result = await Navigator.push<LocationPickerResult>(
       context,
-      MaterialPageRoute(
+      SacSlideUpRoute(
         builder: (_) => LocationPickerView(
           initialLocation: _selectedLocation != null
               ? LatLng(_selectedLocation!.lat, _selectedLocation!.long)
               : null,
         ),
-        fullscreenDialog: true,
       ),
     );
 
@@ -488,8 +489,10 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
                 },
               ),
               AnimatedSize(
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeInOut,
+                duration: SacMotion.reduceMotionOf(context)
+                    ? Duration.zero
+                    : SacMotion.standard,
+                curve: SacMotion.easeInOut,
                 child: _isJoint
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -608,8 +611,10 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
 
             // Virtual-only fields (animated in/out)
             AnimatedSize(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeInOut,
+              duration: SacMotion.reduceMotionOf(context)
+                  ? Duration.zero
+                  : SacMotion.standard,
+              curve: SacMotion.easeInOut,
               child: _selectedPlatform == 1
                   ? Column(
                       children: [

@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
@@ -28,7 +30,7 @@ import '../widgets/resource_filter_bar.dart';
 /// - AppBar con título "Recursos"
 /// - Barra de búsqueda
 /// - Filtros de tipo (chips horizontales)
-/// - Lista de recursos paginada (carga más al hacer scroll)
+/// - Grilla de recursos paginada (carga más al hacer scroll)
 /// - Pull-to-refresh
 class ResourcesView extends ConsumerStatefulWidget {
   const ResourcesView({super.key});
@@ -101,7 +103,7 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
         elevation: 0,
         scrolledUnderElevation: 0.5,
         surfaceTintColor: Colors.transparent,
-        centerTitle: false,
+        centerTitle: true,
         leading: IconButton(
           icon: HugeIcon(
             icon: HugeIcons.strokeRoundedArrowLeft01,
@@ -306,15 +308,26 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
     return SliverPadding(
       padding: EdgeInsets.symmetric(
           horizontal: Responsive.horizontalPadding(context)),
-      sliver: SliverList(
+      sliver: SliverGrid(
+        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: 200,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 0.72,
+        ),
         delegate: SliverChildBuilderDelegate(
           (context, index) {
             final resource = state.items[index];
-            final animationIndex = index > 5 ? 5 : index;
-            return ResourceCard(
-              resource: resource,
-              animationDelay: Duration(milliseconds: animationIndex * 36),
-              onTap: () => _openDetail(context, resource),
+            return StaggeredListItem(
+              index: index,
+              staggerDelay: SacMotion.stagger,
+              duration: SacMotion.standard,
+              slideOffset: 8,
+              animate: index < 6,
+              child: ResourceCard(
+                resource: resource,
+                onTap: () => _openDetail(context, resource),
+              ),
             );
           },
           childCount: state.items.length,

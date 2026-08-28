@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 /// Género soportado por el backend (`gender` en `UpdateUserDto`).
 ///
@@ -52,7 +53,7 @@ Future<Gender?> showGenderSelector(
   BuildContext context, {
   Gender? current,
 }) {
-  return showModalBottomSheet<Gender>(
+  return showSacSheet<Gender>(
     context: context,
     isScrollControlled: false,
     showDragHandle: true,

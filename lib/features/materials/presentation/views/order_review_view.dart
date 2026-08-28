@@ -16,6 +16,8 @@ import '../providers/order_detail_provider.dart';
 import '../utils/money_format.dart';
 import '../widgets/material_status_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 
 /// Pantalla de revisión de una orden por folio o ID.
@@ -229,27 +231,10 @@ class _ActionCard extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.error,
-                side: const BorderSide(color: AppColors.error),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              icon: cancelState.isLoading
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(AppColors.error),
-                      ),
-                    )
-                  : const HugeIcon(icon: HugeIcons.strokeRoundedCancelCircle),
-              label: const Text('Cancelar pedido'),
+            SacButton.destructive(
+              text: 'Cancelar pedido',
+              icon: HugeIcons.strokeRoundedCancelCircle,
+              isLoading: cancelState.isLoading,
               onPressed: cancelState.isLoading
                   ? null
                   : () => _confirmCancel(context, ref),
@@ -290,7 +275,7 @@ class _ActionCard extends ConsumerWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Tu pedido fue aprobado. Realizá la transferencia y subí el comprobante.',
+                    'Tu pedido fue aprobado. Realiza la transferencia y sube el comprobante.',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: AppColors.accentDark,
                     ),
@@ -299,33 +284,18 @@ class _ActionCard extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 12),
-            OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                side: const BorderSide(color: AppColors.primary),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              icon: const HugeIcon(icon: HugeIcons.strokeRoundedBank),
-              label: const Text('Ver datos de pago'),
+            SacButton.outline(
+              text: 'Ver datos de pago',
+              icon: HugeIcons.strokeRoundedBank,
               onPressed: () => context.push(
                 RouteNames.materialsOrderPayment(
                     orden.folioReferencia ?? orden.id),
               ),
             ),
             const SizedBox(height: 8),
-            FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              icon: const HugeIcon(icon: HugeIcons.strokeRoundedFileUpload),
-              label: const Text('Subir comprobante'),
+            SacButton.primary(
+              text: 'Subir comprobante',
+              icon: HugeIcons.strokeRoundedFileUpload,
               onPressed: () => context.push(
                 RouteNames.materialsOrderReceipt(
                     orden.folioReferencia ?? orden.id),
@@ -421,17 +391,9 @@ class _ActionCard extends ConsumerWidget {
                 ),
               ),
             const SizedBox(height: 12),
-            OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                side: const BorderSide(color: AppColors.primary),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
+            SacButton.outline(
+              text: 'Hacer un nuevo pedido',
               onPressed: () => context.go(RouteNames.homeMaterials),
-              child: const Text('Hacer un nuevo pedido'),
             ),
           ],
         );
@@ -441,32 +403,36 @@ class _ActionCard extends ConsumerWidget {
   Future<void> _confirmCancel(BuildContext context, WidgetRef ref) async {
     final reasonController = TextEditingController();
     try {
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Cancelar pedido'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('¿Estás seguro de que deseas cancelar este pedido?'),
-              const SizedBox(height: 12),
-              SacTextField(
-                controller: reasonController,
-                label: 'Motivo (requerido)',
-                maxLines: 2,
-              ),
-            ],
+      final formKey = GlobalKey<FormState>();
+      final confirmed = await SacDialog.present<bool>(
+        context,
+        builder: (ctx) => SacDialog(
+          title: 'Cancelar pedido',
+          content: '¿Estás seguro de que deseas cancelar este pedido?',
+          body: Form(
+            key: formKey,
+            child: SacTextField(
+              controller: reasonController,
+              label: 'Motivo (requerido)',
+              maxLines: 2,
+              validator: (value) => (value == null || value.trim().isEmpty)
+                  ? 'Ingresa un motivo de cancelación.'
+                  : null,
+            ),
           ),
           actions: [
-            TextButton(
+            SacDialogAction(
+              label: 'Volver',
+              style: SacDialogActionStyle.cancel,
               onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('Volver'),
             ),
-            FilledButton(
-              style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-              onPressed: () => Navigator.of(ctx).pop(true),
-              child: const Text('Cancelar pedido'),
+            SacDialogAction(
+              label: 'Cancelar pedido',
+              style: SacDialogActionStyle.destructive,
+              onPressed: () {
+                if (formKey.currentState?.validate() != true) return;
+                Navigator.of(ctx).pop(true);
+              },
             ),
           ],
         ),
@@ -477,7 +443,7 @@ class _ActionCard extends ConsumerWidget {
       final reason = reasonController.text.trim();
       if (reason.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ingresá un motivo de cancelación.')),
+          const SnackBar(content: Text('Ingresa un motivo de cancelación.')),
         );
         return;
       }
@@ -879,9 +845,10 @@ class _ErrorBody extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            OutlinedButton.icon(
-              icon: const HugeIcon(icon: HugeIcons.strokeRoundedRefresh),
-              label: const Text('Reintentar'),
+            SacButton(
+              text: 'Reintentar',
+              icon: HugeIcons.strokeRoundedRefresh,
+              variant: SacButtonVariant.outline,
               onPressed: onRetry,
             ),
           ],

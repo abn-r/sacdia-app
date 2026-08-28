@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 
 /// SACDIA custom dialog widget — iOS-inspired design with SACDIA color system.
 ///
@@ -27,6 +28,7 @@ class SacDialog extends StatelessWidget {
   final String title;
   final String? content;
   final String? highlight;
+  final Widget? body;
   final List<List<dynamic>>? icon;
   final Color? iconColor;
   final Color? iconBackgroundColor;
@@ -37,6 +39,7 @@ class SacDialog extends StatelessWidget {
     required this.title,
     this.content,
     this.highlight,
+    this.body,
     this.icon,
     this.iconColor,
     this.iconBackgroundColor,
@@ -55,18 +58,20 @@ class SacDialog extends StatelessWidget {
     String? cancelLabel,
     bool confirmIsDestructive = false,
     String? highlight,
+    Widget? body,
     List<List<dynamic>>? icon,
     Color? iconColor,
     Color? iconBackgroundColor,
+    bool barrierDismissible = true,
   }) {
-    return showDialog<bool>(
-      context: context,
-      barrierColor: context.sac.barrierColor,
-      barrierDismissible: true,
+    return present<bool>(
+      context,
+      barrierDismissible: barrierDismissible,
       builder: (context) => SacDialog(
         title: title,
         content: content,
         highlight: highlight,
+        body: body,
         icon: icon ??
             (confirmIsDestructive
                 ? HugeIcons.strokeRoundedAlert02
@@ -93,6 +98,20 @@ class SacDialog extends StatelessWidget {
     );
   }
 
+  /// Shows a custom [SacDialog] with the shared barrier.
+  static Future<T?> present<T>(
+    BuildContext context, {
+    required Widget Function(BuildContext dialogContext) builder,
+    bool barrierDismissible = true,
+  }) {
+    return showDialog<T>(
+      context: context,
+      barrierColor: context.sac.barrierColor,
+      barrierDismissible: barrierDismissible,
+      builder: builder,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -101,7 +120,10 @@ class SacDialog extends StatelessWidget {
       insetPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
       child: _AnimatedDialogContent(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 340),
+          constraints: BoxConstraints(
+            maxWidth: 340,
+            maxHeight: MediaQuery.sizeOf(context).height * 0.8,
+          ),
           child: Container(
             decoration: BoxDecoration(
               color: context.sac.surface,
@@ -117,101 +139,108 @@ class SacDialog extends StatelessWidget {
                 ),
               ],
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 18),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (icon != null) ...[
-                        Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: iconBackgroundColor,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: (iconColor ?? AppColors.validatedDark)
-                                  .withValues(alpha: 0.14),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 18),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (icon != null) ...[
+                          Container(
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: iconBackgroundColor,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: (iconColor ?? AppColors.validatedDark)
+                                    .withValues(alpha: 0.14),
+                              ),
+                            ),
+                            child: HugeIcon(
+                              icon: icon!,
+                              size: 26,
+                              color: iconColor,
                             ),
                           ),
-                          child: HugeIcon(
-                            icon: icon!,
-                            size: 26,
-                            color: iconColor,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                      Text(
-                        title,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 19,
-                          fontWeight: FontWeight.w800,
-                          color: context.sac.text,
-                          height: 1.15,
-                        ),
-                      ),
-                      if (content != null) ...[
-                        const SizedBox(height: 10),
+                          const SizedBox(height: 16),
+                        ],
                         Text(
-                          content!,
+                          title,
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            color: context.sac.textSecondary,
-                            height: 1.45,
+                            fontSize: 19,
+                            fontWeight: FontWeight.w800,
+                            color: context.sac.text,
+                            height: 1.15,
                           ),
                         ),
-                      ],
-                      if (highlight != null) ...[
-                        const SizedBox(height: 14),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: iconBackgroundColor ??
-                                AppColors.primaryLight.withValues(alpha: 0.65),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: (iconColor ?? AppColors.primary)
-                                  .withValues(alpha: 0.12),
-                            ),
-                          ),
-                          child: Text(
-                            highlight!,
+                        if (content != null) ...[
+                          const SizedBox(height: 10),
+                          Text(
+                            content!,
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: iconColor ?? AppColors.primary,
-                              height: 1.3,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                              color: context.sac.textSecondary,
+                              height: 1.45,
                             ),
                           ),
-                        ),
+                        ],
+                        if (highlight != null) ...[
+                          const SizedBox(height: 14),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: iconBackgroundColor ??
+                                  AppColors.primaryLight
+                                      .withValues(alpha: 0.65),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: (iconColor ?? AppColors.primary)
+                                    .withValues(alpha: 0.12),
+                              ),
+                            ),
+                            child: Text(
+                              highlight!,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: iconColor ?? AppColors.primary,
+                                height: 1.3,
+                              ),
+                            ),
+                          ),
+                        ],
+                        if (body != null) ...[
+                          const SizedBox(height: 16),
+                          SizedBox(width: double.infinity, child: body!),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
-                  child: actions.length <= 2
-                      ? Row(
-                          children: _buildHorizontalActionButtons(context),
-                        )
-                      : Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: _buildVerticalActionButtons(context),
-                        ),
-                ),
-              ],
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+                    child: actions.length <= 2
+                        ? Row(
+                            children: _buildHorizontalActionButtons(context),
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: _buildVerticalActionButtons(context),
+                          ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -303,6 +332,7 @@ class _AnimatedDialogContentState extends State<_AnimatedDialogContent>
   @override
   Widget build(BuildContext context) {
     final fadedContent = FadeTransition(
+      key: const ValueKey('sac_dialog_fade'),
       opacity: _fadeAnimation,
       child: widget.child,
     );
@@ -310,6 +340,7 @@ class _AnimatedDialogContentState extends State<_AnimatedDialogContent>
     if (_scaleSuppressed) return fadedContent;
 
     return ScaleTransition(
+      key: const ValueKey('sac_dialog_scale'),
       scale: _scaleAnimation,
       child: fadedContent,
     );
@@ -321,6 +352,9 @@ enum SacDialogActionStyle {
   /// Primary confirm action.
   confirm,
 
+  /// Positive approve action.
+  success,
+
   /// Destructive action.
   destructive,
 
@@ -331,13 +365,15 @@ enum SacDialogActionStyle {
 /// A single action button in a [SacDialog].
 class SacDialogAction {
   final String label;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final SacDialogActionStyle style;
+  final bool isLoading;
 
   const SacDialogAction({
     required this.label,
-    required this.onPressed,
+    this.onPressed,
     this.style = SacDialogActionStyle.confirm,
+    this.isLoading = false,
   });
 }
 
@@ -346,102 +382,55 @@ class _ActionButton extends StatelessWidget {
 
   const _ActionButton({required this.action});
 
-  Color _labelColor(BuildContext context) {
-    switch (action.style) {
-      case SacDialogActionStyle.confirm:
-      case SacDialogActionStyle.destructive:
-        return Colors.white;
-      case SacDialogActionStyle.cancel:
-        return context.sac.textSecondary;
-    }
-  }
-
-  Color _backgroundColor(BuildContext context) {
-    switch (action.style) {
-      case SacDialogActionStyle.confirm:
-        return AppColors.coral700;
-      case SacDialogActionStyle.destructive:
-        return AppColors.error;
-      case SacDialogActionStyle.cancel:
-        return Colors.transparent;
-    }
-  }
-
-  FontWeight _fontWeight() {
-    switch (action.style) {
-      case SacDialogActionStyle.confirm:
-      case SacDialogActionStyle.destructive:
-        return FontWeight.w600;
-      case SacDialogActionStyle.cancel:
-        return FontWeight.w400;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final isFilled = action.style != SacDialogActionStyle.cancel;
-
-    return SizedBox(
-      height: 48,
-      child: isFilled
-          ? FilledButton(
-              onPressed: action.onPressed,
-              style: FilledButton.styleFrom(
-                backgroundColor: _backgroundColor(context),
-                foregroundColor: _labelColor(context),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-              ),
-              child: _ActionButtonLabel(
-                label: action.label,
-                color: _labelColor(context),
-                fontWeight: _fontWeight(),
-              ),
-            )
-          : TextButton(
-              onPressed: action.onPressed,
-              style: TextButton.styleFrom(
-                foregroundColor: _labelColor(context),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-              ),
-              child: _ActionButtonLabel(
-                label: action.label,
-                color: _labelColor(context),
-                fontWeight: _fontWeight(),
-              ),
-            ),
-    );
-  }
-}
-
-class _ActionButtonLabel extends StatelessWidget {
-  final String label;
-  final Color color;
-  final FontWeight fontWeight;
-
-  const _ActionButtonLabel({
-    required this.label,
-    required this.color,
-    required this.fontWeight,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      label,
-      maxLines: 2,
-      overflow: TextOverflow.ellipsis,
-      textAlign: TextAlign.center,
-      style: TextStyle(
-        fontSize: 14,
-        fontWeight: fontWeight,
-        color: color,
-        height: 1.1,
-      ),
-    );
+    switch (action.style) {
+      case SacDialogActionStyle.confirm:
+        return SacButton(
+          text: action.label,
+          variant: SacButtonVariant.primary,
+          fullWidth: true,
+          fontSize: 14,
+          borderRadius: 15,
+          backgroundColor: AppColors.coral700,
+          labelMaxLines: 2,
+          isLoading: action.isLoading,
+          onPressed: action.onPressed,
+        );
+      case SacDialogActionStyle.success:
+        return SacButton(
+          text: action.label,
+          variant: SacButtonVariant.success,
+          fullWidth: true,
+          fontSize: 14,
+          borderRadius: 15,
+          labelMaxLines: 2,
+          isLoading: action.isLoading,
+          onPressed: action.onPressed,
+        );
+      case SacDialogActionStyle.destructive:
+        return SacButton(
+          text: action.label,
+          variant: SacButtonVariant.destructive,
+          fullWidth: true,
+          fontSize: 14,
+          borderRadius: 15,
+          labelMaxLines: 2,
+          isLoading: action.isLoading,
+          onPressed: action.onPressed,
+        );
+      case SacDialogActionStyle.cancel:
+        return SacButton(
+          text: action.label,
+          variant: SacButtonVariant.ghost,
+          fullWidth: true,
+          fontSize: 14,
+          borderRadius: 15,
+          textColor: context.sac.textSecondary,
+          labelMaxLines: 2,
+          isLoading: action.isLoading,
+          onPressed: action.onPressed,
+        );
+    }
   }
 }

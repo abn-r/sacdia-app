@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -10,6 +11,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/post_registration_flow_providers.dart';
 import '../providers/post_registration_providers.dart';
@@ -97,11 +99,15 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
   void _goToStep(int step) {
     setState(() => _currentStep = step);
     ref.read(currentStepProvider.notifier).state = step;
-    _pageController?.animateToPage(
-      step - 1,
-      duration: const Duration(milliseconds: 340),
-      curve: Curves.easeOutCubic,
-    );
+    if (SacMotion.reduceMotionOf(context)) {
+      _pageController?.jumpToPage(step - 1);
+    } else {
+      _pageController?.animateToPage(
+        step - 1,
+        duration: SacMotion.modal,
+        curve: SacMotion.easeOut,
+      );
+    }
   }
 
   void _onBack() {
@@ -207,25 +213,12 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
   }
 
   Future<void> _showLogoutDialog() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(tr('post_registration.shell.logout_dialog_title')),
-        content: Text(tr('post_registration.shell.logout_dialog_body')),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(tr('common.cancel')),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: Theme.of(ctx).colorScheme.error,
-            ),
-            child: Text(tr('post_registration.shell.logout_dialog_confirm')),
-          ),
-        ],
-      ),
+    final confirmed = await SacDialog.show(
+      context,
+      title: tr('post_registration.shell.logout_dialog_title'),
+      content: tr('post_registration.shell.logout_dialog_body'),
+      confirmLabel: tr('post_registration.shell.logout_dialog_confirm'),
+      confirmIsDestructive: true,
     );
 
     if (confirmed == true && mounted) {

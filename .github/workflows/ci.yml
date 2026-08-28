@@ -78,16 +78,66 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       has_google_services: ${{ steps.check.outputs.has_google_services }}
+      has_release_keystore: ${{ steps.check.outputs.has_release_keystore }}
+      has_sentry_token: ${{ steps.check.outputs.has_sentry_token }}
+      has_api_base_url: ${{ steps.check.outputs.has_api_base_url }}
     steps:
       - id: check
         env:
           GS_SECRET: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+          KEYSTORE_SECRET: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          SENTRY_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
         run: |
           if [ -n "$GS_SECRET" ]; then
             echo "has_google_services=true" >> "$GITHUB_OUTPUT"
           else
             echo "has_google_services=false" >> "$GITHUB_OUTPUT"
           fi
+          # Release signing requires the full set of keystore secrets.
+          if [ -n "$KEYSTORE_SECRET" ] && [ -n "$KEYSTORE_PASSWORD" ] && [ -n "$KEY_PASSWORD" ] && [ -n "$KEY_ALIAS" ]; then
+            echo "has_release_keystore=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_release_keystore=false" >> "$GITHUB_OUTPUT"
+          fi
+          if [ -n "$SENTRY_TOKEN" ]; then
+            echo "has_sentry_token=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_sentry_token=false" >> "$GITHUB_OUTPUT"
+          fi
+          # Empty → skip Android (no crash-on-boot APK). Non-HTTPS → fail CI.
+          if [ -z "$API_BASE_URL" ]; then
+            echo "has_api_base_url=false" >> "$GITHUB_OUTPUT"
+          else
+            case "$API_BASE_URL" in
+              https://*) echo "has_api_base_url=true" >> "$GITHUB_OUTPUT" ;;
+              *)
+                echo "ERROR: secret API_BASE_URL must start with https://" >&2
+                exit 1
+                ;;
+            esac
+          fi
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # JOB 3b: Validate API_BASE_URL
+  # ──────────────────────────────────────────────────────────────────────────
+  # Release builds crash on startup without an HTTPS API_BASE_URL dart-define
+  # (see lib/core/constants/app_constants.dart). Fail fast here instead of
+  # shipping a broken binary. Requires repo secret API_BASE_URL, e.g.
+  # https://api.sacdia.com/api/v1
+  # ──────────────────────────────────────────────────────────────────────────
+  check-api-base-url:
+    name: Validate API_BASE_URL
+    runs-on: ubuntu-latest
+    needs: check-secrets
+    if: needs.check-secrets.outputs.has_google_services == 'true' && needs.check-secrets.outputs.has_api_base_url == 'true'
+    steps:
+      - env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+        run: echo "API_BASE_URL OK"
 
   # ──────────────────────────────────────────────────────────────────────────
   # JOB 4: Build Android (APK smoke gate)
@@ -103,8 +153,8 @@ jobs:
   build-android:
     name: Build Android APK
     runs-on: ubuntu-latest
-    needs: [analyze, test, check-secrets]
-    if: needs.check-secrets.outputs.has_google_services == 'true'
+    needs: [analyze, test, check-secrets, check-api-base-url]
+    if: needs.check-secrets.outputs.has_google_services == 'true' && needs.check-secrets.outputs.has_api_base_url == 'true'
     env:
       GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
 
@@ -142,13 +192,77 @@ jobs:
             exit 1
           fi
 
+      # ──────────────────────────────────────────────────────────────────────
+      # Release keystore (optional): when the ANDROID_KEYSTORE_* secrets are
+      # configured the build is signed with the real upload key and an AAB is
+      # produced; otherwise the job stays an APK smoke gate signed with the
+      # debug keystore (never publishable). See android/KEYSTORE.md.
+      #
+      # One-time setup (repo admin):
+      #   base64 -i ~/sacdia-release-key.jks | pbcopy   # → ANDROID_KEYSTORE_BASE64
+      #   + ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_PASSWORD / ANDROID_KEY_ALIAS
+      # ──────────────────────────────────────────────────────────────────────
+      - name: Set up release keystore
+        if: needs.check-secrets.outputs.has_release_keystore == 'true'
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode --ignore-garbage > android/release-key.jks
+          cat > android/key.properties <<EOF
+          storeFile=release-key.jks
+          storePassword=${ANDROID_KEYSTORE_PASSWORD}
+          keyAlias=${ANDROID_KEY_ALIAS}
+          keyPassword=${ANDROID_KEY_PASSWORD}
+          EOF
+
       - name: Build APK (release)
         env:
           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
           GOOGLE_MAPS_GRADLE_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
         run: |
           # Pass GOOGLE_MAPS_API_KEY both as a dart-define (for Static Maps REST)
           # and as a gradle property (for the interactive Maps SDK manifest placeholder).
+          # API_BASE_URL is mandatory for release builds: without it the app
+          # throws on startup (see AppConstants.resolveBaseUrl).
           flutter build apk --release \
+            --dart-define=API_BASE_URL="${API_BASE_URL}" \
             --dart-define=GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_API_KEY}" \
             -P GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_GRADLE_KEY}"
+
+      - name: Build AAB (signed, obfuscated)
+        if: needs.check-secrets.outputs.has_release_keystore == 'true'
+        env:
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+          GOOGLE_MAPS_GRADLE_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+        run: |
+          # Play Store artifact: signed with the upload key, Dart obfuscation on,
+          # split-debug-info symbols kept for Sentry symbolication.
+          flutter build appbundle --release \
+            --obfuscate \
+            --split-debug-info=build/app/outputs/symbols \
+            --dart-define=API_BASE_URL="${API_BASE_URL}" \
+            --dart-define=GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_API_KEY}" \
+            -P GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_GRADLE_KEY}"
+
+      - name: Upload debug symbols to Sentry
+        if: needs.check-secrets.outputs.has_release_keystore == 'true' && needs.check-secrets.outputs.has_sentry_token == 'true'
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: dart run sentry_dart_plugin
+
+      - name: Upload AAB artifact
+        if: needs.check-secrets.outputs.has_release_keystore == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 30
+
+      - name: Clean up keystore
+        if: always() && needs.check-secrets.outputs.has_release_keystore == 'true'
+        run: rm -f android/release-key.jks android/key.properties

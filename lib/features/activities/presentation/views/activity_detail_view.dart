@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/auth/club_role_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -24,6 +25,7 @@ import '../widgets/activity_info_strip.dart';
 import '../widgets/activity_location_row.dart';
 import '../widgets/activity_virtual_banner.dart';
 import 'edit_activity_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Activity detail screen — consolidated layout (revised 2026-04).
 ///
@@ -137,7 +139,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
   Future<void> _navigateToEdit(Activity activity) async {
     final result = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(builder: (_) => EditActivityView(activity: activity)),
+      SacSharedAxisRoute(builder: (_) => EditActivityView(activity: activity)),
     );
     if (result == true && mounted) {
       ref.invalidate(activityDetailProvider(widget.activityId));
@@ -145,25 +147,12 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
   }
 
   Future<void> _confirmDelete() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('activities.detail.delete_title'.tr()),
-        content: Text(
-          'activities.detail.delete_confirm'.tr(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text('common.cancel'.tr()),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: Text('activities.detail.delete_button'.tr()),
-          ),
-        ],
-      ),
+    final confirmed = await SacDialog.show(
+      context,
+      title: 'activities.detail.delete_title'.tr(),
+      content: 'activities.detail.delete_confirm'.tr(),
+      confirmLabel: 'activities.detail.delete_button'.tr(),
+      confirmIsDestructive: true,
     );
 
     if (confirmed != true || !mounted) return;
@@ -482,7 +471,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
 
   void _openQrScanner() {
     Navigator.of(context).push(
-      MaterialPageRoute(
+      SacSharedAxisRoute(
         builder: (_) => QrScannerView(activityId: widget.activityId),
       ),
     );
@@ -490,7 +479,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
 
   void _openMyQr() {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const VirtualCardView()),
+      SacSharedAxisRoute(builder: (_) => const VirtualCardView()),
     );
   }
 

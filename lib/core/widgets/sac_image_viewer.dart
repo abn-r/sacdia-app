@@ -10,6 +10,7 @@ import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Visor de imagenes fullscreen con zoom (pinch-to-zoom).
 ///
@@ -54,7 +55,7 @@ class SacImageViewer extends StatefulWidget {
         : initialIndex.clamp(0, effectiveUrls.length - 1);
 
     Navigator.of(context, rootNavigator: true).push(
-      MaterialPageRoute(
+      SacFadeThroughRoute(
         fullscreenDialog: true,
         builder: (_) => SacImageViewer.gallery(
           imageUrls: effectiveUrls,

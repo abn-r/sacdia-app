@@ -20,8 +20,9 @@ void main() {
       expect(SacMotion.stagger, const Duration(milliseconds: 40));
     });
 
-    test('defines the shared enter scale', () {
+    test('defines the shared enter and press scales', () {
       expect(SacMotion.enterScale, 0.96);
+      expect(SacMotion.pressScale, 0.97);
     });
 
     testWidgets('reduceMotionOf returns false without MediaQuery', (

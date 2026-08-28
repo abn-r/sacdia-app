@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../domain/entities/certificate_import_payloads.dart';
 import '../../domain/entities/certificate_import_batch.dart';
@@ -253,7 +254,7 @@ class _CertificateImportReviewViewState
   }
 
   Future<void> _openEditor(CertificateImportItem item) async {
-    await showModalBottomSheet<void>(
+    await showSacSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,

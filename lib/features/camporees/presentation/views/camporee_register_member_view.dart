@@ -11,9 +11,14 @@ import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/insurance/domain/entities/member_insurance.dart';
 import 'package:sacdia_app/features/insurance/presentation/providers/insurance_providers.dart';
 import 'package:sacdia_app/features/insurance/presentation/widgets/insurance_status_badge.dart';
+import 'package:go_router/go_router.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_participant_access_gate.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/features/payment_orders/presentation/providers/payment_orders_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
+import '../../domain/utils/camporee_registration_payment_flow.dart';
 import '../providers/camporees_providers.dart';
 
 /// Vista para seleccionar e inscribir miembros del club activo en un camporee.
@@ -42,7 +47,13 @@ class _CamporeeRegisterMemberViewState
     final sectionRegistrationAsync =
         ref.watch(camporeeSectionRegistrationProvider(widget.camporeeId));
     final authAsync = ref.watch(authNotifierProvider);
+    final ordersContextAsync = ref.watch(paymentOrdersContextProvider);
     final c = context.sac;
+    final paymentFlow = camporeeRegistrationPaymentFlow(
+      isLoading: ordersContextAsync.isLoading,
+      hasError: ordersContextAsync.hasError,
+      enabled: ordersContextAsync.valueOrNull?.enabled == true,
+    );
 
     return Scaffold(
       backgroundColor: c.background,
@@ -55,29 +66,40 @@ class _CamporeeRegisterMemberViewState
         elevation: 0,
       ),
       body: SafeArea(
-        child: CamporeeParticipantRegistrationGate(
-          registrationAsync: sectionRegistrationAsync,
-          authAsync: authAsync,
-          onRetryRegistration: () => ref.invalidate(
-            camporeeSectionRegistrationProvider(widget.camporeeId),
-          ),
-          onRetryAuth: () => ref.invalidate(authNotifierProvider),
-          child: _EligibleRegistrationForm(
-            camporeeId: widget.camporeeId,
-            selectedUserIds: _selectedUserIds,
-            onRemove: (userId) {
-              setState(() => _selectedUserIds.remove(userId));
-            },
-            onOpenPicker: () => _openMemberPicker(context),
-            onSubmit: (ids) => _submit(context, ids),
-          ),
-        ),
+        child: switch (paymentFlow) {
+          CamporeeRegistrationPaymentFlow.loading =>
+            const _PaymentOrdersContextLoading(),
+          CamporeeRegistrationPaymentFlow.unavailable =>
+            _PaymentOrdersContextError(
+              onRetry: () => ref.invalidate(paymentOrdersContextProvider),
+            ),
+          CamporeeRegistrationPaymentFlow.paymentOrder =>
+            _PaymentOrderRedirectBody(camporeeId: widget.camporeeId),
+          CamporeeRegistrationPaymentFlow.legacy =>
+            CamporeeParticipantRegistrationGate(
+              registrationAsync: sectionRegistrationAsync,
+              authAsync: authAsync,
+              onRetryRegistration: () => ref.invalidate(
+                camporeeSectionRegistrationProvider(widget.camporeeId),
+              ),
+              onRetryAuth: () => ref.invalidate(authNotifierProvider),
+              child: _EligibleRegistrationForm(
+                camporeeId: widget.camporeeId,
+                selectedUserIds: _selectedUserIds,
+                onRemove: (userId) {
+                  setState(() => _selectedUserIds.remove(userId));
+                },
+                onOpenPicker: () => _openMemberPicker(context),
+                onSubmit: (ids) => _submit(context, ids),
+              ),
+            ),
+        },
       ),
     );
   }
 
   Future<void> _openMemberPicker(BuildContext context) async {
-    final selected = await showModalBottomSheet<Set<String>>(
+    final selected = await showSacSheet<Set<String>>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -1072,6 +1094,164 @@ class _PickerEmpty extends StatelessWidget {
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 13, color: context.sac.textSecondary),
         ),
+      ),
+    );
+  }
+}
+
+class _PaymentOrdersContextLoading extends StatelessWidget {
+  const _PaymentOrdersContextLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    final title = 'payment_orders.camporee_redirect.context_loading'.tr();
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Semantics(
+          container: true,
+          liveRegion: true,
+          label: title,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SacLoading(),
+              const SizedBox(height: 20),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: context.sac.text,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PaymentOrdersContextError extends StatelessWidget {
+  final VoidCallback onRetry;
+
+  const _PaymentOrdersContextError({required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Semantics(
+          container: true,
+          liveRegion: true,
+          label: 'payment_orders.camporee_redirect.context_error'.tr(),
+          child: Container(
+            width: double.infinity,
+            constraints: const BoxConstraints(maxWidth: 520),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: c.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: c.border),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'payment_orders.camporee_redirect.context_error'.tr(),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: c.text,
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'payment_orders.camporee_redirect.context_error_hint'.tr(),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: c.textSecondary,
+                        height: 1.45,
+                      ),
+                ),
+                const SizedBox(height: 16),
+                SacButton.outline(
+                  text: 'common.retry'.tr(),
+                  icon: HugeIcons.strokeRoundedRefresh,
+                  onPressed: onRetry,
+                  textColor: c.text,
+                  borderColor: c.textSecondary,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Cuerpo mostrado cuando el campo local opera con órdenes de pago: en lugar
+/// del registro directo, se emite una orden y se consulta su estado.
+class _PaymentOrderRedirectBody extends StatelessWidget {
+  final int camporeeId;
+
+  const _PaymentOrderRedirectBody({required this.camporeeId});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedInvoice01,
+            color: AppColors.primary,
+            size: 56,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'payment_orders.camporee_redirect.title'.tr(),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: c.text,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'payment_orders.camporee_redirect.body'.tr(),
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 13, color: c.textSecondary),
+          ),
+          const SizedBox(height: 24),
+          SacButton(
+            text: 'payment_orders.camporee_redirect.issue_button'.tr(),
+            onPressed: () => context.push(
+              RouteNames.camporeeIssuePaymentOrderPath(camporeeId),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextButton(
+            onPressed: () => context.push(
+              '${RouteNames.paymentOrders}?purpose=CAMPOREE&camporee_id=$camporeeId',
+            ),
+            child: Text(
+              'payment_orders.camporee_redirect.view_orders'.tr(),
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

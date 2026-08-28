@@ -144,7 +144,6 @@ class UpdateClubNotifier extends AutoDisposeNotifier<UpdateClubState> {
   Future<bool> save({
     required String clubId,
     required int sectionId,
-    String? name,
     String? phone,
     String? email,
     String? website,
@@ -160,7 +159,6 @@ class UpdateClubNotifier extends AutoDisposeNotifier<UpdateClubState> {
       UpdateClubSectionParams(
         clubId: clubId,
         sectionId: sectionId,
-        name: name,
         phone: phone,
         email: email,
         website: website,

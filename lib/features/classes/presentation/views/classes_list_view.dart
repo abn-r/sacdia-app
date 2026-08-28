@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -16,6 +17,8 @@ import '../providers/classes_providers.dart';
 import '../sheets/enroll_previous_class_sheet.dart';
 import '../widgets/class_card.dart';
 import 'class_detail_with_progress_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 // ── Top-level helper — reachable from AppBar and from ClassesListViewBody ───────
 
@@ -51,7 +54,7 @@ _ClassesListDerivation _deriveClassesList(List<ProgressiveClass> classes) {
 }
 
 void _openEnrollSheet(BuildContext context) {
-  showModalBottomSheet(
+  showSacSheet(
     context: context,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
@@ -93,33 +96,15 @@ class ClassesListView extends ConsumerWidget {
           if (hasActiveClub)
             Padding(
               padding: const EdgeInsets.only(right: 8),
-              child: OutlinedButton.icon(
+              child: SacButton(
                 onPressed: () => _openEnrollSheet(context),
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedBookmarkAdd02,
-                  size: 18,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                label: Text(
-                  'classes.list.enroll_cta_short'.tr(),
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                style: OutlinedButton.styleFrom(
-                  shape: const StadiumBorder(),
-                  side: BorderSide(
-                    color: Theme.of(context).colorScheme.outlineVariant,
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  minimumSize: const Size(0, 40),
-                  tapTargetSize: MaterialTapTargetSize.padded,
-                  foregroundColor: Theme.of(context).colorScheme.onSurface,
-                ),
+                text: 'classes.list.enroll_cta_short'.tr(),
+                icon: HugeIcons.strokeRoundedBookmarkAdd02,
+                variant: SacButtonVariant.outline,
+                fullWidth: false,
+                size: SacButtonSize.small,
+                textColor: Theme.of(context).colorScheme.onSurface,
+                borderColor: Theme.of(context).colorScheme.outlineVariant,
               ),
             ),
         ],
@@ -190,7 +175,7 @@ class ClassesListViewBody extends ConsumerWidget {
                 StaggeredListItem(
                   index: 0,
                   initialDelay: const Duration(milliseconds: 80),
-                  staggerDelay: const Duration(milliseconds: 65),
+                  staggerDelay: SacMotion.stagger,
                   child: Consumer(
                     builder: (context, progressRef, _) {
                       final progressQuery =
@@ -208,7 +193,7 @@ class ClassesListViewBody extends ConsumerWidget {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
+                            SacSharedAxisRoute(
                               builder: (context) => ClassDetailWithProgressView(
                                 classId: currentClass.id,
                                 enrollmentId: currentClass.enrollmentId,
@@ -237,7 +222,7 @@ class ClassesListViewBody extends ConsumerWidget {
                   StaggeredListItem(
                     index: i + 1,
                     initialDelay: const Duration(milliseconds: 80),
-                    staggerDelay: const Duration(milliseconds: 65),
+                    staggerDelay: SacMotion.stagger,
                     child: Consumer(
                       builder: (context, progressRef, _) {
                         final progressiveClass = otherClasses[i];
@@ -256,7 +241,7 @@ class ClassesListViewBody extends ConsumerWidget {
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(
+                              SacSharedAxisRoute(
                                 builder: (context) =>
                                     ClassDetailWithProgressView(
                                   classId: progressiveClass.id,
@@ -470,18 +455,10 @@ class _EnrollButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 48,
-      child: FilledButton.icon(
-        onPressed: onPressed,
-        icon: const HugeIcon(
-          icon: HugeIcons.strokeRoundedAdd01,
-          size: 20,
-          color: Colors.white,
-        ),
-        label: Text('classes.list.enroll_cta'.tr()),
-      ),
+    return SacButton.primary(
+      text: 'classes.list.enroll_cta'.tr(),
+      icon: HugeIcons.strokeRoundedAdd01,
+      onPressed: onPressed,
     );
   }
 }

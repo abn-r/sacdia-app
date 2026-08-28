@@ -181,8 +181,11 @@ CustomTransitionPage<T> slideUpPage<T>({
 /// Navigator.push(context, SacSharedAxisRoute(builder: (_) => MyPage()));
 /// ```
 class SacSharedAxisRoute<T> extends PageRouteBuilder<T> {
-  SacSharedAxisRoute({required WidgetBuilder builder, super.settings})
-      : super(
+  SacSharedAxisRoute({
+    required WidgetBuilder builder,
+    super.settings,
+    super.fullscreenDialog,
+  }) : super(
           transitionDuration: SacMotion.routeEnter,
           reverseTransitionDuration: SacMotion.routeExit,
           pageBuilder: (context, animation, secondaryAnimation) =>
@@ -193,8 +196,11 @@ class SacSharedAxisRoute<T> extends PageRouteBuilder<T> {
 
 /// A [PageRoute] that applies an opacity-only fade-through transition.
 class SacFadeThroughRoute<T> extends PageRouteBuilder<T> {
-  SacFadeThroughRoute({required WidgetBuilder builder, super.settings})
-      : super(
+  SacFadeThroughRoute({
+    required WidgetBuilder builder,
+    super.settings,
+    super.fullscreenDialog,
+  }) : super(
           transitionDuration: SacMotion.reducedFade,
           reverseTransitionDuration: SacMotion.reducedFade,
           pageBuilder: (context, animation, secondaryAnimation) =>
@@ -209,8 +215,11 @@ class SacFadeThroughRoute<T> extends PageRouteBuilder<T> {
 /// Navigator.push(context, SacSlideUpRoute(builder: (_) => DetailPage()));
 /// ```
 class SacSlideUpRoute<T> extends PageRouteBuilder<T> {
-  SacSlideUpRoute({required WidgetBuilder builder, super.settings})
-      : super(
+  SacSlideUpRoute({
+    required WidgetBuilder builder,
+    super.settings,
+    super.fullscreenDialog,
+  }) : super(
           transitionDuration: SacMotion.routeEnter,
           reverseTransitionDuration: SacMotion.routeExit,
           pageBuilder: (context, animation, secondaryAnimation) =>

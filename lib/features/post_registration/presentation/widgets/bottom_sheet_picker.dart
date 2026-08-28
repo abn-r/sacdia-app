@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Generic item model
@@ -39,7 +40,7 @@ Future<int?> showPickerSheet({
   String? searchHint,
   HugeIconData icon = HugeIcons.strokeRoundedListView,
 }) {
-  return showModalBottomSheet<int>(
+  return showSacSheet<int>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,

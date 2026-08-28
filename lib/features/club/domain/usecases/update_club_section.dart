@@ -11,7 +11,6 @@ class UpdateClubSectionParams {
   final int sectionId;
 
   // Campos editables — solo los no-null son enviados
-  final String? name;
   final String? phone;
   final String? email;
   final String? website;
@@ -23,7 +22,6 @@ class UpdateClubSectionParams {
   const UpdateClubSectionParams({
     required this.clubId,
     required this.sectionId,
-    this.name,
     this.phone,
     this.email,
     this.website,
@@ -46,7 +44,6 @@ class UpdateClubSection
     return _repository.updateClubSection(
       clubId: params.clubId,
       sectionId: params.sectionId,
-      name: params.name,
       phone: params.phone,
       email: params.email,
       website: params.website,

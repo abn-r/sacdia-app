@@ -155,11 +155,11 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
   void _scrollToToday({bool animate = false}) {
     if (!_dateScrollController.hasClients) return;
     final offset = _offsetForIndex(_todayIndex);
-    if (animate) {
+    if (animate && !SacMotion.reduceMotionOf(context)) {
       _dateScrollController.animateTo(
         offset,
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
+        duration: SacMotion.modal,
+        curve: SacMotion.easeInOut,
       );
     } else {
       _dateScrollController.jumpTo(offset);
@@ -169,11 +169,11 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
   void _scrollToIndex(int index, {bool animate = true}) {
     if (!_dateScrollController.hasClients) return;
     final offset = _offsetForIndex(index);
-    if (animate) {
+    if (animate && !SacMotion.reduceMotionOf(context)) {
       _dateScrollController.animateTo(
         offset,
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeInOut,
+        duration: SacMotion.modal,
+        curve: SacMotion.easeInOut,
       );
     } else {
       _dateScrollController.jumpTo(offset);
@@ -403,15 +403,19 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           if (_chronoScrollController.hasClients) {
                             final offset = _estimateTodayOffset(chronoItems);
-                            _chronoScrollController.animateTo(
-                              offset.clamp(
-                                0.0,
-                                _chronoScrollController
-                                    .position.maxScrollExtent,
-                              ),
-                              duration: const Duration(milliseconds: 450),
-                              curve: Curves.easeOut,
+                            final target = offset.clamp(
+                              0.0,
+                              _chronoScrollController.position.maxScrollExtent,
                             );
+                            if (SacMotion.reduceMotionOf(context)) {
+                              _chronoScrollController.jumpTo(target);
+                            } else {
+                              _chronoScrollController.animateTo(
+                                target,
+                                duration: SacMotion.modal,
+                                curve: SacMotion.easeOut,
+                              );
+                            }
                           }
                         });
                       }
@@ -718,8 +722,10 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
               builder: (_, isChronologicalView, __) {
                 return ClipRect(
                   child: AnimatedSize(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
+                    duration: SacMotion.reduceMotionOf(context)
+                        ? Duration.zero
+                        : SacMotion.standard,
+                    curve: SacMotion.easeInOut,
                     child: isChronologicalView
                         ? const SizedBox(height: 0)
                         : ValueListenableBuilder<DateTime?>(

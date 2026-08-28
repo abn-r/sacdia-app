@@ -10,6 +10,8 @@ import 'package:image_picker/image_picker.dart';
 
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor_requirement.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
@@ -18,6 +20,7 @@ import 'package:sacdia_app/features/honors/presentation/theme/honor_category_pal
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/choice_group_header.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/requirement_tree_item.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 // ── Local state helpers ───────────────────────────────────────────────────────
 
@@ -291,7 +294,7 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
   }
 
   void _showRequirementEvidenceOptions(HonorRequirement requirement) {
-    showModalBottomSheet(
+    showSacSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -491,25 +494,13 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
       canPop: !_hasUnsavedChanges,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        final confirm = await showDialog<bool>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: Text('honors.requirements.unsaved_title'.tr()),
-            content: Text(
-              'honors.requirements.unsaved_content'.tr(),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: Text('honors.requirements.unsaved_stay'.tr()),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: Text('honors.requirements.unsaved_exit'.tr()),
-              ),
-            ],
-          ),
+        final confirm = await SacDialog.show(
+          context,
+          title: 'honors.requirements.unsaved_title'.tr(),
+          content: 'honors.requirements.unsaved_content'.tr(),
+          cancelLabel: 'honors.requirements.unsaved_stay'.tr(),
+          confirmLabel: 'honors.requirements.unsaved_exit'.tr(),
+          confirmIsDestructive: true,
         );
         if (confirm == true && context.mounted) {
           Navigator.pop(context);
@@ -801,14 +792,11 @@ class _ModeGuardScaffold extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  OutlinedButton(
+                  SacButton.outline(
+                    text: 'honors.requirements.mode_guard_back'.tr(),
+                    textColor: categoryColor,
+                    borderColor: categoryColor,
                     onPressed: () => Navigator.of(context).maybePop(),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(44),
-                      foregroundColor: categoryColor,
-                      side: BorderSide(color: categoryColor),
-                    ),
-                    child: Text('honors.requirements.mode_guard_back'.tr()),
                   ),
                 ],
               ),
@@ -988,38 +976,13 @@ class _SaveBar extends StatelessWidget {
           ),
         ],
       ),
-      child: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor:
-                hasChanges ? categoryColor : context.sac.surfaceVariant,
-            foregroundColor:
-                hasChanges ? Colors.white : context.sac.textTertiary,
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            elevation: 0,
-          ),
-          onPressed: (hasChanges && !saving) ? onSave : null,
-          child: saving
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2.5,
-                  ),
-                )
-              : Text(
-                  'honors.requirements.save_button'.tr(),
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-        ),
+      child: SacButton.primary(
+        text: 'honors.requirements.save_button'.tr(),
+        isLoading: saving,
+        backgroundColor:
+            hasChanges ? categoryColor : context.sac.surfaceVariant,
+        textColor: hasChanges ? Colors.white : context.sac.textTertiary,
+        onPressed: (hasChanges && !saving) ? onSave : null,
       ),
     );
   }

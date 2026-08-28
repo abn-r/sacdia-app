@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../../profile/presentation/widgets/setting_tile.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -31,7 +32,7 @@ class LanguagePickerTile extends StatelessWidget {
 
   Future<void> _showPicker(BuildContext context) async {
     final current = context.locale;
-    final picked = await showModalBottomSheet<Locale>(
+    final picked = await showSacSheet<Locale>(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (sheetCtx) => _LocalePickerSheet(current: current),

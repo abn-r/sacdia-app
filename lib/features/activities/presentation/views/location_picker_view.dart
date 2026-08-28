@@ -9,11 +9,13 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/constants/maps_constants.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/activities/data/datasources/nominatim_remote_data_source.dart';
 import 'package:sacdia_app/features/activities/domain/entities/location_search_result.dart';
 import 'package:sacdia_app/features/activities/presentation/providers/location_search_providers.dart';
@@ -551,35 +553,11 @@ class _LocationBottomCard extends StatelessWidget {
           const SizedBox(height: 20),
 
           // Botón confirmar
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: ElevatedButton.icon(
-              onPressed: isLoading ? null : onConfirm,
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedTick02,
-                size: 20,
-                color: Colors.white,
-              ),
-              label: Text(
-                'activities.location_picker.confirm_button'.tr(),
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                disabledBackgroundColor:
-                    AppColors.primary.withValues(alpha: 0.5),
-                disabledForegroundColor: Colors.white.withValues(alpha: 0.7),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-                ),
-                elevation: 0,
-              ),
-            ),
+          SacButton.primary(
+            text: 'activities.location_picker.confirm_button'.tr(),
+            icon: HugeIcons.strokeRoundedTick02,
+            fontSize: 16,
+            onPressed: isLoading ? null : onConfirm,
           ),
         ],
       ),
@@ -651,10 +629,22 @@ class _ShimmerLineState extends State<_ShimmerLine>
     _ctrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
-    )..repeat(reverse: true);
-    _anim = Tween<double>(begin: 0.3, end: 0.8).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
     );
+    _anim = Tween<double>(begin: 0.3, end: 0.8).animate(
+      CurvedAnimation(parent: _ctrl, curve: SacMotion.easeInOut),
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduce = SacMotion.reduceMotionOf(context);
+    if (reduce) {
+      _ctrl.stop();
+      _ctrl.value = 0;
+    } else if (!_ctrl.isAnimating) {
+      _ctrl.repeat(reverse: true);
+    }
   }
 
   @override

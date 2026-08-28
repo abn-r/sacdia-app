@@ -112,8 +112,8 @@ class _MissionStatsCard extends StatelessWidget {
             value: honorsInProgress,
             title: 'especialidades abiertas',
             subtitle: honorsInProgress == 0
-                ? 'No tenés pendientes por ahora.'
-                : 'Elegí una y cerrá el próximo paso.',
+                ? 'No tienes pendientes por ahora.'
+                : 'Elige una y cierra el próximo paso.',
           ),
           const SizedBox(height: 12),
           Row(

@@ -1,14 +1,18 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
+import '../../domain/entities/class_honor.dart';
 import '../../domain/entities/class_module.dart';
 import '../../domain/entities/class_module_detail.dart';
 import '../../domain/entities/class_requirement.dart';
 import '../../domain/entities/class_section.dart';
 import '../../domain/entities/requirement_track.dart';
+import 'class_honor_actions.dart';
 import 'mini_ring.dart';
 import 'requirement_card.dart';
 import 'section_checkbox.dart';
@@ -88,16 +92,38 @@ class ModuleExpansionTile extends StatelessWidget {
               ),
             ),
           ),
-          children: hasTrackData
-              ? _buildTrackGroupedSectionChildren()
-              : module.sections
-                  .map((section) => SectionCheckbox(
-                        section: section,
-                        onChanged: (isCompleted) {
-                          onSectionToggle(section.id, isCompleted);
-                        },
-                      ))
-                  .toList(),
+          children: [
+            if (hasTrackData)
+              ..._buildTrackGroupedSectionChildren()
+            else
+              ...module.sections.map(
+                (section) => SectionCheckbox(
+                  section: section,
+                  onChanged: (isCompleted) {
+                    onSectionToggle(section.id, isCompleted);
+                  },
+                ),
+              ),
+            if (module.honors.isNotEmpty) ...[
+              const Padding(
+                padding: EdgeInsets.only(top: 8, bottom: 6),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Especialidades',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.ink500,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+              ...module.honors.map(
+                (honor) => ClassHonorActionsRow(honor: honor),
+              ),
+            ],
+          ],
         ),
       ),
     );
@@ -214,6 +240,7 @@ class _TrackSectionHeader extends StatelessWidget {
 /// Handoff §5.8–5.9: padding 14v·16h, MiniRing 36×36, chevron rotado 90° al abrir.
 class ModuleDetailRow extends StatefulWidget {
   final ClassModuleDetail module;
+  final List<ClassHonor> honors;
   final bool initiallyExpanded;
 
   /// Callback para tap en un requerimiento.
@@ -222,6 +249,7 @@ class ModuleDetailRow extends StatefulWidget {
   const ModuleDetailRow({
     super.key,
     required this.module,
+    this.honors = const [],
     this.initiallyExpanded = false,
     required this.onRequirementTap,
   });
@@ -243,16 +271,23 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
     _expanded = widget.initiallyExpanded;
     _chevronController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 200),
+      duration: SacMotion.standard,
       value: _expanded ? 1.0 : 0.0,
     );
     _chevronAngle = Tween<double>(begin: 0.0, end: 0.5).animate(
-      CurvedAnimation(parent: _chevronController, curve: Curves.easeOut),
+      CurvedAnimation(parent: _chevronController, curve: SacMotion.easeOut),
     );
     _expandAnimation = CurvedAnimation(
       parent: _chevronController,
-      curve: Curves.easeOut,
+      curve: SacMotion.easeOut,
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _chevronController.duration =
+        SacMotion.reduceMotionOf(context) ? Duration.zero : SacMotion.standard;
   }
 
   @override
@@ -341,6 +376,27 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
                               color: AppColors.ink500,
                             ),
                           ),
+                          if (widget.honors.isNotEmpty) ...[
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 6),
+                              child: Text(
+                                '·',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.ink300,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              widget.honors.length == 1
+                                  ? '1 especialidad'
+                                  : '${widget.honors.length} especialidades',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.ink500,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ],
@@ -372,7 +428,7 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
                 top: BorderSide(color: AppColors.ink100, width: 1),
               ),
             ),
-            child: module.requirements.isEmpty
+            child: module.requirements.isEmpty && widget.honors.isEmpty
                 ? const Padding(
                     padding: EdgeInsets.symmetric(
                       horizontal: 20,
@@ -388,12 +444,36 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
                   )
                 : Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: module.requirements.map((req) {
-                      return RequirementCard(
-                        requirement: req,
-                        onTap: () => widget.onRequirementTap(req),
-                      );
-                    }).toList(),
+                    children: [
+                      ...module.requirements.map((req) {
+                        return RequirementCard(
+                          requirement: req,
+                          onTap: () => widget.onRequirementTap(req),
+                        );
+                      }),
+                      if (widget.honors.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'classes.honors.module_section'.tr(),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.ink500,
+                                  letterSpacing: 0.6,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              ...widget.honors.map(
+                                (honor) => ClassHonorActionsRow(honor: honor),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
           ),
         ),

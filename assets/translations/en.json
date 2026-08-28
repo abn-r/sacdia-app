@@ -110,7 +110,8 @@
       "one": "{} day ago",
       "other": "{} days ago"
     },
-    "accessibility_tile": "Accessibility"
+    "accessibility_tile": "Accessibility",
+    "open_document_failed": "We couldn't open this document."
   },
   "accessibility": {
     "title": "Accessibility",
@@ -264,8 +265,8 @@
     },
     "report_device_info": "{platform} {osVersion}\n{model}\nApp {appVersion} ({buildNumber})",
     "hub_badge": "Help trail",
-    "hub_title": "Find the right trail for your question",
-    "hub_intro": "Get quick answers, email support, or send a report with technical context.",
+    "hub_title": "How can we help?",
+    "hub_intro": "Search for an answer or choose how to reach us.",
     "route_faq_label": "First stop",
     "route_contact_label": "Direct channel",
     "route_report_label": "Trail log",
@@ -281,7 +282,12 @@
       "profile": "Profile",
       "support": "Support",
       "onboarding": "Start"
-    }
+    },
+    "hub_search_hint": "Search help…",
+    "faq_count": "{} questions",
+    "contact_copy": "Copy email",
+    "contact_copied": "Email copied",
+    "report_pick_category": "Choose a category"
   },
   "biometric": {
     "tile_title": "App biometric protection",
@@ -1630,6 +1636,13 @@
       "section_pending_snack": "Section marked as pending",
       "error_loading": "Error loading modules"
     },
+    "honors": {
+      "open_pdf": "Open PDF",
+      "enroll": "Enroll",
+      "continue_honor": "Continue",
+      "no_pdf": "This specialty has no PDF material",
+      "module_section": "Specialties in this module"
+    },
     "detail": {
       "progress_label": "progress",
       "description_header": "Description",
@@ -1763,7 +1776,9 @@
       "create_payment": "Error creating payment",
       "fetch_member_payments": "Error fetching member payments",
       "fetch_camporee_payments": "Error fetching camporee payments",
-      "fetch_events": "Error fetching camporee events"
+      "fetch_events": "Error fetching camporee events",
+      "fetch_leaderboard": "Could not load the camporee ranking.",
+      "fetch_judge_assignments": "Could not load your judge assignments."
     },
     "common": {
       "free": "Free",
@@ -1824,7 +1839,17 @@
       "view_schedules": "View schedules",
       "hide_schedules": "Hide schedules",
       "event_staff_responsible": "Responsible: {names}",
-      "event_staff_supporting": "Supporting: {names}"
+      "event_staff_supporting": "Supporting: {names}",
+      "event_honors_title": "Preparation specialties",
+      "event_honors_subtitle": "Open the PDF material for each specialty.",
+      "event_honor_open_pdf": "View material",
+      "event_honor_no_pdf": "No PDF available",
+      "leaderboard_title": "Ranking",
+      "leaderboard_subtitle": "Official scores of enrolled sections.",
+      "leaderboard_empty": "It will appear when official scores are recorded.",
+      "leaderboard_error": "Could not load the ranking.",
+      "leaderboard_unknown_club": "Club",
+      "leaderboard_section_fallback": "Section #{id}"
     },
     "members": {
       "title": "Enrolled members",
@@ -2588,7 +2613,8 @@
     "view": {
       "title": "Club Insurance",
       "search_hint": "Search member...",
-      "coverage_title": "Insurance Coverage",
+      "coverage_title": "Coverage",
+      "coverage_of": "{insured} of {total} insured",
       "expiring_banner_one": "{count} insurance expires in the next 30 days",
       "expiring_banner_other": "{count} insurances expire in the next 30 days",
       "member_count_one": "{count} member",
@@ -3584,6 +3610,7 @@
       "club": "Club",
       "evidence_folder": "Annual Evidence Folder",
       "camporees": "Camporees",
+      "camporee_judge": "Score camporee",
       "finances": "Finances",
       "units": "Units",
       "grouped_class": "Group Class",
@@ -4015,6 +4042,217 @@
       "score_pending_hint": "There is not enough data yet to calculate this member’s composite score.",
       "rank_position": "Position #{position}",
       "section_name": "Section: {name}"
+    }
+  },
+  "payment_orders": {
+    "list": {
+      "title": "Payment orders",
+      "empty": "No payment orders yet",
+      "beneficiaries_count": "{count} beneficiary(ies)"
+    },
+    "purpose": {
+      "insurance": "Insurance",
+      "camporee": "Camporee"
+    },
+    "status": {
+      "issued": "Issued",
+      "proof_submitted": "Proof submitted",
+      "approved": "Approved",
+      "proof_rejected": "Proof rejected",
+      "cancelled": "Cancelled",
+      "expired": "Expired"
+    },
+    "timeline": {
+      "issued": "Order issued",
+      "proof_submitted": "Proof submitted",
+      "approved": "Payment approved"
+    },
+    "detail": {
+      "title": "Order detail",
+      "total": "Total",
+      "unit_cost": "Unit cost",
+      "expires": "Expires",
+      "beneficiaries": "Beneficiaries",
+      "timeline_title": "Status",
+      "proof_title": "Payment proof",
+      "view_pdf": "View order (PDF)",
+      "upload_proof": "Upload proof",
+      "reupload_proof": "Re-upload proof",
+      "proof_uploaded": "Proof submitted for review",
+      "proof_too_large": "The file exceeds the 10 MB limit",
+      "reject_reason": "Rejection reason",
+      "cancel_order": "Cancel order",
+      "cancel_title": "Cancel order?",
+      "cancel_body": "The order will no longer be valid and no spots will be reserved.",
+      "cancel_confirm": "Yes, cancel",
+      "cancelled": "Order cancelled"
+    },
+    "issue": {
+      "title_insurance": "Issue insurance order",
+      "title_camporee": "Issue camporee order",
+      "select_members": "Select members",
+      "eligible_hint_insurance": "Only active members without current coverage are shown.",
+      "eligible_hint_camporee": "Only active members with valid insurance who are not already registered are shown.",
+      "no_eligible": "No eligible members",
+      "no_cycle": "No insurance cycle is configured for your section",
+      "unavailable": "Payment orders are not enabled in your local field",
+      "unit_cost_label": "Unit cost: {cost}",
+      "deadline_label": "Deadline: {date}",
+      "total_label": "Total ({count} selected)",
+      "submit": "Issue order",
+      "success": "Order issued successfully"
+    },
+    "camporee_redirect": {
+      "title": "Registration via payment order",
+      "body": "Your local field uses payment orders. Issue an order, pay at the bank or the field cashier, and upload your proof; registration is confirmed once the payment is approved.",
+      "issue_button": "Issue payment order",
+      "view_orders": "View this camporee's orders",
+      "context_loading": "Checking the registration flow",
+      "context_error": "We could not load the payment-order flow.",
+      "context_error_hint": "Without this, we cannot tell whether you should issue an order or register members directly."
+    },
+    "errors": {
+      "flag_disabled": "Payment orders are not enabled in this local field",
+      "legacy_disabled": "This flow was replaced by payment orders",
+      "not_found": "Payment order not found",
+      "forbidden": "You don't have access to this order",
+      "invalid_transition": "This action is not allowed in the order's current state",
+      "expired": "The order has expired",
+      "cycle_invalid": "The insurance cycle is not valid for your section",
+      "camporee_invalid": "The camporee is not available for registration",
+      "cost_not_configured": "The registration cost is not configured",
+      "eligibility_failed": "One or more members are not eligible",
+      "duplicate_beneficiary": "One or more members already have an active order or coverage",
+      "beneficiaries_required": "Select at least one beneficiary",
+      "proof_invalid_file": "Invalid file. Use PDF, JPG or PNG up to 10 MB",
+      "reassignment_invalid": "The reassignment is not valid",
+      "reassignment_pending_exists": "A pending reassignment request already exists",
+      "download_document": "The document could not be downloaded"
+    }
+  },
+  "camporee_orders": {
+    "cta": {
+      "label": "Orders",
+      "closed": "The ordering window is closed",
+      "not_open": "Orders are not open yet"
+    },
+    "catalog": {
+      "title": "Orders",
+      "new_order": "New order",
+      "history_title": "Section orders",
+      "empty": "This section has no orders yet",
+      "offerings_empty": "No items are available",
+      "disabled": "Orders are not enabled for this camporee",
+      "closed": "The ordering window is closed",
+      "not_open": "Orders are not open yet"
+    },
+    "capture": {
+      "title": "Build order",
+      "empty_roster": "There are no active registered members to order for",
+      "select_size": "Size",
+      "qty": "Quantity",
+      "continue": "Review order",
+      "no_lines": "Add at least one item",
+      "lines_count": "{count} item(s)"
+    },
+    "review": {
+      "title": "Review order",
+      "summary_title": "Consolidated",
+      "named_title": "By person",
+      "submit": "Issue order",
+      "success": "Order issued",
+      "empty": "The order is empty"
+    },
+    "detail": {
+      "title": "Order detail",
+      "total": "Total",
+      "expires": "Expires",
+      "distribution": "Delivery to members",
+      "view_pdf": "View order (PDF)",
+      "upload_proof": "Upload proof",
+      "reupload_proof": "Upload proof again",
+      "proof_uploaded": "Proof submitted for review",
+      "proof_too_large": "The file exceeds the 10 MB limit",
+      "proof_title": "Payment proof",
+      "cancel_order": "Cancel order",
+      "cancel_title": "Cancel order?",
+      "cancel_body": "The order will no longer be valid. You can issue a new one if the window is still open.",
+      "cancel_confirm": "Yes, cancel",
+      "cancelled": "Order cancelled",
+      "deliver": "Mark delivered",
+      "delivered_to_member": "Delivered to member"
+    },
+    "status": {
+      "issued": "Issued",
+      "proof_submitted": "Proof submitted",
+      "proof_rejected": "Proof rejected",
+      "paid": "Paid",
+      "delivered": "Delivered to section",
+      "cancelled": "Cancelled",
+      "expired": "Expired"
+    },
+    "distribution": {
+      "not_started": "Not started",
+      "partial": "Partial delivery",
+      "complete": "Delivery complete"
+    },
+    "pending": {
+      "title": "Pending payments",
+      "empty": "There are no pending payments",
+      "purpose": {
+        "camporee_materials": "Camporee merchandise",
+        "camporee": "Camporee registration",
+        "insurance": "Insurance",
+        "materials": "Materials"
+      }
+    },
+    "errors": {
+      "not_found": "Order not found",
+      "forbidden": "You do not have access to this order",
+      "invalid_transition": "This action is not allowed in the current order status",
+      "lines_required": "Add at least one item",
+      "member_not_eligible": "One or more members are not eligible",
+      "offering_invalid": "One or more items are not available",
+      "option_required": "Select a size",
+      "option_forbidden": "This size does not apply to the item",
+      "payment_config_required": "Local field payment settings are missing",
+      "proof_invalid_file": "Invalid file. Use PDF, JPG, PNG or WebP up to 10 MB",
+      "proof_not_found": "Proof not found",
+      "not_delivered_to_section": "The order has not been delivered to the section yet",
+      "distribution_forbidden": "You cannot record delivery to members",
+      "download_document": "The document could not be downloaded"
+    }
+  },
+  "camporee_supplies": {
+    "cta": {
+      "label": "Supplies"
+    },
+    "plan": {
+      "title": "Section supplies",
+      "cutoff": "Cutoff for the next day: {time}",
+      "catalog_empty": "The organizer has not defined slots or products yet",
+      "empty": "The plan has no lines yet",
+      "date": "Day",
+      "slot": "Slot",
+      "product": "Product",
+      "qty": "Quantity",
+      "add": "Add to plan",
+      "save": "Save draft",
+      "submit": "Submit plan",
+      "saved": "Draft saved",
+      "submitted": "Plan submitted. Principal folio issued.",
+      "adjusted": "Adjustment recorded",
+      "net": "Net {amount}"
+    },
+    "errors": {
+      "not_found": "Supply plan not found",
+      "forbidden": "You cannot operate supplies for this camporee",
+      "not_eligible": "Your section is not enrolled in this camporee",
+      "day_locked": "That day is frozen",
+      "lines_required": "Add at least one line",
+      "not_draft": "The plan is no longer a draft",
+      "not_submitted": "The plan has not been submitted yet",
+      "qty_invalid": "Quantity is invalid"
     }
   }
 }

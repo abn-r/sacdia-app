@@ -49,9 +49,11 @@ class ResourceModel extends Equatable {
       description: json['description'] as String?,
       resourceType: json['resource_type'] as String? ?? 'document',
       resourceCategoryId: json['resource_category_id'] as int?,
-      categoryName: json['category_name'] as String?,
+      categoryName: json['category_name'] as String? ??
+          _nestedName(json['resource_categories']),
       clubTypeId: json['club_type_id'] as int?,
-      clubTypeName: json['club_type_name'] as String?,
+      clubTypeName:
+          json['club_type_name'] as String? ?? _nestedName(json['club_types']),
       scopeLevel: json['scope_level'] as String? ?? 'system',
       scopeId: json['scope_id'] as int?,
       fileName: json['file_name'] as String?,
@@ -131,4 +133,12 @@ class ResourceModel extends Equatable {
         signedUrl,
         createdAt,
       ];
+}
+
+String? _nestedName(dynamic node) {
+  if (node is Map) {
+    final name = node['name'];
+    if (name is String && name.trim().isNotEmpty) return name;
+  }
+  return null;
 }

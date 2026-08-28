@@ -19,7 +19,6 @@ class RouteNames {
 
   // Paths completos para tabs del home
   static const String homeDashboard = '/home/dashboard';
-  static const String homeAnimationDemo = '/home/dashboard/animation-demo';
   static const String homeClasses = '/home/classes';
   static const String homeActivities = '/home/activities';
   static const String homeProfile = '/home/profile';
@@ -62,7 +61,9 @@ class RouteNames {
   static const String camporeeDetail = '/camporee/:camporeeId';
   static const String camporeeMembers = '/camporee/:camporeeId/members';
   static const String camporeeRegisterMember = '/camporee/:camporeeId/register';
-  static const String camporeeJudgeAssignments = '/camporee/judge-assignments';
+  // Keep this outside `/camporee/:camporeeId` or GoRouter treats
+  // "judge-assignments" as a camporee id and opens CamporeeDetailView(0).
+  static const String camporeeJudgeAssignments = '/judge-assignments';
   static const String camporeeJudgeScoreEntry =
       '/camporee-events/:eventId/sections/:clubSectionId/score';
 
@@ -153,10 +154,18 @@ class RouteNames {
     int eventId,
     int clubSectionId, {
     String? eventTitle,
+    String? clubLabel,
   }) {
     final base = '/camporee-events/$eventId/sections/$clubSectionId/score';
-    if (eventTitle == null || eventTitle.trim().isEmpty) return base;
-    return '$base?eventTitle=${Uri.encodeComponent(eventTitle)}';
+    final params = <String, String>{};
+    if (eventTitle != null && eventTitle.trim().isNotEmpty) {
+      params['eventTitle'] = eventTitle;
+    }
+    if (clubLabel != null && clubLabel.trim().isNotEmpty) {
+      params['clubLabel'] = clubLabel;
+    }
+    if (params.isEmpty) return base;
+    return '$base?${Uri(queryParameters: params).query}';
   }
 
   // Traslados helpers
@@ -244,6 +253,45 @@ class RouteNames {
   static String camporeePaymentsPath(int camporeeId, String memberId) =>
       '/camporee/$camporeeId/member/$memberId/payments';
 
+  // Pedidos de mercancía de camporee (no inscripción)
+  static const String camporeeOrders = '/camporee/:camporeeId/orders';
+  static const String camporeeOrdersCapture =
+      '/camporee/:camporeeId/orders/capture';
+  static const String camporeeOrdersReview =
+      '/camporee/:camporeeId/orders/review';
+  static const String camporeeOrderDetail = '/camporee-orders/:orderId';
+
+  static String camporeeOrdersPath(int camporeeId, {String type = 'local'}) =>
+      type == 'union'
+          ? '/camporee/$camporeeId/orders?type=union'
+          : '/camporee/$camporeeId/orders';
+
+  static String camporeeOrdersCapturePath(
+    int camporeeId, {
+    String type = 'local',
+  }) =>
+      type == 'union'
+          ? '/camporee/$camporeeId/orders/capture?type=union'
+          : '/camporee/$camporeeId/orders/capture';
+
+  static String camporeeOrdersReviewPath(
+    int camporeeId, {
+    String type = 'local',
+  }) =>
+      type == 'union'
+          ? '/camporee/$camporeeId/orders/review?type=union'
+          : '/camporee/$camporeeId/orders/review';
+
+  static String camporeeOrderDetailPath(String orderId) =>
+      '/camporee-orders/$orderId';
+
+  static const String camporeeSupplies = '/camporee/:camporeeId/supplies';
+
+  static String camporeeSuppliesPath(int camporeeId, {String type = 'local'}) =>
+      type == 'union'
+          ? '/camporee/$camporeeId/supplies?type=union'
+          : '/camporee/$camporeeId/supplies';
+
   // Materials (orders)
   static const String homeMaterials = '/home/materials';
   static const String materialsProductDetail = '/home/materials/product/:id';
@@ -269,6 +317,25 @@ class RouteNames {
 
   static String materialsOrderReceipt(String folioOrId) =>
       '/home/materials/order/$folioOrId/receipt';
+
+  // Órdenes de pago territoriales
+  static const String paymentOrders = '/payment-orders';
+  static const String paymentOrderIssueInsurance =
+      '/payment-orders/issue-insurance';
+  static const String paymentOrderDetail = '/payment-orders/:orderId';
+  static const String camporeeIssuePaymentOrder =
+      '/camporee/:camporeeId/payment-orders/issue';
+
+  static String paymentOrderDetailPath(String orderId) =>
+      '/payment-orders/$orderId';
+
+  static String camporeeIssuePaymentOrderPath(
+    int camporeeId, {
+    String camporeeType = 'local',
+  }) =>
+      camporeeType == 'union'
+          ? '/camporee/$camporeeId/payment-orders/issue?type=union'
+          : '/camporee/$camporeeId/payment-orders/issue';
 
   // Rankings
   static const String homeClubRankings = '/home/club-rankings';

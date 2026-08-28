@@ -47,6 +47,16 @@ import 'package:sacdia_app/features/units/presentation/views/member_of_month_his
 import 'package:sacdia_app/features/units/presentation/views/units_list_view.dart';
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_payments_view.dart';
 import 'package:sacdia_app/features/monthly_reports/presentation/views/monthly_reports_list_view.dart';
+import 'package:sacdia_app/features/camporee_orders/presentation/providers/camporee_orders_providers.dart';
+import 'package:sacdia_app/features/camporee_orders/presentation/views/camporee_member_order_view.dart';
+import 'package:sacdia_app/features/camporee_orders/presentation/views/camporee_order_catalog_view.dart';
+import 'package:sacdia_app/features/camporee_orders/presentation/views/camporee_order_detail_view.dart';
+import 'package:sacdia_app/features/camporee_orders/presentation/views/camporee_order_review_view.dart';
+import 'package:sacdia_app/features/camporee_supplies/presentation/views/camporee_supply_plan_view.dart';
+import 'package:sacdia_app/features/payment_orders/domain/entities/payment_order.dart';
+import 'package:sacdia_app/features/payment_orders/presentation/views/issue_payment_order_view.dart';
+import 'package:sacdia_app/features/payment_orders/presentation/views/payment_order_detail_view.dart';
+import 'package:sacdia_app/features/payment_orders/presentation/views/payment_orders_view.dart';
 import 'package:sacdia_app/features/monthly_reports/presentation/views/monthly_report_detail_view.dart';
 import 'package:sacdia_app/features/monthly_reports/presentation/views/monthly_reports_visible_list_view.dart';
 import 'package:sacdia_app/features/role_assignments/presentation/views/role_assignments_view.dart';
@@ -85,7 +95,6 @@ import '../../features/auth/presentation/views/login_view.dart';
 import '../../features/auth/presentation/views/register_view.dart';
 import '../../features/auth/presentation/views/splash_view.dart';
 import '../../features/post_registration/presentation/views/post_registration_shell.dart';
-import '../../features/dashboard/presentation/views/animation_demo_view.dart';
 import '../../features/dashboard/presentation/views/dashboard_view.dart';
 import '../../features/classes/presentation/views/classes_tabs_view.dart';
 import '../../features/classes/presentation/views/class_detail_with_progress_view.dart';
@@ -319,16 +328,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: RouteNames.homeDashboard,
                 pageBuilder: (context, state) =>
                     _fadeThroughBuild(context, state, const DashboardView()),
-                routes: [
-                  GoRoute(
-                    path: 'animation-demo',
-                    pageBuilder: (context, state) => _sharedAxisBuild(
-                      context,
-                      state,
-                      const AnimationDemoView(),
-                    ),
-                  ),
-                ],
               ),
 
               // Quick-access modules: shell-visible, but not branch-preserved.
@@ -786,6 +785,17 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
+      // Static judge inbox before `/camporee/:camporeeId` so it cannot be
+      // parsed as a camporee id. Path is `/judge-assignments`, not nested.
+      GoRoute(
+        path: RouteNames.camporeeJudgeAssignments,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          const JudgeAssignmentsView(),
+        ),
+      ),
+
       // Detalle de camporee
       GoRoute(
         path: RouteNames.camporeeDetail,
@@ -819,16 +829,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // Asignaciones de juez principal para scoring de camporee
-      GoRoute(
-        path: RouteNames.camporeeJudgeAssignments,
-        pageBuilder: (context, state) => _sharedAxisBuild(
-          context,
-          state,
-          const JudgeAssignmentsView(),
-        ),
-      ),
-
       // Captura de puntaje por rúbrica para juez principal
       GoRoute(
         path: RouteNames.camporeeJudgeScoreEntry,
@@ -837,6 +837,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           final clubSectionId =
               int.tryParse(state.pathParameters['clubSectionId']!) ?? 0;
           final eventTitle = state.uri.queryParameters['eventTitle'];
+          final clubLabel = state.uri.queryParameters['clubLabel'];
           return _sharedAxisBuild(
             context,
             state,
@@ -844,6 +845,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               eventId: eventId,
               clubSectionId: clubSectionId,
               eventTitle: eventTitle,
+              clubLabel: clubLabel,
             ),
           );
         },
@@ -883,6 +885,87 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
+      // Pedidos de mercancía — captura y consolidado (más específicos primero)
+      GoRoute(
+        path: RouteNames.camporeeOrdersCapture,
+        pageBuilder: (context, state) {
+          final camporeeId =
+              int.tryParse(state.pathParameters['camporeeId']!) ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            CamporeeMemberOrderView(
+              camporeeId: camporeeId,
+              camporeeType: camporeeKindFromQuery(
+                state.uri.queryParameters['type'],
+              ),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: RouteNames.camporeeOrdersReview,
+        pageBuilder: (context, state) {
+          final camporeeId =
+              int.tryParse(state.pathParameters['camporeeId']!) ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            CamporeeOrderReviewView(
+              camporeeId: camporeeId,
+              camporeeType: camporeeKindFromQuery(
+                state.uri.queryParameters['type'],
+              ),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: RouteNames.camporeeOrders,
+        pageBuilder: (context, state) {
+          final camporeeId =
+              int.tryParse(state.pathParameters['camporeeId']!) ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            CamporeeOrderCatalogView(
+              camporeeId: camporeeId,
+              camporeeType: camporeeKindFromQuery(
+                state.uri.queryParameters['type'],
+              ),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: RouteNames.camporeeSupplies,
+        pageBuilder: (context, state) {
+          final camporeeId =
+              int.tryParse(state.pathParameters['camporeeId']!) ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            CamporeeSupplyPlanView(
+              camporeeId: camporeeId,
+              camporeeType: camporeeKindFromQuery(
+                state.uri.queryParameters['type'],
+              ),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: RouteNames.camporeeOrderDetail,
+        pageBuilder: (context, state) {
+          final orderId = state.pathParameters['orderId']!;
+          return _sharedAxisBuild(
+            context,
+            state,
+            CamporeeOrderDetailView(orderId: orderId),
+          );
+        },
+      ),
+
       // Pagos de un miembro en un camporee
       GoRoute(
         path: RouteNames.camporeePayments,
@@ -898,6 +981,71 @@ final routerProvider = Provider<GoRouter>((ref) {
               camporeeId: camporeeId,
               memberId: memberId,
               memberName: memberName,
+            ),
+          );
+        },
+      ),
+
+      // Órdenes de pago territoriales — lista
+      GoRoute(
+        path: RouteNames.paymentOrders,
+        pageBuilder: (context, state) {
+          final purposeParam = state.uri.queryParameters['purpose'];
+          final camporeeIdParam = state.uri.queryParameters['camporee_id'];
+          return _sharedAxisBuild(
+            context,
+            state,
+            PaymentOrdersView(
+              purpose: purposeParam == null
+                  ? null
+                  : PaymentOrderPurposeApi.fromApi(purposeParam),
+              camporeeId: camporeeIdParam == null
+                  ? null
+                  : int.tryParse(camporeeIdParam),
+            ),
+          );
+        },
+      ),
+
+      // Órdenes de pago — emitir orden de seguro
+      GoRoute(
+        path: RouteNames.paymentOrderIssueInsurance,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          const IssuePaymentOrderView(purpose: PaymentOrderPurpose.insurance),
+        ),
+      ),
+
+      // Órdenes de pago — detalle
+      GoRoute(
+        path: RouteNames.paymentOrderDetail,
+        pageBuilder: (context, state) {
+          final orderId = state.pathParameters['orderId']!;
+          return _sharedAxisBuild(
+            context,
+            state,
+            PaymentOrderDetailView(orderId: orderId),
+          );
+        },
+      ),
+
+      // Órdenes de pago — emitir orden de camporee (local o de unión vía
+      // ?type=union; en ambos casos cobra el Campo Local del emisor)
+      GoRoute(
+        path: RouteNames.camporeeIssuePaymentOrder,
+        pageBuilder: (context, state) {
+          final camporeeId =
+              int.tryParse(state.pathParameters['camporeeId']!) ?? 0;
+          final camporeeType =
+              state.uri.queryParameters['type'] == 'union' ? 'union' : 'local';
+          return _sharedAxisBuild(
+            context,
+            state,
+            IssuePaymentOrderView(
+              purpose: PaymentOrderPurpose.camporee,
+              camporeeId: camporeeId,
+              camporeeType: camporeeType,
             ),
           );
         },

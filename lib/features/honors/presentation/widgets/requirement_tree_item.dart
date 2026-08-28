@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor_requirement.dart';
 
@@ -333,44 +334,22 @@ class _RequirementEvidenceAction extends StatelessWidget {
                 .tr(namedArgs: {'count': '$evidenceCount'})
             : 'honors.requirements.requirement_evidence_button'.tr();
 
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: isUploading ? null : onAddEvidence,
-        icon: isUploading
-            ? SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: categoryColor,
-                ),
-              )
-            : HugeIcon(
-                icon: hasEvidence
-                    ? HugeIcons.strokeRoundedCheckmarkCircle02
-                    : HugeIcons.strokeRoundedUpload01,
-                color: hasEvidence ? AppColors.success : categoryColor,
-                size: 18,
-              ),
-        label: Text(label),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: hasEvidence ? AppColors.success : categoryColor,
-          minimumSize: const Size.fromHeight(44),
-          alignment: Alignment.centerLeft,
-          side: BorderSide(
-            color: (hasEvidence ? AppColors.success : categoryColor)
-                .withValues(alpha: 0.45),
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          textStyle: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ),
+    return SacButton(
+      text: label,
+      icon: hasEvidence
+          ? HugeIcons.strokeRoundedCheckmarkCircle02
+          : HugeIcons.strokeRoundedUpload01,
+      onPressed: isUploading ? null : onAddEvidence,
+      isLoading: isUploading,
+      variant: SacButtonVariant.outline,
+      fullWidth: true,
+      size: SacButtonSize.small,
+      textColor: hasEvidence ? AppColors.success : categoryColor,
+      borderColor: (hasEvidence ? AppColors.success : categoryColor)
+          .withValues(alpha: 0.45),
+      fontSize: 12,
+      iconSize: 18,
+      borderRadius: 10,
     );
   }
 }

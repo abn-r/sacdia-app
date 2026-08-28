@@ -52,7 +52,6 @@ class ClubSectionModel extends ClubSection {
     required super.mainClubId,
     required super.clubTypeId,
     required super.clubTypeName,
-    super.name,
     super.phone,
     super.email,
     super.website,
@@ -92,7 +91,6 @@ class ClubSectionModel extends ClubSection {
       mainClubId: mainClubId,
       clubTypeId: clubTypeId,
       clubTypeName: clubTypeName,
-      name: json['name'] as String?,
       phone: json['phone'] as String?,
       email: json['email'] as String?,
       website: json['website'] as String?,
@@ -111,7 +109,6 @@ class ClubSectionModel extends ClubSection {
       'club_type_id': clubTypeId,
       'active': active,
     };
-    if (name != null) map['name'] = name;
     if (phone != null) map['phone'] = phone;
     if (email != null) map['email'] = email;
     if (website != null) map['website'] = website;

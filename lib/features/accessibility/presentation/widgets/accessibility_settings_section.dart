@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../profile/presentation/widgets/setting_tile.dart';
 import '../views/accessibility_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Tile exportable — se inserta dentro de la sección APARIENCIA en
 /// [SettingsView]. Navega a [AccessibilityView] vía Navigator.push (mismo
@@ -21,7 +22,7 @@ class AccessibilitySettingsSection extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const AccessibilityView()),
+          SacSharedAxisRoute(builder: (_) => const AccessibilityView()),
         );
       },
     );

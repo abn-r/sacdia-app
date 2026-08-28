@@ -4,6 +4,7 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/config/router.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_batch.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_file.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_item.dart';
@@ -91,8 +92,8 @@ void main() {
       expect(find.text('Tomar foto'), findsOneWidget);
       expect(find.text('Elegir archivo'), findsOneWidget);
 
-      final initialUpload = tester.widget<ElevatedButton>(
-        find.widgetWithText(ElevatedButton, 'Subir comprobante'),
+      final initialUpload = tester.widget<SacButton>(
+        find.widgetWithText(SacButton, 'Subir comprobante'),
       );
       expect(initialUpload.onPressed, isNull);
 
@@ -125,8 +126,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Comprobante seleccionado'), findsNothing);
-      var upload = tester.widget<ElevatedButton>(
-        find.widgetWithText(ElevatedButton, 'Subir comprobante'),
+      var upload = tester.widget<SacButton>(
+        find.widgetWithText(SacButton, 'Subir comprobante'),
       );
       expect(upload.onPressed, isNull);
 
@@ -134,8 +135,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Comprobante seleccionado'), findsNothing);
-      upload = tester.widget<ElevatedButton>(
-        find.widgetWithText(ElevatedButton, 'Subir comprobante'),
+      upload = tester.widget<SacButton>(
+        find.widgetWithText(SacButton, 'Subir comprobante'),
       );
       expect(upload.onPressed, isNull);
 
@@ -179,8 +180,8 @@ void main() {
       expect(find.text('Primeros Auxilios'), findsOneWidget);
       expect(find.text('Amigo'), findsOneWidget);
 
-      final submit = tester.widget<ElevatedButton>(
-        find.widgetWithText(ElevatedButton, 'Enviar a revisión'),
+      final submit = tester.widget<SacButton>(
+        find.widgetWithText(SacButton, 'Enviar a revisión'),
       );
       expect(submit.onPressed, isNull);
     });
@@ -214,8 +215,8 @@ void main() {
       expect(updated?.honorId, 10);
       expect(updated?.completedAt, DateTime(2026, 4, 12));
 
-      final submit = tester.widget<ElevatedButton>(
-        find.widgetWithText(ElevatedButton, 'Enviar a revisión'),
+      final submit = tester.widget<SacButton>(
+        find.widgetWithText(SacButton, 'Enviar a revisión'),
       );
       expect(submit.onPressed, isNotNull);
     });

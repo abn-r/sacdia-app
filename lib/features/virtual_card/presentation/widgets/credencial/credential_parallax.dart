@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 
 import 'credencial_tokens.dart';
 
@@ -74,9 +75,7 @@ class _CredentialParallaxState extends State<CredentialParallax> {
 
   @override
   Widget build(BuildContext context) {
-    final disableAnimations =
-        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-    final enabled = widget.enabled && !disableAnimations;
+    final enabled = widget.enabled && !SacMotion.reduceMotionOf(context);
 
     if (!enabled) return widget.child;
 
@@ -88,10 +87,9 @@ class _CredentialParallaxState extends State<CredentialParallax> {
       onPointerCancel: (_) => _reset(),
       child: AnimatedContainer(
         key: credentialParallaxTransformKey,
-        duration: _isInteracting
-            ? const Duration(milliseconds: 80)
-            : const Duration(milliseconds: 360),
-        curve: _isInteracting ? Curves.easeOut : Curves.easeOutCubic,
+        duration:
+            _isInteracting ? const Duration(milliseconds: 80) : SacMotion.modal,
+        curve: SacMotion.easeOut,
         transform: _transformFor(_position),
         transformAlignment: Alignment.center,
         child: Transform.translate(
@@ -107,7 +105,7 @@ class _CredentialParallaxState extends State<CredentialParallax> {
                 child: IgnorePointer(
                   child: AnimatedOpacity(
                     opacity: _isInteracting ? 1 : 0.35,
-                    duration: const Duration(milliseconds: 180),
+                    duration: SacMotion.standard,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(widget.borderRadius),
                       child: DecoratedBox(

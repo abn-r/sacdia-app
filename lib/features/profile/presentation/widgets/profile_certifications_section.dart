@@ -1,14 +1,15 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/certifications/domain/entities/user_certification.dart';
 import 'package:sacdia_app/features/certifications/presentation/providers/certifications_providers.dart';
-import 'package:sacdia_app/features/certifications/presentation/views/certification_progress_view.dart';
-import 'package:sacdia_app/features/certifications/presentation/views/certifications_list_view.dart';
 
 /// Section of the profile view that shows the user's certification
 /// enrollments in a 3-column grid, visually consistent with
@@ -21,7 +22,7 @@ class ProfileCertificationsSection extends ConsumerWidget {
     final certificationsAsync = ref.watch(userCertificationsProvider);
 
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 300),
+      duration: SacMotion.standard,
       child: certificationsAsync.when(
         loading: () => _CertificationsSkeleton(
           key: const ValueKey('certifications-skeleton'),
@@ -63,12 +64,7 @@ class ProfileCertificationsSection extends ConsumerWidget {
                         .tr(),
                     icon: HugeIcons.strokeRoundedAdd01,
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const CertificationsListView(),
-                        ),
-                      );
+                      context.push(RouteNames.homeCertifications);
                     },
                   ),
                 ],
@@ -80,7 +76,6 @@ class ProfileCertificationsSection extends ConsumerWidget {
             key: const ValueKey('certifications-data'),
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Certifications header banner
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -110,7 +105,6 @@ class ProfileCertificationsSection extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    // Count badge
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 4),
@@ -133,8 +127,6 @@ class ProfileCertificationsSection extends ConsumerWidget {
                   ],
                 ),
               ),
-
-              // Certifications grid (3 columns)
               GridView.builder(
                 // shrinkWrap OK: certification enrollments per user are
                 // naturally bounded (small catalog). Lives inside a Column that
@@ -182,17 +174,15 @@ class _CertificationGridItem extends StatelessWidget {
         Expanded(
           child: GestureDetector(
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => CertificationProgressView(
-                    enrollmentId: uc.enrollmentId,
-                    certificationId: uc.certificationId,
-                  ),
+              context.push(
+                RouteNames.certificationProgressPath(
+                  '${uc.certificationId}',
+                  '${uc.enrollmentId}',
                 ),
               );
             },
             child: Stack(
+              clipBehavior: Clip.none,
               children: [
                 Container(
                   width: double.infinity,
@@ -213,7 +203,6 @@ class _CertificationGridItem extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Progress badge (top-right)
                 if (progress > 0 && !isComplete)
                   Positioned(
                     top: -2,
@@ -237,7 +226,6 @@ class _CertificationGridItem extends StatelessWidget {
                       ),
                     ),
                   ),
-                // Completed badge (top-right checkmark)
                 if (isComplete)
                   Positioned(
                     top: -2,
@@ -276,8 +264,6 @@ class _CertificationGridItem extends StatelessWidget {
   }
 }
 
-// ── Skeleton placeholder for certifications section ───────────────────────────
-
 class _CertificationsSkeleton extends StatelessWidget {
   const _CertificationsSkeleton({super.key});
 
@@ -289,7 +275,6 @@ class _CertificationsSkeleton extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Simulate the header banner
           Container(
             height: 52,
             decoration: BoxDecoration(
@@ -298,23 +283,23 @@ class _CertificationsSkeleton extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          // Simulate a row of 3 certification cards
           Row(
             children: List.generate(
-                3,
-                (i) => Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                            left: i == 0 ? 0 : 5, right: i == 2 ? 0 : 5),
-                        child: Container(
-                          height: 90,
-                          decoration: BoxDecoration(
-                            color: skeletonColor,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                    )),
+              3,
+              (i) => Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                      left: i == 0 ? 0 : 5, right: i == 2 ? 0 : 5),
+                  child: Container(
+                    height: 90,
+                    decoration: BoxDecoration(
+                      color: skeletonColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),

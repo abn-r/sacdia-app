@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../../core/widgets/secure_screen.dart';
@@ -13,6 +14,7 @@ import '../providers/virtual_card_providers.dart';
 import '../widgets/credencial/action_pill.dart';
 import '../widgets/credencial/credencial_card.dart';
 import '../widgets/credencial/credencial_qr_fullscreen.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import '../widgets/credencial/credencial_tokens.dart';
 import '../widgets/credencial/credencial_view_model.dart';
 import '../widgets/credencial/credential_parallax.dart';
@@ -162,9 +164,12 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
                                     vm: vm,
                                     onQrTap: card.canShowQr
                                         ? () => Navigator.of(context).push(
-                                              _credencialQrFullscreenRoute(
-                                                vm,
-                                                heroTag,
+                                              SacFadeThroughRoute(
+                                                builder: (_) =>
+                                                    CredencialQrFullscreen(
+                                                  vm: vm,
+                                                  heroTag: heroTag,
+                                                ),
                                               ),
                                             )
                                         : _refresh,
@@ -284,9 +289,11 @@ class _ErrorState extends StatelessWidget {
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 18),
-          FilledButton(
+          SacButton(
+            text: 'virtual_card.retry'.tr(),
+            variant: SacButtonVariant.primary,
+            fullWidth: false,
             onPressed: onRetry,
-            child: Text('virtual_card.retry'.tr()),
           ),
         ],
       ),
@@ -337,24 +344,4 @@ String virtualCardErrorMessageKey(Object error) {
     return 'virtual_card.errors.rate_limited';
   }
   return 'virtual_card.errors.load_failed';
-}
-
-Route<void> _credencialQrFullscreenRoute(
-  CredencialViewModel vm,
-  String heroTag,
-) {
-  return PageRouteBuilder<void>(
-    transitionDuration: const Duration(milliseconds: 260),
-    reverseTransitionDuration: const Duration(milliseconds: 220),
-    pageBuilder: (_, __, ___) =>
-        CredencialQrFullscreen(vm: vm, heroTag: heroTag),
-    transitionsBuilder: (_, animation, __, child) {
-      final curved = CurvedAnimation(
-        parent: animation,
-        curve: Curves.easeOutCubic,
-        reverseCurve: Curves.easeInCubic,
-      );
-      return FadeTransition(opacity: curved, child: child);
-    },
-  );
 }

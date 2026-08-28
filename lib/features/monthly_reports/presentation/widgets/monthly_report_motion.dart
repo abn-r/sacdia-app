@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 /// Short stagger entrance — keep under ~200ms total for frequent screens.
@@ -28,10 +29,12 @@ class _MonthlyReportEntranceState extends State<MonthlyReportEntrance> {
   @override
   void initState() {
     super.initState();
-    _timer =
-        Timer(Duration(milliseconds: (widget.index * 36).clamp(0, 144)), () {
-      if (mounted) setState(() => _visible = true);
-    });
+    _timer = Timer(
+      Duration(milliseconds: (widget.index * 40).clamp(0, 160)),
+      () {
+        if (mounted) setState(() => _visible = true);
+      },
+    );
   }
 
   @override
@@ -42,62 +45,16 @@ class _MonthlyReportEntranceState extends State<MonthlyReportEntrance> {
 
   @override
   Widget build(BuildContext context) {
-    if (_reduceMotion(context)) return widget.child;
+    if (SacMotion.reduceMotionOf(context)) return widget.child;
 
     return AnimatedSlide(
       offset: _visible ? Offset.zero : Offset(0, widget.offsetY / 100),
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOutCubic,
+      duration: SacMotion.standard,
+      curve: SacMotion.easeOut,
       child: AnimatedOpacity(
         opacity: _visible ? 1 : 0,
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOut,
-        child: widget.child,
-      ),
-    );
-  }
-}
-
-/// Press feedback: scale on touch-down (Apple response + Emil button craft).
-class MonthlyReportPressable extends StatefulWidget {
-  final Widget child;
-  final VoidCallback? onTap;
-  final BorderRadius? borderRadius;
-  final double pressedScale;
-
-  const MonthlyReportPressable({
-    super.key,
-    required this.child,
-    this.onTap,
-    this.borderRadius,
-    this.pressedScale = 0.97,
-  });
-
-  @override
-  State<MonthlyReportPressable> createState() => _MonthlyReportPressableState();
-}
-
-class _MonthlyReportPressableState extends State<MonthlyReportPressable> {
-  bool _pressed = false;
-
-  void _setPressed(bool value) {
-    if (_pressed == value || widget.onTap == null) return;
-    setState(() => _pressed = value);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final reduce = _reduceMotion(context);
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapDown: (_) => _setPressed(true),
-      onTapUp: (_) => _setPressed(false),
-      onTapCancel: () => _setPressed(false),
-      onTap: widget.onTap,
-      child: AnimatedScale(
-        scale: (!reduce && _pressed) ? widget.pressedScale : 1,
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.easeOut,
+        duration: SacMotion.standard,
+        curve: SacMotion.easeOut,
         child: widget.child,
       ),
     );
@@ -329,10 +286,4 @@ class _SkeletonBlock extends StatelessWidget {
       ),
     );
   }
-}
-
-bool _reduceMotion(BuildContext context) {
-  final media = MediaQuery.maybeOf(context);
-  return media?.disableAnimations == true ||
-      media?.accessibleNavigation == true;
 }

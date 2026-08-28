@@ -3,10 +3,13 @@ import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
+import '../../animations/motion_tokens.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/sac_colors.dart';
 import '../sac_dialog.dart';
+import '../sac_button.dart';
 import 'staged_file.dart';
 
 /// Result returned from the upload progress sheet when it closes.
@@ -36,7 +39,7 @@ Future<UploadSheetResult?> showUploadProgressSheet({
   required List<StagedFile> initialFiles,
   required Stream<List<StagedFile>> uploadStream,
 }) {
-  return showModalBottomSheet<UploadSheetResult>(
+  return showSacSheet<UploadSheetResult>(
     context: context,
     isDismissible: false,
     enableDrag: false,
@@ -240,102 +243,38 @@ class _UploadProgressSheetContentState
 
   Widget _buildActionButtons(SacColors c) {
     if (_allSuccess) {
-      return SizedBox(
-        width: double.infinity,
-        child: FilledButton(
-          onPressed: () =>
-              Navigator.pop(context, UploadSheetResult.continueSubmit),
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.secondary,
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          child: Text(
-            tr('core.evidence_staging.btn_continue'),
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
-            ),
-          ),
-        ),
+      return SacButton.success(
+        text: tr('core.evidence_staging.btn_continue'),
+        onPressed: () =>
+            Navigator.pop(context, UploadSheetResult.continueSubmit),
       );
     }
 
     // Partial failure or all failed: 3 buttons
     return Column(
       children: [
-        // Retry failed — returns UploadSheetResult.retry so the manager
-        // can re-run uploads for only the failed files.
-        SizedBox(
-          width: double.infinity,
-          child: FilledButton(
-            onPressed: () => Navigator.pop(context, UploadSheetResult.retry),
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Text(
-              tr('core.evidence_staging.btn_retry_failed',
-                  namedArgs: {'count': '$_errorCount'}),
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-              ),
-            ),
-          ),
+        SacButton.primary(
+          text: tr('core.evidence_staging.btn_retry_failed',
+              namedArgs: {'count': '$_errorCount'}),
+          onPressed: () => Navigator.pop(context, UploadSheetResult.retry),
         ),
-
-        // Continue with uploaded (only if some succeeded)
         if (!_allFailed) ...[
           const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () => _confirmContinuePartial(context),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                side: const BorderSide(color: AppColors.secondary, width: 1.5),
-              ),
-              child: Text(
-                tr('core.evidence_staging.btn_continue_partial',
-                    namedArgs: {'count': '$_completedCount'}),
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                  color: AppColors.secondary,
-                ),
-              ),
-            ),
+          SacButton.outline(
+            text: tr('core.evidence_staging.btn_continue_partial',
+                namedArgs: {'count': '$_completedCount'}),
+            textColor: AppColors.secondary,
+            borderColor: AppColors.secondary,
+            onPressed: () => _confirmContinuePartial(context),
           ),
         ],
-
-        // Cancel
         const SizedBox(height: 8),
-        SizedBox(
-          width: double.infinity,
-          child: TextButton(
-            onPressed: () =>
-                Navigator.pop(context, UploadSheetResult.cancelled),
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-            ),
-            child: Text(
-              tr('core.evidence_staging.cancel'),
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-                color: c.textSecondary,
-              ),
-            ),
-          ),
+        SacButton(
+          text: tr('core.evidence_staging.cancel'),
+          variant: SacButtonVariant.ghost,
+          fullWidth: true,
+          textColor: c.textSecondary,
+          onPressed: () => Navigator.pop(context, UploadSheetResult.cancelled),
         ),
       ],
     );
@@ -467,11 +406,12 @@ class _AnimatedOverallProgress extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final targetProgress = progress.clamp(0.0, 1.0);
+    final reduce = SacMotion.reduceMotionOf(context);
 
     return TweenAnimationBuilder<double>(
       tween: Tween(end: targetProgress),
-      duration: const Duration(milliseconds: 260),
-      curve: Curves.easeOutCubic,
+      duration: reduce ? Duration.zero : SacMotion.modal,
+      curve: SacMotion.easeOut,
       builder: (context, animatedProgress, _) {
         return Column(
           children: [
@@ -513,11 +453,12 @@ class _AnimatedFileUploadStatus extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final targetProgress = file.uploadProgress.clamp(0.0, 1.0);
+    final reduce = SacMotion.reduceMotionOf(context);
 
     return TweenAnimationBuilder<double>(
       tween: Tween(end: targetProgress),
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOutCubic,
+      duration: reduce ? Duration.zero : SacMotion.standard,
+      curve: SacMotion.easeOut,
       builder: (context, animatedProgress, _) {
         return Row(
           mainAxisSize: MainAxisSize.min,

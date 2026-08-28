@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/evidence_review_item.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Galería de archivos de evidencia.
 ///
@@ -141,7 +142,7 @@ class _ImageThumbnail extends StatelessWidget {
   void _openFullscreen(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(
+      SacFadeThroughRoute(
         builder: (_) => _FullscreenImageViewer(
           images: allImages,
           initialIndex: initialIndex,

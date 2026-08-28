@@ -9,6 +9,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../domain/entities/notification_item.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import '../providers/notifications_providers.dart';
 import 'notification_type_badge.dart';
 
@@ -35,7 +37,7 @@ class NotificationCard extends ConsumerWidget {
       'dd/MM/yyyy HH:mm',
     ).format(notification.createdAt.toLocal());
 
-    return showModalBottomSheet<void>(
+    return showSacSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -196,24 +198,10 @@ class NotificationCard extends ConsumerWidget {
                           ],
                         ),
                         const SizedBox(height: 18),
-                        SizedBox(
-                          height: 50,
-                          child: FilledButton(
-                            onPressed: () => Navigator.of(sheetContext).pop(),
-                            style: FilledButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            child: Text(
-                              'notifications.inbox.detail_accept'.tr(),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
+                        SacButton.primary(
+                          text: 'notifications.inbox.detail_accept'.tr(),
+                          onPressed: () => Navigator.of(sheetContext).pop(),
+                          borderRadius: 16,
                         ),
                       ],
                     ),

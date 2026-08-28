@@ -12,6 +12,7 @@ import '../providers/receipts_provider.dart';
 import '../providers/order_detail_provider.dart';
 import '../widgets/price_input.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 
 // ── Constantes de validación ──────────────────────────────────────────────────
@@ -107,7 +108,7 @@ class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
   Future<void> _submit() async {
     // Validate file selection
     if (_selectedFile == null) {
-      setState(() => _fileError = 'Seleccioná un archivo para continuar.');
+      setState(() => _fileError = 'Selecciona un archivo para continuar.');
       return;
     }
 
@@ -116,7 +117,7 @@ class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
 
     if (_fechaPago == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Seleccioná la fecha de pago.')),
+        const SnackBar(content: Text('Selecciona la fecha de pago.')),
       );
       return;
     }
@@ -281,19 +282,12 @@ class _FormBody extends StatelessWidget {
           _SectionLabel(label: 'Archivo del comprobante'),
           const SizedBox(height: 8),
           if (selectedFileName == null)
-            OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                side: BorderSide(
-                  color:
-                      fileError != null ? AppColors.error : AppColors.primary,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              icon: const HugeIcon(icon: HugeIcons.strokeRoundedAttachment01),
-              label: const Text('Seleccionar archivo (PDF, JPG, PNG)'),
+            SacButton.outline(
+              text: 'Seleccionar archivo (PDF, JPG, PNG)',
+              icon: HugeIcons.strokeRoundedAttachment01,
+              borderColor:
+                  fileError != null ? AppColors.error : AppColors.primary,
+              labelMaxLines: 2,
               onPressed: onPickFile,
             )
           else
@@ -329,7 +323,7 @@ class _FormBody extends StatelessWidget {
             hint: 'Ej: SOL20260001',
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
-                return 'Ingresá la referencia que usaste.';
+                return 'Ingresa la referencia que usaste.';
               }
               return null;
             },
@@ -378,16 +372,9 @@ class _FormBody extends StatelessWidget {
           const SizedBox(height: 32),
 
           // ── Submit ────────────────────────────────────────────────────────────
-          FilledButton.icon(
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            icon: const HugeIcon(icon: HugeIcons.strokeRoundedSent),
-            label: const Text('Enviar comprobante'),
+          SacButton.primary(
+            text: 'Enviar comprobante',
+            icon: HugeIcons.strokeRoundedSent,
             onPressed: onSubmit,
           ),
         ],

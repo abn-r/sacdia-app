@@ -95,11 +95,12 @@ android {
                 signingConfig signingConfigs.debug
             }
 
-            // Recommended: enable obfuscation for Play Store releases.
-            // Uncomment the lines below and run `flutter build appbundle --obfuscate --split-debug-info=build/app/outputs/symbols`
-            // minifyEnabled true
-            // shrinkResources true
-            // proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            // R8 shrinking + obfuscation. Pair with
+            // `flutter build appbundle --obfuscate --split-debug-info=build/app/outputs/symbols`
+            // so Dart-side symbols are also stripped and recoverable in Sentry.
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
     }
 }

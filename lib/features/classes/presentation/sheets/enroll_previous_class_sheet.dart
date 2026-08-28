@@ -300,7 +300,7 @@ class _EnrollPreviousClassSheetState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Seleccioná una clase',
+              'Selecciona una clase',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,

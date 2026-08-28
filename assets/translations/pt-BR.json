@@ -110,7 +110,8 @@
       "one": "há {} dia",
       "other": "há {} dias"
     },
-    "accessibility_tile": "Acessibilidade"
+    "accessibility_tile": "Acessibilidade",
+    "open_document_failed": "Não foi possível abrir este documento."
   },
   "accessibility": {
     "title": "Acessibilidade",
@@ -264,8 +265,8 @@
     },
     "report_device_info": "{platform} {osVersion}\n{model}\nApp {appVersion} ({buildNumber})",
     "hub_badge": "Trilha de ajuda",
-    "hub_title": "Encontre a trilha certa para sua dúvida",
-    "hub_intro": "Veja respostas rápidas, escreva ao suporte ou envie um relato com contexto técnico.",
+    "hub_title": "Como podemos ajudar?",
+    "hub_intro": "Busque uma resposta ou escolha como falar conosco.",
     "route_faq_label": "Primeira parada",
     "route_contact_label": "Canal direto",
     "route_report_label": "Diário de rota",
@@ -281,7 +282,12 @@
       "profile": "Perfil",
       "support": "Suporte",
       "onboarding": "Início"
-    }
+    },
+    "hub_search_hint": "Buscar na ajuda…",
+    "faq_count": "{} perguntas",
+    "contact_copy": "Copiar e-mail",
+    "contact_copied": "E-mail copiado",
+    "report_pick_category": "Escolher categoria"
   },
   "biometric": {
     "tile_title": "Proteção biométrica do app",
@@ -1630,6 +1636,13 @@
       "section_pending_snack": "Seção marcada como pendente",
       "error_loading": "Erro ao carregar módulos"
     },
+    "honors": {
+      "open_pdf": "Abrir PDF",
+      "enroll": "Inscrever",
+      "continue_honor": "Continuar",
+      "no_pdf": "Esta especialidade não tem material em PDF",
+      "module_section": "Especialidades deste módulo"
+    },
     "detail": {
       "progress_label": "progresso",
       "description_header": "Descrição",
@@ -1763,7 +1776,9 @@
       "create_payment": "Erro ao registrar pagamento",
       "fetch_member_payments": "Erro ao obter pagamentos do membro",
       "fetch_camporee_payments": "Erro ao obter pagamentos do campori",
-      "fetch_events": "Erro ao obter eventos do campori"
+      "fetch_events": "Erro ao obter eventos do campori",
+      "fetch_leaderboard": "Não foi possível carregar a classificação do campori.",
+      "fetch_judge_assignments": "Não foi possível carregar suas atribuições de juiz."
     },
     "common": {
       "free": "Gratuito",
@@ -1824,7 +1839,17 @@
       "view_schedules": "Ver horários",
       "hide_schedules": "Ocultar horários",
       "event_staff_responsible": "Responsável: {names}",
-      "event_staff_supporting": "Apoiam: {names}"
+      "event_staff_supporting": "Apoiam: {names}",
+      "event_honors_title": "Especialidades de preparação",
+      "event_honors_subtitle": "Consulte o PDF de cada especialidade.",
+      "event_honor_open_pdf": "Ver material",
+      "event_honor_no_pdf": "PDF não disponível",
+      "leaderboard_title": "Classificação",
+      "leaderboard_subtitle": "Pontuações oficiais das seções inscritas.",
+      "leaderboard_empty": "Aparecerá quando houver pontuações oficiais.",
+      "leaderboard_error": "Não foi possível carregar a classificação.",
+      "leaderboard_unknown_club": "Clube",
+      "leaderboard_section_fallback": "Seção #{id}"
     },
     "members": {
       "title": "Membros inscritos",
@@ -2588,7 +2613,8 @@
     "view": {
       "title": "Seguros do Clube",
       "search_hint": "Buscar membro...",
-      "coverage_title": "Cobertura de Seguros",
+      "coverage_title": "Cobertura",
+      "coverage_of": "{insured} de {total} assegurados",
       "expiring_banner_one": "{count} seguro vence nos próximos 30 dias",
       "expiring_banner_other": "{count} seguros vencem nos próximos 30 dias",
       "member_count_one": "{count} membro",
@@ -3584,6 +3610,7 @@
       "club": "Clube",
       "evidence_folder": "Pasta Anual de Evidências",
       "camporees": "Camporees",
+      "camporee_judge": "Avaliar camporee",
       "finances": "Finanças",
       "units": "Unidades",
       "grouped_class": "Aula em Grupo",
@@ -4014,6 +4041,217 @@
       "score_pending_hint": "Ainda faltam dados para calcular a pontuação composta deste membro.",
       "rank_position": "Posição #{position}",
       "section_name": "Seção: {name}"
+    }
+  },
+  "payment_orders": {
+    "list": {
+      "title": "Ordens de pagamento",
+      "empty": "Ainda não há ordens de pagamento",
+      "beneficiaries_count": "{count} beneficiário(s)"
+    },
+    "purpose": {
+      "insurance": "Seguro",
+      "camporee": "Campori"
+    },
+    "status": {
+      "issued": "Emitida",
+      "proof_submitted": "Comprovante enviado",
+      "approved": "Aprovada",
+      "proof_rejected": "Comprovante rejeitado",
+      "cancelled": "Cancelada",
+      "expired": "Vencida"
+    },
+    "timeline": {
+      "issued": "Ordem emitida",
+      "proof_submitted": "Comprovante enviado",
+      "approved": "Pagamento aprovado"
+    },
+    "detail": {
+      "title": "Detalhe da ordem",
+      "total": "Total",
+      "unit_cost": "Custo unitário",
+      "expires": "Vence",
+      "beneficiaries": "Beneficiários",
+      "timeline_title": "Status",
+      "proof_title": "Comprovante de pagamento",
+      "view_pdf": "Ver ordem (PDF)",
+      "upload_proof": "Enviar comprovante",
+      "reupload_proof": "Reenviar comprovante",
+      "proof_uploaded": "Comprovante enviado para revisão",
+      "proof_too_large": "O arquivo excede o limite de 10 MB",
+      "reject_reason": "Motivo da rejeição",
+      "cancel_order": "Cancelar ordem",
+      "cancel_title": "Cancelar ordem?",
+      "cancel_body": "A ordem deixará de ser válida e nenhuma vaga ficará reservada.",
+      "cancel_confirm": "Sim, cancelar",
+      "cancelled": "Ordem cancelada"
+    },
+    "issue": {
+      "title_insurance": "Emitir ordem de seguro",
+      "title_camporee": "Emitir ordem de campori",
+      "select_members": "Selecionar membros",
+      "eligible_hint_insurance": "Somente membros ativos sem cobertura vigente são exibidos.",
+      "eligible_hint_camporee": "Somente membros ativos com seguro válido que ainda não estão inscritos são exibidos.",
+      "no_eligible": "Não há membros elegíveis",
+      "no_cycle": "Não há ciclo de seguro configurado para a sua seção",
+      "unavailable": "As ordens de pagamento não estão habilitadas no seu campo local",
+      "unit_cost_label": "Custo unitário: {cost}",
+      "deadline_label": "Prazo: {date}",
+      "total_label": "Total ({count} selecionados)",
+      "submit": "Emitir ordem",
+      "success": "Ordem emitida com sucesso"
+    },
+    "camporee_redirect": {
+      "title": "Inscrição com ordem de pagamento",
+      "body": "Seu campo local usa ordens de pagamento. Emita uma ordem, pague no banco ou no caixa do campo e envie o comprovante; a inscrição é confirmada quando o pagamento for aprovado.",
+      "issue_button": "Emitir ordem de pagamento",
+      "view_orders": "Ver ordens deste campori",
+      "context_loading": "Consultando o fluxo de inscrição",
+      "context_error": "Não foi possível consultar o fluxo de ordens de pagamento.",
+      "context_error_hint": "Sem esse dado não dá para saber se você deve emitir uma ordem ou inscrever membros direto."
+    },
+    "errors": {
+      "flag_disabled": "As ordens de pagamento não estão habilitadas neste campo local",
+      "legacy_disabled": "Este fluxo foi substituído pelas ordens de pagamento",
+      "not_found": "Ordem de pagamento não encontrada",
+      "forbidden": "Você não tem acesso a esta ordem",
+      "invalid_transition": "Esta ação não é permitida no estado atual da ordem",
+      "expired": "A ordem está vencida",
+      "cycle_invalid": "O ciclo de seguro não é válido para a sua seção",
+      "camporee_invalid": "O campori não está disponível para inscrição",
+      "cost_not_configured": "O custo de inscrição não está configurado",
+      "eligibility_failed": "Um ou mais membros não são elegíveis",
+      "duplicate_beneficiary": "Um ou mais membros já têm uma ordem ou cobertura ativa",
+      "beneficiaries_required": "Selecione pelo menos um beneficiário",
+      "proof_invalid_file": "Arquivo inválido. Use PDF, JPG ou PNG de até 10 MB",
+      "reassignment_invalid": "A reatribuição não é válida",
+      "reassignment_pending_exists": "Já existe uma solicitação de reatribuição pendente",
+      "download_document": "Não foi possível baixar o documento"
+    }
+  },
+  "camporee_orders": {
+    "cta": {
+      "label": "Pedidos",
+      "closed": "O período de pedidos está encerrado",
+      "not_open": "Os pedidos ainda não estão abertos"
+    },
+    "catalog": {
+      "title": "Pedidos",
+      "new_order": "Novo pedido",
+      "history_title": "Pedidos da seção",
+      "empty": "Esta seção ainda não tem pedidos",
+      "offerings_empty": "Não há artigos disponíveis",
+      "disabled": "Os pedidos não estão habilitados para este campori",
+      "closed": "O período de pedidos está encerrado",
+      "not_open": "Os pedidos ainda não estão abertos"
+    },
+    "capture": {
+      "title": "Montar pedido",
+      "empty_roster": "Não há inscritos ativos para pedir",
+      "select_size": "Tamanho",
+      "qty": "Quantidade",
+      "continue": "Revisar pedido",
+      "no_lines": "Adicione pelo menos um artigo",
+      "lines_count": "{count} artigo(s)"
+    },
+    "review": {
+      "title": "Revisar pedido",
+      "summary_title": "Consolidado",
+      "named_title": "Por pessoa",
+      "submit": "Emitir pedido",
+      "success": "Pedido emitido",
+      "empty": "O pedido está vazio"
+    },
+    "detail": {
+      "title": "Detalhe do pedido",
+      "total": "Total",
+      "expires": "Vence",
+      "distribution": "Entrega aos membros",
+      "view_pdf": "Ver pedido (PDF)",
+      "upload_proof": "Enviar comprovante",
+      "reupload_proof": "Enviar comprovante novamente",
+      "proof_uploaded": "Comprovante enviado para revisão",
+      "proof_too_large": "O arquivo excede o tamanho máximo de 10 MB",
+      "proof_title": "Comprovante de pagamento",
+      "cancel_order": "Cancelar pedido",
+      "cancel_title": "Cancelar pedido?",
+      "cancel_body": "O pedido deixará de ser válido. Você poderá emitir outro se a janela ainda estiver aberta.",
+      "cancel_confirm": "Sim, cancelar",
+      "cancelled": "Pedido cancelado",
+      "deliver": "Marcar como entregue",
+      "delivered_to_member": "Entregue ao membro"
+    },
+    "status": {
+      "issued": "Emitido",
+      "proof_submitted": "Comprovante enviado",
+      "proof_rejected": "Comprovante rejeitado",
+      "paid": "Pago",
+      "delivered": "Entregue à seção",
+      "cancelled": "Cancelado",
+      "expired": "Vencido"
+    },
+    "distribution": {
+      "not_started": "Não iniciado",
+      "partial": "Entrega parcial",
+      "complete": "Entrega completa"
+    },
+    "pending": {
+      "title": "Pagamentos pendentes",
+      "empty": "Não há pagamentos pendentes",
+      "purpose": {
+        "camporee_materials": "Pedido de campori",
+        "camporee": "Inscrição de campori",
+        "insurance": "Seguro",
+        "materials": "Materiais"
+      }
+    },
+    "errors": {
+      "not_found": "Pedido não encontrado",
+      "forbidden": "Você não tem acesso a este pedido",
+      "invalid_transition": "Esta ação não é permitida no estado atual do pedido",
+      "lines_required": "Adicione pelo menos um artigo",
+      "member_not_eligible": "Um ou mais inscritos não são elegíveis",
+      "offering_invalid": "Um ou mais artigos não estão disponíveis",
+      "option_required": "Selecione um tamanho",
+      "option_forbidden": "Este tamanho não se aplica ao artigo",
+      "payment_config_required": "Falta a configuração de pagamento do campo local",
+      "proof_invalid_file": "Arquivo inválido. Use PDF, JPG, PNG ou WebP de até 10 MB",
+      "proof_not_found": "Comprovante não encontrado",
+      "not_delivered_to_section": "O pedido ainda não foi entregue à seção",
+      "distribution_forbidden": "Você não pode registrar a entrega aos membros",
+      "download_document": "Não foi possível baixar o documento"
+    }
+  },
+  "camporee_supplies": {
+    "cta": {
+      "label": "Insumos"
+    },
+    "plan": {
+      "title": "Insumos da seção",
+      "cutoff": "Corte para o dia seguinte: {time}",
+      "catalog_empty": "O organizador ainda não definiu horários nem produtos",
+      "empty": "O plano ainda não tem linhas",
+      "date": "Dia",
+      "slot": "Horário",
+      "product": "Produto",
+      "qty": "Quantidade",
+      "add": "Adicionar ao plano",
+      "save": "Salvar rascunho",
+      "submit": "Enviar plano",
+      "saved": "Rascunho salvo",
+      "submitted": "Plano enviado. Folio principal emitido.",
+      "adjusted": "Ajuste registrado",
+      "net": "Líquido {amount}"
+    },
+    "errors": {
+      "not_found": "Plano de insumos não encontrado",
+      "forbidden": "Você não pode operar insumos deste camporee",
+      "not_eligible": "Sua seção não está inscrita neste camporee",
+      "day_locked": "Esse dia está congelado",
+      "lines_required": "Adicione pelo menos uma linha",
+      "not_draft": "O plano já não é um rascunho",
+      "not_submitted": "O plano ainda não foi enviado",
+      "qty_invalid": "A quantidade é inválida"
     }
   }
 }

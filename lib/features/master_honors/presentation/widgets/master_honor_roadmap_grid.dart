@@ -4,6 +4,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_network_image.dart';
 import 'package:sacdia_app/features/master_honors/domain/entities/master_honor_roadmap.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 class MasterHonorRoadmapGrid extends StatelessWidget {
   const MasterHonorRoadmapGrid({
@@ -229,7 +230,7 @@ Future<void> showMasterHonorDetailSheet(
   BuildContext context,
   MasterHonorRoadmap item,
 ) {
-  return showModalBottomSheet<void>(
+  return showSacSheet<void>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,

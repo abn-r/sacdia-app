@@ -87,7 +87,7 @@ class _PriceInputState extends State<PriceInput> {
       validator: widget.validator ??
           (value) {
             final centavos = _parseAsCentavos(value ?? '');
-            if (centavos <= 0) return 'Ingresá un monto mayor a \$0.00';
+            if (centavos <= 0) return 'Ingresa un monto mayor a \$0.00';
             return null;
           },
       onChanged: (value) {

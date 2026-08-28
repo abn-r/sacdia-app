@@ -11,11 +11,13 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
+import '../../../../features/auth/domain/utils/authorization_utils.dart';
 import '../../../../features/auth/presentation/providers/auth_providers.dart';
-import '../../../../features/members/presentation/providers/members_providers.dart';
 import '../../domain/entities/scoring_category.dart';
 import '../../domain/entities/unit.dart';
 import '../../domain/entities/unit_member.dart';
@@ -143,26 +145,18 @@ class UnitDetailView extends ConsumerWidget {
   }
 
   bool _canRegisterPoints(WidgetRef ref, Unit unit) {
-    return ref.watch(clubContextProvider).maybeWhen(
-          data: (ctx) {
-            if (ctx == null) return false;
-            final role = ctx.roleName?.toLowerCase() ?? '';
-            if ([
-              'director',
-              'sub_director',
-              'secretario',
-              'secretario_tesorero',
-            ].contains(role)) {
-              return true;
-            }
-            final userId = ref.read(authNotifierProvider).value?.id ?? '';
-            if (userId.isEmpty) return false;
-            return unit.advisorId == userId ||
-                unit.substituteAdvisorId == userId ||
-                unit.captainId == userId;
-          },
-          orElse: () => false,
-        );
+    final user = ref.watch(authNotifierProvider).valueOrNull;
+    if (!hasAnyPermission(user, const {'units:update'})) {
+      return false;
+    }
+    if (hasAnyPermission(user, const {'units:create'})) {
+      return true;
+    }
+    final userId = user?.id ?? '';
+    if (userId.isEmpty) return false;
+    return unit.advisorId == userId ||
+        unit.substituteAdvisorId == userId ||
+        unit.captainId == userId;
   }
 
   void _handleSave(BuildContext context, UnitsNotifier notifier) {
@@ -189,7 +183,7 @@ class UnitDetailView extends ConsumerWidget {
     required void Function(ScoringCategory, int) onSetForAll,
   }) {
     final c = context.sac;
-    return showModalBottomSheet<void>(
+    return showSacSheet<void>(
       context: context,
       showDragHandle: true,
       isScrollControlled: true,
@@ -486,7 +480,7 @@ class _MemberCard extends StatelessWidget {
   }
 
   Future<void> _showMemberActions(BuildContext context) async {
-    final result = await showModalBottomSheet<String>(
+    final result = await showSacSheet<String>(
       context: context,
       showDragHandle: true,
       backgroundColor: context.sac.surface,
@@ -626,12 +620,12 @@ class _CategoryRow extends StatelessWidget {
     final formKey = GlobalKey<FormState>();
     final material = MaterialLocalizations.of(context);
 
-    final result = await showDialog<int>(
-      context: context,
+    final result = await SacDialog.present<int>(
+      context,
       builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(category.name),
-          content: Form(
+        return SacDialog(
+          title: category.name,
+          body: Form(
             key: formKey,
             child: SacTextField(
               controller: controller,
@@ -649,17 +643,18 @@ class _CategoryRow extends StatelessWidget {
             ),
           ),
           actions: [
-            TextButton(
+            SacDialogAction(
+              label: material.cancelButtonLabel,
+              style: SacDialogActionStyle.cancel,
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(material.cancelButtonLabel),
             ),
-            TextButton(
+            SacDialogAction(
+              label: material.okButtonLabel,
               onPressed: () {
                 if (formKey.currentState?.validate() != true) return;
                 Navigator.of(dialogContext)
                     .pop(int.parse(controller.text.trim()));
               },
-              child: Text(material.okButtonLabel),
             ),
           ],
         );

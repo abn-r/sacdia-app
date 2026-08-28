@@ -13,7 +13,12 @@ abstract final class SacMotion {
   static const Duration modal = Duration(milliseconds: 240);
   static const Duration stagger = Duration(milliseconds: 40);
 
+  /// Decorative idle drift on rare surfaces (login constellation).
+  /// 3200ms ≈ 0.31 Hz — keep away from ~0.2 Hz / 5000ms.
+  static const Duration idleDrift = Duration(milliseconds: 3200);
+
   static const double enterScale = 0.96;
+  static const double pressScale = 0.97;
 
   static bool reduceMotionOf(BuildContext context) =>
       MediaQuery.maybeOf(context)?.disableAnimations ?? false;

@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/sac_dialog.dart';
 import '../providers/biometric_provider.dart';
 
 /// Diálogo modal para confirmar acciones sensibles mediante biometría.
@@ -37,6 +39,7 @@ Future<bool?> showConfirmBiometricDialog(
 
   return showDialog<bool>(
     context: context,
+    barrierColor: context.sac.barrierColor,
     barrierDismissible: true,
     builder: (ctx) => _ConfirmBiometricDialog(
       title: title,
@@ -77,45 +80,22 @@ class _ConfirmBiometricDialogState
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      icon: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.12),
-          shape: BoxShape.circle,
-        ),
-        child: Center(
-          child: HugeIcon(
-            icon: HugeIcons.strokeRoundedFingerPrint,
-            color: AppColors.primary,
-            size: 28,
-          ),
-        ),
-      ),
-      title: Text(widget.title, textAlign: TextAlign.center),
-      content: Text(widget.description, textAlign: TextAlign.center),
-      actionsAlignment: MainAxisAlignment.spaceBetween,
+    return SacDialog(
+      title: widget.title,
+      content: widget.description,
+      icon: HugeIcons.strokeRoundedFingerPrint,
+      iconColor: AppColors.primary,
+      iconBackgroundColor: AppColors.primary.withValues(alpha: 0.12),
       actions: [
-        TextButton(
+        SacDialogAction(
+          label: 'common.cancel'.tr(),
+          style: SacDialogActionStyle.cancel,
           onPressed: _busy ? null : () => Navigator.of(context).pop(false),
-          child: Text('common.cancel'.tr()),
         ),
-        FilledButton(
+        SacDialogAction(
+          label: 'biometric.authenticate_cta'.tr(),
+          isLoading: _busy,
           onPressed: _busy ? null : _authenticate,
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.primary,
-          ),
-          child: _busy
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                )
-              : Text('biometric.authenticate_cta'.tr()),
         ),
       ],
     );

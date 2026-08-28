@@ -9,6 +9,8 @@ import '../providers/cart_provider.dart';
 import '../utils/money_format.dart';
 import '../widgets/qty_stepper.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 
 /// Pantalla del carrito de materiales.
 ///
@@ -100,26 +102,9 @@ class CartView extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: () =>
-                          context.push(RouteNames.materialsSummary),
-                      child: const Text(
-                        'Continuar',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+                  SacButton.primary(
+                    text: 'Continuar',
+                    onPressed: () => context.push(RouteNames.materialsSummary),
                   ),
                 ],
               ),
@@ -128,24 +113,13 @@ class CartView extends ConsumerWidget {
   }
 
   Future<void> _confirmClear(BuildContext context, WidgetRef ref) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Vaciar carrito'),
-        content:
-            const Text('¿Querés eliminar todos los productos del carrito?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Vaciar'),
-          ),
-        ],
-      ),
+    final confirmed = await SacDialog.show(
+      context,
+      title: 'Vaciar carrito',
+      content: '¿Quieres eliminar todos los productos del carrito?',
+      confirmLabel: 'Vaciar',
+      cancelLabel: 'Cancelar',
+      confirmIsDestructive: true,
     );
     if (confirmed == true) {
       ref.read(cartProvider.notifier).clear();
@@ -292,17 +266,14 @@ class _EmptyCart extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Agregá productos desde el catálogo',
+            'Agrega productos desde el catálogo',
             style: TextStyle(color: AppColors.lightTextTertiary),
           ),
           const SizedBox(height: 24),
-          OutlinedButton.icon(
-            icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
-            label: const Text('Ir al catálogo'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.primary,
-              side: const BorderSide(color: AppColors.primary),
-            ),
+          SacButton(
+            text: 'Ir al catálogo',
+            icon: HugeIcons.strokeRoundedArrowLeft01,
+            variant: SacButtonVariant.outline,
             onPressed: onBackToCatalog,
           ),
         ],

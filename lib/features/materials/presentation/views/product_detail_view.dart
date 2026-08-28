@@ -10,6 +10,7 @@ import '../providers/product_detail_provider.dart';
 import '../utils/money_format.dart';
 import '../widgets/qty_stepper.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 
 /// Pantalla de detalle de producto del catálogo de materiales.
 class ProductDetailView extends ConsumerStatefulWidget {
@@ -55,12 +56,12 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                 style: const TextStyle(color: AppColors.lightTextSecondary),
               ),
               const SizedBox(height: 16),
-              FilledButton(
+              SacButton(
+                text: 'Reintentar',
+                variant: SacButtonVariant.primary,
+                fullWidth: false,
                 onPressed: () =>
                     ref.invalidate(productDetailProvider(widget.productId)),
-                style:
-                    FilledButton.styleFrom(backgroundColor: AppColors.primary),
-                child: const Text('Reintentar'),
               ),
             ],
           ),
@@ -246,24 +247,11 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                 const SizedBox(height: 32),
 
                 // ── Add to cart CTA ──
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    icon: const HugeIcon(
-                        icon: HugeIcons.strokeRoundedShoppingCartAdd01),
-                    label: const Text('Agregar al carrito'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: maxQty > 0
-                          ? AppColors.primary
-                          : AppColors.lightTextTertiary,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed:
-                        maxQty > 0 ? () => _addToCart(item, context) : null,
-                  ),
+                SacButton.primary(
+                  text: 'Agregar al carrito',
+                  icon: HugeIcons.strokeRoundedShoppingCartAdd01,
+                  onPressed:
+                      maxQty > 0 ? () => _addToCart(item, context) : null,
                 ),
 
                 if (maxQty == 0) ...[

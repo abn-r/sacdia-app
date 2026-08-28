@@ -12,6 +12,8 @@ class CamporeeJudgeAssignmentModel extends Equatable {
   final String judgeRole;
   final bool active;
   final String? eventTitle;
+  final String? clubName;
+  final String? sectionName;
   final bool canSubmitScore;
 
   const CamporeeJudgeAssignmentModel({
@@ -23,6 +25,8 @@ class CamporeeJudgeAssignmentModel extends Equatable {
     required this.judgeRole,
     required this.active,
     this.eventTitle,
+    this.clubName,
+    this.sectionName,
     required this.canSubmitScore,
   });
 
@@ -37,6 +41,8 @@ class CamporeeJudgeAssignmentModel extends Equatable {
       judgeRole: role,
       active: safeBool(json['active'], true),
       eventTitle: safeStringOrNull(json['event_title']),
+      clubName: safeStringOrNull(json['club_name']),
+      sectionName: safeStringOrNull(json['section_name']),
       canSubmitScore: safeBool(json['can_submit_score'], role == 'primary'),
     );
   }
@@ -51,6 +57,8 @@ class CamporeeJudgeAssignmentModel extends Equatable {
       judgeRole: judgeRole,
       active: active,
       eventTitle: eventTitle,
+      clubName: clubName,
+      sectionName: sectionName,
       canSubmitScore: canSubmitScore,
     );
   }
@@ -65,6 +73,8 @@ class CamporeeJudgeAssignmentModel extends Equatable {
         judgeRole,
         active,
         eventTitle,
+        clubName,
+        sectionName,
         canSubmitScore,
       ];
 }

@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
@@ -10,6 +11,7 @@ import '../../../../core/theme/sac_colors.dart';
 import '../providers/personal_info_providers.dart';
 import '../widgets/contact_card.dart';
 import 'add_edit_contact_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Vista para gestionar contactos de emergencia
 class EmergencyContactsView extends ConsumerWidget {
@@ -71,7 +73,7 @@ class EmergencyContactsView extends ConsumerWidget {
   Future<void> _navigateToAddEdit(BuildContext context,
       {dynamic contact}) async {
     final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
+      SacSharedAxisRoute(
         builder: (context) => AddEditContactView(contact: contact),
       ),
     );
@@ -117,9 +119,9 @@ class EmergencyContactsView extends ConsumerWidget {
                     .tr(namedArgs: {'error': error.toString()}),
               ),
               const SizedBox(height: 16),
-              ElevatedButton.icon(
-                icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 20),
-                label: Text('common.retry'.tr()),
+              SacButton(
+                text: 'common.retry'.tr(),
+                icon: HugeIcons.strokeRoundedRefresh,
                 onPressed: () {
                   ref.read(emergencyContactsProvider.notifier).refresh();
                 },
@@ -156,11 +158,10 @@ class EmergencyContactsView extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    icon:
-                        HugeIcon(icon: HugeIcons.strokeRoundedAdd01, size: 20),
-                    label: Text(
-                        'post_registration.emergency_contacts.add_button'.tr()),
+                  SacButton(
+                    text:
+                        'post_registration.emergency_contacts.add_button'.tr(),
+                    icon: HugeIcons.strokeRoundedAdd01,
                     onPressed: () => _navigateToAddEdit(context),
                   ),
                 ],

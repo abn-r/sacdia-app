@@ -377,8 +377,8 @@ void main() {
                 'assignments': [
                   {
                     'club_section': {
-                      'name': 'Conquistadores',
                       'clubs': {'name': 'Estrellas'},
+                      'club_types': {'name': 'Conquistadores'},
                     },
                   },
                 ],
@@ -504,6 +504,40 @@ void main() {
       expect(result.first.assignmentId, 'assignment-1');
       expect(result.first.judgeRole, 'primary');
       expect(result.first.canSubmitScore, isTrue);
+    });
+
+    test('parses local camporee leaderboard from backend data envelope',
+        () async {
+      final (:dio, :adapter) = _dioWith({
+        'status': 'success',
+        'data': {
+          'scope': {'type': 'local', 'camporeeId': 73},
+          'rows': [
+            {
+              'rank': 1,
+              'camporee_club_id': 5,
+              'club_section_id': 2,
+              'club_name': 'ACV',
+              'section_name': 'Conquistadores',
+              'total_awarded_points': '85.00',
+              'total_max_points': '100.00',
+              'percentage': '85.00',
+            },
+          ],
+        },
+      });
+      final ds = CamporeesRemoteDataSourceImpl(dio: dio, baseUrl: baseUrl);
+
+      final result = await ds.getCamporeeLeaderboard(73);
+
+      expect(
+        adapter.lastOptions!.path,
+        '$baseUrl/local-camporees/73/leaderboard',
+      );
+      expect(result.camporeeId, 73);
+      expect(result.rows, hasLength(1));
+      expect(result.rows.first.clubName, 'ACV');
+      expect(result.rows.first.totalAwardedPoints, 85);
     });
 
     test('parses event rubrics from backend data envelope', () async {

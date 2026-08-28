@@ -155,12 +155,6 @@ class DashboardView extends ConsumerWidget {
                           const QuickAccessGrid(),
                           const SizedBox(height: 16),
 
-                          // Demo temporal para escoger motion language.
-                          // TODO(remove-before-release): quitar antes de cerrar
-                          // la rama de development.
-                          //const _AnimationDemoLauncher(),
-                          //const SizedBox(height: 16),
-
                           // Upcoming activities
                           UpcomingActivitiesCard(
                             activities:
@@ -275,89 +269,6 @@ class _PendingMembershipDashboardState extends StatelessWidget {
               onPressed: () => context.go(RouteNames.homeProfile),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AnimationDemoLauncher extends StatelessWidget {
-  const _AnimationDemoLauncher();
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return Material(
-      color: c.surface,
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: () => context.push(RouteNames.homeAnimationDemo),
-        child: Container(
-          constraints: const BoxConstraints(minHeight: 88),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border:
-                Border.all(color: AppColors.primary.withValues(alpha: 0.28)),
-            gradient: LinearGradient(
-              colors: [
-                AppColors.primary.withValues(alpha: 0.12),
-                AppColors.accent.withValues(alpha: 0.10),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const HugeIcon(
-                  icon: HugeIcons.strokeRoundedFlash,
-                  color: AppColors.primary,
-                  size: 26,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Demo temporal de animaciones',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: c.text,
-                          ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Compará estilos de motion para decidir cuáles usar.',
-                      style: TextStyle(
-                        color: c.textSecondary,
-                        fontSize: 13,
-                        height: 1.35,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedArrowRight01,
-                color: c.textSecondary,
-                size: 22,
-              ),
-            ],
-          ),
         ),
       ),
     );

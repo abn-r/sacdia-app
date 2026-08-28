@@ -23,7 +23,6 @@ abstract class ClubRepository {
   Future<Either<Failure, ClubSection>> updateClubSection({
     required String clubId,
     required int sectionId,
-    String? name,
     String? phone,
     String? email,
     String? website,

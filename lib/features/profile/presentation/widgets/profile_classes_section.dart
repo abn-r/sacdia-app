@@ -9,6 +9,7 @@ import 'package:sacdia_app/features/classes/domain/entities/progressive_class.da
 import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
 import 'package:sacdia_app/features/classes/presentation/views/class_detail_with_progress_view.dart';
 import 'package:sacdia_app/features/classes/presentation/views/classes_list_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Section of the profile view that shows the user's enrolled progressive
 /// classes in a 3-column grid, visually consistent with [ProfileHonorsSection].
@@ -62,7 +63,7 @@ class ProfileClassesSection extends ConsumerWidget {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
+                        SacSharedAxisRoute(
                           builder: (_) => const ClassesListView(),
                         ),
                       );
@@ -202,7 +203,7 @@ class _ClassGridItem extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
+                SacSharedAxisRoute(
                   builder: (_) => ClassDetailWithProgressView(
                     classId: progressiveClass.id,
                   ),

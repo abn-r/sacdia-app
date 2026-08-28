@@ -224,9 +224,10 @@ class _ErrorBody extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            OutlinedButton.icon(
-              icon: const HugeIcon(icon: HugeIcons.strokeRoundedRefresh),
-              label: Text('common.retry'.tr()),
+            SacButton(
+              text: 'common.retry'.tr(),
+              icon: HugeIcons.strokeRoundedRefresh,
+              variant: SacButtonVariant.outline,
               onPressed: onRetry,
             ),
           ],

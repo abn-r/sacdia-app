@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/coordinator_club.dart';
 import 'package:sacdia_app/features/coordinator/presentation/providers/coordinator_providers.dart';
@@ -80,19 +81,18 @@ class _ClubsHeader extends ConsumerWidget {
       padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 16),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(9),
-            decoration: BoxDecoration(
-              color: AppColors.primaryLight,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const HugeIcon(
-              icon: HugeIcons.strokeRoundedBuilding04,
-              size: 22,
-              color: AppColors.primary,
-            ),
+          SacBackButton(
+            color: c.text,
+            onPressed: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).maybePop();
+                return;
+              }
+              if (GoRouter.maybeOf(context) != null) {
+                context.go(RouteNames.coordinator);
+              }
+            },
           ),
-          const SizedBox(width: 12),
           Expanded(
             child: Text(
               'coordinator.clubs.title'.tr(),

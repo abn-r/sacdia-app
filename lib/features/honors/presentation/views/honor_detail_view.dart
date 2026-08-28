@@ -15,6 +15,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/honor.dart';
@@ -27,6 +28,7 @@ import '../widgets/honor_signed_evidence_image.dart';
 import '../widgets/honor_work_mode_selector.dart';
 import '../../domain/entities/user_honor.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 
@@ -601,22 +603,11 @@ class _HonorDetailContent extends ConsumerWidget {
     BuildContext context,
     HonorCompletionMode mode,
   ) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('honors.work_mode.confirm_title'.tr()),
-        content: Text(_completionModeConfirmationMessageKey(mode).tr()),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text('common.cancel'.tr()),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text('common.confirm'.tr()),
-          ),
-        ],
-      ),
+    final result = await SacDialog.show(
+      context,
+      title: 'honors.work_mode.confirm_title'.tr(),
+      content: _completionModeConfirmationMessageKey(mode).tr(),
+      confirmLabel: 'common.confirm'.tr(),
     );
 
     return result ?? false;
@@ -1103,7 +1094,7 @@ class _StaggeredCardsState extends State<_StaggeredCards>
   Future<void> _showChangeWorkModeSheet(
     HonorCompletionMode currentMode,
   ) async {
-    final selectedMode = await showModalBottomSheet<HonorCompletionMode>(
+    final selectedMode = await showSacSheet<HonorCompletionMode>(
       context: context,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
@@ -3342,35 +3333,15 @@ class _EnrollCtaButton extends ConsumerStatefulWidget {
   ConsumerState<_EnrollCtaButton> createState() => _EnrollCtaButtonState();
 }
 
-class _EnrollCtaButtonState extends ConsumerState<_EnrollCtaButton>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _pressController;
-  late Animation<double> _pressScale;
+class _EnrollCtaButtonState extends ConsumerState<_EnrollCtaButton> {
+  bool _pressed = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _pressController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 150),
-      lowerBound: 0.97,
-      upperBound: 1.0,
-      value: 1.0,
-    );
-    _pressScale = _pressController;
-  }
-
-  @override
-  void dispose() {
-    _pressController.dispose();
-    super.dispose();
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() => _pressed = value);
   }
 
   Future<void> _onTap() async {
-    await _pressController.reverse();
-    await _pressController.forward();
-    HapticFeedback.mediumImpact();
-
     final authState = ref.read(authNotifierProvider);
     final userId = authState.value?.id;
     if (userId == null) return;
@@ -3382,12 +3353,22 @@ class _EnrollCtaButtonState extends ConsumerState<_EnrollCtaButton>
 
   @override
   Widget build(BuildContext context) {
+    final reduce = SacMotion.reduceMotionOf(context);
     final foregroundColor = _heroForegroundColor(context, widget.categoryColor);
 
-    return ScaleTransition(
-      scale: _pressScale,
-      child: GestureDetector(
-        onTap: _onTap,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) {
+        HapticFeedback.lightImpact();
+        _setPressed(true);
+      },
+      onTapUp: (_) => _setPressed(false),
+      onTapCancel: () => _setPressed(false),
+      onTap: _onTap,
+      child: AnimatedScale(
+        scale: (!reduce && _pressed) ? SacMotion.pressScale : 1,
+        duration: SacMotion.press,
+        curve: SacMotion.easeOut,
         child: Container(
           width: double.infinity,
           height: 48,

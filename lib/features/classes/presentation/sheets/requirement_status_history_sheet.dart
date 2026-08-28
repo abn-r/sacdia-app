@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -507,7 +508,7 @@ void showRequirementStatusHistorySheet(
   BuildContext context, {
   required ClassRequirement requirement,
 }) {
-  showModalBottomSheet<void>(
+  showSacSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,

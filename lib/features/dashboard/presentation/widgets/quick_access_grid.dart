@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/features/camporees/presentation/providers/camporees_providers.dart';
 
 class _QuickAccessItemConfig {
   /// Translation key resolved at render time via tr(labelKey).
@@ -67,7 +68,7 @@ final List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
   // Administrative: club management — clubs:update is held by secretary+
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.club',
-    icon: HugeIcons.strokeRoundedBuilding01,
+    icon: HugeIcons.strokeRoundedFlag01,
     color: AppColors.secondary,
     route: RouteNames.homeClub,
     requiredPermissions: {'clubs:update'},
@@ -165,6 +166,13 @@ final List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
   ),
 ];
 
+const _judgeQuickAccessItem = _QuickAccessItemConfig(
+  labelKey: 'dashboard.quick_access.camporee_judge',
+  icon: HugeIcons.strokeRoundedNoteEdit,
+  color: AppColors.warning,
+  route: RouteNames.camporeeJudgeAssignments,
+);
+
 /// Grid 2xN de acceso rápido a los módulos principales del sistema.
 ///
 /// Watches the full [AsyncValue] from [authNotifierProvider] to distinguish
@@ -220,6 +228,21 @@ class QuickAccessGrid extends ConsumerWidget {
       }
       return false;
     }).toList();
+
+    final showJudgeTile = ref.watch(camporeeJudgeAssignmentsProvider).maybeWhen(
+          data: (assignments) => assignments
+              .any((assignment) => assignment.canCaptureOfficialScore),
+          orElse: () => false,
+        );
+    if (showJudgeTile) {
+      final camporeeIndex = filteredItems.indexWhere(
+        (item) => item.route == RouteNames.homeCamporees,
+      );
+      filteredItems.insert(
+        camporeeIndex >= 0 ? camporeeIndex + 1 : filteredItems.length,
+        _judgeQuickAccessItem,
+      );
+    }
 
     if (filteredItems.isEmpty) {
       return const SizedBox.shrink();

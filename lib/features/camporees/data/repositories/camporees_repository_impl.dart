@@ -8,6 +8,7 @@ import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/camporee.dart';
 import '../../domain/entities/camporee_event.dart';
 import '../../domain/entities/camporee_judge_assignment.dart';
+import '../../domain/entities/camporee_leaderboard.dart';
 import '../../domain/entities/camporee_member.dart';
 import '../../domain/entities/camporee_payment.dart';
 import '../../domain/entities/camporee_rubric.dart';
@@ -321,6 +322,26 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
         cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(models.map((m) => m.toEntity()).toList());
+    } on AppException catch (e) {
+      return _appFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, CamporeeLeaderboard>> getCamporeeLeaderboard(
+    int camporeeId, {
+    String camporeeType = 'local',
+    RequestCancelToken? cancelToken,
+  }) async {
+    try {
+      final model = await remoteDataSource.getCamporeeLeaderboard(
+        camporeeId,
+        camporeeType: camporeeType,
+        cancelToken: cancelToken.asDioCancelToken(),
+      );
+      return Right(model.toEntity());
     } on AppException catch (e) {
       return _appFailure(e);
     } catch (e) {

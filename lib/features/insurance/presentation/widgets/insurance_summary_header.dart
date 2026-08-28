@@ -1,141 +1,109 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
+import 'package:flutter/services.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_theme.dart';
+import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../providers/insurance_providers.dart';
 
-/// Header de resumen de cobertura de seguros del club.
-///
-/// Sigue el design system "Scout Vibrante":
-/// fondo de surface con borde sutil, icono en contenedor de acento,
-/// sin gradientes, tokens de color semánticos via `context.sac`.
+/// Resumen de cobertura estilo Health: cifra grande, barra fina,
+/// stats tappable que sustituyen la fila de FilterChips.
 class InsuranceSummaryHeader extends StatelessWidget {
   final InsuranceSummary summary;
+  final InsuranceStatusFilter selectedFilter;
+  final ValueChanged<InsuranceStatusFilter> onFilterChanged;
 
-  const InsuranceSummaryHeader({super.key, required this.summary});
+  const InsuranceSummaryHeader({
+    super.key,
+    required this.summary,
+    required this.selectedFilter,
+    required this.onFilterChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
     final coverage = summary.coveragePercent;
-    final coverageColor = _coverageColor(coverage);
+    final coverageColor = _coverageColor(context, coverage);
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-        border: Border.all(color: c.border),
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Title row
-          Row(
-            children: [
-              // Icon container — standard app pattern
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.primarySurface,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
+          Text(
+            '${coverage.toStringAsFixed(0)}%',
+            style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                  color: coverageColor,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -1.2,
+                  height: 1.05,
                 ),
-                child: const Center(
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedShield01,
-                    size: 20,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
-
-              const SizedBox(width: 10),
-
-              // Title
-              Text(
-                'insurance.view.coverage_title'.tr(),
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: c.text,
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-
-              const Spacer(),
-
-              // Coverage percentage badge
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: coverageColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                  border: Border.all(
-                    color: coverageColor.withValues(alpha: 0.35),
-                    width: 0.8,
-                  ),
-                ),
-                child: Text(
-                  '${coverage.toStringAsFixed(0)}%',
-                  style: TextStyle(
-                    color: coverageColor,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-            ],
           ),
-
-          const SizedBox(height: 14),
-
-          // Progress bar
+          const SizedBox(height: 2),
+          Text(
+            'insurance.view.coverage_title'.tr(),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: c.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'insurance.view.coverage_of'.tr(namedArgs: {
+              'insured': '${summary.asegurados}',
+              'total': '${summary.total}',
+            }),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: c.textTertiary,
+                  fontSize: 13,
+                ),
+          ),
+          const SizedBox(height: 12),
           ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(2),
             child: LinearProgressIndicator(
               value: coverage / 100,
               backgroundColor: c.borderLight,
               valueColor: AlwaysStoppedAnimation<Color>(coverageColor),
-              minHeight: 6,
+              minHeight: 3,
             ),
           ),
-
           const SizedBox(height: 12),
-
-          // Stats pills row
           Row(
             children: [
-              _StatPill(
+              _FilterStat(
                 label: 'insurance.summary.total'.tr(),
                 count: summary.total,
-                color: c.textSecondary,
+                color: c.text,
+                selected: selectedFilter == InsuranceStatusFilter.todos,
+                onTap: () => _select(InsuranceStatusFilter.todos),
               ),
-              const SizedBox(width: 8),
-              _StatPill(
+              _FilterStat(
                 label: 'insurance.summary.insured'.tr(),
                 count: summary.asegurados,
-                color: AppColors.secondary,
+                color: c.success,
+                selected: selectedFilter == InsuranceStatusFilter.asegurado,
+                onTap: () => _select(InsuranceStatusFilter.asegurado),
               ),
-              if (summary.vencidos > 0) ...[
-                const SizedBox(width: 8),
-                _StatPill(
+              if (summary.vencidos > 0 ||
+                  selectedFilter == InsuranceStatusFilter.vencido)
+                _FilterStat(
                   label: 'insurance.summary.expired'.tr(),
                   count: summary.vencidos,
-                  color: AppColors.accent,
+                  color: c.onWarning,
+                  selected: selectedFilter == InsuranceStatusFilter.vencido,
+                  onTap: () => _select(InsuranceStatusFilter.vencido),
                 ),
-              ],
-              if (summary.sinSeguro > 0) ...[
-                const SizedBox(width: 8),
-                _StatPill(
+              if (summary.sinSeguro > 0 ||
+                  selectedFilter == InsuranceStatusFilter.sinSeguro)
+                _FilterStat(
                   label: 'insurance.summary.uninsured'.tr(),
                   count: summary.sinSeguro,
-                  color: AppColors.error,
+                  color: c.error,
+                  selected: selectedFilter == InsuranceStatusFilter.sinSeguro,
+                  onTap: () => _select(InsuranceStatusFilter.sinSeguro),
                 ),
-              ],
             ],
           ),
         ],
@@ -143,51 +111,107 @@ class InsuranceSummaryHeader extends StatelessWidget {
     );
   }
 
-  Color _coverageColor(double pct) {
-    if (pct >= 80) return AppColors.secondary;
-    if (pct >= 50) return AppColors.accent;
-    return AppColors.error;
+  void _select(InsuranceStatusFilter filter) {
+    HapticFeedback.selectionClick();
+    if (filter == selectedFilter && filter != InsuranceStatusFilter.todos) {
+      onFilterChanged(InsuranceStatusFilter.todos);
+      return;
+    }
+    onFilterChanged(filter);
+  }
+
+  Color _coverageColor(BuildContext context, double pct) {
+    final c = context.sac;
+    if (pct >= 80) return c.success;
+    if (pct >= 50) return c.onWarning;
+    return c.error;
   }
 }
 
-class _StatPill extends StatelessWidget {
+class _FilterStat extends StatefulWidget {
   final String label;
   final int count;
   final Color color;
+  final bool selected;
+  final VoidCallback onTap;
 
-  const _StatPill({
+  const _FilterStat({
     required this.label,
     required this.count,
     required this.color,
+    required this.selected,
+    required this.onTap,
   });
 
   @override
+  State<_FilterStat> createState() => _FilterStatState();
+}
+
+class _FilterStatState extends State<_FilterStat> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-        border: Border.all(color: color.withValues(alpha: 0.30)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 5),
-          Text(
-            '$label: $count',
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.w700,
-              fontSize: 11,
+    final c = context.sac;
+    final reduce = SacMotion.reduceMotionOf(context);
+    final color = widget.selected ? widget.color : c.textTertiary;
+
+    return Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) => setState(() => _pressed = true),
+        onTapUp: (_) => setState(() => _pressed = false),
+        onTapCancel: () => setState(() => _pressed = false),
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: (!reduce && _pressed) ? 0.97 : 1,
+          duration: SacMotion.press,
+          curve: SacMotion.easeOut,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '${widget.count}',
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 20,
+                    letterSpacing: -0.4,
+                    height: 1.1,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  widget.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: color,
+                    fontWeight:
+                        widget.selected ? FontWeight.w600 : FontWeight.w500,
+                    fontSize: 11,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                AnimatedOpacity(
+                  opacity: widget.selected ? 1 : 0,
+                  duration: SacMotion.standard,
+                  curve: SacMotion.easeOut,
+                  child: Container(
+                    height: 2,
+                    width: 18,
+                    decoration: BoxDecoration(
+                      color: widget.color,
+                      borderRadius: BorderRadius.circular(1),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

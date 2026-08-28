@@ -12,6 +12,8 @@ import '../../../biometric/presentation/providers/biometric_provider.dart';
 import '../../domain/entities/active_session.dart';
 import '../providers/active_sessions_providers.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -106,35 +108,16 @@ class _ActiveSessionsViewState extends ConsumerState<ActiveSessionsView> {
     final otherCount = sessions.where((s) => !s.isCurrent).length;
     if (otherCount == 0) return;
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      barrierColor: context.sac.barrierColor,
-      barrierDismissible: true,
-      builder: (ctx) => AlertDialog(
-        title:
-            Text('profile.active_sessions.ui.dialog_close_others_title'.tr()),
-        content: Text(
-          otherCount == 1
-              ? 'profile.active_sessions.ui.dialog_close_others_body_one'
-                  .tr(namedArgs: {'count': '$otherCount'})
-              : 'profile.active_sessions.ui.dialog_close_others_body_other'
-                  .tr(namedArgs: {'count': '$otherCount'}),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('common.cancel'.tr()),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.error,
-            ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child:
-                Text('profile.active_sessions.ui.action_close_sessions'.tr()),
-          ),
-        ],
-      ),
+    final confirmed = await SacDialog.show(
+      context,
+      title: 'profile.active_sessions.ui.dialog_close_others_title'.tr(),
+      content: otherCount == 1
+          ? 'profile.active_sessions.ui.dialog_close_others_body_one'
+              .tr(namedArgs: {'count': '$otherCount'})
+          : 'profile.active_sessions.ui.dialog_close_others_body_other'
+              .tr(namedArgs: {'count': '$otherCount'}),
+      confirmLabel: 'profile.active_sessions.ui.action_close_sessions'.tr(),
+      confirmIsDestructive: true,
     );
 
     if (confirmed != true || !mounted) return;
@@ -256,14 +239,10 @@ class _ErrorState extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            FilledButton.icon(
+            SacButton(
+              text: 'common.retry'.tr(),
+              icon: HugeIcons.strokeRoundedRefresh,
               onPressed: onRetry,
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedRefresh,
-                size: 16,
-                color: Colors.white,
-              ),
-              label: Text('common.retry'.tr()),
             ),
           ],
         ),
@@ -361,43 +340,18 @@ class _SessionList extends StatelessWidget {
           // Botón "Cerrar sesión en todos los otros dispositivos"
           if (hasOtherSessions) ...[
             const SizedBox(height: 28),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: isRevokingAll ? null : onRevokeAll,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.error,
-                  side:
-                      BorderSide(color: AppColors.error.withValues(alpha: 0.6)),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                icon: isRevokingAll
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColors.error,
-                        ),
-                      )
-                    : HugeIcon(
-                        icon: HugeIcons.strokeRoundedLogout01,
-                        size: 18,
-                        color: AppColors.error,
-                      ),
-                label: Text(
-                  isRevokingAll
-                      ? 'profile.active_sessions.ui.closing_sessions'.tr()
-                      : 'profile.active_sessions.ui.close_all_others'.tr(),
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
+            SacButton(
+              text: isRevokingAll
+                  ? 'profile.active_sessions.ui.closing_sessions'.tr()
+                  : 'profile.active_sessions.ui.close_all_others'.tr(),
+              icon: HugeIcons.strokeRoundedLogout01,
+              variant: SacButtonVariant.outline,
+              fullWidth: true,
+              textColor: AppColors.error,
+              borderColor: AppColors.error.withValues(alpha: 0.6),
+              fontSize: 14,
+              isLoading: isRevokingAll,
+              onPressed: isRevokingAll ? null : onRevokeAll,
             ),
           ],
           const SizedBox(height: 32),

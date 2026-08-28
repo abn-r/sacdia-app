@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 
 import '../../domain/entities/order.dart';
 import '../utils/money_format.dart';
 import 'material_status_badge.dart';
-import 'materials_pressable.dart';
 
 /// Card de resumen de una orden en el historial.
 class OrderCard extends StatelessWidget {
@@ -24,9 +24,8 @@ class OrderCard extends StatelessWidget {
     final folio =
         hasFolio ? order.folioReferencia! : 'materials.history.no_folio'.tr();
 
-    return MaterialsPressable(
+    return SacPressable(
       onTap: onTap,
-      pressedScale: 0.985,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(

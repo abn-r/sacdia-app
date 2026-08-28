@@ -22,6 +22,7 @@ import '../widgets/member_class_group_header.dart';
 import '../widgets/members_filter_bar.dart';
 import 'member_profile_view.dart';
 import 'role_assignment_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Vista principal de Miembros con dos pestañas:
 /// 1. Lista de miembros del club
@@ -331,7 +332,7 @@ class _MembersTab extends ConsumerWidget {
   void _openMemberProfile(BuildContext context, ClubMember member) {
     Navigator.push(
       context,
-      MaterialPageRoute(
+      SacSharedAxisRoute(
         builder: (_) => MemberProfileView(member: member),
       ),
     );
@@ -346,7 +347,7 @@ class _MembersTab extends ConsumerWidget {
     // internally so the list auto-refreshes via the AsyncNotifier build().
     await Navigator.push<bool>(
       context,
-      MaterialPageRoute(
+      SacSharedAxisRoute(
         builder: (_) => RoleAssignmentView(
           member: member,
           clubContext: clubContext,
@@ -462,7 +463,7 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
     );
     Navigator.push(
       context,
-      MaterialPageRoute(
+      SacSharedAxisRoute(
         builder: (_) => MemberProfileView(
           member: member,
           title: 'members.view.request_profile_title'.tr(),

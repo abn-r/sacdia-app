@@ -11,6 +11,7 @@ import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 import '../providers/classes_providers.dart';
 import 'class_modules_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Vista de detalle de clase - Estilo "Scout Vibrante"
 ///
@@ -158,7 +159,7 @@ class ClassDetailView extends ConsumerWidget {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
+                            SacSharedAxisRoute(
                               builder: (context) => ClassModulesView(
                                 classId: classId,
                               ),

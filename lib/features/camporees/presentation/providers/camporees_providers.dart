@@ -10,6 +10,7 @@ import '../../data/repositories/camporees_repository_impl.dart';
 import '../../domain/entities/camporee.dart';
 import '../../domain/entities/camporee_event.dart';
 import '../../domain/entities/camporee_judge_assignment.dart';
+import '../../domain/entities/camporee_leaderboard.dart';
 import '../../domain/entities/camporee_member.dart';
 import '../../domain/entities/camporee_payment.dart';
 import '../../domain/entities/camporee_rubric.dart';
@@ -816,6 +817,23 @@ final camporeeJudgeAssignmentsProvider =
   return result.fold(
     (failure) => throw Exception(failure.message),
     (assignments) => assignments,
+  );
+});
+
+/// Clasificación oficial del camporee (local por defecto, igual que events).
+final camporeeLeaderboardProvider = FutureProvider.autoDispose
+    .family<CamporeeLeaderboard, int>((ref, camporeeId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final repository = ref.read(camporeesRepositoryProvider);
+  final result = await repository.getCamporeeLeaderboard(
+    camporeeId,
+    cancelToken: cancelToken,
+  );
+
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (leaderboard) => leaderboard,
   );
 });
 

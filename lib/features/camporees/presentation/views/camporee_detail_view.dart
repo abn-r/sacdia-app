@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/auth/club_role_names.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
@@ -15,11 +16,13 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_event.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_location_card.dart';
+import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_leaderboard_panel.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_participant_access_gate.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_section_registration_panel.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_section_registration_sheet.dart';
@@ -27,6 +30,9 @@ import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_sect
 import '../providers/camporees_providers.dart';
 import 'camporee_members_view.dart';
 import 'camporee_register_member_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/features/camporee_orders/presentation/views/camporee_order_catalog_view.dart';
+import 'package:sacdia_app/features/camporee_supplies/presentation/views/camporee_supply_plan_view.dart';
 
 /// Vista de detalle de un camporee.
 ///
@@ -142,6 +148,9 @@ class _DetailBody extends ConsumerWidget {
         : const AsyncData<List<CamporeeMember>>(<CamporeeMember>[]);
     final eventsAsync =
         canViewEvents ? ref.watch(camporeeEventsProvider(camporeeId)) : null;
+    final leaderboardAsync = canViewEvents
+        ? ref.watch(camporeeLeaderboardProvider(camporeeId))
+        : null;
     final description = camporee.description?.trim();
 
     return RefreshIndicator(
@@ -154,6 +163,7 @@ class _DetailBody extends ConsumerWidget {
         }
         if (canViewEvents) {
           ref.invalidate(camporeeEventsProvider(camporeeId));
+          ref.invalidate(camporeeLeaderboardProvider(camporeeId));
         }
       },
       child: ListView(
@@ -189,6 +199,8 @@ class _DetailBody extends ConsumerWidget {
             onManageParticipants: () => _openParticipants(context),
             showParticipantAction: canRegisterParticipants,
           ),
+          CamporeeOrdersCta(camporeeId: camporeeId),
+          CamporeeSuppliesCta(camporeeId: camporeeId),
           const SizedBox(height: 24),
           _MembersSection(
             camporeeId: camporeeId,
@@ -207,6 +219,14 @@ class _DetailBody extends ConsumerWidget {
               onRetry: () => ref.invalidate(camporeeEventsProvider(camporeeId)),
             ),
           ],
+          if (leaderboardAsync != null) ...[
+            const SizedBox(height: 24),
+            CamporeeLeaderboardPanel(
+              leaderboardAsync: leaderboardAsync,
+              onRetry: () =>
+                  ref.invalidate(camporeeLeaderboardProvider(camporeeId)),
+            ),
+          ],
         ],
       ),
     );
@@ -216,7 +236,7 @@ class _DetailBody extends ConsumerWidget {
     HapticFeedback.selectionClick();
     Navigator.push(
       context,
-      MaterialPageRoute(
+      SacSharedAxisRoute(
         builder: (context) => CamporeeRegisterMemberView(
           camporeeId: camporeeId,
         ),
@@ -276,7 +296,7 @@ class _CamporeeDetailBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${dateFormat.format(camporee.startDate.toLocal())} – ${dateFormat.format(camporee.endDate.toLocal())}',
+                  '${dateFormat.format(camporee.startDate)} – ${dateFormat.format(camporee.endDate)}',
                   style: TextStyle(
                     color: c.textSecondary,
                     fontSize: 13,
@@ -349,7 +369,7 @@ class _CamporeeFactsPanel extends StatelessWidget {
       customPattern: '¤#,##0',
     );
     final dateRange =
-        '${dateFormat.format(camporee.startDate.toLocal())} – ${dateFormat.format(camporee.endDate.toLocal())}';
+        '${dateFormat.format(camporee.startDate)} – ${dateFormat.format(camporee.endDate)}';
 
     return _SurfacePanel(
       child: Column(
@@ -408,6 +428,136 @@ class _DescriptionSection extends StatelessWidget {
   }
 }
 
+class _EventHonorsSection extends StatelessWidget {
+  final List<CamporeeEventHonor> honors;
+
+  const _EventHonorsSection({required this.honors});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionHeader(label: 'camporees.detail.event_honors_title'.tr()),
+        const SizedBox(height: 6),
+        Text(
+          'camporees.detail.event_honors_subtitle'.tr(),
+          style: TextStyle(
+            color: context.sac.textSecondary,
+            fontSize: 13,
+            height: 1.35,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 10),
+        ...honors.map((honor) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _EventHonorCard(honor: honor),
+            )),
+      ],
+    );
+  }
+}
+
+class _EventHonorCard extends StatelessWidget {
+  final CamporeeEventHonor honor;
+
+  const _EventHonorCard({required this.honor});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final category = honor.categoryName?.trim();
+    final imageUrl = honor.honorImage?.trim();
+
+    return _SurfacePanel(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: imageUrl != null && imageUrl.isNotEmpty
+                ? Image.network(
+                    imageUrl,
+                    width: 48,
+                    height: 48,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => _honorFallback(c),
+                  )
+                : _honorFallback(c),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  honor.name,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: c.text,
+                      ),
+                ),
+                if (category != null && category.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    category,
+                    style: TextStyle(
+                      color: c.textSecondary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 8),
+                if (honor.hasMaterial)
+                  GestureDetector(
+                    onTap: () => SacPdfViewer.show(
+                      context,
+                      pdfSource: honor.materialUrl!.trim(),
+                      title: honor.name,
+                    ),
+                    child: Text(
+                      'camporees.detail.event_honor_open_pdf'.tr(),
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  )
+                else
+                  Text(
+                    'camporees.detail.event_honor_no_pdf'.tr(),
+                    style: TextStyle(
+                      color: c.textSecondary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _honorFallback(SacColors c) {
+    return Container(
+      width: 48,
+      height: 48,
+      color: c.surfaceVariant,
+      alignment: Alignment.center,
+      child: HugeIcon(
+        icon: HugeIcons.strokeRoundedAward01,
+        color: c.textSecondary,
+        size: 22,
+      ),
+    );
+  }
+}
+
 class _EventsSection extends StatelessWidget {
   final AsyncValue<List<CamporeeEvent>> eventsAsync;
   final VoidCallback onRetry;
@@ -450,7 +600,7 @@ class _EventsSection extends StatelessWidget {
                     StaggeredListItem(
                       index: index,
                       initialDelay: Duration.zero,
-                      staggerDelay: const Duration(milliseconds: 35),
+                      staggerDelay: SacMotion.stagger,
                       child: _EventTile(
                         key: ValueKey(events[index].camporeeEventId),
                         event: events[index],
@@ -500,7 +650,7 @@ class _EventTile extends StatelessWidget {
             HapticFeedback.selectionClick();
             Navigator.push(
               context,
-              MaterialPageRoute(
+              SacSharedAxisRoute(
                 builder: (_) => _CamporeeEventDetailPage(event: event),
               ),
             );
@@ -596,6 +746,10 @@ class _CamporeeEventDetailPage extends StatelessWidget {
             if (description != null && description.isNotEmpty) ...[
               const SizedBox(height: 24),
               _DescriptionSection(description: description),
+            ],
+            if (event.honors.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              _EventHonorsSection(honors: event.honors),
             ],
             if (hasStaffSummary) ...[
               const SizedBox(height: 24),
@@ -974,7 +1128,7 @@ class _MembersSection extends StatelessWidget {
                     HapticFeedback.selectionClick();
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
+                      SacSharedAxisRoute(
                         builder: (context) => CamporeeRegisterMemberView(
                           camporeeId: camporeeId,
                         ),
@@ -1118,7 +1272,7 @@ class _MembersPreview extends StatelessWidget {
           StaggeredListItem(
             index: index,
             initialDelay: Duration.zero,
-            staggerDelay: const Duration(milliseconds: 40),
+            staggerDelay: SacMotion.stagger,
             child: _MemberPreviewTile(member: preview[index]),
           ),
         const SizedBox(height: 12),
@@ -1130,7 +1284,7 @@ class _MembersPreview extends StatelessWidget {
             HapticFeedback.selectionClick();
             Navigator.push(
               context,
-              MaterialPageRoute(
+              SacSharedAxisRoute(
                 builder: (context) => CamporeeMembersView(
                   camporeeId: camporeeId,
                   camporeeName: camporeeName,

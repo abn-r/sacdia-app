@@ -110,7 +110,8 @@
       "one": "hace {} día",
       "other": "hace {} días"
     },
-    "accessibility_tile": "Accesibilidad"
+    "accessibility_tile": "Accesibilidad",
+    "open_document_failed": "No pudimos abrir este documento."
   },
   "accessibility": {
     "title": "Accesibilidad",
@@ -264,8 +265,8 @@
     },
     "report_device_info": "{platform} {osVersion}\n{model}\nApp {appVersion} ({buildNumber})",
     "hub_badge": "Ruta de ayuda",
-    "hub_title": "Encuentra la ruta correcta para tu duda",
-    "hub_intro": "Encuentra respuestas rápidas, escríbenos por correo o envía un reporte con contexto técnico.",
+    "hub_title": "¿En qué podemos ayudarte?",
+    "hub_intro": "Busca una respuesta o elige cómo contactarnos.",
     "route_faq_label": "Primera parada",
     "route_contact_label": "Canal directo",
     "route_report_label": "Bitácora",
@@ -281,7 +282,12 @@
       "profile": "Perfil",
       "support": "Soporte",
       "onboarding": "Inicio"
-    }
+    },
+    "hub_search_hint": "Buscar en ayuda…",
+    "faq_count": "{} preguntas",
+    "contact_copy": "Copiar correo",
+    "contact_copied": "Correo copiado",
+    "report_pick_category": "Elegir categoría"
   },
   "biometric": {
     "tile_title": "Protección biométrica de la app",
@@ -1630,6 +1636,13 @@
       "section_pending_snack": "Sección marcada como pendiente",
       "error_loading": "Error al cargar módulos"
     },
+    "honors": {
+      "open_pdf": "Abrir PDF",
+      "enroll": "Inscribir",
+      "continue_honor": "Continuar",
+      "no_pdf": "Esta especialidad no tiene material en PDF",
+      "module_section": "Especialidades de este módulo"
+    },
     "detail": {
       "progress_label": "progreso",
       "description_header": "Descripción",
@@ -1763,7 +1776,9 @@
       "create_payment": "Error al registrar pago",
       "fetch_member_payments": "Error al obtener pagos del miembro",
       "fetch_camporee_payments": "Error al obtener pagos del camporee",
-      "fetch_events": "Error al obtener eventos del camporee"
+      "fetch_events": "Error al obtener eventos del camporee",
+      "fetch_leaderboard": "No se pudo cargar la clasificación del camporee.",
+      "fetch_judge_assignments": "No se pudieron cargar tus asignaciones de juez."
     },
     "common": {
       "free": "Gratuito",
@@ -1824,7 +1839,17 @@
       "view_schedules": "Ver horarios",
       "hide_schedules": "Ocultar horarios",
       "event_staff_responsible": "Responsable: {names}",
-      "event_staff_supporting": "Apoyan: {names}"
+      "event_staff_supporting": "Apoyan: {names}",
+      "event_honors_title": "Especialidades de preparación",
+      "event_honors_subtitle": "Consulta el material PDF de cada especialidad.",
+      "event_honor_open_pdf": "Ver material",
+      "event_honor_no_pdf": "Sin PDF disponible",
+      "leaderboard_title": "Clasificación",
+      "leaderboard_subtitle": "Puntajes oficiales de las secciones inscritas.",
+      "leaderboard_empty": "Aparecerá cuando se registren puntajes oficiales.",
+      "leaderboard_error": "No se pudo cargar la clasificación.",
+      "leaderboard_unknown_club": "Club",
+      "leaderboard_section_fallback": "Sección #{id}"
     },
     "members": {
       "title": "Miembros inscritos",
@@ -1927,7 +1952,7 @@
       "event_fallback": "Evento #{eventId}",
       "section_label": "Sección #{sectionId}",
       "score_action": "Cargar puntaje",
-      "no_primary_assignments": "No tenés evaluaciones como juez principal.",
+      "no_primary_assignments": "No tienes evaluaciones como juez principal.",
       "no_primary_assignments_hint": "Los jueces ayudantes pueden apoyar la evaluación, pero sólo el juez principal envía el puntaje oficial.",
       "assignments_error": "No se pudieron cargar tus asignaciones.",
       "score_title": "Puntaje por rúbrica",
@@ -1936,7 +1961,7 @@
       "awarded_points": "Puntos otorgados",
       "max_points_hint": "Máximo: {max} puntos",
       "submit_score": "Enviar puntaje oficial",
-      "score_invalid": "Revisá los puntos: no pueden ser negativos ni superar el máximo del criterio.",
+      "score_invalid": "Revisa los puntos: no pueden ser negativos ni superar el máximo del criterio.",
       "score_saved": "Puntaje oficial enviado.",
       "score_save_failed": "No se pudo enviar el puntaje.",
       "no_rubrics": "Este evento no tiene rúbricas activas.",
@@ -2588,7 +2613,8 @@
     "view": {
       "title": "Seguros del Club",
       "search_hint": "Buscar miembro...",
-      "coverage_title": "Cobertura de Seguros",
+      "coverage_title": "Cobertura",
+      "coverage_of": "{insured} de {total} asegurados",
       "expiring_banner_one": "{count} seguro vence en los próximos 30 días",
       "expiring_banner_other": "{count} seguros vencen en los próximos 30 días",
       "member_count_one": "{count} miembro",
@@ -3584,6 +3610,7 @@
       "club": "Club",
       "evidence_folder": "Carpeta Anual de Evidencias",
       "camporees": "Camporees",
+      "camporee_judge": "Evaluar camporee",
       "finances": "Finanzas",
       "units": "Unidades",
       "grouped_class": "Clase Agrupada",
@@ -4015,6 +4042,217 @@
       "score_pending_hint": "Todavía faltan datos para calcular el puntaje compuesto de este miembro.",
       "rank_position": "Posición #{position}",
       "section_name": "Sección: {name}"
+    }
+  },
+  "payment_orders": {
+    "list": {
+      "title": "Órdenes de pago",
+      "empty": "No hay órdenes de pago todavía",
+      "beneficiaries_count": "{count} beneficiario(s)"
+    },
+    "purpose": {
+      "insurance": "Seguro",
+      "camporee": "Camporee"
+    },
+    "status": {
+      "issued": "Emitida",
+      "proof_submitted": "Comprobante enviado",
+      "approved": "Aprobada",
+      "proof_rejected": "Comprobante rechazado",
+      "cancelled": "Cancelada",
+      "expired": "Vencida"
+    },
+    "timeline": {
+      "issued": "Orden emitida",
+      "proof_submitted": "Comprobante enviado",
+      "approved": "Pago aprobado"
+    },
+    "detail": {
+      "title": "Detalle de orden",
+      "total": "Total",
+      "unit_cost": "Costo unitario",
+      "expires": "Vence",
+      "beneficiaries": "Beneficiarios",
+      "timeline_title": "Estado",
+      "proof_title": "Comprobante de pago",
+      "view_pdf": "Ver orden (PDF)",
+      "upload_proof": "Subir comprobante",
+      "reupload_proof": "Volver a subir comprobante",
+      "proof_uploaded": "Comprobante enviado para revisión",
+      "proof_too_large": "El archivo supera el tamaño máximo de 10 MB",
+      "reject_reason": "Motivo de rechazo",
+      "cancel_order": "Cancelar orden",
+      "cancel_title": "¿Cancelar orden?",
+      "cancel_body": "La orden dejará de ser válida y los lugares no quedarán reservados.",
+      "cancel_confirm": "Sí, cancelar",
+      "cancelled": "Orden cancelada"
+    },
+    "issue": {
+      "title_insurance": "Emitir orden de seguro",
+      "title_camporee": "Emitir orden de camporee",
+      "select_members": "Seleccionar miembros",
+      "eligible_hint_insurance": "Solo se muestran miembros activos sin seguro vigente.",
+      "eligible_hint_camporee": "Solo se muestran miembros activos con seguro vigente que aún no estén inscritos.",
+      "no_eligible": "No hay miembros elegibles",
+      "no_cycle": "No hay un ciclo de seguro configurado para tu sección",
+      "unavailable": "Las órdenes de pago no están habilitadas en tu campo local",
+      "unit_cost_label": "Costo unitario: {cost}",
+      "deadline_label": "Fecha límite: {date}",
+      "total_label": "Total ({count} seleccionados)",
+      "submit": "Emitir orden",
+      "success": "Orden emitida correctamente"
+    },
+    "camporee_redirect": {
+      "title": "Inscripción con orden de pago",
+      "body": "Tu campo local usa órdenes de pago. Emite una orden, paga en el banco o en la caja del campo y sube tu comprobante; la inscripción se confirma al aprobarse el pago.",
+      "issue_button": "Emitir orden de pago",
+      "view_orders": "Ver órdenes de este camporee",
+      "context_loading": "Consultando el flujo de inscripción",
+      "context_error": "No pudimos consultar el flujo de órdenes de pago.",
+      "context_error_hint": "Sin este dato no podemos saber si debes emitir una orden o registrar miembros directo."
+    },
+    "errors": {
+      "flag_disabled": "Las órdenes de pago no están habilitadas en este campo local",
+      "legacy_disabled": "Este flujo fue reemplazado por las órdenes de pago",
+      "not_found": "No se encontró la orden de pago",
+      "forbidden": "No tienes permisos sobre esta orden",
+      "invalid_transition": "La orden no permite esta acción en su estado actual",
+      "expired": "La orden está vencida",
+      "cycle_invalid": "El ciclo de seguro no es válido para tu sección",
+      "camporee_invalid": "El camporee no está disponible para inscripción",
+      "cost_not_configured": "El costo de inscripción no está configurado",
+      "eligibility_failed": "Uno o más miembros no son elegibles",
+      "duplicate_beneficiary": "Uno o más miembros ya tienen una orden o cobertura activa",
+      "beneficiaries_required": "Selecciona al menos un beneficiario",
+      "proof_invalid_file": "Archivo no válido. Usa PDF, JPG o PNG de hasta 10 MB",
+      "reassignment_invalid": "La reasignación no es válida",
+      "reassignment_pending_exists": "Ya existe una solicitud de reasignación pendiente",
+      "download_document": "No se pudo descargar el documento"
+    }
+  },
+  "camporee_orders": {
+    "cta": {
+      "label": "Pedidos",
+      "closed": "El periodo de pedidos está cerrado",
+      "not_open": "Los pedidos aún no están abiertos"
+    },
+    "catalog": {
+      "title": "Pedidos",
+      "new_order": "Nuevo pedido",
+      "history_title": "Pedidos de la sección",
+      "empty": "Aún no hay pedidos de esta sección",
+      "offerings_empty": "No hay artículos disponibles",
+      "disabled": "Los pedidos no están habilitados para este camporee",
+      "closed": "El periodo de pedidos está cerrado",
+      "not_open": "Los pedidos aún no están abiertos"
+    },
+    "capture": {
+      "title": "Armar pedido",
+      "empty_roster": "No hay inscritos activos para pedir",
+      "select_size": "Talla",
+      "qty": "Cantidad",
+      "continue": "Revisar pedido",
+      "no_lines": "Agrega al menos un artículo",
+      "lines_count": "{count} artículo(s)"
+    },
+    "review": {
+      "title": "Revisar pedido",
+      "summary_title": "Consolidado",
+      "named_title": "Por persona",
+      "submit": "Emitir pedido",
+      "success": "Pedido emitido",
+      "empty": "El pedido está vacío"
+    },
+    "detail": {
+      "title": "Detalle del pedido",
+      "total": "Total",
+      "expires": "Vence",
+      "distribution": "Entrega a miembros",
+      "view_pdf": "Ver pedido (PDF)",
+      "upload_proof": "Subir comprobante",
+      "reupload_proof": "Volver a subir comprobante",
+      "proof_uploaded": "Comprobante enviado para revisión",
+      "proof_too_large": "El archivo supera el tamaño máximo de 10 MB",
+      "proof_title": "Comprobante de pago",
+      "cancel_order": "Cancelar pedido",
+      "cancel_title": "¿Cancelar pedido?",
+      "cancel_body": "El pedido dejará de ser válido. Podrás emitir uno nuevo si la ventana sigue abierta.",
+      "cancel_confirm": "Sí, cancelar",
+      "cancelled": "Pedido cancelado",
+      "deliver": "Marcar entregado",
+      "delivered_to_member": "Entregado al miembro"
+    },
+    "status": {
+      "issued": "Emitido",
+      "proof_submitted": "Comprobante enviado",
+      "proof_rejected": "Comprobante rechazado",
+      "paid": "Pagado",
+      "delivered": "Entregado a la sección",
+      "cancelled": "Cancelado",
+      "expired": "Vencido"
+    },
+    "distribution": {
+      "not_started": "Sin entregar",
+      "partial": "Entrega parcial",
+      "complete": "Entrega completa"
+    },
+    "pending": {
+      "title": "Pagos pendientes",
+      "empty": "No hay pagos pendientes",
+      "purpose": {
+        "camporee_materials": "Pedido de camporee",
+        "camporee": "Inscripción de camporee",
+        "insurance": "Seguro",
+        "materials": "Materiales"
+      }
+    },
+    "errors": {
+      "not_found": "No se encontró el pedido",
+      "forbidden": "No tienes permisos sobre este pedido",
+      "invalid_transition": "El pedido no permite esta acción en su estado actual",
+      "lines_required": "Agrega al menos un artículo",
+      "member_not_eligible": "Uno o más inscritos no son elegibles",
+      "offering_invalid": "Uno o más artículos no están disponibles",
+      "option_required": "Selecciona una talla",
+      "option_forbidden": "Esta talla no aplica para el artículo",
+      "payment_config_required": "Falta la configuración de pago del campo local",
+      "proof_invalid_file": "Archivo no válido. Usa PDF, JPG, PNG o WebP de hasta 10 MB",
+      "proof_not_found": "No se encontró el comprobante",
+      "not_delivered_to_section": "El pedido aún no fue entregado a la sección",
+      "distribution_forbidden": "No puedes registrar la entrega a miembros",
+      "download_document": "No se pudo descargar el documento"
+    }
+  },
+  "camporee_supplies": {
+    "cta": {
+      "label": "Insumos"
+    },
+    "plan": {
+      "title": "Insumos de la sección",
+      "cutoff": "Corte para el día siguiente: {time}",
+      "catalog_empty": "El organizador aún no definió horarios ni productos",
+      "empty": "Aún no hay líneas en el plan",
+      "date": "Día",
+      "slot": "Horario",
+      "product": "Producto",
+      "qty": "Cantidad",
+      "add": "Agregar al plan",
+      "save": "Guardar borrador",
+      "submit": "Enviar plan",
+      "saved": "Borrador guardado",
+      "submitted": "Plan enviado. Folio principal emitido.",
+      "adjusted": "Ajuste registrado",
+      "net": "Neto {amount}"
+    },
+    "errors": {
+      "not_found": "No se encontró el plan de insumos",
+      "forbidden": "No puedes operar insumos de este camporee",
+      "not_eligible": "Tu sección no está inscrita en este camporee",
+      "day_locked": "Ese día ya está congelado",
+      "lines_required": "Agrega al menos una línea",
+      "not_draft": "El plan ya no es un borrador",
+      "not_submitted": "El plan aún no está enviado",
+      "qty_invalid": "La cantidad no es válida"
     }
   }
 }

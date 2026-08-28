@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
@@ -28,7 +29,7 @@ Future<void> showSectionSwitcher({
   required String? activeAssignmentId,
   required String? userGender,
 }) {
-  return showModalBottomSheet<void>(
+  return showSacSheet<void>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,

@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/sac_back_button.dart';
+import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -14,6 +15,7 @@ import '../providers/classes_providers.dart';
 import '../widgets/class_identity_badge.dart';
 import 'class_counselor_assignments_view.dart';
 import 'class_members_progress_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 class TeachingScopeView extends ConsumerWidget {
   final int? yearId;
@@ -70,7 +72,7 @@ class TeachingScopeView extends ConsumerWidget {
                         yearId: resolvedAssignmentYearId,
                       );
                       await Navigator.of(context).push(
-                        MaterialPageRoute<void>(
+                        SacSharedAxisRoute<void>(
                           builder: (_) => ClassCounselorAssignmentsView(
                             clubId: activeClubContext.clubId,
                             sectionId: activeClubContext.sectionId,
@@ -182,7 +184,7 @@ class _TeachingScopeBody extends StatelessWidget {
           return _ClassScopeTile(
             progressiveClass: progressiveClass,
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
+              SacSharedAxisRoute<void>(
                 builder: (_) => ClassMembersProgressView(
                   clubId: clubId,
                   sectionId: sectionId,
@@ -374,14 +376,10 @@ class _ErrorState extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-            FilledButton.icon(
+            SacButton(
+              text: 'common.retry'.tr(),
+              icon: HugeIcons.strokeRoundedRefresh,
               onPressed: onRetry,
-              icon: const HugeIcon(
-                icon: HugeIcons.strokeRoundedRefresh,
-                size: 18,
-                color: Colors.white,
-              ),
-              label: Text('common.retry'.tr()),
             ),
           ],
         ),

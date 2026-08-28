@@ -54,6 +54,18 @@ All colors are defined in `lib/core/theme/app_colors.dart`.
 | `AppColors.errorLight` | `#FEE2E2` | Error badge background |
 | `AppColors.errorDark` | `#991B1B` | Error text |
 
+### 2.1b Login brand — `logo-sacdia.png`
+
+Exclusive to splash/login. Do **not** replace coral `primary` in the rest of the app.
+
+| Token | Value | Role |
+|-------|-------|------|
+| `AppColors.loginBrandBlue` | `#0B84F0` | Capsule CTA, splash loader |
+| `AppColors.loginBrandBlueDark` | `#0666C9` | Text links on white (contrast) |
+| `AppColors.loginBrandGold` | `#F0B000` | Hairline under the wordmark |
+
+These tokens are the same in light and dark (logo-locked). Using `AppColors.loginBrand*` in auth paint is the exception to §2.7.
+
 ### 2.2 Surface Tokens — Light Mode
 
 | Token | Value | Role |
@@ -323,8 +335,10 @@ Widget buildIcon(dynamic icon, {double size = 24, Color? color}) {
 
 **File:** `lib/core/widgets/sac_button.dart`
 
-The primary button widget. Wraps `ElevatedButton` or `TextButton` with scale
-press animation (0.96) and haptic feedback.
+The primary button widget. Custom pressable: `GestureDetector` + `DecoratedBox`.
+Press is `AnimatedScale(0.97)` over 140ms with `SacMotion.easeOut` and
+`HapticFeedback.lightImpact()`. No Material splash / `ElevatedButton`.
+Keyboard activation uses `FocusableActionDetector` (`ActivateIntent`).
 
 **Variants (`SacButtonVariant`):**
 
@@ -333,7 +347,7 @@ press animation (0.96) and haptic feedback.
 | `primary` | `AppColors.primary` | white | none |
 | `secondary` | `AppColors.primaryLight` | `AppColors.primaryDark` | none |
 | `outline` | transparent | `AppColors.primary` | `AppColors.primary 1.5px` |
-| `ghost` | transparent | `AppColors.primary` | none (TextButton) |
+| `ghost` | transparent | `AppColors.primary` | none |
 | `destructive` | `AppColors.error` | white | none |
 | `success` | `AppColors.secondary` | white | none |
 
@@ -513,13 +527,52 @@ final confirmed = await SacDialog.show(
 if (confirmed == true) { ... }
 ```
 
+Actions use `SacButton` (scout press, no Material ripple).
+
+**Optional `body` for forms:**
+
+Use `body` when the dialog needs fields (`SacTextField`, `Form`). Title and
+`content` stay as copy; `body` sits below them. For custom actions or
+validation before pop, use `SacDialog.present` instead of `show`.
+
+```dart
+final confirmed = await SacDialog.present<bool>(
+  context,
+  builder: (ctx) => SacDialog(
+    title: 'Rechazar',
+    content: 'Escribe el motivo.',
+    body: Form(
+      key: formKey,
+      child: SacTextField(controller: reasonCtrl, validator: ...),
+    ),
+    actions: [
+      SacDialogAction(
+        label: 'Cancelar',
+        style: SacDialogActionStyle.cancel,
+        onPressed: () => Navigator.pop(ctx, false),
+      ),
+      SacDialogAction(
+        label: 'Rechazar',
+        style: SacDialogActionStyle.destructive,
+        onPressed: () {
+          if (formKey.currentState!.validate()) {
+            Navigator.pop(ctx, true);
+          }
+        },
+      ),
+    ],
+  ),
+);
+```
+
 **Action styles (`SacDialogActionStyle`):**
 
 | Style | Color | Weight |
 |-------|-------|--------|
-| `confirm` | `AppColors.primary` | w600 |
+| `confirm` | `AppColors.coral700` | w600 |
+| `success` | `AppColors.secondary` | w600 |
 | `destructive` | `AppColors.error` | w600 |
-| `cancel` | `context.sac.textSecondary` | w400 |
+| `cancel` | `context.sac.textSecondary` | w600 |
 
 ### 6.6 SacLoading / SacLoadingSmall
 
@@ -627,16 +680,15 @@ import 'package:sacdia_app/core/widgets/sac_widgets.dart';
 
 ### 6.11 Legacy Widgets — Deprecated
 
-The following widgets are deprecated and must NOT be used in new code:
+The following widget is deprecated and must NOT be used in new code:
 
 | Deprecated | Canonical replacement | Prop mapping |
 |------------|----------------------|-------------|
-| `CustomButton` (`custom_button.dart`) | `SacButton` (`sac_widgets.dart`) | `text` → `text`, `onPressed` → `onPressed`, `isLoading` → `isLoading`, `backgroundColor` → use `variant` |
 | `CustomTextField` (`custom_text_field.dart`) | `SacTextField` (`sac_widgets.dart`) | `controller` → `controller`, `labelText` → `label`, `hintText` → `hint`, `validator` → `validator`, `prefixIcon` → `prefixIcon` |
 
-Both classes are annotated with `@Deprecated(...)` at the class level. The Dart analyzer will emit warnings in any file that references them. Do not suppress those warnings — they are intentional signals to migrate.
+`CustomButton` was removed. Use `SacButton`. `CustomTextField` is annotated with `@Deprecated(...)` at the class level. The Dart analyzer will emit warnings in any file that references it. Do not suppress those warnings — they are intentional signals to migrate.
 
-**Migration — existing consumers:** There are existing callers of `CustomButton` and `CustomTextField` throughout the codebase. Do NOT mass-migrate them in a single commit — migrate per feature/screen as part of normal development. The `@Deprecated` annotation is the tracking mechanism.
+**Migration — existing consumers:** There are existing callers of `CustomTextField` throughout the codebase. Do NOT mass-migrate them in a single commit — migrate per feature/screen as part of normal development. The `@Deprecated` annotation is the tracking mechanism.
 
 ---
 
@@ -977,12 +1029,13 @@ Bottom sheet radius is always `top: Radius.circular(20)` (from `BottomSheetTheme
 - `lib/features/auth/presentation/views/splash_view.dart`
 
 **Login pattern:**
-- White background (`lightBackground`)
-- SVG logo at top
-- `SacCard` wrapping the form (clean separation)
-- `SacTextField` for email/password
+- White background (`context.sac.background`) — same canvas as the rest of the app
+- Brand mark: `SacBrandMark` from `assets/img/logo-sacdia.png` (squircle + soft shadow)
+- Gold hairline (`AppColors.loginBrandGold`) under the wordmark
+- `SacTextField` for email/password (do not restyle the field itself)
 - Rate limiting: 3 failed attempts → 30s cooldown with countdown display
-- `SacButton.primary` for submit
+- Capsule CTA using `AppColors.loginBrandBlue` (logo blue; does **not** replace coral `AppColors.primary` elsewhere)
+- Entrance: `StaggeredColumn` with `SacMotion` tokens; splash uses fade+scale from `SacMotion.enterScale` (0.96)
 
 ### 12.6 Onboarding / Post-Registration
 
@@ -1096,9 +1149,10 @@ Use `sharedAxisPage`, `fadeThroughPage`, or `slideUpPage` in the router
 
 ### 14.4 Scale Press on Buttons
 
-`SacButton` applies `ScaleTransition(scale: 0.96)` on `TapDown` with
-`HapticFeedback.lightImpact()`. Do NOT add redundant `GestureDetector` wrappers
-around `SacButton` — the animation is already built in.
+`SacButton` applies `AnimatedScale(scale: 0.97)` on `TapDown` (140ms,
+`SacMotion.easeOut`) with `HapticFeedback.lightImpact()`. Reduced motion
+keeps scale at 1. Do NOT add redundant `GestureDetector` wrappers around
+`SacButton` — the animation is already built in.
 
 ### 14.5 Celebration Overlay
 

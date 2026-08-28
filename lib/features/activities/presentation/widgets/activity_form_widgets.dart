@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../views/location_picker_view.dart';
 
@@ -24,7 +25,7 @@ Future<TimeOfDay?> showTimePickerSheet(
   BuildContext context,
   TimeOfDay initialTime,
 ) {
-  return showModalBottomSheet<TimeOfDay>(
+  return showSacSheet<TimeOfDay>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,

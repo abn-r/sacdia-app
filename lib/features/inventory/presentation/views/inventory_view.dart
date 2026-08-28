@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -16,6 +17,9 @@ import 'add_inventory_item_sheet.dart';
 import 'inventory_filter_sheet.dart';
 import 'inventory_item_detail_view.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 /// Pantalla principal del módulo de Inventario del club.
 ///
@@ -198,7 +202,7 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
   }
 
   void _openAddSheet(BuildContext context) {
-    showModalBottomSheet(
+    showSacSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -208,7 +212,7 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
   }
 
   void _openEdit(BuildContext context, InventoryItem item) {
-    showModalBottomSheet(
+    showSacSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -218,7 +222,7 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
   }
 
   void _openFilterSheet(BuildContext context) {
-    showModalBottomSheet(
+    showSacSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -236,51 +240,30 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
     );
   }
 
-  void _confirmDelete(BuildContext context, InventoryItem item) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('inventory.detail.delete_title'.tr()),
-        content: Text('inventory.detail.delete_confirm'
-            .tr(namedArgs: {'name': item.name})),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text('common.cancel'.tr()),
-          ),
-          Consumer(
-            builder: (consumerContext, ref, _) {
-              final deleteState = ref.watch(inventoryDeleteNotifierProvider);
-              return FilledButton(
-                onPressed: deleteState.isLoading
-                    ? null
-                    : () async {
-                        Navigator.pop(ctx);
-                        final success = await ref
-                            .read(inventoryDeleteNotifierProvider.notifier)
-                            .deleteItem(item.id);
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                success
-                                    ? 'inventory.detail.deleted_success'.tr()
-                                    : 'inventory.detail.delete_error'.tr(),
-                              ),
-                              backgroundColor: success
-                                  ? AppColors.secondary
-                                  : AppColors.error,
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                        }
-                      },
-                style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-                child: Text('common.delete'.tr()),
-              );
-            },
-          ),
-        ],
+  Future<void> _confirmDelete(BuildContext context, InventoryItem item) async {
+    final confirmed = await SacDialog.show(
+      context,
+      title: 'inventory.detail.delete_title'.tr(),
+      content:
+          'inventory.detail.delete_confirm'.tr(namedArgs: {'name': item.name}),
+      confirmLabel: 'common.delete'.tr(),
+      confirmIsDestructive: true,
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    final success = await ref
+        .read(inventoryDeleteNotifierProvider.notifier)
+        .deleteItem(item.id);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? 'inventory.detail.deleted_success'.tr()
+              : 'inventory.detail.delete_error'.tr(),
+        ),
+        backgroundColor: success ? AppColors.secondary : AppColors.error,
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -437,10 +420,22 @@ class _SkeletonBoxState extends State<_SkeletonBox>
     _ctrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1100),
-    )..repeat(reverse: true);
-    _anim = Tween<double>(begin: 0.4, end: 1.0).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
     );
+    _anim = Tween<double>(begin: 0.4, end: 1.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: SacMotion.easeInOut),
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduce = SacMotion.reduceMotionOf(context);
+    if (reduce) {
+      _ctrl.stop();
+      _ctrl.value = 0;
+    } else if (!_ctrl.isAnimating) {
+      _ctrl.repeat(reverse: true);
+    }
   }
 
   @override
@@ -475,32 +470,37 @@ class _ErrorBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final icon = Container(
+      width: 72,
+      height: 72,
+      decoration: BoxDecoration(
+        color: AppColors.error.withValues(alpha: 0.10),
+        shape: BoxShape.circle,
+      ),
+      child: const Center(
+        child: HugeIcon(
+          icon: HugeIcons.strokeRoundedAlert02,
+          size: 36,
+          color: AppColors.error,
+        ),
+      ),
+    );
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(32, 48, 32, 16),
       child: Column(
         children: [
-          TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0.8, end: 1.0),
-            duration: const Duration(milliseconds: 600),
-            curve: Curves.elasticOut,
-            builder: (context, scale, child) =>
-                Transform.scale(scale: scale, child: child),
-            child: Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color: AppColors.error.withValues(alpha: 0.10),
-                shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedAlert02,
-                  size: 36,
-                  color: AppColors.error,
-                ),
-              ),
+          if (SacMotion.reduceMotionOf(context))
+            icon
+          else
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: SacMotion.enterScale, end: 1.0),
+              duration: SacMotion.standard,
+              curve: SacMotion.easeOut,
+              builder: (context, scale, child) =>
+                  Transform.scale(scale: scale, child: child),
+              child: icon,
             ),
-          ),
           const SizedBox(height: 16),
           Text(
             'inventory.view.error_load'.tr(),
@@ -519,15 +519,10 @@ class _ErrorBody extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-          FilledButton.icon(
+          SacButton(
+            text: 'common.retry'.tr(),
+            icon: HugeIcons.strokeRoundedRefresh,
             onPressed: onRetry,
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedRefresh,
-              size: 18,
-              color: Colors.white,
-            ),
-            label: Text('common.retry'.tr()),
-            style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
           ),
         ],
       ),
@@ -616,27 +611,10 @@ class _EmptyState extends StatelessWidget {
 
           if (canAdd && onAddTap != null) ...[
             const SizedBox(height: 28),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: onAddTap,
-                icon: const HugeIcon(
-                  icon: HugeIcons.strokeRoundedAdd01,
-                  size: 18,
-                  color: Colors.white,
-                ),
-                label: Text(
-                  'inventory.view.add_first_item'.tr(),
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  minimumSize: const Size(0, 52),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-                  ),
-                ),
-              ),
+            SacButton.primary(
+              text: 'inventory.view.add_first_item'.tr(),
+              icon: HugeIcons.strokeRoundedAdd01,
+              onPressed: onAddTap,
             ),
           ],
         ],

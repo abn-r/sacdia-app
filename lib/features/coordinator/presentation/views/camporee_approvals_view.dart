@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
+import '../../../../core/widgets/sac_dialog.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../domain/entities/camporee_approval.dart';
 import '../providers/coordinator_providers.dart';
@@ -702,30 +703,13 @@ class _ClubEnrollmentCard extends ConsumerWidget {
   }
 
   Future<void> _handleApprove(BuildContext context, WidgetRef ref) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('coordinator.camporee_approvals.approve_club_title'.tr()),
-        content: Text(
-          'coordinator.camporee_approvals.approve_club_msg'
-              .tr(namedArgs: {'name': item.displayName}),
-          style: const TextStyle(fontSize: 14),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('coordinator.actions.cancel'.tr()),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.secondary,
-              foregroundColor: Colors.white,
-            ),
-            child: Text('coordinator.actions.approve'.tr()),
-          ),
-        ],
-      ),
+    final confirmed = await SacDialog.show(
+      context,
+      title: 'coordinator.camporee_approvals.approve_club_title'.tr(),
+      content: 'coordinator.camporee_approvals.approve_club_msg'
+          .tr(namedArgs: {'name': item.displayName}),
+      confirmLabel: 'coordinator.actions.approve'.tr(),
+      cancelLabel: 'coordinator.actions.cancel'.tr(),
     );
 
     if (confirmed != true || !context.mounted) return;
@@ -803,30 +787,13 @@ class _MemberEnrollmentCard extends ConsumerWidget {
   }
 
   Future<void> _handleApprove(BuildContext context, WidgetRef ref) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('coordinator.camporee_approvals.approve_member_title'.tr()),
-        content: Text(
-          'coordinator.camporee_approvals.approve_member_msg'
-              .tr(namedArgs: {'name': item.displayName}),
-          style: const TextStyle(fontSize: 14),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('coordinator.actions.cancel'.tr()),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.secondary,
-              foregroundColor: Colors.white,
-            ),
-            child: Text('coordinator.actions.approve'.tr()),
-          ),
-        ],
-      ),
+    final confirmed = await SacDialog.show(
+      context,
+      title: 'coordinator.camporee_approvals.approve_member_title'.tr(),
+      content: 'coordinator.camporee_approvals.approve_member_msg'
+          .tr(namedArgs: {'name': item.displayName}),
+      confirmLabel: 'coordinator.actions.approve'.tr(),
+      cancelLabel: 'coordinator.actions.cancel'.tr(),
     );
 
     if (confirmed != true || !context.mounted) return;
@@ -918,35 +885,17 @@ class _PaymentEnrollmentCard extends ConsumerWidget {
   }
 
   Future<void> _handleApprove(BuildContext context, WidgetRef ref) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title:
-            Text('coordinator.camporee_approvals.approve_payment_title'.tr()),
-        content: Text(
-          'coordinator.camporee_approvals.approve_payment_msg'.tr(
-            namedArgs: {
-              'amount': item.amount.toStringAsFixed(2),
-              'name': item.displayName,
-            },
-          ),
-          style: const TextStyle(fontSize: 14),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('coordinator.actions.cancel'.tr()),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.secondary,
-              foregroundColor: Colors.white,
-            ),
-            child: Text('coordinator.actions.approve'.tr()),
-          ),
-        ],
+    final confirmed = await SacDialog.show(
+      context,
+      title: 'coordinator.camporee_approvals.approve_payment_title'.tr(),
+      content: 'coordinator.camporee_approvals.approve_payment_msg'.tr(
+        namedArgs: {
+          'amount': item.amount.toStringAsFixed(2),
+          'name': item.displayName,
+        },
       ),
+      confirmLabel: 'coordinator.actions.approve'.tr(),
+      cancelLabel: 'coordinator.actions.cancel'.tr(),
     );
 
     if (confirmed != true || !context.mounted) return;

@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/camporee.dart';
+import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/utils/json_helpers.dart';
 
 /// Modelo de camporee para la capa de datos
@@ -47,8 +48,12 @@ class CamporeeModel extends Equatable {
           json['local_camporee_id'] ?? json['camporee_id'] ?? json['id']),
       name: safeString(json['name']),
       description: safeStringOrNull(json['description']),
-      startDate: DateTime.parse(safeString(json['start_date'])),
-      endDate: DateTime.parse(safeString(json['end_date'])),
+      startDate: SacDateFormatter.parseCalendarDate(
+        safeString(json['start_date']),
+      ),
+      endDate: SacDateFormatter.parseCalendarDate(
+        safeString(json['end_date']),
+      ),
       place: safeString(
         json['local_camporee_place'] ??
             json['union_camporee_place'] ??

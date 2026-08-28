@@ -71,7 +71,6 @@ class ClubRepositoryImpl implements ClubRepository {
   Future<Either<Failure, ClubSection>> updateClubSection({
     required String clubId,
     required int sectionId,
-    String? name,
     String? phone,
     String? email,
     String? website,
@@ -82,7 +81,6 @@ class ClubRepositoryImpl implements ClubRepository {
   }) async {
     // Construir el payload solo con los campos que vienen no-null
     final data = <String, dynamic>{};
-    if (name != null) data['name'] = name;
     if (phone != null) data['phone'] = phone;
     if (email != null) data['email'] = email;
     if (website != null) data['website'] = website;

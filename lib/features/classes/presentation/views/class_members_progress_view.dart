@@ -5,11 +5,13 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/sac_back_button.dart';
+import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../domain/entities/class_members_progress.dart';
 import '../providers/classes_providers.dart';
 import '../widgets/class_identity_badge.dart';
 import 'class_detail_with_progress_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 class ClassMembersProgressView extends ConsumerWidget {
   final int clubId;
@@ -116,7 +118,7 @@ class _MembersBody extends StatelessWidget {
             member: member,
             classColor: classColor,
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
+              SacSharedAxisRoute<void>(
                 builder: (_) => ClassDetailWithProgressView(
                   classId: member.classId,
                   enrollmentId: member.enrollmentId,
@@ -337,14 +339,10 @@ class _ErrorState extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-            FilledButton.icon(
+            SacButton(
+              text: 'common.retry'.tr(),
+              icon: HugeIcons.strokeRoundedRefresh,
               onPressed: onRetry,
-              icon: const HugeIcon(
-                icon: HugeIcons.strokeRoundedRefresh,
-                size: 18,
-                color: Colors.white,
-              ),
-              label: Text('common.retry'.tr()),
             ),
           ],
         ),

@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 
 /// Bottom sheet for choosing transaction sort order.
 ///
@@ -234,26 +235,10 @@ class _BottomSheetApplyButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: FilledButton(
-        onPressed: onApply,
-        style: FilledButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-        child: Text(
-          'finances.widgets.apply'.tr(),
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-      ),
+    return SacButton.primary(
+      text: 'finances.widgets.apply'.tr(),
+      onPressed: onApply,
+      borderRadius: 14,
     );
   }
 }

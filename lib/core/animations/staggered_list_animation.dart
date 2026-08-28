@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 
-/// Duolingo-style staggered list animation utilities.
+/// Staggered list entrance: fade + slide-up, [SacMotion] tokens.
 ///
-/// Wraps list items in a fade + slide-up entrance that fires sequentially
-/// based on the item [index], creating a cascading reveal effect.
+/// Wraps list items in a fade + slide-up that fires sequentially
+/// based on the item [index].
 ///
 /// Usage:
 /// ```dart
@@ -22,10 +22,9 @@ import 'package:sacdia_app/core/animations/motion_tokens.dart';
 
 /// A single animated list item that fades in and slides up.
 ///
-/// The animation triggers automatically when the widget first builds.
-/// [index] controls the stagger delay (50ms per item, capped at 600ms).
-/// Set [animate] to false for an explicit opt-out. System Reduced Motion is
-/// honored automatically.
+/// Triggers on first build. Stagger is [SacMotion.stagger] (40ms) per index,
+/// capped at index 5. Duration is [SacMotion.standard] (200ms).
+/// Set [animate] to false to opt out. Reduced Motion skips movement.
 class StaggeredListItem extends StatefulWidget {
   final Widget child;
 
@@ -52,9 +51,9 @@ class StaggeredListItem extends StatefulWidget {
     required this.child,
     required this.index,
     this.initialDelay = Duration.zero,
-    this.staggerDelay = const Duration(milliseconds: 60),
-    this.duration = const Duration(milliseconds: 350),
-    this.slideOffset = 24.0,
+    this.staggerDelay = SacMotion.stagger,
+    this.duration = SacMotion.standard,
+    this.slideOffset = 8.0,
     this.animate = true,
   });
 
@@ -166,10 +165,10 @@ class StaggeredColumn extends StatelessWidget {
     this.crossAxisAlignment = CrossAxisAlignment.start,
     this.mainAxisAlignment = MainAxisAlignment.start,
     this.mainAxisSize = MainAxisSize.min,
-    this.initialDelay = const Duration(milliseconds: 80),
-    this.staggerDelay = const Duration(milliseconds: 70),
-    this.duration = const Duration(milliseconds: 350),
-    this.slideOffset = 28.0,
+    this.initialDelay = Duration.zero,
+    this.staggerDelay = SacMotion.stagger,
+    this.duration = SacMotion.standard,
+    this.slideOffset = 8.0,
     this.animate = true,
   });
 

@@ -184,8 +184,8 @@ final classModulesProvider = FutureProvider.autoDispose
 /// autoDispose: la lista solo se necesita mientras la vista de detalle de
 /// clase está montada. El estado del usuario (`user_status`) llega resuelto
 /// por el backend a partir del token de auth adjuntado por el interceptor.
-final classHonorsProvider =
-    FutureProvider.autoDispose.family<List<ClassHonor>, int>((ref, classId) async {
+final classHonorsProvider = FutureProvider.autoDispose
+    .family<List<ClassHonor>, int>((ref, classId) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
 

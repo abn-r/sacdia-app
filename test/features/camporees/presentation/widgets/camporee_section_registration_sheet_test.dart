@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_section_registration_sheet.dart';
@@ -71,8 +72,7 @@ void main() {
       },
     );
 
-    final confirm =
-        find.widgetWithText(ElevatedButton, 'Confirmar inscripción');
+    final confirm = find.widgetWithText(SacButton, 'Confirmar inscripción');
     await tester.tap(confirm);
     await tester.tap(confirm);
     await tester.pump();
@@ -115,7 +115,7 @@ void main() {
     );
 
     await tester.tap(
-      find.widgetWithText(ElevatedButton, 'Confirmar inscripción'),
+      find.widgetWithText(SacButton, 'Confirmar inscripción'),
     );
     await tester.pumpAndSettle();
 
@@ -140,7 +140,7 @@ void main() {
         brightness: brightness,
       );
       await tester.tap(
-        find.widgetWithText(ElevatedButton, 'Confirmar inscripción'),
+        find.widgetWithText(SacButton, 'Confirmar inscripción'),
       );
       await tester.pumpAndSettle();
 
@@ -177,7 +177,7 @@ void main() {
     );
 
     final confirmButton = find.widgetWithText(
-      ElevatedButton,
+      SacButton,
       'Confirmar inscripción',
     );
     final confirm = tester.widget<Text>(

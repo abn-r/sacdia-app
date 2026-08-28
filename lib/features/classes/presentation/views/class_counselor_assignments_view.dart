@@ -11,6 +11,9 @@ import '../../../../core/widgets/sac_back_button.dart';
 import '../../../../core/widgets/sac_card.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/domain/entities/club_member.dart';
@@ -263,7 +266,7 @@ class ClassCounselorAssignmentsView extends ConsumerWidget {
       }
     }
 
-    final changed = await showModalBottomSheet<bool>(
+    final changed = await showSacSheet<bool>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -295,30 +298,17 @@ class ClassCounselorAssignmentsView extends ConsumerWidget {
     ClassCounselorAssignmentsQuery query,
     ClassCounselorAssignment assignment,
   ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('classes.class_assignments.revoke_title'.tr()),
-        content: Text(
-          'classes.class_assignments.revoke_body'.tr(
-            namedArgs: {
-              'name': _safePersonName(assignment.user, assignment.userId),
-              'className': assignment.clazz.name,
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text('common.cancel'.tr()),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text('classes.class_assignments.revoke_confirm'.tr()),
-          ),
-        ],
+    final confirmed = await SacDialog.show(
+      context,
+      title: 'classes.class_assignments.revoke_title'.tr(),
+      content: 'classes.class_assignments.revoke_body'.tr(
+        namedArgs: {
+          'name': _safePersonName(assignment.user, assignment.userId),
+          'className': assignment.clazz.name,
+        },
       ),
+      confirmLabel: 'classes.class_assignments.revoke_confirm'.tr(),
+      confirmIsDestructive: true,
     );
 
     if (confirmed != true || !context.mounted) return;
@@ -723,7 +713,7 @@ class _AssignmentTile extends StatelessWidget {
   ) async {
     final classColor = AppColors.classColor(assignment.clazz.name);
 
-    final action = await showModalBottomSheet<String>(
+    final action = await showSacSheet<String>(
       context: context,
       backgroundColor: AppColors.canvas,
       shape: const RoundedRectangleBorder(
@@ -1308,27 +1298,19 @@ class _ClassCounselorAssignmentSheetState
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
+                    child: SacButton.outline(
+                      text: 'common.cancel'.tr(),
                       onPressed: actionState.isLoading
                           ? null
                           : () => Navigator.of(context).pop(false),
-                      child: Text('common.cancel'.tr()),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: FilledButton(
+                    child: SacButton.primary(
+                      text: 'common.save'.tr(),
+                      isLoading: actionState.isLoading,
                       onPressed: actionState.isLoading ? null : _submit,
-                      child: actionState.isLoading
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : Text('common.save'.tr()),
                     ),
                   ),
                 ],
@@ -1445,14 +1427,10 @@ class _AssignmentsErrorState extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-            FilledButton.icon(
+            SacButton(
+              text: 'common.retry'.tr(),
+              icon: HugeIcons.strokeRoundedRefresh,
               onPressed: onRetry,
-              icon: const HugeIcon(
-                icon: HugeIcons.strokeRoundedRefresh,
-                size: 18,
-                color: Colors.white,
-              ),
-              label: Text('common.retry'.tr()),
             ),
           ],
         ),

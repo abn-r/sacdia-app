@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 
 /// Widget para mostrar estados vacíos de manera consistente
 ///
@@ -51,13 +52,10 @@ class EmptyStateWidget extends StatelessWidget {
             ),
             if (actionLabel != null && onAction != null) ...[
               const SizedBox(height: 32),
-              ElevatedButton.icon(
+              SacButton(
+                text: actionLabel!,
+                icon: HugeIcons.strokeRoundedAdd01,
                 onPressed: onAction,
-                icon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedAdd01,
-                    color: Colors.white,
-                    size: 20),
-                label: Text(actionLabel!),
               ),
             ],
           ],

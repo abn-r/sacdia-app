@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/sac_colors.dart';
@@ -11,7 +12,7 @@ import '../../theme/sac_colors.dart';
 /// Returns [ImageSource.camera] for single capture or
 /// [ImageSource.gallery] for multi-select. Returns `null` if dismissed.
 Future<ImageSource?> showImageSourceDialog(BuildContext context) {
-  return showModalBottomSheet<ImageSource>(
+  return showSacSheet<ImageSource>(
     context: context,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),

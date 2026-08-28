@@ -15,6 +15,9 @@ import '../providers/inventory_providers.dart';
 import '../widgets/condition_badge.dart';
 import 'add_inventory_item_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 /// Pantalla de detalle de un ítem del inventario.
 ///
@@ -280,7 +283,7 @@ class InventoryItemDetailView extends ConsumerWidget {
   }
 
   void _openEdit(BuildContext context, InventoryItem selectedItem) {
-    showModalBottomSheet(
+    showSacSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -289,52 +292,41 @@ class InventoryItemDetailView extends ConsumerWidget {
     );
   }
 
-  void _confirmDelete(
+  Future<void> _confirmDelete(
     BuildContext context,
     WidgetRef ref,
     InventoryItem selectedItem,
-  ) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('inventory.detail.delete_title'.tr()),
-        content: Text('inventory.detail.delete_confirm'
-            .tr(namedArgs: {'name': selectedItem.name})),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text('common.cancel'.tr()),
-          ),
-          FilledButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              final success = await ref
-                  .read(inventoryDeleteNotifierProvider.notifier)
-                  .deleteItem(selectedItem.id);
-              if (success && context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('inventory.detail.deleted_success'.tr()),
-                    backgroundColor: AppColors.secondary,
-                  ),
-                );
-                Navigator.pop(context);
-              } else if (!success && context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('inventory.detail.delete_error'.tr()),
-                    backgroundColor: AppColors.error,
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              }
-            },
-            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-            child: Text('common.delete'.tr()),
-          ),
-        ],
-      ),
+  ) async {
+    final confirmed = await SacDialog.show(
+      context,
+      title: 'inventory.detail.delete_title'.tr(),
+      content: 'inventory.detail.delete_confirm'
+          .tr(namedArgs: {'name': selectedItem.name}),
+      confirmLabel: 'common.delete'.tr(),
+      confirmIsDestructive: true,
     );
+    if (confirmed != true || !context.mounted) return;
+
+    final success = await ref
+        .read(inventoryDeleteNotifierProvider.notifier)
+        .deleteItem(selectedItem.id);
+    if (success && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('inventory.detail.deleted_success'.tr()),
+          backgroundColor: AppColors.secondary,
+        ),
+      );
+      Navigator.pop(context);
+    } else if (!success && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('inventory.detail.delete_error'.tr()),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 }
 
@@ -393,108 +385,33 @@ class _BottomActionBar extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Delete button
             Expanded(
-              child: SizedBox(
-                height: 56,
-                child: OutlinedButton(
-                  onPressed: isDeleting ? null : onDelete,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.error,
-                    side: const BorderSide(color: AppColors.error),
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-                    ),
-                  ),
-                  child: _ActionButtonLabel(
-                    icon: isDeleting
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: AppColors.error,
-                            ),
-                          )
-                        : const HugeIcon(
-                            icon: HugeIcons.strokeRoundedDelete02,
-                            size: 18,
-                            color: AppColors.error,
-                          ),
-                    label: 'common.delete'.tr(),
-                    color: AppColors.error,
-                  ),
-                ),
+              child: SacButton(
+                text: 'common.delete'.tr(),
+                icon: HugeIcons.strokeRoundedDelete02,
+                variant: SacButtonVariant.outline,
+                size: SacButtonSize.large,
+                fullWidth: true,
+                isLoading: isDeleting,
+                textColor: AppColors.error,
+                borderColor: AppColors.error,
+                onPressed: isDeleting ? null : onDelete,
               ),
             ),
-
             const SizedBox(width: 12),
-
-            // Edit button
             Expanded(
-              child: SizedBox(
-                height: 56,
-                child: FilledButton(
-                  onPressed: onEdit,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-                    ),
-                  ),
-                  child: _ActionButtonLabel(
-                    icon: const HugeIcon(
-                      icon: HugeIcons.strokeRoundedEdit01,
-                      size: 18,
-                      color: Colors.white,
-                    ),
-                    label: 'inventory.detail.edit_button'.tr(),
-                    color: Colors.white,
-                  ),
-                ),
+              child: SacButton(
+                text: 'inventory.detail.edit_button'.tr(),
+                icon: HugeIcons.strokeRoundedEdit01,
+                variant: SacButtonVariant.primary,
+                size: SacButtonSize.large,
+                fullWidth: true,
+                onPressed: onEdit,
               ),
             ),
           ],
         ),
       ),
-    );
-  }
-}
-
-class _ActionButtonLabel extends StatelessWidget {
-  final Widget icon;
-  final String label;
-  final Color color;
-
-  const _ActionButtonLabel({
-    required this.icon,
-    required this.label,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        icon,
-        const SizedBox(width: 8),
-        Flexible(
-          child: Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            softWrap: false,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w800,
-                ),
-          ),
-        ),
-      ],
     );
   }
 }

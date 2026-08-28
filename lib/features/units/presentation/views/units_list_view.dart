@@ -11,8 +11,9 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
-import '../../../../core/auth/club_role_names.dart';
+import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import '../../domain/entities/member_of_month.dart';
@@ -22,20 +23,11 @@ import 'member_of_month_history_view.dart';
 import 'unit_detail_view.dart';
 import 'unit_form_sheet.dart';
 
-// ── Role helpers ──────────────────────────────────────────────────────────────
-
-bool _canManageRole(String? role) {
-  if (role == null) return false;
-  return ClubRoleNames.management.contains(role.trim().toLowerCase());
-}
-
-bool _canDeleteRole(String? role) {
-  return role?.trim().toLowerCase() == 'director';
-}
+// ── Permission helpers ────────────────────────────────────────────────────────
 
 List<Unit> _filterUnitsByRole(
   List<Unit> units,
-  String? role,
+  bool canSeeAllSectionUnits,
   String? userId,
   int? sectionId,
 ) {
@@ -43,10 +35,9 @@ List<Unit> _filterUnitsByRole(
       ? units
       : units.where((u) => u.clubSectionId == sectionId).toList();
 
-  if (role != null && _canManageRole(role)) {
-    return scopedUnits; // management sees all units in the active section
+  if (canSeeAllSectionUnits) {
+    return scopedUnits;
   }
-  // Non-management: only units where the user is directly assigned
   return scopedUnits
       .where(
         (u) =>
@@ -93,11 +84,16 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
       if (!mounted) return;
 
       final user = ref.read(authNotifierProvider).valueOrNull;
-      final role = clubCtx?.roleName;
       final userId = user?.id;
       final sectionId = clubCtx?.sectionId;
+      final canSeeAll = hasAnyPermission(user, const {'units:create'});
 
-      final visible = _filterUnitsByRole(rawUnits, role, userId, sectionId);
+      final visible = _filterUnitsByRole(
+        rawUnits,
+        canSeeAll,
+        userId,
+        sectionId,
+      );
       if (visible.length == 1) {
         _navigateToUnit(visible.first, replace: true);
       }
@@ -140,23 +136,22 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
     final currentUser =
         ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
 
-    final role = clubContextAsync.valueOrNull?.roleName;
     final sectionId = clubContextAsync.valueOrNull?.sectionId;
     final userId = currentUser?.id;
-    final canManage = _canManageRole(role);
-    final canDelete = _canDeleteRole(role);
+    final canManage = hasAnyPermission(currentUser, const {'units:update'});
+    final canCreate = hasAnyPermission(currentUser, const {'units:create'});
+    final canDelete = hasAnyPermission(currentUser, const {'units:delete'});
 
-    // Filter units based on role before checking count
     final visibleUnits = _filterUnitsByRole(
       state.units,
-      role,
+      canCreate,
       userId,
       sectionId,
     );
 
     // Caso de una sola unidad: render placeholder mientras se hace el push
-    // Use visibleUnits for this check so management roles with 1 unit also
-    // navigate directly only when they genuinely have a single unit.
+    // Use visibleUnits so leadership with 1 unit also
+    // navigates directly only when they genuinely have a single unit.
     if (visibleUnits.length == 1 && state.units.isNotEmpty) {
       return Scaffold(
         backgroundColor: c.background,
@@ -173,7 +168,7 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
         leading: sacAutoBackButton(context),
         title: Text('units.list.title'.tr()),
       ),
-      floatingActionButton: canManage
+      floatingActionButton: canCreate
           ? FloatingActionButton(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
@@ -300,7 +295,7 @@ class _Body extends ConsumerWidget {
     Unit unit,
   ) async {
     HapticFeedback.selectionClick();
-    final action = await showModalBottomSheet<_UnitAction>(
+    final action = await showSacSheet<_UnitAction>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -325,7 +320,7 @@ class _Body extends ConsumerWidget {
     WidgetRef ref,
     Unit unit,
   ) async {
-    final confirmed = await showModalBottomSheet<bool>(
+    final confirmed = await showSacSheet<bool>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,

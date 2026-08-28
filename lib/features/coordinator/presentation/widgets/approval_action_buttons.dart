@@ -2,6 +2,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import '../../../../core/theme/app_colors.dart';
 
 /// Barra de acciones de aprobación/rechazo para evidencias y camporees.
@@ -50,45 +52,23 @@ class ApprovalActionBar extends StatelessWidget {
 
     return Row(
       children: [
-        // ── Reject ─────────────────────────────────────────────────────────
         Expanded(
-          child: OutlinedButton.icon(
+          child: SacButton(
+            text: effectiveRejectLabel,
+            icon: HugeIcons.strokeRoundedCancel01,
+            variant: SacButtonVariant.outline,
+            fullWidth: true,
+            textColor: AppColors.error,
+            borderColor: AppColors.error.withValues(alpha: 0.5),
             onPressed: onReject,
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedCancel01,
-              size: 16,
-              color: AppColors.error,
-            ),
-            label: Text(
-              effectiveRejectLabel,
-              style: const TextStyle(color: AppColors.error),
-            ),
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(color: AppColors.error.withValues(alpha: 0.5)),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              textStyle:
-                  const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-            ),
           ),
         ),
         const SizedBox(width: 10),
-        // ── Approve ────────────────────────────────────────────────────────
         Expanded(
-          child: ElevatedButton.icon(
+          child: SacButton.success(
+            text: effectiveApproveLabel,
+            icon: HugeIcons.strokeRoundedCheckmarkCircle01,
             onPressed: onApprove,
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-              size: 16,
-              color: Colors.white,
-            ),
-            label: Text(effectiveApproveLabel),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.secondary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              textStyle:
-                  const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-            ),
           ),
         ),
       ],
@@ -107,36 +87,27 @@ Future<String?> showApproveDialog({
   final commentsCtrl = TextEditingController();
 
   try {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(title),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(confirmMessage, style: const TextStyle(fontSize: 14)),
-            const SizedBox(height: 16),
-            SacTextField(
-              controller: commentsCtrl,
-              label: 'coordinator.actions.comment_label'.tr(),
-              hint: 'coordinator.actions.comment_hint'.tr(),
-              maxLines: 3,
-            ),
-          ],
+    final confirmed = await SacDialog.present<bool>(
+      context,
+      builder: (ctx) => SacDialog(
+        title: title,
+        content: confirmMessage,
+        body: SacTextField(
+          controller: commentsCtrl,
+          label: 'coordinator.actions.comment_label'.tr(),
+          hint: 'coordinator.actions.comment_hint'.tr(),
+          maxLines: 3,
         ),
         actions: [
-          TextButton(
+          SacDialogAction(
+            label: 'coordinator.actions.cancel'.tr(),
+            style: SacDialogActionStyle.cancel,
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text('coordinator.actions.cancel'.tr()),
           ),
-          ElevatedButton(
+          SacDialogAction(
+            label: 'coordinator.actions.approve'.tr(),
+            style: SacDialogActionStyle.success,
             onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.secondary,
-              foregroundColor: Colors.white,
-            ),
-            child: Text('coordinator.actions.approve'.tr()),
           ),
         ],
       ),
@@ -161,46 +132,37 @@ Future<String?> showRejectDialog({
   final formKey = GlobalKey<FormState>();
 
   try {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(title),
-        content: Form(
+    final confirmed = await SacDialog.present<bool>(
+      context,
+      builder: (ctx) => SacDialog(
+        title: title,
+        content: confirmMessage,
+        body: Form(
           key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(confirmMessage, style: const TextStyle(fontSize: 14)),
-              const SizedBox(height: 16),
-              SacTextField(
-                controller: reasonCtrl,
-                label: 'coordinator.actions.reject_reason_label'.tr(),
-                hint: 'coordinator.actions.reject_reason_hint'.tr(),
-                maxLines: 3,
-                validator: (v) => (v == null || v.trim().isEmpty)
-                    ? 'coordinator.actions.reject_reason_required'.tr()
-                    : null,
-              ),
-            ],
+          child: SacTextField(
+            controller: reasonCtrl,
+            label: 'coordinator.actions.reject_reason_label'.tr(),
+            hint: 'coordinator.actions.reject_reason_hint'.tr(),
+            maxLines: 3,
+            validator: (v) => (v == null || v.trim().isEmpty)
+                ? 'coordinator.actions.reject_reason_required'.tr()
+                : null,
           ),
         ),
         actions: [
-          TextButton(
+          SacDialogAction(
+            label: 'coordinator.actions.cancel'.tr(),
+            style: SacDialogActionStyle.cancel,
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text('coordinator.actions.cancel'.tr()),
           ),
-          ElevatedButton(
+          SacDialogAction(
+            label: 'coordinator.actions.reject'.tr(),
+            style: SacDialogActionStyle.destructive,
             onPressed: () {
               if (formKey.currentState!.validate()) {
                 Navigator.pop(ctx, true);
               }
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: Colors.white,
-            ),
-            child: Text('coordinator.actions.reject'.tr()),
           ),
         ],
       ),

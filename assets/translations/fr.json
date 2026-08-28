@@ -110,7 +110,8 @@
       "one": "il y a {} jour",
       "other": "il y a {} jours"
     },
-    "accessibility_tile": "Accessibilité"
+    "accessibility_tile": "Accessibilité",
+    "open_document_failed": "Impossible d’ouvrir ce document."
   },
   "accessibility": {
     "title": "Accessibilité",
@@ -264,8 +265,8 @@
     },
     "report_device_info": "{platform} {osVersion}\n{model}\nApp {appVersion} ({buildNumber})",
     "hub_badge": "Parcours d’aide",
-    "hub_title": "Trouvez le bon sentier pour votre question",
-    "hub_intro": "Consultez des réponses rapides, écrivez au support ou envoyez un signalement avec contexte technique.",
+    "hub_title": "Comment pouvons-nous aider ?",
+    "hub_intro": "Cherchez une réponse ou choisissez comment nous contacter.",
     "route_faq_label": "Premier arrêt",
     "route_contact_label": "Canal direct",
     "route_report_label": "Carnet de route",
@@ -281,7 +282,12 @@
       "profile": "Profil",
       "support": "Support",
       "onboarding": "Départ"
-    }
+    },
+    "hub_search_hint": "Rechercher dans l’aide…",
+    "faq_count": "{} questions",
+    "contact_copy": "Copier l’e-mail",
+    "contact_copied": "E-mail copié",
+    "report_pick_category": "Choisir une catégorie"
   },
   "biometric": {
     "tile_title": "Protection biométrique de l’app",
@@ -1630,6 +1636,13 @@
       "section_pending_snack": "Section marquée comme en attente",
       "error_loading": "Erreur lors du chargement des modules"
     },
+    "honors": {
+      "open_pdf": "Ouvrir le PDF",
+      "enroll": "Inscrire",
+      "continue_honor": "Continuer",
+      "no_pdf": "Cette spécialité n'a pas de matériel PDF",
+      "module_section": "Spécialités de ce module"
+    },
     "detail": {
       "progress_label": "progression",
       "description_header": "Description",
@@ -1763,7 +1776,9 @@
       "create_payment": "Erreur lors de la creation du paiement",
       "fetch_member_payments": "Erreur lors de la recuperation des paiements du membre",
       "fetch_camporee_payments": "Erreur lors de la recuperation des paiements du camporee",
-      "fetch_events": "Erreur lors de la recuperation des événements du camporee"
+      "fetch_events": "Erreur lors de la recuperation des événements du camporee",
+      "fetch_leaderboard": "Impossible de charger le classement du camporee.",
+      "fetch_judge_assignments": "Impossible de charger vos affectations de juge."
     },
     "common": {
       "free": "Gratuit",
@@ -1824,7 +1839,17 @@
       "view_schedules": "Voir les horaires",
       "hide_schedules": "Masquer les horaires",
       "event_staff_responsible": "Responsable : {names}",
-      "event_staff_supporting": "Soutien : {names}"
+      "event_staff_supporting": "Soutien : {names}",
+      "event_honors_title": "Spécialités de préparation",
+      "event_honors_subtitle": "Consultez le PDF de chaque spécialité.",
+      "event_honor_open_pdf": "Voir le matériel",
+      "event_honor_no_pdf": "PDF non disponible",
+      "leaderboard_title": "Classement",
+      "leaderboard_subtitle": "Scores officiels des sections inscrites.",
+      "leaderboard_empty": "Il apparaîtra lorsque des scores officiels seront enregistrés.",
+      "leaderboard_error": "Impossible de charger le classement.",
+      "leaderboard_unknown_club": "Club",
+      "leaderboard_section_fallback": "Section #{id}"
     },
     "members": {
       "title": "Membres inscrits",
@@ -2588,7 +2613,8 @@
     "view": {
       "title": "Assurances du Club",
       "search_hint": "Rechercher un membre...",
-      "coverage_title": "Couverture d'Assurance",
+      "coverage_title": "Couverture",
+      "coverage_of": "{insured} sur {total} assurés",
       "expiring_banner_one": "{count} assurance expire dans les 30 prochains jours",
       "expiring_banner_other": "{count} assurances expirent dans les 30 prochains jours",
       "member_count_one": "{count} membre",
@@ -3584,6 +3610,7 @@
       "club": "Club",
       "evidence_folder": "Dossier annuel de preuves",
       "camporees": "Camporees",
+      "camporee_judge": "Évaluer le camporee",
       "finances": "Finances",
       "units": "Unités",
       "grouped_class": "Classe groupée",
@@ -4014,6 +4041,217 @@
       "score_pending_hint": "Il manque encore des données pour calculer le score composite de ce membre.",
       "rank_position": "Position n°{position}",
       "section_name": "Section : {name}"
+    }
+  },
+  "payment_orders": {
+    "list": {
+      "title": "Ordres de paiement",
+      "empty": "Aucun ordre de paiement pour l'instant",
+      "beneficiaries_count": "{count} bénéficiaire(s)"
+    },
+    "purpose": {
+      "insurance": "Assurance",
+      "camporee": "Camporée"
+    },
+    "status": {
+      "issued": "Émis",
+      "proof_submitted": "Justificatif envoyé",
+      "approved": "Approuvé",
+      "proof_rejected": "Justificatif rejeté",
+      "cancelled": "Annulé",
+      "expired": "Expiré"
+    },
+    "timeline": {
+      "issued": "Ordre émis",
+      "proof_submitted": "Justificatif envoyé",
+      "approved": "Paiement approuvé"
+    },
+    "detail": {
+      "title": "Détail de l'ordre",
+      "total": "Total",
+      "unit_cost": "Coût unitaire",
+      "expires": "Expire",
+      "beneficiaries": "Bénéficiaires",
+      "timeline_title": "Statut",
+      "proof_title": "Justificatif de paiement",
+      "view_pdf": "Voir l'ordre (PDF)",
+      "upload_proof": "Envoyer le justificatif",
+      "reupload_proof": "Renvoyer le justificatif",
+      "proof_uploaded": "Justificatif envoyé pour révision",
+      "proof_too_large": "Le fichier dépasse la limite de 10 Mo",
+      "reject_reason": "Motif du rejet",
+      "cancel_order": "Annuler l'ordre",
+      "cancel_title": "Annuler l'ordre ?",
+      "cancel_body": "L'ordre ne sera plus valide et aucune place ne sera réservée.",
+      "cancel_confirm": "Oui, annuler",
+      "cancelled": "Ordre annulé"
+    },
+    "issue": {
+      "title_insurance": "Émettre un ordre d'assurance",
+      "title_camporee": "Émettre un ordre de camporée",
+      "select_members": "Sélectionner des membres",
+      "eligible_hint_insurance": "Seuls les membres actifs sans couverture en cours sont affichés.",
+      "eligible_hint_camporee": "Seuls les membres actifs avec une assurance valide et non déjà inscrits sont affichés.",
+      "no_eligible": "Aucun membre éligible",
+      "no_cycle": "Aucun cycle d'assurance n'est configuré pour votre section",
+      "unavailable": "Les ordres de paiement ne sont pas activés dans votre champ local",
+      "unit_cost_label": "Coût unitaire : {cost}",
+      "deadline_label": "Date limite : {date}",
+      "total_label": "Total ({count} sélectionnés)",
+      "submit": "Émettre l'ordre",
+      "success": "Ordre émis avec succès"
+    },
+    "camporee_redirect": {
+      "title": "Inscription par ordre de paiement",
+      "body": "Votre champ local utilise des ordres de paiement. Émettez un ordre, payez à la banque ou à la caisse du champ, puis envoyez votre justificatif ; l'inscription est confirmée à l'approbation du paiement.",
+      "issue_button": "Émettre un ordre de paiement",
+      "view_orders": "Voir les ordres de cette camporée",
+      "context_loading": "Vérification du flux d'inscription",
+      "context_error": "Impossible de consulter le flux des ordres de paiement.",
+      "context_error_hint": "Sans cette information, nous ne pouvons pas savoir s'il faut émettre un ordre ou inscrire les membres directement."
+    },
+    "errors": {
+      "flag_disabled": "Les ordres de paiement ne sont pas activés dans ce champ local",
+      "legacy_disabled": "Ce flux a été remplacé par les ordres de paiement",
+      "not_found": "Ordre de paiement introuvable",
+      "forbidden": "Vous n'avez pas accès à cet ordre",
+      "invalid_transition": "Cette action n'est pas autorisée dans l'état actuel de l'ordre",
+      "expired": "L'ordre a expiré",
+      "cycle_invalid": "Le cycle d'assurance n'est pas valide pour votre section",
+      "camporee_invalid": "La camporée n'est pas disponible pour l'inscription",
+      "cost_not_configured": "Le coût d'inscription n'est pas configuré",
+      "eligibility_failed": "Un ou plusieurs membres ne sont pas éligibles",
+      "duplicate_beneficiary": "Un ou plusieurs membres ont déjà un ordre ou une couverture active",
+      "beneficiaries_required": "Sélectionnez au moins un bénéficiaire",
+      "proof_invalid_file": "Fichier non valide. Utilisez un PDF, JPG ou PNG de 10 Mo maximum",
+      "reassignment_invalid": "La réaffectation n'est pas valide",
+      "reassignment_pending_exists": "Une demande de réaffectation est déjà en attente",
+      "download_document": "Le document n'a pas pu être téléchargé"
+    }
+  },
+  "camporee_orders": {
+    "cta": {
+      "label": "Commandes",
+      "closed": "La période de commandes est close",
+      "not_open": "Les commandes ne sont pas encore ouvertes"
+    },
+    "catalog": {
+      "title": "Commandes",
+      "new_order": "Nouvelle commande",
+      "history_title": "Commandes de la section",
+      "empty": "Cette section n'a pas encore de commandes",
+      "offerings_empty": "Aucun article disponible",
+      "disabled": "Les commandes ne sont pas activées pour ce camporée",
+      "closed": "La période de commandes est close",
+      "not_open": "Les commandes ne sont pas encore ouvertes"
+    },
+    "capture": {
+      "title": "Composer la commande",
+      "empty_roster": "Aucun inscrit actif pour commander",
+      "select_size": "Taille",
+      "qty": "Quantité",
+      "continue": "Vérifier la commande",
+      "no_lines": "Ajoutez au moins un article",
+      "lines_count": "{count} article(s)"
+    },
+    "review": {
+      "title": "Vérifier la commande",
+      "summary_title": "Consolidé",
+      "named_title": "Par personne",
+      "submit": "Émettre la commande",
+      "success": "Commande émise",
+      "empty": "La commande est vide"
+    },
+    "detail": {
+      "title": "Détail de la commande",
+      "total": "Total",
+      "expires": "Expire",
+      "distribution": "Remise aux membres",
+      "view_pdf": "Voir la commande (PDF)",
+      "upload_proof": "Téléverser le justificatif",
+      "reupload_proof": "Téléverser à nouveau le justificatif",
+      "proof_uploaded": "Justificatif envoyé pour révision",
+      "proof_too_large": "Le fichier dépasse la taille maximale de 10 Mo",
+      "proof_title": "Justificatif de paiement",
+      "cancel_order": "Annuler la commande",
+      "cancel_title": "Annuler la commande ?",
+      "cancel_body": "La commande ne sera plus valable. Vous pourrez en émettre une nouvelle si la fenêtre est encore ouverte.",
+      "cancel_confirm": "Oui, annuler",
+      "cancelled": "Commande annulée",
+      "deliver": "Marquer comme remis",
+      "delivered_to_member": "Remis au membre"
+    },
+    "status": {
+      "issued": "Émise",
+      "proof_submitted": "Justificatif envoyé",
+      "proof_rejected": "Justificatif rejeté",
+      "paid": "Payée",
+      "delivered": "Remise à la section",
+      "cancelled": "Annulée",
+      "expired": "Expirée"
+    },
+    "distribution": {
+      "not_started": "Non commencée",
+      "partial": "Remise partielle",
+      "complete": "Remise complète"
+    },
+    "pending": {
+      "title": "Paiements en attente",
+      "empty": "Aucun paiement en attente",
+      "purpose": {
+        "camporee_materials": "Commande de camporée",
+        "camporee": "Inscription au camporée",
+        "insurance": "Assurance",
+        "materials": "Matériel"
+      }
+    },
+    "errors": {
+      "not_found": "Commande introuvable",
+      "forbidden": "Vous n'avez pas accès à cette commande",
+      "invalid_transition": "Cette action n'est pas autorisée dans l'état actuel",
+      "lines_required": "Ajoutez au moins un article",
+      "member_not_eligible": "Un ou plusieurs inscrits ne sont pas éligibles",
+      "offering_invalid": "Un ou plusieurs articles ne sont pas disponibles",
+      "option_required": "Sélectionnez une taille",
+      "option_forbidden": "Cette taille ne s'applique pas à l'article",
+      "payment_config_required": "La configuration de paiement du champ local manque",
+      "proof_invalid_file": "Fichier non valide. Utilisez PDF, JPG, PNG ou WebP jusqu'à 10 Mo",
+      "proof_not_found": "Justificatif introuvable",
+      "not_delivered_to_section": "La commande n'a pas encore été remise à la section",
+      "distribution_forbidden": "Vous ne pouvez pas enregistrer la remise aux membres",
+      "download_document": "Le document n'a pas pu être téléchargé"
+    }
+  },
+  "camporee_supplies": {
+    "cta": {
+      "label": "Fournitures"
+    },
+    "plan": {
+      "title": "Fournitures de la section",
+      "cutoff": "Limite pour le lendemain : {time}",
+      "catalog_empty": "L'organisateur n'a pas encore défini créneaux ni produits",
+      "empty": "Le plan n'a pas encore de lignes",
+      "date": "Jour",
+      "slot": "Créneau",
+      "product": "Produit",
+      "qty": "Quantité",
+      "add": "Ajouter au plan",
+      "save": "Enregistrer le brouillon",
+      "submit": "Soumettre le plan",
+      "saved": "Brouillon enregistré",
+      "submitted": "Plan soumis. Folio principal émis.",
+      "adjusted": "Ajustement enregistré",
+      "net": "Net {amount}"
+    },
+    "errors": {
+      "not_found": "Plan de fournitures introuvable",
+      "forbidden": "Vous ne pouvez pas gérer les fournitures de ce camporee",
+      "not_eligible": "Votre section n'est pas inscrite à ce camporee",
+      "day_locked": "Ce jour est gelé",
+      "lines_required": "Ajoutez au moins une ligne",
+      "not_draft": "Le plan n'est plus un brouillon",
+      "not_submitted": "Le plan n'a pas encore été soumis",
+      "qty_invalid": "La quantité est invalide"
     }
   }
 }

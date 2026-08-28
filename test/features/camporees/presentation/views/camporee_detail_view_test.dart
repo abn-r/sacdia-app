@@ -7,12 +7,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee.dart';
+import 'package:sacdia_app/features/camporees/domain/entities/camporee_event.dart';
+import 'package:sacdia_app/features/camporees/domain/entities/camporee_leaderboard.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
+import 'package:sacdia_app/features/camporee_orders/domain/entities/camporee_order_offering.dart';
+import 'package:sacdia_app/features/camporee_orders/presentation/providers/camporee_orders_providers.dart';
 import 'package:sacdia_app/features/camporees/presentation/providers/camporees_providers.dart';
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_detail_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -57,8 +62,8 @@ void main() {
       ),
       findsOneWidget,
     );
-    final enrollButton = tester.widget<ElevatedButton>(
-      find.widgetWithText(ElevatedButton, 'Inscribir'),
+    final enrollButton = tester.widget<SacButton>(
+      find.widgetWithText(SacButton, 'Inscribir'),
     );
     expect(enrollButton.onPressed, isNull);
   });
@@ -76,8 +81,8 @@ void main() {
 
     expect(memberLoads, 1);
     expect(find.text('Inscribir participantes'), findsOneWidget);
-    final enrollButton = tester.widget<ElevatedButton>(
-      find.widgetWithText(ElevatedButton, 'Inscribir'),
+    final enrollButton = tester.widget<SacButton>(
+      find.widgetWithText(SacButton, 'Inscribir'),
     );
     expect(enrollButton.onPressed, isNotNull);
   });
@@ -96,8 +101,8 @@ void main() {
 
     expect(memberLoads, 1);
     expect(find.text('Inscribir participantes'), findsNothing);
-    final enrollButton = tester.widget<ElevatedButton>(
-      find.widgetWithText(ElevatedButton, 'Inscribir'),
+    final enrollButton = tester.widget<SacButton>(
+      find.widgetWithText(SacButton, 'Inscribir'),
     );
     expect(enrollButton.onPressed, isNull);
   });
@@ -146,6 +151,46 @@ void main() {
     );
     expect(semantics.properties.liveRegion, isTrue);
   });
+
+  testWidgets('muestra clasificación oficial debajo de eventos',
+      (tester) async {
+    await _pumpDetail(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      ),
+      onMembersLoad: () {},
+      leaderboard: const CamporeeLeaderboard(
+        scopeType: 'local',
+        camporeeId: 41,
+        rows: [
+          CamporeeLeaderboardRow(
+            rank: 1,
+            camporeeClubId: 5,
+            clubSectionId: 12,
+            clubName: 'ACV',
+            sectionName: 'Conquistadores',
+            totalAwardedPoints: 85,
+            totalMaxPoints: 100,
+            percentage: 85,
+          ),
+        ],
+      ),
+    );
+
+    await tester.scrollUntilVisible(
+      find.text('Clasificación'),
+      400,
+      scrollable: find.descendant(
+        of: find.byType(ListView),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('Clasificación'), findsOneWidget);
+    expect(find.text('ACV'), findsOneWidget);
+    expect(find.text('85 / 100'), findsOneWidget);
+  });
 }
 
 Future<void> _pumpDetail(
@@ -155,6 +200,7 @@ Future<void> _pumpDetail(
   UserEntity? user = _director,
   bool failMembersOnce = false,
   bool keepMembersLoading = false,
+  CamporeeLeaderboard? leaderboard,
 }) async {
   var failed = false;
   final loading = Completer<List<CamporeeMember>>();
@@ -165,6 +211,17 @@ Future<void> _pumpDetail(
         camporeeDetailProvider.overrideWith((ref, id) async => _camporee),
         camporeeSectionRegistrationProvider
             .overrideWith((ref, id) async => registration),
+        camporeeEventsProvider
+            .overrideWith((ref, id) async => const <CamporeeEvent>[]),
+        camporeeLeaderboardProvider.overrideWith(
+          (ref, id) async =>
+              leaderboard ??
+              const CamporeeLeaderboard(
+                scopeType: 'local',
+                camporeeId: 41,
+                rows: [],
+              ),
+        ),
         camporeeMembersProvider.overrideWith((ref, id) async {
           onMembersLoad();
           if (keepMembersLoading) return loading.future;
@@ -174,6 +231,11 @@ Future<void> _pumpDetail(
           }
           return const <CamporeeMember>[];
         }),
+        camporeeOrderOfferingsProvider.overrideWith(
+          (ref, scope) async => const CamporeeOrderOfferingsCatalog(
+            settings: CamporeeOrderSettings(ordersEnabled: false),
+          ),
+        ),
       ],
       child: EasyLocalization(
         supportedLocales: const [Locale('es')],

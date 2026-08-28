@@ -28,6 +28,14 @@ class SacAudioPlayerPosition {
   }
 }
 
+/// AVPlayer reports `isPlaying: false` while buffering. Only treat that as
+/// finished when duration is known and the playhead reached the end.
+bool hasAudioReachedEnd(SacAudioPlayerPosition playback) {
+  if (playback.isPlaying) return false;
+  if (playback.duration <= Duration.zero) return false;
+  return playback.position >= playback.duration;
+}
+
 /// Minimal native audio bridge for signed resource URLs.
 ///
 /// This intentionally avoids adding a package dependency while still keeping
@@ -48,11 +56,24 @@ class SacAudioPlayerController {
   }
 
   Future<void> stop() async {
-    await _channel.invokeMethod<void>('stop');
+    try {
+      await _channel.invokeMethod<void>('stop');
+    } on MissingPluginException {
+      // Hot reload / engine not ready. Closing the sheet must not crash.
+    }
   }
 
   Future<SacAudioPlayerPosition> position() async {
-    final result = await _channel.invokeMapMethod<String, dynamic>('position');
-    return SacAudioPlayerPosition.fromMap(result ?? const {});
+    try {
+      final result =
+          await _channel.invokeMapMethod<String, dynamic>('position');
+      return SacAudioPlayerPosition.fromMap(result ?? const {});
+    } on MissingPluginException {
+      return const SacAudioPlayerPosition(
+        position: Duration.zero,
+        duration: Duration.zero,
+        isPlaying: false,
+      );
+    }
   }
 }

@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
@@ -366,20 +367,11 @@ class _LegalRepresentativeViewState
             const SizedBox(height: 24),
 
             // Botón de guardar
-            SizedBox(
-              height: 48,
-              child: ElevatedButton.icon(
-                icon: _isLoading
-                    ? SizedBox(width: 20, height: 20, child: SacLoadingSmall())
-                    : const HugeIcon(
-                        icon: HugeIcons.strokeRoundedFloppyDisk,
-                        size: 22,
-                      ),
-                label: Text(
-                  'post_registration.legal_representative.save_button'.tr(),
-                ),
-                onPressed: _isLoading ? null : _handleSave,
-              ),
+            SacButton.primary(
+              text: 'post_registration.legal_representative.save_button'.tr(),
+              icon: HugeIcons.strokeRoundedFloppyDisk,
+              isLoading: _isLoading,
+              onPressed: _isLoading ? null : _handleSave,
             ),
           ],
         ),

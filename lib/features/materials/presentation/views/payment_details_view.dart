@@ -10,6 +10,7 @@ import '../../domain/entities/material_status.dart';
 import '../providers/order_detail_provider.dart';
 import '../utils/money_format.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 
 /// Pantalla "Datos para pago" — muestra la CLABE, referencia bancaria y
 /// total a pagar una vez que la orden fue aprobada.
@@ -135,7 +136,7 @@ class _PagoBody extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Realizá la transferencia a la CLABE de arriba. '
-                  'Usá la referencia como concepto de pago para que el '
+                  'Usa la referencia como concepto de pago para que el '
                   'campo local identifique tu depósito.',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: AppColors.statusInfoText,
@@ -149,16 +150,9 @@ class _PagoBody extends StatelessWidget {
         const SizedBox(height: 32),
 
         // ── CTA ───────────────────────────────────────────────────────────────
-        FilledButton.icon(
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          icon: const HugeIcon(icon: HugeIcons.strokeRoundedFileUpload),
-          label: const Text('Ya pagué, subir comprobante'),
+        SacButton.primary(
+          text: 'Ya pagué, subir comprobante',
+          icon: HugeIcons.strokeRoundedFileUpload,
           onPressed: () =>
               context.push(RouteNames.materialsOrderReceipt(folioOrId)),
         ),
@@ -199,9 +193,10 @@ class _NotRequiredBody extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            OutlinedButton.icon(
-              icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
-              label: const Text('Volver'),
+            SacButton(
+              text: 'Volver',
+              icon: HugeIcons.strokeRoundedArrowLeft01,
+              variant: SacButtonVariant.outline,
               onPressed: onBack,
             ),
           ],
@@ -242,9 +237,10 @@ class _ErrorBody extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            OutlinedButton.icon(
-              icon: const HugeIcon(icon: HugeIcons.strokeRoundedRefresh),
-              label: const Text('Reintentar'),
+            SacButton(
+              text: 'Reintentar',
+              icon: HugeIcons.strokeRoundedRefresh,
+              variant: SacButtonVariant.outline,
               onPressed: onRetry,
             ),
           ],

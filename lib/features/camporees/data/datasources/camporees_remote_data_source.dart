@@ -6,6 +6,7 @@ import '../../../../core/models/paginated_result.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/camporee_score_submission.dart';
 import '../models/camporee_judge_assignment_model.dart';
+import '../models/camporee_leaderboard_model.dart';
 import '../models/camporee_model.dart';
 import '../models/camporee_event_model.dart';
 import '../models/camporee_member_model.dart';
@@ -111,6 +112,15 @@ abstract class CamporeesRemoteDataSource {
   /// Obtiene asignaciones del juez autenticado.
   /// GET /api/v1/camporee-judges/me/assignments
   Future<List<CamporeeJudgeAssignmentModel>> getMyJudgeAssignments({
+    CancelToken? cancelToken,
+  });
+
+  /// Obtiene la clasificación oficial de un camporee.
+  /// GET /api/v1/local-camporees/:camporeeId/leaderboard
+  /// GET /api/v1/union-camporees/:camporeeId/leaderboard
+  Future<CamporeeLeaderboardModel> getCamporeeLeaderboard(
+    int camporeeId, {
+    String camporeeType = 'local',
     CancelToken? cancelToken,
   });
 
@@ -721,6 +731,39 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getMyJudgeAssignments', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /api/v1/{local|union}-camporees/:camporeeId/leaderboard ───────────
+
+  @override
+  Future<CamporeeLeaderboardModel> getCamporeeLeaderboard(
+    int camporeeId, {
+    String camporeeType = 'local',
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final camporeePath =
+          camporeeType == 'union' ? 'union-camporees' : 'local-camporees';
+      final response = await _dio.get(
+        '$_baseUrl/$camporeePath/$camporeeId/leaderboard',
+        cancelToken: cancelToken,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return CamporeeLeaderboardModel.fromJson(
+          _extractObject(response.data),
+        );
+      }
+
+      throw ServerException(
+        message: tr('camporees.errors.fetch_leaderboard'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
+      AppLogger.e('Error en getCamporeeLeaderboard', tag: _tag, error: e);
       _rethrow(e);
     }
   }

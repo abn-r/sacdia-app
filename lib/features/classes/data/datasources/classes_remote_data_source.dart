@@ -319,7 +319,8 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final List<dynamic> data = response.data as List<dynamic>;
         return data
-            .map((json) => ClassHonorModel.fromJson(json as Map<String, dynamic>))
+            .map((json) =>
+                ClassHonorModel.fromJson(json as Map<String, dynamic>))
             .toList();
       }
 

@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 
 import '../../domain/entities/join_request.dart';
 
@@ -206,29 +207,30 @@ class _ActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (outlined) {
-      return OutlinedButton.icon(
+      return SacButton(
+        text: label,
+        icon: icon,
         onPressed: onTap,
-        icon: HugeIcon(icon: icon, color: color, size: 16),
-        label: Text(label),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: color,
-          side: BorderSide(color: color, width: 1.5),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
+        variant: SacButtonVariant.outline,
+        fullWidth: false,
+        size: SacButtonSize.small,
+        textColor: color,
+        borderColor: color,
+        iconSize: 16,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        borderRadius: 10,
       );
     }
-    return FilledButton.icon(
+    return SacButton(
+      text: label,
+      icon: icon,
       onPressed: onTap,
-      icon: HugeIcon(icon: icon, color: Colors.white, size: 16),
-      label: Text(label),
-      style: FilledButton.styleFrom(
-        backgroundColor: color,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+      fullWidth: false,
+      size: SacButtonSize.small,
+      backgroundColor: color,
+      iconSize: 16,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      borderRadius: 10,
     );
   }
 }

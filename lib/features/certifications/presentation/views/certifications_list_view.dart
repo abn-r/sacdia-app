@@ -2,16 +2,19 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/certifications/domain/entities/certification.dart';
 
 import '../providers/certifications_providers.dart';
 import 'certification_detail_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Vista de lista de certificaciones (catálogo completo).
 ///
@@ -110,14 +113,14 @@ class CertificationsListView extends ConsumerWidget {
                       return StaggeredListItem(
                         index: certIndex,
                         initialDelay: const Duration(milliseconds: 80),
-                        staggerDelay: const Duration(milliseconds: 65),
+                        staggerDelay: SacMotion.stagger,
                         child: _CertificationCard(
                           certification: certification,
                           isEnrolled: isEnrolled,
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(
+                              SacSharedAxisRoute(
                                 builder: (context) => CertificationDetailView(
                                   certificationId:
                                       certification.certificationId,
@@ -148,7 +151,7 @@ class CertificationsListView extends ConsumerWidget {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
+                            SacSharedAxisRoute(
                               builder: (context) => CertificationDetailView(
                                 certificationId: certification.certificationId,
                               ),
@@ -211,26 +214,13 @@ class CertificationsListView extends ConsumerWidget {
     WidgetRef ref,
     Certification certification,
   ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('certifications.list.enroll_dialog_title'.tr()),
-        content: Text(
-          'certifications.list.enroll_dialog_content'.tr(namedArgs: {
-            'name': certification.name,
-          }),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('common.cancel'.tr()),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text('certifications.list.enroll_button'.tr()),
-          ),
-        ],
-      ),
+    final confirmed = await SacDialog.show(
+      context,
+      title: 'certifications.list.enroll_dialog_title'.tr(),
+      content: 'certifications.list.enroll_dialog_content'.tr(namedArgs: {
+        'name': certification.name,
+      }),
+      confirmLabel: 'certifications.list.enroll_button'.tr(),
     );
 
     if (confirmed != true) return;

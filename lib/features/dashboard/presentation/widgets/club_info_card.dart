@@ -64,7 +64,6 @@ class ClubInfoCard extends ConsumerWidget {
 
     final Color clubColor = clubColorFromName(resolvedClubType);
     final (badgeBg, badgeFg) = clubBadgeColorsFromName(resolvedClubType);
-    final logoAsset = clubLogoAssetFromName(resolvedClubType);
 
     return SacCard(
       onTap: hasMultiple
@@ -89,25 +88,11 @@ class ClubInfoCard extends ConsumerWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
-              child: logoAsset != null
-                  ? Image.asset(
-                      logoAsset,
-                      width: 30,
-                      height: 30,
-                      fit: BoxFit.contain,
-                      cacheWidth: 90,
-                      cacheHeight: 90,
-                      errorBuilder: (_, __, ___) => HugeIcon(
-                        icon: HugeIcons.strokeRoundedUserGroup,
-                        color: clubColor,
-                        size: 24,
-                      ),
-                    )
-                  : HugeIcon(
-                      icon: HugeIcons.strokeRoundedUserGroup,
-                      color: clubColor,
-                      size: 24,
-                    ),
+              child: HugeIcon(
+                icon: HugeIcons.strokeRoundedFlag01,
+                color: clubColor,
+                size: 24,
+              ),
             ),
           ),
           const SizedBox(width: 14),

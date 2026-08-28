@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
+import '../../../../core/widgets/sac_dialog.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_text_field.dart';
 import '../../domain/entities/investiture_pending.dart';
@@ -13,6 +14,7 @@ import '../providers/investiture_providers.dart';
 import '../widgets/investiture_status_badge.dart';
 import 'investiture_history_view.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Vista para coordinadores/admins: lista de enrollments pendientes de validación.
 ///
@@ -320,65 +322,45 @@ class _PendingCard extends ConsumerWidget {
       children: [
         // Ver historial
         Expanded(
-          child: OutlinedButton.icon(
+          child: SacButton(
+            text: 'investiture.pending.btn_history'.tr(),
+            icon: HugeIcons.strokeRoundedClock01,
+            variant: SacButtonVariant.outline,
+            size: SacButtonSize.small,
+            fullWidth: true,
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
+                SacSharedAxisRoute(
                   builder: (_) =>
                       InvestitureHistoryView(enrollmentId: item.enrollmentId),
                 ),
               );
             },
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedClock01,
-              size: 16,
-            ),
-            label: Text('investiture.pending.btn_history'.tr()),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              textStyle: const TextStyle(fontSize: 12),
-            ),
           ),
         ),
         const SizedBox(width: 8),
-        // Rechazar
         Expanded(
-          child: OutlinedButton.icon(
+          child: SacButton(
+            text: 'investiture.pending.btn_reject'.tr(),
+            icon: HugeIcons.strokeRoundedCancel01,
+            variant: SacButtonVariant.outline,
+            size: SacButtonSize.small,
+            fullWidth: true,
+            textColor: AppColors.error,
+            borderColor: AppColors.error.withValues(alpha: 0.5),
             onPressed: () => _showRejectDialog(context, ref),
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedCancel01,
-              size: 16,
-              color: AppColors.error,
-            ),
-            label: Text(
-              'investiture.pending.btn_reject'.tr(),
-              style: TextStyle(color: AppColors.error),
-            ),
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(color: AppColors.error.withValues(alpha: 0.5)),
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              textStyle: const TextStyle(fontSize: 12),
-            ),
           ),
         ),
         const SizedBox(width: 8),
-        // Aprobar
         Expanded(
-          child: ElevatedButton.icon(
+          child: SacButton(
+            text: 'investiture.pending.btn_approve'.tr(),
+            icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+            variant: SacButtonVariant.success,
+            size: SacButtonSize.small,
+            fullWidth: true,
             onPressed: () => _showApproveDialog(context, ref),
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-              size: 16,
-              color: Colors.white,
-            ),
-            label: Text('investiture.pending.btn_approve'.tr()),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.secondary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              textStyle: const TextStyle(fontSize: 12),
-            ),
           ),
         ),
       ],
@@ -389,40 +371,28 @@ class _PendingCard extends ConsumerWidget {
     final commentsCtrl = TextEditingController();
 
     try {
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text('investiture.pending.dialog_approve_title'.tr()),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'investiture.pending.dialog_approve_body'
-                    .tr(namedArgs: {'name': item.fullName}),
-                style: const TextStyle(fontSize: 14),
-              ),
-              const SizedBox(height: 16),
-              SacTextField(
-                controller: commentsCtrl,
-                label: 'investiture.pending.field_comments_label'.tr(),
-                hint: 'investiture.pending.field_comments_hint'.tr(),
-                maxLines: 3,
-              ),
-            ],
+      final confirmed = await SacDialog.present<bool>(
+        context,
+        builder: (ctx) => SacDialog(
+          title: 'investiture.pending.dialog_approve_title'.tr(),
+          content: 'investiture.pending.dialog_approve_body'
+              .tr(namedArgs: {'name': item.fullName}),
+          body: SacTextField(
+            controller: commentsCtrl,
+            label: 'investiture.pending.field_comments_label'.tr(),
+            hint: 'investiture.pending.field_comments_hint'.tr(),
+            maxLines: 3,
           ),
           actions: [
-            TextButton(
+            SacDialogAction(
+              label: 'common.cancel'.tr(),
+              style: SacDialogActionStyle.cancel,
               onPressed: () => Navigator.pop(ctx, false),
-              child: Text('common.cancel'.tr()),
             ),
-            ElevatedButton(
+            SacDialogAction(
+              label: 'investiture.pending.btn_approve'.tr(),
+              style: SacDialogActionStyle.success,
               onPressed: () => Navigator.pop(ctx, true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.secondary,
-                foregroundColor: Colors.white,
-              ),
-              child: Text('investiture.pending.btn_approve'.tr()),
             ),
           ],
         ),
@@ -455,50 +425,38 @@ class _PendingCard extends ConsumerWidget {
     final formKey = GlobalKey<FormState>();
 
     try {
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text('investiture.pending.dialog_reject_title'.tr()),
-          content: Form(
+      final confirmed = await SacDialog.present<bool>(
+        context,
+        builder: (ctx) => SacDialog(
+          title: 'investiture.pending.dialog_reject_title'.tr(),
+          content: 'investiture.pending.dialog_reject_body'
+              .tr(namedArgs: {'name': item.fullName}),
+          body: Form(
             key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'investiture.pending.dialog_reject_body'
-                      .tr(namedArgs: {'name': item.fullName}),
-                  style: const TextStyle(fontSize: 14),
-                ),
-                const SizedBox(height: 16),
-                SacTextField(
-                  controller: commentsCtrl,
-                  label: 'investiture.pending.field_reason_label'.tr(),
-                  hint: 'investiture.pending.field_reason_hint'.tr(),
-                  maxLines: 3,
-                  validator: (v) => (v == null || v.trim().isEmpty)
-                      ? 'investiture.pending.field_reason_error'.tr()
-                      : null,
-                ),
-              ],
+            child: SacTextField(
+              controller: commentsCtrl,
+              label: 'investiture.pending.field_reason_label'.tr(),
+              hint: 'investiture.pending.field_reason_hint'.tr(),
+              maxLines: 3,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'investiture.pending.field_reason_error'.tr()
+                  : null,
             ),
           ),
           actions: [
-            TextButton(
+            SacDialogAction(
+              label: 'common.cancel'.tr(),
+              style: SacDialogActionStyle.cancel,
               onPressed: () => Navigator.pop(ctx, false),
-              child: Text('common.cancel'.tr()),
             ),
-            ElevatedButton(
+            SacDialogAction(
+              label: 'investiture.pending.btn_reject'.tr(),
+              style: SacDialogActionStyle.destructive,
               onPressed: () {
                 if (formKey.currentState!.validate()) {
                   Navigator.pop(ctx, true);
                 }
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.error,
-                foregroundColor: Colors.white,
-              ),
-              child: Text('investiture.pending.btn_reject'.tr()),
             ),
           ],
         ),

@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../providers/members_providers.dart';
 
@@ -202,7 +203,7 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
     List<String> classes,
     String? current,
   ) async {
-    final selected = await showModalBottomSheet<String>(
+    final selected = await showSacSheet<String>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
@@ -223,7 +224,7 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
     List<String> roles,
     String? current,
   ) async {
-    final selected = await showModalBottomSheet<String>(
+    final selected = await showSacSheet<String>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
@@ -244,7 +245,7 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
     BuildContext context,
     bool? current,
   ) async {
-    final selected = await showModalBottomSheet<bool>(
+    final selected = await showSacSheet<bool>(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (_) => _EnrollmentPickerSheet(current: current),

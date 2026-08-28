@@ -7,7 +7,6 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/certification_model.dart';
 import '../models/certification_detail_model.dart';
-import '../models/certification_eligibility_model.dart';
 import '../models/certification_evidence_model.dart';
 import '../models/certification_requirement_model.dart';
 import '../models/user_certification_model.dart';
@@ -32,14 +31,6 @@ abstract class CertificationsRemoteDataSource {
   /// GET /certifications/users/:userId/certifications
   Future<List<UserCertificationModel>> getUserCertifications(
     String userId, {
-    CancelToken? cancelToken,
-  });
-
-  /// Evalúa la elegibilidad del usuario para inscribirse a una certificación.
-  /// GET /certifications/users/:userId/certifications/:certificationId/eligibility
-  Future<CertificationEligibilityModel> getEligibility(
-    String userId,
-    int certificationId, {
     CancelToken? cancelToken,
   });
 
@@ -178,13 +169,6 @@ class CertificationsRemoteDataSourceImpl
   })  : _dio = dio,
         _baseUrl = baseUrl;
 
-  /// El backend envuelve las respuestas en `{ status, data, meta? }`.
-  /// Devuelve `data` cuando existe el envelope; el cuerpo crudo si no.
-  dynamic _unwrap(dynamic body) =>
-      body is Map<String, dynamic> && body.containsKey('data')
-          ? body['data']
-          : body;
-
   Never _rethrow(Object e) {
     if (e is DioException) {
       if (e.type == DioExceptionType.cancel) throw e;
@@ -237,10 +221,6 @@ class CertificationsRemoteDataSourceImpl
 
   String? _certErrorMessage(String? code) {
     switch (code) {
-      case 'CERT_ELIGIBILITY_REQUIRED':
-        return tr('certifications.errors.cert_eligibility_required');
-      case 'CERT_ALREADY_ENROLLED':
-        return tr('certifications.errors.cert_already_enrolled');
       case 'CERT_ENROLLMENT_NOT_FOUND':
         return tr('certifications.errors.cert_enrollment_not_found');
       case 'CERT_SECTION_INVALID':
@@ -264,6 +244,33 @@ class CertificationsRemoteDataSourceImpl
     }
   }
 
+  /// Envelope canónico `{ status, data }` (listas paginadas incluyen `meta`).
+  dynamic _payload(dynamic body) {
+    if (body is Map && body.containsKey('data')) {
+      return body['data'];
+    }
+    return body;
+  }
+
+  List<dynamic> _unwrapList(dynamic body) {
+    final payload = _payload(body);
+    if (payload is List) return payload;
+    return const [];
+  }
+
+  Map<String, dynamic> _unwrapMap(dynamic body) {
+    final payload = _payload(body);
+    if (payload is Map<String, dynamic>) return payload;
+    if (payload is Map) return Map<String, dynamic>.from(payload);
+    throw ServerException(message: tr('common.error_network'));
+  }
+
+  Map<String, dynamic> _asStringKeyedMap(dynamic json) {
+    if (json is Map<String, dynamic>) return json;
+    if (json is Map) return Map<String, dynamic>.from(json);
+    throw ServerException(message: tr('common.error_network'));
+  }
+
   // ── GET /certifications/certifications ──────────────────────────────────────
 
   @override
@@ -277,10 +284,8 @@ class CertificationsRemoteDataSourceImpl
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final List<dynamic> data = _unwrap(response.data) as List<dynamic>;
-        return data
-            .map((json) =>
-                CertificationModel.fromJson(json as Map<String, dynamic>))
+        return _unwrapList(response.data)
+            .map((json) => CertificationModel.fromJson(_asStringKeyedMap(json)))
             .toList();
       }
 
@@ -307,8 +312,7 @@ class CertificationsRemoteDataSourceImpl
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return CertificationDetailModel.fromJson(
-            _unwrap(response.data) as Map<String, dynamic>);
+        return CertificationDetailModel.fromJson(_unwrapMap(response.data));
       }
 
       throw ServerException(
@@ -334,10 +338,9 @@ class CertificationsRemoteDataSourceImpl
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final List<dynamic> data = _unwrap(response.data) as List<dynamic>;
-        return data
+        return _unwrapList(response.data)
             .map((json) =>
-                UserCertificationModel.fromJson(json as Map<String, dynamic>))
+                UserCertificationModel.fromJson(_asStringKeyedMap(json)))
             .toList();
       }
 
@@ -346,34 +349,6 @@ class CertificationsRemoteDataSourceImpl
           code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getUserCertifications', tag: _tag, error: e);
-      _rethrow(e);
-    }
-  }
-
-  // ── GET /certifications/users/:userId/certifications/:certificationId/eligibility
-
-  @override
-  Future<CertificationEligibilityModel> getEligibility(
-    String userId,
-    int certificationId, {
-    CancelToken? cancelToken,
-  }) async {
-    try {
-      final response = await _dio.get(
-        '$_baseUrl${ApiEndpoints.certifications}/users/$userId/certifications/$certificationId/eligibility',
-        cancelToken: cancelToken,
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return CertificationEligibilityModel.fromJson(
-            _unwrap(response.data) as Map<String, dynamic>);
-      }
-
-      throw ServerException(
-          message: tr('certifications.errors.get_eligibility'),
-          code: response.statusCode);
-    } catch (e) {
-      AppLogger.e('Error en getEligibility', tag: _tag, error: e);
       _rethrow(e);
     }
   }
@@ -393,8 +368,7 @@ class CertificationsRemoteDataSourceImpl
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return CertificationProgressModel.fromJson(
-            _unwrap(response.data) as Map<String, dynamic>);
+        return CertificationProgressModel.fromJson(_unwrapMap(response.data));
       }
 
       throw ServerException(
@@ -425,9 +399,6 @@ class CertificationsRemoteDataSourceImpl
       throw ServerException(
           message: tr('certifications.errors.enroll_certification'),
           code: response.statusCode);
-    } on DioException catch (e) {
-      AppLogger.e('Error en enrollCertification', tag: _tag, error: e);
-      _rethrowCertError(e);
     } catch (e) {
       AppLogger.e('Error en enrollCertification', tag: _tag, error: e);
       _rethrow(e);
@@ -455,7 +426,7 @@ class CertificationsRemoteDataSourceImpl
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return _unwrap(response.data) as Map<String, dynamic>;
+        return _unwrapMap(response.data);
       }
 
       throw ServerException(

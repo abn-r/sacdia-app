@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
@@ -15,25 +16,26 @@ import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/features/certifications/presentation/providers/certifications_providers.dart';
 import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/post_registration/presentation/providers/post_registration_providers.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../certifications/presentation/providers/certifications_providers.dart';
 import '../../domain/entities/user_detail.dart';
 import '../providers/profile_providers.dart';
 import '../utils/profile_context_resolver.dart';
 import '../../../achievements/presentation/widgets/achievement_profile_summary.dart';
 import '../widgets/class_status_circles.dart';
-import '../widgets/profile_certifications_section.dart';
 import '../widgets/profile_classes_section.dart';
+import '../widgets/profile_certifications_section.dart';
 import '../widgets/profile_honors_section.dart';
 import '../widgets/setting_tile.dart';
 import '../../../virtual_card/presentation/views/virtual_card_view.dart';
 import 'edit_profile_view.dart';
 import 'medical_info_view.dart';
 import 'settings_view.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 
@@ -194,17 +196,17 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               onChangePhoto: _isUploadingPhoto ? null : _changePhoto,
               onSettings: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const SettingsView()),
+                SacSharedAxisRoute(builder: (_) => const SettingsView()),
               ),
               onQr: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const VirtualCardView()),
+                SacSharedAxisRoute(builder: (_) => const VirtualCardView()),
               ),
               onRefresh: () async {
                 await ref.read(profileNotifierProvider.notifier).refresh();
                 ref.invalidate(userClassesProvider);
-                ref.invalidate(userCertificationsProvider);
                 ref.invalidate(userHonorsProvider);
+                ref.invalidate(userCertificationsProvider);
                 // userHonorStatsLocalProvider recomputes automatically when
                 // userHonorsProvider is invalidated.
               },
@@ -403,7 +405,7 @@ class _ProfileScrollBody extends StatelessWidget {
                 onEditProfile: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
+                    SacSharedAxisRoute(
                       builder: (context) => const EditProfileView(),
                     ),
                   );
@@ -427,7 +429,7 @@ class _ProfileScrollBody extends StatelessWidget {
                   iconColor: AppColors.error,
                   onTap: () => Navigator.push(
                     context,
-                    MaterialPageRoute(
+                    SacSharedAxisRoute(
                       builder: (_) => const MedicalInfoView(),
                     ),
                   ),
@@ -441,7 +443,7 @@ class _ProfileScrollBody extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: hPad),
               child: StaggeredColumn(
                 initialDelay: const Duration(milliseconds: 100),
-                staggerDelay: const Duration(milliseconds: 65),
+                staggerDelay: SacMotion.stagger,
                 children: [
                   // ── 4. Clases Progresivas ─────────────────────────
                   _SectionLabel(
@@ -518,8 +520,7 @@ class _ProfileScrollBody extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   _SectionLabel(
-                    label: 'profile.view.section_my_certifications'.tr(),
-                  ),
+                      label: 'profile.view.section_my_certifications'.tr()),
                   SizedBox(
                     width: 32,
                     height: 32,

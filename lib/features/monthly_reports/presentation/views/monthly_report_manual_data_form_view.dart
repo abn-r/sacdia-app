@@ -6,7 +6,9 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../domain/entities/monthly_report.dart';
 import '../providers/monthly_reports_providers.dart';
@@ -19,7 +21,7 @@ class MonthlyReportManualDataFormView extends ConsumerStatefulWidget {
 
   /// Modal sheet from the sticky CTA (spatial origin = trigger).
   static Future<bool?> show(BuildContext context, MonthlyReport report) {
-    return showModalBottomSheet<bool>(
+    return showSacSheet<bool>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -222,22 +224,13 @@ class _MonthlyReportManualDataFormViewState
 
   Future<bool> _confirmDiscard() async {
     if (!_dirty) return true;
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('monthly_reports.form.discard_title'.tr()),
-        content: Text('monthly_reports.form.discard_body'.tr()),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('monthly_reports.form.discard_keep'.tr()),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text('monthly_reports.form.discard_confirm'.tr()),
-          ),
-        ],
-      ),
+    final result = await SacDialog.show(
+      context,
+      title: 'monthly_reports.form.discard_title'.tr(),
+      content: 'monthly_reports.form.discard_body'.tr(),
+      cancelLabel: 'monthly_reports.form.discard_keep'.tr(),
+      confirmLabel: 'monthly_reports.form.discard_confirm'.tr(),
+      confirmIsDestructive: true,
     );
     return result == true;
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 
 /// Shimmer-style skeleton that mirrors the [EnrollPreviousClassSheet] loaded
 /// layout.
@@ -10,7 +11,7 @@ import 'package:flutter/material.dart';
 ///
 /// Structure mirrored (inside the sheet, below the static header):
 ///   1. YearInfo row  — calendar icon + label text + year value pill
-///   2. "Seleccioná una clase" label
+///   2. "Selecciona una clase" label
 ///   3. N skeleton ClassItem rows — radio circle + logo square + name text
 ///   4. Confirm button placeholder
 class EnrollPreviousClassSkeleton extends StatefulWidget {
@@ -33,11 +34,23 @@ class _EnrollPreviousClassSkeletonState
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1400),
-    )..repeat();
+    );
 
     _shimmer = Tween<double>(begin: -2, end: 2).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _controller, curve: SacMotion.easeInOut),
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduce = SacMotion.reduceMotionOf(context);
+    if (reduce) {
+      _controller.stop();
+      _controller.value = 0;
+    } else if (!_controller.isAnimating) {
+      _controller.repeat();
+    }
   }
 
   @override

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -20,8 +21,8 @@ enum SacButtonSize { small, medium, large }
 
 /// Botón reutilizable del design system SACDIA "Scout Vibrante"
 ///
-/// Soporta variantes, tamaños, animación de press (scale 0.96),
-/// íconos (Material + HugeIcons), loading state, y overrides de estilo.
+/// Press: scale [SacMotion.pressScale] / [SacMotion.press] / [SacMotion.easeOut].
+/// Sin splash Material. Íconos HugeIcons, loading y overrides de estilo.
 class SacButton extends StatefulWidget {
   final String text;
   final VoidCallback? onPressed;
@@ -194,53 +195,22 @@ class SacButton extends StatefulWidget {
   State<SacButton> createState() => _SacButtonState();
 }
 
-class _SacButtonState extends State<SacButton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _pressController;
-  late final Animation<double> _scaleAnimation;
+class _SacButtonState extends State<SacButton> {
+  bool _pressed = false;
 
   bool get _effectivelyDisabled =>
       widget.isLoading || !widget.isEnabled || widget.onPressed == null;
 
-  @override
-  void initState() {
-    super.initState();
-
-    _pressController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 80),
-      reverseDuration: const Duration(milliseconds: 180),
-    );
-
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.96).animate(
-      CurvedAnimation(parent: _pressController, curve: Curves.easeInOut),
-    );
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() => _pressed = value);
   }
 
-  @override
-  void dispose() {
-    _pressController.dispose();
-    super.dispose();
-  }
-
-  void _handleTapDown(TapDownDetails _) {
+  void _handlePressed() {
     if (_effectivelyDisabled) return;
-    HapticFeedback.lightImpact();
-    if (MediaQuery.disableAnimationsOf(context)) return;
-    _pressController.forward();
+    widget.onPressed?.call();
   }
 
-  void _handleTapUp(TapUpDetails _) {
-    if (MediaQuery.disableAnimationsOf(context)) return;
-    _pressController.reverse();
-  }
-
-  void _handleTapCancel() {
-    if (MediaQuery.disableAnimationsOf(context)) return;
-    _pressController.reverse();
-  }
-
-  // Valores con override opcional — si el usuario pasa un valor custom, se usa ese
   EdgeInsetsGeometry get _padding {
     if (widget.padding != null) return widget.padding!;
     switch (widget.size) {
@@ -337,6 +307,7 @@ class _SacButtonState extends State<SacButton>
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    final reduce = SacMotion.reduceMotionOf(context);
 
     // Loading blocks interaction, but keeps the configured visual hierarchy.
     // Only genuinely disabled, non-loading buttons use disabled tokens.
@@ -350,28 +321,6 @@ class _SacButtonState extends State<SacButton>
         ? BorderSide(color: c.border, width: 1.5)
         : (_borderSide ?? BorderSide.none);
 
-    final shape = RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(_borderRadius),
-      side: effectiveBorder,
-    );
-
-    final style = ButtonStyle(
-      backgroundColor: WidgetStateProperty.all(effectiveBg),
-      foregroundColor: WidgetStateProperty.all(effectiveFg),
-      overlayColor: WidgetStateProperty.all(
-        effectiveFg.withValues(alpha: 0.1),
-      ),
-      elevation: WidgetStateProperty.all(0),
-      padding: WidgetStateProperty.all(_padding),
-      minimumSize: WidgetStateProperty.all(
-        Size(widget.fullWidth ? double.infinity : 0, _minHeight),
-      ),
-      shape: WidgetStateProperty.all(shape),
-      textStyle: WidgetStateProperty.all(
-        TextStyle(fontSize: _fontSize, fontWeight: FontWeight.w600),
-      ),
-    );
-
     final loadingIndicator = SizedBox(
       height: _iconSize,
       width: _iconSize,
@@ -380,13 +329,24 @@ class _SacButtonState extends State<SacButton>
         strokeWidth: 2.0,
       ),
     );
+    final label = Text(
+      widget.text,
+      maxLines: widget.labelMaxLines,
+      overflow: widget.labelOverflow,
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        fontSize: _fontSize,
+        fontWeight: FontWeight.w600,
+        color: effectiveFg,
+      ),
+    );
     final child = widget.isLoading
         ? widget.loadingSemanticLabel == null
-            ? loadingIndicator
+            ? Center(child: loadingIndicator)
             : Semantics(
                 label: widget.loadingSemanticLabel,
                 liveRegion: true,
-                child: loadingIndicator,
+                child: Center(child: loadingIndicator),
               )
         : Row(
             mainAxisSize:
@@ -397,14 +357,7 @@ class _SacButtonState extends State<SacButton>
                 buildIcon(widget.icon, size: _iconSize, color: effectiveFg),
                 SizedBox(width: widget.spaceBetween),
               ],
-              Flexible(
-                child: Text(
-                  widget.text,
-                  maxLines: widget.labelMaxLines,
-                  overflow: widget.labelOverflow,
-                  textAlign: TextAlign.center,
-                ),
-              ),
+              widget.fullWidth ? Flexible(child: label) : label,
               if (widget.trailingIcon != null) ...[
                 SizedBox(width: widget.spaceBetween),
                 buildIcon(widget.trailingIcon,
@@ -413,33 +366,59 @@ class _SacButtonState extends State<SacButton>
             ],
           );
 
-    Widget button;
-    if (widget.variant == SacButtonVariant.ghost) {
-      button = TextButton(
-        onPressed: _effectivelyDisabled ? null : widget.onPressed,
-        style: style,
-        child: child,
-      );
-    } else {
-      button = ElevatedButton(
-        onPressed: _effectivelyDisabled ? null : widget.onPressed,
-        style: style,
-        child: child,
-      );
-    }
+    final visual = ConstrainedBox(
+      constraints: BoxConstraints(
+        minHeight: _minHeight,
+        minWidth: widget.fullWidth ? double.infinity : 0,
+      ),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: effectiveBg,
+          borderRadius: BorderRadius.circular(_borderRadius),
+          border: Border.fromBorderSide(effectiveBorder),
+        ),
+        child: Padding(
+          padding: _padding,
+          child: child,
+        ),
+      ),
+    );
 
-    // I-4: No AnimatedOpacity wrapper — opacity is always 1.0 so it's a no-op.
-    // Disabled state is handled via color changes which are instant on setState.
-    // The ScaleTransition below provides the only intentional animation.
-
-    // Scale animation on press with haptic feedback
-    return GestureDetector(
-      onTapDown: _handleTapDown,
-      onTapUp: _handleTapUp,
-      onTapCancel: _handleTapCancel,
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: button,
+    return FocusableActionDetector(
+      enabled: !_effectivelyDisabled,
+      mouseCursor: _effectivelyDisabled
+          ? SystemMouseCursors.basic
+          : SystemMouseCursors.click,
+      actions: <Type, Action<Intent>>{
+        ActivateIntent: CallbackAction<ActivateIntent>(
+          onInvoke: (_) {
+            _handlePressed();
+            return null;
+          },
+        ),
+      },
+      child: Semantics(
+        button: true,
+        enabled: !_effectivelyDisabled,
+        label: widget.text,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: _effectivelyDisabled
+              ? null
+              : (_) {
+                  HapticFeedback.lightImpact();
+                  _setPressed(true);
+                },
+          onTapUp: _effectivelyDisabled ? null : (_) => _setPressed(false),
+          onTapCancel: _effectivelyDisabled ? null : () => _setPressed(false),
+          onTap: _effectivelyDisabled ? null : _handlePressed,
+          child: AnimatedScale(
+            scale: (!reduce && _pressed) ? SacMotion.pressScale : 1,
+            duration: SacMotion.press,
+            curve: SacMotion.easeOut,
+            child: visual,
+          ),
+        ),
       ),
     );
   }
