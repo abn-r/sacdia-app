@@ -386,6 +386,63 @@ class CamporeeEventScheduleBlockModel extends Equatable {
       ];
 }
 
+class CamporeeEventHonorModel extends Equatable {
+  final int honorId;
+  final String name;
+  final String? honorImage;
+  final String? materialUrl;
+  final String? categoryName;
+  final int? skillLevel;
+  final bool active;
+
+  const CamporeeEventHonorModel({
+    required this.honorId,
+    required this.name,
+    this.honorImage,
+    this.materialUrl,
+    this.categoryName,
+    this.skillLevel,
+    this.active = true,
+  });
+
+  factory CamporeeEventHonorModel.fromJson(Map<String, dynamic> json) {
+    return CamporeeEventHonorModel(
+      honorId: safeInt(json['honor_id'] ?? json['id']),
+      name: safeString(json['name']),
+      honorImage: safeStringOrNull(json['honor_image'] ?? json['image_url']),
+      materialUrl: safeStringOrNull(json['material_url'] ?? json['materialUrl']),
+      categoryName: safeStringOrNull(
+        json['category_name'] ?? json['honor_category_name'],
+      ),
+      skillLevel: safeIntOrNull(json['skill_level']),
+      active: safeBool(json['active'], true),
+    );
+  }
+
+  CamporeeEventHonor toEntity() {
+    return CamporeeEventHonor(
+      honorId: honorId,
+      name: name,
+      honorImage: honorImage,
+      materialUrl: materialUrl,
+      categoryName: categoryName,
+      skillLevel: skillLevel,
+      active: active,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+        honorId,
+        name,
+        honorImage,
+        materialUrl,
+        categoryName,
+        skillLevel,
+        active,
+      ];
+}
+
 /// Modelo de evento de camporí para la capa de datos.
 class CamporeeEventModel extends Equatable {
   final int camporeeEventId;
@@ -409,6 +466,7 @@ class CamporeeEventModel extends Equatable {
   final String? eventTypeName;
   final List<CamporeeEventScheduleBlockModel> scheduleBlocks;
   final List<CamporeeEventStaffAssignmentModel> staffAssignments;
+  final List<CamporeeEventHonorModel> honors;
 
   const CamporeeEventModel({
     required this.camporeeEventId,
@@ -432,6 +490,7 @@ class CamporeeEventModel extends Equatable {
     this.eventTypeName,
     this.scheduleBlocks = const [],
     this.staffAssignments = const [],
+    this.honors = const [],
   });
 
   factory CamporeeEventModel.fromJson(Map<String, dynamic> json) {
@@ -447,6 +506,7 @@ class CamporeeEventModel extends Equatable {
         : null;
     final rawBlocks = json['schedule_blocks'];
     final staffAssignments = _staffAssignmentsFromJson(json);
+    final rawHonors = json['honors'];
 
     return CamporeeEventModel(
       camporeeEventId: safeInt(json['camporee_event_id'] ?? json['id']),
@@ -481,6 +541,16 @@ class CamporeeEventModel extends Equatable {
               .toList()
           : const [],
       staffAssignments: staffAssignments,
+      honors: rawHonors is List
+          ? rawHonors
+              .whereType<Map>()
+              .map(
+                (item) => CamporeeEventHonorModel.fromJson(
+                  Map<String, dynamic>.from(item),
+                ),
+              )
+              .toList()
+          : const [],
     );
   }
 
@@ -563,6 +633,7 @@ class CamporeeEventModel extends Equatable {
       scheduleBlocks: scheduleBlocks.map((block) => block.toEntity()).toList(),
       staffAssignments:
           staffAssignments.map((assignment) => assignment.toEntity()).toList(),
+      honors: honors.map((honor) => honor.toEntity()).toList(),
     );
   }
 
@@ -589,5 +660,6 @@ class CamporeeEventModel extends Equatable {
         eventTypeName,
         scheduleBlocks,
         staffAssignments,
+        honors,
       ];
 }
