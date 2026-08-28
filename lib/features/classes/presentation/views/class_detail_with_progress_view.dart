@@ -412,6 +412,12 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
             ),
           ),
 
+          // Especialidades arriba de los módulos: Guía Mayor ancla las
+          // sugerencias a módulos y el carrusel al pie quedaba fuera de vista.
+          SliverToBoxAdapter(
+            child: _RecommendedHonorsSection(classId: widget.classId),
+          ),
+
           // ── Empty search state ─────────────────────────────────────────────
           ValueListenableBuilder<String>(
             valueListenable: _query,
@@ -454,11 +460,6 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
                     ),
                   );
             },
-          ),
-
-          // ── Especialidades recomendadas ─────────────────────────────────────
-          SliverToBoxAdapter(
-            child: _RecommendedHonorsSection(classId: widget.classId),
           ),
         ],
       ),
@@ -1543,12 +1544,11 @@ class _RecommendedHonorsSection extends ConsumerWidget {
       loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),
       data: (honors) {
-        final classLevelHonors =
-            honors.where((honor) => honor.moduleId == null).toList();
-        if (classLevelHonors.isEmpty) return const SizedBox.shrink();
+        final suggestedHonors = ClassHonor.forClassCarousel(honors);
+        if (suggestedHonors.isEmpty) return const SizedBox.shrink();
 
         return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 0, 24),
+          padding: const EdgeInsets.fromLTRB(16, 4, 0, 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1562,10 +1562,10 @@ class _RecommendedHonorsSection extends ConsumerWidget {
                   scrollDirection: Axis.horizontal,
                   clipBehavior: Clip.none,
                   padding: const EdgeInsets.only(right: 16),
-                  itemCount: classLevelHonors.length,
+                  itemCount: suggestedHonors.length,
                   separatorBuilder: (_, __) => const SizedBox(width: 10),
                   itemBuilder: (context, index) {
-                    final honor = classLevelHonors[index];
+                    final honor = suggestedHonors[index];
                     return _HonorCard(
                       honor: honor,
                       onTap: () => context.push(

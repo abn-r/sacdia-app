@@ -376,6 +376,27 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
                               color: AppColors.ink500,
                             ),
                           ),
+                          if (widget.honors.isNotEmpty) ...[
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 6),
+                              child: Text(
+                                '·',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.ink300,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              widget.honors.length == 1
+                                  ? '1 especialidad'
+                                  : '${widget.honors.length} especialidades',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.ink500,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ],

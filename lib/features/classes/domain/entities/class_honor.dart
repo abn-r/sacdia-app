@@ -83,6 +83,13 @@ class ClassHonor extends Equatable {
     return status != null && status.isNotEmpty;
   }
 
+  /// Carrusel de sugerencias de la clase: incluye especialidades de nivel
+  /// clase y las ancladas a un módulo. Sin esto, anclar a módulo las esconde
+  /// detrás de filas colapsadas.
+  static List<ClassHonor> forClassCarousel(List<ClassHonor> honors) {
+    return List<ClassHonor>.from(honors);
+  }
+
   @override
   List<Object?> get props => [
         classHonorId,

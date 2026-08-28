@@ -110,6 +110,27 @@ void main() {
       expect(model.isEnrolled, isFalse);
     });
 
+    test('class carousel keeps module-anchored honors visible', () {
+      final classLevel = ClassHonorModel.fromJson(const {
+        'class_honor_id': 1,
+        'relation_type': 'RECOMMENDED',
+        'module_id': null,
+        'honor': {'honor_id': 9, 'name': 'Astronomía'},
+      }).toEntity();
+      final moduleAnchored = ClassHonorModel.fromJson(const {
+        'class_honor_id': 297,
+        'relation_type': 'RECOMMENDED',
+        'module_id': 95,
+        'module_name': 'Desarrollo de habilidades',
+        'honor': {'honor_id': 16, 'name': 'Amarres'},
+      }).toEntity();
+
+      expect(
+        ClassHonor.forClassCarousel([classLevel, moduleAnchored]),
+        [classLevel, moduleAnchored],
+      );
+    });
+
     test('user_status other than APPROVED is not treated as completed', () {
       final model = ClassHonorModel.fromJson(const {
         'class_honor_id': 5,
