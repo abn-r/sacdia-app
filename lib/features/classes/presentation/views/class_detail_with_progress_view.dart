@@ -443,15 +443,16 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
                 return const SliverToBoxAdapter(child: _EmptyModules());
               }
 
-              return SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                  child: _RequirementTrackSections(
-                    buckets: buckets,
-                    onRequirementTap: _openRequirementDetail,
-                  ),
-                ),
-              );
+                  return SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                      child: _RequirementTrackSections(
+                        classId: widget.classId,
+                        buckets: buckets,
+                        onRequirementTap: _openRequirementDetail,
+                      ),
+                    ),
+                  );
             },
           ),
 
@@ -1379,10 +1380,12 @@ class _SectionLabel extends StatelessWidget {
 // ── Requirement track sections ────────────────────────────────────────────────
 
 class _RequirementTrackSections extends StatelessWidget {
+  final int classId;
   final _RequirementTrackBuckets buckets;
   final void Function(ClassRequirement) onRequirementTap;
 
   const _RequirementTrackSections({
+    required this.classId,
     required this.buckets,
     required this.onRequirementTap,
   });
@@ -1395,6 +1398,7 @@ class _RequirementTrackSections extends StatelessWidget {
       children.addAll([
         const _SectionLabel(text: 'DESARROLLO DE CLASE'),
         _ModulesCard(
+          classId: classId,
           modules: buckets.basicModules,
           onRequirementTap: onRequirementTap,
         ),
@@ -1433,17 +1437,21 @@ class _RequirementTrackSections extends StatelessWidget {
 
 // ── Modules card ───────────────────────────────────────────────────────────────
 
-class _ModulesCard extends StatelessWidget {
+class _ModulesCard extends ConsumerWidget {
+  final int classId;
   final List<ClassModuleDetail> modules;
   final void Function(ClassRequirement) onRequirementTap;
 
   const _ModulesCard({
+    required this.classId,
     required this.modules,
     required this.onRequirementTap,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final honors =
+        ref.watch(classHonorsProvider(classId)).valueOrNull ?? const <ClassHonor>[];
     final firstPendingModuleIndex = modules.indexWhere(
       (module) =>
           module.requirements.isNotEmpty &&
@@ -1470,6 +1478,9 @@ class _ModulesCard extends StatelessWidget {
                 ),
               ModuleDetailRow(
                 module: modules[i],
+                honors: honors
+                    .where((honor) => honor.moduleId == modules[i].id)
+                    .toList(),
                 initiallyExpanded: i == firstPendingModuleIndex,
                 onRequirementTap: onRequirementTap,
               ),
@@ -1532,7 +1543,9 @@ class _RecommendedHonorsSection extends ConsumerWidget {
       loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),
       data: (honors) {
-        if (honors.isEmpty) return const SizedBox.shrink();
+        final classLevelHonors =
+            honors.where((honor) => honor.moduleId == null).toList();
+        if (classLevelHonors.isEmpty) return const SizedBox.shrink();
 
         return Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 0, 24),
@@ -1549,10 +1562,10 @@ class _RecommendedHonorsSection extends ConsumerWidget {
                   scrollDirection: Axis.horizontal,
                   clipBehavior: Clip.none,
                   padding: const EdgeInsets.only(right: 16),
-                  itemCount: honors.length,
+                  itemCount: classLevelHonors.length,
                   separatorBuilder: (_, __) => const SizedBox(width: 10),
                   itemBuilder: (context, index) {
-                    final honor = honors[index];
+                    final honor = classLevelHonors[index];
                     return _HonorCard(
                       honor: honor,
                       onTap: () => context.push(
