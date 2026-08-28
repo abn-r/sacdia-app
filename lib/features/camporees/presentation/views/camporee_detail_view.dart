@@ -16,6 +16,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_event.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.dart';
@@ -427,6 +428,136 @@ class _DescriptionSection extends StatelessWidget {
   }
 }
 
+class _EventHonorsSection extends StatelessWidget {
+  final List<CamporeeEventHonor> honors;
+
+  const _EventHonorsSection({required this.honors});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionHeader(label: 'camporees.detail.event_honors_title'.tr()),
+        const SizedBox(height: 6),
+        Text(
+          'camporees.detail.event_honors_subtitle'.tr(),
+          style: TextStyle(
+            color: context.sac.textSecondary,
+            fontSize: 13,
+            height: 1.35,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 10),
+        ...honors.map((honor) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _EventHonorCard(honor: honor),
+            )),
+      ],
+    );
+  }
+}
+
+class _EventHonorCard extends StatelessWidget {
+  final CamporeeEventHonor honor;
+
+  const _EventHonorCard({required this.honor});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final category = honor.categoryName?.trim();
+    final imageUrl = honor.honorImage?.trim();
+
+    return _SurfacePanel(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: imageUrl != null && imageUrl.isNotEmpty
+                ? Image.network(
+                    imageUrl,
+                    width: 48,
+                    height: 48,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => _honorFallback(c),
+                  )
+                : _honorFallback(c),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  honor.name,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: c.text,
+                      ),
+                ),
+                if (category != null && category.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    category,
+                    style: TextStyle(
+                      color: c.textSecondary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 8),
+                if (honor.hasMaterial)
+                  GestureDetector(
+                    onTap: () => SacPdfViewer.show(
+                      context,
+                      pdfSource: honor.materialUrl!.trim(),
+                      title: honor.name,
+                    ),
+                    child: Text(
+                      'camporees.detail.event_honor_open_pdf'.tr(),
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  )
+                else
+                  Text(
+                    'camporees.detail.event_honor_no_pdf'.tr(),
+                    style: TextStyle(
+                      color: c.textSecondary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _honorFallback(SacColors c) {
+    return Container(
+      width: 48,
+      height: 48,
+      color: c.surfaceVariant,
+      alignment: Alignment.center,
+      child: HugeIcon(
+        icon: HugeIcons.strokeRoundedAward01,
+        color: c.textSecondary,
+        size: 22,
+      ),
+    );
+  }
+}
+
 class _EventsSection extends StatelessWidget {
   final AsyncValue<List<CamporeeEvent>> eventsAsync;
   final VoidCallback onRetry;
@@ -615,6 +746,10 @@ class _CamporeeEventDetailPage extends StatelessWidget {
             if (description != null && description.isNotEmpty) ...[
               const SizedBox(height: 24),
               _DescriptionSection(description: description),
+            ],
+            if (event.honors.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              _EventHonorsSection(honors: event.honors),
             ],
             if (hasStaffSummary) ...[
               const SizedBox(height: 24),

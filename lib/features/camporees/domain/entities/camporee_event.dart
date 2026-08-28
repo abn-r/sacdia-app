@@ -135,6 +135,43 @@ class CamporeeEventScheduleBlock extends Equatable {
       ];
 }
 
+/// Especialidad de preparación ligada a un evento de camporí.
+class CamporeeEventHonor extends Equatable {
+  final int honorId;
+  final String name;
+  final String? honorImage;
+  final String? materialUrl;
+  final String? categoryName;
+  final int? skillLevel;
+  final bool active;
+
+  const CamporeeEventHonor({
+    required this.honorId,
+    required this.name,
+    this.honorImage,
+    this.materialUrl,
+    this.categoryName,
+    this.skillLevel,
+    this.active = true,
+  });
+
+  bool get hasMaterial {
+    final url = materialUrl?.trim();
+    return url != null && url.isNotEmpty;
+  }
+
+  @override
+  List<Object?> get props => [
+        honorId,
+        name,
+        honorImage,
+        materialUrl,
+        categoryName,
+        skillLevel,
+        active,
+      ];
+}
+
 /// Evento/actividad registrada dentro de un camporí.
 class CamporeeEvent extends Equatable {
   final int camporeeEventId;
@@ -158,6 +195,7 @@ class CamporeeEvent extends Equatable {
   final String? eventTypeName;
   final List<CamporeeEventScheduleBlock> scheduleBlocks;
   final List<CamporeeEventStaffAssignment> staffAssignments;
+  final List<CamporeeEventHonor> honors;
 
   const CamporeeEvent({
     required this.camporeeEventId,
@@ -181,6 +219,7 @@ class CamporeeEvent extends Equatable {
     this.eventTypeName,
     this.scheduleBlocks = const [],
     this.staffAssignments = const [],
+    this.honors = const [],
   });
 
   bool get hasTime =>
@@ -264,5 +303,6 @@ class CamporeeEvent extends Equatable {
         eventTypeName,
         scheduleBlocks,
         staffAssignments,
+        honors,
       ];
 }
