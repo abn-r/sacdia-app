@@ -1636,6 +1636,13 @@
       "section_pending_snack": "Section marquée comme en attente",
       "error_loading": "Erreur lors du chargement des modules"
     },
+    "honors": {
+      "open_pdf": "Ouvrir le PDF",
+      "enroll": "Inscrire",
+      "continue_honor": "Continuer",
+      "no_pdf": "Cette spécialité n'a pas de matériel PDF",
+      "module_section": "Spécialités de ce module"
+    },
     "detail": {
       "progress_label": "progression",
       "description_header": "Description",

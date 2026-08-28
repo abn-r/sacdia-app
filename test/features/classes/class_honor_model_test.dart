@@ -74,6 +74,42 @@ void main() {
       expect(model.honorImage, 'https://cdn.example.com/natacion.png');
     });
 
+    test('parses module assignment and material_url', () {
+      final model = ClassHonorModel.fromJson(const {
+        'class_honor_id': 10,
+        'relation_type': 'REQUIRED',
+        'module_id': 12,
+        'module_name': 'Vida al aire libre',
+        'honor': {
+          'honor_id': 55,
+          'name': 'Nudos',
+          'material_url': 'https://cdn.example.com/nudos.pdf',
+        },
+        'user_status': 'IN_PROGRESS',
+      });
+
+      expect(model.moduleId, 12);
+      expect(model.moduleName, 'Vida al aire libre');
+      expect(model.materialUrl, 'https://cdn.example.com/nudos.pdf');
+      expect(model.hasMaterial, isTrue);
+      expect(model.isEnrolled, isTrue);
+      expect(model.isCompletedByUser, isFalse);
+    });
+
+    test('null module and missing material stay empty', () {
+      final model = ClassHonorModel.fromJson(const {
+        'class_honor_id': 11,
+        'relation_type': 'RECOMMENDED',
+        'module_id': null,
+        'honor': {'honor_id': 9, 'name': 'Astronomía'},
+      });
+
+      expect(model.moduleId, isNull);
+      expect(model.moduleName, isNull);
+      expect(model.hasMaterial, isFalse);
+      expect(model.isEnrolled, isFalse);
+    });
+
     test('user_status other than APPROVED is not treated as completed', () {
       final model = ClassHonorModel.fromJson(const {
         'class_honor_id': 5,

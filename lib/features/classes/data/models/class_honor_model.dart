@@ -13,8 +13,9 @@ String? _buildHonorImageUrl(String? raw) {
 /// Modelo de datos para [ClassHonor].
 ///
 /// Parsea la respuesta de `GET /classes/:classId/honors`:
-/// `[{ class_honor_id, relation_type, honor: { honor_id, name, honor_image,
-/// honors_category_id, skill_level }, user_status }]`.
+/// `[{ class_honor_id, relation_type, module_id, module_name, honor: {
+/// honor_id, name, honor_image, material_url, honors_category_id, skill_level
+/// }, user_status }]`.
 class ClassHonorModel extends ClassHonor {
   const ClassHonorModel({
     required super.classHonorId,
@@ -24,6 +25,9 @@ class ClassHonorModel extends ClassHonor {
     super.honorImage,
     super.honorCategoryId,
     super.honorSkillLevel,
+    super.moduleId,
+    super.moduleName,
+    super.materialUrl,
     super.userStatus,
   });
 
@@ -41,6 +45,11 @@ class ClassHonorModel extends ClassHonor {
       ),
       honorCategoryId: safeIntOrNull(honorJson['honors_category_id']),
       honorSkillLevel: safeIntOrNull(honorJson['skill_level']),
+      moduleId: safeIntOrNull(json['module_id']),
+      moduleName: safeStringOrNull(json['module_name']),
+      materialUrl: safeStringOrNull(
+        honorJson['material_url'] ?? json['material_url'],
+      ),
       userStatus: safeStringOrNull(json['user_status']),
     );
   }
@@ -53,6 +62,9 @@ class ClassHonorModel extends ClassHonor {
         honorImage: honorImage,
         honorCategoryId: honorCategoryId,
         honorSkillLevel: honorSkillLevel,
+        moduleId: moduleId,
+        moduleName: moduleName,
+        materialUrl: materialUrl,
         userStatus: userStatus,
       );
 }
