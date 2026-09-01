@@ -9,7 +9,20 @@
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 
-enum ClassStatus { done, current, expired, locked }
+enum ClassStatus {
+  done,
+  current,
+  expired,
+  notTaken,
+  upcoming,
+}
+
+extension ClassStatusX on ClassStatus {
+  bool get canOpenDetail =>
+      this == ClassStatus.done ||
+      this == ClassStatus.current ||
+      this == ClassStatus.expired;
+}
 
 class ClassItem {
   final String id;
@@ -19,6 +32,7 @@ class ClassItem {
   final ClassStatus status;
   final int? enrollmentId;
   final double? progress; // 0..100, solo para 'current'
+  final int? minimumAge;
 
   const ClassItem({
     required this.id,
@@ -28,6 +42,7 @@ class ClassItem {
     required this.status,
     this.enrollmentId,
     this.progress,
+    this.minimumAge,
   });
 }
 
@@ -63,37 +78,43 @@ const List<TrackData> kRoadmapData = [
       ClassItem(
           id: 'av1',
           name: 'Corderitos',
-          age: '6 años',
+          age: 'Desde 6 años',
+          minimumAge: 6,
           img: 'assets/img/logos-clases/AV-01.png',
           status: ClassStatus.done),
       ClassItem(
           id: 'av2',
           name: 'Aves Amigas',
-          age: '6 años',
+          age: 'Desde 6 años',
+          minimumAge: 6,
           img: 'assets/img/logos-clases/AV-02.png',
           status: ClassStatus.done),
       ClassItem(
           id: 'av3',
           name: 'Abejitas Industriosas',
-          age: '7 años',
+          age: 'Desde 7 años',
+          minimumAge: 7,
           img: 'assets/img/logos-clases/AV-03.png',
           status: ClassStatus.done),
       ClassItem(
           id: 'av4',
           name: 'Rayitos de Sol',
-          age: '7 años',
+          age: 'Desde 7 años',
+          minimumAge: 7,
           img: 'assets/img/logos-clases/AV-04.png',
           status: ClassStatus.done),
       ClassItem(
           id: 'av5',
           name: 'Constructores',
-          age: '8 años',
+          age: 'Desde 8 años',
+          minimumAge: 8,
           img: 'assets/img/logos-clases/AV-05.png',
           status: ClassStatus.done),
       ClassItem(
           id: 'av6',
           name: 'Manos Ayudadoras',
-          age: '9 años',
+          age: 'Desde 9 años',
+          minimumAge: 9,
           img: 'assets/img/logos-clases/AV-06.png',
           status: ClassStatus.done),
     ],
@@ -108,37 +129,43 @@ const List<TrackData> kRoadmapData = [
       ClassItem(
           id: 'cq1',
           name: 'Amigo',
-          age: '10 años',
+          age: 'Desde 10 años',
+          minimumAge: 10,
           img: 'assets/img/logos-clases/CQ-01.png',
           status: ClassStatus.done),
       ClassItem(
           id: 'cq2',
           name: 'Compañero',
-          age: '11 años',
+          age: 'Desde 11 años',
+          minimumAge: 11,
           img: 'assets/img/logos-clases/CQ-02.png',
           status: ClassStatus.done),
       ClassItem(
           id: 'cq3',
           name: 'Explorador',
-          age: '12 años',
+          age: 'Desde 12 años',
+          minimumAge: 12,
           img: 'assets/img/logos-clases/CQ-03.png',
           status: ClassStatus.done),
       ClassItem(
           id: 'cq4',
           name: 'Orientador',
-          age: '13 años',
+          age: 'Desde 13 años',
+          minimumAge: 13,
           img: 'assets/img/logos-clases/CQ-04.png',
           status: ClassStatus.done),
       ClassItem(
           id: 'cq5',
           name: 'Viajero',
-          age: '14 años',
+          age: 'Desde 14 años',
+          minimumAge: 14,
           img: 'assets/img/logos-clases/CQ-05.png',
           status: ClassStatus.done),
       ClassItem(
           id: 'cq6',
           name: 'Guía',
-          age: '15 años',
+          age: 'Desde 15 años',
+          minimumAge: 15,
           img: 'assets/img/logos-clases/CQ-06.png',
           status: ClassStatus.done),
     ],
@@ -153,22 +180,25 @@ const List<TrackData> kRoadmapData = [
       ClassItem(
           id: 'gm1',
           name: 'Guía Mayor',
-          age: '16+ años',
+          age: 'Desde 16 años',
+          minimumAge: 16,
           img: 'assets/img/logos-clases/GM-01.png',
           status: ClassStatus.current,
           progress: 1),
       ClassItem(
           id: 'gm2',
           name: 'Máster',
-          age: '18+ años',
+          age: 'Desde 18 años',
+          minimumAge: 18,
           img: 'assets/img/logos-clases/GM-02.png',
-          status: ClassStatus.locked),
+          status: ClassStatus.upcoming),
       ClassItem(
           id: 'gm3',
           name: 'Asesor',
-          age: '21+ años',
+          age: 'Desde 21 años',
+          minimumAge: 21,
           img: 'assets/img/logos-clases/GM-03.png',
-          status: ClassStatus.locked),
+          status: ClassStatus.upcoming),
     ],
   ),
 ];

@@ -19,8 +19,9 @@ import '../data/roadmap_mapper.dart';
 ///
 /// Combina el catálogo completo ([allClassesProvider]) con el progreso real del
 /// usuario ([userClassesProvider]):
-/// - Clases inscritas → status derivado de investitureStatus (done/current).
-/// - Clases solo en catálogo → status locked.
+/// - Clases inscritas → status derivado de investitureStatus (done/current/expired).
+/// - Clases anteriores no inscritas → notTaken.
+/// - Clases posteriores no inscritas → upcoming.
 ///
 /// Retorna [AsyncValue<List<TrackData>>] con los mismos estados de ciclo de
 /// vida (loading / error / data) que los providers subyacentes.

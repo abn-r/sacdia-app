@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../data/roadmap_data.dart';
@@ -44,11 +45,18 @@ class _VANodeState extends State<VANode> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     final item = widget.item;
     final isCurrent = item.status == ClassStatus.current;
-    final isLocked = item.status == ClassStatus.locked;
+    final isUpcoming = item.status == ClassStatus.upcoming;
+    final isNotTaken = item.status == ClassStatus.notTaken;
     final isDone = item.status == ClassStatus.done;
     final isExpired = item.status == ClassStatus.expired;
+    final isLockedLook = isUpcoming || isNotTaken;
     final isLeft = widget.side == 'left';
     final shieldCacheSize = (RoadmapTokens.nodeShieldSize * 3).round();
+    final ageLabel = item.minimumAge != null
+        ? 'classes.roadmap.min_age'.tr(
+            namedArgs: {'age': '${item.minimumAge}'},
+          )
+        : item.age;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -135,7 +143,7 @@ class _VANodeState extends State<VANode> with SingleTickerProviderStateMixin {
                           ),
                           // Imagen escudo
                           ColorFiltered(
-                            colorFilter: isLocked
+                            colorFilter: isLockedLook
                                 ? const ColorFilter.matrix(<double>[
                                     0.33,
                                     0.33,
@@ -169,8 +177,8 @@ class _VANodeState extends State<VANode> with SingleTickerProviderStateMixin {
                               cacheHeight: shieldCacheSize,
                             ),
                           ),
-                          // Lock overlay
-                          if (isLocked)
+                          // Lock overlay — no cursada y por cursar
+                          if (isLockedLook)
                             Center(
                               child: Container(
                                 width: 38,
@@ -251,7 +259,7 @@ class _VANodeState extends State<VANode> with SingleTickerProviderStateMixin {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: isLocked
+                          color: isLockedLook
                               ? RoadmapTokens.textMuted
                               : RoadmapTokens.textPrimary,
                           height: 1.2,
@@ -259,11 +267,11 @@ class _VANodeState extends State<VANode> with SingleTickerProviderStateMixin {
                       ),
                       const SizedBox(height: 1),
                       Text(
-                        item.age,
+                        ageLabel,
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
-                          color: isLocked
+                          color: isLockedLook
                               ? RoadmapTokens.textLockedBg
                               : RoadmapTokens.textSecondary,
                         ),
@@ -271,50 +279,60 @@ class _VANodeState extends State<VANode> with SingleTickerProviderStateMixin {
                     ],
                   ),
                 ),
-                if (isCurrent && item.progress != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: widget.accentColor,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        'ACTUAL · ${item.progress!.toStringAsFixed(0)}%',
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          letterSpacing: 0.4,
-                        ),
-                      ),
-                    ),
+                if (isCurrent)
+                  _NodeChip(
+                    label: 'classes.roadmap.node_current'.tr(namedArgs: {
+                      'progress': (item.progress ?? 0).toStringAsFixed(0),
+                    }),
+                    color: widget.accentColor,
+                  ),
+                if (isNotTaken)
+                  _NodeChip(
+                    label: 'classes.roadmap.node_not_taken'.tr(),
+                    color: RoadmapTokens.statusNotTaken,
+                  ),
+                if (isUpcoming)
+                  _NodeChip(
+                    label: 'classes.roadmap.node_upcoming'.tr(),
+                    color: RoadmapTokens.statusUpcoming,
                   ),
                 if (isExpired)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: RoadmapTokens.statusExpired,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: const Text(
-                        'VENCIDA',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          letterSpacing: 0.4,
-                        ),
-                      ),
-                    ),
+                  _NodeChip(
+                    label: 'classes.roadmap.node_expired'.tr(),
+                    color: RoadmapTokens.statusExpired,
                   ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NodeChip extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _NodeChip({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+            letterSpacing: 0.4,
           ),
         ),
       ),

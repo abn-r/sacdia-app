@@ -23,6 +23,30 @@ void main() {
       expect(entity.maxDurationYears, 1);
     });
 
+    test('parses minimum_age from catalog JSON', () {
+      final model = ClassModel.fromJson(const {
+        'class_id': 7,
+        'name': 'Amigo',
+        'club_type_id': 2,
+        'minimum_age': 10,
+      });
+
+      expect(model.minimumAge, 10);
+      expect(model.toEntity().minimumAge, 10);
+      expect(model.toJson(), containsPair('minimum_age', 10));
+    });
+
+    test('parses min_age alias when minimum_age is absent', () {
+      final model = ClassModel.fromJson(const {
+        'class_id': 7,
+        'name': 'Amigo',
+        'club_type_id': 2,
+        'min_age': 10,
+      });
+
+      expect(model.minimumAge, 10);
+    });
+
     test('parses explicit availability and duration fields', () {
       final model = ClassModel.fromJson(const {
         'class_id': 8,

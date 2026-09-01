@@ -25,6 +25,9 @@ class ClassModel extends Equatable {
   /// Mapeado desde el campo snake_case `asset_code` del backend.
   final String? assetCode;
 
+  /// Edad mínima para iniciar la clase (`classes.minimum_age`).
+  final int? minimumAge;
+
   final DateTime? enrollmentDate;
   final DateTime? submittedAt;
   final DateTime? validatedAt;
@@ -48,6 +51,7 @@ class ClassModel extends Equatable {
     this.investitureStatus,
     this.overallProgress,
     this.assetCode,
+    this.minimumAge,
     this.enrollmentDate,
     this.submittedAt,
     this.validatedAt,
@@ -77,6 +81,7 @@ class ClassModel extends Equatable {
       investitureStatus: safeStringOrNull(json['investiture_status']),
       overallProgress: safeIntOrNull(json['overall_progress']),
       assetCode: safeStringOrNull(json['asset_code']),
+      minimumAge: safeIntOrNull(json['minimum_age'] ?? json['min_age']),
       enrollmentDate: _parseDate(json['enrollment_date']),
       submittedAt: _parseDate(json['submitted_at']),
       validatedAt: _parseDate(json['validated_at']),
@@ -135,6 +140,7 @@ class ClassModel extends Equatable {
       'investiture_status': investitureStatus,
       'overall_progress': overallProgress,
       'asset_code': assetCode,
+      'minimum_age': minimumAge,
       'enrollment_date': enrollmentDate?.toIso8601String(),
       'submitted_at': submittedAt?.toIso8601String(),
       'validated_at': validatedAt?.toIso8601String(),
@@ -161,6 +167,7 @@ class ClassModel extends Equatable {
       investitureStatus: investitureStatus,
       overallProgress: overallProgress,
       assetCode: assetCode,
+      minimumAge: minimumAge,
       enrollmentDate: enrollmentDate,
       submittedAt: submittedAt,
       validatedAt: validatedAt,
@@ -184,6 +191,7 @@ class ClassModel extends Equatable {
     String? investitureStatus,
     int? overallProgress,
     String? assetCode,
+    int? minimumAge,
     DateTime? enrollmentDate,
     DateTime? submittedAt,
     DateTime? validatedAt,
@@ -204,6 +212,7 @@ class ClassModel extends Equatable {
       investitureStatus: investitureStatus ?? this.investitureStatus,
       overallProgress: overallProgress ?? this.overallProgress,
       assetCode: assetCode ?? this.assetCode,
+      minimumAge: minimumAge ?? this.minimumAge,
       enrollmentDate: enrollmentDate ?? this.enrollmentDate,
       submittedAt: submittedAt ?? this.submittedAt,
       validatedAt: validatedAt ?? this.validatedAt,
@@ -228,6 +237,7 @@ class ClassModel extends Equatable {
         investitureStatus,
         overallProgress,
         assetCode,
+        minimumAge,
         enrollmentDate,
         submittedAt,
         validatedAt,

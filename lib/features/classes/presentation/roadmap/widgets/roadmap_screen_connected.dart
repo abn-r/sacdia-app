@@ -30,9 +30,8 @@ class RoadmapScreenConnected extends ConsumerWidget {
   const RoadmapScreenConnected({super.key});
 
   void _onClassTap(BuildContext context, ClassItem item) {
-    // Solo navegar si la clase está inscrita (current o done).
-    // Las clases locked no tienen detail view accesible.
-    if (item.status == ClassStatus.locked) return;
+    // Solo navegar si la clase tiene enrollment (completada, cursando, vencida).
+    if (!item.status.canOpenDetail) return;
 
     final classId = int.tryParse(item.id);
     if (classId == null) return;

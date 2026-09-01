@@ -4,13 +4,21 @@
 // Estrategia de merge:
 //   1. Iterar el catálogo completo (ordenado por display_order en el backend).
 //   2. Para cada clase del catálogo, buscar en el Map de inscritas por id.
-//   3. Si la encuentra → usar datos de la inscripción (investitureStatus, overallProgress).
-//   4. Si no la encuentra → marcar como locked.
+//   3. Si la encuentra → usar datos de la inscripción (investitureStatus,
+//      overallProgress).
+//   4. Si no la encuentra → notTaken (quedó atrás del frente de inscripción)
+//      o upcoming (aún por cursar).
 //
 // Reglas de status:
-//   done    → inscrita y investitureStatus == 'INVESTIDO'
-//   current → inscrita y investitureStatus != null && != 'INVESTIDO'
-//   locked  → no inscrita (o inscrita sin investitureStatus, edge case)
+//   done     → inscrita y investitureStatus == 'INVESTIDO'
+//   current  → inscrita y no investida (PENDIENTE u otro estado activo)
+//   expired  → inscrita y investitureStatus == 'EXPIRED'
+//   notTaken → no inscrita y hay una clase posterior en el camino con
+//              inscripción (no la cursó)
+//   upcoming → no inscrita y no hay progreso posterior (le falta cursarla)
+//
+// Edad del nodo: ProgressiveClass.minimumAge (classes.minimum_age). Si falta,
+// se usa el mapa oficial por asset_code. Último recurso: rango del track.
 //
 // Agrupación por clubTypeId:
 //   1 → Aventureros
@@ -49,6 +57,38 @@ String _resolveAsset(String? assetCode, String prefix, int position) {
     return 'assets/img/logos-clases/$assetCode.png';
   }
   return _localAsset(prefix, position);
+}
+
+/// Edad mínima oficial JA por `asset_code` cuando el catálogo no envía
+/// `minimum_age`. Coincide con el seed histórico de Pathfinders/Adventurers.
+const _minAgeByAsset = <String, int>{
+  'AV-01': 6,
+  'AV-02': 6,
+  'AV-03': 7,
+  'AV-04': 7,
+  'AV-05': 8,
+  'AV-06': 9,
+  'CQ-01': 10,
+  'CQ-02': 11,
+  'CQ-03': 12,
+  'CQ-04': 13,
+  'CQ-05': 14,
+  'CQ-06': 15,
+  'GM-01': 16,
+  'GM-02': 18,
+  'GM-03': 21,
+};
+
+int? _resolveMinimumAge(ProgressiveClass cls) {
+  if (cls.minimumAge != null) return cls.minimumAge;
+  final code = cls.assetCode?.toUpperCase();
+  if (code == null || code.isEmpty) return null;
+  return _minAgeByAsset[code];
+}
+
+String _formatMinimumAge(int? age, {required String fallback}) {
+  if (age == null) return fallback;
+  return 'Desde $age años';
 }
 
 /// Metadatos estáticos de cada track (colores, rango de edad, etc.)
@@ -108,7 +148,8 @@ class _TrackMeta {
 /// [ProgressiveClass.investitureStatus] y [ProgressiveClass.overallProgress].
 ///
 /// Comportamiento cuando el usuario no tiene clases inscritas:
-/// el roadmap muestra el camino completo con todas las clases [ClassStatus.locked].
+/// el roadmap muestra el camino completo con todas las clases
+/// [ClassStatus.upcoming].
 ///
 /// Retorna lista vacía solo si [catalog] está vacío.
 List<TrackData> buildRoadmapTracks({
@@ -126,6 +167,11 @@ List<TrackData> buildRoadmapTracks({
     catalogByType.putIfAbsent(cls.clubTypeId, () => []).add(cls);
   }
 
+  final orderedCatalog = <ProgressiveClass>[
+    for (final typeId in [1, 2, 3]) ...?catalogByType[typeId],
+  ];
+  final statusById = _deriveStatuses(orderedCatalog, enrolledById);
+
   // Emitir tracks en orden canónico: Aventureros (1) → Conquistadores (2) → GM (3).
   final result = <TrackData>[];
   for (final typeId in [1, 2, 3]) {
@@ -141,16 +187,15 @@ List<TrackData> buildRoadmapTracks({
       // Si el usuario tiene esta clase inscrita, usar sus datos de progreso.
       final enrolledCls = enrolledById[catalogCls.id];
       final effectiveCls = enrolledCls ?? catalogCls;
+      final minimumAge = _resolveMinimumAge(catalogCls);
 
       return ClassItem(
         id: effectiveCls.id.toString(),
         name: effectiveCls.name,
-        // ProgressiveClass no tiene campo de edad — usamos el rango del track.
-        age: meta.ageRange,
+        age: _formatMinimumAge(minimumAge, fallback: meta.ageRange),
+        minimumAge: minimumAge,
         img: _resolveAsset(effectiveCls.assetCode, meta.assetPrefix, position),
-        status: enrolledCls != null
-            ? _deriveStatus(enrolledCls.investitureStatus)
-            : ClassStatus.locked,
+        status: statusById[catalogCls.id] ?? ClassStatus.upcoming,
         enrollmentId: enrolledCls?.enrollmentId,
         progress: enrolledCls?.overallProgress?.toDouble(),
       );
@@ -169,12 +214,47 @@ List<TrackData> buildRoadmapTracks({
   return result;
 }
 
+/// Deriva el estado de cada clase recorriendo el catálogo en orden canónico.
+///
+/// El "frente" es el último índice con inscripción. Lo anterior no inscrito
+/// es [ClassStatus.notTaken]; lo posterior no inscrito es
+/// [ClassStatus.upcoming].
+Map<int, ClassStatus> _deriveStatuses(
+  List<ProgressiveClass> orderedCatalog,
+  Map<int, ProgressiveClass> enrolledById,
+) {
+  var lastReachedIndex = -1;
+  final enrolledStatus = <int, ClassStatus>{};
+
+  for (var i = 0; i < orderedCatalog.length; i++) {
+    final enrolled = enrolledById[orderedCatalog[i].id];
+    if (enrolled == null) continue;
+    lastReachedIndex = i;
+    enrolledStatus[orderedCatalog[i].id] =
+        _deriveEnrolledStatus(enrolled.investitureStatus);
+  }
+
+  final result = <int, ClassStatus>{};
+  for (var i = 0; i < orderedCatalog.length; i++) {
+    final id = orderedCatalog[i].id;
+    final enrolled = enrolledStatus[id];
+    if (enrolled != null) {
+      result[id] = enrolled;
+      continue;
+    }
+    result[id] =
+        i < lastReachedIndex ? ClassStatus.notTaken : ClassStatus.upcoming;
+  }
+  return result;
+}
+
 /// Deriva el [ClassStatus] desde el valor de investitureStatus del backend.
 ///
 /// Valores observados: null, 'PENDIENTE', 'INVESTIDO', 'EXPIRED'.
 /// Cualquier estado activo no-investido se trata como [ClassStatus.current].
-ClassStatus _deriveStatus(String? investitureStatus) {
-  if (investitureStatus == null) return ClassStatus.locked;
+/// Una inscripción sin status se trata como current (ya está cursando).
+ClassStatus _deriveEnrolledStatus(String? investitureStatus) {
+  if (investitureStatus == null) return ClassStatus.current;
   final normalized = investitureStatus.toUpperCase();
   if (normalized == 'INVESTIDO') return ClassStatus.done;
   if (normalized == 'EXPIRED') return ClassStatus.expired;

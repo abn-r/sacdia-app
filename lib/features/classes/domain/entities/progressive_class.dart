@@ -24,6 +24,10 @@ class ProgressiveClass extends Equatable {
   /// Null hasta que el backend esté desplegado con el campo poblado.
   final String? assetCode;
 
+  /// Edad mínima para iniciar la clase (`classes.minimum_age`).
+  /// Null si el catálogo aún no envía el campo.
+  final int? minimumAge;
+
   /// Fecha de inscripción del enrollment (si viene en el listado).
   final DateTime? enrollmentDate;
 
@@ -64,6 +68,7 @@ class ProgressiveClass extends Equatable {
     this.investitureStatus,
     this.overallProgress,
     this.assetCode,
+    this.minimumAge,
     this.enrollmentDate,
     this.submittedAt,
     this.validatedAt,
@@ -88,6 +93,7 @@ class ProgressiveClass extends Equatable {
         investitureStatus,
         overallProgress,
         assetCode,
+        minimumAge,
         enrollmentDate,
         submittedAt,
         validatedAt,

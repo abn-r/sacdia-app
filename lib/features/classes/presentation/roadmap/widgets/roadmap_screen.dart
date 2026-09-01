@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../../../core/utils/app_logger.dart';
 import '../data/roadmap_data.dart';
@@ -155,7 +156,7 @@ class _LegendPills extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(12),
@@ -166,20 +167,27 @@ class _LegendPills extends StatelessWidget {
               offset: const Offset(0, 2)),
         ],
       ),
-      child: Row(
-        children: const [
-          Expanded(
-              child:
-                  _Pill(label: 'Completada', color: RoadmapTokens.statusDone)),
-          Expanded(
-              child:
-                  _Pill(label: 'Actual', color: RoadmapTokens.statusCurrent)),
-          Expanded(
-              child:
-                  _Pill(label: 'Vencida', color: RoadmapTokens.statusExpired)),
-          Expanded(
-              child:
-                  _Pill(label: 'Bloqueada', color: RoadmapTokens.statusLocked)),
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 12,
+        runSpacing: 4,
+        children: [
+          _Pill(
+            label: 'classes.roadmap.legend_done'.tr(),
+            color: RoadmapTokens.statusDone,
+          ),
+          _Pill(
+            label: 'classes.roadmap.legend_current'.tr(),
+            color: RoadmapTokens.statusCurrent,
+          ),
+          _Pill(
+            label: 'classes.roadmap.legend_not_taken'.tr(),
+            color: RoadmapTokens.statusNotTaken,
+          ),
+          _Pill(
+            label: 'classes.roadmap.legend_upcoming'.tr(),
+            color: RoadmapTokens.statusUpcoming,
+          ),
         ],
       ),
     );
@@ -194,30 +202,26 @@ class _Pill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            maxLines: 1,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: RoadmapTokens.textPrimary,
             ),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              maxLines: 1,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: RoadmapTokens.textPrimary,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
