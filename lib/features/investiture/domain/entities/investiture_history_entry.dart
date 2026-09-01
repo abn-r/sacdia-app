@@ -37,6 +37,34 @@ enum InvestitureAction {
     }
   }
 
+  /// Short step name for grouped approval chains (Club → Coordinación → Campo).
+  String get shortLabel {
+    switch (this) {
+      case InvestitureAction.clubApproved:
+        return tr('investiture.history.step_club');
+      case InvestitureAction.coordinatorApproved:
+        return tr('investiture.history.step_coordinator');
+      case InvestitureAction.fieldApproved:
+        return tr('investiture.history.step_field');
+      case InvestitureAction.approved:
+        return tr('investiture.history.step_approved');
+      default:
+        return label;
+    }
+  }
+
+  bool get isApprovalStep {
+    switch (this) {
+      case InvestitureAction.clubApproved:
+      case InvestitureAction.coordinatorApproved:
+      case InvestitureAction.fieldApproved:
+      case InvestitureAction.approved:
+        return true;
+      default:
+        return false;
+    }
+  }
+
   static InvestitureAction fromString(String value) {
     switch (value.toUpperCase()) {
       case 'SUBMITTED':

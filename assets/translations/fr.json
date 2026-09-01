@@ -2858,7 +2858,16 @@
       "action_coordinator_approved": "Approbation de la coordination",
       "action_field_approved": "Approbation du champ",
       "action_expired": "Classe expirée",
-      "action_reinvestiture_requested": "Réinvestiture demandée"
+      "action_reinvestiture_requested": "Réinvestiture demandée",
+      "headline_in_review": "En cours de révision",
+      "headline_invested": "Investi",
+      "headline_rejected": "Observations",
+      "grouped_approvals": "Approuvé · {steps}",
+      "step_club": "Club",
+      "step_coordinator": "Coordination",
+      "step_field": "Association",
+      "step_approved": "Approuvé",
+      "open_action": "Voir l’historique"
     },
     "pending": {
       "title": "Validation d’investiture",

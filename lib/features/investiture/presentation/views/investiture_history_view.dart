@@ -4,17 +4,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
+import '../../../../core/animations/motion_tokens.dart';
+import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_loading.dart';
+import '../../domain/entities/investiture_history_cluster.dart';
 import '../../domain/entities/investiture_history_entry.dart';
 import '../providers/investiture_providers.dart';
 
-/// Vista de historial de acciones de investidura para un enrollment.
-///
-/// Muestra una línea de tiempo clara para que el miembro entienda quién envió,
-/// quién revisó y en qué etapa está el proceso de investidura.
+/// Timeline of investiture actions for one enrollment.
 class InvestitureHistoryView extends ConsumerWidget {
   final int enrollmentId;
 
@@ -76,6 +76,8 @@ class _HistoryContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hPad = Responsive.horizontalPadding(context);
+    final clusters = clusterInvestitureHistory(history);
+    final reduceMotion = SacMotion.reduceMotionOf(context);
 
     return CustomScrollView(
       physics: const BouncingScrollPhysics(
@@ -83,31 +85,24 @@ class _HistoryContent extends StatelessWidget {
       ),
       slivers: [
         SliverPadding(
-          padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 24),
+          padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 24),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              const _HistorySummaryCard(),
-              const SizedBox(height: 22),
               if (history.isEmpty)
                 const _HistoryEmptyCard()
               else ...[
-                Text(
-                  'investiture.history.timeline_title'.tr(),
-                  style: const TextStyle(
-                    color: AppColors.ink900,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.9,
-                  ),
+                _HistoryHeadline(history: history),
+                const SizedBox(height: 20),
+                StaggeredColumn(
+                  animate: !reduceMotion,
+                  children: [
+                    for (var i = 0; i < clusters.length; i++)
+                      _TimelineClusterTile(
+                        cluster: clusters[i],
+                        isLast: i == clusters.length - 1,
+                      ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                ...List.generate(history.length, (index) {
-                  final entry = history[index];
-                  return _TimelineEntry(
-                    entry: entry,
-                    isLast: index == history.length - 1,
-                  );
-                }),
               ],
             ]),
           ),
@@ -117,108 +112,62 @@ class _HistoryContent extends StatelessWidget {
   }
 }
 
-class _HistorySummaryCard extends StatelessWidget {
-  const _HistorySummaryCard();
+class _HistoryHeadline extends StatelessWidget {
+  final List<InvestitureHistoryEntry> history;
+
+  const _HistoryHeadline({required this.history});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppColors.sentBg,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.sentColor.withValues(alpha: 0.22)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.paper.withValues(alpha: 0.82),
-                  borderRadius: BorderRadius.circular(15),
-                  border: Border.all(
-                    color: AppColors.sentColor.withValues(alpha: 0.18),
-                  ),
-                ),
-                child: const Center(
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedClock01,
-                    size: 22,
-                    color: AppColors.sentDark,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'investiture.history.summary_title'.tr(),
-                      style: const TextStyle(
-                        color: AppColors.ink900,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w900,
-                        height: 1.15,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'investiture.history.summary_body'.tr(),
-                      style: const TextStyle(
-                        color: AppColors.ink600,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        height: 1.42,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+    final latest = latestInvestitureEntry(history)!;
+    final showEstimate = switch (latest.action) {
+      InvestitureAction.invested ||
+      InvestitureAction.rejected ||
+      InvestitureAction.expired =>
+        false,
+      _ => true,
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          _headline(latest.action),
+          style: const TextStyle(
+            color: AppColors.ink900,
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            height: 1.15,
+            letterSpacing: -0.4,
           ),
-          const SizedBox(height: 14),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-            decoration: BoxDecoration(
-              color: AppColors.paper.withValues(alpha: 0.78),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.sentColor.withValues(alpha: 0.16),
-              ),
-            ),
-            child: Row(
-              children: [
-                const HugeIcon(
-                  icon: HugeIcons.strokeRoundedCalendar01,
-                  size: 17,
-                  color: AppColors.sentDark,
-                ),
-                const SizedBox(width: 9),
-                Expanded(
-                  child: Text(
-                    'investiture.history.estimated_time'.tr(),
-                    style: const TextStyle(
-                      color: AppColors.sentDark,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      height: 1.25,
-                    ),
-                  ),
-                ),
-              ],
+        ),
+        if (showEstimate) ...[
+          const SizedBox(height: 6),
+          Text(
+            'investiture.history.estimated_time'.tr(),
+            style: const TextStyle(
+              color: AppColors.ink500,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              height: 1.3,
             ),
           ),
         ],
-      ),
+      ],
     );
+  }
+
+  String _headline(InvestitureAction action) {
+    switch (action) {
+      case InvestitureAction.invested:
+        return 'investiture.history.headline_invested'.tr();
+      case InvestitureAction.rejected:
+        return 'investiture.history.headline_rejected'.tr();
+      case InvestitureAction.expired:
+        return action.label;
+      default:
+        return 'investiture.history.headline_in_review'.tr();
+    }
   }
 }
 
@@ -227,32 +176,16 @@ class _HistoryEmptyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: AppColors.paper,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppColors.ink150),
-      ),
+    return Padding(
+      padding: const EdgeInsets.only(top: 48),
       child: Column(
         children: [
-          Container(
-            width: 54,
-            height: 54,
-            decoration: BoxDecoration(
-              color: AppColors.pendingBg,
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: const Center(
-              child: HugeIcon(
-                icon: HugeIcons.strokeRoundedClock01,
-                size: 25,
-                color: AppColors.pendingDark,
-              ),
-            ),
+          const HugeIcon(
+            icon: HugeIcons.strokeRoundedClock01,
+            size: 28,
+            color: AppColors.ink400,
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           Text(
             'investiture.history.empty_title'.tr(),
             style: const TextStyle(
@@ -343,181 +276,104 @@ class _HistoryError extends StatelessWidget {
   }
 }
 
-class _TimelineEntry extends StatelessWidget {
-  final InvestitureHistoryEntry entry;
+class _TimelineClusterTile extends StatelessWidget {
+  final InvestitureHistoryCluster cluster;
   final bool isLast;
 
-  const _TimelineEntry({required this.entry, required this.isLast});
+  const _TimelineClusterTile({
+    required this.cluster,
+    required this.isLast,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final color = _actionColor;
+    final entry = cluster.representative;
+    final color = _actionColor(entry.action);
+    final comments = cluster.comments;
 
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SizedBox(
-            width: 34,
+            width: 28,
             child: Column(
               children: [
                 Container(
-                  width: 34,
-                  height: 34,
+                  width: 28,
+                  height: 28,
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
-                    border: Border.all(color: color.withValues(alpha: 0.42)),
                   ),
                   child: Center(
-                    child: HugeIcon(icon: _icon, size: 16, color: color),
+                    child: HugeIcon(
+                      icon: _icon(entry.action),
+                      size: 14,
+                      color: color,
+                    ),
                   ),
                 ),
                 if (!isLast)
                   Expanded(
                     child: Container(
                       width: 2,
-                      margin: const EdgeInsets.only(top: 6, bottom: 6),
-                      decoration: BoxDecoration(
-                        color: AppColors.ink150,
-                        borderRadius: BorderRadius.circular(99),
-                      ),
+                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      color: AppColors.ink150,
                     ),
                   ),
               ],
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
             child: Padding(
-              padding: EdgeInsets.only(bottom: isLast ? 0 : 14),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: AppColors.paper,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: AppColors.ink150),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.ink900.withValues(alpha: 0.035),
-                      blurRadius: 18,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
+              padding: EdgeInsets.only(bottom: isLast ? 0 : 18),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            _actionLabel,
-                            style: TextStyle(
-                              color: color,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w900,
-                              height: 1.18,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        _StatusDot(color: color),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
                     Text(
-                      'investiture.history.performed_by'.tr(),
+                      _title,
                       style: const TextStyle(
-                        color: AppColors.ink400,
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.6,
+                        color: AppColors.ink900,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        height: 1.2,
                       ),
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      entry.performerFullName,
+                      '${entry.performerFullName} · ${_formatTime(entry.performedAt)}',
                       style: const TextStyle(
-                        color: AppColors.ink900,
+                        color: AppColors.ink500,
                         fontSize: 13,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w500,
+                        height: 1.25,
                       ),
                     ),
-                    if (entry.performerRole != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        entry.performerRole!,
-                        style: const TextStyle(
-                          color: AppColors.ink500,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        const HugeIcon(
-                          icon: HugeIcons.strokeRoundedCalendar01,
-                          size: 13,
-                          color: AppColors.ink400,
-                        ),
-                        const SizedBox(width: 5),
-                        Expanded(
-                          child: Text(
-                            DateFormat('d MMM yyyy · HH:mm')
-                                .format(entry.performedAt.toLocal()),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.ink500,
-                              fontWeight: FontWeight.w600,
+                    if (comments != null) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.only(left: 10),
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            left: BorderSide(
+                              color: AppColors.ink150,
+                              width: 2,
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                    if (entry.resultingStatus != null) ...[
-                      const SizedBox(height: 10),
-                      _ResultingStatusPill(
-                          statusLabel: entry.resultingStatus!.label),
-                    ],
-                    if (entry.comments != null &&
-                        entry.comments!.trim().isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.canvas,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.ink150),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'investiture.history.comments_title'.tr(),
-                              style: const TextStyle(
-                                color: AppColors.ink400,
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.6,
-                              ),
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              entry.comments!,
-                              style: const TextStyle(
-                                fontSize: 12.5,
-                                color: AppColors.ink600,
-                                fontWeight: FontWeight.w500,
-                                height: 1.4,
-                              ),
-                            ),
-                          ],
+                        child: Text(
+                          comments,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.ink600,
+                            fontWeight: FontWeight.w500,
+                            height: 1.4,
+                          ),
                         ),
                       ),
                     ],
@@ -531,10 +387,20 @@ class _TimelineEntry extends StatelessWidget {
     );
   }
 
-  String get _actionLabel => entry.action.label;
+  String get _title {
+    if (!cluster.isGrouped) return cluster.representative.action.label;
+    final steps = cluster.entries.map((e) => e.action.shortLabel).join(' → ');
+    return 'investiture.history.grouped_approvals'.tr(
+      namedArgs: {'steps': steps},
+    );
+  }
 
-  Color get _actionColor {
-    switch (entry.action) {
+  String _formatTime(DateTime at) {
+    return DateFormat('d MMM · HH:mm').format(at.toLocal());
+  }
+
+  Color _actionColor(InvestitureAction action) {
+    switch (action) {
       case InvestitureAction.submitted:
         return AppColors.sentDark;
       case InvestitureAction.clubApproved:
@@ -553,8 +419,8 @@ class _TimelineEntry extends StatelessWidget {
     }
   }
 
-  List<List<dynamic>> get _icon {
-    switch (entry.action) {
+  List<List<dynamic>> _icon(InvestitureAction action) {
+    switch (action) {
       case InvestitureAction.submitted:
         return HugeIcons.strokeRoundedSent;
       case InvestitureAction.clubApproved:
@@ -571,57 +437,5 @@ class _TimelineEntry extends StatelessWidget {
       case InvestitureAction.reinvestitureRequested:
         return HugeIcons.strokeRoundedRefresh;
     }
-  }
-}
-
-class _StatusDot extends StatelessWidget {
-  final Color color;
-
-  const _StatusDot({required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 22,
-      height: 22,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Center(
-        child: Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-      ),
-    );
-  }
-}
-
-class _ResultingStatusPill extends StatelessWidget {
-  final String statusLabel;
-
-  const _ResultingStatusPill({required this.statusLabel});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.pendingBg,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.ink150),
-      ),
-      child: Text(
-        statusLabel,
-        style: const TextStyle(
-          color: AppColors.pendingDark,
-          fontSize: 11,
-          fontWeight: FontWeight.w800,
-          height: 1,
-        ),
-      ),
-    );
   }
 }
