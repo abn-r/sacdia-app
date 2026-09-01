@@ -7,9 +7,9 @@ import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/certifications/domain/entities/user_certification.dart';
 import 'package:sacdia_app/features/certifications/presentation/providers/certifications_providers.dart';
+import 'profile_quiet_add_chip.dart';
 
 /// Section of the profile view that shows the user's certification
 /// enrollments in a 3-column grid, visually consistent with
@@ -58,12 +58,12 @@ class ProfileCertificationsSection extends ConsumerWidget {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 20),
-                  SacButton.outline(
-                    text: 'profile.certifications_section.browse_certifications'
-                        .tr(),
-                    icon: HugeIcons.strokeRoundedAdd01,
-                    onPressed: () {
+                  const SizedBox(height: 16),
+                  ProfileQuietAddChip(
+                    semanticLabel:
+                        'profile.certifications_section.browse_certifications'
+                            .tr(),
+                    onTap: () {
                       context.push(RouteNames.homeCertifications);
                     },
                   ),
@@ -76,57 +76,6 @@ class ProfileCertificationsSection extends ConsumerWidget {
             key: const ValueKey('certifications-data'),
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.secondary,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: HugeIcon(
-                        icon: HugeIcons.strokeRoundedCertificate01,
-                        color: Colors.white,
-                        size: 22,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'profile.certifications_section.my_certifications_header'
-                            .tr(),
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 17,
-                          color: AppColors.secondary,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.secondary.withAlpha(20),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: AppColors.secondary.withAlpha(60),
-                        ),
-                      ),
-                      child: Text(
-                        '${certifications.length}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.secondary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               GridView.builder(
                 // shrinkWrap OK: certification enrollments per user are
                 // naturally bounded (small catalog). Lives inside a Column that
@@ -275,14 +224,6 @@ class _CertificationsSkeleton extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            height: 52,
-            decoration: BoxDecoration(
-              color: skeletonColor,
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          const SizedBox(height: 10),
           Row(
             children: List.generate(
               3,

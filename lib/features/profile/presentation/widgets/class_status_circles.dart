@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/sac_pressable.dart';
+import '../../../../core/widgets/sac_sheet.dart';
 import '../../../classes/domain/entities/progressive_class.dart';
 import '../../../classes/presentation/providers/classes_providers.dart';
 
@@ -21,6 +24,8 @@ enum _ClassState {
   invested,
 }
 
+enum _SheetStatus { invested, inProgress, notEnrolled, expired }
+
 // ── Widget principal ─────────────────────────────────────────────────────────
 
 class ClassStatusCircles extends ConsumerWidget {
@@ -31,8 +36,9 @@ class ClassStatusCircles extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final classesAsync = ref.watch(userClassesProvider);
+    final catalog = ref.watch(allClassesProvider).valueOrNull ?? const [];
     return classesAsync.when(
-      data: (classes) => _buildContent(context, classes),
+      data: (classes) => _buildContent(context, classes, catalog),
       loading: () => const SizedBox(height: 80),
       error: (_, __) => const SizedBox.shrink(),
     );
@@ -99,12 +105,8 @@ class ClassStatusCircles extends ConsumerWidget {
     ];
   }
 
-  /// Determina el estado visual de un logo dado el conjunto de clases enrolladas.
-  _ClassState _resolveState(
-    _ClassLogoData logo,
-    Map<String, ProgressiveClass> enrolledByName,
-  ) {
-    final enrolled = enrolledByName[logo.className];
+  /// Determina el estado visual de un logo dado el enrollment resuelto.
+  _ClassState _resolveState(ProgressiveClass? enrolled) {
     if (enrolled == null) return _ClassState.notEnrolled;
 
     final status = enrolled.investitureStatus?.toUpperCase();
@@ -115,10 +117,11 @@ class ClassStatusCircles extends ConsumerWidget {
     return _ClassState.inProgress;
   }
 
-  Widget _buildContent(BuildContext context, List<ProgressiveClass> classes) {
-    // Índice por nombre para O(1) lookup al resolver el estado de cada logo.
-    final enrolledByName = {for (final c in classes) c.name: c};
-
+  Widget _buildContent(
+    BuildContext context,
+    List<ProgressiveClass> classes,
+    List<ProgressiveClass> catalog,
+  ) {
     final allLogos = _getLogosForClubType();
     final isGuiasMayores = (clubType ?? '').toLowerCase().contains('guía') ||
         (clubType ?? '').toLowerCase().contains('guia');
@@ -127,41 +130,33 @@ class ClassStatusCircles extends ConsumerWidget {
     final rowLogos = isGuiasMayores ? allLogos.sublist(0, 6) : allLogos;
     final gmLogo = isGuiasMayores ? allLogos.last : null;
 
+    Widget logoWidget(_ClassLogoData logo) {
+      final enrolled = _matchClass(logo, classes);
+      return _ClassLogo(
+        className: logo.displayName,
+        assetPath: logo.assetPath,
+        color: logo.color,
+        state: _resolveState(enrolled),
+        enrolled: enrolled,
+        catalog: _matchClass(logo, catalog),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Column(
         children: [
           // GM-01 centrado arriba (solo Guías Mayores)
           if (gmLogo != null) ...[
-            _ClassLogo(
-              className: gmLogo.className,
-              assetPath: gmLogo.assetPath,
-              color: gmLogo.color,
-              state: _resolveState(gmLogo, enrolledByName),
-              translationKey: gmLogo.translationKey,
-              fallbackProgress:
-                  enrolledByName[gmLogo.className]?.overallProgress,
-            ),
+            logoWidget(gmLogo),
             const SizedBox(height: 12),
           ],
-
-          // Fila fija: todas las clases deben verse sin scroll. Cada item
-          // toma el mismo ancho y el texto puede ocupar hasta 3 líneas debajo.
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: rowLogos.map((logo) {
               return Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 2),
-                  child: _ClassLogo(
-                    className: logo.className,
-                    assetPath: logo.assetPath,
-                    color: logo.color,
-                    state: _resolveState(logo, enrolledByName),
-                    translationKey: logo.translationKey,
-                    fallbackProgress:
-                        enrolledByName[logo.className]?.overallProgress,
-                  ),
+                  child: logoWidget(logo),
                 ),
               );
             }).toList(),
@@ -170,6 +165,20 @@ class ClassStatusCircles extends ConsumerWidget {
       ),
     );
   }
+}
+
+ProgressiveClass? _matchClass(
+  _ClassLogoData logo,
+  List<ProgressiveClass> classes,
+) {
+  final code = logo.assetCode;
+  for (final cls in classes) {
+    if (cls.assetCode != null && cls.assetCode == code) return cls;
+  }
+  for (final cls in classes) {
+    if (cls.name == logo.className) return cls;
+  }
+  return null;
 }
 
 // ── Data holder ──────────────────────────────────────────────────────────────
@@ -187,6 +196,12 @@ class _ClassLogoData {
 
   String get displayName =>
       translationKey != null ? translationKey!.tr() : className;
+
+  String get assetCode {
+    final file = assetPath.split('/').last;
+    final dot = file.lastIndexOf('.');
+    return dot == -1 ? file : file.substring(0, dot);
+  }
 }
 
 // ── Logo widget con soporte para los 3 estados ───────────────────────────────
@@ -196,88 +211,89 @@ class _ClassLogo extends StatelessWidget {
   final String assetPath;
   final _ClassState state;
   final Color color;
-  final String? translationKey;
-
-  /// Progreso (0-100) proveniente del enrollment summary.
-  /// Profile intentionally avoids detailed per-class progress requests.
-  final int? fallbackProgress;
+  final ProgressiveClass? enrolled;
+  final ProgressiveClass? catalog;
 
   const _ClassLogo({
     required this.className,
     required this.assetPath,
     required this.state,
     required this.color,
-    this.translationKey,
-    this.fallbackProgress,
+    this.enrolled,
+    this.catalog,
   });
+
+  void _openSheet(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    showSacSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      backgroundColor: context.sac.surface,
+      constraints: BoxConstraints.tightFor(width: width),
+      clipBehavior: Clip.antiAlias,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppTheme.radiusLG),
+        ),
+      ),
+      builder: (ctx) => _ClassInfoSheet(
+        displayName: className,
+        assetPath: assetPath,
+        color: color,
+        enrolled: enrolled,
+        catalog: catalog,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final progress = fallbackProgress ?? 0;
-    final c = context.sac;
     const size = 52.0;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          height: size,
-          child: Stack(
-            clipBehavior: Clip.none,
-            alignment: Alignment.topCenter,
-            children: [
-              // ── Círculo principal ─────────────────────────────────────────
-              Container(
+    return SacPressable(
+      semanticLabel: className,
+      onTap: () => _openSheet(context),
+      child: SizedBox(
+        height: size,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.topCenter,
+          children: [
+            Center(
+              child: Container(
                 width: size,
                 height: size,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _backgroundColor(c),
+                  color: _backgroundColor(context.sac),
                   border: Border.all(
-                    color: _borderColor(c),
+                    color: _borderColor(context.sac),
                     width: _borderWidth,
                   ),
                 ),
                 child: ClipOval(
                   child: Padding(
                     padding: const EdgeInsets.all(6),
-                    child: _buildImage(c),
+                    child: _buildImage(context.sac),
                   ),
                 ),
               ),
-
-              // ── Badge de progreso (solo estado inProgress) ────────────────
-              if (state == _ClassState.inProgress)
-                Positioned(
-                  bottom: -2,
-                  right: 2,
-                  child: _ProgressBadge(
-                    progress: progress,
-                    color: color,
-                  ),
+            ),
+            if (state == _ClassState.inProgress)
+              Positioned(
+                bottom: -2,
+                right: 4,
+                child: _ProgressBadge(
+                  progress: enrolled?.overallProgress ?? 0,
+                  color: color,
                 ),
-            ],
-          ),
+              ),
+          ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          translationKey != null ? translationKey!.tr() : className,
-          style: TextStyle(
-            fontSize: 9,
-            fontWeight: state == _ClassState.invested
-                ? FontWeight.w700
-                : FontWeight.w500,
-            color: state == _ClassState.invested ? color : c.textTertiary,
-          ),
-          textAlign: TextAlign.center,
-          maxLines: 3,
-          softWrap: true,
-        ),
-      ],
+      ),
     );
   }
-
-  // ── Helpers de estilo ─────────────────────────────────────────────────────
 
   Color _backgroundColor(SacColors c) {
     return switch (state) {
@@ -303,9 +319,6 @@ class _ClassLogo extends StatelessWidget {
     };
   }
 
-  // Builds a grayscale+alpha matrix embedding opacity directly into the
-  // ColorFilter, avoiding an Opacity widget that would create an offscreen
-  // compositing layer. Row 3 (alpha) multiplier is set to [alpha].
   static List<double> _grayscaleWithAlpha(double alpha) => <double>[
         0.2126, 0.7152, 0.0722, 0, 0, // R
         0.2126, 0.7152, 0.0722, 0, 0, // G
@@ -314,7 +327,6 @@ class _ClassLogo extends StatelessWidget {
       ];
 
   Widget _buildImage(SacColors c) {
-    // invested: imagen a todo color, sin filtros.
     if (state == _ClassState.invested) {
       return Image.asset(
         assetPath,
@@ -329,9 +341,6 @@ class _ClassLogo extends StatelessWidget {
       );
     }
 
-    // inProgress y notEnrolled: desaturamos con ColorFiltered (grayscale real)
-    // y diferenciamos con opacidad: 50 % en progreso, 25 % no inscrito.
-    // La opacidad se codifica en la fila alpha de la matriz — sin Opacity widget.
     final alpha = state == _ClassState.inProgress ? 0.5 : 0.25;
 
     return ColorFiltered(
@@ -351,7 +360,168 @@ class _ClassLogo extends StatelessWidget {
   }
 }
 
-// ── Badge de porcentaje para el estado inProgress ────────────────────────────
+class _ClassInfoSheet extends StatelessWidget {
+  final String displayName;
+  final String assetPath;
+  final Color color;
+  final ProgressiveClass? enrolled;
+  final ProgressiveClass? catalog;
+
+  const _ClassInfoSheet({
+    required this.displayName,
+    required this.assetPath,
+    required this.color,
+    this.enrolled,
+    this.catalog,
+  });
+
+  _SheetStatus get _status {
+    final investiture = enrolled?.investitureStatus?.toUpperCase();
+    if (investiture == 'INVESTIDO') return _SheetStatus.invested;
+    if (investiture == 'EXPIRED' || enrolled?.isExpired == true) {
+      return _SheetStatus.expired;
+    }
+    if (enrolled != null) return _SheetStatus.inProgress;
+    return _SheetStatus.notEnrolled;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final minAge = enrolled?.minimumAge ?? catalog?.minimumAge;
+    final description = enrolled?.description ?? catalog?.description;
+    final year = enrolled?.ecclesiasticalYearLabel;
+    final progress = enrolled?.overallProgress;
+    final status = _status;
+    final meta = <String>[
+      if (minAge != null)
+        'profile.view.class_sheet.min_age'.tr(namedArgs: {'age': '$minAge'}),
+      if (status == _SheetStatus.inProgress && progress != null)
+        'profile.view.class_sheet.progress'.tr(
+          namedArgs: {'progress': '$progress'},
+        ),
+      if (year != null && year.isNotEmpty)
+        'profile.view.class_sheet.year'.tr(namedArgs: {'year': year}),
+    ];
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        20,
+        8,
+        20,
+        16 + MediaQuery.paddingOf(context).bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              width: 36,
+              height: 5,
+              decoration: BoxDecoration(
+                color: c.border,
+                borderRadius: BorderRadius.circular(2.5),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 72,
+                height: 72,
+                child: Image.asset(
+                  assetPath,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => HugeIcon(
+                    icon: HugeIcons.strokeRoundedSecurityCheck,
+                    color: color,
+                    size: 36,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      displayName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        height: 1.15,
+                        letterSpacing: -0.4,
+                        color: c.text,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _statusLabel(status),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        height: 1.25,
+                        color: _statusColor(status, c),
+                      ),
+                    ),
+                    if (meta.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        meta.join(' · '),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          height: 1.3,
+                          color: c.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (description != null && description.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Text(
+              description,
+              style: TextStyle(
+                fontSize: 15,
+                height: 1.45,
+                color: c.textSecondary,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _statusLabel(_SheetStatus status) {
+    return switch (status) {
+      _SheetStatus.invested => 'profile.view.class_sheet.status_invested'.tr(),
+      _SheetStatus.inProgress =>
+        'profile.view.class_sheet.status_in_progress'.tr(),
+      _SheetStatus.notEnrolled =>
+        'profile.view.class_sheet.status_not_enrolled'.tr(),
+      _SheetStatus.expired => 'profile.view.class_sheet.status_expired'.tr(),
+    };
+  }
+
+  Color _statusColor(_SheetStatus status, SacColors c) {
+    return switch (status) {
+      _SheetStatus.invested => c.success,
+      _SheetStatus.inProgress => color,
+      _SheetStatus.notEnrolled => c.textTertiary,
+      _SheetStatus.expired => c.error,
+    };
+  }
+}
 
 class _ProgressBadge extends StatelessWidget {
   final int progress;

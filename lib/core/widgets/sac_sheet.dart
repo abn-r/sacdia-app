@@ -18,6 +18,7 @@ Future<T?> showSacSheet<T>({
   BoxConstraints? constraints,
   bool? showDragHandle,
   ShapeBorder? shape,
+  Clip? clipBehavior,
   AnimationController? transitionAnimationController,
 }) {
   final reduce = SacMotion.reduceMotionOf(context);
@@ -34,6 +35,7 @@ Future<T?> showSacSheet<T>({
     constraints: constraints,
     showDragHandle: showDragHandle,
     shape: shape,
+    clipBehavior: clipBehavior,
     transitionAnimationController: transitionAnimationController,
     sheetAnimationStyle: reduce
         ? AnimationStyle.noAnimation

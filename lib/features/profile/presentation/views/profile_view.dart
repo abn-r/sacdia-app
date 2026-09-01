@@ -17,6 +17,7 @@ import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
+import 'package:sacdia_app/features/classes/presentation/views/classes_list_view.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/post_registration/presentation/providers/post_registration_providers.dart';
 
@@ -30,6 +31,7 @@ import '../widgets/class_status_circles.dart';
 import '../widgets/profile_classes_section.dart';
 import '../widgets/profile_certifications_section.dart';
 import '../widgets/profile_honors_section.dart';
+import '../widgets/profile_quiet_add_chip.dart';
 import '../widgets/setting_tile.dart';
 import '../../../virtual_card/presentation/views/virtual_card_view.dart';
 import 'edit_profile_view.dart';
@@ -477,31 +479,18 @@ class _ProfileScrollBody extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   _SectionLabel(label: 'profile.view.section_my_classes'.tr()),
-                  SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: Material(
-                      color: c.surface,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        side: BorderSide(color: c.border),
-                      ),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(8),
-                        onTap: onRefreshClasses,
-                        child: Semantics(
-                          label: 'common.retry'.tr(),
-                          button: true,
-                          child: Center(
-                            child: HugeIcon(
-                              icon: HugeIcons.strokeRoundedRefresh,
-                              color: c.textTertiary,
-                              size: 16,
-                            ),
-                          ),
+                  _SectionHeaderActions(
+                    addSemanticLabel:
+                        'profile.classes_section.browse_classes'.tr(),
+                    onAdd: () {
+                      Navigator.push(
+                        context,
+                        SacSharedAxisRoute(
+                          builder: (_) => const ClassesListView(),
                         ),
-                      ),
-                    ),
+                      );
+                    },
+                    onRefresh: onRefreshClasses,
                   ),
                 ],
               ),
@@ -521,31 +510,12 @@ class _ProfileScrollBody extends StatelessWidget {
                 children: [
                   _SectionLabel(
                       label: 'profile.view.section_my_certifications'.tr()),
-                  SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: Material(
-                      color: c.surface,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        side: BorderSide(color: c.border),
-                      ),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(8),
-                        onTap: onRefreshCertifications,
-                        child: Semantics(
-                          label: 'common.retry'.tr(),
-                          button: true,
-                          child: Center(
-                            child: HugeIcon(
-                              icon: HugeIcons.strokeRoundedRefresh,
-                              color: c.textTertiary,
-                              size: 16,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                  _SectionHeaderActions(
+                    addSemanticLabel:
+                        'profile.certifications_section.browse_certifications'
+                            .tr(),
+                    onAdd: () => context.push(RouteNames.homeCertifications),
+                    onRefresh: onRefreshCertifications,
                   ),
                 ],
               ),
@@ -564,85 +534,10 @@ class _ProfileScrollBody extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   _SectionLabel(label: 'profile.view.section_honors'.tr()),
-                  Row(
-                    children: [
-                      // Add honor button
-                      SizedBox(
-                        height: 32,
-                        child: Material(
-                          color: AppColors.secondary.withAlpha(20),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            side: BorderSide(
-                              color: AppColors.secondary.withAlpha(40),
-                            ),
-                          ),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(8),
-                            onTap: () {
-                              context.push(RouteNames.homeHonors);
-                            },
-                            child: Semantics(
-                              label: 'profile.honors_section.add_honor'.tr(),
-                              button: true,
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 10),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const HugeIcon(
-                                      icon: HugeIcons.strokeRoundedAdd01,
-                                      color: AppColors.secondary,
-                                      size: 18,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      'common.add'.tr(),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.secondary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      // Refresh button
-                      SizedBox(
-                        width: 32,
-                        height: 32,
-                        child: Material(
-                          color: c.surface,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            side: BorderSide(color: c.border),
-                          ),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(8),
-                            onTap: onRefreshHonors,
-                            child: Semantics(
-                              label: 'common.retry'.tr(),
-                              button: true,
-                              child: Center(
-                                child: HugeIcon(
-                                  icon: HugeIcons.strokeRoundedRefresh,
-                                  color: c.textTertiary,
-                                  size: 16,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                  _SectionHeaderActions(
+                    addSemanticLabel: 'profile.honors_section.add_honor'.tr(),
+                    onAdd: () => context.push(RouteNames.homeHonors),
+                    onRefresh: onRefreshHonors,
                   ),
                 ],
               ),
@@ -1127,6 +1022,60 @@ class _MetaRow extends StatelessWidget {
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Quiet "+ Agregar" plus the existing refresh icon, shared by Clases,
+/// Certificaciones and Especialidades headers.
+class _SectionHeaderActions extends StatelessWidget {
+  final String addSemanticLabel;
+  final VoidCallback onAdd;
+  final VoidCallback onRefresh;
+
+  const _SectionHeaderActions({
+    required this.addSemanticLabel,
+    required this.onAdd,
+    required this.onRefresh,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return Row(
+      children: [
+        ProfileQuietAddChip(
+          semanticLabel: addSemanticLabel,
+          onTap: onAdd,
+        ),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 32,
+          height: 32,
+          child: Material(
+            color: c.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+              side: BorderSide(color: c.border),
+            ),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: onRefresh,
+              child: Semantics(
+                label: 'common.retry'.tr(),
+                button: true,
+                child: Center(
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedRefresh,
+                    color: c.textTertiary,
+                    size: 16,
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ],

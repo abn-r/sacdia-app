@@ -7,7 +7,6 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/features/honors/presentation/theme/honor_category_palette.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_network_image.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
@@ -15,6 +14,7 @@ import 'package:sacdia_app/features/master_honors/presentation/widgets/master_ho
 import 'package:sacdia_app/features/honors/presentation/utils/user_honor_presentation_extensions.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import '../utils/profile_honor_navigation.dart';
+import 'profile_quiet_add_chip.dart';
 
 const Map<String, List<List<dynamic>>> _categoryIcons = {
   'ADRA': HugeIcons.strokeRoundedCharity,
@@ -146,11 +146,10 @@ class ProfileHonorsSection extends ConsumerWidget {
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 20),
-                      SacButton.outline(
-                        text: 'profile.honors_section.add_honor'.tr(),
-                        icon: HugeIcons.strokeRoundedAdd01,
-                        onPressed: () {
+                      const SizedBox(height: 16),
+                      ProfileQuietAddChip(
+                        semanticLabel: 'profile.honors_section.add_honor'.tr(),
+                        onTap: () {
                           context.push(RouteNames.homeHonors);
                         },
                       ),
@@ -174,17 +173,6 @@ class ProfileHonorsSection extends ConsumerWidget {
                   userHonors: group.userHonors,
                 );
               }),
-              // Padding(
-              //   padding:
-              //       const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              //   child: SacButton.outline(
-              //     text: 'profile.honors_section.add_honor'.tr(),
-              //     icon: HugeIcons.strokeRoundedAdd01,
-              //     onPressed: () {
-              //       context.push(RouteNames.homeHonors);
-              //     },
-              //   ),
-              // ),
               const MasterHonorHistorySection(),
             ],
           );

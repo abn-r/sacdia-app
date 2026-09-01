@@ -2,14 +2,15 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/classes/domain/entities/progressive_class.dart';
 import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
 import 'package:sacdia_app/features/classes/presentation/views/class_detail_with_progress_view.dart';
-import 'package:sacdia_app/features/classes/presentation/views/classes_list_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/features/classes/presentation/views/classes_list_view.dart';
+import 'profile_quiet_add_chip.dart';
 
 /// Section of the profile view that shows the user's enrolled progressive
 /// classes in a 3-column grid, visually consistent with [ProfileHonorsSection].
@@ -21,7 +22,7 @@ class ProfileClassesSection extends ConsumerWidget {
     final classesAsync = ref.watch(userClassesProvider);
 
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 300),
+      duration: SacMotion.standard,
       child: classesAsync.when(
         loading: () =>
             _ClassesSkeleton(key: const ValueKey('classes-skeleton')),
@@ -56,11 +57,11 @@ class ProfileClassesSection extends ConsumerWidget {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 20),
-                  SacButton.outline(
-                    text: 'profile.classes_section.browse_classes'.tr(),
-                    icon: HugeIcons.strokeRoundedAdd01,
-                    onPressed: () {
+                  const SizedBox(height: 16),
+                  ProfileQuietAddChip(
+                    semanticLabel:
+                        'profile.classes_section.browse_classes'.tr(),
+                    onTap: () {
                       Navigator.push(
                         context,
                         SacSharedAxisRoute(
@@ -78,73 +79,6 @@ class ProfileClassesSection extends ConsumerWidget {
             key: const ValueKey('classes-data'),
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Class header banner
-              Container(
-                // decoration: BoxDecoration(
-                //   border: Border(
-                //     top: BorderSide(
-                //       color: AppColors.primary.withAlpha(80),
-                //       width: 1.5,
-                //     ),
-                //     bottom: BorderSide(
-                //       color: AppColors.primary.withAlpha(80),
-                //       width: 1.5,
-                //     ),
-                //   ),
-                //   color: AppColors.primary.withAlpha(10),
-                // ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: HugeIcon(
-                        icon: HugeIcons.strokeRoundedSchool,
-                        color: Colors.white,
-                        size: 22,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'profile.classes_section.my_classes_header'.tr(),
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 17,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                    // Count badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withAlpha(20),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: AppColors.primary.withAlpha(60),
-                        ),
-                      ),
-                      child: Text(
-                        '${classes.length}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Classes grid (3 columns)
               GridView.builder(
                 // shrinkWrap OK: progressive classes per user are naturally
                 // bounded (typically < 10 total classes). Lives inside a Column
@@ -343,16 +277,6 @@ class _ClassesSkeleton extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Simulate the category header banner
-          Container(
-            height: 52,
-            decoration: BoxDecoration(
-              color: skeletonColor,
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          const SizedBox(height: 10),
-          // Simulate a row of 3 class cards
           Row(
             children: List.generate(
                 3,

@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/features/certifications/domain/entities/certification.dart';
 
 import '../providers/certifications_providers.dart';
@@ -34,7 +35,17 @@ class CertificationsListView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.background,
+      appBar: SacTopBar(
+        title: 'certifications.list.title'.tr(),
+        onBack: () => Navigator.of(context).maybePop(),
+        titleIcon: HugeIcon(
+          icon: HugeIcons.strokeRoundedCertificate01,
+          size: 22,
+          color: AppColors.primary,
+        ),
+      ),
       body: SafeArea(
+        top: false,
         child: certificationsAsync.when(
           data: (certifications) {
             if (certifications.isEmpty) {
@@ -71,33 +82,9 @@ class CertificationsListView extends ConsumerWidget {
                 itemCount: certifications.length + 1,
                 itemBuilder: (context, index) {
                   if (index == 0) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: Row(
-                            children: [
-                              HugeIcon(
-                                icon: HugeIcons.strokeRoundedCertificate01,
-                                size: 24,
-                                color: AppColors.primary,
-                              ),
-                              const SizedBox(width: 10),
-                              Text(
-                                'certifications.list.title'.tr(),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall
-                                    ?.copyWith(fontWeight: FontWeight.w700),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Aviso de elegibilidad para Guías Mayores
-                        _EligibilityBanner(),
-                        const SizedBox(height: 12),
-                      ],
+                    return const Padding(
+                      padding: EdgeInsets.only(bottom: 12),
+                      child: _EligibilityBanner(),
                     );
                   }
 
@@ -269,6 +256,7 @@ class CertificationsListView extends ConsumerWidget {
 // ── Eligibility Banner ────────────────────────────────────────────────────────
 
 class _EligibilityBanner extends ConsumerWidget {
+  const _EligibilityBanner();
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
