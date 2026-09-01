@@ -1186,7 +1186,12 @@
       "certificates": "Certificates delivered",
       "booklets": "Members with booklet",
       "booklets_signed": "Booklet requirements signed",
-      "edit_manual_data": "Complete manual data"
+      "edit_manual_data": "Complete manual data",
+      "status_message_draft": "Complète les données manuelles. Le système générera le rapport à la clôture du mois.",
+      "status_message_generated": "Le rapport a déjà été généré.",
+      "status_message_submitted": "Le rapport a été envoyé.",
+      "status_message_approved": "Le rapport a été approuvé.",
+      "status_message_rejected": "Le rapport a été rejeté."
     },
     "visible": {
       "title": "Rapports",
@@ -1198,7 +1203,13 @@
       "prepare_report": "Prepare report",
       "preparing": "Preparing…",
       "prepare_error": "Could not prepare the report",
-      "no_enrollment": "No active enrollment was found for your club."
+      "no_enrollment": "No active enrollment was found for your club.",
+      "history_title": "Historique",
+      "continue_report": "Continuer",
+      "next_action_pending": "À compléter",
+      "next_action_continue": "Brouillon en cours",
+      "next_action_all_set": "Rapport généré",
+      "view_period": "Voir le rapport"
     },
     "form": {
       "title": "Report data",
@@ -1255,7 +1266,13 @@
       "materials_description": "Mark only what was already completed or delivered.",
       "certificates_helper": "Certificates or recognitions delivered to members.",
       "booklets_helper": "Members have their booklet or physical record.",
-      "booklets_signed_helper": "Booklet requirements were reviewed and signed."
+      "booklets_signed_helper": "Booklet requirements were reviewed and signed.",
+      "discard_title": "Abandonner les modifications ?",
+      "discard_body": "Les données non enregistrées seront perdues.",
+      "discard_keep": "Continuer l'édition",
+      "discard_confirm": "Abandonner",
+      "sheet_title": "{month} {year}",
+      "save_disabled_hint": "Aucun changement"
     }
   },
   "units": {

@@ -1186,7 +1186,12 @@
       "certificates": "Certificates delivered",
       "booklets": "Members with booklet",
       "booklets_signed": "Booklet requirements signed",
-      "edit_manual_data": "Complete manual data"
+      "edit_manual_data": "Complete manual data",
+      "status_message_draft": "Complete os dados manuais. O sistema gerará o relatório no fechamento do mês.",
+      "status_message_generated": "O relatório já foi gerado.",
+      "status_message_submitted": "O relatório foi enviado.",
+      "status_message_approved": "O relatório foi aprovado.",
+      "status_message_rejected": "O relatório foi rejeitado."
     },
     "visible": {
       "title": "Relatórios",
@@ -1198,7 +1203,13 @@
       "prepare_report": "Prepare report",
       "preparing": "Preparing…",
       "prepare_error": "Could not prepare the report",
-      "no_enrollment": "No active enrollment was found for your club."
+      "no_enrollment": "No active enrollment was found for your club.",
+      "history_title": "Histórico",
+      "continue_report": "Continuar",
+      "next_action_pending": "Pendente de completar",
+      "next_action_continue": "Rascunho em andamento",
+      "next_action_all_set": "Relatório gerado",
+      "view_period": "Ver relatório"
     },
     "form": {
       "title": "Report data",
@@ -1255,7 +1266,13 @@
       "materials_description": "Mark only what was already completed or delivered.",
       "certificates_helper": "Certificates or recognitions delivered to members.",
       "booklets_helper": "Members have their booklet or physical record.",
-      "booklets_signed_helper": "Booklet requirements were reviewed and signed."
+      "booklets_signed_helper": "Booklet requirements were reviewed and signed.",
+      "discard_title": "Descartar alterações?",
+      "discard_body": "Os dados não salvos serão perdidos.",
+      "discard_keep": "Continuar editando",
+      "discard_confirm": "Descartar",
+      "sheet_title": "{month} {year}",
+      "save_disabled_hint": "Sem alterações"
     }
   },
   "units": {

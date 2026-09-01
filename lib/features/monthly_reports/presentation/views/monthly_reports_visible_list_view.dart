@@ -227,64 +227,83 @@ class _NextActionBar extends ConsumerWidget {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: c.border.withValues(alpha: 0.7)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: kind == _NextActionKind.allSet
-                  ? const Color(0xFFDCFCE7)
-                  : AppColors.primary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: HugeIcon(
-              icon: kind == _NextActionKind.allSet
-                  ? HugeIcons.strokeRoundedCheckmarkCircle02
-                  : HugeIcons.strokeRoundedNoteEdit,
-              color: kind == _NextActionKind.allSet
-                  ? const Color(0xFF15803D)
-                  : AppColors.primary,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '$monthLabel ${target.year}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.2,
-                    color: c.text,
-                    height: 1.1,
-                  ),
+          Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: kind == _NextActionKind.allSet
+                      ? const Color(0xFFDCFCE7)
+                      : AppColors.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  statusLabel,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                child: HugeIcon(
+                  icon: kind == _NextActionKind.allSet
+                      ? HugeIcons.strokeRoundedCheckmarkCircle02
+                      : HugeIcons.strokeRoundedNoteEdit,
+                  color: kind == _NextActionKind.allSet
+                      ? const Color(0xFF15803D)
+                      : AppColors.primary,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '$monthLabel ${target.year}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.2,
+                        color: c.text,
+                        height: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      statusLabel,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: c.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (ctaLabel == null) ...[
+                const SizedBox(width: 8),
+                IconButton(
+                  tooltip: 'monthly_reports.visible.view_period'.tr(),
+                  onPressed: period == null
+                      ? null
+                      : () => _prepareOrOpen(context, ref, existing: period),
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowRight01,
                     color: c.textSecondary,
+                    size: 20,
                   ),
                 ),
               ],
-            ),
+            ],
           ),
           if (ctaLabel != null) ...[
-            const SizedBox(width: 10),
+            const SizedBox(height: 12),
             SacButton(
               text: ctaLabel,
               size: SacButtonSize.small,
-              fullWidth: false,
+              fullWidth: true,
               icon: kind == _NextActionKind.continueDraft
                   ? HugeIcons.strokeRoundedArrowRight01
                   : HugeIcons.strokeRoundedNoteEdit,
@@ -292,19 +311,6 @@ class _NextActionBar extends ConsumerWidget {
               onPressed: busy
                   ? null
                   : () => _prepareOrOpen(context, ref, existing: period),
-            ),
-          ] else ...[
-            const SizedBox(width: 8),
-            IconButton(
-              tooltip: 'monthly_reports.visible.view_period'.tr(),
-              onPressed: period == null
-                  ? null
-                  : () => _prepareOrOpen(context, ref, existing: period),
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedArrowRight01,
-                color: c.textSecondary,
-                size: 20,
-              ),
             ),
           ],
         ],

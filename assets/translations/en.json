@@ -1186,7 +1186,12 @@
       "certificates": "Certificates delivered",
       "booklets": "Members with booklet",
       "booklets_signed": "Booklet requirements signed",
-      "edit_manual_data": "Complete manual data"
+      "edit_manual_data": "Complete manual data",
+      "status_message_draft": "Complete the manual data. The system will generate the report at month close.",
+      "status_message_generated": "The report has already been generated.",
+      "status_message_submitted": "The report was submitted.",
+      "status_message_approved": "The report was approved.",
+      "status_message_rejected": "The report was rejected."
     },
     "visible": {
       "title": "Reports",
@@ -1198,7 +1203,13 @@
       "prepare_report": "Prepare report",
       "preparing": "Preparing…",
       "prepare_error": "Could not prepare the report",
-      "no_enrollment": "No active enrollment was found for your club."
+      "no_enrollment": "No active enrollment was found for your club.",
+      "history_title": "History",
+      "continue_report": "Continue",
+      "next_action_pending": "Ready to complete",
+      "next_action_continue": "Draft in progress",
+      "next_action_all_set": "Report generated",
+      "view_period": "View report"
     },
     "form": {
       "title": "Report data",
@@ -1255,7 +1266,13 @@
       "materials_description": "Mark only what was already completed or delivered.",
       "certificates_helper": "Certificates or recognitions delivered to members.",
       "booklets_helper": "Members have their booklet or physical record.",
-      "booklets_signed_helper": "Booklet requirements were reviewed and signed."
+      "booklets_signed_helper": "Booklet requirements were reviewed and signed.",
+      "discard_title": "Discard changes?",
+      "discard_body": "Unsaved data will be lost.",
+      "discard_keep": "Keep editing",
+      "discard_confirm": "Discard",
+      "sheet_title": "{month} {year}",
+      "save_disabled_hint": "No changes"
     }
   },
   "units": {

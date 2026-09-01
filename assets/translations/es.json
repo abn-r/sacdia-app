@@ -1186,7 +1186,12 @@
       "certificates": "Certificados entregados",
       "booklets": "Miembros con libreta",
       "booklets_signed": "Requisitos firmados",
-      "edit_manual_data": "Completar datos manuales"
+      "edit_manual_data": "Completar datos manuales",
+      "status_message_draft": "Completa los datos manuales. El sistema generará el informe al cierre del mes.",
+      "status_message_generated": "El informe ya fue generado.",
+      "status_message_submitted": "El informe fue enviado.",
+      "status_message_approved": "El informe fue aprobado.",
+      "status_message_rejected": "El informe fue rechazado."
     },
     "visible": {
       "title": "Reportes",
@@ -1198,7 +1203,13 @@
       "prepare_report": "Preparar informe",
       "preparing": "Preparando…",
       "prepare_error": "No se pudo preparar el informe",
-      "no_enrollment": "No encontré una inscripción activa para tu club."
+      "no_enrollment": "No encontré una inscripción activa para tu club.",
+      "history_title": "Historial",
+      "continue_report": "Continuar",
+      "next_action_pending": "Pendiente de completar",
+      "next_action_continue": "Borrador en curso",
+      "next_action_all_set": "Informe generado",
+      "view_period": "Ver informe"
     },
     "form": {
       "title": "Datos del informe",
@@ -1255,7 +1266,13 @@
       "materials_description": "Marca únicamente lo que ya se cumplió o fue entregado.",
       "certificates_helper": "Certificados o reconocimientos entregados a miembros.",
       "booklets_helper": "Los miembros cuentan con su libreta o registro físico.",
-      "booklets_signed_helper": "Los requisitos de libreta fueron revisados y firmados."
+      "booklets_signed_helper": "Los requisitos de libreta fueron revisados y firmados.",
+      "discard_title": "¿Descartar cambios?",
+      "discard_body": "Los datos que no hayas guardado se perderán.",
+      "discard_keep": "Seguir editando",
+      "discard_confirm": "Descartar",
+      "sheet_title": "{month} {year}",
+      "save_disabled_hint": "Sin cambios"
     }
   },
   "units": {
