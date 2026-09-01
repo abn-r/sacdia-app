@@ -1694,7 +1694,16 @@
       "enroll_cta_short": "Enroll"
     },
     "roadmap": {
-      "track_current_pill": "Current"
+      "track_current_pill": "Current",
+      "min_age": "From age {age}",
+      "legend_done": "Completed",
+      "legend_current": "In progress",
+      "legend_not_taken": "Not taken",
+      "legend_upcoming": "Upcoming",
+      "node_current": "IN PROGRESS · {progress}%",
+      "node_not_taken": "NOT TAKEN",
+      "node_upcoming": "UPCOMING",
+      "node_expired": "EXPIRED"
     },
     "status_history": {
       "title": "Status history",
@@ -1969,11 +1978,27 @@
       "event_fallback": "Event #{eventId}",
       "section_label": "Section #{sectionId}",
       "score_action": "Enter score",
+      "inbox_summary": "{clubs} · {events}",
+      "clubs_count": {
+        "one": "{count} club",
+        "other": "{count} clubs"
+      },
+      "events_count": {
+        "one": "{count} event",
+        "other": "{count} events"
+      },
+      "score_row_semantics": "Enter score for {club} in {event}",
+      "score_row_action": "Score",
       "no_primary_assignments": "You do not have primary judge evaluations.",
       "no_primary_assignments_hint": "Assistant judges can support evaluation, but only the primary judge submits the official score.",
       "assignments_error": "Could not load your assignments.",
       "score_title": "Rubric score",
       "total_label": "Calculated total: {total} / {maxTotal} points",
+      "total_caption": "Total",
+      "total_value": "{total} / {maxTotal}",
+      "score_step_minus": "Decrease points for {title}",
+      "score_step_plus": "Increase points for {title}",
+      "score_field_semantics": "Points for {title}, maximum {max}",
       "notes_label": "Optional notes",
       "awarded_points": "Awarded points",
       "max_points_hint": "Maximum: {max} points",
@@ -2989,6 +3014,9 @@
       "detail_unread": "Unread",
       "detail_sent_by": "Sent by",
       "detail_accept": "Accept",
+      "recognized_count": "{count} recognized",
+      "recognized_in": "{count} recognized in {section}",
+      "recognized_points": "{points} points",
       "type_direct": "Direct",
       "type_broadcast": "Broadcast",
       "type_club": "Club",
@@ -3311,7 +3339,16 @@
       "type_label": "Type: {type}",
       "role_label": "Role: {role}",
       "class_label": "Class: {name}",
-      "crop_photo_title": "Crop photo"
+      "crop_photo_title": "Crop photo",
+      "class_sheet": {
+        "min_age": "From age {age}",
+        "status_invested": "Completed",
+        "status_in_progress": "In progress",
+        "status_not_enrolled": "Not enrolled",
+        "status_expired": "Expired",
+        "progress": "{progress}% complete",
+        "year": "Year {year}"
+      }
     },
     "edit": {
       "title": "Edit Profile",

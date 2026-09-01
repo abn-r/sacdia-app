@@ -1694,7 +1694,16 @@
       "enroll_cta_short": "Inscribirme"
     },
     "roadmap": {
-      "track_current_pill": "Cursando"
+      "track_current_pill": "Cursando",
+      "min_age": "Desde {age} años",
+      "legend_done": "Completada",
+      "legend_current": "Cursando",
+      "legend_not_taken": "No cursada",
+      "legend_upcoming": "Por cursar",
+      "node_current": "CURSANDO · {progress}%",
+      "node_not_taken": "NO CURSADA",
+      "node_upcoming": "POR CURSAR",
+      "node_expired": "VENCIDA"
     },
     "status_history": {
       "title": "Historial de estados",
@@ -1969,11 +1978,27 @@
       "event_fallback": "Evento #{eventId}",
       "section_label": "Sección #{sectionId}",
       "score_action": "Cargar puntaje",
+      "inbox_summary": "{clubs} · {events}",
+      "clubs_count": {
+        "one": "{count} club",
+        "other": "{count} clubes"
+      },
+      "events_count": {
+        "one": "{count} evento",
+        "other": "{count} eventos"
+      },
+      "score_row_semantics": "Cargar puntaje de {club} en {event}",
+      "score_row_action": "Cargar",
       "no_primary_assignments": "No tienes evaluaciones como juez principal.",
       "no_primary_assignments_hint": "Los jueces ayudantes pueden apoyar la evaluación, pero sólo el juez principal envía el puntaje oficial.",
       "assignments_error": "No se pudieron cargar tus asignaciones.",
       "score_title": "Puntaje por rúbrica",
       "total_label": "Total calculado: {total} / {maxTotal} puntos",
+      "total_caption": "Total",
+      "total_value": "{total} / {maxTotal}",
+      "score_step_minus": "Quitar puntos de {title}",
+      "score_step_plus": "Sumar puntos de {title}",
+      "score_field_semantics": "Puntos de {title}, máximo {max}",
       "notes_label": "Notas opcionales",
       "awarded_points": "Puntos otorgados",
       "max_points_hint": "Máximo: {max} puntos",
@@ -2989,6 +3014,9 @@
       "detail_unread": "No leída",
       "detail_sent_by": "Enviada por",
       "detail_accept": "Aceptar",
+      "recognized_count": "{count} reconocidos",
+      "recognized_in": "{count} reconocidos en {section}",
+      "recognized_points": "{points} puntos",
       "type_direct": "Directa",
       "type_broadcast": "Broadcast",
       "type_club": "Club",
@@ -3311,7 +3339,16 @@
       "type_label": "Tipo: {type}",
       "role_label": "Rol: {role}",
       "class_label": "Clase: {name}",
-      "crop_photo_title": "Recortar foto"
+      "crop_photo_title": "Recortar foto",
+      "class_sheet": {
+        "min_age": "Desde {age} años",
+        "status_invested": "Completada",
+        "status_in_progress": "Cursando",
+        "status_not_enrolled": "No inscrita",
+        "status_expired": "Vencida",
+        "progress": "{progress}% de avance",
+        "year": "Año {year}"
+      }
     },
     "edit": {
       "title": "Editar Perfil",

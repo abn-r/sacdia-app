@@ -1694,7 +1694,16 @@
       "enroll_cta_short": "S'inscrire"
     },
     "roadmap": {
-      "track_current_pill": "En cours"
+      "track_current_pill": "En cours",
+      "min_age": "Dès {age} ans",
+      "legend_done": "Terminée",
+      "legend_current": "En cours",
+      "legend_not_taken": "Non suivie",
+      "legend_upcoming": "À suivre",
+      "node_current": "EN COURS · {progress}%",
+      "node_not_taken": "NON SUIVIE",
+      "node_upcoming": "À SUIVRE",
+      "node_expired": "EXPIRÉE"
     },
     "status_history": {
       "title": "Historique des statuts",
@@ -1969,11 +1978,27 @@
       "event_fallback": "Événement n°{eventId}",
       "section_label": "Section n°{sectionId}",
       "score_action": "Saisir le score",
+      "inbox_summary": "{clubs} · {events}",
+      "clubs_count": {
+        "one": "{count} club",
+        "other": "{count} clubs"
+      },
+      "events_count": {
+        "one": "{count} épreuve",
+        "other": "{count} épreuves"
+      },
+      "score_row_semantics": "Saisir le score de {club} pour {event}",
+      "score_row_action": "Saisir",
       "no_primary_assignments": "Vous n’avez pas d’évaluations comme juge principal.",
       "no_primary_assignments_hint": "Les juges assistants peuvent soutenir l’évaluation, mais seul le juge principal envoie le score officiel.",
       "assignments_error": "Impossible de charger vos assignations.",
       "score_title": "Score par grille",
       "total_label": "Total calculé : {total} / {maxTotal} points",
+      "total_caption": "Total",
+      "total_value": "{total} / {maxTotal}",
+      "score_step_minus": "Retirer des points de {title}",
+      "score_step_plus": "Ajouter des points à {title}",
+      "score_field_semantics": "Points de {title}, maximum {max}",
       "notes_label": "Notes optionnelles",
       "awarded_points": "Points accordés",
       "max_points_hint": "Maximum : {max} points",
@@ -2989,6 +3014,9 @@
       "detail_unread": "Non lue",
       "detail_sent_by": "Envoyée par",
       "detail_accept": "Accepter",
+      "recognized_count": "{count} reconnus",
+      "recognized_in": "{count} reconnus en {section}",
+      "recognized_points": "{points} points",
       "type_direct": "Directe",
       "type_broadcast": "Broadcast",
       "type_club": "Club",
@@ -3311,7 +3339,16 @@
       "type_label": "Type : {type}",
       "role_label": "Rôle : {role}",
       "class_label": "Classe : {name}",
-      "crop_photo_title": "Rogner la photo"
+      "crop_photo_title": "Rogner la photo",
+      "class_sheet": {
+        "min_age": "Dès {age} ans",
+        "status_invested": "Terminée",
+        "status_in_progress": "En cours",
+        "status_not_enrolled": "Non inscrite",
+        "status_expired": "Expirée",
+        "progress": "{progress} % d’avancement",
+        "year": "Année {year}"
+      }
     },
     "edit": {
       "title": "Modifier le profil",

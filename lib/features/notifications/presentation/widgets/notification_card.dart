@@ -9,6 +9,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../domain/entities/notification_item.dart';
+import '../../domain/notification_body_parser.dart';
+import '../../domain/notification_time.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import '../providers/notifications_providers.dart';
@@ -24,18 +26,13 @@ class NotificationCard extends ConsumerWidget {
 
   const NotificationCard({super.key, required this.notification});
 
-  Future<void> _showDetailsSheet(
-    BuildContext context, {
-    required bool isReadForDialog,
-  }) {
+  Future<void> _showDetailsSheet(BuildContext context) {
     final c = context.sac;
     final visual = notificationVisualConfig(
       source: notification.source,
       targetType: notification.targetType,
     );
-    final createdAt = DateFormat(
-      'dd/MM/yyyy HH:mm',
-    ).format(notification.createdAt.toLocal());
+    final parsedBody = parseNotificationBody(notification.body);
 
     return showSacSheet<void>(
       context: context,
@@ -142,55 +139,25 @@ class NotificationCard extends ConsumerWidget {
                           ],
                         ),
                         const SizedBox(height: 18),
-                        DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: Color.alphaBlend(
-                              visual.iconColor.withValues(alpha: 0.04),
-                              sheetC.surfaceVariant,
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: sheetC.borderLight),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Text(
-                              notification.body,
-                              style: Theme.of(sheetContext)
-                                  .textTheme
-                                  .bodyLarge
-                                  ?.copyWith(
-                                    color: sheetC.text,
-                                    height: 1.52,
-                                  ),
-                            ),
-                          ),
+                        _NotificationBodyBlock(
+                          parsed: parsedBody,
+                          accent: visual.iconColor,
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
                         _DetailSection(
                           children: [
                             _DetailRow(
-                              icon: HugeIcons.strokeRoundedLabel,
                               label: 'notifications.inbox.detail_type'.tr(),
                               value: visual.label,
                             ),
                             _DetailRow(
-                              icon: isReadForDialog
-                                  ? HugeIcons.strokeRoundedCheckmarkCircle02
-                                  : HugeIcons.strokeRoundedNotification01,
-                              label: isReadForDialog
-                                  ? 'notifications.inbox.detail_read'.tr()
-                                  : 'notifications.inbox.detail_unread'.tr(),
-                              value: createdAt,
-                            ),
-                            _DetailRow(
-                              icon: HugeIcons.strokeRoundedClock04,
                               label: 'notifications.inbox.detail_received'.tr(),
-                              value:
-                                  '$createdAt · ${_relativeTime(notification.createdAt)}',
+                              value: notificationReceivedLabel(
+                                notification.createdAt,
+                              ),
                             ),
                             if (notification.senderName != null)
                               _DetailRow(
-                                icon: HugeIcons.strokeRoundedUser,
                                 label:
                                     'notifications.inbox.detail_sent_by'.tr(),
                                 value: notification.senderName!,
@@ -225,10 +192,7 @@ class NotificationCard extends ConsumerWidget {
     }
 
     if (!context.mounted) return;
-    await _showDetailsSheet(
-      context,
-      isReadForDialog: notification.isRead || deliveryId != null,
-    );
+    await _showDetailsSheet(context);
   }
 
   @override
@@ -252,7 +216,7 @@ class NotificationCard extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
       child: Semantics(
         button: true,
-        label: '${notification.title}. ${notification.body}',
+        label: '${notification.title}. ${_previewBody(notification.body)}',
         child: Material(
           color: Colors.transparent,
           child: Ink(
@@ -314,7 +278,7 @@ class NotificationCard extends ConsumerWidget {
                               Padding(
                                 padding: const EdgeInsets.only(top: 1),
                                 child: Text(
-                                  _relativeTime(notification.createdAt),
+                                  notificationInboxTime(notification.createdAt),
                                   style: Theme.of(context)
                                       .textTheme
                                       .labelSmall
@@ -328,7 +292,7 @@ class NotificationCard extends ConsumerWidget {
                           ),
                           const SizedBox(height: 5),
                           Text(
-                            notification.body,
+                            _previewBody(notification.body),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: Theme.of(context)
@@ -389,33 +353,127 @@ class NotificationCard extends ConsumerWidget {
       ),
     );
   }
+}
 
-  /// Devuelve una representación relativa del tiempo.
-  ///
-  /// - Menos de 1 min: "ahora"
-  /// - Menos de 60 min: "hace N min"
-  /// - Menos de 24 hs: "hace N hs"
-  /// - Ayer: "ayer"
-  /// - Misma semana: "hace N días"
-  /// - Más antiguo: fecha formateada "dd/MM/yyyy"
-  String _relativeTime(DateTime date) {
-    final now = DateTime.now();
-    final diff = now.difference(date);
+String _previewBody(String body) {
+  final parsed = parseNotificationBody(body);
+  if (!parsed.hasNameList) return body;
 
-    if (diff.inSeconds < 60) return 'ahora';
-    if (diff.inMinutes < 60) return 'hace ${diff.inMinutes} min';
-    if (diff.inHours < 24) return 'hace ${diff.inHours} hs';
+  final section = parsed.section;
+  if (section != null && section.isNotEmpty) {
+    return 'notifications.inbox.recognized_in'.tr(
+      namedArgs: {
+        'count': '${parsed.names.length}',
+        'section': section,
+      },
+    );
+  }
 
-    final todayMidnight = DateTime(now.year, now.month, now.day);
-    final dateMidnight = DateTime(date.year, date.month, date.day);
-    final daysDiff = todayMidnight.difference(dateMidnight).inDays;
+  return 'notifications.inbox.recognized_count'.tr(
+    namedArgs: {'count': '${parsed.names.length}'},
+  );
+}
 
-    if (daysDiff == 1) return 'ayer';
-    if (daysDiff < 7) return 'hace $daysDiff días';
+class _NotificationBodyBlock extends StatelessWidget {
+  final ParsedNotificationBody parsed;
+  final Color accent;
 
-    return '${date.day.toString().padLeft(2, '0')}/'
-        '${date.month.toString().padLeft(2, '0')}/'
-        '${date.year}';
+  const _NotificationBodyBlock({
+    required this.parsed,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    if (!parsed.hasNameList) {
+      return DecoratedBox(
+        decoration: BoxDecoration(
+          color: Color.alphaBlend(
+            accent.withValues(alpha: 0.04),
+            c.surfaceVariant,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: c.borderLight),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            parsed.raw,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: c.text,
+                  height: 1.52,
+                ),
+          ),
+        ),
+      );
+    }
+
+    final metaParts = <String>[
+      if (parsed.section != null && parsed.section!.isNotEmpty) parsed.section!,
+      if (parsed.points != null)
+        'notifications.inbox.recognized_points'.tr(
+          namedArgs: {'points': '${parsed.points}'},
+        ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'notifications.inbox.recognized_count'.tr(
+            namedArgs: {'count': '${parsed.names.length}'},
+          ),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: c.text,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.2,
+                height: 1.2,
+              ),
+        ),
+        if (metaParts.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text(
+            metaParts.join(' · '),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: c.textSecondary,
+                  fontWeight: FontWeight.w500,
+                  height: 1.3,
+                ),
+          ),
+        ],
+        const SizedBox(height: 14),
+        _DetailSection(
+          children: [
+            for (final name in parsed.names) _NameRow(name: name),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _NameRow extends StatelessWidget {
+  final String name;
+
+  const _NameRow({required this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Text(
+        name,
+        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: c.text,
+              fontWeight: FontWeight.w600,
+              height: 1.25,
+            ),
+      ),
+    );
   }
 }
 
@@ -506,12 +564,10 @@ class _DetailSection extends StatelessWidget {
 }
 
 class _DetailRow extends StatelessWidget {
-  final HugeIconData icon;
   final String label;
   final String value;
 
   const _DetailRow({
-    required this.icon,
     required this.label,
     required this.value,
   });
@@ -519,41 +575,30 @@ class _DetailRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    final base = Theme.of(context).textTheme.bodySmall;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 36,
-            height: 36,
-            child: Center(
-              child: HugeIcon(icon: icon, size: 18, color: c.textSecondary),
+          Text(
+            label,
+            style: base?.copyWith(
+              color: c.textTertiary,
+              fontWeight: FontWeight.w500,
+              height: 1.2,
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: c.textTertiary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  value,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: c.text,
-                        fontWeight: FontWeight.w600,
-                        height: 1.32,
-                      ),
-                ),
-              ],
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: base?.copyWith(
+                color: c.text,
+                fontWeight: FontWeight.w600,
+                height: 1.2,
+              ),
             ),
           ),
         ],
