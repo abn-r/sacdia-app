@@ -410,7 +410,8 @@ class CamporeeEventHonorModel extends Equatable {
       honorId: safeInt(json['honor_id'] ?? json['id']),
       name: safeString(json['name']),
       honorImage: safeStringOrNull(json['honor_image'] ?? json['image_url']),
-      materialUrl: safeStringOrNull(json['material_url'] ?? json['materialUrl']),
+      materialUrl:
+          safeStringOrNull(json['material_url'] ?? json['materialUrl']),
       categoryName: safeStringOrNull(
         json['category_name'] ?? json['honor_category_name'],
       ),
@@ -462,6 +463,7 @@ class CamporeeEventModel extends Equatable {
   final String participantsMode;
   final int? participantsCount;
   final bool agendaVisible;
+  final bool scoringEnabled;
   final String? eventTypeCode;
   final String? eventTypeName;
   final List<CamporeeEventScheduleBlockModel> scheduleBlocks;
@@ -486,6 +488,7 @@ class CamporeeEventModel extends Equatable {
     required this.participantsMode,
     this.participantsCount,
     this.agendaVisible = true,
+    this.scoringEnabled = false,
     this.eventTypeCode,
     this.eventTypeName,
     this.scheduleBlocks = const [],
@@ -528,6 +531,7 @@ class CamporeeEventModel extends Equatable {
       participantsMode: safeString(json['participants_mode'], 'count'),
       participantsCount: safeIntOrNull(json['participants_count']),
       agendaVisible: json['agenda_visible'] != false,
+      scoringEnabled: safeBool(json['scoring_enabled']),
       eventTypeCode: safeStringOrNull(eventType?['code']),
       eventTypeName: safeStringOrNull(eventType?['name']),
       scheduleBlocks: rawBlocks is List
@@ -628,6 +632,7 @@ class CamporeeEventModel extends Equatable {
       participantsMode: participantsMode,
       participantsCount: participantsCount,
       agendaVisible: agendaVisible,
+      scoringEnabled: scoringEnabled,
       eventTypeCode: eventTypeCode,
       eventTypeName: eventTypeName,
       scheduleBlocks: scheduleBlocks.map((block) => block.toEntity()).toList(),
@@ -656,6 +661,7 @@ class CamporeeEventModel extends Equatable {
         participantsMode,
         participantsCount,
         agendaVisible,
+        scoringEnabled,
         eventTypeCode,
         eventTypeName,
         scheduleBlocks,

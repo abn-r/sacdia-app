@@ -5,8 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
 
 import '../../domain/entities/camporee.dart';
 import 'camporee_map_options_sheet.dart';
@@ -38,110 +41,102 @@ class CamporeeLocationCard extends StatelessWidget {
 
     final c = context.sac;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
+    return GestureDetector(
+      onLongPress: () => _copyAddress(context),
+      child: SacCard(
         onTap: () => showCamporeeMapOptions(context, camporee),
-        onLongPress: () => _copyAddress(context),
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: c.surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: c.borderLight),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 34,
-                    height: 34,
-                    decoration: BoxDecoration(
-                      color: AppColors.secondary.withValues(alpha: 0.12),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Center(
-                      child: HugeIcon(
-                        icon: HugeIcons.strokeRoundedLocation01,
-                        size: 17,
-                        color: AppColors.secondary,
-                      ),
+        animate: true,
+        animationDelay: SacMotion.stagger,
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.secondary.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Center(
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedLocation01,
+                      size: 18,
+                      color: AppColors.secondary,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'camporees.detail.location_title'.tr(),
-                          style: TextStyle(
-                            color: c.textTertiary,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.5,
-                          ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'camporees.detail.location_title'.tr(),
+                        style: TextStyle(
+                          color: c.textTertiary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.3,
                         ),
-                        const SizedBox(height: 3),
-                        Text(
-                          camporee.place,
-                          style: TextStyle(
-                            color: c.text,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            height: 1.25,
-                          ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        camporee.place,
+                        style: TextStyle(
+                          color: c.text,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          height: 1.3,
                         ),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'camporees.detail.open_in_maps'.tr(),
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const HugeIcon(
-                              icon: HugeIcons.strokeRoundedArrowRight01,
-                              size: 12,
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'camporees.detail.open_in_maps'.tr(),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
                               color: AppColors.primary,
                             ),
-                          ],
-                        ),
-                      ],
+                          ),
+                          const SizedBox(width: 4),
+                          const HugeIcon(
+                            icon: HugeIcons.strokeRoundedArrowRight01,
+                            size: 14,
+                            color: AppColors.primary,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final width = math.min(constraints.maxWidth, 310.0);
+                return Center(
+                  child: SizedBox(
+                    width: width,
+                    height: width * 9 / 16,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+                      child: _hasCoordinates
+                          ? _CamporeeMapPreview(camporee: camporee)
+                          : const _LocationPreviewFallback(),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final width = math.min(constraints.maxWidth, 310.0);
-                  return Center(
-                    child: SizedBox(
-                      width: width,
-                      height: width * 9 / 16,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: _hasCoordinates
-                            ? _CamporeeMapPreview(camporee: camporee)
-                            : const _LocationPreviewFallback(),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );

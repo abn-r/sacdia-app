@@ -75,8 +75,23 @@ void main() {
     });
   }
 
-  testWidgets('loading reserva la misma altura mínima que el contenido',
+  testWidgets('aprobada no repite el estado en un párrafo extra',
       (tester) async {
+    await _pumpPanel(
+      tester,
+      registration: _registration(
+        status: CamporeeSectionRegistrationStatus.approved,
+      ),
+    );
+
+    expect(find.text('Inscripción aprobada'), findsOneWidget);
+    expect(
+      find.text('La sección está habilitada para inscribir participantes.'),
+      findsNothing,
+    );
+  });
+
+  testWidgets('loading no reserva un bloque vacío de 320px', (tester) async {
     await _pumpPanel(tester, registrationAsync: const AsyncLoading());
     final loadingHeight = tester
         .getSize(
@@ -96,8 +111,8 @@ void main() {
         )
         .height;
 
-    expect(loadingHeight, greaterThanOrEqualTo(320));
-    expect(loadingHeight, closeTo(dataHeight, 0.01));
+    expect(dataHeight, lessThan(280));
+    expect(loadingHeight, lessThan(280));
   });
 
   testWidgets('loading anuncia la consulta como live region', (tester) async {

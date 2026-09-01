@@ -22,11 +22,13 @@ import 'package:sacdia_app/features/payment_orders/presentation/widgets/payment_
 class CamporeeOrdersCta extends ConsumerWidget {
   final int camporeeId;
   final CamporeeKind camporeeType;
+  final bool embedded;
 
   const CamporeeOrdersCta({
     super.key,
     required this.camporeeId,
     this.camporeeType = CamporeeKind.local,
+    this.embedded = false,
   });
 
   @override
@@ -57,6 +59,7 @@ class CamporeeOrdersCta extends ConsumerWidget {
           state: cta,
           camporeeId: camporeeId,
           camporeeType: camporeeType,
+          embedded: embedded,
         );
       },
       data: (catalog) {
@@ -71,6 +74,7 @@ class CamporeeOrdersCta extends ConsumerWidget {
           state: cta,
           camporeeId: camporeeId,
           camporeeType: camporeeType,
+          embedded: embedded,
         );
       },
     );
@@ -81,11 +85,13 @@ class _CtaButton extends StatelessWidget {
   final CamporeeOrdersCtaState state;
   final int camporeeId;
   final CamporeeKind camporeeType;
+  final bool embedded;
 
   const _CtaButton({
     required this.state,
     required this.camporeeId,
     required this.camporeeType,
+    this.embedded = false,
   });
 
   @override
@@ -98,12 +104,15 @@ class _CtaButton extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 16),
-        SacButton.primary(
+        if (!embedded) const SizedBox(height: 16),
+        SacButton(
           key: const Key('camporee-orders-cta'),
           text: 'camporee_orders.cta.label'.tr(),
           icon: HugeIcons.strokeRoundedShoppingBag01,
+          variant:
+              embedded ? SacButtonVariant.outline : SacButtonVariant.primary,
           isEnabled: enabled,
+          fullWidth: true,
           onPressed: enabled
               ? () => context.push(
                     RouteNames.camporeeOrdersPath(

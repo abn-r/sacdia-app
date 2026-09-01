@@ -191,6 +191,7 @@ class CamporeeEvent extends Equatable {
   final String participantsMode;
   final int? participantsCount;
   final bool agendaVisible;
+  final bool scoringEnabled;
   final String? eventTypeCode;
   final String? eventTypeName;
   final List<CamporeeEventScheduleBlock> scheduleBlocks;
@@ -215,6 +216,7 @@ class CamporeeEvent extends Equatable {
     required this.participantsMode,
     this.participantsCount,
     this.agendaVisible = true,
+    this.scoringEnabled = false,
     this.eventTypeCode,
     this.eventTypeName,
     this.scheduleBlocks = const [],
@@ -224,6 +226,9 @@ class CamporeeEvent extends Equatable {
 
   bool get hasTime =>
       agendaVisible && startsAt != null && startsAt!.trim().isNotEmpty;
+
+  /// Puntaje oficial: `scoring_enabled`, o tipo `scoring` si el preview no manda el flag.
+  bool get isScored => scoringEnabled || eventTypeCode == 'scoring';
 
   List<CamporeeEventStaffAssignment> get activeStaffAssignments =>
       staffAssignments.where((assignment) => assignment.active).toList();
@@ -299,6 +304,7 @@ class CamporeeEvent extends Equatable {
         participantsMode,
         participantsCount,
         agendaVisible,
+        scoringEnabled,
         eventTypeCode,
         eventTypeName,
         scheduleBlocks,

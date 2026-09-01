@@ -9,18 +9,25 @@ import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/auth/club_role_names.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/utils/date_formatter.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_event.dart';
+import 'package:sacdia_app/features/camporees/domain/entities/camporee_leaderboard.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
+import 'package:sacdia_app/features/camporees/domain/utils/camporee_description.dart';
+import 'package:sacdia_app/features/camporees/domain/utils/camporee_event_agenda.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_location_card.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_leaderboard_panel.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_participant_access_gate.dart';
@@ -59,6 +66,7 @@ class CamporeeDetailView extends ConsumerWidget {
         ),
       ),
       data: (camporee) => _CamporeeScaffold(
+        title: camporee.name,
         body: _DetailBody(
           camporee: camporee,
           camporeeId: camporeeId,
@@ -70,17 +78,18 @@ class CamporeeDetailView extends ConsumerWidget {
 
 class _CamporeeScaffold extends StatelessWidget {
   final Widget body;
+  final String? title;
 
-  const _CamporeeScaffold({required this.body});
+  const _CamporeeScaffold({required this.body, this.title});
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
 
     return Scaffold(
-      backgroundColor: c.background,
+      backgroundColor: c.surfaceVariant,
       appBar: AppBar(
-        backgroundColor: c.background,
+        backgroundColor: c.surfaceVariant,
         foregroundColor: c.text,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
@@ -97,15 +106,13 @@ class _CamporeeScaffold extends StatelessWidget {
           },
         ),
         title: Text(
-          'camporees.list.title'.tr(),
+          title ?? 'camporees.list.title'.tr(),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w800,
                 color: c.text,
               ),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: c.border),
         ),
       ),
       body: SafeArea(top: false, child: body),
@@ -113,7 +120,9 @@ class _CamporeeScaffold extends StatelessWidget {
   }
 }
 
-class _DetailBody extends ConsumerWidget {
+enum _CamporeeDetailTab { info, people, events, agenda }
+
+class _DetailBody extends ConsumerStatefulWidget {
   final Camporee camporee;
   final int camporeeId;
 
@@ -123,7 +132,17 @@ class _DetailBody extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_DetailBody> createState() => _DetailBodyState();
+}
+
+class _DetailBodyState extends ConsumerState<_DetailBody> {
+  _CamporeeDetailTab _tab = _CamporeeDetailTab.info;
+
+  int get _camporeeId => widget.camporeeId;
+  Camporee get _camporee => widget.camporee;
+
+  @override
+  Widget build(BuildContext context) {
     const eventViewerRoles = {
       ClubRoleNames.director,
       ClubRoleNames.deputyDirector,
@@ -136,7 +155,7 @@ class _DetailBody extends ConsumerWidget {
     final user = authAsync.valueOrNull;
     final canViewEvents = hasAnyRole(user, eventViewerRoles);
     final registrationAsync =
-        ref.watch(camporeeSectionRegistrationProvider(camporeeId));
+        ref.watch(camporeeSectionRegistrationProvider(_camporeeId));
     final participantsEnabled =
         camporeeParticipantsAreEnabled(registrationAsync);
     final canRegisterParticipants = canRegisterCamporeeParticipants(
@@ -144,170 +163,373 @@ class _DetailBody extends ConsumerWidget {
       authAsync,
     );
     final membersAsync = participantsEnabled
-        ? ref.watch(camporeeMembersProvider(camporeeId))
+        ? ref.watch(camporeeMembersProvider(_camporeeId))
         : const AsyncData<List<CamporeeMember>>(<CamporeeMember>[]);
     final eventsAsync =
-        canViewEvents ? ref.watch(camporeeEventsProvider(camporeeId)) : null;
+        canViewEvents ? ref.watch(camporeeEventsProvider(_camporeeId)) : null;
     final leaderboardAsync = canViewEvents
-        ? ref.watch(camporeeLeaderboardProvider(camporeeId))
+        ? ref.watch(camporeeLeaderboardProvider(_camporeeId))
         : null;
-    final description = camporee.description?.trim();
+    final description = _camporee.description?.trim();
+    final showDescription = description != null &&
+        description.isNotEmpty &&
+        !isRedundantCamporeeDescription(_camporee.name, description);
 
-    return RefreshIndicator(
-      color: AppColors.primary,
-      onRefresh: () async {
-        ref.invalidate(camporeeDetailProvider(camporeeId));
-        ref.invalidate(camporeeSectionRegistrationProvider(camporeeId));
-        if (participantsEnabled) {
-          ref.invalidate(camporeeMembersProvider(camporeeId));
-        }
-        if (canViewEvents) {
-          ref.invalidate(camporeeEventsProvider(camporeeId));
-          ref.invalidate(camporeeLeaderboardProvider(camporeeId));
-        }
-      },
-      child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
-        children: [
-          _TitleSection(camporee: camporee),
-          const SizedBox(height: 12),
-          _CamporeeDetailBanner(camporee: camporee),
-          const SizedBox(height: 12),
-          _CamporeeFactsPanel(camporee: camporee),
+    final tab = !canViewEvents &&
+            (_tab == _CamporeeDetailTab.events ||
+                _tab == _CamporeeDetailTab.agenda)
+        ? _CamporeeDetailTab.info
+        : _tab;
+    final hPad = Responsive.horizontalPadding(context);
+
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 4),
+          child: _DetailTabBar(
+            tab: tab,
+            showProgram: canViewEvents,
+            onChanged: (next) {
+              HapticFeedback.selectionClick();
+              setState(() => _tab = next);
+            },
+          ),
+        ),
+        Expanded(
+          child: RefreshIndicator(
+            color: AppColors.primary,
+            onRefresh: () async {
+              ref.invalidate(camporeeDetailProvider(_camporeeId));
+              ref.invalidate(camporeeSectionRegistrationProvider(_camporeeId));
+              if (participantsEnabled) {
+                ref.invalidate(camporeeMembersProvider(_camporeeId));
+              }
+              if (canViewEvents) {
+                ref.invalidate(camporeeEventsProvider(_camporeeId));
+                ref.invalidate(camporeeLeaderboardProvider(_camporeeId));
+              }
+            },
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 48),
+              children: _tabChildren(
+                tab: tab,
+                registrationAsync: registrationAsync,
+                membersAsync: membersAsync,
+                eventsAsync: eventsAsync,
+                leaderboardAsync: leaderboardAsync,
+                participantsEnabled: participantsEnabled,
+                canRegisterParticipants: canRegisterParticipants,
+                showDescription: showDescription,
+                description: description,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  List<Widget> _tabChildren({
+    required _CamporeeDetailTab tab,
+    required AsyncValue<CamporeeSectionRegistration> registrationAsync,
+    required AsyncValue<List<CamporeeMember>> membersAsync,
+    required AsyncValue<List<CamporeeEvent>>? eventsAsync,
+    required AsyncValue<CamporeeLeaderboard>? leaderboardAsync,
+    required bool participantsEnabled,
+    required bool canRegisterParticipants,
+    required bool showDescription,
+    required String? description,
+  }) {
+    switch (tab) {
+      case _CamporeeDetailTab.info:
+        return [
+          _TitleSection(camporee: _camporee),
           const SizedBox(height: 24),
-          CamporeeLocationCard(camporee: camporee),
-          if (description != null && description.isNotEmpty) ...[
+          _CamporeeFactsPanel(camporee: _camporee),
+          const SizedBox(height: 20),
+          CamporeeLocationCard(camporee: _camporee),
+          if (showDescription) ...[
             const SizedBox(height: 24),
-            _DescriptionSection(description: description),
+            _DescriptionSection(description: description!),
           ],
           const SizedBox(height: 24),
           CamporeeSectionRegistrationPanel(
             registrationAsync: registrationAsync,
             onRetry: () => ref.invalidate(
-              camporeeSectionRegistrationProvider(camporeeId),
+              camporeeSectionRegistrationProvider(_camporeeId),
             ),
             onEnroll: () {
               final registration = registrationAsync.valueOrNull;
               if (registration == null || !registration.canEnroll) return;
               CamporeeSectionRegistrationSheet.show(
                 context,
-                camporee: camporee,
+                camporee: _camporee,
                 registration: registration,
               );
             },
-            onManageParticipants: () => _openParticipants(context),
-            showParticipantAction: canRegisterParticipants,
+            onManageParticipants: () => _openParticipants(),
+            showParticipantAction: false,
           ),
-          CamporeeOrdersCta(camporeeId: camporeeId),
-          CamporeeSuppliesCta(camporeeId: camporeeId),
-          const SizedBox(height: 24),
+        ];
+      case _CamporeeDetailTab.people:
+        return [
           _MembersSection(
-            camporeeId: camporeeId,
-            camporeeName: camporee.name,
+            camporeeId: _camporeeId,
+            camporeeName: _camporee.name,
             membersAsync: membersAsync,
             participantsEnabled: participantsEnabled,
             canRegisterParticipants: canRegisterParticipants,
             registrationAsync: registrationAsync,
             onRetryMembers: () =>
-                ref.invalidate(camporeeMembersProvider(camporeeId)),
+                ref.invalidate(camporeeMembersProvider(_camporeeId)),
           ),
-          if (eventsAsync != null) ...[
-            const SizedBox(height: 24),
+          if (participantsEnabled) ...[
+            const SizedBox(height: 20),
+            _ResourcesSection(camporeeId: _camporeeId),
+          ],
+        ];
+      case _CamporeeDetailTab.events:
+        return [
+          if (eventsAsync != null)
             _EventsSection(
               eventsAsync: eventsAsync,
-              onRetry: () => ref.invalidate(camporeeEventsProvider(camporeeId)),
+              scoredOnly: true,
+              onRetry: () =>
+                  ref.invalidate(camporeeEventsProvider(_camporeeId)),
             ),
-          ],
           if (leaderboardAsync != null) ...[
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             CamporeeLeaderboardPanel(
               leaderboardAsync: leaderboardAsync,
               onRetry: () =>
-                  ref.invalidate(camporeeLeaderboardProvider(camporeeId)),
+                  ref.invalidate(camporeeLeaderboardProvider(_camporeeId)),
             ),
           ],
-        ],
-      ),
-    );
+        ];
+      case _CamporeeDetailTab.agenda:
+        return [
+          if (eventsAsync != null)
+            _AgendaSection(
+              eventsAsync: eventsAsync,
+              startDate: _camporee.startDate,
+              onRetry: () =>
+                  ref.invalidate(camporeeEventsProvider(_camporeeId)),
+            ),
+        ];
+    }
   }
 
-  void _openParticipants(BuildContext context) {
+  void _openParticipants() {
     HapticFeedback.selectionClick();
     Navigator.push(
       context,
       SacSharedAxisRoute(
         builder: (context) => CamporeeRegisterMemberView(
-          camporeeId: camporeeId,
+          camporeeId: _camporeeId,
         ),
       ),
     );
   }
 }
 
-class _CamporeeDetailBanner extends StatelessWidget {
-  final Camporee camporee;
+class _DetailTabBar extends StatelessWidget {
+  final _CamporeeDetailTab tab;
+  final bool showProgram;
+  final ValueChanged<_CamporeeDetailTab> onChanged;
 
-  const _CamporeeDetailBanner({required this.camporee});
+  const _DetailTabBar({
+    required this.tab,
+    required this.showProgram,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final dateFormat = DateFormat('d MMM', context.locale.toString());
+    final reduce = SacMotion.reduceMotionOf(context);
+    final tabs = <(_CamporeeDetailTab, String)>[
+      (_CamporeeDetailTab.info, 'camporees.detail.tab_info'.tr()),
+      (_CamporeeDetailTab.people, 'camporees.detail.tab_people'.tr()),
+      if (showProgram) ...[
+        (_CamporeeDetailTab.events, 'camporees.detail.tab_events'.tr()),
+        (_CamporeeDetailTab.agenda, 'camporees.detail.tab_agenda'.tr()),
+      ],
+    ];
+    final selectedIndex = tabs.indexWhere((entry) => entry.$1 == tab);
+    final thumbIndex = selectedIndex < 0 ? 0 : selectedIndex;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.warning.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.warning.withValues(alpha: 0.22)),
+        color: c.border,
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppColors.warning.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Center(
-              child: HugeIcon(
-                icon: HugeIcons.strokeRoundedCampfire,
-                size: 21,
-                color: AppColors.warning,
+      child: Padding(
+        padding: const EdgeInsets.all(3),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final thumbWidth = constraints.maxWidth / tabs.length;
+            final targetLeft = thumbWidth * thumbIndex;
+            return SizedBox(
+              height: 44,
+              child: TweenAnimationBuilder<double>(
+                tween: Tween<double>(end: targetLeft),
+                duration: reduce ? Duration.zero : SacMotion.press,
+                curve: SacMotion.easeOut,
+                builder: (context, dx, _) {
+                  return Stack(
+                    children: [
+                      IgnorePointer(
+                        child: ExcludeSemantics(
+                          child: _DetailTabLabelRow(
+                            labels: [for (final entry in tabs) entry.$2],
+                            selected: false,
+                            compact: tabs.length >= 4,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        key: const Key('camporee-detail-tab-thumb'),
+                        left: dx,
+                        top: 0,
+                        width: thumbWidth,
+                        height: 44,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(9),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: dx,
+                        top: 0,
+                        width: thumbWidth,
+                        height: 44,
+                        child: IgnorePointer(
+                          child: ExcludeSemantics(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(9),
+                              child: OverflowBox(
+                                alignment: Alignment.topLeft,
+                                minWidth: constraints.maxWidth,
+                                maxWidth: constraints.maxWidth,
+                                minHeight: 44,
+                                maxHeight: 44,
+                                child: Transform.translate(
+                                  offset: Offset(-dx, 0),
+                                  child: SizedBox(
+                                    width: constraints.maxWidth,
+                                    height: 44,
+                                    child: _DetailTabLabelRow(
+                                      labels: [
+                                        for (final entry in tabs) entry.$2
+                                      ],
+                                      selected: true,
+                                      compact: tabs.length >= 4,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          for (final entry in tabs)
+                            Expanded(
+                              child: _DetailTabHitTarget(
+                                key: Key(
+                                  'camporee-detail-tab-${entry.$1.name}',
+                                ),
+                                label: entry.$2,
+                                selected: tab == entry.$1,
+                                onPressed: () => onChanged(entry.$1),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  );
+                },
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _DetailTabLabelRow extends StatelessWidget {
+  final List<String> labels;
+  final bool selected;
+  final bool compact;
+
+  const _DetailTabLabelRow({
+    required this.labels,
+    required this.selected,
+    this.compact = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final style = TextStyle(
+      fontSize: compact ? 12 : 14,
+      fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+      color: selected ? c.onPrimary : c.textSecondary,
+      height: 1.1,
+      fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+    );
+
+    return Row(
+      children: [
+        for (final label in labels)
+          Expanded(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: style,
+                  ),
+                ),
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'camporees.detail.banner_title'.tr(),
-                  style: TextStyle(
-                    color: c.text,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${dateFormat.format(camporee.startDate)} – ${dateFormat.format(camporee.endDate)}',
-                  style: TextStyle(
-                    color: c.textSecondary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    height: 1.3,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+      ],
+    );
+  }
+}
+
+class _DetailTabHitTarget extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onPressed;
+
+  const _DetailTabHitTarget({
+    super.key,
+    required this.label,
+    required this.selected,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onPressed,
+        child: const SizedBox(height: 44),
       ),
     );
   }
@@ -322,33 +544,33 @@ class _TitleSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
 
-    return Column(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _IconTile(
-              icon: HugeIcons.strokeRoundedCampfire,
-              color: AppColors.primary,
-              size: 52,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
+        _IconTile(
+          icon: HugeIcons.strokeRoundedCampfire,
+          color: AppColors.primary,
+          size: 56,
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
                 camporee.name,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       color: c.text,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.3,
-                      height: 1.1,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.4,
+                      height: 1.2,
                     ),
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              _ClubTypeBadges(camporee: camporee),
+            ],
+          ),
         ),
-        const SizedBox(height: 10),
-        _ClubTypeBadges(camporee: camporee),
       ],
     );
   }
@@ -372,6 +594,7 @@ class _CamporeeFactsPanel extends StatelessWidget {
         '${dateFormat.format(camporee.startDate)} – ${dateFormat.format(camporee.endDate)}';
 
     return _SurfacePanel(
+      animate: true,
       child: Column(
         children: [
           _FactRow(
@@ -424,6 +647,28 @@ class _DescriptionSection extends StatelessWidget {
               ),
         ),
       ],
+    );
+  }
+}
+
+class _ResourcesSection extends StatelessWidget {
+  final int camporeeId;
+
+  const _ResourcesSection({required this.camporeeId});
+
+  @override
+  Widget build(BuildContext context) {
+    return _SurfacePanel(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionHeader(label: 'camporees.detail.resources'.tr()),
+          const SizedBox(height: 12),
+          CamporeeOrdersCta(camporeeId: camporeeId, embedded: true),
+          CamporeeSuppliesCta(camporeeId: camporeeId, embedded: true),
+        ],
+      ),
     );
   }
 }
@@ -561,10 +806,12 @@ class _EventHonorCard extends StatelessWidget {
 class _EventsSection extends StatelessWidget {
   final AsyncValue<List<CamporeeEvent>> eventsAsync;
   final VoidCallback onRetry;
+  final bool scoredOnly;
 
   const _EventsSection({
     required this.eventsAsync,
     required this.onRetry,
+    this.scoredOnly = false,
   });
 
   @override
@@ -587,23 +834,28 @@ class _EventsSection extends StatelessWidget {
           const SizedBox(height: 14),
           eventsAsync.when(
             data: (events) {
-              if (events.isEmpty) {
+              final visible = scoredOnly
+                  ? events.where((event) => event.isScored).toList()
+                  : events;
+              if (visible.isEmpty) {
                 return _EmptyInlineState(
                   icon: HugeIcons.strokeRoundedCalendar03,
-                  label: 'camporees.detail.no_events_yet'.tr(),
+                  label: scoredOnly
+                      ? 'camporees.detail.no_scored_events'.tr()
+                      : 'camporees.detail.no_events_yet'.tr(),
                 );
               }
 
               return Column(
                 children: [
-                  for (var index = 0; index < events.length; index++)
+                  for (var index = 0; index < visible.length; index++)
                     StaggeredListItem(
                       index: index,
                       initialDelay: Duration.zero,
                       staggerDelay: SacMotion.stagger,
                       child: _EventTile(
-                        key: ValueKey(events[index].camporeeEventId),
-                        event: events[index],
+                        key: ValueKey(visible[index].camporeeEventId),
+                        event: visible[index],
                       ),
                     ),
                 ],
@@ -619,6 +871,280 @@ class _EventsSection extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AgendaSection extends StatelessWidget {
+  final AsyncValue<List<CamporeeEvent>> eventsAsync;
+  final DateTime startDate;
+  final VoidCallback onRetry;
+
+  const _AgendaSection({
+    required this.eventsAsync,
+    required this.startDate,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = context.locale.languageCode;
+
+    return _SurfacePanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionHeader(label: 'camporees.detail.agenda_title'.tr()),
+          const SizedBox(height: 6),
+          Text(
+            'camporees.detail.agenda_subtitle'.tr(),
+            style: TextStyle(
+              color: context.sac.textSecondary,
+              fontSize: 13,
+              height: 1.35,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 14),
+          eventsAsync.when(
+            data: (events) {
+              if (events.isEmpty) {
+                return _EmptyInlineState(
+                  icon: HugeIcons.strokeRoundedCalendar03,
+                  label: 'camporees.detail.agenda_empty'.tr(),
+                );
+              }
+
+              final entries = buildCamporeeAgendaEntries(events);
+              final visible = [
+                for (final entry in entries)
+                  if (entry.event.agendaVisible) entry,
+              ];
+              final pending = [
+                for (final entry in entries)
+                  if (!entry.event.agendaVisible) entry,
+              ];
+              final groups = groupCamporeeAgendaByDay(visible);
+              var index = 0;
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final group in groups) ...[
+                    _AgendaDayHeader(
+                      dayNumber: group.$1,
+                      calendarDate: camporeeAgendaDayDate(startDate, group.$1),
+                      locale: locale,
+                    ),
+                    for (final entry in group.$2)
+                      StaggeredListItem(
+                        index: index++,
+                        initialDelay: Duration.zero,
+                        staggerDelay: SacMotion.stagger,
+                        child: _AgendaRow(
+                          entry: entry,
+                          showSchedule: true,
+                        ),
+                      ),
+                  ],
+                  if (pending.isNotEmpty) ...[
+                    if (visible.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8, bottom: 10),
+                        child: Text(
+                          'camporees.detail.agenda_pending'.tr(),
+                          style: TextStyle(
+                            color: context.sac.text,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    for (final entry in pending)
+                      StaggeredListItem(
+                        index: index++,
+                        initialDelay: Duration.zero,
+                        staggerDelay: SacMotion.stagger,
+                        child: _AgendaRow(
+                          entry: entry,
+                          showSchedule: false,
+                        ),
+                      ),
+                  ],
+                ],
+              );
+            },
+            loading: () => const Padding(
+              padding: EdgeInsets.symmetric(vertical: 18),
+              child: Center(child: SacLoading()),
+            ),
+            error: (_, __) => _InlineRetryState(
+              label: 'camporees.detail.events_error'.tr(),
+              onRetry: onRetry,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AgendaDayHeader extends StatelessWidget {
+  final int dayNumber;
+  final DateTime calendarDate;
+  final String locale;
+
+  const _AgendaDayHeader({
+    required this.dayNumber,
+    required this.calendarDate,
+    required this.locale,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final dateLabel = SacDateFormatter.formatCalendar(
+      calendarDate,
+      'EEE d MMM',
+      locale: locale,
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 6, bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'camporees.detail.event_day'.tr(
+              namedArgs: {'day': '$dayNumber'},
+            ),
+            style: TextStyle(
+              color: c.text,
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              height: 1.2,
+            ),
+          ),
+          if (dateLabel.isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text(
+              dateLabel,
+              style: TextStyle(
+                color: c.textSecondary,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                height: 1.2,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _AgendaRow extends StatelessWidget {
+  final CamporeeAgendaEntry entry;
+  final bool showSchedule;
+
+  const _AgendaRow({
+    required this.entry,
+    required this.showSchedule,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final event = entry.event;
+    final clock = showSchedule
+        ? (formatCamporeeClock(entry.startsAt) ?? '—')
+        : 'camporees.detail.agenda_pending'.tr();
+    final typeLabel = _eventTypeLabel(event);
+    final venue = showSchedule ? entry.venueName?.trim() : null;
+    final metaParts = [
+      if (typeLabel.isNotEmpty) typeLabel,
+      if (venue != null && venue.isNotEmpty) venue,
+    ];
+
+    return Container(
+      key: Key(
+        'camporee-agenda-${event.camporeeEventId}-${entry.dayNumber}-${entry.startsAt ?? 'none'}',
+      ),
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: c.surfaceVariant,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: c.border),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => _openCamporeeEvent(context, event),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 48,
+                  child: Text(
+                    clock,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: c.text,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      height: 1.2,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                _IconTile(
+                  icon: _eventCategoryIcon(event.displayCategory),
+                  color: _eventCategoryColor(context, event.displayCategory),
+                  size: 40,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        entry.headline,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: c.text,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          height: 1.25,
+                        ),
+                      ),
+                      if (metaParts.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          metaParts.join(' · '),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: c.textSecondary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            height: 1.25,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -646,15 +1172,7 @@ class _EventTile extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
-          onTap: () {
-            HapticFeedback.selectionClick();
-            Navigator.push(
-              context,
-              SacSharedAxisRoute(
-                builder: (_) => _CamporeeEventDetailPage(event: event),
-              ),
-            );
-          },
+          onTap: () => _openCamporeeEvent(context, event),
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Row(
@@ -923,6 +1441,22 @@ String? _eventTimeLabel(CamporeeEvent event) {
   return '${event.startsAt} – ${event.endsAt}';
 }
 
+String _eventTypeLabel(CamporeeEvent event) {
+  final name = event.eventTypeName?.trim();
+  if (name != null && name.isNotEmpty) return name;
+  return event.displayCategory;
+}
+
+void _openCamporeeEvent(BuildContext context, CamporeeEvent event) {
+  HapticFeedback.selectionClick();
+  Navigator.push(
+    context,
+    SacSharedAxisRoute(
+      builder: (_) => _CamporeeEventDetailPage(event: event),
+    ),
+  );
+}
+
 HugeIconData _eventCategoryIcon(String category) {
   switch (category) {
     case 'espiritual':
@@ -1092,6 +1626,7 @@ class _MembersSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _SurfacePanel(
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1118,29 +1653,28 @@ class _MembersSection extends StatelessWidget {
               ),
               error: (_, __) => _MembersError(onRetry: onRetryMembers),
             ),
-          const SizedBox(height: 14),
-          SacButton.primary(
-            text: 'camporees.detail.enroll'.tr(),
-            icon: HugeIcons.strokeRoundedUserAdd01,
-            isEnabled: canRegisterParticipants,
-            onPressed: canRegisterParticipants
-                ? () {
-                    HapticFeedback.selectionClick();
-                    Navigator.push(
-                      context,
-                      SacSharedAxisRoute(
-                        builder: (context) => CamporeeRegisterMemberView(
-                          camporeeId: camporeeId,
-                        ),
-                      ),
-                    );
-                  }
-                : null,
-            backgroundColor: AppColors.primary,
-            textColor: AppColors.ink900,
-            labelMaxLines: 2,
-            labelOverflow: TextOverflow.visible,
-          ),
+          if (canRegisterParticipants) ...[
+            const SizedBox(height: 14),
+            SacButton.primary(
+              text: 'camporees.section_registration.participants_action'.tr(),
+              icon: HugeIcons.strokeRoundedUserAdd01,
+              onPressed: () {
+                HapticFeedback.selectionClick();
+                Navigator.push(
+                  context,
+                  SacSharedAxisRoute(
+                    builder: (context) => CamporeeRegisterMemberView(
+                      camporeeId: camporeeId,
+                    ),
+                  ),
+                );
+              },
+              backgroundColor: AppColors.primary,
+              textColor: AppColors.ink900,
+              labelMaxLines: 2,
+              labelOverflow: TextOverflow.visible,
+            ),
+          ],
         ],
       ),
     );
@@ -1268,13 +1802,15 @@ class _MembersPreview extends StatelessWidget {
     final preview = members.take(3).toList();
     return Column(
       children: [
-        for (var index = 0; index < preview.length; index++)
+        for (var index = 0; index < preview.length; index++) ...[
+          if (index > 0) const Divider(height: 1),
           StaggeredListItem(
             index: index,
             initialDelay: Duration.zero,
             staggerDelay: SacMotion.stagger,
             child: _MemberPreviewTile(member: preview[index]),
           ),
+        ],
         const SizedBox(height: 12),
         SacButton.outline(
           text: 'camporees.detail.view_all_members'
@@ -1398,14 +1934,8 @@ class _MemberPreviewTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: c.surfaceVariant,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: c.border),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         children: [
           _MemberAvatar(member: member),
@@ -1417,19 +1947,20 @@ class _MemberPreviewTile extends StatelessWidget {
                 Text(
                   member.userName ?? member.userId,
                   style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
                     color: c.text,
+                    height: 1.25,
                   ),
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (member.clubName != null) ...[
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 2),
                   Text(
                     member.clubName!,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 13,
                       color: c.textTertiary,
                       fontWeight: FontWeight.w600,
                     ),
@@ -1441,7 +1972,7 @@ class _MemberPreviewTile extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          _InsuranceBadge(verified: member.insuranceVerified),
+          _InsuranceMark(verified: member.insuranceVerified),
         ],
       ),
     );
@@ -1464,15 +1995,15 @@ class _FactRow extends StatelessWidget {
     final c = context.sac;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 2),
-            child: HugeIcon(icon: icon, size: 18, color: AppColors.primary),
+            child: HugeIcon(icon: icon, size: 20, color: AppColors.primary),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1482,18 +2013,19 @@ class _FactRow extends StatelessWidget {
                   style: TextStyle(
                     color: c.textTertiary,
                     fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    height: 1.2,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.2,
+                    height: 1.25,
                   ),
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 6),
                 Text(
                   value,
                   style: TextStyle(
                     color: c.text,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    height: 1.3,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    height: 1.35,
                   ),
                 ),
               ],
@@ -1508,10 +2040,7 @@ class _FactRow extends StatelessWidget {
 class _PanelDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Divider(height: 1, color: context.sac.divider),
-    );
+    return Divider(height: 1, color: context.sac.divider);
   }
 }
 
@@ -1556,10 +2085,10 @@ class _AvatarFallback extends StatelessWidget {
   }
 }
 
-class _InsuranceBadge extends StatelessWidget {
+class _InsuranceMark extends StatelessWidget {
   final bool verified;
 
-  const _InsuranceBadge({required this.verified});
+  const _InsuranceMark({required this.verified});
 
   @override
   Widget build(BuildContext context) {
@@ -1568,33 +2097,20 @@ class _InsuranceBadge extends StatelessWidget {
         ? 'camporees.detail.insurance_ok'.tr()
         : 'camporees.detail.no_insurance'.tr();
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: 0.22)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          HugeIcon(
+    return Semantics(
+      label: label,
+      child: SizedBox(
+        width: 44,
+        height: 44,
+        child: Center(
+          child: HugeIcon(
             icon: verified
                 ? HugeIcons.strokeRoundedCheckmarkCircle01
                 : HugeIcons.strokeRoundedAlert02,
-            size: 11,
+            size: 20,
             color: color,
           ),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: color,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -1670,25 +2186,12 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 6,
-          height: 6,
-          decoration: const BoxDecoration(
-            color: AppColors.primary,
-            shape: BoxShape.circle,
+    return Text(
+      label,
+      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: context.sac.text,
           ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: context.sac.text,
-              ),
-        ),
-      ],
     );
   }
 }
@@ -1722,21 +2225,20 @@ class _IconTile extends StatelessWidget {
 
 class _SurfacePanel extends StatelessWidget {
   final Widget child;
+  final bool animate;
+  final EdgeInsetsGeometry padding;
 
-  const _SurfacePanel({required this.child});
+  const _SurfacePanel({
+    required this.child,
+    this.animate = false,
+    this.padding = const EdgeInsets.fromLTRB(20, 8, 20, 8),
+  });
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: c.borderLight),
-      ),
+    return SacCard(
+      animate: animate,
+      padding: padding,
       child: child,
     );
   }
@@ -1750,32 +2252,34 @@ class _DetailSkeleton extends StatelessWidget {
     final c = context.sac;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
+      padding: EdgeInsets.fromLTRB(
+        Responsive.horizontalPadding(context),
+        24,
+        Responsive.horizontalPadding(context),
+        48,
+      ),
       children: [
         Container(
-          height: 150,
+          height: 88,
           decoration: BoxDecoration(
-            color: c.surfaceVariant,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: c.borderLight),
+            color: c.surface,
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 24),
         Container(
-          height: 238,
+          height: 220,
           decoration: BoxDecoration(
-            color: c.surfaceVariant,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: c.borderLight),
+            color: c.surface,
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         Container(
-          height: 160,
+          height: 220,
           decoration: BoxDecoration(
-            color: c.surfaceVariant,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: c.borderLight),
+            color: c.surface,
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           ),
         ),
       ],

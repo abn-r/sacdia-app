@@ -40,6 +40,7 @@ class _FakeCamporeesRepository extends Fake implements CamporeesRepository {
   @override
   Future<Either<Failure, List<Camporee>>> getCamporees({
     bool? active,
+    int? clubTypeId,
     RequestCancelToken? cancelToken,
   }) async {
     camporeesCalls += 1;

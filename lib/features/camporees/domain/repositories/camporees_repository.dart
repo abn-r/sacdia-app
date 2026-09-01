@@ -14,9 +14,12 @@ import '../entities/camporee_score_submission.dart';
 
 /// Repositorio de camporees (interfaz del dominio)
 abstract class CamporeesRepository {
-  /// Obtiene la lista de camporees. Opcionalmente filtra por activos.
-  Future<Either<Failure, List<Camporee>>> getCamporees(
-      {bool? active, RequestCancelToken? cancelToken});
+  /// Obtiene la lista de camporees. Opcionalmente filtra por activos y tipo de sección.
+  Future<Either<Failure, List<Camporee>>> getCamporees({
+    bool? active,
+    int? clubTypeId,
+    RequestCancelToken? cancelToken,
+  });
 
   /// Obtiene el detalle de un camporee por ID.
   Future<Either<Failure, Camporee>> getCamporeeDetail(int camporeeId,

@@ -82,11 +82,17 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
   // ── Métodos ───────────────────────────────────────────────────────────────────
 
   @override
-  Future<Either<Failure, List<Camporee>>> getCamporees(
-      {bool? active, RequestCancelToken? cancelToken}) async {
+  Future<Either<Failure, List<Camporee>>> getCamporees({
+    bool? active,
+    int? clubTypeId,
+    RequestCancelToken? cancelToken,
+  }) async {
     try {
       final models = await remoteDataSource.getCamporees(
-          active: active, cancelToken: cancelToken.asDioCancelToken());
+        active: active,
+        clubTypeId: clubTypeId,
+        cancelToken: cancelToken.asDioCancelToken(),
+      );
       return Right(models.map((m) => m.toEntity()).toList());
     } on AppException catch (e) {
       return _appFailure(e);

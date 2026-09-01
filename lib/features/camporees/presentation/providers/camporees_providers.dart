@@ -5,6 +5,7 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/models/paginated_result.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../members/presentation/providers/members_providers.dart';
 import '../../data/datasources/camporees_remote_data_source.dart';
 import '../../data/repositories/camporees_repository_impl.dart';
 import '../../domain/entities/camporee.dart';
@@ -17,6 +18,7 @@ import '../../domain/entities/camporee_rubric.dart';
 import '../../domain/entities/camporee_score_submission.dart';
 import '../../domain/entities/camporee_section_registration.dart';
 import '../../domain/repositories/camporees_repository.dart';
+import '../../domain/utils/camporee_club_type.dart';
 
 // ── Infrastructure providers ──────────────────────────────────────────────────
 
@@ -39,18 +41,29 @@ final camporeesRepositoryProvider = Provider<CamporeesRepository>((ref) {
 
 // ── Data providers ────────────────────────────────────────────────────────────
 
-/// Provider para la lista de camporees activos.
+/// Provider para la lista de camporees activos de la sección.
+///
+/// Envía `club_type_id` de la sección activa y vuelve a filtrar en cliente
+/// por si el API aún no recorta (paginación / despliegues viejos).
 final camporeesProvider =
     FutureProvider.autoDispose<List<Camporee>>((ref) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
+  final clubContext = await ref.watch(clubContextProvider.future);
+  final clubTypeId = resolveCamporeeListClubTypeId(
+    clubContext?.clubTypeId,
+    clubContext?.clubTypeName,
+  );
   final repository = ref.read(camporeesRepositoryProvider);
-  final result =
-      await repository.getCamporees(active: true, cancelToken: cancelToken);
+  final result = await repository.getCamporees(
+    active: true,
+    clubTypeId: clubTypeId,
+    cancelToken: cancelToken,
+  );
 
   return result.fold(
     (failure) => throw Exception(failure.message),
-    (camporees) => camporees,
+    (camporees) => filterCamporeesForClubType(camporees, clubTypeId),
   );
 });
 

@@ -18,8 +18,11 @@ import '../models/camporee_section_registration_model.dart';
 abstract class CamporeesRemoteDataSource {
   /// Obtiene la lista de camporees, opcionalmente filtrando por activos.
   /// GET /api/v1/camporees
-  Future<List<CamporeeModel>> getCamporees(
-      {bool? active, CancelToken? cancelToken});
+  Future<List<CamporeeModel>> getCamporees({
+    bool? active,
+    int? clubTypeId,
+    CancelToken? cancelToken,
+  });
 
   /// Obtiene el detalle de un camporee.
   /// GET /api/v1/camporees/:camporeeId
@@ -208,11 +211,15 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
   // ── GET /api/v1/camporees ────────────────────────────────────────────────────
 
   @override
-  Future<List<CamporeeModel>> getCamporees(
-      {bool? active, CancelToken? cancelToken}) async {
+  Future<List<CamporeeModel>> getCamporees({
+    bool? active,
+    int? clubTypeId,
+    CancelToken? cancelToken,
+  }) async {
     try {
       final queryParams = <String, dynamic>{};
       if (active != null) queryParams['active'] = active;
+      if (clubTypeId != null) queryParams['club_type_id'] = clubTypeId;
 
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}',

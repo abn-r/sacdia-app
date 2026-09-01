@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/insurance/domain/entities/member_insurance.dart';
 import 'package:sacdia_app/features/insurance/presentation/providers/insurance_providers.dart';
@@ -1194,8 +1195,8 @@ class _PaymentOrdersContextError extends StatelessWidget {
   }
 }
 
-/// Cuerpo mostrado cuando el campo local opera con órdenes de pago: en lugar
-/// del registro directo, se emite una orden y se consulta su estado.
+/// Cómo inscribir cuando el campo cobra con orden de pago: pasos + CTA
+/// a la lista de miembros. No es un empty-state de factura.
 class _PaymentOrderRedirectBody extends StatelessWidget {
   final int camporeeId;
 
@@ -1204,55 +1205,107 @@ class _PaymentOrderRedirectBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+    return ColoredBox(
+      color: c.surfaceVariant,
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedInvoice01,
-            color: AppColors.primary,
-            size: 56,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'payment_orders.camporee_redirect.title'.tr(),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-              color: c.text,
+          SacCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'payment_orders.camporee_redirect.title'.tr(),
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    color: c.text,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const _EnrollHowToStep(index: 1, l10nKey: 'step_1'),
+                const SizedBox(height: 14),
+                const _EnrollHowToStep(index: 2, l10nKey: 'step_2'),
+                const SizedBox(height: 14),
+                const _EnrollHowToStep(index: 3, l10nKey: 'step_3'),
+                const SizedBox(height: 14),
+                const _EnrollHowToStep(index: 4, l10nKey: 'step_4'),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'payment_orders.camporee_redirect.body'.tr(),
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13, color: c.textSecondary),
-          ),
-          const SizedBox(height: 24),
-          SacButton(
+          const SizedBox(height: 20),
+          SacButton.primary(
+            key: const Key('camporee-register-choose-members'),
             text: 'payment_orders.camporee_redirect.issue_button'.tr(),
+            icon: HugeIcons.strokeRoundedUserAdd01,
             onPressed: () => context.push(
               RouteNames.camporeeIssuePaymentOrderPath(camporeeId),
             ),
           ),
-          const SizedBox(height: 12),
-          TextButton(
-            onPressed: () => context.push(
-              '${RouteNames.paymentOrders}?purpose=CAMPOREE&camporee_id=$camporeeId',
-            ),
-            child: Text(
-              'payment_orders.camporee_redirect.view_orders'.tr(),
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                color: AppColors.primary,
+          const SizedBox(height: 8),
+          Center(
+            child: SacButton.ghost(
+              key: const Key('camporee-register-view-orders'),
+              text: 'payment_orders.camporee_redirect.view_orders'.tr(),
+              textColor: AppColors.primary,
+              onPressed: () => context.push(
+                '${RouteNames.paymentOrders}?purpose=CAMPOREE&camporee_id=$camporeeId',
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _EnrollHowToStep extends StatelessWidget {
+  final int index;
+  final String l10nKey;
+
+  const _EnrollHowToStep({
+    required this.index,
+    required this.l10nKey,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          alignment: Alignment.center,
+          decoration: const BoxDecoration(
+            color: AppColors.primarySurface,
+            shape: BoxShape.circle,
+          ),
+          child: Text(
+            '$index',
+            style: const TextStyle(
+              color: AppColors.primary,
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              height: 1,
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            'payment_orders.camporee_redirect.$l10nKey'.tr(),
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: c.text,
+              height: 1.35,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

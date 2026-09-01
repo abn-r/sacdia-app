@@ -305,6 +305,18 @@ void main() {
       expect(adapter.lastOptions!.queryParameters['active'], true);
     });
 
+    test('sends club_type_id when the active section type is known', () async {
+      final (:dio, :adapter) = _dioWith({
+        'data': [_camporeeJson()],
+      });
+      final ds = CamporeesRemoteDataSourceImpl(dio: dio, baseUrl: baseUrl);
+
+      await ds.getCamporees(active: true, clubTypeId: 1);
+
+      expect(adapter.lastOptions!.queryParameters['active'], true);
+      expect(adapter.lastOptions!.queryParameters['club_type_id'], 1);
+    });
+
     test('parses registered camporee events from backend data envelope',
         () async {
       final (:dio, :adapter) = _dioWith({
@@ -324,6 +336,7 @@ void main() {
             'participants_mode': 'count',
             'participants_count': 8,
             'agenda_visible': true,
+            'scoring_enabled': true,
             'event_type': {
               'event_type_id': 1,
               'code': 'scoring',
@@ -400,8 +413,10 @@ void main() {
       expect(result.first.title, 'Orden cerrado');
       expect(result.first.venueName, 'Cancha central');
       expect(result.first.eventTypeCode, 'scoring');
+      expect(result.first.scoringEnabled, isTrue);
       expect(result.first.staffAssignments, hasLength(3));
       final entity = result.first.toEntity();
+      expect(entity.isScored, isTrue);
       expect(entity.responsibleDisplayNames, ['Pedro Gómez']);
       expect(entity.supportingDisplayNames, ['Marco', 'Fabio']);
       expect(result.first.scheduleBlocks, hasLength(1));

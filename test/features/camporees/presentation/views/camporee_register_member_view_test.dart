@@ -326,7 +326,7 @@ void main() {
     );
 
     expect(find.text('Seleccionar miembros'), findsNothing);
-    expect(find.text('Inscripción con orden de pago'), findsNothing);
+    expect(find.text('Cómo inscribir'), findsNothing);
     expect(find.text('Consultando el flujo de inscripción'), findsOneWidget);
     expect(insuranceLoads, 0);
     expect(registeredIdsLoads, 0);
@@ -359,8 +359,13 @@ void main() {
     );
 
     expect(find.text('Seleccionar miembros'), findsNothing);
-    expect(find.text('Inscripción con orden de pago'), findsOneWidget);
-    expect(find.text('Emitir orden de pago'), findsOneWidget);
+    expect(find.text('Cómo inscribir'), findsOneWidget);
+    expect(find.text('Elegir miembros'), findsOneWidget);
+    expect(find.text('Elige a los miembros'), findsOneWidget);
+    expect(
+      find.text('Cuando el campo aprueba el pago, aparecen en Asistentes'),
+      findsOneWidget,
+    );
     expect(insuranceLoads, 0);
     expect(registeredIdsLoads, 0);
   });
@@ -380,7 +385,7 @@ void main() {
     );
 
     expect(find.text('Seleccionar miembros'), findsOneWidget);
-    expect(find.text('Inscripción con orden de pago'), findsNothing);
+    expect(find.text('Cómo inscribir'), findsNothing);
   });
 
   testWidgets('error de contexto no cae a legacy y retry recarga',
@@ -416,7 +421,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
 
     expect(contextLoads, 2);
-    expect(find.text('Inscripción con orden de pago'), findsOneWidget);
+    expect(find.text('Cómo inscribir'), findsOneWidget);
     expect(find.text('Seleccionar miembros'), findsNothing);
     expect(insuranceLoads, 0);
   });

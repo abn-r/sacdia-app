@@ -75,6 +75,7 @@ class _StubDataSource implements CamporeesRemoteDataSource {
   @override
   Future<List<CamporeeModel>> getCamporees({
     bool? active,
+    int? clubTypeId,
     CancelToken? cancelToken,
   }) =>
       throw UnimplementedError();

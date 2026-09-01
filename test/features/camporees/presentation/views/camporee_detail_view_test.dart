@@ -51,21 +51,50 @@ void main() {
       user: _director,
     );
 
-    final registrationY =
-        tester.getTopLeft(find.text('Inscripción de la sección')).dy;
-    final membersY = tester.getTopLeft(find.text('Miembros inscritos')).dy;
-    expect(registrationY, lessThan(membersY));
+    expect(find.text('Detalle'), findsWidgets);
+    expect(
+      find.text('Inscripción de la sección', skipOffstage: false),
+      findsOneWidget,
+    );
+    expect(find.text('Miembros inscritos'), findsNothing);
     expect(memberLoads, 0);
+
+    await _openTab(tester, 'Asistentes');
+
+    expect(find.text('Miembros inscritos'), findsOneWidget);
     expect(
       find.text(
         'La inscripción de participantes está bloqueada hasta que la sección esté registrada y habilitada.',
       ),
       findsOneWidget,
     );
-    final enrollButton = tester.widget<SacButton>(
-      find.widgetWithText(SacButton, 'Inscribir'),
+    expect(find.text('Inscribir participantes'), findsNothing);
+    expect(find.widgetWithText(SacButton, 'Inscribir'), findsNothing);
+    expect(memberLoads, 0);
+  });
+
+  testWidgets('la pestaña activa se distingue con el thumb desplazado',
+      (tester) async {
+    await _pumpDetail(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      ),
+      user: _director,
+      onMembersLoad: () {},
     );
-    expect(enrollButton.onPressed, isNull);
+
+    final thumb = tester.widget<Positioned>(
+      find.byKey(const Key('camporee-detail-tab-thumb')),
+    );
+    expect(thumb.left, 0);
+
+    await _openTab(tester, 'Asistentes');
+
+    final moved = tester.widget<Positioned>(
+      find.byKey(const Key('camporee-detail-tab-thumb')),
+    );
+    expect(moved.left, greaterThan(40));
   });
 
   testWidgets('registered habilita carga y acción de participantes',
@@ -80,9 +109,10 @@ void main() {
     );
 
     expect(memberLoads, 1);
+    await _openTab(tester, 'Asistentes');
     expect(find.text('Inscribir participantes'), findsOneWidget);
     final enrollButton = tester.widget<SacButton>(
-      find.widgetWithText(SacButton, 'Inscribir'),
+      find.widgetWithText(SacButton, 'Inscribir participantes'),
     );
     expect(enrollButton.onPressed, isNotNull);
   });
@@ -100,11 +130,9 @@ void main() {
     );
 
     expect(memberLoads, 1);
+    await _openTab(tester, 'Asistentes');
     expect(find.text('Inscribir participantes'), findsNothing);
-    final enrollButton = tester.widget<SacButton>(
-      find.widgetWithText(SacButton, 'Inscribir'),
-    );
-    expect(enrollButton.onPressed, isNull);
+    expect(find.widgetWithText(SacButton, 'Inscribir'), findsNothing);
   });
 
   testWidgets('error de miembros muestra mensaje y reintenta el provider',
@@ -118,6 +146,8 @@ void main() {
       onMembersLoad: () => memberLoads += 1,
       failMembersOnce: true,
     );
+
+    await _openTab(tester, 'Asistentes');
 
     expect(
         find.text('No pudimos cargar los miembros inscritos.'), findsOneWidget);
@@ -141,6 +171,8 @@ void main() {
       onMembersLoad: () {},
       keepMembersLoading: true,
     );
+
+    await _openTab(tester, 'Asistentes');
 
     final semantics = tester.widget<Semantics>(
       find.byWidgetPredicate(
@@ -178,6 +210,7 @@ void main() {
       ),
     );
 
+    await _openTab(tester, 'Eventos');
     await tester.scrollUntilVisible(
       find.text('Clasificación'),
       400,
@@ -191,6 +224,200 @@ void main() {
     expect(find.text('ACV'), findsOneWidget);
     expect(find.text('85 / 100'), findsOneWidget);
   });
+
+  testWidgets(
+      'should not stack a duplicate Camporí banner above the facts card',
+      (tester) async {
+    await _pumpDetail(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      ),
+      onMembersLoad: () {},
+    );
+
+    expect(find.text('Detalle del Camporí'), findsNothing);
+    expect(find.byKey(const Key('camporee-detail-tab-info')), findsOneWidget);
+    expect(find.byKey(const Key('camporee-detail-tab-people')), findsOneWidget);
+    expect(find.byKey(const Key('camporee-detail-tab-events')), findsOneWidget);
+    expect(find.byKey(const Key('camporee-detail-tab-agenda')), findsOneWidget);
+    expect(find.text('Fechas'), findsOneWidget);
+    expect(find.widgetWithText(AppBar, 'Camporí Esperanza'), findsOneWidget);
+    expect(find.text('Camporí Esperanza'), findsWidgets);
+  });
+
+  testWidgets('should hide a description that only repeats the camporee name',
+      (tester) async {
+    await _pumpDetail(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      ),
+      onMembersLoad: () {},
+      camporee: Camporee(
+        camporeeId: 41,
+        name: 'Navegando con Jesús',
+        description: 'Camporee Navegando con Jesús',
+        startDate: DateTime(2026, 8, 15),
+        endDate: DateTime(2026, 8, 18),
+        place: 'Valle Verde',
+        registrationCost: 125,
+        includesAdventurers: true,
+        includesPathfinders: true,
+        includesMasterGuides: false,
+        active: true,
+      ),
+    );
+
+    expect(find.text('Descripción', skipOffstage: false), findsNothing);
+    expect(
+      find.text('Camporee Navegando con Jesús', skipOffstage: false),
+      findsNothing,
+    );
+  });
+
+  testWidgets('should keep a description that adds information',
+      (tester) async {
+    await _pumpDetail(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      ),
+      onMembersLoad: () {},
+      camporee: Camporee(
+        camporeeId: 41,
+        name: 'Navegando con Jesús',
+        description: 'Llevar linterna y saco de dormir.',
+        startDate: DateTime(2026, 8, 15),
+        endDate: DateTime(2026, 8, 18),
+        place: 'Valle Verde',
+        registrationCost: 125,
+        includesAdventurers: true,
+        includesPathfinders: true,
+        includesMasterGuides: false,
+        active: true,
+      ),
+    );
+
+    expect(find.text('Descripción', skipOffstage: false), findsOneWidget);
+    expect(
+      find.text('Llevar linterna y saco de dormir.', skipOffstage: false),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('should let enrolled member names wrap to two lines',
+      (tester) async {
+    await _pumpDetail(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      ),
+      onMembersLoad: () {},
+      members: const [
+        CamporeeMember(
+          camporeeMemberId: 1,
+          userId: 'director-1',
+          userName: 'Director Club Test Aventureros',
+          clubName: 'ACV',
+          insuranceVerified: true,
+          active: true,
+        ),
+      ],
+    );
+
+    await _openTab(tester, 'Asistentes');
+
+    final name = tester.widget<Text>(
+      find.text('Director Club Test Aventureros'),
+    );
+    expect(name.maxLines, 2);
+    expect(find.text('Seguro OK'), findsNothing);
+  });
+
+  testWidgets('Eventos muestra solo actividades con puntuación',
+      (tester) async {
+    await _pumpDetail(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      ),
+      onMembersLoad: () {},
+      events: _programEvents,
+    );
+
+    await _openTab(tester, 'Eventos');
+
+    expect(find.text('Orden cerrado'), findsOneWidget);
+    expect(find.text('Nudos'), findsOneWidget);
+    expect(find.text('Culto de apertura'), findsNothing);
+    expect(find.text('Fútbol recreativo'), findsNothing);
+    expect(find.text('Tiempo de descanso'), findsNothing);
+  });
+
+  testWidgets('Agenda lista todo el programa en orden cronológico',
+      (tester) async {
+    await _pumpDetail(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      ),
+      onMembersLoad: () {},
+      events: _programEvents,
+    );
+
+    await _openTab(tester, 'Agenda');
+
+    expect(find.text('Culto de apertura'), findsOneWidget);
+    expect(find.text('Orden cerrado'), findsOneWidget);
+    expect(find.text('Nudos'), findsOneWidget);
+    expect(find.text('Fútbol recreativo'), findsOneWidget);
+    expect(find.text('Tiempo de descanso'), findsOneWidget);
+    expect(find.text('Día 1'), findsOneWidget);
+    expect(find.text('Día 2'), findsOneWidget);
+
+    final culto = tester.getTopLeft(find.text('Culto de apertura'));
+    final orden = tester.getTopLeft(find.text('Orden cerrado'));
+    final nudos = tester.getTopLeft(find.text('Nudos'));
+    final descanso = tester.getTopLeft(find.text('Tiempo de descanso'));
+    final futbol = tester.getTopLeft(find.text('Fútbol recreativo'));
+    expect(culto.dy, lessThan(orden.dy));
+    expect(orden.dy, lessThan(nudos.dy));
+    expect(nudos.dy, lessThan(descanso.dy));
+    expect(descanso.dy, lessThan(futbol.dy));
+  });
+
+  testWidgets('Agenda oculta hora y sede si el preview aún no libera horarios',
+      (tester) async {
+    await _pumpDetail(
+      tester,
+      registration: _registration(
+        CamporeeSectionRegistrationStatus.registered,
+      ),
+      onMembersLoad: () {},
+      events: [
+        _event(
+          id: 11,
+          title: 'Culto de apertura',
+          day: 1,
+          startsAt: '07:00',
+          venueName: 'Auditorio',
+          typeCode: 'spiritual',
+          typeName: 'Espiritual',
+          category: 'espiritual',
+          agendaVisible: false,
+        ),
+      ],
+    );
+
+    await _openTab(tester, 'Agenda');
+
+    expect(find.text('Culto de apertura'), findsOneWidget);
+    expect(find.text('07:00'), findsNothing);
+    expect(find.text('Auditorio'), findsNothing);
+    expect(find.text('Día 1'), findsNothing);
+    expect(find.text('Agenda pendiente'), findsWidgets);
+  });
 }
 
 Future<void> _pumpDetail(
@@ -201,6 +428,9 @@ Future<void> _pumpDetail(
   bool failMembersOnce = false,
   bool keepMembersLoading = false,
   CamporeeLeaderboard? leaderboard,
+  Camporee? camporee,
+  List<CamporeeMember> members = const [],
+  List<CamporeeEvent> events = const [],
 }) async {
   var failed = false;
   final loading = Completer<List<CamporeeMember>>();
@@ -208,11 +438,11 @@ Future<void> _pumpDetail(
     ProviderScope(
       overrides: [
         authNotifierProvider.overrideWith(() => _TestAuthNotifier(user)),
-        camporeeDetailProvider.overrideWith((ref, id) async => _camporee),
+        camporeeDetailProvider
+            .overrideWith((ref, id) async => camporee ?? _camporee),
         camporeeSectionRegistrationProvider
             .overrideWith((ref, id) async => registration),
-        camporeeEventsProvider
-            .overrideWith((ref, id) async => const <CamporeeEvent>[]),
+        camporeeEventsProvider.overrideWith((ref, id) async => events),
         camporeeLeaderboardProvider.overrideWith(
           (ref, id) async =>
               leaderboard ??
@@ -229,7 +459,7 @@ Future<void> _pumpDetail(
             failed = true;
             throw Exception('socket');
           }
-          return const <CamporeeMember>[];
+          return members;
         }),
         camporeeOrderOfferingsProvider.overrideWith(
           (ref, scope) async => const CamporeeOrderOfferingsCatalog(
@@ -257,9 +487,19 @@ Future<void> _pumpDetail(
   );
   await tester.pump();
   await tester.pump();
-  await tester.pump(const Duration(milliseconds: 50));
-  await tester.drag(find.byType(ListView), const Offset(0, -900));
-  await tester.pump(const Duration(milliseconds: 500));
+  await tester.pump(const Duration(milliseconds: 100));
+}
+
+Future<void> _openTab(WidgetTester tester, String label) async {
+  final key = switch (label) {
+    'Asistentes' => const Key('camporee-detail-tab-people'),
+    'Eventos' => const Key('camporee-detail-tab-events'),
+    'Agenda' => const Key('camporee-detail-tab-agenda'),
+    _ => const Key('camporee-detail-tab-info'),
+  };
+  await tester.tap(find.byKey(key));
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 160));
 }
 
 const _director = UserEntity(
@@ -320,6 +560,85 @@ final _camporee = Camporee(
   includesMasterGuides: false,
   active: true,
 );
+
+final _programEvents = [
+  _event(
+    id: 4,
+    title: 'Fútbol recreativo',
+    day: 2,
+    startsAt: '16:00',
+    typeCode: 'recreational',
+    typeName: 'Recreativo',
+    category: 'social',
+  ),
+  _event(
+    id: 2,
+    title: 'Orden cerrado',
+    day: 1,
+    startsAt: '09:00',
+    scoring: true,
+    typeCode: 'scoring',
+    typeName: 'Puntaje',
+    category: 'competencia',
+  ),
+  _event(
+    id: 1,
+    title: 'Culto de apertura',
+    day: 1,
+    startsAt: '07:00',
+    typeCode: 'spiritual',
+    typeName: 'Espiritual',
+    category: 'espiritual',
+  ),
+  _event(
+    id: 5,
+    title: 'Tiempo de descanso',
+    day: 2,
+    startsAt: '12:00',
+    typeCode: 'rest',
+    typeName: 'Descanso',
+  ),
+  _event(
+    id: 3,
+    title: 'Nudos',
+    day: 2,
+    startsAt: '08:00',
+    scoring: true,
+    typeCode: 'scoring',
+    typeName: 'Puntaje',
+    category: 'competencia',
+  ),
+];
+
+CamporeeEvent _event({
+  required int id,
+  required String title,
+  required int day,
+  String? startsAt,
+  String? venueName,
+  bool scoring = false,
+  String typeCode = 'general',
+  String typeName = 'General',
+  String category = 'logistico',
+  bool agendaVisible = true,
+}) {
+  return CamporeeEvent(
+    camporeeEventId: id,
+    title: title,
+    maxPoints: scoring ? 100 : 0,
+    minPoints: 0,
+    dayNumber: day,
+    startsAt: startsAt,
+    venueName: venueName,
+    displayCategory: category,
+    status: 'programado',
+    participantsMode: 'count',
+    scoringEnabled: scoring,
+    eventTypeCode: typeCode,
+    eventTypeName: typeName,
+    agendaVisible: agendaVisible,
+  );
+}
 
 CamporeeSectionRegistration _registration(
   CamporeeSectionRegistrationStatus status,
