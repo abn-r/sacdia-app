@@ -12,6 +12,7 @@ import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/providers/catalogs_provider.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../qr/presentation/views/qr_scanner_view.dart';
@@ -286,6 +287,23 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                 ),
               ),
             ),
+            if (activity.activitySeriesId != null)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.secondaryLight,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'activities.series.badge'.tr(),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.secondaryDark,
+                    height: 1.2,
+                  ),
+                ),
+              ),
           ],
         ),
       ],
@@ -436,6 +454,126 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
           ? 'qr.scan_hint_attendance'.tr()
           : 'activities.widgets.show_my_qr_body'.tr(),
       onTap: canScanAttendance ? _openQrScanner : _openMyQr,
+    );
+  }
+
+  Future<void> _viewSeries(int seriesId) async {
+    ref.read(activitySeriesFilterProvider.notifier).state = seriesId;
+    if (mounted) Navigator.of(context).pop();
+  }
+
+  Future<void> _cancelFutureSeries(int seriesId) async {
+    final confirmed = await SacDialog.show(
+      context,
+      title: 'activities.series.cancel_title'.tr(),
+      content: 'activities.series.cancel_body'.tr(),
+      confirmLabel: 'activities.series.cancel_action'.tr(),
+      confirmIsDestructive: true,
+    );
+    if (confirmed != true || !mounted) return;
+    final count = await ref
+        .read(activitySeriesActionsProvider.notifier)
+        .cancelFuture(seriesId);
+    if (!mounted) return;
+    if (count == null) {
+      final err = ref.read(activitySeriesActionsProvider).error;
+      _snack(
+        err?.toString() ?? 'activities.detail.error_delete'.tr(),
+        error: true,
+      );
+      return;
+    }
+    _snack('activities.series.canceled'.tr(namedArgs: {'count': '$count'}));
+    ref.invalidate(activityDetailProvider(widget.activityId));
+  }
+
+  Future<void> _extendSeries(int seriesId) async {
+    final year = ref.read(currentEcclesiasticalYearProvider).valueOrNull;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final last = year?.endDate.toLocal() ?? DateTime(now.year, 12, 31);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: last.isBefore(today) ? today : last,
+      firstDate: today,
+      lastDate: last.isBefore(today) ? today : last,
+      locale: const Locale('es'),
+    );
+    if (picked == null || !mounted) return;
+    final until =
+        '${picked.year.toString().padLeft(4, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+    final count = await ref
+        .read(activitySeriesActionsProvider.notifier)
+        .extend(seriesId: seriesId, until: until);
+    if (!mounted) return;
+    if (count == null) {
+      final err = ref.read(activitySeriesActionsProvider).error;
+      _snack(
+        err?.toString() ?? 'activities.detail.error_delete'.tr(),
+        error: true,
+      );
+      return;
+    }
+    _snack('activities.series.extended'.tr(namedArgs: {'count': '$count'}));
+    ref.invalidate(activityDetailProvider(widget.activityId));
+  }
+
+  void _snack(String message, {bool error = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: error ? AppColors.error : AppColors.secondary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+
+  Widget _buildSeriesActions(BuildContext context, Activity activity) {
+    final seriesId = activity.activitySeriesId!;
+    final seriesAsync = ref.watch(activitySeriesProvider(seriesId));
+    return Column(
+      children: [
+        seriesAsync.maybeWhen(
+          data: (series) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              'activities.series.counts_line'.tr(namedArgs: {
+                'upcoming': '${series.counts?.upcoming ?? 0}',
+                'total': '${series.counts?.total ?? 0}',
+              }),
+              style: TextStyle(
+                fontSize: 13,
+                color: context.sac.textSecondary,
+              ),
+            ),
+          ),
+          orElse: () => const SizedBox.shrink(),
+        ),
+        _ActivityActionCard(
+          icon: HugeIcons.strokeRoundedRefresh,
+          title: 'activities.series.view'.tr(),
+          body: 'activities.series.view_body'.tr(),
+          tone: _ActionTone.series,
+          onTap: () => _viewSeries(seriesId),
+        ),
+        const SizedBox(height: 8),
+        _ActivityActionCard(
+          icon: HugeIcons.strokeRoundedCancel01,
+          title: 'activities.series.cancel_title'.tr(),
+          body: 'activities.series.cancel_body'.tr(),
+          tone: _ActionTone.danger,
+          onTap: () => _cancelFutureSeries(seriesId),
+        ),
+        const SizedBox(height: 8),
+        _ActivityActionCard(
+          icon: HugeIcons.strokeRoundedCalendarAdd01,
+          title: 'activities.series.extend'.tr(),
+          body: 'activities.series.extend_body'.tr(),
+          tone: _ActionTone.series,
+          onTap: () => _extendSeries(seriesId),
+        ),
+      ],
     );
   }
 
@@ -624,6 +762,11 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                             // C) Primary info strip (meta line + fecha/hora card)
                             ActivityInfoStrip(activity: activity),
 
+                            if (activity.activitySeriesId != null) ...[
+                              const SizedBox(height: 12),
+                              _buildSeriesActions(context, activity),
+                            ],
+
                             // D) Location row (presencial / híbrido)
                             if (hasLocation) ...[
                               const SizedBox(height: 10),
@@ -734,22 +877,43 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
   }
 }
 
+enum _ActionTone { primary, series, danger }
+
 class _ActivityActionCard extends StatelessWidget {
   final List<List<dynamic>> icon;
   final String title;
   final String body;
   final VoidCallback onTap;
+  final _ActionTone tone;
 
   const _ActivityActionCard({
     required this.icon,
     required this.title,
     required this.body,
     required this.onTap,
+    this.tone = _ActionTone.primary,
   });
 
   @override
   Widget build(BuildContext context) {
     final sac = context.sac;
+    final Color fill;
+    final Color border;
+    final Color iconBg;
+    switch (tone) {
+      case _ActionTone.series:
+        fill = AppColors.secondaryLight;
+        border = AppColors.secondary.withValues(alpha: 0.28);
+        iconBg = AppColors.secondary;
+      case _ActionTone.danger:
+        fill = AppColors.errorLight;
+        border = AppColors.error.withValues(alpha: 0.22);
+        iconBg = AppColors.error;
+      case _ActionTone.primary:
+        fill = AppColors.primaryLight.withValues(alpha: 0.55);
+        border = AppColors.primary.withValues(alpha: 0.16);
+        iconBg = AppColors.primary;
+    }
 
     return Material(
       color: Colors.transparent,
@@ -759,19 +923,17 @@ class _ActivityActionCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: AppColors.primaryLight.withValues(alpha: 0.55),
+            color: fill,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.16),
-            ),
+            border: Border.all(color: border),
           ),
           child: Row(
             children: [
               Container(
                 width: 42,
                 height: 42,
-                decoration: const BoxDecoration(
-                  color: AppColors.primary,
+                decoration: BoxDecoration(
+                  color: iconBg,
                   shape: BoxShape.circle,
                 ),
                 child: Center(

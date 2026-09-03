@@ -20,6 +20,7 @@ class GetClubActivities
     return await repository.getClubActivities(
       params.clubId,
       clubTypeId: params.clubTypeId,
+      seriesId: params.seriesId,
       cancelToken: cancelToken,
     );
   }
@@ -29,9 +30,11 @@ class GetClubActivities
 class GetClubActivitiesParams {
   final int clubId;
   final int? clubTypeId;
+  final int? seriesId;
 
   const GetClubActivitiesParams({
     required this.clubId,
     this.clubTypeId,
+    this.seriesId,
   });
 }

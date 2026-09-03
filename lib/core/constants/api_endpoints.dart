@@ -44,6 +44,7 @@ class ApiEndpoints {
 
   // ── Activities ────────────────────────────────────────────────────────────
   static const String activities = '/activities';
+  static const String activitiesSeries = '/activity-series';
 
   // ── Finances ──────────────────────────────────────────────────────────────
   static const String finances = '/finances';

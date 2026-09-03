@@ -101,6 +101,11 @@ class ActivityCard extends StatelessWidget {
                       icon: HugeIcons.strokeRoundedUserGroup,
                       variant: SacBadgeVariant.neutral,
                     ),
+                  if (activity.activitySeriesId != null)
+                    SacBadge.success(
+                      label: 'activities.series.badge'.tr(),
+                      icon: HugeIcons.strokeRoundedRefresh,
+                    ),
                 ],
               ),
               Container(

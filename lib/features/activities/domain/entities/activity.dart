@@ -36,6 +36,9 @@ class Activity extends Equatable {
   /// Participating section instances (populated when [isJoint] is true).
   final List<ActivityInstance>? instances;
 
+  /// Series this session belongs to, if it was created from a recurrence.
+  final int? activitySeriesId;
+
   const Activity({
     required this.id,
     required this.name,
@@ -63,6 +66,7 @@ class Activity extends Equatable {
     this.creatorImage,
     this.isJoint = false,
     this.instances,
+    this.activitySeriesId,
   });
 
   /// Returns true if the activity is in the past (based on activityDate or createdAt).
@@ -107,5 +111,6 @@ class Activity extends Equatable {
         creatorImage,
         isJoint,
         instances,
+        activitySeriesId,
       ];
 }

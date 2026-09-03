@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
@@ -14,8 +15,11 @@ import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/features/post_registration/presentation/widgets/bottom_sheet_picker.dart';
 import 'package:sacdia_app/providers/catalogs_provider.dart';
 import '../../domain/entities/create_activity_request.dart';
+import '../../domain/entities/activity_series.dart';
+import '../../domain/entities/recurrence_rule.dart';
 import '../providers/activities_providers.dart';
 import '../widgets/activity_form_widgets.dart';
+import '../widgets/activity_series_form_section.dart';
 import 'location_picker_view.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
@@ -80,8 +84,18 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
   bool _isJoint = false;
   Set<int> _selectedSectionIds = {};
 
+  bool _repeat = false;
+  String _repeatKind = 'weekly';
+  int _weekday = DateTime.sunday;
+  int _intervalDays = 7;
+  DateTime? _until;
+  Timer? _previewTimer;
+  bool _previewLoading = false;
+  ActivitySeriesPreview? _preview;
+
   @override
   void dispose() {
+    _previewTimer?.cancel();
     _nameController.dispose();
     _descriptionController.dispose();
     _imageController.dispose();
@@ -91,6 +105,138 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
+
+  DateTime _today() {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day);
+  }
+
+  DateTime _yearEnd() {
+    final year = ref.read(currentEcclesiasticalYearProvider).valueOrNull;
+    final end = year?.endDate.toLocal();
+    if (end == null) {
+      final now = DateTime.now();
+      return DateTime(now.year, 12, 31);
+    }
+    return DateTime(end.year, end.month, end.day);
+  }
+
+  Future<void> _pickActivityDate() async {
+    final today = _today();
+    final last = _yearEnd();
+    final initial = _activityDate ?? today;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial.isBefore(today)
+          ? today
+          : (initial.isAfter(last) ? last : initial),
+      firstDate: today,
+      lastDate: last.isBefore(today) ? today : last,
+      locale: const Locale('es'),
+    );
+    if (picked != null && mounted) {
+      setState(() {
+        _activityDate = picked;
+        if (_activityEndDate != null && _activityEndDate!.isBefore(picked)) {
+          _activityEndDate = null;
+        }
+      });
+      _schedulePreview();
+    }
+  }
+
+  Future<void> _pickActivityEndDate() async {
+    final today = _today();
+    final last = _yearEnd();
+    final minDate = _activityDate ?? today;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _activityEndDate ?? minDate,
+      firstDate: minDate,
+      lastDate: last.isBefore(minDate) ? minDate : last,
+      locale: const Locale('es'),
+    );
+    if (picked != null && mounted) {
+      setState(() => _activityEndDate = picked);
+      _schedulePreview();
+    }
+  }
+
+  Future<void> _pickUntil() async {
+    final today = _today();
+    final last = _yearEnd();
+    final minDate = _activityDate ?? today;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _until ?? last,
+      firstDate: minDate,
+      lastDate: last.isBefore(minDate) ? minDate : last,
+      locale: const Locale('es'),
+    );
+    if (picked != null && mounted) {
+      setState(() => _until = picked);
+      _schedulePreview();
+    }
+  }
+
+  void _schedulePreview() {
+    _previewTimer?.cancel();
+    if (!_repeat || _activityDate == null) {
+      setState(() {
+        _preview = null;
+        _previewLoading = false;
+      });
+      return;
+    }
+    setState(() => _previewLoading = true);
+    _previewTimer = Timer(const Duration(milliseconds: 350), () async {
+      if (!mounted) return;
+      final request = _buildRequest();
+      final preview = await ref
+          .read(createActivitySeriesNotifierProvider.notifier)
+          .preview(clubId: widget.clubId, request: request);
+      if (!mounted) return;
+      setState(() {
+        _preview = preview;
+        _previewLoading = false;
+      });
+    });
+  }
+
+  RecurrenceRule _recurrence() {
+    if (_repeatKind == 'interval') {
+      return RecurrenceRule.interval(days: _intervalDays, until: _until);
+    }
+    return RecurrenceRule.weekly(weekday: _weekday, until: _until);
+  }
+
+  CreateActivityRequest _buildRequest({bool withRecurrence = true}) {
+    return CreateActivityRequest(
+      name: _nameController.text.trim().isEmpty
+          ? 'Serie'
+          : _nameController.text.trim(),
+      description: _descriptionController.text.trim().isEmpty
+          ? null
+          : _descriptionController.text.trim(),
+      lat: _selectedLocation?.lat ?? 0,
+      long: _selectedLocation?.long ?? 0,
+      activityTime: _timeController.text.trim().isEmpty
+          ? '09:00'
+          : _timeController.text.trim(),
+      activityPlace: _selectedLocation?.name ?? 'place',
+      image: null,
+      platform: _selectedPlatform,
+      activityTypeId: _selectedActivityType,
+      linkMeet: _linkMeetController.text.trim().isEmpty
+          ? null
+          : _linkMeetController.text.trim(),
+      clubSectionId: widget.clubSectionId,
+      activityDate: _activityDate,
+      activityEndDate: _activityEndDate,
+      clubSectionIds: _isJoint ? _selectedSectionIds.toList() : null,
+      recurrence: withRecurrence && _repeat ? _recurrence() : null,
+    );
+  }
 
   Future<void> _pickTime() async {
     final parts = _timeController.text.split(':');
@@ -105,41 +251,6 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
       final hh = picked.hour.toString().padLeft(2, '0');
       final mm = picked.minute.toString().padLeft(2, '0');
       _timeController.text = '$hh:$mm';
-    }
-  }
-
-  Future<void> _pickActivityDate() async {
-    final now = DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _activityDate ?? now,
-      firstDate: DateTime(now.year - 2),
-      lastDate: DateTime(now.year + 5),
-      locale: const Locale('es'),
-    );
-    if (picked != null && mounted) {
-      setState(() {
-        _activityDate = picked;
-        // Clear end date if it's before the new start date
-        if (_activityEndDate != null && _activityEndDate!.isBefore(picked)) {
-          _activityEndDate = null;
-        }
-      });
-    }
-  }
-
-  Future<void> _pickActivityEndDate() async {
-    final now = DateTime.now();
-    final minDate = _activityDate ?? now;
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _activityEndDate ?? minDate,
-      firstDate: minDate,
-      lastDate: DateTime(now.year + 5),
-      locale: const Locale('es'),
-    );
-    if (picked != null && mounted) {
-      setState(() => _activityEndDate = picked);
     }
   }
 
@@ -160,6 +271,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
         _selectedLocation = result;
         _locationTouched = true;
       });
+      _schedulePreview();
     }
   }
 
@@ -201,8 +313,12 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
       return;
     }
 
-    final clubSectionIds = _isJoint ? _selectedSectionIds.toList() : null;
+    if (_repeat && _activityDate == null) {
+      _showError('activities.series.date_required'.tr());
+      return;
+    }
 
+    final clubSectionIds = _isJoint ? _selectedSectionIds.toList() : null;
     final request = CreateActivityRequest(
       name: _nameController.text.trim(),
       description: _descriptionController.text.trim().isEmpty
@@ -214,7 +330,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
           ? '09:00'
           : _timeController.text.trim(),
       activityPlace: _selectedLocation!.name,
-      image: null, // set after upload
+      image: null,
       platform: _selectedPlatform,
       activityTypeId: _selectedActivityType,
       linkMeet: _linkMeetController.text.trim().isEmpty
@@ -224,37 +340,57 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
       activityDate: _activityDate,
       activityEndDate: _activityEndDate,
       clubSectionIds: clubSectionIds,
+      recurrence: _repeat ? _recurrence() : null,
     );
 
-    final notifier = ref.read(createActivityNotifierProvider.notifier);
-    final success = await notifier.create(
-      clubId: widget.clubId,
-      request: request,
-    );
+    late final bool success;
+    List<int> createdIds = [];
+
+    if (_repeat) {
+      final seriesNotifier =
+          ref.read(createActivitySeriesNotifierProvider.notifier);
+      success = await seriesNotifier.create(
+        clubId: widget.clubId,
+        request: request,
+      );
+      createdIds =
+          ref.read(createActivitySeriesNotifierProvider).result?.activityIds ??
+              [];
+    } else {
+      final notifier = ref.read(createActivityNotifierProvider.notifier);
+      success = await notifier.create(
+        clubId: widget.clubId,
+        request: request,
+      );
+      final created = ref.read(createActivityNotifierProvider).createdActivity;
+      if (created != null) createdIds = [created.id];
+    }
 
     if (!mounted) return;
-    if (!success) return; // error shown via notifier state
+    if (!success) return;
 
-    final createdActivity =
-        ref.read(createActivityNotifierProvider).createdActivity;
-
-    // Upload image if one was picked
-    if (_pickedImageFile != null && createdActivity != null) {
+    if (_pickedImageFile != null && createdIds.isNotEmpty) {
       setState(() => _isUploadingImage = true);
-
       final uploadSuccess =
           await ref.read(activityImageUploadNotifierProvider.notifier).upload(
-                activityId: createdActivity.id,
+                activityId: createdIds.first,
                 imageFile: File(_pickedImageFile!.path),
               );
-
+      if (uploadSuccess && createdIds.length > 1) {
+        final url = ref.read(activityImageUploadNotifierProvider).valueOrNull;
+        if (url != null) {
+          for (final id in createdIds.skip(1)) {
+            await ref.read(updateActivityNotifierProvider.notifier).update(
+                  activityId: id,
+                  image: url,
+                );
+          }
+        }
+      }
       if (mounted) setState(() => _isUploadingImage = false);
-
       if (!mounted) return;
-
       if (!uploadSuccess) {
         final error = ref.read(activityImageUploadNotifierProvider).error;
-        // Activity was created — just warn about the image
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -274,12 +410,19 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
 
     if (!mounted) return;
 
-    // Invalidar la lista de actividades para que se recargue
     ref.invalidate(clubActivitiesProvider);
 
+    final count = _repeat
+        ? (ref.read(createActivitySeriesNotifierProvider).result?.createdCount ??
+            createdIds.length)
+        : 1;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('activities.create.success'.tr()),
+        content: Text(
+          _repeat
+              ? 'activities.series.created'.tr(namedArgs: {'count': '$count'})
+              : 'activities.create.success'.tr(),
+        ),
         backgroundColor: AppColors.secondary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
@@ -309,10 +452,12 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
   @override
   Widget build(BuildContext context) {
     final createState = ref.watch(createActivityNotifierProvider);
+    final seriesState = ref.watch(createActivitySeriesNotifierProvider);
     final activityTypesAsync = ref.watch(activityTypesProvider);
     final clubCtxAsync = ref.watch(clubContextProvider);
     final c = context.sac;
-    final isLoading = createState.isLoading || _isUploadingImage;
+    final isLoading =
+        createState.isLoading || seriesState.isLoading || _isUploadingImage;
     final activityTypeItems = activityTypesAsync.maybeWhen(
       data: (activityTypes) => activityTypes
           .map((t) => PickerItem(id: t.activityTypeId, name: t.name))
@@ -326,6 +471,15 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
     // Mostrar error del notifier si hay uno nuevo
     ref.listen<CreateActivityState>(
       createActivityNotifierProvider,
+      (previous, next) {
+        if (next.errorMessage != null &&
+            next.errorMessage != previous?.errorMessage) {
+          _showError(next.errorMessage!);
+        }
+      },
+    );
+    ref.listen<CreateActivitySeriesState>(
+      createActivitySeriesNotifierProvider,
       (previous, next) {
         if (next.errorMessage != null &&
             next.errorMessage != previous?.errorMessage) {
@@ -532,7 +686,9 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
 
             // Fecha de inicio
             ActivityDatePickerField(
-              label: 'activities.form.date_label'.tr(),
+              label: _repeat
+                  ? 'activities.series.first_date'.tr()
+                  : 'activities.form.date_label'.tr(),
               value: _activityDate,
               enabled: !isLoading,
               onTap: isLoading ? null : _pickActivityDate,
@@ -576,6 +732,48 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
               onClear: _activityEndDate == null
                   ? null
                   : () => setState(() => _activityEndDate = null),
+            ),
+            const SizedBox(height: 24),
+
+            ActivitySectionHeader(
+              icon: HugeIcons.strokeRoundedRefresh,
+              label: 'activities.series.section_title'.tr(),
+            ),
+            const SizedBox(height: 8),
+            ActivitySeriesFormSection(
+              enabled: !isLoading,
+              repeat: _repeat,
+              onRepeatChanged: (value) {
+                setState(() {
+                  _repeat = value;
+                  _until ??= _yearEnd();
+                });
+                _schedulePreview();
+              },
+              kind: _repeatKind,
+              onKindChanged: (value) {
+                setState(() => _repeatKind = value);
+                _schedulePreview();
+              },
+              weekday: _weekday,
+              onWeekdayChanged: (value) {
+                setState(() => _weekday = value);
+                _schedulePreview();
+              },
+              intervalDays: _intervalDays,
+              onIntervalDaysChanged: (value) {
+                setState(() => _intervalDays = value);
+                _schedulePreview();
+              },
+              until: _until,
+              onPickUntil: isLoading ? null : _pickUntil,
+              onClearUntil: () {
+                setState(() => _until = null);
+                _schedulePreview();
+              },
+              preview: _preview,
+              previewLoading: _previewLoading,
+              previewError: seriesState.previewError,
             ),
             const SizedBox(height: 24),
 
@@ -647,7 +845,11 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
 
             // ── Botón de guardar ──────────────────────────────────────
             SacButton.primary(
-              text: 'activities.create.save_button'.tr(),
+              text: _repeat
+                  ? 'activities.series.create_many'.tr(
+                      namedArgs: {'count': '${_preview?.count ?? 0}'},
+                    )
+                  : 'activities.create.save_button'.tr(),
               icon: HugeIcons.strokeRoundedCalendarAdd01,
               isLoading: isLoading,
               isEnabled: !isLoading,

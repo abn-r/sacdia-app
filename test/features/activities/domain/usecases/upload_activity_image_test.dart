@@ -10,6 +10,7 @@ import 'package:sacdia_app/features/activities/domain/entities/attendance.dart';
 import 'package:sacdia_app/features/activities/domain/repositories/activities_repository.dart';
 import 'package:sacdia_app/features/activities/domain/usecases/upload_activity_image.dart';
 import 'package:sacdia_app/features/activities/domain/entities/create_activity_request.dart';
+import 'package:sacdia_app/features/activities/domain/entities/activity_series.dart';
 
 class _FakeActivitiesRepository implements ActivitiesRepository {
   int? capturedActivityId;
@@ -44,7 +45,9 @@ class _FakeActivitiesRepository implements ActivitiesRepository {
       throw UnimplementedError();
   @override
   Future<Either<Failure, List<Activity>>> getClubActivities(int clubId,
-          {int? clubTypeId, RequestCancelToken? cancelToken}) =>
+          {int? clubTypeId,
+          int? seriesId,
+          RequestCancelToken? cancelToken}) =>
       throw UnimplementedError();
 
   @override
@@ -52,6 +55,30 @@ class _FakeActivitiesRepository implements ActivitiesRepository {
     int clubId, {
     RequestCancelToken? cancelToken,
   }) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Either<Failure, ActivitySeriesPreview>> previewActivitySeries(
+          {required int clubId, required CreateActivityRequest request}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Either<Failure, CreateActivitySeriesResult>> createActivitySeries(
+          {required int clubId, required CreateActivityRequest request}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Either<Failure, ActivitySeriesSummary>> getActivitySeries(
+          int seriesId) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Either<Failure, int>> cancelFutureActivitySeries(int seriesId) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Either<Failure, int>> extendActivitySeries(
+          {required int seriesId, required String until}) =>
       throw UnimplementedError();
   @override
   Future<Either<Failure, int>> registerAttendance(
@@ -73,7 +100,8 @@ class _FakeActivitiesRepository implements ActivitiesRepository {
           String? linkMeet,
           bool? active,
           Set<String> clearFields = const {},
-          List<int>? clubSectionIds}) =>
+          List<int>? clubSectionIds,
+          String? image}) =>
       throw UnimplementedError();
 }
 

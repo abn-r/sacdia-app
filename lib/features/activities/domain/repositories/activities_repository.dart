@@ -6,6 +6,7 @@ import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/activity_club_section.dart';
 import '../entities/create_activity_request.dart';
 import '../entities/activity.dart';
+import '../entities/activity_series.dart';
 import '../entities/attendance.dart';
 
 /// Repositorio de actividades (interfaz del dominio)
@@ -14,6 +15,7 @@ abstract class ActivitiesRepository {
   Future<Either<Failure, List<Activity>>> getClubActivities(
     int clubId, {
     int? clubTypeId,
+    int? seriesId,
     RequestCancelToken? cancelToken,
   });
 
@@ -46,6 +48,7 @@ abstract class ActivitiesRepository {
     bool? active,
     Set<String> clearFields = const {},
     List<int>? clubSectionIds,
+    String? image,
   });
 
   /// Elimina (desactiva) una actividad
@@ -74,4 +77,23 @@ abstract class ActivitiesRepository {
     int activityId,
     File imageFile,
   );
+
+  Future<Either<Failure, ActivitySeriesPreview>> previewActivitySeries({
+    required int clubId,
+    required CreateActivityRequest request,
+  });
+
+  Future<Either<Failure, CreateActivitySeriesResult>> createActivitySeries({
+    required int clubId,
+    required CreateActivityRequest request,
+  });
+
+  Future<Either<Failure, ActivitySeriesSummary>> getActivitySeries(int seriesId);
+
+  Future<Either<Failure, int>> cancelFutureActivitySeries(int seriesId);
+
+  Future<Either<Failure, int>> extendActivitySeries({
+    required int seriesId,
+    required String until,
+  });
 }

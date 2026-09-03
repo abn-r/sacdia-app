@@ -1,3 +1,5 @@
+import 'recurrence_rule.dart';
+
 /// Modelo de solicitud para crear una nueva actividad
 ///
 /// Mapea exactamente los campos que acepta el endpoint
@@ -30,6 +32,7 @@ class CreateActivityRequest {
   /// conjunta (is_joint = true) y genera [activity_instances] para cada sección.
   /// La sección del creador debe estar incluida en esta lista.
   final List<int>? clubSectionIds;
+  final RecurrenceRule? recurrence;
 
   const CreateActivityRequest({
     required this.name,
@@ -49,6 +52,7 @@ class CreateActivityRequest {
     this.activityDate,
     this.activityEndDate,
     this.clubSectionIds,
+    this.recurrence,
   });
 
   /// Convierte la solicitud a JSON para enviar al backend
@@ -74,20 +78,22 @@ class CreateActivityRequest {
     if (additionalData != null) json['additional_data'] = additionalData;
     if (classes != null && classes!.isNotEmpty) json['classes'] = classes;
     if (activityDate != null) {
-      json['activity_date'] = _formatDateOnly(activityDate!);
+      json['activity_date'] = formatDateOnly(activityDate!);
     }
     if (activityEndDate != null) {
-      json['activity_end_date'] = _formatDateOnly(activityEndDate!);
+      json['activity_end_date'] = formatDateOnly(activityEndDate!);
     }
-    // Joint activity: send participating section IDs
     if (clubSectionIds != null && clubSectionIds!.length >= 2) {
       json['club_section_ids'] = clubSectionIds;
+    }
+    if (recurrence != null) {
+      json['recurrence'] = recurrence!.toJson(formatDateOnly);
     }
 
     return json;
   }
 
-  static String _formatDateOnly(DateTime d) {
+  static String formatDateOnly(DateTime d) {
     final y = d.year.toString().padLeft(4, '0');
     final m = d.month.toString().padLeft(2, '0');
     final day = d.day.toString().padLeft(2, '0');

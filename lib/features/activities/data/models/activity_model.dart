@@ -36,6 +36,7 @@ class ActivityModel extends Equatable {
 
   /// Participating section instances for joint activities.
   final List<ActivityInstance>? instances;
+  final int? activitySeriesId;
 
   const ActivityModel({
     required this.id,
@@ -64,6 +65,7 @@ class ActivityModel extends Equatable {
     this.creatorImage,
     this.isJoint = false,
     this.instances,
+    this.activitySeriesId,
   });
 
   static DateTime? _parseDateOnly(String? raw) {
@@ -167,6 +169,7 @@ class ActivityModel extends Equatable {
       creatorImage: usersNested?['user_image'] as String?,
       isJoint: (json['is_joint'] as bool?) ?? false,
       instances: instances,
+      activitySeriesId: json['activity_series_id'] as int?,
     );
   }
 
@@ -227,6 +230,7 @@ class ActivityModel extends Equatable {
       creatorImage: creatorImage,
       isJoint: isJoint,
       instances: instances,
+      activitySeriesId: activitySeriesId,
     );
   }
 
@@ -258,5 +262,6 @@ class ActivityModel extends Equatable {
         creatorImage,
         isJoint,
         instances,
+        activitySeriesId,
       ];
 }

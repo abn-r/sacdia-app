@@ -363,8 +363,12 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                     final derivation = _deriveActivities(
                       activities: activities,
                       selectedFilter: selectedFilter,
-                      selectedDate: selectedDate,
-                      isChronologicalView: isChronologicalView,
+                      selectedDate: ref.read(activitySeriesFilterProvider) == null
+                          ? selectedDate
+                          : null,
+                      isChronologicalView:
+                          isChronologicalView ||
+                              ref.read(activitySeriesFilterProvider) != null,
                     );
                     final filtered = derivation.filtered;
 
@@ -550,10 +554,12 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
     final resolvedSectionId =
         widget.clubSectionId ?? clubCtxAsync.valueOrNull?.sectionId;
 
+    final seriesFilter = ref.watch(activitySeriesFilterProvider);
     final activitiesAsync = resolvedClubId != null
         ? ref.watch(clubActivitiesProvider(ClubActivitiesParams(
             clubId: resolvedClubId,
             clubTypeId: widget.clubTypeId,
+            seriesId: seriesFilter,
           )))
         : const AsyncValue<List<Activity>>.loading();
     final activityTypesAsync = ref.watch(activityTypesProvider);
@@ -715,6 +721,61 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
               ),
             ),
             const SizedBox(height: 20),
+            if (seriesFilter != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondaryLight,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppColors.secondary.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedRefresh,
+                        size: 18,
+                        color: AppColors.secondaryDark,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'activities.series.viewing_banner'.tr(),
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.secondaryDark,
+                          ),
+                        ),
+                      ),
+                      Tooltip(
+                        message: 'activities.series.clear_filter'.tr(),
+                        child: GestureDetector(
+                          onTap: () => ref
+                              .read(activitySeriesFilterProvider.notifier)
+                              .state = null,
+                          behavior: HitTestBehavior.opaque,
+                          child: SizedBox(
+                            width: 44,
+                            height: 44,
+                            child: Center(
+                              child: HugeIcon(
+                                icon: HugeIcons.strokeRoundedCancel01,
+                                size: 18,
+                                color: AppColors.secondaryDark,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
 
             // Date strip (solo en vista de tarjetas)
             ValueListenableBuilder<bool>(

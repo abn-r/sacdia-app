@@ -9,6 +9,7 @@ import '../../../../providers/dio_provider.dart';
 import '../../data/datasources/activities_remote_data_source.dart';
 import '../../domain/entities/create_activity_request.dart';
 import '../../domain/entities/activity_club_section.dart';
+import '../../domain/entities/activity_series.dart';
 import '../../data/repositories/activities_repository_impl.dart';
 import '../../domain/entities/activity.dart';
 import '../../domain/repositories/activities_repository.dart';
@@ -79,10 +80,12 @@ final uploadActivityImageProvider = Provider<UploadActivityImage>((ref) {
 class ClubActivitiesParams {
   final int clubId;
   final int? clubTypeId;
+  final int? seriesId;
 
   const ClubActivitiesParams({
     required this.clubId,
     this.clubTypeId,
+    this.seriesId,
   });
 
   @override
@@ -90,10 +93,11 @@ class ClubActivitiesParams {
       identical(this, other) ||
       other is ClubActivitiesParams &&
           other.clubId == clubId &&
-          other.clubTypeId == clubTypeId;
+          other.clubTypeId == clubTypeId &&
+          other.seriesId == seriesId;
 
   @override
-  int get hashCode => Object.hash(clubId, clubTypeId);
+  int get hashCode => Object.hash(clubId, clubTypeId, seriesId);
 }
 
 /// Provider para las actividades de un club.
@@ -115,6 +119,7 @@ final clubActivitiesProvider = FutureProvider.autoDispose
     GetClubActivitiesParams(
       clubId: params.clubId,
       clubTypeId: params.clubTypeId,
+      seriesId: params.seriesId,
     ),
     cancelToken: cancelToken,
   );
@@ -349,6 +354,7 @@ class UpdateActivityNotifier extends AutoDisposeNotifier<UpdateActivityState> {
     bool? active,
     Set<String> clearFields = const {},
     List<int>? clubSectionIds,
+    String? image,
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
@@ -369,6 +375,7 @@ class UpdateActivityNotifier extends AutoDisposeNotifier<UpdateActivityState> {
       active: active,
       clearFields: clearFields,
       clubSectionIds: clubSectionIds,
+      image: image,
     );
 
     return result.fold(
@@ -462,3 +469,160 @@ final clubSectionsForActivityProvider =
     (sections) => sections,
   );
 });
+
+final activitySeriesFilterProvider = StateProvider<int?>((ref) => null);
+
+final activitySeriesProvider = FutureProvider.autoDispose
+    .family<ActivitySeriesSummary, int>((ref, seriesId) async {
+  final repository = ref.read(activitiesRepositoryProvider);
+  final result = await repository.getActivitySeries(seriesId);
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (series) => series,
+  );
+});
+
+class CreateActivitySeriesState {
+  final bool isLoading;
+  final CreateActivitySeriesResult? result;
+  final ActivitySeriesPreview? preview;
+  final String? errorMessage;
+  final String? previewError;
+
+  const CreateActivitySeriesState({
+    this.isLoading = false,
+    this.result,
+    this.preview,
+    this.errorMessage,
+    this.previewError,
+  });
+
+  CreateActivitySeriesState copyWith({
+    bool? isLoading,
+    CreateActivitySeriesResult? result,
+    ActivitySeriesPreview? preview,
+    String? errorMessage,
+    String? previewError,
+    bool clearPreview = false,
+    bool clearPreviewError = false,
+  }) {
+    return CreateActivitySeriesState(
+      isLoading: isLoading ?? this.isLoading,
+      result: result ?? this.result,
+      preview: clearPreview ? null : (preview ?? this.preview),
+      errorMessage: errorMessage,
+      previewError:
+          clearPreviewError ? null : (previewError ?? this.previewError),
+    );
+  }
+}
+
+class CreateActivitySeriesNotifier
+    extends AutoDisposeNotifier<CreateActivitySeriesState> {
+  @override
+  CreateActivitySeriesState build() => const CreateActivitySeriesState();
+
+  Future<ActivitySeriesPreview?> preview({
+    required int clubId,
+    required CreateActivityRequest request,
+  }) async {
+    final result = await ref.read(activitiesRepositoryProvider).previewActivitySeries(
+          clubId: clubId,
+          request: request,
+        );
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          previewError: failure.message,
+          clearPreview: true,
+        );
+        return null;
+      },
+      (preview) {
+        state = state.copyWith(
+          preview: preview,
+          clearPreviewError: true,
+          errorMessage: null,
+        );
+        return preview;
+      },
+    );
+  }
+
+  Future<bool> create({
+    required int clubId,
+    required CreateActivityRequest request,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    final result = await ref.read(activitiesRepositoryProvider).createActivitySeries(
+          clubId: clubId,
+          request: request,
+        );
+    return result.fold(
+      (failure) {
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
+        return false;
+      },
+      (created) {
+        state = state.copyWith(isLoading: false, result: created);
+        ref.invalidate(clubActivitiesProvider);
+        return true;
+      },
+    );
+  }
+}
+
+final createActivitySeriesNotifierProvider = NotifierProvider.autoDispose<
+    CreateActivitySeriesNotifier, CreateActivitySeriesState>(
+  CreateActivitySeriesNotifier.new,
+);
+
+class ActivitySeriesActionsNotifier extends AutoDisposeAsyncNotifier<void> {
+  @override
+  Future<void> build() async {}
+
+  Future<int?> cancelFuture(int seriesId) async {
+    state = const AsyncValue.loading();
+    final result = await ref
+        .read(activitiesRepositoryProvider)
+        .cancelFutureActivitySeries(seriesId);
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return null;
+      },
+      (count) {
+        state = const AsyncValue.data(null);
+        ref.invalidate(clubActivitiesProvider);
+        ref.invalidate(activitySeriesProvider(seriesId));
+        return count;
+      },
+    );
+  }
+
+  Future<int?> extend({required int seriesId, required String until}) async {
+    state = const AsyncValue.loading();
+    final result = await ref.read(activitiesRepositoryProvider).extendActivitySeries(
+          seriesId: seriesId,
+          until: until,
+        );
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return null;
+      },
+      (count) {
+        state = const AsyncValue.data(null);
+        ref.invalidate(clubActivitiesProvider);
+        ref.invalidate(activitySeriesProvider(seriesId));
+        return count;
+      },
+    );
+  }
+}
+
+final activitySeriesActionsProvider =
+    AsyncNotifierProvider.autoDispose<ActivitySeriesActionsNotifier, void>(
+  ActivitySeriesActionsNotifier.new,
+);
+

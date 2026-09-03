@@ -12,6 +12,7 @@ import '../../domain/entities/attendance.dart';
 import '../../domain/repositories/activities_repository.dart';
 import '../datasources/activities_remote_data_source.dart';
 import '../../domain/entities/create_activity_request.dart';
+import '../../domain/entities/activity_series.dart';
 
 /// Implementación del repositorio de actividades
 class ActivitiesRepositoryImpl implements ActivitiesRepository {
@@ -27,12 +28,14 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
   Future<Either<Failure, List<Activity>>> getClubActivities(
     int clubId, {
     int? clubTypeId,
+    int? seriesId,
     RequestCancelToken? cancelToken,
   }) async {
     try {
       final activityModels = await remoteDataSource.getClubActivities(
         clubId,
         clubTypeId: clubTypeId,
+        seriesId: seriesId,
         cancelToken: cancelToken.asDioCancelToken(),
       );
       final activities =
@@ -146,6 +149,7 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
     bool? active,
     Set<String> clearFields = const {},
     List<int>? clubSectionIds,
+    String? image,
   }) async {
     try {
       final activityModel = await remoteDataSource.updateActivity(
@@ -164,6 +168,7 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
         active: active,
         clearFields: clearFields,
         clubSectionIds: clubSectionIds,
+        image: image,
       );
       return Right(activityModel.toEntity());
     } on ServerException catch (e) {
@@ -218,6 +223,97 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
       final url =
           await remoteDataSource.uploadActivityImage(activityId, imageFile);
       return Right(url);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, ActivitySeriesPreview>> previewActivitySeries({
+    required int clubId,
+    required CreateActivityRequest request,
+  }) async {
+    try {
+      return Right(
+        await remoteDataSource.previewActivitySeries(
+          clubId: clubId,
+          request: request,
+        ),
+      );
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, CreateActivitySeriesResult>> createActivitySeries({
+    required int clubId,
+    required CreateActivityRequest request,
+  }) async {
+    try {
+      return Right(
+        await remoteDataSource.createActivitySeries(
+          clubId: clubId,
+          request: request,
+        ),
+      );
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, ActivitySeriesSummary>> getActivitySeries(
+    int seriesId,
+  ) async {
+    try {
+      return Right(await remoteDataSource.getActivitySeries(seriesId));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, int>> cancelFutureActivitySeries(int seriesId) async {
+    try {
+      return Right(await remoteDataSource.cancelFutureActivitySeries(seriesId));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, int>> extendActivitySeries({
+    required int seriesId,
+    required String until,
+  }) async {
+    try {
+      return Right(
+        await remoteDataSource.extendActivitySeries(
+          seriesId: seriesId,
+          until: until,
+        ),
+      );
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
     } on AuthException catch (e) {

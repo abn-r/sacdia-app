@@ -9,12 +9,14 @@ import '../models/activity_model.dart';
 import '../models/attendance_model.dart';
 import '../models/club_section_model.dart';
 import '../../domain/entities/create_activity_request.dart';
+import '../../domain/entities/activity_series.dart';
 
 /// Interfaz para la fuente de datos remota de actividades
 abstract class ActivitiesRemoteDataSource {
   Future<List<ActivityModel>> getClubActivities(
     int clubId, {
     int? clubTypeId,
+    int? seriesId,
     CancelToken? cancelToken,
   });
   Future<ActivityModel> getActivityById(
@@ -40,11 +42,8 @@ abstract class ActivitiesRemoteDataSource {
     String? linkMeet,
     bool? active,
     Set<String> clearFields = const {},
-    // TODO(backend): UpdateActivityDto does not yet support club_section_ids.
-    // Once the backend PATCH /activities/:id endpoint accepts this field,
-    // remove this comment and wire it through. The value is sent optimistically
-    // and will be stripped by NestJS whitelist validation until then.
     List<int>? clubSectionIds,
+    String? image,
   });
   Future<void> deleteActivity(int activityId);
   Future<List<AttendanceModel>> getActivityAttendance(
@@ -61,6 +60,25 @@ abstract class ActivitiesRemoteDataSource {
   Future<List<ClubSectionModel>> getClubSections(
     int clubId, {
     CancelToken? cancelToken,
+  });
+
+  Future<ActivitySeriesPreview> previewActivitySeries({
+    required int clubId,
+    required CreateActivityRequest request,
+  });
+
+  Future<CreateActivitySeriesResult> createActivitySeries({
+    required int clubId,
+    required CreateActivityRequest request,
+  });
+
+  Future<ActivitySeriesSummary> getActivitySeries(int seriesId);
+
+  Future<int> cancelFutureActivitySeries(int seriesId);
+
+  Future<int> extendActivitySeries({
+    required int seriesId,
+    required String until,
   });
 }
 
@@ -81,11 +99,13 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
   Future<List<ActivityModel>> getClubActivities(
     int clubId, {
     int? clubTypeId,
+    int? seriesId,
     CancelToken? cancelToken,
   }) async {
     try {
       final queryParams = <String, dynamic>{'active': 'true'};
       if (clubTypeId != null) queryParams['clubTypeId'] = clubTypeId;
+      if (seriesId != null) queryParams['seriesId'] = seriesId;
 
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/activities',
@@ -240,6 +260,7 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
     bool? active,
     Set<String> clearFields = const {},
     List<int>? clubSectionIds,
+    String? image,
   }) async {
     try {
       AppLogger.i('Actualizando actividad: $activityId', tag: _tag);
@@ -257,6 +278,7 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
       if (activityTypeId != null) data['activity_type_id'] = activityTypeId;
       if (linkMeet != null) data['link_meet'] = linkMeet;
       if (active != null) data['active'] = active;
+      if (image != null) data['image'] = image;
 
       // Campos explícitamente nulos (el backend usa undefined-check, necesitamos la clave presente)
       for (final field in clearFields) {
@@ -442,6 +464,198 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
               tr('common.error_network'),
           code: e.response?.statusCode,
         );
+      }
+      if (e is ServerException || e is AuthException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  Map<String, dynamic> _unwrapObject(dynamic raw) {
+    if (raw is Map<String, dynamic>) {
+      final nested = raw['data'];
+      if (nested is Map<String, dynamic>) return nested;
+      return raw;
+    }
+    throw ServerException(message: tr('common.error_network'));
+  }
+
+  ServerException _fromDio(DioException e, String fallback) {
+    final message = e.response?.data is Map
+        ? (e.response!.data['message'] ?? e.message ?? fallback)
+        : (e.message ?? fallback);
+    return ServerException(
+      message: message.toString(),
+      code: e.response?.statusCode,
+    );
+  }
+
+  @override
+  Future<ActivitySeriesPreview> previewActivitySeries({
+    required int clubId,
+    required CreateActivityRequest request,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/activity-series/preview',
+        data: request.toJson(),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = _unwrapObject(response.data);
+        final dates = (body['dates'] as List<dynamic>? ?? [])
+            .map((e) => e.toString().split('T').first)
+            .toList();
+        return ActivitySeriesPreview(
+          count: (body['count'] as num?)?.toInt() ?? dates.length,
+          dates: dates,
+          until: (body['until'] ?? '').toString().split('T').first,
+        );
+      }
+      throw ServerException(
+        message: tr('activities.errors.create'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en previewActivitySeries', tag: _tag, error: e);
+      if (e is DioException) {
+        throw _fromDio(e, tr('common.error_network'));
+      }
+      if (e is ServerException || e is AuthException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<CreateActivitySeriesResult> createActivitySeries({
+    required int clubId,
+    required CreateActivityRequest request,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/activity-series',
+        data: request.toJson(),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = _unwrapObject(response.data);
+        final series = body['series'];
+        final seriesMap =
+            series is Map<String, dynamic> ? series : body;
+        final ids = (body['activity_ids'] as List<dynamic>? ?? [])
+            .map((e) => (e as num).toInt())
+            .toList();
+        return CreateActivitySeriesResult(
+          seriesId: (seriesMap['activity_series_id'] as num?)?.toInt() ?? 0,
+          createdCount: (body['created_count'] as num?)?.toInt() ?? ids.length,
+          activityIds: ids,
+        );
+      }
+      throw ServerException(
+        message: tr('activities.errors.create'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en createActivitySeries', tag: _tag, error: e);
+      if (e is DioException) {
+        throw _fromDio(e, tr('common.error_network'));
+      }
+      if (e is ServerException || e is AuthException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<ActivitySeriesSummary> getActivitySeries(int seriesId) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.activitiesSeries}/$seriesId',
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = _unwrapObject(response.data);
+        final countsRaw = body['counts'];
+        ActivitySeriesCounts? counts;
+        if (countsRaw is Map<String, dynamic>) {
+          counts = ActivitySeriesCounts(
+            total: (countsRaw['total'] as num?)?.toInt() ?? 0,
+            active: (countsRaw['active'] as num?)?.toInt() ?? 0,
+            upcoming: (countsRaw['upcoming'] as num?)?.toInt() ?? 0,
+            past: (countsRaw['past'] as num?)?.toInt() ?? 0,
+          );
+        }
+        return ActivitySeriesSummary(
+          id: (body['activity_series_id'] as num?)?.toInt() ?? seriesId,
+          name: (body['name'] as String?) ?? '',
+          kind: (body['kind'] as String?) ?? '',
+          intervalDays: (body['interval_days'] as num?)?.toInt(),
+          weekdays: (body['weekdays'] as List<dynamic>? ?? [])
+              .map((e) => (e as num).toInt())
+              .toList(),
+          firstDate:
+              (body['first_date'] ?? '').toString().split('T').first,
+          untilDate:
+              (body['until_date'] ?? '').toString().split('T').first,
+          counts: counts,
+        );
+      }
+      throw ServerException(
+        message: tr('activities.errors.fetch_one'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en getActivitySeries', tag: _tag, error: e);
+      if (e is DioException) {
+        throw _fromDio(e, tr('common.error_network'));
+      }
+      if (e is ServerException || e is AuthException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<int> cancelFutureActivitySeries(int seriesId) async {
+    try {
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.activitiesSeries}/$seriesId/cancel-future',
+        data: const {},
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = _unwrapObject(response.data);
+        return (body['canceled_count'] as num?)?.toInt() ?? 0;
+      }
+      throw ServerException(
+        message: tr('activities.errors.delete'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en cancelFutureActivitySeries', tag: _tag, error: e);
+      if (e is DioException) {
+        throw _fromDio(e, tr('common.error_network'));
+      }
+      if (e is ServerException || e is AuthException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<int> extendActivitySeries({
+    required int seriesId,
+    required String until,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.activitiesSeries}/$seriesId/extend',
+        data: {'until': until},
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = _unwrapObject(response.data);
+        return (body['created_count'] as num?)?.toInt() ?? 0;
+      }
+      throw ServerException(
+        message: tr('activities.errors.create'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en extendActivitySeries', tag: _tag, error: e);
+      if (e is DioException) {
+        throw _fromDio(e, tr('common.error_network'));
       }
       if (e is ServerException || e is AuthException) rethrow;
       throw ServerException(message: e.toString());
