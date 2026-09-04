@@ -2,37 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Explicit ATS config: enforce TLS for all connections.
-	     NSAllowsArbitraryLoads=false is the iOS default, but declaring it
-	     explicitly prevents accidental weakening by plugins or future edits. -->
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<false/>
-		<!-- Allow plain HTTP to RFC1918 LAN addresses (192.168.x.x, 10.x.x.x,
-		     172.16-31.x.x) so physical devices can hit dev backend on Mac LAN IP.
-		     iOS rejects HTTP to public internet regardless. Production uses HTTPS. -->
-		<key>NSAllowsLocalNetworking</key>
-		<true/>
-	</dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
-	<!-- Permisos de camara y galeria requeridos por image_picker -->
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>SACDIA necesita acceso a tu galeria para seleccionar una imagen para la actividad.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>SACDIA necesita acceso a la camara para tomar una foto para la actividad.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>SACDIA necesita permiso para guardar imagenes en tu galeria.</string>
-	<!-- Google Maps API key — set GOOGLE_MAPS_API_KEY in Xcode build settings or via xcconfig -->
-	<key>GOOGLE_MAPS_API_KEY</key>
-	<string>$(GOOGLE_MAPS_API_KEY)</string>
-	<!-- Permisos de ubicación requeridos por google_maps_flutter y geocoding -->
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>SACDIA necesita acceso a tu ubicacion para mostrar el mapa y seleccionar el lugar de la actividad.</string>
-	<!-- Biometric authentication (local_auth) — Face ID usage prompt -->
-	<key>NSFaceIDUsageDescription</key>
-	<string>SACDIA usa Face ID para proteger tu cuenta</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -51,18 +22,49 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>io.sacdia.app</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>FlutterDeepLinkingEnabled</key>
+	<true/>
+	<key>GOOGLE_MAPS_API_KEY</key>
+	<string>$(GOOGLE_MAPS_API_KEY)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
-	<!-- Permite a url_launcher consultar apps de navegación instaladas. -->
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>comgooglemaps</string>
 		<string>waze</string>
 	</array>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>SACDIA necesita acceso a la camara para tomar una foto para la actividad.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>SACDIA usa Face ID para proteger tu cuenta</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>SACDIA necesita acceso a tu ubicacion para mostrar el mapa y seleccionar el lugar de la actividad.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>SACDIA necesita permiso para guardar imagenes en tu galeria.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>SACDIA necesita acceso a tu galeria para seleccionar una imagen para la actividad.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -86,25 +88,16 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>location</string>
+		<string>processing</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
-	<!-- Habilita deep links via Flutter (requerido para OAuth callbacks con Better Auth) -->
-	<key>FlutterDeepLinkingEnabled</key>
-	<true/>
-	<!-- URL scheme para OAuth callbacks: io.sacdia.app://auth/callback -->
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>io.sacdia.app</string>
-			</array>
-		</dict>
-	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -117,13 +110,6 @@
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<!-- Background modes: remote-notification keeps FCM handler alive when app is suspended;
-	     fetch enables background refresh. Both required for terminated-state push delivery. -->
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>fetch</string>
-		<string>remote-notification</string>
 	</array>
 </dict>
 </plist>
