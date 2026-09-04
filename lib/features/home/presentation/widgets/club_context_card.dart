@@ -61,7 +61,6 @@ class ClubContextCard extends ConsumerWidget {
     }
 
     return SacCard(
-      accentColor: accentColor,
       onTap: () {
         showSectionSwitcher(
           context: context,

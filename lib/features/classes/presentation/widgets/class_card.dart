@@ -12,8 +12,7 @@ import '../../domain/entities/progressive_class.dart';
 
 /// Card de clase progresiva - Estilo "Scout Vibrante"
 ///
-/// SacCard con barra de acento lateral (color de clase),
-/// barra de progreso sólida con color de clase y badge de estado.
+/// SacCard con barra de progreso del color de la clase y badge de estado.
 class ClassCard extends StatelessWidget {
   final ProgressiveClass progressiveClass;
   final double progress;
@@ -38,7 +37,6 @@ class ClassCard extends StatelessWidget {
 
     return SacCard(
       onTap: onTap,
-      accentColor: classColor,
       borderColor: isExpired
           ? AppColors.error.withValues(alpha: 0.45)
           : isCurrent

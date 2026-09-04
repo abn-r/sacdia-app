@@ -100,7 +100,6 @@ class CertificateImportStatusView extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
         children: [
           SacCard(
-            accentColor: rejected.isNotEmpty ? c.error : c.warning,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

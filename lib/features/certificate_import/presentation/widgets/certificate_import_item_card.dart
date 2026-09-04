@@ -44,7 +44,6 @@ class CertificateImportItemCard extends StatelessWidget {
             : 'FALTA DATO';
 
     return SacCard(
-      accentColor: isHonor ? c.warning : c.info,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

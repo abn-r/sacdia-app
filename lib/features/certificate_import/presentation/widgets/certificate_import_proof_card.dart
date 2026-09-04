@@ -18,8 +18,6 @@ class CertificateImportProofCard extends StatelessWidget {
     final date = item.completedAt ?? item.detectedDate;
 
     return SacCard(
-      accentColor:
-          item.type == CertificateImportItemType.honor ? c.warning : c.info,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
