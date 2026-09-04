@@ -114,6 +114,17 @@ final userClassesProvider =
   );
 });
 
+/// True when the signed-in user has an invested Guías Mayores class.
+///
+/// Used to hide certification entry points until that investiture exists.
+/// While classes are loading or failed, this is false so the chip does not flash.
+final isInvestedMasterGuideProvider = Provider<bool>((ref) {
+  return ref.watch(userClassesProvider).maybeWhen(
+        data: (classes) => classes.any((c) => c.isInvestedMasterGuide),
+        orElse: () => false,
+      );
+});
+
 /// Provider para listar clases del catálogo filtradas por tipo de club.
 ///
 /// Usado cuando se necesita listar clases de un tipo específico.

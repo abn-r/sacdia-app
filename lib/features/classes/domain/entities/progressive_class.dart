@@ -82,6 +82,26 @@ class ProgressiveClass extends Equatable {
 
   bool get isExpired => investitureStatus?.trim().toUpperCase() == 'EXPIRED';
 
+  /// Backend `club_types.id` for Guías Mayores.
+  static const int masterGuidesClubTypeId = 3;
+
+  bool get isInvested => investitureStatus?.trim().toUpperCase() == 'INVESTIDO';
+
+  /// True for Guía Mayor / Máster / Asesor (track Guías Mayores).
+  ///
+  /// Does not match the Pathfinder class named "Guía".
+  bool get isMasterGuidesTrack {
+    if (clubTypeId == masterGuidesClubTypeId) return true;
+    final code = assetCode?.trim().toUpperCase() ?? '';
+    if (code.startsWith('GM-')) return true;
+    final normalized = name.trim().toLowerCase();
+    return normalized.contains('guía mayor') ||
+        normalized.contains('guia mayor') ||
+        normalized.contains('master guide');
+  }
+
+  bool get isInvestedMasterGuide => isMasterGuidesTrack && isInvested;
+
   @override
   List<Object?> get props => [
         id,

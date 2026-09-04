@@ -156,10 +156,10 @@ class ClassesListViewBody extends ConsumerWidget {
             children: [
               // ── Roadmap entry chip ─────────────────────────────────────────
               _RoadmapChip(hPad: hPad),
-              const SizedBox(height: 12),
-
-              // ── Certifications entry chip ──────────────────────────────────
-              const _CertificationsChip(),
+              if (classes.any((c) => c.isInvestedMasterGuide)) ...[
+                const SizedBox(height: 12),
+                const _CertificationsChip(),
+              ],
               const SizedBox(height: 20),
 
               if (currentClass != null) ...[
@@ -484,8 +484,6 @@ class _EmptyBody extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 32),
       children: [
         _RoadmapChip(hPad: hPad),
-        const SizedBox(height: 12),
-        const _CertificationsChip(),
         const SizedBox(height: 40),
         Center(
           child: Column(
