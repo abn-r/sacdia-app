@@ -79,17 +79,9 @@ class CertificationsListView extends ConsumerWidget {
               },
               child: ListView.builder(
                 padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 24),
-                itemCount: certifications.length + 1,
+                itemCount: certifications.length,
                 itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return const Padding(
-                      padding: EdgeInsets.only(bottom: 12),
-                      child: _EligibilityBanner(),
-                    );
-                  }
-
-                  final certIndex = index - 1;
-                  final certification = certifications[certIndex];
+                  final certification = certifications[index];
 
                   return userCertificationsAsync.when(
                     data: (userCertifications) {
@@ -98,8 +90,7 @@ class CertificationsListView extends ConsumerWidget {
                             uc.certificationId == certification.certificationId,
                       );
                       return StaggeredListItem(
-                        index: certIndex,
-                        initialDelay: const Duration(milliseconds: 80),
+                        index: index,
                         staggerDelay: SacMotion.stagger,
                         child: _CertificationCard(
                           certification: certification,
@@ -122,7 +113,7 @@ class CertificationsListView extends ConsumerWidget {
                       );
                     },
                     loading: () => StaggeredListItem(
-                      index: certIndex,
+                      index: index,
                       child: _CertificationCard(
                         certification: certification,
                         isEnrolled: false,
@@ -131,7 +122,7 @@ class CertificationsListView extends ConsumerWidget {
                       ),
                     ),
                     error: (_, __) => StaggeredListItem(
-                      index: certIndex,
+                      index: index,
                       child: _CertificationCard(
                         certification: certification,
                         isEnrolled: false,
@@ -250,44 +241,6 @@ class CertificationsListView extends ConsumerWidget {
         );
       }
     }
-  }
-}
-
-// ── Eligibility Banner ────────────────────────────────────────────────────────
-
-class _EligibilityBanner extends ConsumerWidget {
-  const _EligibilityBanner();
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.accentLight,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
-      ),
-      child: Row(
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedInformationCircle,
-            size: 18,
-            color: AppColors.accentDark,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'certifications.list.eligibility_banner'.tr(),
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.accentDark,
-                height: 1.4,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 

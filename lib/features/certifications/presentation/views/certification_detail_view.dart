@@ -1,28 +1,31 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
-import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/utils/responsive.dart';
+import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/features/certifications/domain/entities/certification_detail.dart';
 import 'package:sacdia_app/features/certifications/domain/entities/certification_module.dart';
+import 'package:sacdia_app/features/certifications/domain/entities/user_certification.dart';
 
 import '../providers/certifications_providers.dart';
 import 'certification_progress_view.dart';
-import 'package:sacdia_app/core/animations/page_transitions.dart';
 
-/// Vista de detalle de certificación.
+/// Detalle de una certificación: temario primero, inscripción al final.
 ///
-/// Muestra nombre, descripción, árbol de módulos → secciones.
-/// Si el usuario está inscrito: indicadores de progreso por módulo y botón
-/// para navegar a la vista de progreso detallada.
-/// Si no está inscrito: CTA de inscripción.
+/// La barra sigue el catálogo (superficie blanca). El título vive en el
+/// cuerpo para poder partir en varias líneas. El conteo de módulos y
+/// secciones se calcula del árbol, no de `modulesCount` del API.
 class CertificationDetailView extends ConsumerWidget {
   final int certificationId;
 
@@ -37,6 +40,10 @@ class CertificationDetailView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.sac.background,
+      appBar: SacTopBar(
+        title: 'certifications.list.title'.tr(),
+        onBack: () => Navigator.of(context).maybePop(),
+      ),
       body: detailAsync.when(
         loading: () => const Center(child: SacLoading()),
         error: (error, _) => _ErrorBody(
@@ -53,8 +60,6 @@ class CertificationDetailView extends ConsumerWidget {
   }
 }
 
-// ── Detail Body ───────────────────────────────────────────────────────────────
-
 class _DetailBody extends ConsumerWidget {
   final CertificationDetail detail;
   final int certificationId;
@@ -67,365 +72,220 @@ class _DetailBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userCertificationsAsync = ref.watch(userCertificationsProvider);
+    final enrollmentState =
+        ref.watch(certificationEnrollmentNotifierProvider(certificationId));
+    final hPad = Responsive.horizontalPadding(context);
     final c = context.sac;
+    final moduleCount = detail.modules.length;
+    final sectionCount = detail.modules.fold<int>(
+      0,
+      (sum, module) => sum + module.sections.length,
+    );
 
     return CustomScrollView(
       physics: const BouncingScrollPhysics(
         parent: AlwaysScrollableScrollPhysics(),
       ),
       slivers: [
-        // Hero header
-        SliverAppBar(
-          automaticallyImplyLeading: false,
-          leading: sacAutoBackButton(context),
-          expandedHeight: 200,
-          pinned: true,
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [AppColors.primary, AppColors.primaryDark],
-                ),
-              ),
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 48, 20, 20),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Center(
-                          child: HugeIcon(
-                            icon: HugeIcons.strokeRoundedCertificate01,
-                            size: 30,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        detail.name,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                            ),
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        // Body content
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Descripción
-                if (detail.description != null &&
-                    detail.description!.isNotEmpty) ...[
-                  _SectionTitle(
-                    icon: HugeIcons.strokeRoundedInformationCircle,
-                    label: 'certifications.detail.description'.tr(),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    detail.description!,
-                    style: TextStyle(
-                      fontSize: 14,
-                      height: 1.65,
-                      color: c.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                ],
-
-                // Stats row
-                _StatsRow(detail: detail),
-                const SizedBox(height: 24),
-
-                // CTA según estado de inscripción
-                userCertificationsAsync.when(
-                  data: (userCertifications) {
-                    final enrollment = userCertifications
-                        .where((uc) => uc.certificationId == certificationId)
-                        .firstOrNull;
-                    final isEnrolled = enrollment != null;
-
-                    if (isEnrolled) {
-                      return _EnrolledCTA(
-                        enrollmentId: enrollment.enrollmentId,
-                        certificationId: certificationId,
-                        progressPercentage: enrollment.progressPercentage,
-                      );
-                    }
-                    return _NotEnrolledCTA(certificationId: certificationId);
-                  },
-                  loading: () => const Center(child: SacLoading()),
-                  error: (_, __) =>
-                      _NotEnrolledCTA(certificationId: certificationId),
-                ),
-
-                const SizedBox(height: 28),
-                Divider(color: c.border),
-                const SizedBox(height: 20),
-
-                // Árbol de módulos y secciones
-                _SectionTitle(
-                  icon: HugeIcons.strokeRoundedCheckList,
-                  label: 'certifications.detail.modules_and_sections'.tr(),
-                ),
-                const SizedBox(height: 12),
-              ],
-            ),
-          ),
-        ),
-
-        // Módulos
-        if (detail.modules.isEmpty)
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
-              child: Center(
-                child: Text(
-                  'certifications.detail.no_modules'.tr(),
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: context.sac.textSecondary,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-          )
-        else
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final module = detail.modules[index];
-                return StaggeredListItem(
-                  index: index,
-                  child: _ModuleTreeCard(module: module),
-                );
-              },
-              childCount: detail.modules.length,
-            ),
-          ),
-
-        const SliverToBoxAdapter(child: SizedBox(height: 32)),
-      ],
-    );
-  }
-}
-
-// ── Stats Row ─────────────────────────────────────────────────────────────────
-
-class _StatsRow extends StatelessWidget {
-  final CertificationDetail detail;
-
-  const _StatsRow({required this.detail});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final totalSections = detail.modules.fold<int>(
-      0,
-      (sum, m) => sum + m.sections.length,
-    );
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: c.surfaceVariant,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: c.border),
-      ),
-      child: Row(
-        children: [
-          _StatItem(
-            icon: HugeIcons.strokeRoundedCheckList,
-            value: '${detail.modulesCount}',
-            label: 'certifications.detail.modules'.tr(),
-          ),
-          Container(
-            width: 1,
-            height: 36,
-            color: c.border,
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-          ),
-          _StatItem(
-            icon: HugeIcons.strokeRoundedTaskDone01,
-            value: '$totalSections',
-            label: 'certifications.detail.sections'.tr(),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatItem extends StatelessWidget {
-  final HugeIconData icon;
-  final String value;
-  final String label;
-
-  const _StatItem({
-    required this.icon,
-    required this.value,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Expanded(
-      child: Row(
-        children: [
-          HugeIcon(icon: icon, size: 20, color: AppColors.primary),
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: c.text,
-                ),
-              ),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: c.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Enrolled CTA ──────────────────────────────────────────────────────────────
-
-class _EnrolledCTA extends StatelessWidget {
-  final int enrollmentId;
-  final int certificationId;
-  final double progressPercentage;
-
-  const _EnrolledCTA({
-    required this.enrollmentId,
-    required this.certificationId,
-    required this.progressPercentage,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Badge inscrito + progreso
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.secondaryLight,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: AppColors.secondary.withValues(alpha: 0.3),
-            ),
-          ),
-          child: Row(
-            children: [
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                size: 24,
-                color: AppColors.secondary,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'certifications.detail.enrolled'.tr(),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.secondaryDark,
-                      ),
-                    ),
-                    Text(
-                      'certifications.detail.progress_percent'.tr(namedArgs: {
-                        'percentage': progressPercentage.toStringAsFixed(0),
-                      }),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.secondaryDark,
+                    const _CertificateMark(),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        detail.name,
+                        style:
+                            Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  color: c.text,
+                                  letterSpacing: -0.4,
+                                  height: 1.15,
+                                ),
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
+                userCertificationsAsync.maybeWhen(
+                  data: (userCertifications) {
+                    final enrollment = _enrollmentOf(
+                      userCertifications,
+                      certificationId,
+                    );
+                    if (enrollment == null) {
+                      return const SizedBox.shrink();
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: SacBadge.success(
+                        icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                        label: 'certifications.detail.enrolled_meta'.tr(
+                          namedArgs: {
+                            'percentage': enrollment.progressPercentage
+                                .toStringAsFixed(0),
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                  orElse: () => const SizedBox.shrink(),
+                ),
+                if (detail.description != null &&
+                    detail.description!.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    detail.description!,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: c.textSecondary,
+                          height: 1.45,
+                        ),
+                  ),
+                ],
+                if (moduleCount > 0) ...[
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      SacBadge(
+                        icon: HugeIcons.strokeRoundedCheckList,
+                        label: 'certifications.list.modules_count'.tr(
+                          namedArgs: {'count': '$moduleCount'},
+                        ),
+                      ),
+                      SacBadge(
+                        icon: HugeIcons.strokeRoundedTaskDone01,
+                        label: 'certifications.detail.sections_count'.tr(
+                          namedArgs: {'count': '$sectionCount'},
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 28),
+                  Row(
+                    children: [
+                      const HugeIcon(
+                        icon: HugeIcons.strokeRoundedCheckList,
+                        size: 16,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'certifications.detail.modules'.tr(),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: c.text,
+                            ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                ] else
+                  const SizedBox(height: 28),
+              ],
+            ),
           ),
         ),
-        const SizedBox(height: 14),
-        SacButton.primary(
-          text: 'certifications.detail.view_progress'.tr(),
-          icon: HugeIcons.strokeRoundedAnalytics01,
-          onPressed: () {
-            Navigator.push(
-              context,
-              SacSharedAxisRoute(
-                builder: (context) => CertificationProgressView(
-                  enrollmentId: enrollmentId,
-                  certificationId: certificationId,
+        if (detail.modules.isEmpty)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 24),
+              child: Text(
+                'certifications.detail.no_modules'.tr(),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: c.textSecondary,
+                    ),
+              ),
+            ),
+          )
+        else
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: hPad),
+              child: SacCard(
+                animate: true,
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    for (var i = 0; i < detail.modules.length; i++) ...[
+                      if (i > 0)
+                        Divider(
+                          height: 1,
+                          thickness: 1,
+                          color: c.border,
+                          indent: 64,
+                          endIndent: 16,
+                        ),
+                      _ModuleRow(
+                        index: i + 1,
+                        module: detail.modules[i],
+                      ),
+                    ],
+                  ],
                 ),
               ),
-            );
-          },
+            ),
+          ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(hPad, 24, hPad, 40),
+            child: userCertificationsAsync.when(
+              data: (userCertifications) {
+                final enrollment = _enrollmentOf(
+                  userCertifications,
+                  certificationId,
+                );
+                if (enrollment != null) {
+                  return SacButton.primary(
+                    text: 'certifications.detail.view_progress'.tr(),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        SacSharedAxisRoute(
+                          builder: (context) => CertificationProgressView(
+                            enrollmentId: enrollment.enrollmentId,
+                            certificationId: certificationId,
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                }
+                return SacButton.primary(
+                  text: 'certifications.detail.enroll_cta'.tr(),
+                  isLoading: enrollmentState.isLoading,
+                  onPressed: () => _enroll(context, ref),
+                );
+              },
+              loading: () => const SizedBox(
+                height: 48,
+                child: Center(child: SacLoadingSmall()),
+              ),
+              error: (_, __) => SacButton.primary(
+                text: 'certifications.detail.enroll_cta'.tr(),
+                isLoading: enrollmentState.isLoading,
+                onPressed: () => _enroll(context, ref),
+              ),
+            ),
+          ),
         ),
       ],
     );
   }
-}
 
-// ── Not Enrolled CTA ──────────────────────────────────────────────────────────
-
-class _NotEnrolledCTA extends ConsumerWidget {
-  final int certificationId;
-
-  const _NotEnrolledCTA({required this.certificationId});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return SacButton.primary(
-      text: 'certifications.detail.enroll_cta'.tr(),
-      icon: HugeIcons.strokeRoundedAdd01,
-      onPressed: () => _enroll(context, ref),
-    );
+  UserCertification? _enrollmentOf(
+    List<UserCertification> userCertifications,
+    int certificationId,
+  ) {
+    return userCertifications
+        .where((uc) => uc.certificationId == certificationId)
+        .firstOrNull;
   }
 
   Future<void> _enroll(BuildContext context, WidgetRef ref) async {
@@ -438,195 +298,303 @@ class _NotEnrolledCTA extends ConsumerWidget {
 
     if (confirmed != true) return;
 
-    try {
-      await ref
-          .read(
-              certificationEnrollmentNotifierProvider(certificationId).notifier)
-          .enroll();
-      ref.invalidate(userCertificationsProvider);
+    final success = await ref
+        .read(
+          certificationEnrollmentNotifierProvider(certificationId).notifier,
+        )
+        .enroll();
 
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('certifications.detail.enroll_success'.tr()),
-            backgroundColor: AppColors.secondary,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
+    if (!context.mounted) return;
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('certifications.detail.enroll_success'.tr()),
+          backgroundColor: AppColors.secondary,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
           ),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceFirst('Exception: ', '')),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
-      }
+        ),
+      );
+      return;
     }
-  }
-}
 
-// ── Module Tree Card ──────────────────────────────────────────────────────────
-
-class _ModuleTreeCard extends StatefulWidget {
-  final CertificationModule module;
-
-  const _ModuleTreeCard({required this.module});
-
-  @override
-  State<_ModuleTreeCard> createState() => _ModuleTreeCardState();
-}
-
-class _ModuleTreeCardState extends State<_ModuleTreeCard> {
-  bool _expanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 10),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: c.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header del módulo
-          GestureDetector(
-            onTap: () => setState(() => _expanded = !_expanded),
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-              decoration: BoxDecoration(
-                color: c.surfaceVariant,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryLight,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${widget.module.sections.length}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      widget.module.name,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: c.text,
-                          ),
-                    ),
-                  ),
-                  HugeIcon(
-                    icon: _expanded
-                        ? HugeIcons.strokeRoundedArrowUp01
-                        : HugeIcons.strokeRoundedArrowDown01,
-                    size: 16,
-                    color: c.textTertiary,
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Secciones expandibles
-          if (_expanded) ...[
-            if (widget.module.sections.isEmpty)
-              Padding(
-                padding: const EdgeInsets.all(14),
-                child: Text(
-                  'certifications.detail.no_sections_module'.tr(),
-                  style: TextStyle(fontSize: 13, color: c.textSecondary),
-                ),
-              )
-            else
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
-                child: Column(
-                  children: widget.module.sections.map((section) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: Row(
-                        children: [
-                          HugeIcon(
-                            icon: HugeIcons.strokeRoundedCircle,
-                            size: 8,
-                            color: c.textTertiary,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              section.name,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: c.textSecondary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-          ],
-        ],
+    final message = ref
+            .read(certificationEnrollmentNotifierProvider(certificationId))
+            .errorMessage ??
+        'certifications.errors.enroll_certification'.tr();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
       ),
     );
   }
 }
 
-// ── Section Title ─────────────────────────────────────────────────────────────
-
-class _SectionTitle extends StatelessWidget {
-  final HugeIconData icon;
-  final String label;
-
-  const _SectionTitle({required this.icon, required this.label});
+class _CertificateMark extends StatelessWidget {
+  const _CertificateMark();
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        color: AppColors.primaryLight,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Center(
+        child: HugeIcon(
+          icon: HugeIcons.strokeRoundedCertificate01,
+          size: 22,
+          color: AppColors.primary,
+        ),
+      ),
+    );
+  }
+}
+
+class _ModuleRow extends StatefulWidget {
+  final int index;
+  final CertificationModule module;
+
+  const _ModuleRow({
+    required this.index,
+    required this.module,
+  });
+
+  @override
+  State<_ModuleRow> createState() => _ModuleRowState();
+}
+
+class _ModuleRowState extends State<_ModuleRow>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _expand;
+  late final Animation<double> _expandFactor;
+  late final Animation<double> _chevronTurns;
+  bool _expanded = false;
+  bool _pressed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _expand = AnimationController(
+      vsync: this,
+      duration: SacMotion.standard,
+    );
+    _expandFactor = CurvedAnimation(
+      parent: _expand,
+      curve: SacMotion.easeOut,
+    );
+    _chevronTurns = Tween<double>(begin: 0, end: 0.5).animate(_expandFactor);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduce = SacMotion.reduceMotionOf(context);
+    _expand.duration = reduce ? Duration.zero : SacMotion.standard;
+  }
+
+  @override
+  void dispose() {
+    _expand.dispose();
+    super.dispose();
+  }
+
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() => _pressed = value);
+  }
+
+  void _toggle() {
+    HapticFeedback.lightImpact();
+    setState(() => _expanded = !_expanded);
+    if (_expanded) {
+      _expand.forward();
+    } else {
+      _expand.reverse();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final reduce = SacMotion.reduceMotionOf(context);
+    final sectionCount = widget.module.sections.length;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        HugeIcon(icon: icon, size: 18, color: AppColors.primary),
-        const SizedBox(width: 8),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: context.sac.text,
+        Semantics(
+          button: true,
+          expanded: _expanded,
+          label: widget.module.name,
+          hint: 'certifications.detail.sections_count'.tr(
+            namedArgs: {'count': '$sectionCount'},
+          ),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapDown: (_) => _setPressed(true),
+            onTapUp: (_) => _setPressed(false),
+            onTapCancel: () => _setPressed(false),
+            onTap: _toggle,
+            child: AnimatedContainer(
+              duration: reduce ? Duration.zero : SacMotion.press,
+              curve: SacMotion.easeOut,
+              color: _pressed
+                  ? c.surfaceVariant
+                  : _expanded
+                      ? AppColors.primarySurface
+                      : Colors.transparent,
+              constraints: const BoxConstraints(minHeight: 48),
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+              child: Row(
+                children: [
+                  AnimatedContainer(
+                    duration: reduce ? Duration.zero : SacMotion.standard,
+                    curve: SacMotion.easeOut,
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: _expanded
+                          ? AppColors.primary
+                          : AppColors.primaryLight,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: AnimatedDefaultTextStyle(
+                        duration: reduce ? Duration.zero : SacMotion.standard,
+                        curve: SacMotion.easeOut,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: _expanded ? Colors.white : AppColors.primary,
+                        ),
+                        child: Text('${widget.index}'),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.module.name,
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: c.text,
+                                    height: 1.25,
+                                  ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'certifications.detail.sections_count'.tr(
+                            namedArgs: {'count': '$sectionCount'},
+                          ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: _expanded
+                                        ? AppColors.primaryDark
+                                        : c.textTertiary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  RotationTransition(
+                    turns: _chevronTurns,
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowDown01,
+                      size: 16,
+                      color: _expanded ? AppColors.primary : c.textTertiary,
+                    ),
+                  ),
+                ],
               ),
+            ),
+          ),
+        ),
+        SizeTransition(
+          sizeFactor: _expandFactor,
+          axisAlignment: -1,
+          child: FadeTransition(
+            opacity: _expandFactor,
+            child: _ModuleSections(module: widget.module),
+          ),
         ),
       ],
     );
   }
 }
 
-// ── Error Body ────────────────────────────────────────────────────────────────
+class _ModuleSections extends StatelessWidget {
+  final CertificationModule module;
+
+  const _ModuleSections({required this.module});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    if (module.sections.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+        child: Text(
+          'certifications.detail.no_sections_module'.tr(),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: c.textSecondary,
+              ),
+        ),
+      );
+    }
+
+    return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+      child: Column(
+        children: [
+          for (final section in module.sections)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(top: 3),
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+                      size: 14,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      section.name,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: c.textSecondary,
+                            height: 1.35,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
 
 class _ErrorBody extends StatelessWidget {
   final String message;
