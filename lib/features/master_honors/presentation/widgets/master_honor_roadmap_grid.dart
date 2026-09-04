@@ -1,10 +1,22 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/sac_network_image.dart';
 import 'package:sacdia_app/features/master_honors/domain/entities/master_honor_roadmap.dart';
-import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/features/master_honors/presentation/widgets/master_honor_detail_presentation.dart';
+import 'package:sacdia_app/features/master_honors/presentation/widgets/master_honor_detail_sheet.dart';
+import 'package:sacdia_app/features/master_honors/presentation/widgets/master_honor_logo.dart';
+
+export 'master_honor_detail_presentation.dart'
+    show MasterHonorGridVisual, masterHonorGridVisual;
+export 'master_honor_detail_sheet.dart' show showMasterHonorDetailSheet;
+export 'master_honor_logo.dart';
+
+const double _kLogoSize = 72;
+const double _kCounterSlot = 24;
+const double _kProgressSlot = 9;
 
 class MasterHonorRoadmapGrid extends StatelessWidget {
   const MasterHonorRoadmapGrid({
@@ -28,77 +40,355 @@ class MasterHonorRoadmapGrid extends StatelessWidget {
       padding: padding,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
-        childAspectRatio: 0.78,
+        childAspectRatio: 0.62,
         crossAxisSpacing: 10,
-        mainAxisSpacing: 2.5,
+        mainAxisSpacing: 10,
       ),
       itemCount: items.length,
       itemBuilder: (context, index) {
-        return MasterHonorRoadmapGridItem(item: items[index]);
+        final delayMs = index.clamp(0, 11) * SacMotion.stagger.inMilliseconds;
+        return MasterHonorRoadmapGridItem(
+          item: items[index],
+          animationDelay: Duration(milliseconds: delayMs),
+        );
       },
     );
   }
 }
 
-class MasterHonorRoadmapGridItem extends StatelessWidget {
-  const MasterHonorRoadmapGridItem({super.key, required this.item});
+class MasterHonorRoadmapGridItem extends StatefulWidget {
+  const MasterHonorRoadmapGridItem({
+    super.key,
+    required this.item,
+    this.animationDelay = Duration.zero,
+  });
 
   final MasterHonorRoadmap item;
+  final Duration animationDelay;
+
+  @override
+  State<MasterHonorRoadmapGridItem> createState() =>
+      _MasterHonorRoadmapGridItemState();
+}
+
+class _MasterHonorRoadmapGridItemState extends State<MasterHonorRoadmapGridItem>
+    with SingleTickerProviderStateMixin {
+  bool _pressed = false;
+  late final AnimationController _enterController;
+  late final Animation<double> _fade;
+  late final Animation<double> _scale;
+  Timer? _delayedStart;
+  bool? _reduceMotion;
+
+  @override
+  void initState() {
+    super.initState();
+    _enterController = AnimationController(
+      vsync: this,
+      duration: SacMotion.standard,
+    );
+    _fade = CurvedAnimation(parent: _enterController, curve: SacMotion.easeOut);
+    _scale = Tween<double>(begin: SacMotion.enterScale, end: 1).animate(
+      CurvedAnimation(parent: _enterController, curve: SacMotion.easeOut),
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduceMotion = SacMotion.reduceMotionOf(context);
+    if (_reduceMotion == reduceMotion) return;
+
+    final firstRead = _reduceMotion == null;
+    _reduceMotion = reduceMotion;
+
+    if (reduceMotion) {
+      _delayedStart?.cancel();
+      _enterController.value = 1;
+    } else if (firstRead) {
+      _delayedStart = Timer(widget.animationDelay, () {
+        if (mounted && _reduceMotion == false) _enterController.forward();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _delayedStart?.cancel();
+    _enterController.dispose();
+    super.dispose();
+  }
+
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() => _pressed = value);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final accent = masterHonorAccentColor(item);
-    final isLocked = !item.isAwarded;
-    final visualColor = isLocked ? context.sac.textTertiary : accent;
-    final name = item.name;
+    final item = widget.item;
+    final visual = masterHonorGridVisual(item);
+    final progress = item.progressPercent.clamp(0, 100) / 100;
+    final accent = switch (visual) {
+      MasterHonorGridVisual.awarded => AppColors.secondary,
+      MasterHonorGridVisual.inProgress => AppColors.accent,
+      MasterHonorGridVisual.inactive => AppColors.pendingDark,
+      MasterHonorGridVisual.locked => context.sac.textTertiary,
+    };
+    final c = context.sac;
+    final reduce = _reduceMotion ?? SacMotion.reduceMotionOf(context);
+    final isMuted = visual == MasterHonorGridVisual.locked ||
+        visual == MasterHonorGridVisual.inactive;
+    final showCounter = visual == MasterHonorGridVisual.inProgress ||
+        visual == MasterHonorGridVisual.awarded;
+    final showBar = visual == MasterHonorGridVisual.inProgress;
+    final nameColor =
+        visual == MasterHonorGridVisual.awarded ? c.text : c.textSecondary;
+    final nameWeight = visual == MasterHonorGridVisual.awarded
+        ? FontWeight.w600
+        : FontWeight.w500;
 
-    final statusLabel = item.isAwarded
-        ? (item.displayStatusLabel ?? 'Maestría obtenida')
-        : 'Maestría en progreso';
+    final surfaceColor = switch (visual) {
+      MasterHonorGridVisual.locked => c.surfaceVariant.withValues(alpha: 0.55),
+      MasterHonorGridVisual.inactive => c.surfaceVariant.withValues(alpha: 0.7),
+      _ => c.surface,
+    };
+    final borderColor = switch (visual) {
+      MasterHonorGridVisual.awarded =>
+        AppColors.secondary.withValues(alpha: 0.45),
+      MasterHonorGridVisual.inProgress => c.border.withValues(alpha: 0.85),
+      _ => c.border.withValues(alpha: 0.45),
+    };
 
-    return Semantics(
+    final statusLabel = switch (visual) {
+      MasterHonorGridVisual.awarded =>
+        item.displayStatusLabel ?? 'Maestría obtenida',
+      MasterHonorGridVisual.inactive => item.displayStatusLabel ?? 'No vigente',
+      MasterHonorGridVisual.inProgress => 'Maestría en progreso',
+      MasterHonorGridVisual.locked => 'Maestría sin avance',
+    };
+
+    Widget card = Semantics(
       button: true,
-      label: '$name, $statusLabel, ${item.progressPercent}% completado',
+      label: '${item.name}, $statusLabel, ${item.progressPercent}% completado',
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) => _setPressed(true),
+        onTapUp: (_) => _setPressed(false),
+        onTapCancel: () => _setPressed(false),
         onTap: () => showMasterHonorDetailSheet(context, item),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              height: 96,
-              width: double.infinity,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Center(
+        child: AnimatedScale(
+          scale: (!reduce && _pressed) ? SacMotion.pressScale : 1,
+          duration: SacMotion.press,
+          curve: SacMotion.easeOut,
+          child: AnimatedContainer(
+            duration: SacMotion.standard,
+            curve: SacMotion.easeOut,
+            decoration: BoxDecoration(
+              color: surfaceColor,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: borderColor, width: 1),
+            ),
+            padding: const EdgeInsets.fromLTRB(6, 10, 6, 10),
+            child: Column(
+              children: [
+                SizedBox(
+                  height: _kLogoSize,
+                  width: double.infinity,
+                  child: Center(
                     child: _MutedMasterHonorLogo(
-                      muted: isLocked,
+                      muted: isMuted,
                       child: MasterHonorLogo(
                         imageUrl: item.masterImage,
-                        name: name,
-                        size: 88,
-                        color: visualColor,
+                        name: item.name,
+                        size: _kLogoSize,
+                        color: accent,
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+                SizedBox(
+                  height: _kCounterSlot,
+                  child: visual == MasterHonorGridVisual.inactive
+                      ? Align(
+                          alignment: Alignment.center,
+                          child: _StatusCaption(
+                            label: item.displayStatusLabel ?? 'No vigente',
+                            background: AppColors.pendingBg,
+                            foreground: AppColors.pendingDark,
+                          ),
+                        )
+                      : showCounter && item.totalGroups > 0
+                          ? Align(
+                              alignment: Alignment.center,
+                              child: _CounterPill(
+                                label:
+                                    '${item.completedGroups}/${item.totalGroups}',
+                                emphasized:
+                                    visual == MasterHonorGridVisual.awarded,
+                                color: accent,
+                              ),
+                            )
+                          : null,
+                ),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: Text(
+                      item.name,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: nameWeight,
+                        color: nameColor,
+                        height: 1.25,
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: _kProgressSlot,
+                  child: showBar
+                      ? Align(
+                          alignment: Alignment.bottomCenter,
+                          child: _ThinProgressBar(
+                            progress: progress,
+                            color: accent,
+                          ),
+                        )
+                      : null,
+                ),
+              ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              name,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: context.sac.text,
-                height: 1.2,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+          ),
         ),
+      ),
+    );
+
+    if (reduce) return card;
+
+    return FadeTransition(
+      opacity: _fade,
+      child: ScaleTransition(
+        scale: _scale,
+        child: card,
+      ),
+    );
+  }
+}
+
+class _CounterPill extends StatelessWidget {
+  const _CounterPill({
+    required this.label,
+    required this.emphasized,
+    required this.color,
+  });
+
+  final String label;
+  final bool emphasized;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minWidth: 22),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: emphasized ? color.withValues(alpha: 0.16) : context.sac.border,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        label,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: emphasized ? color : context.sac.textSecondary,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          height: 1.1,
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusCaption extends StatelessWidget {
+  const _StatusCaption({
+    required this.label,
+    required this.background,
+    required this.foreground,
+  });
+
+  final String label;
+  final Color background;
+  final Color foreground;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          height: 1.2,
+          color: foreground,
+        ),
+      ),
+    );
+  }
+}
+
+class _ThinProgressBar extends StatelessWidget {
+  const _ThinProgressBar({
+    required this.progress,
+    required this.color,
+  });
+
+  final double progress;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final totalWidth = constraints.maxWidth;
+          final fillWidth = totalWidth * progress.clamp(0.0, 1.0);
+
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(2),
+            child: Stack(
+              children: [
+                Container(
+                  height: 3,
+                  width: totalWidth,
+                  color: context.sac.border,
+                ),
+                if (fillWidth > 0)
+                  AnimatedContainer(
+                    duration: SacMotion.standard,
+                    curve: SacMotion.easeOut,
+                    height: 3,
+                    width: fillWidth,
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -127,82 +417,6 @@ class _MutedMasterHonorLogo extends StatelessWidget {
   }
 }
 
-class MasterHonorLogo extends StatelessWidget {
-  const MasterHonorLogo({
-    super.key,
-    required this.imageUrl,
-    required this.name,
-    required this.size,
-    required this.color,
-  });
-
-  final String? imageUrl;
-  final String name;
-  final double size;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    final image = imageUrl?.trim() ?? '';
-    final width = size * 1.25;
-    final fallback = SizedBox(
-      width: width,
-      height: size,
-      child: MasterHonorInitialsBox(
-        initials: masterHonorInitials(name),
-        color: color,
-      ),
-    );
-
-    if (image.isEmpty) return fallback;
-
-    return SizedBox(
-      width: width,
-      height: size,
-      child: SacNetworkImage(
-        imageUrl: image,
-        fit: BoxFit.contain,
-        memCacheWidth: (width * 3).round(),
-        memCacheHeight: (size * 3).round(),
-        placeholder: (_, __) => fallback,
-        errorWidget: (_, __, ___) => fallback,
-      ),
-    );
-  }
-}
-
-class MasterHonorInitialsBox extends StatelessWidget {
-  const MasterHonorInitialsBox({
-    super.key,
-    required this.initials,
-    required this.color,
-  });
-
-  final String initials;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: color.withAlpha(20),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withAlpha(60), width: 1.5),
-      ),
-      child: Center(
-        child: Text(
-          initials,
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w800,
-            color: color,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 const ColorFilter _grayscaleFilter = ColorFilter.matrix(<double>[
   0.2126,
   0.7152,
@@ -225,301 +439,3 @@ const ColorFilter _grayscaleFilter = ColorFilter.matrix(<double>[
   1,
   0,
 ]);
-
-Future<void> showMasterHonorDetailSheet(
-  BuildContext context,
-  MasterHonorRoadmap item,
-) {
-  return showSacSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    backgroundColor: Colors.transparent,
-    builder: (context) => _MasterHonorDetailSheet(item: item),
-  );
-}
-
-Color masterHonorAccentColor(MasterHonorRoadmap item) {
-  return item.isAwarded ? AppColors.secondary : AppColors.warning;
-}
-
-class _MasterHonorDetailSheet extends StatelessWidget {
-  const _MasterHonorDetailSheet({required this.item});
-
-  final MasterHonorRoadmap item;
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = masterHonorAccentColor(item);
-    final progress = item.progressPercent.clamp(0, 100).toDouble() / 100;
-    final detailLogoHeight =
-        (MediaQuery.sizeOf(context).width * 0.52).clamp(150.0, 230.0);
-
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.72,
-      minChildSize: 0.45,
-      maxChildSize: 0.92,
-      builder: (context, scrollController) {
-        return Container(
-          decoration: BoxDecoration(
-            color: context.sac.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          child: SingleChildScrollView(
-            controller: scrollController,
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 48,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: context.sac.border,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Center(
-                  child: MasterHonorLogo(
-                    imageUrl: item.masterImage,
-                    name: item.name,
-                    size: detailLogoHeight,
-                    color: accent,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                Text(
-                  item.name,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: context.sac.text,
-                    height: 1.15,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Center(
-                  child: _StatusPill(
-                    label: item.isAwarded
-                        ? (item.displayStatusLabel ?? 'Obtenida')
-                        : 'En progreso',
-                    color: accent,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(99),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    minHeight: 6,
-                    backgroundColor: context.sac.surfaceVariant,
-                    valueColor: AlwaysStoppedAnimation<Color>(accent),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${item.completedGroups}/${item.totalGroups} requisitos completados · ${item.progressPercent.clamp(0, 100)}%',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: context.sac.textSecondary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 22),
-                Text(
-                  'Requisitos',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: context.sac.text,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                if (item.requirementGroups.isEmpty)
-                  Text(
-                    'Aún no hay requisitos configurados para esta maestría.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: context.sac.textTertiary,
-                    ),
-                  )
-                else
-                  ...item.requirementGroups.map(
-                    (group) => _RequirementDetailCard(group: group),
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _RequirementDetailCard extends StatelessWidget {
-  const _RequirementDetailCard({required this.group});
-
-  final MasterHonorRoadmapGroup group;
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = group.passed ? AppColors.secondary : AppColors.warning;
-    final label = _requirementLabel(group);
-    final detail = group.isCategoryCount
-        ? '${group.currentCount}/${group.minimumRequired} especialidades'
-        : '${group.currentCount}/${group.minimumRequired} opciones';
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: context.sac.surfaceVariant,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.sac.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              HugeIcon(
-                icon: group.passed
-                    ? HugeIcons.strokeRoundedCheckmarkCircle02
-                    : HugeIcons.strokeRoundedCircle,
-                size: 18,
-                color: accent,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: context.sac.text,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      detail,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: context.sac.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          if (group.description?.trim().isNotEmpty == true) ...[
-            const SizedBox(height: 8),
-            Text(
-              group.description!.trim(),
-              style: TextStyle(
-                fontSize: 12,
-                color: context.sac.textSecondary,
-                height: 1.35,
-              ),
-            ),
-          ],
-          if (group.options.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            ...group.options.map(
-              (option) => Padding(
-                padding: const EdgeInsets.only(bottom: 5),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    HugeIcon(
-                      icon: option.completed
-                          ? HugeIcons.strokeRoundedTick02
-                          : HugeIcons.strokeRoundedCircle,
-                      size: 14,
-                      color: option.completed
-                          ? AppColors.secondary
-                          : context.sac.textTertiary,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        option.label,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: context.sac.textSecondary,
-                          height: 1.25,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _StatusPill extends StatelessWidget {
-  const _StatusPill({
-    required this.label,
-    required this.color,
-  });
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          color: color,
-          height: 1,
-        ),
-      ),
-    );
-  }
-}
-
-String _requirementLabel(MasterHonorRoadmapGroup group) {
-  final candidates = [
-    group.title,
-    group.categoryName,
-    group.description,
-  ];
-
-  for (final candidate in candidates) {
-    final value = candidate?.trim();
-    if (value != null && value.isNotEmpty) return value;
-  }
-
-  return 'Requisito de maestría';
-}
-
-String masterHonorInitials(String name) {
-  final parts = name.trim().split(RegExp(r'\s+'));
-  if (parts.isEmpty || parts.first.isEmpty) return 'M';
-  if (parts.length == 1) return parts.first[0].toUpperCase();
-  return '${parts.first[0]}${parts[1][0]}'.toUpperCase();
-}
