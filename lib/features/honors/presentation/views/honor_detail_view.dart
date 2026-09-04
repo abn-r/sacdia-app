@@ -13,9 +13,14 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/utils/responsive.dart';
+import 'package:sacdia_app/core/widgets/sac_badge.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/honor.dart';
@@ -37,16 +42,11 @@ import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 const _kScreenPad = 20.0;
 const _kSectionGap = 24.0;
 const _kHeroHeight = 300.0;
+const _kCompletedBadgeSize = 148.0;
 
 // ── Label helpers ─────────────────────────────────────────────────────────────
 
-bool _isLightColor(Color color) {
-  return ThemeData.estimateBrightnessForColor(color) == Brightness.light;
-}
-
-Color _paintColorForCategory(Color categoryColor, Color categoryAccentColor) {
-  return _isLightColor(categoryColor) ? categoryAccentColor : categoryColor;
-}
+bool _isLightColor(Color color) => isNearWhiteCategoryColor(color);
 
 Color _heroForegroundColor(BuildContext context, Color categoryColor) {
   return _isLightColor(categoryColor) ? context.sac.text : Colors.white;
@@ -117,6 +117,66 @@ String _completionModeHistoryLabel(UserHonor userHonor) {
   }
 
   return 'honors.detail.mode_not_registered'.tr();
+}
+
+Future<void> _promptCompletionModeChange({
+  required BuildContext context,
+  required HonorCompletionMode currentMode,
+  required Color categoryColor,
+  required bool isLoading,
+  required ValueChanged<HonorCompletionMode> onSelect,
+}) async {
+  final selectedMode = await showSacSheet<HonorCompletionMode>(
+    context: context,
+    useSafeArea: true,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (sheetContext) {
+      final c = sheetContext.sac;
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: c.surface,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'honors.detail.change_work_mode_cta'.tr(),
+                  style: TextStyle(
+                    color: c.text,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    height: 1.2,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                HonorWorkModeSelector(
+                  categoryColor: categoryColor,
+                  isLoading: isLoading,
+                  showIntro: false,
+                  selectedMode: currentMode,
+                  onSelected: (mode) => Navigator.of(sheetContext).pop(mode),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
+
+  if (!context.mounted || selectedMode == null || selectedMode == currentMode) {
+    return;
+  }
+
+  onSelect(selectedMode);
 }
 
 bool _isExternalLegacyCompletedHonor(UserHonor userHonor) {
@@ -425,12 +485,10 @@ class _HonorDetailContent extends ConsumerWidget {
       categoryId: honor.categoryId,
       categoryName: honor.categoryName ?? categoryName,
     );
-    final categoryAccentColor = getCategoryAccentColor(
+    final categoryPaintColor = getCategoryPaintColor(
       categoryId: honor.categoryId,
       categoryName: honor.categoryName ?? categoryName,
     );
-    final categoryPaintColor =
-        _paintColorForCategory(categoryColor, categoryAccentColor);
     final heroForegroundColor = _heroForegroundColor(context, categoryColor);
     final isEnrolled = userHonor != null;
 
@@ -445,6 +503,44 @@ class _HonorDetailContent extends ConsumerWidget {
           ref.invalidate(honorEnrollmentNotifierProvider);
         }
       });
+    }
+
+    if (userHonor != null && userHonor.isCompleted) {
+      return _CompletedHonorDetail(
+        honor: honor,
+        honorId: honorId,
+        userHonor: userHonor,
+        categoryName: honor.categoryName ?? categoryName,
+        categoryPaintColor: categoryPaintColor,
+      );
+    }
+
+    if (userHonor != null &&
+        userHonor.completionMode == HonorCompletionMode.undecided) {
+      return _UndecidedWorkModeDetail(
+        honor: honor,
+        userHonor: userHonor,
+        categoryName: honor.categoryName ?? categoryName,
+        categoryColor: categoryColor,
+        categoryPaintColor: categoryPaintColor,
+        isLoading: modeActionState.isLoading,
+        onSelectCompletionMode: (mode) =>
+            _selectCompletionMode(context, ref, mode),
+      );
+    }
+
+    if (userHonor != null &&
+        userHonor.completionMode == HonorCompletionMode.external) {
+      return _ExternalWorkModeDetail(
+        honor: honor,
+        userHonor: userHonor,
+        categoryName: honor.categoryName ?? categoryName,
+        categoryColor: categoryColor,
+        categoryPaintColor: categoryPaintColor,
+        isLoading: modeActionState.isLoading,
+        onSelectCompletionMode: (mode) =>
+            _selectCompletionMode(context, ref, mode),
+      );
     }
 
     return Scaffold(
@@ -611,6 +707,606 @@ class _HonorDetailContent extends ConsumerWidget {
     );
 
     return result ?? false;
+  }
+}
+
+// ── Completed honor (validated) ───────────────────────────────────────────────
+
+class _CompletedHonorDetail extends StatelessWidget {
+  final Honor honor;
+  final int honorId;
+  final UserHonor userHonor;
+  final String? categoryName;
+  final Color categoryPaintColor;
+
+  const _CompletedHonorDetail({
+    required this.honor,
+    required this.honorId,
+    required this.userHonor,
+    required this.categoryName,
+    required this.categoryPaintColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final hPad = Responsive.horizontalPadding(context);
+    final barTitle = _trimmedOrNull(categoryName) ?? honor.name;
+    final bottomPad = MediaQuery.paddingOf(context).bottom + 24;
+
+    return Scaffold(
+      backgroundColor: c.background,
+      appBar: SacTopBar(
+        title: barTitle,
+        onBack: () {
+          HapticFeedback.lightImpact();
+          context.pop();
+        },
+      ),
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(hPad, 12, hPad, bottomPad),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _CompletedHonorIdentity(honor: honor, userHonor: userHonor),
+                  const SizedBox(height: 24),
+                  _CompletedHonorHistorySection(
+                    honorId: honorId,
+                    userHonor: userHonor,
+                    categoryColor: categoryPaintColor,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CompletedHonorIdentity extends StatelessWidget {
+  final Honor honor;
+  final UserHonor userHonor;
+
+  const _CompletedHonorIdentity({
+    required this.honor,
+    required this.userHonor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final modeLabel = _completionModeHistoryLabel(userHonor);
+
+    return _HonorHeroMotion(
+      builder: (context, badgeScale, _) {
+        return Column(
+          children: [
+            ScaleTransition(
+              scale: badgeScale,
+              child: HonorBadgeImage(
+                imageUrl: honor.imageUrl,
+                width: _kCompletedBadgeSize,
+                height: _kCompletedBadgeSize,
+                memCacheWidth: (_kCompletedBadgeSize * 3).round(),
+                memCacheHeight: (_kCompletedBadgeSize * 3).round(),
+                fallbackColor: c.textTertiary,
+                fallbackBackgroundColor: c.surfaceVariant,
+                fallbackIconSize: 40,
+                fallbackBorderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              honor.name,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: c.text,
+                    letterSpacing: -0.4,
+                    height: 1.15,
+                  ),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 10,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                SacBadge.success(
+                  icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+                  label: 'honors.detail.status_validated'.tr(),
+                ),
+                Text(
+                  modeLabel,
+                  style: TextStyle(
+                    color: c.textSecondary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+// ── Undecided work mode ───────────────────────────────────────────────────────
+
+class _UndecidedWorkModeDetail extends StatefulWidget {
+  final Honor honor;
+  final UserHonor userHonor;
+  final String? categoryName;
+  final Color categoryColor;
+  final Color categoryPaintColor;
+  final bool isLoading;
+  final ValueChanged<HonorCompletionMode> onSelectCompletionMode;
+
+  const _UndecidedWorkModeDetail({
+    required this.honor,
+    required this.userHonor,
+    required this.categoryName,
+    required this.categoryColor,
+    required this.categoryPaintColor,
+    required this.isLoading,
+    required this.onSelectCompletionMode,
+  });
+
+  @override
+  State<_UndecidedWorkModeDetail> createState() =>
+      _UndecidedWorkModeDetailState();
+}
+
+class _UndecidedWorkModeDetailState extends State<_UndecidedWorkModeDetail> {
+  HonorCompletionMode? _selectedMode;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final hPad = Responsive.horizontalPadding(context);
+    final barTitle = _trimmedOrNull(widget.categoryName) ?? widget.honor.name;
+    final canChoose = widget.userHonor.canSubmit;
+    final hasSelection = _selectedMode != null;
+
+    return Scaffold(
+      backgroundColor: c.background,
+      appBar: SacTopBar(
+        title: barTitle,
+        subtitle: 'honors.detail.mode_undecided'.tr(),
+        onBack: () {
+          HapticFeedback.lightImpact();
+          context.pop();
+        },
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _WorkModeHonorIdentity(
+                          honor: widget.honor,
+                          userHonor: widget.userHonor,
+                        ),
+                        const SizedBox(height: 28),
+                        if (!canChoose)
+                          _LockedWorkModeCard(
+                            userHonor: widget.userHonor,
+                            categoryColor: widget.categoryPaintColor,
+                          )
+                        else ...[
+                          Text(
+                            'honors.work_mode.title'.tr(),
+                            style: TextStyle(
+                              color: c.text,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              height: 1.2,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'honors.work_mode.subtitle'.tr(),
+                            style: TextStyle(
+                              color: c.textSecondary,
+                              fontSize: 14,
+                              height: 1.45,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          HonorWorkModeSelector(
+                            categoryColor: widget.categoryPaintColor,
+                            isLoading: widget.isLoading,
+                            showIntro: false,
+                            selectedMode: _selectedMode,
+                            onSelected: (mode) {
+                              setState(() => _selectedMode = mode);
+                            },
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (canChoose)
+            _WorkModeContinueBar(
+              hasSelection: hasSelection,
+              isLoading: widget.isLoading,
+              categoryColor: widget.categoryColor,
+              categoryPaintColor: widget.categoryPaintColor,
+              onContinue: () {
+                final mode = _selectedMode;
+                if (mode == null) return;
+                widget.onSelectCompletionMode(mode);
+              },
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── External work mode ────────────────────────────────────────────────────────
+
+class _ExternalWorkModeDetail extends StatelessWidget {
+  final Honor honor;
+  final UserHonor userHonor;
+  final String? categoryName;
+  final Color categoryColor;
+  final Color categoryPaintColor;
+  final bool isLoading;
+  final ValueChanged<HonorCompletionMode> onSelectCompletionMode;
+
+  const _ExternalWorkModeDetail({
+    required this.honor,
+    required this.userHonor,
+    required this.categoryName,
+    required this.categoryColor,
+    required this.categoryPaintColor,
+    required this.isLoading,
+    required this.onSelectCompletionMode,
+  });
+
+  Future<void> _changeWorkMode(BuildContext context) {
+    return _promptCompletionModeChange(
+      context: context,
+      currentMode: HonorCompletionMode.external,
+      categoryColor: categoryPaintColor,
+      isLoading: isLoading,
+      onSelect: onSelectCompletionMode,
+    );
+  }
+
+  void _openEvidence(BuildContext context) {
+    context.push(
+      RouteNames.honorEvidencePath(
+        honor.id.toString(),
+        userHonor.id.toString(),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final hPad = Responsive.horizontalPadding(context);
+    final barTitle = _trimmedOrNull(categoryName) ?? honor.name;
+    final canChangeCompletionMode = userHonor.canSubmit;
+    final hasMaterial =
+        honor.materialUrl != null && honor.materialUrl!.isNotEmpty;
+
+    var cardIndex = 0;
+    Duration nextDelay() {
+      final delay = SacMotion.stagger * cardIndex;
+      cardIndex += 1;
+      return delay;
+    }
+
+    return Scaffold(
+      backgroundColor: c.background,
+      appBar: SacTopBar(
+        title: barTitle,
+        onBack: () {
+          HapticFeedback.lightImpact();
+          context.pop();
+        },
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _WorkModeHonorIdentity(
+                          honor: honor,
+                          userHonor: userHonor,
+                          caption: _completionModeLabel(
+                            HonorCompletionMode.external,
+                          ),
+                        ),
+                        const SizedBox(height: 28),
+                        _ExternalWorkflowInfoCard(
+                          categoryColor: categoryPaintColor,
+                          animationDelay: nextDelay(),
+                        ),
+                        if (canChangeCompletionMode) ...[
+                          const SizedBox(height: 12),
+                          _ChangeWorkModeButton(
+                            categoryColor: categoryPaintColor,
+                            isLoading: isLoading,
+                            onPressed: () => _changeWorkMode(context),
+                          ),
+                        ],
+                        if (hasMaterial) ...[
+                          const SizedBox(height: 16),
+                          _MaterialDownloadCard(
+                            materialUrl: honor.materialUrl!,
+                            categoryColor: categoryPaintColor,
+                            animationDelay: nextDelay(),
+                          ),
+                        ],
+                        const SizedBox(height: 16),
+                        _EvidenceSection(
+                          userHonor: userHonor,
+                          categoryColor: categoryPaintColor,
+                          animationDelay: nextDelay(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _ExternalWorkModeCtaBar(
+            isUnderReview: userHonor.isUnderReview,
+            categoryColor: categoryColor,
+            categoryPaintColor: categoryPaintColor,
+            onOpenEvidence: () => _openEvidence(context),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ExternalWorkModeCtaBar extends StatelessWidget {
+  final bool isUnderReview;
+  final Color categoryColor;
+  final Color categoryPaintColor;
+  final VoidCallback onOpenEvidence;
+
+  const _ExternalWorkModeCtaBar({
+    required this.isUnderReview,
+    required this.categoryColor,
+    required this.categoryPaintColor,
+    required this.onOpenEvidence,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final padding = EdgeInsets.fromLTRB(
+      16,
+      12,
+      16,
+      12 + MediaQuery.paddingOf(context).bottom,
+    );
+    final chrome = BoxDecoration(
+      color: c.surface,
+      boxShadow: [
+        BoxShadow(
+          color: c.shadow,
+          blurRadius: 12,
+          offset: const Offset(0, -4),
+        ),
+      ],
+    );
+
+    if (isUnderReview) {
+      return Container(
+        padding: padding,
+        decoration: chrome,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const HugeIcon(
+              icon: HugeIcons.strokeRoundedHourglass,
+              size: 16,
+              color: AppColors.accent,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'honors.detail.under_review_cta'.tr(),
+              style: const TextStyle(
+                color: AppColors.accent,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final nearWhiteFill = isNearWhiteCategoryColor(categoryColor);
+
+    return Container(
+      padding: padding,
+      decoration: chrome,
+      child: SacButton.primary(
+        text: 'honors.detail.external_flow_cta'.tr(),
+        backgroundColor: categoryColor,
+        textColor: onCategoryPaintColor(categoryColor, onNearWhite: c.text),
+        borderColor: nearWhiteFill ? categoryPaintColor : null,
+        onPressed: onOpenEvidence,
+      ),
+    );
+  }
+}
+
+class _WorkModeHonorIdentity extends StatelessWidget {
+  final Honor honor;
+  final UserHonor userHonor;
+  final String? caption;
+
+  const _WorkModeHonorIdentity({
+    required this.honor,
+    required this.userHonor,
+    this.caption,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return _HonorHeroMotion(
+      builder: (context, badgeScale, _) {
+        return Column(
+          children: [
+            ScaleTransition(
+              scale: badgeScale,
+              child: HonorBadgeImage(
+                imageUrl: honor.imageUrl,
+                width: _kCompletedBadgeSize,
+                height: _kCompletedBadgeSize,
+                memCacheWidth: (_kCompletedBadgeSize * 3).round(),
+                memCacheHeight: (_kCompletedBadgeSize * 3).round(),
+                fallbackColor: c.textTertiary,
+                fallbackBackgroundColor: c.surfaceVariant,
+                fallbackIconSize: 40,
+                fallbackBorderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              honor.name,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: c.text,
+                    letterSpacing: -0.4,
+                    height: 1.15,
+                  ),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 10,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                SacBadge(
+                  label: userHonor.isUnderReview
+                      ? 'honors.detail.status_sent'.tr()
+                      : 'honors.detail.status_enrolled'.tr(),
+                  variant: userHonor.isUnderReview
+                      ? SacBadgeVariant.accent
+                      : SacBadgeVariant.neutral,
+                ),
+                if (caption != null)
+                  Text(
+                    caption!,
+                    style: TextStyle(
+                      color: c.textSecondary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      height: 1.3,
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _WorkModeContinueBar extends StatelessWidget {
+  final bool hasSelection;
+  final bool isLoading;
+  final Color categoryColor;
+  final Color categoryPaintColor;
+  final VoidCallback onContinue;
+
+  const _WorkModeContinueBar({
+    required this.hasSelection,
+    required this.isLoading,
+    required this.categoryColor,
+    required this.categoryPaintColor,
+    required this.onContinue,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final canSubmit = hasSelection && !isLoading;
+    final nearWhiteFill = isNearWhiteCategoryColor(categoryColor);
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        16,
+        12,
+        16,
+        12 + MediaQuery.paddingOf(context).bottom,
+      ),
+      decoration: BoxDecoration(
+        color: c.surface,
+        boxShadow: [
+          BoxShadow(
+            color: c.shadow,
+            blurRadius: 12,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SacButton.primary(
+        text: hasSelection
+            ? 'honors.work_mode.continue_cta'.tr()
+            : 'honors.detail.select_mode_cta'.tr(),
+        isLoading: isLoading,
+        backgroundColor: canSubmit ? categoryColor : c.surfaceVariant,
+        textColor: canSubmit
+            ? onCategoryPaintColor(categoryColor, onNearWhite: c.text)
+            : c.textTertiary,
+        borderColor:
+            canSubmit && nearWhiteFill ? categoryPaintColor : null,
+        onPressed: canSubmit ? onContinue : null,
+      ),
+    );
   }
 }
 
@@ -1091,30 +1787,14 @@ class _StaggeredCardsState extends State<_StaggeredCards>
     );
   }
 
-  Future<void> _showChangeWorkModeSheet(
-    HonorCompletionMode currentMode,
-  ) async {
-    final selectedMode = await showSacSheet<HonorCompletionMode>(
+  Future<void> _changeWorkMode(HonorCompletionMode currentMode) {
+    return _promptCompletionModeChange(
       context: context,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) {
-        return Padding(
-          padding: const EdgeInsets.all(16),
-          child: HonorWorkModeSelector(
-            categoryColor: widget.categoryColor,
-            isLoading: widget.modeActionState.isLoading,
-            onSelected: (mode) => Navigator.of(sheetContext).pop(mode),
-          ),
-        );
-      },
+      currentMode: currentMode,
+      categoryColor: widget.categoryColor,
+      isLoading: widget.modeActionState.isLoading,
+      onSelect: widget.onSelectCompletionMode,
     );
-
-    if (!mounted || selectedMode == null || selectedMode == currentMode) {
-      return;
-    }
-
-    widget.onSelectCompletionMode(selectedMode);
   }
 
   @override
@@ -1123,94 +1803,6 @@ class _StaggeredCardsState extends State<_StaggeredCards>
       final userHonor = widget.userHonor!;
       final completionMode = userHonor.completionMode;
       final canChangeCompletionMode = userHonor.canSubmit;
-
-      if (userHonor.isCompleted) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: _kSectionGap),
-            _animated(
-              0,
-              _CompletedHonorHistorySection(
-                honorId: widget.honorId,
-                userHonor: userHonor,
-                categoryColor: widget.categoryColor,
-              ),
-            ),
-            const SizedBox(height: 120),
-          ],
-        );
-      }
-
-      if (completionMode == HonorCompletionMode.undecided) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: _kSectionGap),
-            _animated(
-              0,
-              canChangeCompletionMode
-                  ? HonorWorkModeSelector(
-                      categoryColor: widget.categoryColor,
-                      isLoading: widget.modeActionState.isLoading,
-                      onSelected: widget.onSelectCompletionMode,
-                    )
-                  : _LockedWorkModeCard(
-                      userHonor: userHonor,
-                      categoryColor: widget.categoryColor,
-                    ),
-            ),
-            const SizedBox(height: 120),
-          ],
-        );
-      }
-
-      if (completionMode == HonorCompletionMode.external) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: _kSectionGap),
-            _animated(
-              0,
-              _ExternalWorkflowInfoCard(
-                categoryColor: widget.categoryColor,
-              ),
-            ),
-            if (canChangeCompletionMode) ...[
-              const SizedBox(height: 12),
-              _animated(
-                1,
-                _ChangeWorkModeButton(
-                  categoryColor: widget.categoryColor,
-                  isLoading: widget.modeActionState.isLoading,
-                  onPressed: () => _showChangeWorkModeSheet(completionMode),
-                ),
-              ),
-            ],
-            if (widget.honor.materialUrl != null &&
-                widget.honor.materialUrl!.isNotEmpty) ...[
-              const SizedBox(height: _kSectionGap),
-              _animated(
-                2,
-                _MaterialDownloadCard(
-                  materialUrl: widget.honor.materialUrl!,
-                  categoryColor: widget.categoryColor,
-                ),
-              ),
-            ],
-            const SizedBox(height: _kSectionGap),
-            _animated(
-              3,
-              _EvidenceSection(
-                userHonor: userHonor,
-                honorId: widget.honorId,
-                categoryColor: widget.categoryColor,
-              ),
-            ),
-            const SizedBox(height: 120),
-          ],
-        );
-      }
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1245,7 +1837,7 @@ class _StaggeredCardsState extends State<_StaggeredCards>
               _ChangeWorkModeButton(
                 categoryColor: widget.categoryColor,
                 isLoading: widget.modeActionState.isLoading,
-                onPressed: () => _showChangeWorkModeSheet(completionMode),
+                onPressed: () => _changeWorkMode(completionMode),
               ),
             ),
           ],
@@ -1311,25 +1903,34 @@ class _CompletedHonorHistorySection extends ConsumerWidget {
         ? ref.watch(userHonorProgressProvider(honorId))
         : null;
 
+    var cardIndex = 0;
+    Duration nextDelay() {
+      final delay = SacMotion.stagger * cardIndex;
+      cardIndex += 1;
+      return delay;
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _ValidationHistoryCard(
           userHonor: userHonor,
-          categoryColor: categoryColor,
+          animationDelay: nextDelay(),
         ),
         if (showExternalHistory) ...[
-          const SizedBox(height: _kSectionGap),
+          const SizedBox(height: 16),
           _ExternalWorkHistoryCard(
             userHonor: userHonor,
             categoryColor: categoryColor,
+            animationDelay: nextDelay(),
           ),
         ],
         if (showRequirementsHistory) ...[
-          const SizedBox(height: _kSectionGap),
+          const SizedBox(height: 16),
           _RequirementsHistoryCard(
             progressAsync: progressAsync!,
             categoryColor: categoryColor,
+            animationDelay: nextDelay(),
           ),
         ],
       ],
@@ -1339,105 +1940,64 @@ class _CompletedHonorHistorySection extends ConsumerWidget {
 
 class _ValidationHistoryCard extends StatelessWidget {
   final UserHonor userHonor;
-  final Color categoryColor;
+  final Duration animationDelay;
 
   const _ValidationHistoryCard({
     required this.userHonor,
-    required this.categoryColor,
+    this.animationDelay = Duration.zero,
   });
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     final validator = _trimmedOrNull(userHonor.validatedByName) ??
         'honors.detail.history_not_available'.tr();
     final validatorRole = _validatorRoleLabel(userHonor);
+    final rows = <Widget>[
+      _HistoryInfoRow(
+        icon: HugeIcons.strokeRoundedCalendar01,
+        label: 'honors.detail.history_registered_label'.tr(),
+        value: _formatHistoryDate(context, userHonor.date),
+      ),
+      _HistoryInfoRow(
+        icon: HugeIcons.strokeRoundedClock01,
+        label: 'honors.detail.history_submitted_label'.tr(),
+        value: _formatHistoryDate(context, userHonor.submittedAt),
+      ),
+      _HistoryInfoRow(
+        icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+        label: 'honors.detail.history_validated_label'.tr(),
+        value: _formatHistoryDate(context, userHonor.validatedAt),
+        highlight: true,
+      ),
+      _HistoryInfoRow(
+        icon: HugeIcons.strokeRoundedUser,
+        label: 'honors.detail.history_validated_by_label'.tr(),
+        value: validator,
+        detail: validatorRole,
+      ),
+    ];
 
-    return _ShadowCard(
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    color: AppColors.success.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const HugeIcon(
-                    icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                    size: 24,
-                    color: AppColors.success,
-                  ),
+    return SacCard(
+      animate: true,
+      animationDelay: animationDelay,
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'honors.detail.validation_history_title'.tr(),
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: c.text,
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'honors.detail.validation_history_title'.tr(),
-                        style: TextStyle(
-                          color: context.sac.text,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'honors.detail.validation_history_subtitle'.tr(),
-                        style: TextStyle(
-                          color: context.sac.textSecondary,
-                          fontSize: 13,
-                          height: 1.35,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _HistoryInfoRow(
-              icon: HugeIcons.strokeRoundedTaskEdit01,
-              label: 'honors.detail.history_mode_label'.tr(),
-              value: _completionModeHistoryLabel(userHonor),
-              categoryColor: categoryColor,
-            ),
-            _CardDivider(),
-            _HistoryInfoRow(
-              icon: HugeIcons.strokeRoundedCalendar01,
-              label: 'honors.detail.history_registered_label'.tr(),
-              value: _formatHistoryDate(context, userHonor.date),
-              categoryColor: categoryColor,
-            ),
-            _CardDivider(),
-            _HistoryInfoRow(
-              icon: HugeIcons.strokeRoundedClock01,
-              label: 'honors.detail.history_submitted_label'.tr(),
-              value: _formatHistoryDate(context, userHonor.submittedAt),
-              categoryColor: categoryColor,
-            ),
-            _CardDivider(),
-            _HistoryInfoRow(
-              icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-              label: 'honors.detail.history_validated_label'.tr(),
-              value: _formatHistoryDate(context, userHonor.validatedAt),
-              categoryColor: AppColors.success,
-            ),
-            _CardDivider(),
-            _HistoryInfoRow(
-              icon: HugeIcons.strokeRoundedUser,
-              label: 'honors.detail.history_validated_by_label'.tr(),
-              value: validator,
-              detail: validatorRole,
-              categoryColor: categoryColor,
-            ),
+          ),
+          const SizedBox(height: 4),
+          for (var i = 0; i < rows.length; i++) ...[
+            if (i > 0) Divider(height: 1, color: c.border),
+            rows[i],
           ],
-        ),
+        ],
       ),
     );
   }
@@ -1448,31 +2008,37 @@ class _HistoryInfoRow extends StatelessWidget {
   final String label;
   final String value;
   final String? detail;
-  final Color categoryColor;
+  final bool highlight;
 
   const _HistoryInfoRow({
     required this.icon,
     required this.label,
     required this.value,
     this.detail,
-    required this.categoryColor,
+    this.highlight = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
+    final accent = highlight ? AppColors.success : c.textTertiary;
+    final well = highlight
+        ? AppColors.success.withValues(alpha: 0.12)
+        : c.surfaceVariant;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 34,
-            height: 34,
+            width: 32,
+            height: 32,
             decoration: BoxDecoration(
-              color: categoryColor.withValues(alpha: 0.10),
+              color: well,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: HugeIcon(icon: icon, size: 18, color: categoryColor),
+            child: HugeIcon(icon: icon, size: 16, color: accent),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -1522,10 +2088,12 @@ class _HistoryInfoRow extends StatelessWidget {
 class _ExternalWorkHistoryCard extends StatelessWidget {
   final UserHonor userHonor;
   final Color categoryColor;
+  final Duration animationDelay;
 
   const _ExternalWorkHistoryCard({
     required this.userHonor,
     required this.categoryColor,
+    this.animationDelay = Duration.zero,
   });
 
   @override
@@ -1534,65 +2102,65 @@ class _ExternalWorkHistoryCard extends StatelessWidget {
         .where((url) => !_isPdfEvidenceUrl(url))
         .toList(growable: false);
 
-    return _ShadowCard(
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _HistorySectionHeader(
-              icon: HugeIcons.strokeRoundedFiles01,
-              title: 'honors.detail.external_history_title'.tr(),
-              subtitle: 'honors.detail.external_history_subtitle'.tr(),
+    return SacCard(
+      animate: true,
+      animationDelay: animationDelay,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _HistorySectionHeader(
+            icon: HugeIcons.strokeRoundedFiles01,
+            title: 'honors.detail.external_history_title'.tr(),
+            subtitle: 'honors.detail.external_history_subtitle'.tr(),
+            categoryColor: categoryColor,
+          ),
+          const SizedBox(height: 14),
+          if (userHonor.hasCompletedFormat)
+            _HistoryFileRow(
+              title: 'honors.detail.completed_format_file'.tr(),
+              subtitle: _fileNameFromUrl(userHonor.document!),
+              url: userHonor.document!,
+              icon: HugeIcons.strokeRoundedPdf01,
               categoryColor: categoryColor,
             ),
-            const SizedBox(height: 14),
-            if (userHonor.hasCompletedFormat)
-              _HistoryFileRow(
-                title: 'honors.detail.completed_format_file'.tr(),
-                subtitle: _fileNameFromUrl(userHonor.document!),
-                url: userHonor.document!,
-                icon: HugeIcons.strokeRoundedPdf01,
-                categoryColor: categoryColor,
-              ),
-            if (userHonor.hasCompletedFormat && userHonor.images.isNotEmpty)
-              const SizedBox(height: 10),
-            ...userHonor.images.asMap().entries.map((entry) {
-              final title = 'honors.detail.general_evidence_item'.tr(
-                namedArgs: {'index': '${entry.key + 1}'},
-              );
-              final url = entry.value;
-              final bottom =
-                  entry.key == userHonor.images.length - 1 ? 0.0 : 10.0;
+          if (userHonor.hasCompletedFormat && userHonor.images.isNotEmpty)
+            const SizedBox(height: 10),
+          ...userHonor.images.asMap().entries.map((entry) {
+            final title = 'honors.detail.general_evidence_item'.tr(
+              namedArgs: {'index': '${entry.key + 1}'},
+            );
+            final url = entry.value;
+            final bottom =
+                entry.key == userHonor.images.length - 1 ? 0.0 : 10.0;
 
-              if (_isPdfEvidenceUrl(url)) {
-                return Padding(
-                  padding: EdgeInsets.only(bottom: bottom),
-                  child: _HistoryFileRow(
-                    title: title,
-                    subtitle: _fileNameFromUrl(url),
-                    url: url,
-                    icon: HugeIcons.strokeRoundedPdf01,
-                    categoryColor: categoryColor,
-                    evidenceType: EvidenceType.file,
-                  ),
-                );
-              }
-
-              final initialIndex = imageEvidenceUrls.indexOf(url);
+            if (_isPdfEvidenceUrl(url)) {
               return Padding(
                 padding: EdgeInsets.only(bottom: bottom),
-                child: _HistoryImageRow(
+                child: _HistoryFileRow(
                   title: title,
+                  subtitle: _fileNameFromUrl(url),
                   url: url,
+                  icon: HugeIcons.strokeRoundedPdf01,
                   categoryColor: categoryColor,
-                  imageUrls: imageEvidenceUrls,
-                  initialIndex: initialIndex < 0 ? 0 : initialIndex,
+                  evidenceType: EvidenceType.file,
                 ),
               );
-            }),
-          ],
-        ),
+            }
+
+            final initialIndex = imageEvidenceUrls.indexOf(url);
+            return Padding(
+              padding: EdgeInsets.only(bottom: bottom),
+              child: _HistoryImageRow(
+                title: title,
+                url: url,
+                categoryColor: categoryColor,
+                imageUrls: imageEvidenceUrls,
+                initialIndex: initialIndex < 0 ? 0 : initialIndex,
+              ),
+            );
+          }),
+        ],
       ),
     );
   }
@@ -1601,77 +2169,78 @@ class _ExternalWorkHistoryCard extends StatelessWidget {
 class _RequirementsHistoryCard extends StatelessWidget {
   final AsyncValue<List<UserHonorRequirementProgress>> progressAsync;
   final Color categoryColor;
+  final Duration animationDelay;
 
   const _RequirementsHistoryCard({
     required this.progressAsync,
     required this.categoryColor,
+    this.animationDelay = Duration.zero,
   });
 
   @override
   Widget build(BuildContext context) {
     return progressAsync.when(
       data: (progressList) {
-        return _ShadowCard(
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _HistorySectionHeader(
-                  icon: HugeIcons.strokeRoundedTaskDone01,
-                  title: 'honors.detail.requirements_history_title'.tr(),
-                  subtitle: 'honors.detail.requirements_history_subtitle'.tr(),
-                  categoryColor: categoryColor,
-                ),
-                const SizedBox(height: 14),
-                if (progressList.isEmpty)
-                  Text(
-                    'honors.detail.requirements_history_empty'.tr(),
-                    style: TextStyle(
-                      color: context.sac.textSecondary,
-                      fontSize: 13,
-                      height: 1.45,
-                    ),
-                  )
-                else
-                  ...progressList.asMap().entries.map(
-                        (entry) => Padding(
-                          padding: EdgeInsets.only(
-                            bottom:
-                                entry.key == progressList.length - 1 ? 0 : 12,
-                          ),
-                          child: _RequirementHistoryItem(
-                            requirement: entry.value,
-                            categoryColor: categoryColor,
-                          ),
+        return SacCard(
+          animate: true,
+          animationDelay: animationDelay,
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _HistorySectionHeader(
+                icon: HugeIcons.strokeRoundedTaskDone01,
+                title: 'honors.detail.requirements_history_title'.tr(),
+                subtitle: 'honors.detail.requirements_history_subtitle'.tr(),
+                categoryColor: categoryColor,
+              ),
+              const SizedBox(height: 14),
+              if (progressList.isEmpty)
+                Text(
+                  'honors.detail.requirements_history_empty'.tr(),
+                  style: TextStyle(
+                    color: context.sac.textSecondary,
+                    fontSize: 13,
+                    height: 1.45,
+                  ),
+                )
+              else
+                ...progressList.asMap().entries.map(
+                      (entry) => Padding(
+                        padding: EdgeInsets.only(
+                          bottom: entry.key == progressList.length - 1 ? 0 : 12,
+                        ),
+                        child: _RequirementHistoryItem(
+                          requirement: entry.value,
+                          categoryColor: categoryColor,
                         ),
                       ),
-              ],
-            ),
+                    ),
+            ],
           ),
         );
       },
-      loading: () => _ShadowCard(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Center(
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: categoryColor,
-            ),
+      loading: () => SacCard(
+        animate: true,
+        animationDelay: animationDelay,
+        padding: const EdgeInsets.all(24),
+        child: Center(
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: categoryColor,
           ),
         ),
       ),
-      error: (_, __) => _ShadowCard(
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Text(
-            'honors.detail.requirements_history_error'.tr(),
-            style: TextStyle(
-              color: context.sac.textSecondary,
-              fontSize: 13,
-              height: 1.45,
-            ),
+      error: (_, __) => SacCard(
+        animate: true,
+        animationDelay: animationDelay,
+        padding: const EdgeInsets.all(16),
+        child: Text(
+          'honors.detail.requirements_history_error'.tr(),
+          style: TextStyle(
+            color: context.sac.textSecondary,
+            fontSize: 13,
+            height: 1.45,
           ),
         ),
       ),
@@ -1694,17 +2263,18 @@ class _HistorySectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 42,
-          height: 42,
+          width: 36,
+          height: 36,
           decoration: BoxDecoration(
-            color: categoryColor.withValues(alpha: 0.10),
-            borderRadius: BorderRadius.circular(13),
+            color: c.surfaceVariant,
+            borderRadius: BorderRadius.circular(10),
           ),
-          child: HugeIcon(icon: icon, size: 21, color: categoryColor),
+          child: HugeIcon(icon: icon, size: 18, color: categoryColor),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -1713,19 +2283,18 @@ class _HistorySectionHeader extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: TextStyle(
-                  color: context.sac.text,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                ),
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: c.text,
+                    ),
               ),
               const SizedBox(height: 4),
               Text(
                 subtitle,
                 style: TextStyle(
-                  color: context.sac.textSecondary,
-                  fontSize: 12,
-                  height: 1.45,
+                  color: c.textSecondary,
+                  fontSize: 13,
+                  height: 1.4,
                 ),
               ),
             ],
@@ -1953,6 +2522,53 @@ class _RequirementEvidenceHistoryRow extends StatelessWidget {
   }
 }
 
+class _HistoryPressable extends StatefulWidget {
+  final VoidCallback onTap;
+  final Widget child;
+
+  const _HistoryPressable({
+    required this.onTap,
+    required this.child,
+  });
+
+  @override
+  State<_HistoryPressable> createState() => _HistoryPressableState();
+}
+
+class _HistoryPressableState extends State<_HistoryPressable> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() => _pressed = value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reduce = SacMotion.reduceMotionOf(context);
+
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) {
+          HapticFeedback.lightImpact();
+          _setPressed(true);
+        },
+        onTapUp: (_) => _setPressed(false),
+        onTapCancel: () => _setPressed(false),
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: (!reduce && _pressed) ? SacMotion.pressScale : 1,
+          duration: SacMotion.press,
+          curve: SacMotion.easeOut,
+          child: widget.child,
+        ),
+      ),
+    );
+  }
+}
+
 class _HistoryFileRow extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -1976,8 +2592,7 @@ class _HistoryFileRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
+    return _HistoryPressable(
       onTap: () => _openHistoryAttachment(
         context,
         url: url,
@@ -2055,8 +2670,7 @@ class _HistoryImageRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
+    return _HistoryPressable(
       onTap: () => _openHistoryAttachment(
         context,
         url: url,
@@ -2199,40 +2813,16 @@ class _ChangeWorkModeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final foreground = isLoading ? context.sac.textTertiary : categoryColor;
+    final c = context.sac;
 
-    return GestureDetector(
-      onTap: isLoading ? null : onPressed,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: categoryColor.withValues(alpha: 0.07),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: categoryColor.withValues(alpha: isLoading ? 0.12 : 0.22),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedRefresh,
-              size: 18,
-              color: foreground,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'honors.detail.change_work_mode_cta'.tr(),
-              style: TextStyle(
-                color: foreground,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      ),
+    return SacButton.outline(
+      text: 'honors.detail.change_work_mode_cta'.tr(),
+      icon: HugeIcons.strokeRoundedRefresh,
+      isLoading: isLoading,
+      backgroundColor: c.surface,
+      textColor: categoryColor,
+      borderColor: categoryColor.withValues(alpha: 0.35),
+      onPressed: isLoading ? null : onPressed,
     );
   }
 }
@@ -2915,57 +3505,62 @@ class _RequirementPreviewItem extends StatelessWidget {
 
 class _ExternalWorkflowInfoCard extends StatelessWidget {
   final Color categoryColor;
+  final Duration animationDelay;
 
-  const _ExternalWorkflowInfoCard({required this.categoryColor});
+  const _ExternalWorkflowInfoCard({
+    required this.categoryColor,
+    this.animationDelay = Duration.zero,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return _ShadowCard(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: categoryColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: HugeIcon(
-                icon: HugeIcons.strokeRoundedPdf01,
-                color: categoryColor,
-                size: 22,
-              ),
+    final c = context.sac;
+
+    return SacCard(
+      animate: true,
+      animationDelay: animationDelay,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: c.surfaceVariant,
+              borderRadius: BorderRadius.circular(12),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'honors.detail.external_mode_title'.tr(),
-                    style: TextStyle(
-                      color: context.sac.text,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'honors.detail.external_mode_subtitle'.tr(),
-                    style: TextStyle(
-                      color: context.sac.textSecondary,
-                      fontSize: 13,
-                      height: 1.45,
-                    ),
-                  ),
-                ],
-              ),
+            child: HugeIcon(
+              icon: HugeIcons.strokeRoundedPdf01,
+              color: categoryColor,
+              size: 22,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'honors.detail.external_mode_title'.tr(),
+                  style: TextStyle(
+                    color: c.text,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'honors.detail.external_mode_subtitle'.tr(),
+                  style: TextStyle(
+                    color: c.textSecondary,
+                    fontSize: 13,
+                    height: 1.45,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -2975,134 +3570,93 @@ class _ExternalWorkflowInfoCard extends StatelessWidget {
 
 class _EvidenceSection extends StatelessWidget {
   final UserHonor userHonor;
-  final int honorId;
   final Color categoryColor;
+  final Duration animationDelay;
 
   const _EvidenceSection({
     required this.userHonor,
-    required this.honorId,
     required this.categoryColor,
+    this.animationDelay = Duration.zero,
   });
 
   @override
   Widget build(BuildContext context) {
-    return _ShadowCard(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedImage01,
-                  size: 18,
-                  color: categoryColor,
-                ),
-                const SizedBox(width: 8),
-                Text(
+    final c = context.sac;
+
+    return SacCard(
+      animate: true,
+      animationDelay: animationDelay,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedImage01,
+                size: 18,
+                color: categoryColor,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
                   userHonor.hasCompletedFormat
                       ? 'honors.detail.completed_format_ready'.tr()
                       : 'honors.detail.completed_format_missing'.tr(),
                   style: TextStyle(
-                    color: context.sac.text,
+                    color: c.text,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-              ],
-            ),
-
-            // Thumbnail row
-            if (userHonor.images.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 56,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: userHonor.images.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
-                  itemBuilder: (context, index) {
-                    return ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: HonorSignedEvidenceImage(
-                        imageUrl: userHonor.images[index],
-                        width: 56,
-                        height: 56,
-                        fit: BoxFit.cover,
-                        memCacheWidth: 168,
-                        memCacheHeight: 168,
-                        errorWidget: (_, __, ___) => Container(
-                          width: 56,
-                          height: 56,
-                          color: context.sac.border,
-                          child: HugeIcon(
-                            icon: HugeIcons.strokeRoundedImageDelete01,
-                            size: 20,
-                            color: context.sac.textTertiary,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
               ),
             ],
-
-            const SizedBox(height: 14),
-            Text(
-              'honors.detail.general_evidence_count'.tr(
-                namedArgs: {'count': '${userHonor.generalEvidenceCount}'},
-              ),
-              style: TextStyle(
-                color: context.sac.textSecondary,
-                fontSize: 12,
-                height: 1.4,
-              ),
-            ),
+          ),
+          if (userHonor.images.isNotEmpty) ...[
             const SizedBox(height: 12),
-
-            // Evidence button
-            GestureDetector(
-              onTap: () {
-                HapticFeedback.lightImpact();
-                context.push(
-                  RouteNames.honorEvidencePath(
-                    honorId.toString(),
-                    userHonor.id.toString(),
-                  ),
-                );
-              },
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  border: Border.all(color: categoryColor, width: 1.5),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'honors.detail.external_flow_cta'.tr(),
-                      style: TextStyle(
-                        color: categoryColor,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+            SizedBox(
+              height: 56,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: userHonor.images.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: HonorSignedEvidenceImage(
+                      imageUrl: userHonor.images[index],
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
+                      memCacheWidth: 168,
+                      memCacheHeight: 168,
+                      errorWidget: (_, __, ___) => Container(
+                        width: 56,
+                        height: 56,
+                        color: c.border,
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedImageDelete01,
+                          size: 20,
+                          color: c.textTertiary,
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedArrowRight01,
-                      size: 16,
-                      color: categoryColor,
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
           ],
-        ),
+          const SizedBox(height: 14),
+          Text(
+            'honors.detail.general_evidence_count'.tr(
+              namedArgs: {'count': '${userHonor.generalEvidenceCount}'},
+            ),
+            style: TextStyle(
+              color: c.textSecondary,
+              fontSize: 12,
+              height: 1.4,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -3113,10 +3667,12 @@ class _EvidenceSection extends StatelessWidget {
 class _MaterialDownloadCard extends StatefulWidget {
   final String materialUrl;
   final Color categoryColor;
+  final Duration animationDelay;
 
   const _MaterialDownloadCard({
     required this.materialUrl,
     required this.categoryColor,
+    this.animationDelay = Duration.zero,
   });
 
   @override
@@ -3163,68 +3719,67 @@ class _MaterialDownloadCardState extends State<_MaterialDownloadCard> {
 
   @override
   Widget build(BuildContext context) {
-    return _ShadowCard(
-      child: GestureDetector(
-        onTap: _openMaterial,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: widget.categoryColor.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedPdf01,
-                  size: 20,
-                  color: widget.categoryColor,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'honors.detail.study_material'.tr(),
-                      style: TextStyle(
-                        color: context.sac.text,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'honors.detail.material_subtitle'.tr(),
-                      style: TextStyle(
-                        color: context.sac.textTertiary,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (_isLaunching)
-                SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: widget.categoryColor,
-                  ),
-                )
-              else
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedDownload01,
-                  color: widget.categoryColor,
-                  size: 20,
-                ),
-            ],
+    final c = context.sac;
+
+    return SacCard(
+      animate: true,
+      animationDelay: widget.animationDelay,
+      onTap: _isLaunching ? null : _openMaterial,
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: c.surfaceVariant,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: HugeIcon(
+              icon: HugeIcons.strokeRoundedPdf01,
+              size: 20,
+              color: widget.categoryColor,
+            ),
           ),
-        ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'honors.detail.study_material'.tr(),
+                  style: TextStyle(
+                    color: c.text,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'honors.detail.material_subtitle'.tr(),
+                  style: TextStyle(
+                    color: c.textTertiary,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_isLaunching)
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: widget.categoryColor,
+              ),
+            )
+          else
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedDownload01,
+              color: widget.categoryColor,
+              size: 20,
+            ),
+        ],
       ),
     );
   }
@@ -3479,36 +4034,9 @@ class _EnrolledCtaButton extends StatelessWidget {
       );
     }
 
-    // Approved — completed state
+    // Approved — status lives in the body, not a fake CTA.
     if (userHonor.isCompleted) {
-      return Container(
-        width: double.infinity,
-        height: 48,
-        decoration: BoxDecoration(
-          color: AppColors.success.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.success, width: 1.5),
-        ),
-        alignment: Alignment.center,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const HugeIcon(
-                icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                size: 18,
-                color: AppColors.success),
-            const SizedBox(width: 8),
-            Text(
-              'honors.detail.completed_cta'.tr(),
-              style: const TextStyle(
-                color: AppColors.success,
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      );
+      return const SizedBox.shrink();
     }
 
     if (userHonor.completionMode == HonorCompletionMode.undecided) {

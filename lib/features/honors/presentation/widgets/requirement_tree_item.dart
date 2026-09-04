@@ -1,8 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/services.dart';
+import 'package:hugeicons/hugeicons.dart';
 
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -13,14 +14,14 @@ import 'package:sacdia_app/features/honors/domain/entities/honor_requirement.dar
 ///
 /// Renders one [HonorRequirement] with:
 ///   - Depth-based indentation (24 dp per level)
-///   - Checkbox for completion toggle (deferred to parent via [onToggle])
-///   - Display label badge ("1", "a", etc.)
+///   - Circular check for completion (deferred to parent via [onToggle])
+///   - Display label well ("1", "a", etc.)
 ///   - Expandable text (3-line clamp with "Ver más")
-///   - Optional text-response text field (shown when requirement has or gains a response)
+///   - Always-visible text response on leaf items (required to complete)
 ///   - Per-requirement evidence action when [requiresEvidence] is true
 ///   - Optional reference text accordion
 ///
-/// Local expand/collapse and showNotes state live inside this widget.
+/// Local expand/collapse state lives inside this widget.
 /// Completion state is owned by the parent view and passed in as [completed].
 class RequirementTreeItem extends StatefulWidget {
   final HonorRequirement requirement;
@@ -28,16 +29,13 @@ class RequirementTreeItem extends StatefulWidget {
   /// Current completion status from parent state map.
   final bool completed;
 
-  /// Current text response from parent controller/state.
-  final String? textResponse;
-
   /// TextEditingController owned by the parent for this requirement's response.
   final TextEditingController? responseController;
 
   /// Depth level — 0 = top-level, 1 = sub-item. Drives left indentation.
   final int depth;
 
-  /// Category color used for accent elements (checkbox, labels, etc.).
+  /// Category color used for the check fill and evidence CTA.
   final Color categoryColor;
 
   /// Called when the user taps the checkbox.
@@ -52,18 +50,22 @@ class RequirementTreeItem extends StatefulWidget {
   /// Called when the user wants to attach evidence to this requirement.
   final VoidCallback? onAddEvidence;
 
+  /// When false, checks, responses and evidence cannot be changed
+  /// (honor already submitted or approved).
+  final bool enabled;
+
   const RequirementTreeItem({
     super.key,
     required this.requirement,
     required this.completed,
     required this.depth,
     required this.categoryColor,
-    this.textResponse,
     this.responseController,
     required this.onToggle,
     this.evidenceCount = 0,
     this.isUploadingEvidence = false,
     this.onAddEvidence,
+    this.enabled = true,
   });
 
   @override
@@ -72,111 +74,114 @@ class RequirementTreeItem extends StatefulWidget {
 
 class _RequirementTreeItemState extends State<RequirementTreeItem> {
   bool _textExpanded = false;
-  bool _showResponse = false;
   bool _referenceExpanded = false;
+  bool _responseError = false;
+
+  bool get _isLeaf =>
+      !widget.requirement.hasSubItems || widget.requirement.children.isEmpty;
 
   @override
   void initState() {
     super.initState();
-    // Auto-show response field if there is an existing response.
-    _showResponse =
-        widget.textResponse != null && widget.textResponse!.isNotEmpty;
+    widget.responseController?.addListener(_onResponseChanged);
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
+  @override
+  void didUpdateWidget(covariant RequirementTreeItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.responseController != widget.responseController) {
+      oldWidget.responseController?.removeListener(_onResponseChanged);
+      widget.responseController?.addListener(_onResponseChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.responseController?.removeListener(_onResponseChanged);
+    super.dispose();
+  }
+
+  void _onResponseChanged() {
+    if (!mounted || !widget.enabled) return;
+    if (_responseError && _responseText.isNotEmpty) {
+      setState(() => _responseError = false);
+    }
+    if (widget.completed && _isLeaf && _responseText.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !widget.enabled) return;
+        if (widget.completed && _isLeaf && _responseText.isEmpty) {
+          widget.onToggle();
+        }
+      });
+    }
+  }
+
+  String get _responseText =>
+      widget.responseController?.text.trim() ?? '';
+
+  void _onCheck() {
+    if (!widget.enabled) return;
+    if (_isLeaf && !widget.completed && _responseText.isEmpty) {
+      HapticFeedback.lightImpact();
+      setState(() => _responseError = true);
+      return;
+    }
+    widget.onToggle();
+  }
 
   double get _indentLeft => widget.depth * 24.0;
 
   bool get _needsExpandToggle => widget.requirement.text.length > 120;
 
-  void _handleToggle() {
-    HapticFeedback.selectionClick();
-    widget.onToggle();
-  }
-
-  // ── Build ─────────────────────────────────────────────────────────────────
+  Duration _motion(BuildContext context) =>
+      SacMotion.reduceMotionOf(context) ? Duration.zero : SacMotion.standard;
 
   @override
   Widget build(BuildContext context) {
     final req = widget.requirement;
+    final c = context.sac;
+    final reduce = SacMotion.reduceMotionOf(context);
+    final expandDuration = _motion(context);
+    final label = (req.displayLabel != null && req.displayLabel!.isNotEmpty)
+        ? req.displayLabel!
+        : '${req.requirementNumber}';
 
     return Padding(
       padding: EdgeInsets.only(left: _indentLeft),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Main row ──────────────────────────────────────────────────────
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
+            padding: const EdgeInsets.symmetric(vertical: 12),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Checkbox
-                SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: Checkbox(
-                    value: widget.completed,
-                    onChanged: (_) => _handleToggle(),
-                    activeColor: widget.categoryColor,
-                    checkColor: Colors.white,
-                    side: BorderSide(
-                      color: widget.completed
-                          ? widget.categoryColor
-                          : context.sac.border,
-                      width: 1.5,
+                _CircleCheck(
+                  key: const ValueKey('requirement-check'),
+                  checked: widget.completed,
+                  color: widget.categoryColor,
+                  enabled: widget.enabled,
+                  onToggle: _onCheck,
+                ),
+                const SizedBox(width: 10),
+                Container(
+                  width: 28,
+                  height: 28,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: c.surfaceVariant,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: c.textSecondary,
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
                   ),
                 ),
-                const SizedBox(width: 8),
-
-                // Display label badge
-                if (req.displayLabel != null && req.displayLabel!.isNotEmpty)
-                  Container(
-                    margin: const EdgeInsets.only(top: 1),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: AppColors.lightText.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: Text(
-                      req.displayLabel!,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: context.sac.textSecondary,
-                      ),
-                    ),
-                  )
-                else
-                  // Fallback: show requirement number for top-level items
-                  Container(
-                    margin: const EdgeInsets.only(top: 1),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: AppColors.lightText.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: Text(
-                      '${req.requirementNumber}.',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: context.sac.textSecondary,
-                      ),
-                    ),
-                  ),
-
-                const SizedBox(width: 8),
-
-                // Text block
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,22 +189,26 @@ class _RequirementTreeItemState extends State<RequirementTreeItem> {
                       GestureDetector(
                         onTap: () =>
                             setState(() => _textExpanded = !_textExpanded),
-                        child: Text(
-                          req.text,
-                          maxLines: _textExpanded ? null : 3,
-                          overflow: _textExpanded
-                              ? TextOverflow.visible
-                              : TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 13,
-                            height: 1.55,
-                            color: widget.completed
-                                ? context.sac.textTertiary
-                                : context.sac.text,
-                            decoration: widget.completed
-                                ? TextDecoration.lineThrough
-                                : TextDecoration.none,
-                            decorationColor: context.sac.textTertiary,
+                        child: AnimatedSize(
+                          duration: expandDuration,
+                          curve: SacMotion.easeOut,
+                          alignment: Alignment.topLeft,
+                          child: AnimatedDefaultTextStyle(
+                            duration: expandDuration,
+                            curve: SacMotion.easeOut,
+                            style: TextStyle(
+                              fontSize: 14,
+                              height: 1.45,
+                              fontWeight: FontWeight.w500,
+                              color: widget.completed ? c.textTertiary : c.text,
+                            ),
+                            child: Text(
+                              req.text,
+                              maxLines: _textExpanded ? null : 3,
+                              overflow: _textExpanded
+                                  ? TextOverflow.visible
+                                  : TextOverflow.ellipsis,
+                            ),
                           ),
                         ),
                       ),
@@ -208,15 +217,15 @@ class _RequirementTreeItemState extends State<RequirementTreeItem> {
                           onTap: () =>
                               setState(() => _textExpanded = !_textExpanded),
                           child: Padding(
-                            padding: const EdgeInsets.only(top: 4),
+                            padding: const EdgeInsets.only(top: 6),
                             child: Text(
                               _textExpanded
                                   ? 'honors.requirements.see_less'.tr()
                                   : 'honors.requirements.see_more'.tr(),
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w600,
-                                color: widget.categoryColor,
+                                color: c.textSecondary,
                               ),
                             ),
                           ),
@@ -224,88 +233,153 @@ class _RequirementTreeItemState extends State<RequirementTreeItem> {
                     ],
                   ),
                 ),
-
                 const SizedBox(width: 6),
-
-                // ── Trailing action icons ─────────────────────────────────
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Response toggle
-                    GestureDetector(
-                      onTap: () =>
-                          setState(() => _showResponse = !_showResponse),
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: HugeIcon(
-                          icon: _showResponse
-                              ? HugeIcons.strokeRoundedNote
-                              : HugeIcons.strokeRoundedNote,
-                          size: 18,
-                          color: _showResponse
-                              ? widget.categoryColor
-                              : context.sac.textTertiary,
-                        ),
+                if (req.requiresEvidence)
+                  Tooltip(
+                    message: 'honors.requirements.requires_demo'.tr(),
+                    child: Padding(
+                      padding: const EdgeInsets.all(2),
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedCamera01,
+                        size: 16,
+                        color: c.textTertiary,
                       ),
                     ),
-
-                    // requiresEvidence indicator
-                    if (req.requiresEvidence)
-                      Tooltip(
-                        message: 'honors.requirements.requires_demo'.tr(),
-                        child: Padding(
-                          padding: const EdgeInsets.all(2),
-                          child: HugeIcon(
-                            icon: HugeIcons.strokeRoundedCamera01,
-                            size: 16,
-                            color: context.sac.textTertiary,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+                  ),
               ],
             ),
           ),
-
-          // ── Requirement evidence action ──────────────────────────────────
           if (req.requiresEvidence)
             Padding(
-              padding: const EdgeInsets.only(left: 40, bottom: 10),
+              padding: const EdgeInsets.only(left: 38, bottom: 10),
               child: _RequirementEvidenceAction(
                 evidenceCount: widget.evidenceCount,
                 isUploading: widget.isUploadingEvidence,
                 categoryColor: widget.categoryColor,
-                onAddEvidence: widget.onAddEvidence,
+                onAddEvidence: widget.enabled ? widget.onAddEvidence : null,
               ),
             ),
-
-          // ── Text response field ───────────────────────────────────────────
-          if (_showResponse)
+          if (_isLeaf)
             Padding(
-              padding: const EdgeInsets.only(
-                left: 40,
-                bottom: 10,
-              ),
-              child: SacTextField(
-                controller: widget.responseController,
-                hint: 'honors.requirements.response_hint'.tr(),
-                maxLines: 4,
-                maxLength: 800,
+              padding: const EdgeInsets.only(left: 38, bottom: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SacTextField(
+                    controller: widget.responseController,
+                    hint: 'honors.requirements.response_hint'.tr(),
+                    maxLines: 3,
+                    maxLength: 800,
+                    enabled: widget.enabled,
+                  ),
+                  if (_responseError)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6, left: 6),
+                      child: Text(
+                        'honors.requirements.response_required'.tr(),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
-
-          // ── Reference text accordion ──────────────────────────────────────
           if (req.referenceText != null && req.referenceText!.isNotEmpty)
             _ReferenceAccordion(
               referenceText: req.referenceText!,
               expanded: _referenceExpanded,
-              categoryColor: widget.categoryColor,
               onToggle: () =>
                   setState(() => _referenceExpanded = !_referenceExpanded),
-              indentLeft: 40,
+              indentLeft: 38,
+              reduceMotion: reduce,
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _CircleCheck extends StatefulWidget {
+  final bool checked;
+  final Color color;
+  final bool enabled;
+  final VoidCallback onToggle;
+
+  const _CircleCheck({
+    super.key,
+    required this.checked,
+    required this.color,
+    required this.onToggle,
+    this.enabled = true,
+  });
+
+  @override
+  State<_CircleCheck> createState() => _CircleCheckState();
+}
+
+class _CircleCheckState extends State<_CircleCheck> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() => _pressed = value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reduce = SacMotion.reduceMotionOf(context);
+    final duration = reduce ? Duration.zero : SacMotion.press;
+    final c = context.sac;
+
+    return Semantics(
+      button: true,
+      checked: widget.checked,
+      enabled: widget.enabled,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: widget.enabled
+            ? (_) {
+                HapticFeedback.selectionClick();
+                _setPressed(true);
+              }
+            : null,
+        onTapUp: widget.enabled ? (_) => _setPressed(false) : null,
+        onTapCancel: widget.enabled ? () => _setPressed(false) : null,
+        onTap: widget.enabled ? widget.onToggle : null,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 2, right: 2, bottom: 8),
+          child: AnimatedScale(
+            scale: (!reduce && _pressed) ? SacMotion.pressScale : 1,
+            duration: duration,
+            curve: SacMotion.easeOut,
+            child: SizedBox(
+              width: 24,
+              height: 24,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: widget.checked ? widget.color : Colors.transparent,
+                  border: Border.all(
+                    color: widget.checked ? widget.color : c.border,
+                    width: 1.5,
+                  ),
+                ),
+                child: widget.checked
+                    ? const Center(
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedTick02,
+                          size: 13,
+                          color: Colors.white,
+                        ),
+                      )
+                    : null,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -354,25 +428,26 @@ class _RequirementEvidenceAction extends StatelessWidget {
   }
 }
 
-// ── Reference text accordion ──────────────────────────────────────────────────
-
 class _ReferenceAccordion extends StatelessWidget {
   final String referenceText;
   final bool expanded;
-  final Color categoryColor;
   final VoidCallback onToggle;
   final double indentLeft;
+  final bool reduceMotion;
 
   const _ReferenceAccordion({
     required this.referenceText,
     required this.expanded,
-    required this.categoryColor,
     required this.onToggle,
     required this.indentLeft,
+    required this.reduceMotion,
   });
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
+    final duration = reduceMotion ? Duration.zero : SacMotion.standard;
+
     return Padding(
       padding: EdgeInsets.only(left: indentLeft, bottom: 8),
       child: Column(
@@ -386,49 +461,60 @@ class _ReferenceAccordion extends StatelessWidget {
                 HugeIcon(
                   icon: HugeIcons.strokeRoundedBookOpen01,
                   size: 14,
-                  color: categoryColor.withValues(alpha: 0.8),
+                  color: c.textSecondary,
                 ),
                 const SizedBox(width: 4),
                 Text(
                   'honors.requirements.reference_label'.tr(),
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: categoryColor,
+                    color: c.textSecondary,
                   ),
                 ),
                 const SizedBox(width: 2),
-                HugeIcon(
-                  icon: expanded
-                      ? HugeIcons.strokeRoundedArrowUp01
-                      : HugeIcons.strokeRoundedArrowDown01,
-                  size: 16,
-                  color: categoryColor,
+                AnimatedRotation(
+                  turns: expanded ? 0.5 : 0,
+                  duration: duration,
+                  curve: SacMotion.easeOut,
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowDown01,
+                    size: 16,
+                    color: c.textTertiary,
+                  ),
                 ),
               ],
             ),
           ),
-          if (expanded)
-            Container(
-              margin: const EdgeInsets.only(top: 6),
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: categoryColor.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: categoryColor.withValues(alpha: 0.2),
-                ),
-              ),
-              child: Text(
-                referenceText,
-                style: TextStyle(
-                  fontSize: 12,
-                  height: 1.6,
-                  color: context.sac.textSecondary,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
+          ClipRect(
+            child: AnimatedSize(
+              duration: duration,
+              curve: SacMotion.easeOut,
+              alignment: Alignment.topCenter,
+              child: expanded
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: c.surfaceVariant,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: c.border),
+                        ),
+                        child: Text(
+                          referenceText,
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.5,
+                            color: c.textSecondary,
+                          ),
+                        ),
+                      ),
+                    )
+                  : const SizedBox(width: double.infinity),
             ),
+          ),
         ],
       ),
     );

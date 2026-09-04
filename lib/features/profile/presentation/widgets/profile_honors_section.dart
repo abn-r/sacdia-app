@@ -12,7 +12,6 @@ import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/master_honors/presentation/widgets/master_honor_history_section.dart';
 import 'package:sacdia_app/features/honors/presentation/utils/user_honor_presentation_extensions.dart';
-import 'package:sacdia_app/core/utils/icon_helper.dart';
 import '../utils/profile_honor_navigation.dart';
 import 'profile_quiet_add_chip.dart';
 
@@ -291,12 +290,12 @@ class _CategorySection extends StatelessWidget {
             // height is required.
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3,
-              childAspectRatio: 0.78,
+              childAspectRatio: 0.70,
               crossAxisSpacing: 10,
-              mainAxisSpacing: 2.5,
+              mainAxisSpacing: 2,
             ),
             itemCount: userHonors.length,
             itemBuilder: (context, index) {
@@ -334,176 +333,130 @@ class _HonorGridItem extends StatelessWidget {
 
     final imageUrl = userHonor.honorImageUrl;
 
-    return GestureDetector(
-      onTap: () => context.push(profileHonorDestinationPath(userHonor)),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            height: 96,
-            width: double.infinity,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                imageUrl != null && imageUrl.isNotEmpty
-                    ? SacNetworkImage(
-                        imageUrl: imageUrl,
-                        fit: BoxFit.contain,
-                        memCacheWidth: 288,
-                        memCacheHeight: 288,
-                        errorWidget: (_, __, ___) => _InitialsBox(
-                          initials: initials,
-                          categoryColor: categoryColor,
-                        ),
-                      )
-                    : _InitialsBox(
+    return Semantics(
+      button: true,
+      label: '$name, ${userHonor.statusLabel}',
+      child: GestureDetector(
+        onTap: () => context.push(profileHonorDestinationPath(userHonor)),
+        child: Column(
+          children: [
+            SizedBox(
+              height: 96,
+              width: double.infinity,
+              child: imageUrl != null && imageUrl.isNotEmpty
+                  ? SacNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.contain,
+                      memCacheWidth: 288,
+                      memCacheHeight: 288,
+                      errorWidget: (_, __, ___) => _InitialsBox(
                         initials: initials,
                         categoryColor: categoryColor,
                       ),
-                Positioned(
-                  top: 2,
-                  right: 2,
-                  child: _HonorStatusBadge(
-                    userHonor: userHonor,
-                    categoryColor: categoryColor,
-                  ),
-                ),
-              ],
+                    )
+                  : _InitialsBox(
+                      initials: initials,
+                      categoryColor: categoryColor,
+                    ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            name,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: context.sac.text,
-              height: 1.2,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _HonorStatusBadge extends StatelessWidget {
-  final UserHonor userHonor;
-  final Color categoryColor;
-
-  const _HonorStatusBadge({
-    required this.userHonor,
-    required this.categoryColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final meta = _HonorStatusBadgeMeta.fromUserHonor(
-      context,
-      userHonor: userHonor,
-      categoryColor: categoryColor,
-    );
-
-    return Semantics(
-      label: meta.semanticLabel,
-      child: Tooltip(
-        message: meta.semanticLabel,
-        child: Container(
-          width: 22,
-          height: 22,
-          decoration: BoxDecoration(
-            color: meta.backgroundColor,
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: meta.borderColor,
-              width: 1.2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.12),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
+            const SizedBox(height: 6),
+            Text(
+              name,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: context.sac.text,
+                height: 1.2,
               ),
-            ],
-          ),
-          child: HugeIcon(
-            icon: meta.icon,
-            color: meta.iconColor,
-            size: 13,
-          ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 6),
+            ExcludeSemantics(
+              child: _HonorStatusCaption(userHonor: userHonor),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _HonorStatusBadgeMeta {
-  final HugeIconData icon;
-  final Color backgroundColor;
-  final Color borderColor;
-  final Color iconColor;
-  final String semanticLabel;
+class _HonorStatusCaption extends StatelessWidget {
+  final UserHonor userHonor;
 
-  const _HonorStatusBadgeMeta({
-    required this.icon,
-    required this.backgroundColor,
-    required this.borderColor,
-    required this.iconColor,
-    required this.semanticLabel,
+  const _HonorStatusCaption({required this.userHonor});
+
+  @override
+  Widget build(BuildContext context) {
+    final meta = _HonorStatusCaptionMeta.fromUserHonor(userHonor);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: meta.background,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        meta.label,
+        textAlign: TextAlign.center,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          height: 1.2,
+          color: meta.foreground,
+        ),
+      ),
+    );
+  }
+}
+
+class _HonorStatusCaptionMeta {
+  final String label;
+  final Color background;
+  final Color foreground;
+
+  const _HonorStatusCaptionMeta({
+    required this.label,
+    required this.background,
+    required this.foreground,
   });
 
-  factory _HonorStatusBadgeMeta.fromUserHonor(
-    BuildContext context, {
-    required UserHonor userHonor,
-    required Color categoryColor,
-  }) {
-    final status = userHonor.displayStatus;
-    final label = userHonor.statusLabel;
-
-    switch (status) {
+  factory _HonorStatusCaptionMeta.fromUserHonor(UserHonor userHonor) {
+    switch (userHonor.displayStatus) {
       case 'validado':
-        return _HonorStatusBadgeMeta(
-          icon: HugeIcons.strokeRoundedTick02,
-          backgroundColor: AppColors.secondary,
-          borderColor: Colors.white,
-          iconColor: Colors.white,
-          semanticLabel: label,
+        return _HonorStatusCaptionMeta(
+          label: 'profile.honors_section.status_validated'.tr(),
+          background: AppColors.validatedBg,
+          foreground: AppColors.validatedDark,
         );
       case 'enviado':
-        return _HonorStatusBadgeMeta(
-          icon: HugeIcons.strokeRoundedHourglass,
-          backgroundColor: AppColors.info,
-          borderColor: Colors.white,
-          iconColor: Colors.white,
-          semanticLabel: label,
+        return _HonorStatusCaptionMeta(
+          label: 'profile.honors_section.status_submitted'.tr(),
+          background: AppColors.statusInfoBgLight,
+          foreground: AppColors.statusInfoText,
         );
       case 'rechazado':
-        return _HonorStatusBadgeMeta(
-          icon: HugeIcons.strokeRoundedAlert02,
-          backgroundColor: AppColors.error,
-          borderColor: Colors.white,
-          iconColor: Colors.white,
-          semanticLabel: label,
+        return _HonorStatusCaptionMeta(
+          label: 'profile.honors_section.status_rejected'.tr(),
+          background: AppColors.rejectedBg,
+          foreground: AppColors.rejectedDark,
         );
       case 'en_progreso':
-        return _HonorStatusBadgeMeta(
-          icon: HugeIcons.strokeRoundedEdit02,
-          backgroundColor: categoryColor,
-          borderColor: Colors.white,
-          iconColor: _foregroundColorForPaint(context, categoryColor),
-          semanticLabel: label,
+        return _HonorStatusCaptionMeta(
+          label: 'profile.honors_section.status_in_progress'.tr(),
+          background: AppColors.observedBg,
+          foreground: AppColors.observedDark,
         );
       case 'inscrito':
       default:
-        return _HonorStatusBadgeMeta(
-          icon: HugeIcons.strokeRoundedCircle,
-          backgroundColor: context.sac.surface,
-          borderColor: AppColors.pendingColor.withValues(alpha: 0.65),
-          iconColor: AppColors.pendingColor,
-          semanticLabel: label,
+        return _HonorStatusCaptionMeta(
+          label: 'profile.honors_section.status_enrolled'.tr(),
+          background: AppColors.pendingBg,
+          foreground: AppColors.pendingDark,
         );
     }
   }

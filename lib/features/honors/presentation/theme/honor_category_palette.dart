@@ -81,3 +81,40 @@ Color getCategoryAccentColor({int? categoryId, String? categoryName}) {
 
   return getCategoryColor(categoryId: categoryId, categoryName: categoryName);
 }
+
+/// Fills above this luminance read as near-white (Estudio de la Naturaleza).
+const kNearWhiteCategoryLuminance = 0.72;
+
+bool isNearWhiteCategoryColor(Color color) =>
+    color.computeLuminance() > kNearWhiteCategoryLuminance;
+
+/// Text/icon color on a category-painted control.
+///
+/// Saturated fills (Artes Domésticas gold, Recreativas green, …) use white.
+/// Near-white fills (Estudio de la Naturaleza) use [onNearWhite].
+Color onCategoryPaintColor(
+  Color paintColor, {
+  required Color onNearWhite,
+  Color onSaturated = Colors.white,
+}) {
+  return isNearWhiteCategoryColor(paintColor) ? onNearWhite : onSaturated;
+}
+
+/// Color usable as a control accent (selected border, radio, primary CTA).
+///
+/// Uses the category fill unless it is near-white (e.g. Estudio de la
+/// Naturaleza). Yellow/gold fills like Artes Domésticas stay as the identity
+/// color instead of swapping to the complementary border.
+Color getCategoryPaintColor({int? categoryId, String? categoryName}) {
+  final color = getCategoryColor(
+    categoryId: categoryId,
+    categoryName: categoryName,
+  );
+  if (isNearWhiteCategoryColor(color)) {
+    return getCategoryAccentColor(
+      categoryId: categoryId,
+      categoryName: categoryName,
+    );
+  }
+  return color;
+}

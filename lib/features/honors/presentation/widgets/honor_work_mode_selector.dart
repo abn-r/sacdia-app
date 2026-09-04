@@ -1,18 +1,23 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 
 /// Selector explícito del camino de trabajo de una especialidad inscrita.
 ///
-/// Se muestra únicamente cuando el backend indica `UNDECIDED`. La app no debe
-/// mezclar checklist dentro de la app con formato externo en la misma CTA.
+/// Se muestra únicamente cuando el backend indica `UNDECIDED`, o al cambiar
+/// de modo. La app no debe mezclar checklist dentro de la app con formato
+/// externo en la misma CTA.
 class HonorWorkModeSelector extends StatelessWidget {
   final Color categoryColor;
   final bool isLoading;
+  final bool showIntro;
+  final HonorCompletionMode? selectedMode;
   final ValueChanged<HonorCompletionMode> onSelected;
 
   const HonorWorkModeSelector({
@@ -20,125 +25,94 @@ class HonorWorkModeSelector extends StatelessWidget {
     required this.categoryColor,
     required this.onSelected,
     this.isLoading = false,
+    this.showIntro = true,
+    this.selectedMode,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: context.sac.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: context.sac.shadow,
-            blurRadius: 12,
-            offset: const Offset(0, 2),
+    final c = context.sac;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (showIntro) ...[
+          Text(
+            'honors.work_mode.title'.tr(),
+            style: TextStyle(
+              color: c.text,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              height: 1.2,
+              letterSpacing: -0.3,
+            ),
           ),
+          const SizedBox(height: 6),
+          Text(
+            'honors.work_mode.subtitle'.tr(),
+            style: TextStyle(
+              color: c.textSecondary,
+              fontSize: 14,
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 16),
         ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        _ModeOptionCard(
+          title: 'honors.work_mode.in_app_title'.tr(),
+          description: 'honors.work_mode.in_app_description'.tr(),
+          icon: HugeIcons.strokeRoundedTaskEdit01,
+          categoryColor: categoryColor,
+          selected: selectedMode == HonorCompletionMode.inApp,
+          enabled: !isLoading,
+          onTap: () => onSelected(HonorCompletionMode.inApp),
+        ),
+        const SizedBox(height: 10),
+        _ModeOptionCard(
+          title: 'honors.work_mode.external_title'.tr(),
+          description: 'honors.work_mode.external_description'.tr(),
+          icon: HugeIcons.strokeRoundedPdf01,
+          categoryColor: categoryColor,
+          selected: selectedMode == HonorCompletionMode.external,
+          enabled: !isLoading,
+          onTap: () => onSelected(HonorCompletionMode.external),
+        ),
+        if (isLoading && showIntro) ...[
+          const SizedBox(height: 14),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: categoryColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedRoute01,
+              SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
                   color: categoryColor,
-                  size: 24,
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'honors.work_mode.title'.tr(),
-                      style: TextStyle(
-                        color: context.sac.text,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        height: 1.2,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'honors.work_mode.subtitle'.tr(),
-                      style: TextStyle(
-                        color: context.sac.textSecondary,
-                        fontSize: 13,
-                        height: 1.45,
-                      ),
-                    ),
-                  ],
+              const SizedBox(width: 10),
+              Text(
+                'honors.work_mode.saving'.tr(),
+                style: TextStyle(
+                  color: c.textSecondary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          _ModeOptionCard(
-            title: 'honors.work_mode.in_app_title'.tr(),
-            description: 'honors.work_mode.in_app_description'.tr(),
-            icon: HugeIcons.strokeRoundedTaskEdit01,
-            categoryColor: categoryColor,
-            isLoading: isLoading,
-            onTap: () => onSelected(HonorCompletionMode.inApp),
-          ),
-          const SizedBox(height: 10),
-          _ModeOptionCard(
-            title: 'honors.work_mode.external_title'.tr(),
-            description: 'honors.work_mode.external_description'.tr(),
-            icon: HugeIcons.strokeRoundedPdf01,
-            categoryColor: categoryColor,
-            isLoading: isLoading,
-            onTap: () => onSelected(HonorCompletionMode.external),
-          ),
-          if (isLoading) ...[
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: categoryColor,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  'honors.work_mode.saving'.tr(),
-                  style: TextStyle(
-                    color: context.sac.textSecondary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ],
         ],
-      ),
+      ],
     );
   }
 }
 
-class _ModeOptionCard extends StatelessWidget {
+class _ModeOptionCard extends StatefulWidget {
   final String title;
   final String description;
   final HugeIconData icon;
   final Color categoryColor;
-  final bool isLoading;
+  final bool selected;
+  final bool enabled;
   final VoidCallback onTap;
 
   const _ModeOptionCard({
@@ -146,30 +120,61 @@ class _ModeOptionCard extends StatelessWidget {
     required this.description,
     required this.icon,
     required this.categoryColor,
-    required this.isLoading,
+    required this.selected,
+    required this.enabled,
     required this.onTap,
   });
 
   @override
+  State<_ModeOptionCard> createState() => _ModeOptionCardState();
+}
+
+class _ModeOptionCardState extends State<_ModeOptionCard> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() => _pressed = value);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final c = context.sac;
+    final reduce = SacMotion.reduceMotionOf(context);
+    final selected = widget.selected;
+    final duration = reduce ? Duration.zero : SacMotion.press;
+
     return Semantics(
       button: true,
-      enabled: !isLoading,
-      label: title,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: isLoading ? null : onTap,
-          child: Ink(
+      enabled: widget.enabled,
+      selected: selected,
+      label: widget.title,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: widget.enabled
+            ? (_) {
+                HapticFeedback.selectionClick();
+                _setPressed(true);
+              }
+            : null,
+        onTapUp: widget.enabled ? (_) => _setPressed(false) : null,
+        onTapCancel: widget.enabled ? () => _setPressed(false) : null,
+        onTap: widget.enabled ? widget.onTap : null,
+        child: AnimatedScale(
+          scale: (!reduce && _pressed) ? SacMotion.pressScale : 1,
+          duration: duration,
+          curve: SacMotion.easeOut,
+          child: AnimatedContainer(
+            duration: reduce ? Duration.zero : SacMotion.standard,
+            curve: SacMotion.easeOut,
             width: double.infinity,
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: categoryColor.withValues(alpha: 0.06),
+              color: c.surface,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: categoryColor.withValues(alpha: 0.22),
-                width: 1.2,
+                color: selected ? widget.categoryColor : c.border,
+                width: selected ? 1.5 : 1,
               ),
             ),
             child: Row(
@@ -179,12 +184,12 @@ class _ModeOptionCard extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: categoryColor.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
+                    color: c.surfaceVariant,
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: HugeIcon(
-                    icon: icon,
-                    color: categoryColor,
+                    icon: widget.icon,
+                    color: selected ? widget.categoryColor : c.textSecondary,
                     size: 22,
                   ),
                 ),
@@ -194,9 +199,9 @@ class _ModeOptionCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        title,
+                        widget.title,
                         style: TextStyle(
-                          color: context.sac.text,
+                          color: c.text,
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                           height: 1.25,
@@ -204,26 +209,70 @@ class _ModeOptionCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        description,
+                        widget.description,
                         style: TextStyle(
-                          color: context.sac.textSecondary,
-                          fontSize: 12,
+                          color: c.textSecondary,
+                          fontSize: 13,
                           height: 1.45,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedArrowRight01,
-                  color: categoryColor,
-                  size: 20,
+                const SizedBox(width: 10),
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: _ModeRadio(
+                    selected: selected,
+                    color: widget.categoryColor,
+                  ),
                 ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ModeRadio extends StatelessWidget {
+  final bool selected;
+  final Color color;
+
+  const _ModeRadio({
+    required this.selected,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 22,
+      height: 22,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: selected ? color : Colors.transparent,
+          border: Border.all(
+            color: selected ? color : context.sac.border,
+            width: 1.5,
+          ),
+        ),
+        child: selected
+            ? const Center(
+                child: SizedBox(
+                  width: 8,
+                  height: 8,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              )
+            : null,
       ),
     );
   }

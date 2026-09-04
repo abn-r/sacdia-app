@@ -188,11 +188,13 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               profileClubType: profile.clubType,
               activeClubTypeName: activeGrant?.clubTypeName,
             );
+            final showCertifications = ref.watch(isInvestedMasterGuideProvider);
 
             return _ProfileScrollBody(
               profile: profile,
               activeRoleName: activeRoleName,
               resolvedClubType: resolvedClubType,
+              showCertifications: showCertifications,
               isUploadingPhoto: _isUploadingPhoto,
               hPad: hPad,
               onChangePhoto: _isUploadingPhoto ? null : _changePhoto,
@@ -293,6 +295,9 @@ class _ProfileScrollBody extends StatelessWidget {
   /// Club type resolved from the active grant first, then profile fallback.
   final String? resolvedClubType;
 
+  /// Certifications are exclusive to invested Master Guides.
+  final bool showCertifications;
+
   final bool isUploadingPhoto;
   final double hPad;
   final VoidCallback? onChangePhoto;
@@ -307,6 +312,7 @@ class _ProfileScrollBody extends StatelessWidget {
     required this.profile,
     required this.activeRoleName,
     required this.resolvedClubType,
+    required this.showCertifications,
     required this.isUploadingPhoto,
     required this.hPad,
     required this.onRefresh,
@@ -501,30 +507,30 @@ class _ProfileScrollBody extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // ── 5b. Certificaciones del Usuario ──────────────────
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: hPad),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  _SectionLabel(
-                      label: 'profile.view.section_my_certifications'.tr()),
-                  _SectionHeaderActions(
-                    addSemanticLabel:
-                        'profile.certifications_section.browse_certifications'
-                            .tr(),
-                    onAdd: () => context.push(RouteNames.homeCertifications),
-                    onRefresh: onRefreshCertifications,
-                  ),
-                ],
+            if (showCertifications) ...[
+              // ── 5b. Certificaciones del Usuario ──────────────────
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: hPad),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    _SectionLabel(
+                        label: 'profile.view.section_my_certifications'.tr()),
+                    _SectionHeaderActions(
+                      addSemanticLabel:
+                          'profile.certifications_section.browse_certifications'
+                              .tr(),
+                      onAdd: () => context.push(RouteNames.homeCertifications),
+                      onRefresh: onRefreshCertifications,
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-
-            const ProfileCertificationsSection(),
-
-            const SizedBox(height: 20),
+              const SizedBox(height: 8),
+              const ProfileCertificationsSection(),
+              const SizedBox(height: 20),
+            ],
 
             // ── 6. Especialidades ─────────────────────────────────
             Padding(
@@ -548,7 +554,21 @@ class _ProfileScrollBody extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // ── 7. Carga por certificado ─────────────────────────
+            // ── 7. Logros ─────────────────────────────────────────
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: hPad),
+              child: _SectionLabel(
+                  label: 'profile.view.section_achievements'.tr()),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: hPad),
+              child: const AchievementProfileSummary(),
+            ),
+
+            const SizedBox(height: 20),
+
+            // ── 8. Carga por certificado ─────────────────────────
             Padding(
               padding: EdgeInsets.symmetric(horizontal: hPad),
               child: Container(
@@ -565,20 +585,6 @@ class _ProfileScrollBody extends StatelessWidget {
                   onTap: () => context.push(RouteNames.certificateImportUpload),
                 ),
               ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // ── 8. Logros ─────────────────────────────────────────
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: hPad),
-              child: _SectionLabel(
-                  label: 'profile.view.section_achievements'.tr()),
-            ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: hPad),
-              child: const AchievementProfileSummary(),
             ),
 
             const SizedBox(height: 32),

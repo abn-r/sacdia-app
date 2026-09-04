@@ -48,25 +48,13 @@ class HonorCard extends StatelessWidget {
   bool get _isEnrolled => userHonor != null;
   bool get _isCompleted => userHonor?.isCompleted ?? false;
   String? get _displayStatus => userHonor?.displayStatus;
-  Color get _categoryColor => getCategoryColor(
+
+  Color get _categoryPaintColor => getCategoryPaintColor(
         categoryId: honor.categoryId != 0
             ? honor.categoryId
             : userHonor?.honorCategoryId,
         categoryName: honor.categoryName ?? userHonor?.honorCategoryName,
       );
-
-  Color get _categoryPaintColor {
-    final categoryColor = _categoryColor;
-    final isLight =
-        ThemeData.estimateBrightnessForColor(categoryColor) == Brightness.light;
-    if (!isLight) return categoryColor;
-
-    return getCategoryAccentColor(
-      categoryId:
-          honor.categoryId != 0 ? honor.categoryId : userHonor?.honorCategoryId,
-      categoryName: honor.categoryName ?? userHonor?.honorCategoryName,
-    );
-  }
 
   /// Whether the progress section should be shown.
   bool get _showProgress =>

@@ -8,10 +8,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor_requirement.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
@@ -51,6 +53,17 @@ class _RequirementState {
       childrenExpanded: childrenExpanded ?? this.childrenExpanded,
     );
   }
+}
+
+SacTopBar _requirementsTopBar(BuildContext context, String honorName) {
+  return SacTopBar(
+    title: honorName,
+    subtitle: 'honors.requirements.header_subtitle'.tr(),
+    onBack: () {
+      HapticFeedback.lightImpact();
+      Navigator.of(context).maybePop();
+    },
+  );
 }
 
 // ── View ──────────────────────────────────────────────────────────────────────
@@ -196,6 +209,8 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
   }
 
   void _toggleRequirement(int requirementId) {
+    final userHonor = ref.read(userHonorForHonorProvider(widget.honorId));
+    if (userHonor == null || !userHonor.canSubmit) return;
     setState(() {
       final current = _localState[requirementId];
       if (current == null) return;
@@ -231,6 +246,9 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
   }
 
   Future<void> _saveChanges(List<HonorRequirement> requirements) async {
+    final userHonor = ref.read(userHonorForHonorProvider(widget.honorId));
+    if (userHonor == null || !userHonor.canSubmit) return;
+
     final honor = ref
         .read(allHonorsProvider)
         .valueOrNull
@@ -294,6 +312,9 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
   }
 
   void _showRequirementEvidenceOptions(HonorRequirement requirement) {
+    final userHonor = ref.read(userHonorForHonorProvider(widget.honorId));
+    if (userHonor == null || !userHonor.canSubmit) return;
+
     showSacSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -458,15 +479,8 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
     if (userHonorsAsync.isLoading) {
       return Scaffold(
         backgroundColor: context.sac.background,
-        body: Column(
-          children: [
-            _DarkHeader(
-              honorName: widget.honorName,
-              categoryColor: categoryColor,
-            ),
-            const Expanded(child: _LoadingBody()),
-          ],
-        ),
+        appBar: _requirementsTopBar(context, widget.honorName),
+        body: const _LoadingBody(),
       );
     }
 
@@ -508,12 +522,9 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
       },
       child: Scaffold(
         backgroundColor: context.sac.background,
+        appBar: _requirementsTopBar(context, widget.honorName),
         body: Column(
           children: [
-            _DarkHeader(
-              honorName: widget.honorName,
-              categoryColor: categoryColor,
-            ),
             Expanded(
               child: requirementsAsync.when(
                 loading: () => const _LoadingBody(),
@@ -576,13 +587,15 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
                                   categoryColor: categoryColor,
                                   progressByRequirementId:
                                       progressByRequirementId,
+                                  enabled: userHonor.canSubmit,
                                 );
                               },
                             ),
                           ),
 
                           _SaveBar(
-                            hasChanges: _hasUnsavedChanges,
+                            hasChanges:
+                                userHonor.canSubmit && _hasUnsavedChanges,
                             saving: _saving,
                             categoryColor: categoryColor,
                             onSave: () => _saveChanges(requirements),
@@ -609,6 +622,7 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
     required int depth,
     required Color categoryColor,
     required Map<int, UserHonorRequirementProgress> progressByRequirementId,
+    required bool enabled,
   }) {
     final state = _localState[req.id] ??
         const _RequirementState(
@@ -636,12 +650,13 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
         Stack(
           children: [
             RequirementTreeItem(
+              key: ValueKey(req.id),
               requirement: req,
               completed: state.completed,
-              textResponse: state.textResponse,
               responseController: _responseControllers[req.id],
               depth: depth,
               categoryColor: categoryColor,
+              enabled: enabled,
               onToggle: () => _toggleRequirement(req.id),
               evidenceCount: evidenceCount,
               isUploadingEvidence: _uploadingRequirementId == req.id,
@@ -654,17 +669,25 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
             if (hasChildren)
               Positioned(
                 right: 0,
-                top: 10,
+                top: 12,
                 child: GestureDetector(
-                  onTap: () => _toggleChildrenExpand(req.id),
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    _toggleChildrenExpand(req.id);
+                  },
                   child: Padding(
                     padding: const EdgeInsets.all(4),
-                    child: HugeIcon(
-                      icon: state.childrenExpanded
-                          ? HugeIcons.strokeRoundedArrowUp01
-                          : HugeIcons.strokeRoundedArrowDown01,
-                      size: 20,
-                      color: categoryColor,
+                    child: AnimatedRotation(
+                      turns: state.childrenExpanded ? 0.5 : 0,
+                      duration: SacMotion.reduceMotionOf(context)
+                          ? Duration.zero
+                          : SacMotion.standard,
+                      curve: SacMotion.easeOut,
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedArrowDown01,
+                        size: 18,
+                        color: context.sac.textTertiary,
+                      ),
                     ),
                   ),
                 ),
@@ -685,36 +708,29 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
               ),
             ),
 
-          // Thin vertical line connecting children.
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+          // Rail height follows the children column; avoid IntrinsicHeight +
+          // Expanded which gives the list a tight max height and overflows.
+          Padding(
+            padding: const EdgeInsets.only(left: 11),
+            child: Stack(
               children: [
-                // Indent track line.
-                Container(
-                  width: 24,
-                  margin: const EdgeInsets.only(left: 11),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      left: BorderSide(
-                        color: categoryColor.withValues(alpha: 0.25),
-                        width: 1.5,
-                      ),
-                    ),
-                  ),
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: 1.5,
+                  child: ColoredBox(color: context.sac.border),
                 ),
-
-                // Children list.
-                Expanded(
+                Padding(
+                  padding: const EdgeInsets.only(left: 24),
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       for (int i = 0; i < req.children.length; i++) ...[
                         if (i > 0)
                           Divider(
                             height: 1,
                             thickness: 1,
-                            indent: 0,
-                            endIndent: 0,
                             color: context.sac.divider,
                           ),
                         _buildRequirementBlock(
@@ -723,6 +739,7 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
                           depth: depth + 1,
                           categoryColor: categoryColor,
                           progressByRequirementId: progressByRequirementId,
+                          enabled: enabled,
                         ),
                       ],
                     ],
@@ -754,124 +771,48 @@ class _ModeGuardScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.sac.background,
-      body: Column(
-        children: [
-          _DarkHeader(
-            honorName: honorName,
-            categoryColor: categoryColor,
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedRoute01,
-                    size: 48,
-                    color: categoryColor,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: context.sac.text,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    message,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: context.sac.textSecondary,
-                      fontSize: 14,
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  SacButton.outline(
-                    text: 'honors.requirements.mode_guard_back'.tr(),
-                    textColor: categoryColor,
-                    borderColor: categoryColor,
-                    onPressed: () => Navigator.of(context).maybePop(),
-                  ),
-                ],
+      appBar: SacTopBar(
+        title: honorName,
+        onBack: () => Navigator.of(context).maybePop(),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedRoute01,
+              size: 48,
+              color: categoryColor,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: context.sac.text,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Dark Header ───────────────────────────────────────────────────────────────
-
-class _DarkHeader extends StatelessWidget {
-  final String honorName;
-  final Color categoryColor;
-
-  const _DarkHeader({
-    required this.honorName,
-    required this.categoryColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: categoryColor,
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
-          child: Row(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  Navigator.of(context).maybePop();
-                },
-                child: const Padding(
-                  padding: EdgeInsets.only(right: 12, top: 4, bottom: 4),
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedArrowLeft01,
-                    color: Colors.white,
-                    size: 22,
-                  ),
-                ),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: context.sac.textSecondary,
+                fontSize: 14,
+                height: 1.5,
               ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      honorName,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.3,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'honors.requirements.header_subtitle'.tr(),
-                      style: const TextStyle(
-                        color: Color(0x99FFFFFF),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 20),
+            SacButton.outline(
+              text: 'honors.requirements.mode_guard_back'.tr(),
+              textColor: categoryColor,
+              borderColor: categoryColor,
+              onPressed: () => Navigator.of(context).maybePop(),
+            ),
+          ],
         ),
       ),
     );
@@ -897,8 +838,15 @@ class _ProgressSection extends StatelessWidget {
     final percentage = (fraction * 100).round();
 
     return Container(
-      color: context.sac.surface,
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      decoration: BoxDecoration(
+        color: context.sac.surface,
+        border: Border(
+          bottom: BorderSide(
+            color: context.sac.border.withValues(alpha: 0.7),
+          ),
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -927,17 +875,98 @@ class _ProgressSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: fraction,
-              minHeight: 8,
-              backgroundColor: categoryColor.withValues(alpha: 0.15),
-              valueColor: AlwaysStoppedAnimation<Color>(categoryColor),
-            ),
+          _AnimatedProgressBar(
+            fraction: fraction,
+            color: categoryColor,
           ),
         ],
       ),
+    );
+  }
+}
+
+class _AnimatedProgressBar extends StatefulWidget {
+  final double fraction;
+  final Color color;
+
+  const _AnimatedProgressBar({
+    required this.fraction,
+    required this.color,
+  });
+
+  @override
+  State<_AnimatedProgressBar> createState() => _AnimatedProgressBarState();
+}
+
+class _AnimatedProgressBarState extends State<_AnimatedProgressBar>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: SacMotion.standard,
+    );
+    _animation = AlwaysStoppedAnimation(widget.fraction);
+    _controller.value = 1;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _controller.duration =
+        SacMotion.reduceMotionOf(context) ? Duration.zero : SacMotion.standard;
+  }
+
+  @override
+  void didUpdateWidget(covariant _AnimatedProgressBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.fraction == widget.fraction) return;
+
+    _animation = Tween<double>(
+      begin: _animation.value,
+      end: widget.fraction,
+    ).animate(
+      CurvedAnimation(parent: _controller, curve: SacMotion.easeOut),
+    );
+    _controller.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: Listenable.merge([_controller, _animation]),
+      builder: (context, _) {
+        final value = _animation.value.clamp(0.0, 1.0);
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(2),
+          child: SizedBox(
+            height: 4,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                ColoredBox(
+                  color: widget.color.withValues(alpha: 0.15),
+                ),
+                FractionallySizedBox(
+                  widthFactor: value,
+                  alignment: Alignment.centerLeft,
+                  child: ColoredBox(color: widget.color),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

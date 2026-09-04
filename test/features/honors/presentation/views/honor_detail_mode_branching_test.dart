@@ -204,7 +204,7 @@ void main() {
     expect(find.text('honors.detail.mode_external_legacy'), findsOneWidget);
     expect(find.text('Directora Local'), findsOneWidget);
     expect(find.text('Director'), findsOneWidget);
-    expect(find.text('honors.detail.completed_cta'), findsOneWidget);
+    expect(find.text('honors.detail.status_validated'), findsOneWidget);
   });
 
   testWidgets('in-app mode shows requirements CTA only', (tester) async {
@@ -273,10 +273,28 @@ void main() {
   testWidgets('external mode shows external flow CTA only', (tester) async {
     await pumpDetail(tester, HonorCompletionMode.external);
 
-    expect(find.text('honors.detail.external_flow_cta'), findsWidgets);
+    expect(find.byType(SliverAppBar), findsNothing);
+    expect(find.text('honors.detail.external_flow_cta'), findsOneWidget);
     expect(find.text('honors.detail.change_work_mode_cta'), findsOneWidget);
+    expect(find.text('honors.detail.external_mode_title'), findsOneWidget);
+    expect(find.text('honors.detail.mode_external'), findsOneWidget);
     expect(find.text('honors.detail.continue_requirements_cta'), findsNothing);
     expect(find.text('honors.detail.complete_requirements'), findsNothing);
+  });
+
+  testWidgets(
+      'pending review with external mode hides change mode and evidence CTA',
+      (tester) async {
+    await pumpDetail(
+      tester,
+      HonorCompletionMode.external,
+      validationStatus: 'PENDING_REVIEW',
+    );
+
+    expect(find.byType(SliverAppBar), findsNothing);
+    expect(find.text('honors.detail.under_review_cta'), findsOneWidget);
+    expect(find.text('honors.detail.change_work_mode_cta'), findsNothing);
+    expect(find.text('honors.detail.external_flow_cta'), findsNothing);
   });
 
   testWidgets('confirms before saving the selected work mode', (tester) async {
@@ -300,6 +318,12 @@ void main() {
     await tester.tap(find.text('honors.work_mode.in_app_title'));
     await tester.pumpAndSettle();
 
+    expect(find.text('honors.work_mode.confirm_title'), findsNothing);
+    expect(recorder.callCount, 0);
+
+    await tester.tap(find.text('honors.work_mode.continue_cta'));
+    await tester.pumpAndSettle();
+
     expect(find.text('honors.work_mode.confirm_title'), findsOneWidget);
     expect(recorder.callCount, 0);
 
@@ -312,6 +336,8 @@ void main() {
     await tester.ensureVisible(find.text('honors.work_mode.external_title'));
     await tester.tap(find.text('honors.work_mode.external_title'));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('honors.work_mode.continue_cta'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('common.confirm'));
     await tester.pumpAndSettle();
 
@@ -320,6 +346,7 @@ void main() {
     expect(recorder.capturedHonorId, 7);
     expect(recorder.capturedMode, HonorCompletionMode.external);
     expect(find.text('honors.work_mode.title'), findsNothing);
-    expect(find.text('honors.detail.external_flow_cta'), findsWidgets);
+    expect(find.text('honors.detail.external_flow_cta'), findsOneWidget);
+    expect(find.byType(SliverAppBar), findsNothing);
   });
 }
