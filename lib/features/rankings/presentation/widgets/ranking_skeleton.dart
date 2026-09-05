@@ -177,13 +177,14 @@ class _RankingSkeletonState extends State<RankingSkeleton>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _ShimmerBox(height: 188, borderRadius: AppTheme.radiusMD),
+            // Hero: puntos + track + escalera de rangos.
+            _ShimmerBox(height: 252, borderRadius: AppTheme.radiusMD),
             const SizedBox(height: 12),
-            _ShimmerBox(height: 86, borderRadius: AppTheme.radiusMD),
+            // Desglose por ejes.
+            _ShimmerBox(height: 296, borderRadius: AppTheme.radiusMD),
             const SizedBox(height: 12),
-            _ShimmerBox(height: 330, borderRadius: AppTheme.radiusMD),
-            const SizedBox(height: 12),
-            _ShimmerBox(height: 118, borderRadius: AppTheme.radiusMD),
+            // Pendientes.
+            _ShimmerBox(height: 128, borderRadius: AppTheme.radiusMD),
           ],
         ),
       ),

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui' show FontFeature, ImageFilter;
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -157,6 +158,10 @@ class _AnnualRankingProgressBody extends ConsumerWidget {
   }
 }
 
+/// Reveal compartido por número, track y barras: todo aterriza en el mismo
+/// frame (una sola "voz" de movimiento en la pantalla).
+const Duration _kReveal = Duration(milliseconds: 600);
+
 class AnnualRankingProgressContent extends StatelessWidget {
   final AnnualRankingProgress progress;
   final String yearName;
@@ -173,14 +178,6 @@ class AnnualRankingProgressContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final sections = <Widget>[
       _ProgressHeroCard(progress: progress, yearName: yearName),
-      const SizedBox(height: 12),
-      if (progress.nextTier != null)
-        _NextTierCard(
-          tier: progress.nextTier!,
-          currentPoints: progress.currentPoints,
-        )
-      else
-        const _TopTierCard(),
       const SizedBox(height: 12),
       if (progress.axes.isNotEmpty)
         _AxesCard(axes: progress.axes)
@@ -209,6 +206,13 @@ class AnnualRankingProgressContent extends StatelessWidget {
   }
 }
 
+// ─── Hero ────────────────────────────────────────────────────────────────────
+
+/// Una sola lectura del año: puntos → track con hitos de rango → escalera.
+///
+/// El track va de 0 al máximo anual; los hitos marcan el inicio del rango
+/// actual y del siguiente, así el porcentaje y la distancia al próximo rango
+/// viven en el mismo glifo (antes eran anillo + card separada).
 class _ProgressHeroCard extends StatelessWidget {
   final AnnualRankingProgress progress;
   final String yearName;
@@ -218,83 +222,109 @@ class _ProgressHeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final percent = (progress.progressPercentage / 100).clamp(0.0, 1.0);
-    final progressColor = _progressColorFor(percent, c);
+    final current = progress.currentTier;
+    final next = progress.nextTier;
+    final hasCurrent = current?.name.trim().isNotEmpty == true;
+    final percent =
+        (progress.progressPercentage / 100).clamp(0.0, 1.0).toDouble();
+    final percentLabel =
+        '${progress.progressPercentage.clamp(0, 100).toStringAsFixed(0)}%';
+    final fillColor = _progressColorFor(percent, c);
+    final pointsToReach = next?.pointsToReach;
+
+    final clubLine = tr(
+      'rankings.annual_progress.header_body',
+      namedArgs: {
+        'club': progress.clubName,
+        'type': progress.clubType.name,
+        'year': yearName,
+      },
+    );
+    final pointsOfTotal = tr(
+      'rankings.annual_progress.points_of_total',
+      namedArgs: {'total': _formatPoints(progress.maxPoints)},
+    );
+    final nextHint = pointsToReach == null
+        ? null
+        : tr(
+            'rankings.annual_progress.points_to_reach',
+            namedArgs: {'points': _formatPoints(pointsToReach)},
+          );
+
+    final semanticsLabel = [
+      tr('rankings.annual_progress.header_title'),
+      clubLine,
+      '${_formatPoints(progress.currentPoints)} $pointsOfTotal',
+      tr(
+        'rankings.annual_progress.progress_percentage',
+        namedArgs: {
+          'percent': progress.progressPercentage.clamp(0, 100).toStringAsFixed(0)
+        },
+      ),
+      hasCurrent
+          ? current!.name.trim()
+          : tr('rankings.annual_progress.no_tier_yet'),
+      if (next != null)
+        '${tr('rankings.annual_progress.next_tier')}: ${next.name}',
+      if (nextHint != null) nextHint,
+      if (next == null) tr('rankings.annual_progress.top_tier_reached'),
+    ].join(', ');
 
     return Semantics(
-      label:
-          '${tr('rankings.annual_progress.header_title')}, ${_formatPoints(progress.currentPoints)} ${tr('rankings.annual_progress.points_of_total', namedArgs: {
-            'total': _formatPoints(progress.maxPoints)
-          })}, ${tr('rankings.annual_progress.progress_percentage', namedArgs: {
-            'percent': progress.progressPercentage.toStringAsFixed(0)
-          })}',
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
-        decoration: BoxDecoration(
-          color: c.surface,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: c.borderLight),
-        ),
+      container: true,
+      label: semanticsLabel,
+      excludeSemantics: true,
+      child: SacCard(
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              tr('rankings.annual_progress.header_title'),
-              style: TextStyle(
-                color: c.text,
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-                height: 1.15,
-                letterSpacing: -0.2,
-              ),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              tr(
-                'rankings.annual_progress.header_body',
-                namedArgs: {
-                  'club': progress.clubName,
-                  'type': progress.clubType.name,
-                  'year': yearName,
-                },
-              ),
-              style: TextStyle(
-                color: c.textSecondary,
-                fontSize: 12.5,
-                fontWeight: FontWeight.w600,
-                height: 1.3,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 18),
             Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Text(
+                        tr('rankings.annual_progress.header_title')
+                            .toUpperCase(),
+                        style: TextStyle(
+                          color: c.textSecondary,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.8,
+                          height: 1.1,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        clubLine,
+                        style: TextStyle(
+                          color: c.text,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          height: 1.25,
+                          letterSpacing: -0.1,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 14),
                       _AnimatedPoints(
                         value: progress.currentPoints,
                         style: TextStyle(
-                          color: AppColors.primary,
-                          fontSize: 40,
+                          color: fillColor,
+                          fontSize: 44,
                           fontWeight: FontWeight.w800,
-                          letterSpacing: -1.2,
-                          height: 0.95,
+                          letterSpacing: -1.6,
+                          height: 1,
                           fontFeatures: const [FontFeature.tabularFigures()],
                         ),
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        tr(
-                          'rankings.annual_progress.points_of_total',
-                          namedArgs: {
-                            'total': _formatPoints(progress.maxPoints),
-                          },
-                        ),
+                        pointsOfTotal,
                         style: TextStyle(
                           color: c.textSecondary,
                           fontSize: 13,
@@ -302,20 +332,36 @@ class _ProgressHeroCard extends StatelessWidget {
                           height: 1.25,
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      _CurrentTierBadge(tier: progress.currentTier),
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
-                _HeroRing(
-                  progress: percent,
-                  color: progressColor,
-                  label:
-                      '${progress.progressPercentage.clamp(0, 100).toStringAsFixed(0)}%',
-                ),
+                const SizedBox(width: 14),
+                _TierMedal(tier: current, size: 60, locked: !hasCurrent),
               ],
             ),
+            const SizedBox(height: 18),
+            _TierTrack(
+              progress: percent,
+              fillColor: fillColor,
+              percentLabel: percentLabel,
+              milestones: _milestonesFor(context, progress),
+            ),
+            const SizedBox(height: 14),
+            _TierLadderRow(
+              tier: current,
+              locked: !hasCurrent,
+              reached: true,
+            ),
+            const SizedBox(height: 10),
+            if (next != null)
+              _TierLadderRow(
+                tier: next,
+                locked: false,
+                reached: false,
+                hint: nextHint,
+              )
+            else
+              const _TopTierRow(),
           ],
         ),
       ),
@@ -323,290 +369,296 @@ class _ProgressHeroCard extends StatelessWidget {
   }
 }
 
-class _HeroRing extends StatelessWidget {
-  final double progress;
+class _TrackMilestone {
+  final double position;
   final Color color;
-  final String label;
 
-  const _HeroRing({
+  const _TrackMilestone({required this.position, required this.color});
+
+  @override
+  bool operator ==(Object other) =>
+      other is _TrackMilestone &&
+      other.position == position &&
+      other.color == color;
+
+  @override
+  int get hashCode => Object.hash(position, color);
+}
+
+List<_TrackMilestone> _milestonesFor(
+  BuildContext context,
+  AnnualRankingProgress progress,
+) {
+  final max = progress.maxPoints;
+  if (max <= 0) return const [];
+
+  final out = <_TrackMilestone>[];
+  void add(RankingTier? tier) {
+    if (tier == null) return;
+    final from = tier.fromPoints;
+    if (from <= 0 || from > max) return;
+    out.add(
+      _TrackMilestone(
+        position: from / max,
+        color: _tierColorFor(context, tier),
+      ),
+    );
+  }
+
+  add(progress.currentTier);
+  add(progress.nextTier);
+  return out;
+}
+
+/// Barra 0 → máximo anual con hitos de rango. El relleno se anima y cada hito
+/// "se enciende" cuando el relleno lo cruza.
+class _TierTrack extends StatelessWidget {
+  final double progress;
+  final Color fillColor;
+  final String percentLabel;
+  final List<_TrackMilestone> milestones;
+
+  const _TierTrack({
     required this.progress,
-    required this.color,
-    required this.label,
+    required this.fillColor,
+    required this.percentLabel,
+    required this.milestones,
   });
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final target = progress.clamp(0.0, 1.0);
     final reduce = SacMotion.reduceMotionOf(context);
 
-    return SizedBox(
-      width: 84,
-      height: 84,
-      child: TweenAnimationBuilder<double>(
-        tween: Tween<double>(begin: 0, end: target),
-        duration: reduce ? Duration.zero : const Duration(milliseconds: 800),
-        curve: SacMotion.easeOut,
-        builder: (context, value, _) {
-          return Stack(
-            alignment: Alignment.center,
-            children: [
-              CustomPaint(
-                size: const Size(84, 84),
-                painter: _RingPainter(
+    return Row(
+      children: [
+        Expanded(
+          child: SizedBox(
+            height: 16,
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: 0, end: progress),
+              duration: reduce ? Duration.zero : _kReveal,
+              curve: SacMotion.easeOut,
+              builder: (context, value, _) => CustomPaint(
+                painter: _TierTrackPainter(
                   progress: value,
-                  color: color,
-                  trackColor: c.surfaceVariant,
+                  fillColor: fillColor,
+                  trackColor: _trackColorOf(c),
+                  surfaceColor: c.surface,
+                  milestones: milestones,
                 ),
               ),
-              Text(
-                label,
-                style: TextStyle(
-                  color: c.text,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.3,
-                  height: 1,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-              ),
-            ],
-          );
-        },
-      ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          percentLabel,
+          style: TextStyle(
+            color: c.text,
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+            height: 1,
+            letterSpacing: -0.2,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _RingPainter extends CustomPainter {
+class _TierTrackPainter extends CustomPainter {
   final double progress;
-  final Color color;
+  final Color fillColor;
   final Color trackColor;
+  final Color surfaceColor;
+  final List<_TrackMilestone> milestones;
 
-  const _RingPainter({
+  static const double _barHeight = 8;
+  static const double _dotRadius = 4.5;
+  static const double _dotRing = 2;
+
+  const _TierTrackPainter({
     required this.progress,
-    required this.color,
+    required this.fillColor,
     required this.trackColor,
+    required this.surfaceColor,
+    required this.milestones,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    const stroke = 7.0;
-    final radius = size.width / 2 - stroke;
+    final cy = size.height / 2;
+    final radius = Radius.circular(_barHeight / 2);
+    final barTop = cy - _barHeight / 2;
 
-    final track = Paint()
-      ..color = trackColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = stroke
-      ..strokeCap = StrokeCap.round;
-    canvas.drawCircle(center, radius, track);
-
-    if (progress <= 0) return;
-
-    final arc = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = stroke
-      ..strokeCap = StrokeCap.round;
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -math.pi / 2,
-      2 * math.pi * progress,
-      false,
-      arc,
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, barTop, size.width, _barHeight),
+        radius,
+      ),
+      Paint()..color = trackColor,
     );
+
+    if (progress > 0) {
+      final fillWidth = math.max(_barHeight, size.width * progress);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(0, barTop, fillWidth, _barHeight),
+          radius,
+        ),
+        Paint()..color = fillColor,
+      );
+    }
+
+    final outer = _dotRadius + _dotRing;
+    for (final m in milestones) {
+      final x = (size.width * m.position).clamp(outer, size.width - outer);
+      final center = Offset(x, cy);
+      final reached = progress + 0.0005 >= m.position;
+
+      // Anillo en color de superficie: el hito "recorta" la barra.
+      canvas.drawCircle(center, outer, Paint()..color = surfaceColor);
+      if (reached) {
+        canvas.drawCircle(center, _dotRadius, Paint()..color = m.color);
+      } else {
+        canvas.drawCircle(
+          center,
+          _dotRadius - 1,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2
+            ..color = m.color,
+        );
+      }
+    }
   }
 
   @override
-  bool shouldRepaint(covariant _RingPainter oldDelegate) =>
-      oldDelegate.progress != progress ||
-      oldDelegate.color != color ||
-      oldDelegate.trackColor != trackColor;
+  bool shouldRepaint(covariant _TierTrackPainter old) =>
+      old.progress != progress ||
+      old.fillColor != fillColor ||
+      old.trackColor != trackColor ||
+      old.surfaceColor != surfaceColor ||
+      !listEquals(old.milestones, milestones);
 }
 
-/// Badge del rango actual — medalla + label. Sin rango usa look “locked” cálido.
-class _CurrentTierBadge extends StatelessWidget {
+/// Fila de la escalera: rango actual (medalla plena + check) o siguiente
+/// (medalla atenuada + puntos faltantes).
+class _TierLadderRow extends StatelessWidget {
   final RankingTier? tier;
+  final bool locked;
+  final bool reached;
+  final String? hint;
 
-  const _CurrentTierBadge({required this.tier});
-
-  @override
-  Widget build(BuildContext context) {
-    final hasTier = tier?.name.trim().isNotEmpty == true;
-    final palette = hasTier
-        ? _tierPaletteFor(context, tier)
-        : const _TierPalette(
-            foreground: Color(0xFFB86A2D),
-            background: Color(0xFFFFF1E0),
-            gradient: [Color(0xFFFFE0B8), Color(0xFFFFF4E4)],
-          );
-    final label = hasTier
-        ? tier!.name.trim()
-        : tr('rankings.annual_progress.no_tier_yet');
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(8, 6, 12, 6),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: palette.gradient,
-        ),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: palette.foreground.withValues(alpha: hasTier ? 0.28 : 0.35),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: palette.foreground.withValues(alpha: 0.14),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _TierMedal(tier: tier, size: 26, locked: !hasTier),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: TextStyle(
-              color: palette.foreground,
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              height: 1.15,
-              letterSpacing: -0.1,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _NextTierCard extends StatelessWidget {
-  final RankingTier tier;
-  final int currentPoints;
-
-  const _NextTierCard({required this.tier, required this.currentPoints});
+  const _TierLadderRow({
+    required this.tier,
+    required this.locked,
+    required this.reached,
+    this.hint,
+  });
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final pointsToReach = tier.pointsToReach;
-    final palette = _tierPaletteFor(context, tier);
-    final threshold = tier.fromPoints > 0 ? tier.fromPoints : tier.toPoints;
-    final toward =
-        threshold > 0 ? (currentPoints / threshold).clamp(0.0, 1.0) : 0.0;
+    final name = locked
+        ? tr('rankings.annual_progress.no_tier_yet')
+        : tier!.name.trim();
 
-    return Container(
-      width: double.infinity,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            palette.gradient.first,
-            Color.lerp(palette.gradient.last, c.surface, 0.15)!,
-          ],
+    return Row(
+      crossAxisAlignment:
+          hint == null ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+      children: [
+        _TierMedal(
+          tier: tier,
+          size: 26,
+          locked: locked,
+          fade: reached || locked ? 1 : 0.55,
         ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: palette.foreground.withValues(alpha: 0.22)),
-        boxShadow: [
-          BoxShadow(
-            color: palette.foreground.withValues(alpha: 0.12),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: -18,
-            top: -22,
-            // colorFilter evita Opacity+SVG (Impeller SetInheritedOpacity break).
-            child: _TierMedal(tier: tier, size: 110, locked: false, fade: 0.18),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 14, 16, 14),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.72),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: palette.foreground.withValues(alpha: 0.18),
-                    ),
-                  ),
-                  child: _TierMedal(tier: tier, size: 48, locked: false),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                name,
+                style: TextStyle(
+                  color: locked ? c.textSecondary : c.text,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  height: 1.15,
+                  letterSpacing: -0.2,
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        tr('rankings.annual_progress.next_tier').toUpperCase(),
-                        style: TextStyle(
-                          color: palette.foreground.withValues(alpha: 0.78),
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.1,
-                          height: 1.1,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        tier.name,
-                        style: TextStyle(
-                          color: palette.foreground,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          height: 1.05,
-                          letterSpacing: -0.4,
-                        ),
-                      ),
-                      if (pointsToReach != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          tr(
-                            'rankings.annual_progress.points_to_reach',
-                            namedArgs: {'points': _formatPoints(pointsToReach)},
-                          ),
-                          style: TextStyle(
-                            color: c.text.withValues(alpha: 0.72),
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
-                            height: 1.25,
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: 10),
-                      _AnimatedProgressBar(
-                        value: toward,
-                        backgroundColor: palette.foreground.withValues(
-                          alpha: 0.12,
-                        ),
-                        color: palette.foreground,
-                        height: 5,
-                      ),
-                    ],
+              ),
+              if (hint != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  hint!,
+                  style: TextStyle(
+                    color: c.textSecondary,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    height: 1.3,
                   ),
                 ),
               ],
-            ),
+            ],
+          ),
+        ),
+        if (reached && !locked) ...[
+          const SizedBox(width: 8),
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+            size: 18,
+            color: c.success,
           ),
         ],
-      ),
+      ],
+    );
+  }
+}
+
+class _TopTierRow extends StatelessWidget {
+  const _TopTierRow();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 26,
+          height: 26,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: c.success.withValues(alpha: 0.14),
+          ),
+          child: HugeIcon(
+            icon: HugeIcons.strokeRoundedMedal05,
+            size: 14,
+            color: c.success,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              tr('rankings.annual_progress.top_tier_reached'),
+              style: TextStyle(
+                color: c.textSecondary,
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                height: 1.3,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -629,6 +681,7 @@ class _TierMedal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // colorFilter evita Opacity+SVG (Impeller SetInheritedOpacity break).
     final fadeFilter = fade < 1
         ? ColorFilter.mode(
             Colors.white.withValues(alpha: fade),
@@ -668,13 +721,7 @@ class _TierMedal extends StatelessWidget {
   }
 
   Widget _iconMedal(BuildContext context) {
-    final palette = locked
-        ? const _TierPalette(
-            foreground: Color(0xFFB86A2D),
-            background: Color(0xFFFFF1E0),
-            gradient: [Color(0xFFFFE0B8), Color(0xFFFFF4E4)],
-          )
-        : _tierPaletteFor(context, tier);
+    final color = _tierColorFor(context, locked ? null : tier);
 
     return Container(
       width: size,
@@ -686,76 +733,26 @@ class _TierMedal extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            palette.foreground.withValues(alpha: locked ? 0.18 : 0.95),
-            palette.foreground.withValues(alpha: locked ? 0.08 : 0.72),
+            color.withValues(alpha: locked ? 0.18 : 0.95),
+            color.withValues(alpha: locked ? 0.08 : 0.72),
           ],
         ),
         border: locked
-            ? Border.all(
-                color: palette.foreground.withValues(alpha: 0.45),
-                width: 1.5,
-              )
+            ? Border.all(color: color.withValues(alpha: 0.45), width: 1.5)
             : null,
       ),
       child: HugeIcon(
         icon: locked
             ? HugeIcons.strokeRoundedLock
-            : HugeIcons.strokeRoundedAward01,
+            : HugeIcons.strokeRoundedMedal05,
         size: size * 0.48,
-        color:
-            locked ? palette.foreground : Colors.white.withValues(alpha: 0.95),
+        color: locked ? color : Colors.white.withValues(alpha: 0.95),
       ),
     );
   }
 }
 
-class _TopTierCard extends StatelessWidget {
-  const _TopTierCard();
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Color.lerp(c.surface, AppColors.secondaryLight, 0.6),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: c.surface.withValues(alpha: 0.85),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const HugeIcon(
-              icon: HugeIcons.strokeRoundedAward01,
-              size: 22,
-              color: AppColors.secondaryDark,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              tr('rankings.annual_progress.top_tier_reached'),
-              style: const TextStyle(
-                color: AppColors.secondaryDark,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                height: 1.3,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+// ─── Desglose ────────────────────────────────────────────────────────────────
 
 class _ComponentsCard extends StatelessWidget {
   final List<RankingComponentProgress> components;
@@ -765,7 +762,7 @@ class _ComponentsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SacCard(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -774,8 +771,11 @@ class _ComponentsCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           for (var index = 0; index < components.length; index++) ...[
-            _ComponentRow(component: components[index]),
-            if (index != components.length - 1) const SizedBox(height: 14),
+            _ComponentRow(
+              component: components[index],
+              accent: AppColors.primary,
+            ),
+            if (index != components.length - 1) const SizedBox(height: 10),
           ],
         ],
       ),
@@ -783,6 +783,8 @@ class _ComponentsCard extends StatelessWidget {
   }
 }
 
+/// Un eje = una barra. Los componentes se leen como filas compactas con una
+/// micro-barra y el ratio tipográfico (ganado fuerte, máximo atenuado).
 class _AxesCard extends StatelessWidget {
   final List<RankingAxisProgress> axes;
 
@@ -793,21 +795,18 @@ class _AxesCard extends StatelessWidget {
     final c = context.sac;
 
     return SacCard(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _SectionHeading(
             title: tr('rankings.annual_progress.components_title'),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           for (var index = 0; index < axes.length; index++) ...[
             _AxisSection(axis: axes[index]),
             if (index != axes.length - 1)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Divider(height: 1, color: c.divider),
-              ),
+              Divider(height: 1, color: c.divider),
           ],
         ],
       ),
@@ -823,53 +822,49 @@ class _AxisSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final percent = (axis.progressPercentage / 100).clamp(0.0, 1.0);
+    final percent = (axis.progressPercentage / 100).clamp(0.0, 1.0).toDouble();
     final accent = _axisAccentFor(axis.key);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.symmetric(vertical: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: Text(
-                  axis.label,
-                  style: TextStyle(
-                    color: c.text,
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w800,
-                    height: 1.2,
-                    letterSpacing: -0.15,
+          MergeSemantics(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: Text(
+                    axis.label,
+                    style: TextStyle(
+                      color: c.text,
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w800,
+                      height: 1.2,
+                      letterSpacing: -0.15,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                tr(
-                  'rankings.annual_progress.component_points',
-                  namedArgs: {
-                    'earned': _formatPoints(axis.earnedPoints),
-                    'max': _formatPoints(axis.maxPoints),
-                  },
-                ),
-                style: TextStyle(
-                  color: _progressColorFor(percent, c, activeColor: accent),
+                const SizedBox(width: 12),
+                _RatioText(
+                  earned: axis.earnedPoints,
+                  max: axis.maxPoints,
                   fontSize: 12.5,
-                  fontWeight: FontWeight.w800,
-                  fontFeatures: const [FontFeature.tabularFigures()],
+                  strong: _valueColorFor(percent, c),
+                  muted: c.textTertiary,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 8),
-          _AnimatedProgressBar(
-            value: percent,
-            backgroundColor: c.surfaceVariant,
-            color: _progressColorFor(percent, c, activeColor: accent),
-            height: 5,
+          ExcludeSemantics(
+            child: _AnimatedBar(
+              value: percent,
+              color: _progressColorFor(percent, c, activeColor: accent),
+              trackColor: _trackColorOf(c),
+              height: 6,
+            ),
           ),
           if (axis.components.isNotEmpty) ...[
             const SizedBox(height: 12),
@@ -877,10 +872,9 @@ class _AxisSection extends StatelessWidget {
               _ComponentRow(
                 component: axis.components[index],
                 accent: accent,
-                indented: true,
               ),
               if (index != axis.components.length - 1)
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
             ],
           ],
         ],
@@ -891,74 +885,122 @@ class _AxisSection extends StatelessWidget {
 
 class _ComponentRow extends StatelessWidget {
   final RankingComponentProgress component;
-  final Color? accent;
-  final bool indented;
+  final Color accent;
 
-  const _ComponentRow({
-    required this.component,
-    this.accent,
-    this.indented = false,
-  });
+  const _ComponentRow({required this.component, required this.accent});
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final percent = (component.progressPercentage / 100).clamp(0.0, 1.0);
-    final color = _progressColorFor(
-      percent,
-      c,
-      activeColor: accent ?? AppColors.primary,
-    );
+    final percent =
+        (component.progressPercentage / 100).clamp(0.0, 1.0).toDouble();
 
-    return Padding(
-      padding: EdgeInsets.only(left: indented ? 2 : 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return MergeSemantics(
+      child: Row(
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  component.label,
-                  style: TextStyle(
-                    color: c.text,
-                    fontSize: indented ? 13 : 14,
-                    fontWeight: FontWeight.w700,
-                    height: 1.25,
-                  ),
-                ),
+          Expanded(
+            child: Text(
+              component.label,
+              style: TextStyle(
+                color: c.text,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                height: 1.25,
               ),
-              const SizedBox(width: 10),
-              Text(
-                tr(
-                  'rankings.annual_progress.component_points',
-                  namedArgs: {
-                    'earned': _formatPoints(component.earnedPoints),
-                    'max': _formatPoints(component.maxPoints),
-                  },
-                ),
-                style: TextStyle(
-                  color: color,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-              ),
-            ],
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-          const SizedBox(height: 6),
-          _AnimatedProgressBar(
-            value: percent,
-            backgroundColor: c.surfaceVariant,
-            color: color,
-            height: 3.5,
+          const SizedBox(width: 12),
+          ExcludeSemantics(
+            child: SizedBox(
+              width: 40,
+              child: _AnimatedBar(
+                value: percent,
+                color: _progressColorFor(percent, c, activeColor: accent),
+                trackColor: _trackColorOf(c),
+                height: 4,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          SizedBox(
+            width: 104,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: _RatioText(
+                earned: component.earnedPoints,
+                max: component.maxPoints,
+                fontSize: 12,
+                strong: _valueColorFor(percent, c),
+                muted: c.textTertiary,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 }
+
+/// `{earned} / {max} pts` con el ganado en fuerte y el resto atenuado.
+/// Parte la cadena i18n en el sub-string del ganado; si no lo encuentra,
+/// cae a una sola tinta.
+class _RatioText extends StatelessWidget {
+  final int earned;
+  final int max;
+  final double fontSize;
+  final Color strong;
+  final Color muted;
+
+  const _RatioText({
+    required this.earned,
+    required this.max,
+    required this.fontSize,
+    required this.strong,
+    required this.muted,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final earnedText = _formatPoints(earned);
+    final full = tr(
+      'rankings.annual_progress.component_points',
+      namedArgs: {'earned': earnedText, 'max': _formatPoints(max)},
+    );
+    final base = TextStyle(
+      color: muted,
+      fontSize: fontSize,
+      fontWeight: FontWeight.w700,
+      height: 1.2,
+      fontFeatures: const [FontFeature.tabularFigures()],
+    );
+
+    final index = full.indexOf(earnedText);
+    if (index < 0) {
+      return Text(full, style: base.copyWith(color: strong), maxLines: 1);
+    }
+
+    return Text.rich(
+      TextSpan(
+        style: base,
+        children: [
+          if (index > 0) TextSpan(text: full.substring(0, index)),
+          TextSpan(
+            text: earnedText,
+            style: TextStyle(color: strong, fontWeight: FontWeight.w800),
+          ),
+          TextSpan(text: full.substring(index + earnedText.length)),
+        ],
+      ),
+      maxLines: 1,
+      softWrap: false,
+    );
+  }
+}
+
+// ─── Pendientes ──────────────────────────────────────────────────────────────
 
 class _PendingItemsCard extends StatelessWidget {
   final List<RankingPendingItem> items;
@@ -975,29 +1017,73 @@ class _PendingItemsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _SectionHeading(title: tr('rankings.annual_progress.pending.title')),
+          Row(
+            children: [
+              Expanded(
+                child: _SectionHeading(
+                  title: tr('rankings.annual_progress.pending.title'),
+                ),
+              ),
+              if (hasItems) ...[
+                const SizedBox(width: 10),
+                _CountPill(count: items.length),
+              ],
+            ],
+          ),
           const SizedBox(height: 12),
           if (!hasItems)
-            Text(
-              tr('rankings.annual_progress.pending.empty'),
-              style: TextStyle(
-                color: c.textSecondary,
-                fontSize: 13.5,
-                fontWeight: FontWeight.w600,
-                height: 1.35,
-              ),
-            )
+            const _PendingEmptyRow()
           else
             for (var index = 0; index < items.length; index++) ...[
               _PendingItemTile(item: items[index]),
-              if (index != items.length - 1) ...[
-                const SizedBox(height: 8),
-                Divider(height: 1, color: c.divider),
-                const SizedBox(height: 8),
-              ],
+              if (index != items.length - 1)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Divider(height: 1, color: c.divider),
+                ),
             ],
         ],
       ),
+    );
+  }
+}
+
+class _PendingEmptyRow extends StatelessWidget {
+  const _PendingEmptyRow();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return Row(
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: c.success.withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: HugeIcon(
+            icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+            size: 18,
+            color: c.success,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            tr('rankings.annual_progress.pending.empty'),
+            style: TextStyle(
+              color: c.textSecondary,
+              fontSize: 13.5,
+              fontWeight: FontWeight.w600,
+              height: 1.35,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -1010,15 +1096,30 @@ class _PendingItemTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    final tone = _pendingToneFor(context, item);
+    final due = item.dueDate;
 
-    return Column(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Text(
+        Container(
+          width: 36,
+          height: 36,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: tone.background,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: HugeIcon(icon: tone.icon, size: 18, color: tone.foreground),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Título a todo el ancho: el chip vive en la línea de meta para
+              // no forzar saltos de línea en títulos cortos.
+              Text(
                 item.title,
                 style: TextStyle(
                   color: c.text,
@@ -1027,26 +1128,46 @@ class _PendingItemTile extends StatelessWidget {
                   height: 1.25,
                 ),
               ),
-            ),
-            const SizedBox(width: 8),
-            _StatusChip(label: tr(item.statusLabelKey)),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Text(
-          [
-            item.actionLabel,
-            if (item.dueDate != null)
-              tr(
-                'rankings.annual_progress.pending.due_date',
-                namedArgs: {'date': _formatDate(item.dueDate!)},
+              const SizedBox(height: 6),
+              // Wrap: si la meta no cabe junto al chip, baja entera a la
+              // siguiente línea en vez de partirse a mitad de frase.
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  _StatusChip(label: tr(item.statusLabelKey), tone: tone),
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(text: item.actionLabel),
+                        if (due != null) ...[
+                          const TextSpan(text: ' · '),
+                          TextSpan(
+                            text: tr(
+                              'rankings.annual_progress.pending.due_date',
+                              namedArgs: {'date': _formatDate(due)},
+                            ),
+                            style: tone.overdue
+                                ? TextStyle(
+                                    color: tone.foreground,
+                                    fontWeight: FontWeight.w700,
+                                  )
+                                : null,
+                          ),
+                        ],
+                      ],
+                    ),
+                    style: TextStyle(
+                      color: c.textSecondary,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      height: 1.3,
+                    ),
+                  ),
+                ],
               ),
-          ].join(' · '),
-          style: TextStyle(
-            color: c.textSecondary,
-            fontSize: 12.5,
-            fontWeight: FontWeight.w600,
-            height: 1.3,
+            ],
           ),
         ),
       ],
@@ -1056,21 +1177,22 @@ class _PendingItemTile extends StatelessWidget {
 
 class _StatusChip extends StatelessWidget {
   final String label;
+  final _PendingTone tone;
 
-  const _StatusChip({required this.label});
+  const _StatusChip({required this.label, required this.tone});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.10),
+        color: tone.background,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
         label,
-        style: const TextStyle(
-          color: AppColors.primaryDark,
+        style: TextStyle(
+          color: tone.foreground,
           fontSize: 11,
           fontWeight: FontWeight.w700,
           height: 1.2,
@@ -1079,6 +1201,113 @@ class _StatusChip extends StatelessWidget {
     );
   }
 }
+
+class _CountPill extends StatelessWidget {
+  final int count;
+
+  const _CountPill({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: _trackColorOf(c),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        '$count',
+        style: TextStyle(
+          color: c.textSecondary,
+          fontSize: 11.5,
+          fontWeight: FontWeight.w800,
+          height: 1.2,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
+      ),
+    );
+  }
+}
+
+class _PendingTone {
+  final Color foreground;
+  final Color background;
+  final List<List<dynamic>> icon;
+  final bool overdue;
+
+  const _PendingTone({
+    required this.foreground,
+    required this.background,
+    required this.icon,
+    this.overdue = false,
+  });
+}
+
+/// Tono por estado: entrega pendiente (ámbar), en validación/revisión (azul),
+/// entrega vencida (rojo). Solo la entrega puede "vencer": si ya está en
+/// validación, la fecha pasada no es culpa del club.
+_PendingTone _pendingToneFor(BuildContext context, RankingPendingItem item) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  final kind = item.statusLabelKey.split('.').last;
+  final isDelivery = kind == 'pending_delivery';
+  final due = item.dueDate;
+  final today = DateTime.now();
+  final overdue = isDelivery &&
+      due != null &&
+      due.isBefore(DateTime(today.year, today.month, today.day));
+
+  _PendingTone tone({
+    required Color color,
+    required Color dark,
+    required Color bg,
+    required List<List<dynamic>> icon,
+    bool overdue = false,
+  }) =>
+      _PendingTone(
+        foreground: isDark ? color : dark,
+        background: isDark ? color.withValues(alpha: 0.18) : bg,
+        icon: icon,
+        overdue: overdue,
+      );
+
+  if (overdue) {
+    return tone(
+      color: AppColors.rejectedColor,
+      dark: AppColors.rejectedDark,
+      bg: AppColors.rejectedBg,
+      icon: HugeIcons.strokeRoundedAlert02,
+      overdue: true,
+    );
+  }
+  if (isDelivery) {
+    return tone(
+      color: AppColors.observedColor,
+      dark: AppColors.observedDark,
+      bg: AppColors.observedBg,
+      icon: HugeIcons.strokeRoundedUpload01,
+    );
+  }
+  if (kind == 'pending_validation' ||
+      kind == 'pending_union_validation' ||
+      kind == 'pending_review') {
+    return tone(
+      color: AppColors.sentColor,
+      dark: AppColors.sentDark,
+      bg: AppColors.sentBg,
+      icon: HugeIcons.strokeRoundedClock01,
+    );
+  }
+  return tone(
+    color: AppColors.pendingColor,
+    dark: AppColors.pendingDark,
+    bg: AppColors.pendingBg,
+    icon: HugeIcons.strokeRoundedClock01,
+  );
+}
+
+// ─── Piezas compartidas ──────────────────────────────────────────────────────
 
 class _SectionHeading extends StatelessWidget {
   final String title;
@@ -1115,7 +1344,7 @@ class _AnimatedPoints extends StatelessWidget {
 
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: value.toDouble()),
-      duration: reduce ? Duration.zero : const Duration(milliseconds: 700),
+      duration: reduce ? Duration.zero : _kReveal,
       curve: SacMotion.easeOut,
       builder: (context, animated, _) =>
           Text(_formatPoints(animated.round()), style: style),
@@ -1123,16 +1352,17 @@ class _AnimatedPoints extends StatelessWidget {
   }
 }
 
-class _AnimatedProgressBar extends StatelessWidget {
+/// Barra plana (sin semántica Material) — relleno interruptible vía Tween.
+class _AnimatedBar extends StatelessWidget {
   final double value;
   final Color color;
-  final Color backgroundColor;
+  final Color trackColor;
   final double height;
 
-  const _AnimatedProgressBar({
+  const _AnimatedBar({
     required this.value,
     required this.color,
-    required this.backgroundColor,
+    required this.trackColor,
     required this.height,
   });
 
@@ -1140,120 +1370,61 @@ class _AnimatedProgressBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final reduce = SacMotion.reduceMotionOf(context);
     final safeValue = value.clamp(0.0, 1.0).toDouble();
+    final radius = BorderRadius.circular(height);
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(999),
-      child: TweenAnimationBuilder<double>(
-        tween: Tween<double>(begin: 0, end: safeValue),
-        duration: reduce ? Duration.zero : const Duration(milliseconds: 650),
-        curve: SacMotion.easeOut,
-        builder: (context, animatedValue, _) {
-          return LinearProgressIndicator(
-            minHeight: height,
-            value: animatedValue,
-            backgroundColor: backgroundColor,
-            color: color,
-          );
-        },
+      borderRadius: radius,
+      child: Container(
+        height: height,
+        color: trackColor,
+        child: TweenAnimationBuilder<double>(
+          tween: Tween<double>(begin: 0, end: safeValue),
+          duration: reduce ? Duration.zero : _kReveal,
+          curve: SacMotion.easeOut,
+          builder: (context, animated, _) => Align(
+            alignment: Alignment.centerLeft,
+            child: FractionallySizedBox(
+              widthFactor: animated,
+              heightFactor: 1,
+              child: DecoratedBox(
+                decoration: BoxDecoration(color: color, borderRadius: radius),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
-class _TierPalette {
-  final Color foreground;
-  final Color background;
-  final List<Color> gradient;
-
-  const _TierPalette({
-    required this.foreground,
-    required this.background,
-    required this.gradient,
-  });
-}
-
-_TierPalette _tierPaletteFor(BuildContext context, RankingTier? tier) {
+/// Color de tier con variante dark legible sobre `#1A1A1A`.
+Color _tierColorFor(BuildContext context, RankingTier? tier) {
   final isDark = Theme.of(context).brightness == Brightness.dark;
   final key = (tier?.slug ?? tier?.name ?? '').toLowerCase();
 
-  if (key.contains('bronze') || key.contains('bronce')) {
-    return _TierPalette(
-      foreground: const Color(0xFFB86A2D),
-      background: isDark
-          ? const Color(0xFFB86A2D).withValues(alpha: 0.18)
-          : const Color(0xFFFFF1E0),
-      gradient: isDark
-          ? [
-              const Color(0xFFB86A2D).withValues(alpha: 0.28),
-              const Color(0xFFB86A2D).withValues(alpha: 0.12),
-            ]
-          : const [Color(0xFFFFE0B8), Color(0xFFFFF6EA)],
-    );
-  }
   if (key.contains('silver') || key.contains('plata')) {
-    return _TierPalette(
-      foreground: const Color(0xFF5B6B7C),
-      background: isDark
-          ? const Color(0xFF94A3B8).withValues(alpha: 0.18)
-          : const Color(0xFFEEF2F6),
-      gradient: isDark
-          ? [
-              const Color(0xFF94A3B8).withValues(alpha: 0.28),
-              const Color(0xFF94A3B8).withValues(alpha: 0.12),
-            ]
-          : const [Color(0xFFE2E8F0), Color(0xFFF8FAFC)],
-    );
+    return isDark ? const Color(0xFFA3B1C2) : const Color(0xFF5B6B7C);
   }
   if (key.contains('gold') || key.contains('oro')) {
-    return _TierPalette(
-      foreground: const Color(0xFF9A6B18),
-      background: isDark
-          ? const Color(0xFFD4A017).withValues(alpha: 0.18)
-          : const Color(0xFFFFF4D6),
-      gradient: isDark
-          ? [
-              const Color(0xFFD4A017).withValues(alpha: 0.28),
-              const Color(0xFFD4A017).withValues(alpha: 0.12),
-            ]
-          : const [Color(0xFFFFE29A), Color(0xFFFFF8E7)],
-    );
+    return isDark ? const Color(0xFFE0B341) : const Color(0xFF9A6B18);
   }
   if (key.contains('diamond') || key.contains('diamante')) {
-    return _TierPalette(
-      foreground: const Color(0xFF0E7490),
-      background: isDark
-          ? const Color(0xFF22D3EE).withValues(alpha: 0.18)
-          : const Color(0xFFE0F7FA),
-      gradient: isDark
-          ? [
-              const Color(0xFF22D3EE).withValues(alpha: 0.28),
-              const Color(0xFF22D3EE).withValues(alpha: 0.12),
-            ]
-          : const [Color(0xFFB2EBF2), Color(0xFFE0F7FA)],
-    );
+    return isDark ? const Color(0xFF22D3EE) : const Color(0xFF0E7490);
   }
-
-  // Sin rango / desconocido — cálido (bronce locked), no mint apagado.
-  return _TierPalette(
-    foreground: const Color(0xFFB86A2D),
-    background: isDark
-        ? const Color(0xFFB86A2D).withValues(alpha: 0.18)
-        : const Color(0xFFFFF1E0),
-    gradient: isDark
-        ? [
-            const Color(0xFFB86A2D).withValues(alpha: 0.22),
-            const Color(0xFFB86A2D).withValues(alpha: 0.10),
-          ]
-        : const [Color(0xFFFFE0B8), Color(0xFFFFF4E4)],
-  );
+  // Bronce, sin rango o desconocido — cálido.
+  return isDark ? const Color(0xFFD28C52) : const Color(0xFFB86A2D);
 }
 
 Color _axisAccentFor(String key) {
   final normalized = key.toLowerCase();
   if (normalized.contains('oper')) return AppColors.secondary;
-  if (normalized.contains('admin')) return AppColors.primary;
+  if (normalized.contains('admin')) return AppColors.info;
   return AppColors.accentDark;
 }
+
+/// Pista neutra visible en ambos modos (7% de tinta sobre la superficie).
+Color _trackColorOf(SacColors colors) =>
+    Color.alphaBlend(colors.text.withValues(alpha: 0.07), colors.surface);
 
 Color _progressColorFor(
   double percent,
@@ -1263,6 +1434,13 @@ Color _progressColorFor(
   if (percent >= 1.0) return AppColors.secondary;
   if (percent <= 0.0) return colors.textTertiary;
   return activeColor;
+}
+
+/// Tinta del valor numérico: completo → éxito, cero → terciario, resto → texto.
+Color _valueColorFor(double percent, SacColors colors) {
+  if (percent >= 1.0) return colors.success;
+  if (percent <= 0.0) return colors.textTertiary;
+  return colors.text;
 }
 
 String _formatPoints(int points) =>
