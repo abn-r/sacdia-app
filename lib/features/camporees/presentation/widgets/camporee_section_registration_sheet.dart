@@ -223,7 +223,7 @@ class _CamporeeSectionRegistrationSheetState
                 isEnabled: !_isSubmitting,
                 onPressed: _isSubmitting ? null : _submit,
                 backgroundColor: AppColors.primary,
-                textColor: AppColors.ink900,
+                textColor: AppColors.inkOnBrand,
                 labelMaxLines: 2,
                 labelOverflow: TextOverflow.visible,
                 loadingSemanticLabel:

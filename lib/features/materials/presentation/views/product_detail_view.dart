@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/material_item.dart';
 import '../../domain/entities/material_variant_option.dart';
 import '../providers/cart_provider.dart';
@@ -30,6 +31,7 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
   Widget build(BuildContext context) {
     final itemAsync = ref.watch(productDetailProvider(widget.productId));
     final theme = Theme.of(context);
+    final c = context.sac;
 
     return Scaffold(
       appBar: AppBar(
@@ -53,7 +55,7 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
               Text(
                 e.toString(),
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: AppColors.lightTextSecondary),
+                style: TextStyle(color: c.textSecondary),
               ),
               const SizedBox(height: 16),
               SacButton(
@@ -100,14 +102,14 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                   item.title,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: AppColors.lightText,
+                    color: c.text,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'SKU: ${item.sku}',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.lightTextSecondary,
+                    color: c.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -130,7 +132,7 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                   Text(
                     item.description!,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: AppColors.lightTextSecondary,
+                      color: c.textSecondary,
                       height: 1.5,
                     ),
                   ),
@@ -182,13 +184,13 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                             color: selected
                                 ? AppColors.primary
                                 : outOfStock
-                                    ? AppColors.lightBorderLight
-                                    : AppColors.lightSurface,
+                                    ? c.borderLight
+                                    : c.surface,
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
                               color: selected
                                   ? AppColors.primary
-                                  : AppColors.lightBorder,
+                                  : c.border,
                             ),
                           ),
                           child: Column(
@@ -199,8 +201,8 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                                   color: selected
                                       ? Colors.white
                                       : outOfStock
-                                          ? AppColors.lightTextTertiary
-                                          : AppColors.lightText,
+                                          ? c.textTertiary
+                                          : c.text,
                                   fontWeight: FontWeight.w500,
                                   decoration: outOfStock
                                       ? TextDecoration.lineThrough
@@ -214,7 +216,7 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                                     fontSize: 10,
                                     color: selected
                                         ? Colors.white70
-                                        : AppColors.lightTextTertiary,
+                                        : c.textTertiary,
                                   ),
                                 ),
                             ],

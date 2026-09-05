@@ -20,7 +20,7 @@ class MedicalChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = MedicoTokens.toneFor(tone);
+    final t = MedicoTokens.of(context).toneFor(tone);
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 7, 12, 7),
       decoration: BoxDecoration(

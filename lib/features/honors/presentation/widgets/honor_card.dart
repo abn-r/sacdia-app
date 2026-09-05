@@ -132,7 +132,7 @@ class HonorCard extends StatelessWidget {
                   ),
 
                   // Progress section — only for enrolled honors with data
-                  if (_showProgress) _buildProgressSection(),
+                  if (_showProgress) _buildProgressSection(context),
                 ],
               ),
             ),
@@ -142,7 +142,7 @@ class HonorCard extends StatelessWidget {
     );
   }
 
-  Widget _buildProgressSection() {
+  Widget _buildProgressSection(BuildContext context) {
     final double clampedValue = progressPercentage!.clamp(0.0, 1.0);
     final String label = '$completedCount/$totalRequirements';
     return Padding(
@@ -159,7 +159,7 @@ class HonorCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: clampedValue,
                 minHeight: 3,
-                backgroundColor: const Color(0xFFE2E8F0),
+                backgroundColor: context.sac.borderLight,
                 valueColor: AlwaysStoppedAnimation<Color>(_categoryPaintColor),
               ),
             ),

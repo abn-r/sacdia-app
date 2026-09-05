@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -54,9 +55,9 @@ class HonorCompletionView extends ConsumerWidget {
 
     // Show loading while userHonorsProvider is still fetching
     if (userHonorsAsync.isLoading) {
-      return const Scaffold(
-        backgroundColor: Colors.white,
-        body: Center(child: SacLoading()),
+      return Scaffold(
+        backgroundColor: context.sac.surface,
+        body: const Center(child: SacLoading()),
       );
     }
 
@@ -97,8 +98,9 @@ class _ErrorScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: c.surface,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         leading: sacAutoBackButton(context),
@@ -118,9 +120,9 @@ class _ErrorScaffold extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               message,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
-                color: Color(0xFF64748B),
+                color: c.textSecondary,
               ),
             ),
             const SizedBox(height: 20),
@@ -152,9 +154,10 @@ class _CompletionBody extends StatelessWidget {
     final completionDate = userHonor.validatedAt ?? userHonor.date;
     final enrollmentDate = userHonor.date;
     final duration = _durationLabel(enrollmentDate, completionDate);
+    final c = context.sac;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: c.surface,
       body: CustomScrollView(
         slivers: [
           // ── Green header SliverAppBar ──────────────────────────
@@ -229,10 +232,10 @@ class _CompletionBody extends StatelessWidget {
                   // Honor name
                   Text(
                     honorName,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.lightText,
+                      color: c.text,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -261,8 +264,8 @@ class _CompletionBody extends StatelessWidget {
                   const SizedBox(height: 10),
                   SacButton.outline(
                     text: 'honors.completion.back'.tr(),
-                    textColor: const Color(0xFF64748B),
-                    borderColor: const Color(0xFFE1E6E7),
+                    textColor: c.textSecondary,
+                    borderColor: c.border,
                     onPressed: () => context.pop(),
                   ),
                 ],
@@ -397,10 +400,11 @@ class _StatsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFAFBFB),
+        color: c.surfaceVariant,
         borderRadius: BorderRadius.circular(12),
       ),
       child: IntrinsicHeight(
@@ -414,8 +418,8 @@ class _StatsCard extends StatelessWidget {
             ),
 
             // Divider
-            const VerticalDivider(
-              color: Color(0xFFE1E6E7),
+            VerticalDivider(
+              color: c.divider,
               thickness: 1,
               width: 1,
             ),
@@ -428,8 +432,8 @@ class _StatsCard extends StatelessWidget {
             ),
 
             // Divider
-            const VerticalDivider(
-              color: Color(0xFFE1E6E7),
+            VerticalDivider(
+              color: c.divider,
               thickness: 1,
               width: 1,
             ),
@@ -477,9 +481,9 @@ class _StatItem extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10,
-              color: Color(0xFF94A3B8),
+              color: context.sac.textTertiary,
             ),
             textAlign: TextAlign.center,
           ),

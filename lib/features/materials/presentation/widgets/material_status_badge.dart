@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/material_status.dart';
 
 /// Badge visual para el estado de una orden de materiales.
@@ -18,7 +19,7 @@ class MaterialStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (bg, fg, label) = _resolve(status);
+    final (bg, fg, label) = _resolve(context, status);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
@@ -37,10 +38,13 @@ class MaterialStatusBadge extends StatelessWidget {
     );
   }
 
-  static (Color bg, Color fg, String label) _resolve(MaterialStatus status) {
+  static (Color bg, Color fg, String label) _resolve(
+    BuildContext context,
+    MaterialStatus status,
+  ) {
     switch (status) {
       case MaterialStatus.enRevision:
-        return (AppColors.ink100, AppColors.ink600, 'En revisión');
+        return (context.sac.ink100, context.sac.ink600, 'En revisión');
       case MaterialStatus.aprobada:
         return (AppColors.accentLight, AppColors.accentDark, 'Aprobada');
       case MaterialStatus.pagada:

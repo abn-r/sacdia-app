@@ -105,15 +105,15 @@ class ModuleExpansionTile extends StatelessWidget {
                 ),
               ),
             if (module.honors.isNotEmpty) ...[
-              const Padding(
-                padding: EdgeInsets.only(top: 8, bottom: 6),
+              Padding(
+                padding: const EdgeInsets.only(top: 8, bottom: 6),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
                     'Especialidades',
                     style: TextStyle(
                       fontSize: 11,
-                      color: AppColors.ink500,
+                      color: context.sac.ink500,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -203,6 +203,7 @@ class _TrackSectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final subtitle = isAdvanced ? 'Avanzado' : null;
+    final c = context.sac;
     return Padding(
       padding: const EdgeInsets.only(left: 2, top: 8, bottom: 6),
       child: Row(
@@ -210,9 +211,9 @@ class _TrackSectionHeader extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
-                color: AppColors.ink500,
+                color: c.ink500,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -220,9 +221,9 @@ class _TrackSectionHeader extends StatelessWidget {
           if (subtitle != null)
             Text(
               subtitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 10.5,
-                color: AppColors.ink400,
+                color: c.ink400,
               ),
             ),
         ],
@@ -309,6 +310,7 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
   Widget build(BuildContext context) {
     final module = widget.module;
     final pending = module.requirements.length - module.completedCount;
+    final c = context.sac;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -340,10 +342,10 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
                     children: [
                       Text(
                         module.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14.5,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.ink900,
+                          color: c.ink900,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -352,38 +354,41 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
                         children: [
                           Text(
                             '${module.completedCount}/${module.requirements.length}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.ink500,
-                              fontFeatures: [FontFeature.tabularFigures()],
+                              color: c.ink500,
+                              fontFeatures: const [
+                                FontFeature.tabularFigures()
+                              ],
                             ),
                           ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 6),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
                             child: Text(
                               '·',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: AppColors.ink300,
+                                color: c.ink300,
                               ),
                             ),
                           ),
                           Text(
                             '$pending pendientes',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.ink500,
+                              color: c.ink500,
                             ),
                           ),
                           if (widget.honors.isNotEmpty) ...[
-                            const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 6),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 6),
                               child: Text(
                                 '·',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: AppColors.ink300,
+                                  color: c.ink300,
                                 ),
                               ),
                             ),
@@ -391,9 +396,9 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
                               widget.honors.length == 1
                                   ? '1 especialidad'
                                   : '${widget.honors.length} especialidades',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
-                                color: AppColors.ink500,
+                                color: c.ink500,
                               ),
                             ),
                           ],
@@ -409,7 +414,7 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
                   child: HugeIcon(
                     icon: HugeIcons.strokeRoundedArrowRight01,
                     size: 16,
-                    color: AppColors.ink400,
+                    color: c.ink400,
                   ),
                 ),
               ],
@@ -422,15 +427,15 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
           sizeFactor: _expandAnimation,
           axisAlignment: -1,
           child: Container(
-            decoration: const BoxDecoration(
-              color: AppColors.canvas,
+            decoration: BoxDecoration(
+              color: c.canvas,
               border: Border(
-                top: BorderSide(color: AppColors.ink100, width: 1),
+                top: BorderSide(color: c.ink100, width: 1),
               ),
             ),
             child: module.requirements.isEmpty && widget.honors.isEmpty
-                ? const Padding(
-                    padding: EdgeInsets.symmetric(
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: 20,
                       vertical: 14,
                     ),
@@ -438,7 +443,7 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
                       'Sin requerimientos cargados',
                       style: TextStyle(
                         fontSize: 12.5,
-                        color: AppColors.ink400,
+                        color: c.ink400,
                       ),
                     ),
                   )
@@ -459,10 +464,10 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
                             children: [
                               Text(
                                 'classes.honors.module_section'.tr(),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
-                                  color: AppColors.ink500,
+                                  color: c.ink500,
                                   letterSpacing: 0.6,
                                 ),
                               ),

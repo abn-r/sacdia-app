@@ -3,6 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/class_requirement.dart';
 import '../utils/status_meta.dart';
 
@@ -174,19 +175,23 @@ class _DashedGlyph extends StatelessWidget {
     return RepaintBoundary(
       child: CustomPaint(
         size: Size(size, size),
-        painter: _DashedCirclePainter(),
+        painter: _DashedCirclePainter(color: context.sac.ink300),
       ),
     );
   }
 }
 
 class _DashedCirclePainter extends CustomPainter {
+  final Color color;
+
+  const _DashedCirclePainter({required this.color});
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2 - 1;
     final paint = Paint()
-      ..color = AppColors.ink300
+      ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
 
@@ -208,7 +213,8 @@ class _DashedCirclePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _DashedCirclePainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 // ── Icon helpers ──────────────────────────────────────────────────────────────

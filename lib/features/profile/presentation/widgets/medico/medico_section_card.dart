@@ -53,22 +53,23 @@ class MedicoSectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final m = MedicoTokens.of(context);
     return Container(
       padding: dense
           ? const EdgeInsets.fromLTRB(12, 10, 10, 12)
           : const EdgeInsets.fromLTRB(16, 16, 12, 18),
       decoration: BoxDecoration(
-        color: MedicoTokens.paper,
+        color: m.paper,
         borderRadius: BorderRadius.circular(
           dense ? 16 : MedicoTokens.rCard,
         ),
-        border: Border.all(color: MedicoTokens.ink150),
-        boxShadow: dense ? const [] : MedicoTokens.shadowCard,
+        border: Border.all(color: m.border),
+        boxShadow: dense ? const [] : m.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _header(),
+          _header(m),
           SizedBox(height: dense ? 8 : 14),
           child,
         ],
@@ -76,7 +77,7 @@ class MedicoSectionCard extends StatelessWidget {
     );
   }
 
-  Widget _header() {
+  Widget _header(MedicoPalette m) {
     final badge = iconWidget != null
         ? Container(
             width: dense ? 30 : MedicoTokens.sectionIconBox,
@@ -110,7 +111,7 @@ class MedicoSectionCard extends StatelessWidget {
             style: TextStyle(
               fontSize: dense ? 14 : 16,
               fontWeight: FontWeight.w700,
-              color: MedicoTokens.ink900,
+              color: m.textPrimary,
               letterSpacing: dense ? -0.08 : -0.16,
             ),
           ),
@@ -119,7 +120,7 @@ class MedicoSectionCard extends StatelessWidget {
           TextButton(
             onPressed: onAction,
             style: TextButton.styleFrom(
-              foregroundColor: MedicoTokens.coral500,
+              foregroundColor: m.coralAction,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,

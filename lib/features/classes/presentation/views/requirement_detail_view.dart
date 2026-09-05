@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart';
 import '../../../../core/widgets/evidence_staging/staged_file.dart';
 import '../../../../core/widgets/sac_dialog.dart';
@@ -128,6 +129,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
     final moduleIndex = _resolveModuleIndex(classAsync, requirement);
     final moduleTotal = _resolveModuleTotal(classAsync, requirement);
     final moduleName = _resolveModuleName(requirement.moduleId);
+    final c = context.sac;
 
     ref.listen(
       requirementNotifierProvider(_progressQuery),
@@ -155,18 +157,18 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.canvas,
+        backgroundColor: c.canvas,
         appBar: SacTopBar(
           title: 'Requerimiento',
           centerTitle: true,
-          backgroundColor: AppColors.canvas,
-          borderColor: AppColors.ink150,
+          backgroundColor: c.canvas,
+          borderColor: c.ink150,
           leading: IconButton(
             onPressed: isLoading ? null : () => Navigator.pop(context),
             icon: HugeIcon(
               icon: HugeIcons.strokeRoundedArrowLeft01,
               size: 22,
-              color: AppColors.ink800,
+              color: c.ink800,
             ),
           ),
           actions: [
@@ -178,7 +180,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
               icon: HugeIcon(
                 icon: HugeIcons.strokeRoundedMoreHorizontal,
                 size: 20,
-                color: AppColors.ink600,
+                color: c.ink600,
               ),
             ),
           ],
@@ -222,20 +224,20 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                             // Eyebrow + title
                             Text(
                               '${moduleName.toUpperCase()} · ${_fmt2(moduleIndex)} / ${_fmt2(moduleTotal)}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.ink400,
+                                color: c.ink400,
                                 letterSpacing: 0.88,
                               ),
                             ),
                             const SizedBox(height: 6),
                             Text(
                               requirement.name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.ink900,
+                                color: c.ink900,
                                 letterSpacing: -0.2,
                                 height: 1.25,
                               ),
@@ -301,22 +303,22 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'ARCHIVOS ADJUNTOS',
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w700,
-                                      color: AppColors.ink400,
+                                      color: c.ink400,
                                       letterSpacing: 1.32,
                                     ),
                                   ),
                                   Text(
                                     '${requirement.files.length}/${requirement.maxFiles}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w700,
-                                      color: AppColors.ink800,
-                                      fontFeatures: [
+                                      color: c.ink800,
+                                      fontFeatures: const [
                                         FontFeature.tabularFigures()
                                       ],
                                     ),
@@ -560,12 +562,15 @@ class _ExpiredRequirementBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF1F2),
+        color: isDark
+            ? AppColors.error.withValues(alpha: 0.2)
+            : const Color(0xFFFFF1F2),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.error.withValues(alpha: 0.35)),
       ),
@@ -592,9 +597,15 @@ class _BannerEstado extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isObserved = status == RequirementStatus.observado;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isObserved ? AppColors.observedBg : AppColors.rejectedBg;
-    final borderColor =
-        isObserved ? const Color(0xFFFBE7C2) : const Color(0xFFFBC8D0);
+    final borderColor = isObserved
+        ? (isDark
+            ? AppColors.observedColor.withValues(alpha: 0.2)
+            : const Color(0xFFFBE7C2))
+        : (isDark
+            ? AppColors.rejectedColor.withValues(alpha: 0.2)
+            : const Color(0xFFFBC8D0));
     final iconColor =
         isObserved ? AppColors.observedDark : AppColors.rejectedDark;
     final titleColor =
@@ -619,8 +630,8 @@ class _BannerEstado extends StatelessWidget {
           Container(
             width: 36,
             height: 36,
-            decoration: const BoxDecoration(
-              color: AppColors.paper,
+            decoration: BoxDecoration(
+              color: context.sac.paper,
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -687,14 +698,15 @@ class _ObservationCard extends StatelessWidget {
     final initials = _initials(instructorName);
     final avatarBg = isObserved ? AppColors.coral100 : AppColors.rejectedBg;
     final avatarText = isObserved ? AppColors.coral700 : AppColors.rejectedDark;
+    final c = context.sac;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 18),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.paper,
+        color: c.paper,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.ink150),
+        border: Border.all(color: c.ink150),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -727,19 +739,19 @@ class _ObservationCard extends StatelessWidget {
                   children: [
                     Text(
                       instructorName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.ink800,
+                        color: c.ink800,
                       ),
                     ),
                     Text(
                       timestamp != null
                           ? 'Instructor · ${_timeAgo(timestamp)}'
                           : 'Instructor',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: AppColors.ink400,
+                        color: c.ink400,
                       ),
                     ),
                   ],
@@ -756,14 +768,14 @@ class _ObservationCard extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.canvas,
+                color: c.canvas,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 '"$comment"',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13.5,
-                  color: AppColors.ink700,
+                  color: c.ink700,
                   fontStyle: FontStyle.italic,
                   height: 1.45,
                 ),
@@ -855,14 +867,15 @@ class _FileRow extends StatelessWidget {
     final badgeBg = isObservedContext ? AppColors.sentBg : AppColors.observedBg;
     final badgeColor =
         isObservedContext ? AppColors.sentDark : AppColors.observedDark;
+    final c = context.sac;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.paper,
+        color: c.paper,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.ink150),
+        border: Border.all(color: c.ink150),
       ),
       child: Row(
         children: [
@@ -895,10 +908,10 @@ class _FileRow extends StatelessWidget {
                   fileName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.ink800,
+                    color: c.ink800,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -906,9 +919,9 @@ class _FileRow extends StatelessWidget {
                   children: [
                     Text(
                       _timeAgo(uploadedAt),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: AppColors.ink400,
+                        color: c.ink400,
                       ),
                     ),
                   ],
@@ -960,17 +973,18 @@ class _EmptyFileSlot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return RepaintBoundary(
       child: CustomPaint(
         painter: _DashedBorderPainter(
-          color: AppColors.ink300,
+          color: c.ink300,
           strokeWidth: 1.5,
           radius: 12,
           dashLength: 6,
           gapLength: 4,
         ),
         child: Material(
-          color: AppColors.paper,
+          color: c.paper,
           borderRadius: BorderRadius.circular(12),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
@@ -984,24 +998,24 @@ class _EmptyFileSlot extends StatelessWidget {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: AppColors.ink100,
+                      color: c.ink100,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Center(
                       child: HugeIcon(
                         icon: HugeIcons.strokeRoundedAdd01,
                         size: 18,
-                        color: AppColors.ink400,
+                        color: c.ink400,
                       ),
                     ),
                   ),
                   const SizedBox(width: 10),
-                  const Text(
+                  Text(
                     'Subir archivo',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.ink500,
+                      color: c.ink500,
                     ),
                   ),
                 ],
@@ -1145,19 +1159,20 @@ class _DescriptionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.paper,
+        color: c.paper,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.ink150),
+        border: Border.all(color: c.ink150),
       ),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 13.5,
-          color: AppColors.ink700,
+          color: c.ink700,
           height: 1.5,
         ),
       ),
@@ -1201,7 +1216,7 @@ class _StatusChip extends StatelessWidget {
               HugeIcon(
                 icon: HugeIcons.strokeRoundedInformationCircle,
                 size: 15,
-                color: AppColors.ink400,
+                color: context.sac.ink400,
               ),
               const SizedBox(width: 2),
             ],

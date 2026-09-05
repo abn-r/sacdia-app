@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_back_button.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_loading.dart';
@@ -54,7 +55,7 @@ class TeachingScopeView extends ConsumerWidget {
             yearId;
 
     return Scaffold(
-      backgroundColor: AppColors.canvas,
+      backgroundColor: context.sac.canvas,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         leading: sacAutoBackButton(context),
@@ -83,10 +84,10 @@ class TeachingScopeView extends ConsumerWidget {
                       );
                       ref.invalidate(classProgressScopeProvider(query));
                     },
-              icon: const HugeIcon(
+              icon: HugeIcon(
                 icon: HugeIcons.strokeRoundedUserCheck01,
                 size: 22,
-                color: AppColors.ink700,
+                color: context.sac.ink700,
               ),
             ),
         ],
@@ -250,14 +251,14 @@ class _ScopeHeader extends StatelessWidget {
                   title,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
-                        color: AppColors.ink900,
+                        color: context.sac.ink900,
                       ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   body,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.ink600,
+                        color: context.sac.ink600,
                         height: 1.35,
                       ),
                 ),
@@ -282,9 +283,10 @@ class _ClassScopeTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final classColor = AppColors.classColor(progressiveClass.name);
+    final c = context.sac;
 
     return Material(
-      color: AppColors.paper,
+      color: c.paper,
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
@@ -310,14 +312,14 @@ class _ClassScopeTile extends StatelessWidget {
                       progressiveClass.name,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w800,
-                            color: AppColors.ink900,
+                            color: c.ink900,
                           ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'classes.teaching_scope.open_members'.tr(),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.ink500,
+                            color: c.ink500,
                           ),
                     ),
                   ],
@@ -371,7 +373,7 @@ class _ErrorState extends StatelessWidget {
             Text(
               message,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.ink600,
+                    color: context.sac.ink600,
                   ),
               textAlign: TextAlign.center,
             ),
@@ -410,7 +412,7 @@ class _MessageState extends StatelessWidget {
             HugeIcon(
               icon: icon,
               size: 54,
-              color: AppColors.ink400,
+              color: context.sac.ink400,
             ),
             const SizedBox(height: 14),
             Text(
@@ -424,7 +426,7 @@ class _MessageState extends StatelessWidget {
             Text(
               message,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.ink600,
+                    color: context.sac.ink600,
                   ),
               textAlign: TextAlign.center,
             ),

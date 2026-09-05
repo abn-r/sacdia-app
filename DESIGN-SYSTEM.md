@@ -140,6 +140,24 @@ c.text            // #0F172A / #F2F2F2
 c.textSecondary   // #64748B / #8C8C8C
 c.textTertiary    // #94A3B8 / #5C5C5C
 
+// Neutral "ink" scale (theme-resolved replacement for the deprecated
+// light-only AppColors.inkNNN / paper / canvas). Semantics = ink strength:
+// ink900 primary text, ink500 secondary, ink150 border, ink50 row bg.
+// In dark the scale inverts; endpoints align with AppColors.dark*.
+c.ink900          // #131316 / #F2F2F2
+c.ink800          // #20232A / #E4E4E4
+c.ink700          // #2C313B / #CFCFCF
+c.ink600          // #4B5260 / #B8B8B8
+c.ink500          // #6B7280 / #9A9A9A
+c.ink400          // #9AA0AB / #7A7A7A
+c.ink300          // #C7CBD2 / #4A4A4A
+c.ink200          // #E3E5EA / #383838
+c.ink150          // #ECEEF2 / #303030
+c.ink100          // #F2F4F7 / #2A2A2A
+c.ink50           // #F7F8FA / #252525
+c.paper           // #FFFFFF / #1A1A1A  (card / app bar surface)
+c.canvas          // #FAFAFB / #000000  (screen background)
+
 // On-surface
 c.onPrimary       // Colors.white (both modes)
 c.barrierColor    // rgba(0,0,0,0.5) / rgba(0,0,0,0.7)
@@ -157,6 +175,8 @@ c.onError         // Colors.white
 
 **Known tech-debt — 83-file migration pending:**
 As of 2026-04-16, approximately 83 widget files use `AppColors.error` / `AppColors.success` / `AppColors.warning` or hardcoded `Color(0xFF…)` directly in paint code, bypassing `context.sac`. This is a known violation. Future agents: do NOT add more `AppColors.*` calls in paint code — use `context.sac.*`. The migration of existing files is tracked as a separate task.
+
+**2026-09-04 — neutral-scale audit:** `AppColors.inkNNN`, `AppColors.paper` and `AppColors.canvas` are now `@Deprecated`; every screen that used them (Clases module, Investiduras history, Materiales checkout, Honor completion) was migrated to `context.sac.inkNNN` / `paper` / `canvas`. Feature-scoped palettes follow the same rule: `MedicoTokens.of(context)` (`MedicoPalette`) for Información Médica and its edit sub-screens. Brand-locked surfaces are exempt and documented in place: Credencial digital (gradient card, white QR zone) and the Clases roadmap (sky-gradient background).
 
 ### 2.8 Class-Specific Colors (Scout tradition — do NOT change)
 

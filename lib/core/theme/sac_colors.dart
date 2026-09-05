@@ -50,6 +50,32 @@ class SacColors {
   Color get textTertiary =>
       _isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary;
 
+  // ── Escala neutra "ink" (resuelta por tema) ───────────────────
+  // Reemplazo directo de `AppColors.inkNNN` / `paper` / `canvas`, que son
+  // light-only. La semántica es "fuerza de tinta": ink900 = texto principal,
+  // ink500 = secundario, ink150 = borde, ink50 = fondo de fila. En dark la
+  // escala se invierte para conservar el mismo contraste relativo; los
+  // extremos se alinean con `AppColors.dark*`.
+  Color get ink900 => _isDark ? AppColors.darkText : const Color(0xFF131316);
+  Color get ink800 => _isDark ? const Color(0xFFE4E4E4) : const Color(0xFF20232A);
+  Color get ink700 => _isDark ? const Color(0xFFCFCFCF) : const Color(0xFF2C313B);
+  Color get ink600 => _isDark ? const Color(0xFFB8B8B8) : const Color(0xFF4B5260);
+  Color get ink500 => _isDark ? const Color(0xFF9A9A9A) : const Color(0xFF6B7280);
+  Color get ink400 => _isDark ? const Color(0xFF7A7A7A) : const Color(0xFF9AA0AB);
+  Color get ink300 => _isDark ? const Color(0xFF4A4A4A) : const Color(0xFFC7CBD2);
+  Color get ink200 => _isDark ? const Color(0xFF383838) : const Color(0xFFE3E5EA);
+  Color get ink150 => _isDark ? AppColors.darkBorder : const Color(0xFFECEEF2);
+  Color get ink100 => _isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF2F4F7);
+  Color get ink50 =>
+      _isDark ? AppColors.darkSurfaceVariant : const Color(0xFFF7F8FA);
+
+  /// Superficie de tarjeta / app bar (blanco en light).
+  Color get paper => _isDark ? AppColors.darkSurface : const Color(0xFFFFFFFF);
+
+  /// Fondo de pantalla (gris casi blanco en light, negro OLED en dark).
+  Color get canvas =>
+      _isDark ? AppColors.darkBackground : const Color(0xFFFAFAFB);
+
   // ── Elevation / Shadow ────────────────────────────────────────
   Color get shadow => _isDark
       ? Colors.white.withValues(alpha: 0.04)

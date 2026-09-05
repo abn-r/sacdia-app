@@ -168,7 +168,7 @@ class _ReportCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final statusCfg = _statusConfig(report.reportStatus);
+    final statusCfg = _statusConfig(report.reportStatus).forTheme(context);
 
     return GestureDetector(
       onTap: onTap,
@@ -307,6 +307,15 @@ class _StatusConfig {
   final Color fg;
 
   const _StatusConfig({required this.bg, required this.fg});
+
+  /// Variante para tema oscuro: fondo = acento translúcido, texto aclarado.
+  _StatusConfig forTheme(BuildContext context) {
+    if (Theme.of(context).brightness != Brightness.dark) return this;
+    return _StatusConfig(
+      bg: fg.withValues(alpha: 0.22),
+      fg: Color.lerp(fg, Colors.white, 0.35)!,
+    );
+  }
 }
 
 // ── Empty / Error states ──────────────────────────────────────────────────────

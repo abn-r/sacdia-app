@@ -96,7 +96,7 @@ void main() {
           onPressed: () {},
           isLoading: true,
           backgroundColor: AppColors.primary,
-          textColor: AppColors.ink900,
+          textColor: AppColors.inkOnBrand,
         ),
         brightness: brightness,
       );
@@ -108,7 +108,7 @@ void main() {
       );
 
       expect(background, AppColors.primary);
-      expect(spinner.color, AppColors.ink900);
+      expect(spinner.color, AppColors.inkOnBrand);
       expect(_contrastRatio(spinner.color!, background),
           greaterThanOrEqualTo(4.5));
     });

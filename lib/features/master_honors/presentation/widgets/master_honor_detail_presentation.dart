@@ -121,7 +121,8 @@ Color masterHonorDetailAccent(MasterHonorRoadmap item) {
     case MasterHonorGridVisual.inactive:
       return AppColors.pendingDark;
     case MasterHonorGridVisual.locked:
-      return AppColors.ink400;
+      // Gris neutro legible en ambos modos (misma familia que pendingDark).
+      return AppColors.pendingDark.withValues(alpha: 0.7);
   }
 }
 

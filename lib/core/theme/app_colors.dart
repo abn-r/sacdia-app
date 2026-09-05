@@ -172,19 +172,41 @@ class AppColors {
   static const Color pendingBg = Color(0xFFF2F4F7);
   static const Color pendingDark = Color(0xFF6B7280);
 
-  // Neutrals warm low-saturation ink scale
+  /// Tinta casi negra para texto/iconos sobre fondos de MARCA (coral, amarillo).
+  /// Independiente del tema: el fondo de marca es igual en light y dark.
+  /// Para texto sobre superficies neutras usar `context.sac.ink900`.
+  static const Color inkOnBrand = Color(0xFF131316);
+
+  // Neutrals warm low-saturation ink scale — LIGHT ONLY.
+  // Deprecated: no adaptan a tema oscuro. Usar `context.sac.inkNNN`,
+  // `context.sac.paper`, `context.sac.canvas` (ver lib/core/theme/sac_colors.dart).
+  static const String _inkDeprecation =
+      'Light-only. Usar context.sac.inkNNN / paper / canvas (SacColors).';
+  @Deprecated(_inkDeprecation)
   static const Color ink900 = Color(0xFF131316);
+  @Deprecated(_inkDeprecation)
   static const Color ink800 = Color(0xFF20232A);
+  @Deprecated(_inkDeprecation)
   static const Color ink700 = Color(0xFF2C313B);
+  @Deprecated(_inkDeprecation)
   static const Color ink600 = Color(0xFF4B5260);
+  @Deprecated(_inkDeprecation)
   static const Color ink500 = Color(0xFF6B7280);
+  @Deprecated(_inkDeprecation)
   static const Color ink400 = Color(0xFF9AA0AB);
+  @Deprecated(_inkDeprecation)
   static const Color ink300 = Color(0xFFC7CBD2);
+  @Deprecated(_inkDeprecation)
   static const Color ink200 = Color(0xFFE3E5EA);
+  @Deprecated(_inkDeprecation)
   static const Color ink150 = Color(0xFFECEEF2);
+  @Deprecated(_inkDeprecation)
   static const Color ink100 = Color(0xFFF2F4F7);
+  @Deprecated(_inkDeprecation)
   static const Color ink50 = Color(0xFFF7F8FA);
+  @Deprecated(_inkDeprecation)
   static const Color paper = Color(0xFFFFFFFF);
+  @Deprecated(_inkDeprecation)
   static const Color canvas = Color(0xFFFAFAFB);
 
   // ═══════════════════════════════════════════════════════════

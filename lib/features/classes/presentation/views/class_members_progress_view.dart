@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_back_button.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_loading.dart';
@@ -40,7 +41,7 @@ class ClassMembersProgressView extends ConsumerWidget {
     final membersAsync = ref.watch(classMembersProgressProvider(query));
 
     return Scaffold(
-      backgroundColor: AppColors.canvas,
+      backgroundColor: context.sac.canvas,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         leading: sacAutoBackButton(context),
@@ -146,10 +147,11 @@ class _MembersHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.paper,
+        color: c.paper,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: classColor.withValues(alpha: 0.18)),
       ),
@@ -169,7 +171,7 @@ class _MembersHeader extends StatelessWidget {
                   className,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
-                        color: AppColors.ink900,
+                        color: c.ink900,
                       ),
                 ),
                 const SizedBox(height: 4),
@@ -177,7 +179,7 @@ class _MembersHeader extends StatelessWidget {
                   'classes.members_progress.member_count'
                       .tr(namedArgs: {'count': count.toString()}),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.ink600,
+                        color: c.ink600,
                       ),
                 ),
               ],
@@ -205,9 +207,10 @@ class _MemberProgressTile extends StatelessWidget {
     final safeProgress = member.overallProgress.clamp(0, 100);
     final completedLabel =
         '${member.completedSections}/${member.totalSections}';
+    final c = context.sac;
 
     return Material(
-      color: AppColors.paper,
+      color: c.paper,
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
@@ -216,7 +219,7 @@ class _MemberProgressTile extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.ink150),
+            border: Border.all(color: c.ink150),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,7 +247,7 @@ class _MemberProgressTile extends StatelessWidget {
                           style:
                               Theme.of(context).textTheme.titleSmall?.copyWith(
                                     fontWeight: FontWeight.w800,
-                                    color: AppColors.ink900,
+                                    color: c.ink900,
                                   ),
                         ),
                         const SizedBox(height: 3),
@@ -253,7 +256,7 @@ class _MemberProgressTile extends StatelessWidget {
                               .tr(namedArgs: {'value': completedLabel}),
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: AppColors.ink500,
+                                    color: c.ink500,
                                   ),
                         ),
                       ],
@@ -276,7 +279,7 @@ class _MemberProgressTile extends StatelessWidget {
                 child: LinearProgressIndicator(
                   minHeight: 8,
                   value: safeProgress / 100,
-                  backgroundColor: AppColors.ink100,
+                  backgroundColor: c.ink100,
                   color: classColor,
                 ),
               ),
@@ -334,7 +337,7 @@ class _ErrorState extends StatelessWidget {
             Text(
               message,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.ink600,
+                    color: context.sac.ink600,
                   ),
               textAlign: TextAlign.center,
             ),
@@ -373,7 +376,7 @@ class _MessageState extends StatelessWidget {
             HugeIcon(
               icon: icon,
               size: 54,
-              color: AppColors.ink400,
+              color: context.sac.ink400,
             ),
             const SizedBox(height: 14),
             Text(
@@ -387,7 +390,7 @@ class _MessageState extends StatelessWidget {
             Text(
               message,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.ink600,
+                    color: context.sac.ink600,
                   ),
               textAlign: TextAlign.center,
             ),

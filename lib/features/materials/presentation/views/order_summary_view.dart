@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../../../../features/members/presentation/providers/members_providers.dart';
 import '../../domain/entities/material_delivery.dart';
 import '../providers/cart_provider.dart';
@@ -51,6 +52,7 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
     final configAsync = ref.watch(configProvider);
     final createState = ref.watch(createOrderProvider);
     final theme = Theme.of(context);
+    final c = context.sac;
 
     final envioCentavos = _entrega == MaterialDelivery.envio
         ? (configAsync.valueOrNull?.envioCentavosDefault ?? 0)
@@ -70,7 +72,7 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
           Text(
             'Revisa los datos antes de confirmar tu pedido.',
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppColors.lightTextSecondary,
+              color: c.textSecondary,
             ),
           ),
           const SizedBox(height: 24),
@@ -82,7 +84,7 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-              side: const BorderSide(color: AppColors.lightBorder),
+              side: BorderSide(color: c.border),
             ),
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -92,14 +94,14 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
                   Text(
                     'Modalidad',
                     style: theme.textTheme.labelMedium?.copyWith(
-                      color: AppColors.lightTextSecondary,
+                      color: c.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.lightBorder),
+                      border: Border.all(color: c.border),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: DropdownButton<MaterialDelivery>(
@@ -162,7 +164,7 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-              side: const BorderSide(color: AppColors.lightBorder),
+              side: BorderSide(color: c.border),
             ),
             child: Column(
               children: [
@@ -192,8 +194,8 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 36),
         decoration: BoxDecoration(
           color: theme.scaffoldBackgroundColor,
-          border: const Border(
-            top: BorderSide(color: AppColors.lightBorder),
+          border: Border(
+            top: BorderSide(color: c.border),
           ),
           boxShadow: const [
             BoxShadow(
@@ -295,7 +297,7 @@ class _SectionHeader extends StatelessWidget {
       title,
       style: Theme.of(context).textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w700,
-            color: AppColors.lightText,
+            color: context.sac.text,
           ),
     );
   }
@@ -308,6 +310,7 @@ class _ResumenLineItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final c = context.sac;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -351,7 +354,7 @@ class _ResumenLineItem extends StatelessWidget {
                   Text(
                     line.variantLabel!,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.lightTextSecondary,
+                      color: c.textSecondary,
                     ),
                   ),
                 ],
@@ -359,7 +362,7 @@ class _ResumenLineItem extends StatelessWidget {
                 Text(
                   '${line.qty} × ${formatMxn(line.priceSnapshotCentavos)}',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.lightTextSecondary,
+                    color: c.textSecondary,
                   ),
                 ),
               ],
@@ -370,7 +373,7 @@ class _ResumenLineItem extends StatelessWidget {
             formatMxn(line.lineTotalCentavos),
             style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: AppColors.lightText,
+              color: c.text,
             ),
           ),
         ],
@@ -393,6 +396,7 @@ class _TotalRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final c = context.sac;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -403,7 +407,7 @@ class _TotalRow extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 )
               : theme.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.lightTextSecondary,
+                  color: c.textSecondary,
                 ),
         ),
         Text(
@@ -414,7 +418,7 @@ class _TotalRow extends StatelessWidget {
                   color: AppColors.primary,
                 )
               : theme.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.lightTextSecondary,
+                  color: c.textSecondary,
                 ),
         ),
       ],

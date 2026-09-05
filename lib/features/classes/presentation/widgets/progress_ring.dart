@@ -97,6 +97,7 @@ class HeroDonut extends StatelessWidget {
             painter: _HeroDonutPainter(
               progress: animatedProgress,
               color: color,
+              trackColor: context.sac.ink100,
             ),
           ),
         ),
@@ -108,10 +109,12 @@ class HeroDonut extends StatelessWidget {
 class _HeroDonutPainter extends CustomPainter {
   final double progress;
   final Color color;
+  final Color trackColor;
 
   const _HeroDonutPainter({
     required this.progress,
     required this.color,
+    required this.trackColor,
   });
 
   @override
@@ -122,7 +125,7 @@ class _HeroDonutPainter extends CustomPainter {
 
     // Track
     final trackPaint = Paint()
-      ..color = AppColors.ink100
+      ..color = trackColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
@@ -149,5 +152,7 @@ class _HeroDonutPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _HeroDonutPainter oldDelegate) =>
-      oldDelegate.progress != progress || oldDelegate.color != color;
+      oldDelegate.progress != progress ||
+      oldDelegate.color != color ||
+      oldDelegate.trackColor != trackColor;
 }

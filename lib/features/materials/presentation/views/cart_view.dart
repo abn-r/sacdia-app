@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../providers/cart_provider.dart';
 import '../utils/money_format.dart';
 import '../widgets/qty_stepper.dart';
@@ -69,8 +70,8 @@ class CartView extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
               decoration: BoxDecoration(
                 color: theme.scaffoldBackgroundColor,
-                border: const Border(
-                  top: BorderSide(color: AppColors.lightBorder),
+                border: Border(
+                  top: BorderSide(color: context.sac.border),
                 ),
                 boxShadow: const [
                   BoxShadow(
@@ -143,6 +144,7 @@ class _CartLineItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final c = context.sac;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -189,7 +191,7 @@ class _CartLineItem extends StatelessWidget {
                   Text(
                     line.variantLabel!,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.lightTextSecondary,
+                      color: c.textSecondary,
                     ),
                   ),
                 ],
@@ -215,7 +217,7 @@ class _CartLineItem extends StatelessWidget {
                       formatMxn(line.lineTotalCentavos),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: AppColors.lightText,
+                        color: c.text,
                       ),
                     ),
                   ],
@@ -226,10 +228,10 @@ class _CartLineItem extends StatelessWidget {
 
           // Remove button
           IconButton(
-            icon: const HugeIcon(
+            icon: HugeIcon(
               icon: HugeIcons.strokeRoundedCancel01,
               size: 20,
-              color: AppColors.lightTextTertiary,
+              color: c.textTertiary,
             ),
             onPressed: onRemove,
           ),
@@ -246,28 +248,29 @@ class _EmptyCart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const HugeIcon(
+          HugeIcon(
             icon: HugeIcons.strokeRoundedShoppingCart01,
             size: 72,
-            color: AppColors.lightTextTertiary,
+            color: c.textTertiary,
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Tu carrito está vacío',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: AppColors.lightTextSecondary,
+              color: c.textSecondary,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Agrega productos desde el catálogo',
-            style: TextStyle(color: AppColors.lightTextTertiary),
+            style: TextStyle(color: c.textTertiary),
           ),
           const SizedBox(height: 24),
           SacButton(

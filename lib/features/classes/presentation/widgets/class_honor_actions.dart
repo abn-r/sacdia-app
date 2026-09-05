@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 
 import '../../domain/entities/class_honor.dart';
@@ -16,6 +16,7 @@ class ClassHonorActionsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
@@ -26,18 +27,18 @@ class ClassHonorActionsRow extends StatelessWidget {
               children: [
                 Text(
                   honor.honorName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.ink800,
+                    color: c.ink800,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   honor.relationType.label,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color: AppColors.ink500,
+                    color: c.ink500,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -55,7 +56,7 @@ class ClassHonorActionsRow extends StatelessWidget {
               icon: HugeIcon(
                 icon: HugeIcons.strokeRoundedPdf01,
                 size: 18,
-                color: AppColors.ink600,
+                color: c.ink600,
               ),
             )
           else
@@ -66,7 +67,7 @@ class ClassHonorActionsRow extends StatelessWidget {
                 icon: HugeIcon(
                   icon: HugeIcons.strokeRoundedPdf01,
                   size: 18,
-                  color: AppColors.ink300,
+                  color: c.ink300,
                 ),
               ),
             ),

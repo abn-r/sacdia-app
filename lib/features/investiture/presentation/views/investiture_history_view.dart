@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_loading.dart';
@@ -23,19 +24,20 @@ class InvestitureHistoryView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final historyAsync = ref.watch(investitureHistoryProvider(enrollmentId));
+    final c = context.sac;
 
     return Scaffold(
-      backgroundColor: AppColors.canvas,
+      backgroundColor: c.canvas,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         leading: sacAutoBackButton(context),
-        backgroundColor: AppColors.canvas,
+        backgroundColor: c.canvas,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         title: Text(
           'investiture.history.title'.tr(),
-          style: const TextStyle(
-            color: AppColors.ink900,
+          style: TextStyle(
+            color: c.ink900,
             fontSize: 18,
             fontWeight: FontWeight.w800,
           ),
@@ -44,10 +46,10 @@ class InvestitureHistoryView extends ConsumerWidget {
           IconButton(
             onPressed: () =>
                 ref.invalidate(investitureHistoryProvider(enrollmentId)),
-            icon: const HugeIcon(
+            icon: HugeIcon(
               icon: HugeIcons.strokeRoundedRefresh,
               size: 22,
-              color: AppColors.ink900,
+              color: c.ink900,
             ),
             tooltip: 'investiture.history.tooltip_refresh'.tr(),
           ),
@@ -127,14 +129,15 @@ class _HistoryHeadline extends StatelessWidget {
         false,
       _ => true,
     };
+    final c = context.sac;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           _headline(latest.action),
-          style: const TextStyle(
-            color: AppColors.ink900,
+          style: TextStyle(
+            color: c.ink900,
             fontSize: 22,
             fontWeight: FontWeight.w800,
             height: 1.15,
@@ -145,8 +148,8 @@ class _HistoryHeadline extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             'investiture.history.estimated_time'.tr(),
-            style: const TextStyle(
-              color: AppColors.ink500,
+            style: TextStyle(
+              color: c.ink500,
               fontSize: 14,
               fontWeight: FontWeight.w500,
               height: 1.3,
@@ -176,20 +179,21 @@ class _HistoryEmptyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return Padding(
       padding: const EdgeInsets.only(top: 48),
       child: Column(
         children: [
-          const HugeIcon(
+          HugeIcon(
             icon: HugeIcons.strokeRoundedClock01,
             size: 28,
-            color: AppColors.ink400,
+            color: c.ink400,
           ),
           const SizedBox(height: 12),
           Text(
             'investiture.history.empty_title'.tr(),
-            style: const TextStyle(
-              color: AppColors.ink900,
+            style: TextStyle(
+              color: c.ink900,
               fontSize: 16,
               fontWeight: FontWeight.w800,
             ),
@@ -198,8 +202,8 @@ class _HistoryEmptyCard extends StatelessWidget {
           Text(
             'investiture.history.empty_body'.tr(),
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: AppColors.ink500,
+            style: TextStyle(
+              color: c.ink500,
               fontSize: 13,
               fontWeight: FontWeight.w500,
               height: 1.35,
@@ -220,6 +224,7 @@ class _HistoryError extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final msg = error.toString().replaceFirst('Exception: ', '');
+    final c = context.sac;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -230,7 +235,9 @@ class _HistoryError extends StatelessWidget {
               width: 64,
               height: 64,
               decoration: BoxDecoration(
-                color: AppColors.errorLight,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.error.withValues(alpha: 0.2)
+                    : AppColors.errorLight,
                 borderRadius: BorderRadius.circular(22),
               ),
               child: const Center(
@@ -245,8 +252,8 @@ class _HistoryError extends StatelessWidget {
             Text(
               'investiture.history.error_title'.tr(),
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: AppColors.ink900,
+              style: TextStyle(
+                color: c.ink900,
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
               ),
@@ -254,9 +261,9 @@ class _HistoryError extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               msg,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: AppColors.ink500,
+                color: c.ink500,
                 height: 1.35,
               ),
               textAlign: TextAlign.center,
@@ -290,6 +297,7 @@ class _TimelineClusterTile extends StatelessWidget {
     final entry = cluster.representative;
     final color = _actionColor(entry.action);
     final comments = cluster.comments;
+    final c = context.sac;
 
     return IntrinsicHeight(
       child: Row(
@@ -319,7 +327,7 @@ class _TimelineClusterTile extends StatelessWidget {
                     child: Container(
                       width: 2,
                       margin: const EdgeInsets.symmetric(vertical: 4),
-                      color: AppColors.ink150,
+                      color: c.ink150,
                     ),
                   ),
               ],
@@ -336,8 +344,8 @@ class _TimelineClusterTile extends StatelessWidget {
                   children: [
                     Text(
                       _title,
-                      style: const TextStyle(
-                        color: AppColors.ink900,
+                      style: TextStyle(
+                        color: c.ink900,
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                         height: 1.2,
@@ -346,8 +354,8 @@ class _TimelineClusterTile extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       '${entry.performerFullName} · ${_formatTime(entry.performedAt)}',
-                      style: const TextStyle(
-                        color: AppColors.ink500,
+                      style: TextStyle(
+                        color: c.ink500,
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                         height: 1.25,
@@ -358,19 +366,19 @@ class _TimelineClusterTile extends StatelessWidget {
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.only(left: 10),
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           border: Border(
                             left: BorderSide(
-                              color: AppColors.ink150,
+                              color: c.ink150,
                               width: 2,
                             ),
                           ),
                         ),
                         child: Text(
                           comments,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
-                            color: AppColors.ink600,
+                            color: c.ink600,
                             fontWeight: FontWeight.w500,
                             height: 1.4,
                           ),

@@ -45,7 +45,7 @@ class ClubDetailView extends ConsumerWidget {
         title: Row(
           children: [
             HugeIcon(
-              icon: HugeIcons.strokeRoundedFlag01,
+              icon: HugeIcons.strokeRoundedBackpack03,
               size: 20,
               color: AppColors.primary,
             ),
@@ -101,7 +101,7 @@ class _ClubDetailBody extends StatelessWidget {
         const SizedBox(height: 12),
 
         _InfoRow(
-          icon: HugeIcons.strokeRoundedFlag01,
+          icon: HugeIcons.strokeRoundedBackpack03,
           label: 'club.name_label'.tr(),
           value: club.name.isNotEmpty ? club.name : '—',
         ),

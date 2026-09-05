@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/material_status.dart';
 import '../providers/order_detail_provider.dart';
 import '../utils/money_format.dart';
@@ -85,7 +86,7 @@ class _PagoBody extends StatelessWidget {
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: const BorderSide(color: AppColors.lightBorder),
+            side: BorderSide(color: context.sac.border),
           ),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -170,16 +171,17 @@ class _NotRequiredBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final c = context.sac;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const HugeIcon(
+            HugeIcon(
                 icon: HugeIcons.strokeRoundedCancel02,
                 size: 48,
-                color: AppColors.lightTextTertiary),
+                color: c.textTertiary),
             const SizedBox(height: 12),
             Text(
               'Esta orden no requiere pago',
@@ -189,7 +191,7 @@ class _NotRequiredBody extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'El estado actual de la orden no admite subir comprobante.',
-              style: const TextStyle(color: AppColors.lightTextSecondary),
+              style: TextStyle(color: c.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -215,16 +217,17 @@ class _ErrorBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const HugeIcon(
+            HugeIcon(
                 icon: HugeIcons.strokeRoundedAlert02,
                 size: 48,
-                color: AppColors.lightTextTertiary),
+                color: c.textTertiary),
             const SizedBox(height: 12),
             Text(
               'No se pudo cargar el pedido',
@@ -233,7 +236,7 @@ class _ErrorBody extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               message,
-              style: const TextStyle(color: AppColors.lightTextSecondary),
+              style: TextStyle(color: c.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -262,7 +265,7 @@ class _SectionLabel extends StatelessWidget {
       label,
       style: Theme.of(context).textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w700,
-            color: AppColors.lightText,
+            color: context.sac.text,
           ),
     );
   }
@@ -282,11 +285,12 @@ class _CopyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.lightBorder),
+        side: BorderSide(color: c.border),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -299,7 +303,7 @@ class _CopyCard extends StatelessWidget {
                   Text(
                     label,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: AppColors.lightTextSecondary,
+                          color: c.textSecondary,
                         ),
                   ),
                   const SizedBox(height: 4),
@@ -310,7 +314,7 @@ class _CopyCard extends StatelessWidget {
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       letterSpacing: mono ? 1.2 : null,
-                      color: AppColors.lightText,
+                      color: c.text,
                     ),
                   ),
                 ],
@@ -352,6 +356,7 @@ class _DataRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final c = context.sac;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -362,7 +367,7 @@ class _DataRow extends StatelessWidget {
             child: Text(
               label,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: AppColors.lightTextSecondary,
+                color: c.textSecondary,
               ),
             ),
           ),
@@ -374,7 +379,7 @@ class _DataRow extends StatelessWidget {
                 fontFamily: mono ? 'monospace' : null,
                 fontSize: 14,
                 fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-                color: bold ? AppColors.primary : AppColors.lightText,
+                color: bold ? AppColors.primary : c.text,
                 letterSpacing: mono ? 0.8 : null,
               ),
             ),

@@ -189,7 +189,7 @@ void main() {
       final foreground = label.style!.color!;
       final background = (decorated.decoration! as BoxDecoration).color!;
 
-      expect(foreground, AppColors.ink900);
+      expect(foreground, AppColors.inkOnBrand);
       expect(_contrastRatio(foreground, background), greaterThanOrEqualTo(4.5));
     });
   }

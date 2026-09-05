@@ -31,16 +31,17 @@ class ContactTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final relation = contact.relationshipTypeName ?? '—';
     final meta = '$relation · ${contact.phone}';
+    final m = MedicoTokens.of(context);
 
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
       decoration: BoxDecoration(
-        color: MedicoTokens.ink50,
+        color: m.tileBg,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         children: [
-          _avatar(),
+          _avatar(m),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -49,10 +50,10 @@ class ContactTile extends StatelessWidget {
               children: [
                 Text(
                   contact.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14.5,
                     fontWeight: FontWeight.w700,
-                    color: MedicoTokens.ink900,
+                    color: m.textPrimary,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -60,9 +61,9 @@ class ContactTile extends StatelessWidget {
                 const SizedBox(height: 1),
                 Text(
                   meta,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12.5,
-                    color: MedicoTokens.ink500,
+                    color: m.textSecondary,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -73,15 +74,15 @@ class ContactTile extends StatelessWidget {
           const SizedBox(width: 8),
           _quickButton(
             icon: HugeIcons.strokeRoundedCall,
-            bg: MedicoTokens.mint50,
-            fg: MedicoTokens.mint500,
+            bg: m.mintSoft,
+            fg: m.mintFg,
             onTap: () => onCall?.call(_cleanedPhone),
           ),
           const SizedBox(width: 6),
           _quickButton(
             icon: HugeIcons.strokeRoundedMessage01,
-            bg: MedicoTokens.ink100,
-            fg: MedicoTokens.ink600,
+            bg: m.controlBg,
+            fg: m.iconMuted,
             onTap: () => onSms?.call(_cleanedPhone),
           ),
         ],
@@ -89,19 +90,19 @@ class ContactTile extends StatelessWidget {
     );
   }
 
-  Widget _avatar() {
+  Widget _avatar(MedicoPalette m) {
     return Container(
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: MedicoTokens.coral100,
+        color: m.coralSoft,
         borderRadius: BorderRadius.circular(12),
       ),
       alignment: Alignment.center,
       child: Text(
         _initial,
-        style: const TextStyle(
-          color: MedicoTokens.coral600,
+        style: TextStyle(
+          color: m.coralFg,
           fontSize: 15,
           fontWeight: FontWeight.w700,
         ),

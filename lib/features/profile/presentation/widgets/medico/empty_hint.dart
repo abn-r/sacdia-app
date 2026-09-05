@@ -19,11 +19,12 @@ class EmptyHint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final m = MedicoTokens.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: MedicoTokens.ink50,
+        color: m.tileBg,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -31,9 +32,9 @@ class EmptyHint extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontStyle: FontStyle.italic,
-              color: MedicoTokens.ink500,
+              color: m.textSecondary,
               fontSize: 13,
             ),
           ),
@@ -43,8 +44,8 @@ class EmptyHint extends StatelessWidget {
               onTap: onAction,
               child: Text(
                 actionLabel!,
-                style: const TextStyle(
-                  color: MedicoTokens.coral500,
+                style: TextStyle(
+                  color: m.coralAction,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                 ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/class_requirement.dart';
 import '../utils/status_meta.dart';
 import 'status_glyph.dart';
@@ -25,6 +26,7 @@ class RequirementCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final meta = StatusMeta.of(requirement.status);
+    final c = context.sac;
 
     return InkWell(
       onTap: onTap,
@@ -37,9 +39,9 @@ class RequirementCard extends StatelessWidget {
           left: 20,
           right: 16,
         ),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           border: Border(
-            bottom: BorderSide(color: AppColors.ink100, width: 1),
+            bottom: BorderSide(color: c.ink100, width: 1),
           ),
         ),
         child: Row(
@@ -61,10 +63,10 @@ class RequirementCard extends StatelessWidget {
                 children: [
                   Text(
                     requirement.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.ink800,
+                      color: c.ink800,
                       height: 1.4,
                     ),
                   ),
@@ -86,7 +88,7 @@ class RequirementCard extends StatelessWidget {
               child: HugeIcon(
                 icon: HugeIcons.strokeRoundedArrowRight01,
                 size: 14,
-                color: AppColors.ink300,
+                color: c.ink300,
               ),
             ),
           ],
@@ -111,6 +113,7 @@ class _ReqMetaRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -125,13 +128,13 @@ class _ReqMetaRow extends StatelessWidget {
         ),
 
         // Dot separator
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 6),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6),
           child: Text(
             '·',
             style: TextStyle(
               fontSize: 11.5,
-              color: AppColors.ink300,
+              color: c.ink300,
             ),
           ),
         ),
@@ -139,18 +142,18 @@ class _ReqMetaRow extends StatelessWidget {
         // Files count: "X/Y archivos"
         Text(
           '$filesUploaded',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 11.5,
             fontWeight: FontWeight.w700,
-            color: AppColors.ink800,
-            fontFeatures: [FontFeature.tabularFigures()],
+            color: c.ink800,
+            fontFeatures: const [FontFeature.tabularFigures()],
           ),
         ),
         Text(
           '/$filesRequired archivos',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 11.5,
-            color: AppColors.ink400,
+            color: c.ink400,
           ),
         ),
       ],

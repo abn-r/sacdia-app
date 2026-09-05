@@ -1670,7 +1670,7 @@ class _MembersSection extends StatelessWidget {
                 );
               },
               backgroundColor: AppColors.primary,
-              textColor: AppColors.ink900,
+              textColor: AppColors.inkOnBrand,
               labelMaxLines: 2,
               labelOverflow: TextOverflow.visible,
             ),

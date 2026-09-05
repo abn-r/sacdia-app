@@ -431,7 +431,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
                     controller: _nameController,
                     label: 'club.name'.tr(),
                     hint: '—',
-                    prefixIcon: HugeIcons.strokeRoundedFlag01,
+                    prefixIcon: HugeIcons.strokeRoundedBackpack03,
                     readOnly: true,
                     enabled: fieldsEnabled && !_isEditing,
                   ),
@@ -829,7 +829,7 @@ class _EmptyBody extends StatelessWidget {
               ),
               child: Center(
                 child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedFlag01,
+                  icon: HugeIcons.strokeRoundedBackpack03,
                   size: 40,
                   color: AppColors.primary,
                 ),

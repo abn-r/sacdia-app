@@ -13,6 +13,7 @@ import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/auth/club_role_names.dart';
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_dialog.dart';
 import '../../../../core/widgets/sac_network_image.dart';
@@ -60,14 +61,15 @@ class ClassDetailWithProgressView extends ConsumerWidget {
     );
     final classAsync = ref.watch(classWithProgressProvider(progressQuery));
     final prerequisitesAsync = ref.watch(classDetailProvider(classId));
+    final c = context.sac;
 
     return Scaffold(
-      backgroundColor: AppColors.canvas,
-      appBar: const SacTopBar(
+      backgroundColor: c.canvas,
+      appBar: SacTopBar(
         title: 'Clase',
         centerTitle: true,
-        backgroundColor: AppColors.canvas,
-        borderColor: AppColors.ink150,
+        backgroundColor: c.canvas,
+        borderColor: c.ink150,
       ),
       body: SafeArea(
         top: false,
@@ -644,6 +646,7 @@ class _InvestitureStatusRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     final row = ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 48),
       child: Padding(
@@ -654,7 +657,7 @@ class _InvestitureStatusRow extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: AppColors.paper.withValues(alpha: 0.78),
+                color: c.paper.withValues(alpha: 0.78),
                 shape: BoxShape.circle,
               ),
               child: Center(
@@ -673,10 +676,10 @@ class _InvestitureStatusRow extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.ink900,
+                      color: c.ink900,
                       height: 1.15,
                     ),
                   ),
@@ -684,10 +687,10 @@ class _InvestitureStatusRow extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       subtitle!,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.ink600,
+                        color: c.ink600,
                         height: 1.3,
                       ),
                     ),
@@ -775,12 +778,15 @@ class _ExpiredTrajectoryBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF1F2),
+        color: isDark
+            ? AppColors.error.withValues(alpha: 0.2)
+            : const Color(0xFFFFF1F2),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.error.withValues(alpha: 0.35)),
       ),
@@ -867,12 +873,13 @@ class _HeroCard extends StatelessWidget {
     final hasTrackData = classData.hasTrackData;
     final validated = classData.completedRequirements;
     final total = classData.totalRequirements;
+    final c = context.sac;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       decoration: BoxDecoration(
-        color: AppColors.paper,
+        color: c.paper,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: classColor.withValues(alpha: 0.18)),
       ),
@@ -891,10 +898,10 @@ class _HeroCard extends StatelessWidget {
                     // Eyebrow
                     Text(
                       '${classData.name.toUpperCase()} · AVANCE',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.ink400,
+                        color: c.ink400,
                         letterSpacing: 0.88,
                       ),
                     ),
@@ -930,11 +937,11 @@ class _HeroCard extends StatelessWidget {
                     ),
                     if (hasTrackData) ...[
                       const SizedBox(height: 10),
-                      const Text(
+                      Text(
                         'Desarrollo + actividades complementarias',
                         style: TextStyle(
                           fontSize: 11.5,
-                          color: AppColors.ink500,
+                          color: c.ink500,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -943,16 +950,16 @@ class _HeroCard extends StatelessWidget {
                       // Sub text (legacy)
                       RichText(
                         text: TextSpan(
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
-                            color: AppColors.ink500,
+                            color: c.ink500,
                           ),
                           children: [
                             TextSpan(
                               text: '$validated',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.ink800,
+                                color: c.ink800,
                               ),
                             ),
                             TextSpan(text: ' de $total requisitos validados'),
@@ -1091,6 +1098,7 @@ class _StatusPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
@@ -1111,20 +1119,20 @@ class _StatusPill extends StatelessWidget {
           const SizedBox(width: 5),
           Text(
             '$count',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11.5,
               fontWeight: FontWeight.w700,
-              color: AppColors.ink800,
-              fontFeatures: [FontFeature.tabularFigures()],
+              color: c.ink800,
+              fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
           const SizedBox(width: 3),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11.5,
               fontWeight: FontWeight.w500,
-              color: AppColors.ink600,
+              color: c.ink600,
             ),
           ),
         ],
@@ -1153,6 +1161,7 @@ class _AdvancedTrackSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return Semantics(
       label:
           'Sección avanzada: $_percentage por ciento. Avance independiente de investidura.',
@@ -1161,9 +1170,9 @@ class _AdvancedTrackSection extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: 68),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
         decoration: BoxDecoration(
-          color: AppColors.canvas,
+          color: c.canvas,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.ink150),
+          border: Border.all(color: c.ink150),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1172,14 +1181,14 @@ class _AdvancedTrackSection extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Sección avanzada',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.ink800,
+                      color: c.ink800,
                       fontWeight: FontWeight.w800,
                       height: 1.1,
                     ),
@@ -1190,12 +1199,12 @@ class _AdvancedTrackSection extends StatelessWidget {
                   value: _percentage,
                   suffix: '%',
                   duration: const Duration(milliseconds: 500),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
-                    color: AppColors.ink900,
+                    color: c.ink900,
                     fontWeight: FontWeight.w800,
                     height: 1,
-                    fontFeatures: [FontFeature.tabularFigures()],
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
               ],
@@ -1205,9 +1214,9 @@ class _AdvancedTrackSection extends StatelessWidget {
               '$_status · avance independiente',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
-                color: AppColors.ink500,
+                color: c.ink500,
                 fontWeight: FontWeight.w600,
                 height: 1.2,
               ),
@@ -1224,7 +1233,7 @@ class _AdvancedTrackSection extends StatelessWidget {
                 builder: (context, value, _) => LinearProgressIndicator(
                   value: value,
                   minHeight: 2,
-                  backgroundColor: AppColors.ink150,
+                  backgroundColor: c.ink150,
                   color: AppColors.sentColor.withValues(alpha: 0.6),
                 ),
               ),
@@ -1259,15 +1268,16 @@ class _SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
       curve: SacMotion.easeOut,
       margin: const EdgeInsets.only(top: 12, bottom: 18),
       decoration: BoxDecoration(
-        color: AppColors.paper,
+        color: c.paper,
         borderRadius: BorderRadius.circular(isFocused ? 14 : 12),
         border: Border.all(
-          color: isFocused ? accentColor : AppColors.ink150,
+          color: isFocused ? accentColor : c.ink150,
         ),
       ),
       child: Row(
@@ -1276,7 +1286,7 @@ class _SearchBar extends StatelessWidget {
           HugeIcon(
             icon: HugeIcons.strokeRoundedSearch01,
             size: 16,
-            color: isFocused ? accentColor : AppColors.ink400,
+            color: isFocused ? accentColor : c.ink400,
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -1284,15 +1294,15 @@ class _SearchBar extends StatelessWidget {
               controller: controller,
               focusNode: focusNode,
               onChanged: onChanged,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13.5,
-                color: AppColors.ink800,
+                color: c.ink800,
               ),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Buscar requerimiento o módulo…',
                 hintStyle: TextStyle(
                   fontSize: 13.5,
-                  color: AppColors.ink400,
+                  color: c.ink400,
                 ),
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
@@ -1302,7 +1312,7 @@ class _SearchBar extends StatelessWidget {
                 focusedErrorBorder: InputBorder.none,
                 filled: false,
                 isDense: true,
-                contentPadding: EdgeInsets.symmetric(vertical: 10),
+                contentPadding: const EdgeInsets.symmetric(vertical: 10),
               ),
             ),
           ),
@@ -1316,7 +1326,7 @@ class _SearchBar extends StatelessWidget {
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedCancel01,
                   size: 16,
-                  color: AppColors.ink400,
+                  color: c.ink400,
                 ),
               ),
             )
@@ -1341,10 +1351,10 @@ class _SectionLabel extends StatelessWidget {
       padding: const EdgeInsets.only(left: 4, bottom: 8),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w700,
-          color: AppColors.ink400,
+          color: context.sac.ink400,
           letterSpacing: 1.32,
         ),
       ),
@@ -1433,21 +1443,23 @@ class _ModulesCard extends ConsumerWidget {
           module.completedCount < module.requirements.length,
     );
 
+    final c = context.sac;
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.paper,
+          color: c.paper,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.ink150),
+          border: Border.all(color: c.ink150),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             for (int i = 0; i < modules.length; i++) ...[
               if (i > 0)
-                const Divider(
-                  color: AppColors.ink100,
+                Divider(
+                  color: c.ink100,
                   height: 1,
                   thickness: 1,
                 ),
@@ -1480,13 +1492,14 @@ class _RequirementListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.paper,
+          color: c.paper,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.ink150),
+          border: Border.all(color: c.ink150),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1566,6 +1579,7 @@ class _HonorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final badgeStyle = _honorRelationBadgeStyle(honor.relationType);
+    final c = context.sac;
 
     return GestureDetector(
       onTap: onTap,
@@ -1573,9 +1587,9 @@ class _HonorCard extends StatelessWidget {
         width: 118,
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: AppColors.paper,
+          color: c.paper,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.ink150),
+          border: Border.all(color: c.ink150),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1588,7 +1602,7 @@ class _HonorCard extends StatelessWidget {
                     width: double.infinity,
                     height: 64,
                     child: Container(
-                      color: AppColors.canvas,
+                      color: c.canvas,
                       child: honor.honorImage != null
                           ? SacNetworkImage(
                               imageUrl: honor.honorImage!,
@@ -1597,7 +1611,7 @@ class _HonorCard extends StatelessWidget {
                                 child: HugeIcon(
                                   icon: HugeIcons.strokeRoundedStar,
                                   size: 24,
-                                  color: AppColors.ink300,
+                                  color: c.ink300,
                                 ),
                               ),
                             )
@@ -1605,7 +1619,7 @@ class _HonorCard extends StatelessWidget {
                               child: HugeIcon(
                                 icon: HugeIcons.strokeRoundedStar,
                                 size: 24,
-                                color: AppColors.ink300,
+                                color: c.ink300,
                               ),
                             ),
                     ),
@@ -1638,10 +1652,10 @@ class _HonorCard extends StatelessWidget {
               honor.honorName,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11.5,
                 fontWeight: FontWeight.w700,
-                color: AppColors.ink800,
+                color: c.ink800,
                 height: 1.25,
               ),
             ),
@@ -1712,13 +1726,14 @@ class _NoResultsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return Container(
       margin: const EdgeInsets.only(top: 8),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
       decoration: BoxDecoration(
-        color: AppColors.paper,
+        color: c.paper,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.ink150),
+        border: Border.all(color: c.ink150),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1727,15 +1742,18 @@ class _NoResultsCard extends StatelessWidget {
           Container(
             width: 88,
             height: 88,
-            decoration: const BoxDecoration(
-              color: AppColors.canvas,
+            decoration: BoxDecoration(
+              color: c.canvas,
               shape: BoxShape.circle,
             ),
             child: Center(
               child: RepaintBoundary(
                 child: CustomPaint(
                   size: const Size(64, 64),
-                  painter: _SearchIllustrationPainter(accentColor),
+                  painter: _SearchIllustrationPainter(
+                    accentColor,
+                    lensColor: c.ink200,
+                  ),
                 ),
               ),
             ),
@@ -1744,26 +1762,26 @@ class _NoResultsCard extends StatelessWidget {
           const SizedBox(height: 14),
 
           // Title
-          const Text(
+          Text(
             'No encontramos coincidencias',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: AppColors.ink900,
+              color: c.ink900,
             ),
           ),
 
           const SizedBox(height: 6),
 
           // Subtitle
-          const SizedBox(
+          SizedBox(
             width: 260,
             child: Text(
               'Prueba con otras palabras o revisa los módulos uno por uno desde la lista completa.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
-                color: AppColors.ink500,
+                color: c.ink500,
                 height: 1.45,
               ),
             ),
@@ -1775,12 +1793,12 @@ class _NoResultsCard extends StatelessWidget {
           if (suggestions.isNotEmpty) ...[
             Align(
               alignment: Alignment.centerLeft,
-              child: const Text(
+              child: Text(
                 'SUGERENCIAS',
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.ink400,
+                  color: c.ink400,
                   letterSpacing: 0.88,
                 ),
               ),
@@ -1828,8 +1846,9 @@ class _NoResultsCard extends StatelessWidget {
 
 class _SearchIllustrationPainter extends CustomPainter {
   final Color accentColor;
+  final Color lensColor;
 
-  const _SearchIllustrationPainter(this.accentColor);
+  const _SearchIllustrationPainter(this.accentColor, {required this.lensColor});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -1840,7 +1859,7 @@ class _SearchIllustrationPainter extends CustomPainter {
 
     // Outer circle (lens)
     final outerPaint = Paint()
-      ..color = AppColors.ink200
+      ..color = lensColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
     canvas.drawCircle(center, outerRadius, outerPaint);
@@ -1853,7 +1872,7 @@ class _SearchIllustrationPainter extends CustomPainter {
 
     // Handle
     final handlePaint = Paint()
-      ..color = AppColors.ink200
+      ..color = lensColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
@@ -1884,7 +1903,8 @@ class _SearchIllustrationPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _SearchIllustrationPainter oldDelegate) =>
-      oldDelegate.accentColor != accentColor;
+      oldDelegate.accentColor != accentColor ||
+      oldDelegate.lensColor != lensColor;
 }
 
 // ── Skeleton loading ───────────────────────────────────────────────────────────
@@ -1942,7 +1962,7 @@ class _SkeletonBox extends StatelessWidget {
       height: height,
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: AppColors.ink100,
+        color: context.sac.ink100,
         borderRadius: BorderRadius.circular(radius),
       ),
     );
@@ -1956,6 +1976,7 @@ class _EmptyModules extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 48),
       child: Column(
@@ -1964,23 +1985,23 @@ class _EmptyModules extends StatelessWidget {
           HugeIcon(
             icon: HugeIcons.strokeRoundedSchool,
             size: 48,
-            color: AppColors.ink400,
+            color: c.ink400,
           ),
           const SizedBox(height: 12),
           Text(
             'classes.detail_with_progress.empty_modules_title'.tr(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: AppColors.ink500,
+              color: c.ink500,
             ),
           ),
           const SizedBox(height: 6),
           Text(
             'classes.detail_with_progress.empty_modules_body'.tr(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: AppColors.ink400,
+              color: c.ink400,
             ),
             textAlign: TextAlign.center,
           ),
@@ -2014,17 +2035,17 @@ class _ErrorBody extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'classes.detail_with_progress.error_loading'.tr(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: AppColors.ink900,
+                color: context.sac.ink900,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               message,
-              style: const TextStyle(fontSize: 13, color: AppColors.ink500),
+              style: TextStyle(fontSize: 13, color: context.sac.ink500),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),

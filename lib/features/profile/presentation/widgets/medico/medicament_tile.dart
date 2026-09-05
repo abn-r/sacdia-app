@@ -11,8 +11,9 @@ class MedicamentTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final m = MedicoTokens.of(context);
     return Material(
-      color: MedicoTokens.mint50,
+      color: m.mintSoft,
       borderRadius: BorderRadius.circular(MedicoTokens.rChipSmall),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
@@ -25,9 +26,9 @@ class MedicamentTile extends StatelessWidget {
                 children: [
                   Text(
                     medicine.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w700,
-                      color: MedicoTokens.mintInk,
+                      color: m.mintInk,
                       fontSize: 14,
                     ),
                   ),
@@ -35,9 +36,9 @@ class MedicamentTile extends StatelessWidget {
                     const SizedBox(height: 1),
                     Text(
                       medicine.dose!,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: MedicoTokens.mintInkSoft,
+                        color: m.mintInkSoft,
                       ),
                     ),
                   ],

@@ -150,8 +150,10 @@ NotificationVisualConfig notificationVisualConfig({
       return const NotificationVisualConfig(
         label: 'Aviso',
         icon: HugeIcons.strokeRoundedNotification01,
-        iconColor: AppColors.lightTextTertiary,
-        backgroundColor: AppColors.lightBorderLight,
+        // Gris neutro legible en ambos modos; el widget mezcla iconColor
+        // sobre la superficie del tema para el fondo real.
+        iconColor: AppColors.pendingDark,
+        backgroundColor: AppColors.pendingBg,
       );
   }
 }

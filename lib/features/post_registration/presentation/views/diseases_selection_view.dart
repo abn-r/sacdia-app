@@ -247,9 +247,10 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
     int id,
     String name,
   ) async {
+    final m = MedicoTokens.of(context);
     await showSacSheet<void>(
       context: context,
-      backgroundColor: MedicoTokens.paper,
+      backgroundColor: m.paper,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -261,14 +262,14 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 ListTile(
-                  leading: const HugeIcon(
+                  leading: HugeIcon(
                     icon: HugeIcons.strokeRoundedEdit02,
                     size: 22,
-                    color: MedicoTokens.ink700,
+                    color: m.iconStrong,
                   ),
                   title: Text(
                     'post_registration.health.diseases.edit_chip_a11y'.tr(),
-                    style: const TextStyle(color: MedicoTokens.ink900),
+                    style: TextStyle(color: m.textPrimary),
                   ),
                   onTap: () {
                     Navigator.of(ctx).pop();
@@ -435,7 +436,7 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             action: SnackBarAction(
               label: 'common.retry'.tr(),
-              textColor: MedicoTokens.paper,
+              textColor: Colors.white,
               onPressed: () => _save(context),
             ),
           ),
@@ -464,31 +465,32 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
     final savedNone =
         ref.watch(healthNoneStateProvider).valueOrNull?.diseases ?? false;
     _hydrateSavedNone(savedNone);
+    final m = MedicoTokens.of(context);
 
     return Scaffold(
-      backgroundColor: MedicoTokens.canvas,
+      backgroundColor: m.canvas,
       appBar: AppBar(
-        backgroundColor: MedicoTokens.paper,
+        backgroundColor: m.paper,
         surfaceTintColor: Colors.transparent,
         title: Text(
           'post_registration.health.diseases.title'.tr(),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: MedicoTokens.ink900,
+            color: m.textPrimary,
           ),
         ),
         leading: IconButton(
-          icon: const HugeIcon(
+          icon: HugeIcon(
             icon: HugeIcons.strokeRoundedArrowLeft01,
             size: 24,
-            color: MedicoTokens.ink700,
+            color: m.iconStrong,
           ),
           onPressed: () => Navigator.of(context).pop(),
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: MedicoTokens.ink150),
+          child: Container(height: 1, color: m.border),
         ),
       ),
       body: catalogAsync.when(
@@ -517,7 +519,7 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
                   variant: SacButtonVariant.primary,
                   fullWidth: false,
                   backgroundColor: MedicoTokens.coral500,
-                  textColor: MedicoTokens.paper,
+                  textColor: Colors.white,
                   onPressed: () => ref.refresh(diseasesCatalogProvider),
                 ),
               ],
@@ -557,12 +559,12 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
                                 text:
                                     'post_registration.health.diseases.info_text'
                                         .tr(),
-                                bgColor: MedicoTokens.amber50,
-                                fgColor: MedicoTokens.amberInk,
-                                iconWidget: const HugeIcon(
+                                bgColor: m.amberSoft,
+                                fgColor: m.amberInk,
+                                iconWidget: HugeIcon(
                                   icon: HugeIcons.strokeRoundedHealth,
                                   size: 16,
-                                  color: MedicoTokens.amber500,
+                                  color: m.amberFg,
                                 ),
                               ),
 
@@ -574,12 +576,12 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
                               else if (_serverIds.isNotEmpty) ...[
                                 MedicoSectionCard(
                                   dense: true,
-                                  iconWidget: const HugeIcon(
+                                  iconWidget: HugeIcon(
                                     icon: HugeIcons.strokeRoundedHealth,
                                     size: 20,
-                                    color: MedicoTokens.amber500,
+                                    color: m.amberFg,
                                   ),
-                                  iconBg: MedicoTokens.amber50,
+                                  iconBg: m.amberSoft,
                                   title: _serverIds.length == 1
                                       ? 'post_registration.health.diseases.registered_count_one'
                                           .tr()
@@ -614,10 +616,10 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
                               Text(
                                 'post_registration.health.diseases.add_new_section'
                                     .tr(),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w800,
-                                  color: MedicoTokens.ink600,
+                                  color: m.iconMuted,
                                 ),
                               ),
 
@@ -628,31 +630,31 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
                                 controller: _searchController,
                                 onChanged: (v) =>
                                     setState(() => _searchQuery = v),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w500,
-                                  color: MedicoTokens.ink900,
+                                  color: m.textPrimary,
                                 ),
                                 decoration: InputDecoration(
                                   hintText:
                                       'post_registration.health.diseases.search_hint'
                                           .tr(),
-                                  hintStyle: const TextStyle(
-                                      color: MedicoTokens.ink400, fontSize: 15),
+                                  hintStyle: TextStyle(
+                                      color: m.textSecondary, fontSize: 15),
                                   prefixIconConstraints:
                                       FixedInputIconSlot.constraints,
-                                  prefixIcon: const FixedInputIconSlot(
+                                  prefixIcon: FixedInputIconSlot(
                                     icon: HugeIcons.strokeRoundedSearch01,
                                     iconSize: 22,
-                                    color: MedicoTokens.ink400,
+                                    color: m.textSecondary,
                                   ),
                                   suffixIcon: _searchQuery.isNotEmpty
                                       ? IconButton(
-                                          icon: const HugeIcon(
+                                          icon: HugeIcon(
                                             icon:
                                                 HugeIcons.strokeRoundedCancel01,
                                             size: 20,
-                                            color: MedicoTokens.ink400,
+                                            color: m.textSecondary,
                                           ),
                                           onPressed: () => setState(() {
                                             _searchController.clear();
@@ -661,7 +663,7 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
                                         )
                                       : null,
                                   filled: true,
-                                  fillColor: MedicoTokens.ink100,
+                                  fillColor: m.controlBg,
                                   contentPadding: const EdgeInsets.symmetric(
                                       horizontal: 16, vertical: 14),
                                   border: OutlineInputBorder(
@@ -712,9 +714,9 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
                                 child: Text(
                                   'post_registration.health.diseases.none_active_caption'
                                       .tr(),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 13,
-                                    color: MedicoTokens.ink500,
+                                    color: m.textSecondary,
                                   ),
                                 ),
                               ),
@@ -727,16 +729,15 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
                             padding: const EdgeInsets.symmetric(vertical: 48),
                             child: Column(
                               children: [
-                                const HugeIcon(
+                                HugeIcon(
                                   icon: HugeIcons.strokeRoundedSearchMinus,
                                   size: 64,
-                                  color: MedicoTokens.ink300,
+                                  color: m.iconMuted.withValues(alpha: 0.6),
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
                                   'common.no_results'.tr(),
-                                  style: const TextStyle(
-                                      color: MedicoTokens.ink500),
+                                  style: TextStyle(color: m.textSecondary),
                                 ),
                               ],
                             ),
@@ -900,15 +901,16 @@ class _DiseaseTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final m = MedicoTokens.of(context);
     return Container(
       key: tileKey,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 1),
       decoration: BoxDecoration(
-        color: isSelected ? MedicoTokens.amber50 : MedicoTokens.paper,
+        color: isSelected ? m.amberSoft : m.paper,
         borderRadius: BorderRadius.circular(12),
         border: Border(
           left: isSelected
-              ? const BorderSide(color: MedicoTokens.amber500, width: 3)
+              ? BorderSide(color: m.amberFg, width: 3)
               : BorderSide.none,
         ),
       ),
@@ -935,15 +937,15 @@ class _DiseaseTile extends StatelessWidget {
                           fontSize: 15,
                           fontWeight:
                               isSelected ? FontWeight.w600 : FontWeight.w500,
-                          color: MedicoTokens.ink900,
+                          color: m.textPrimary,
                         ),
                       ),
                     ),
                     if (isSelected)
-                      const HugeIcon(
+                      HugeIcon(
                         icon: HugeIcons.strokeRoundedTick02,
                         size: 20,
-                        color: MedicoTokens.amber500,
+                        color: m.amberFg,
                       ),
                   ],
                 ),
@@ -963,7 +965,7 @@ class _DiseaseTile extends StatelessWidget {
                     TextButton(
                       onPressed: onRemove,
                       style: TextButton.styleFrom(
-                        foregroundColor: MedicoTokens.ink600,
+                        foregroundColor: m.iconMuted,
                         padding: EdgeInsets.zero,
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -1013,6 +1015,7 @@ class _YearEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final m = MedicoTokens.of(context);
     return SacTextField(
       controller: controller,
       label: 'post_registration.diseases.since_year_label'.tr(),
@@ -1026,7 +1029,7 @@ class _YearEditor extends StatelessWidget {
         padding: const EdgeInsets.only(right: 12),
         child: Text(
           'post_registration.health.diseases.year_suffix'.tr(),
-          style: const TextStyle(fontSize: 13, color: MedicoTokens.ink500),
+          style: TextStyle(fontSize: 13, color: m.textSecondary),
         ),
       ),
       validator: (value) {
@@ -1110,16 +1113,17 @@ class _NoneToggleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final m = MedicoTokens.of(context);
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: isActive ? MedicoTokens.mint50 : MedicoTokens.paper,
+          color: isActive ? m.mintSoft : m.paper,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isActive ? MedicoTokens.mint500 : MedicoTokens.ink150,
+            color: isActive ? m.mintFg : m.border,
           ),
         ),
         child: Row(
@@ -1130,18 +1134,18 @@ class _NoneToggleCard extends StatelessWidget {
                 children: [
                   Text(
                     label,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: MedicoTokens.ink900,
+                      color: m.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     helper,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: MedicoTokens.ink500,
+                      color: m.textSecondary,
                     ),
                   ),
                 ],
@@ -1150,10 +1154,10 @@ class _NoneToggleCard extends StatelessWidget {
             Switch(
               value: isActive,
               onChanged: (_) => onTap(),
-              activeThumbColor: MedicoTokens.paper,
-              activeTrackColor: MedicoTokens.mintInk,
-              inactiveThumbColor: MedicoTokens.paper,
-              inactiveTrackColor: MedicoTokens.ink300,
+              activeThumbColor: m.paper,
+              activeTrackColor: m.mintInk,
+              inactiveThumbColor: m.paper,
+              inactiveTrackColor: m.iconMuted.withValues(alpha: 0.6),
             ),
           ],
         ),
@@ -1198,6 +1202,7 @@ class _StickyFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final m = MedicoTokens.of(context);
     return Container(
       padding: EdgeInsets.only(
         left: 16,
@@ -1205,19 +1210,19 @@ class _StickyFooter extends StatelessWidget {
         top: 12,
         bottom: 12 + MediaQuery.of(context).padding.bottom,
       ),
-      decoration: const BoxDecoration(
-        color: MedicoTokens.paper,
-        border: Border(top: BorderSide(color: MedicoTokens.ink150)),
+      decoration: BoxDecoration(
+        color: m.paper,
+        border: Border(top: BorderSide(color: m.border)),
       ),
       child: Row(
         children: [
           Expanded(
             child: Text(
               _counterText(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
-                color: MedicoTokens.ink600,
+                color: m.iconMuted,
               ),
             ),
           ),
@@ -1228,7 +1233,7 @@ class _StickyFooter extends StatelessWidget {
             fullWidth: false,
             isLoading: isSaving,
             backgroundColor: MedicoTokens.coral500,
-            textColor: MedicoTokens.paper,
+            textColor: Colors.white,
             onPressed: canSave && !isSaving ? onSave : null,
           ),
         ],

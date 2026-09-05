@@ -432,7 +432,7 @@ Color _accessibleLoadingForeground(
   final paintedBackground = Color.alphaBlend(background, surface);
   if (_contrastRatio(preferred, paintedBackground) >= 3) return preferred;
 
-  final candidates = <Color>[AppColors.ink900, Colors.white];
+  final candidates = <Color>[AppColors.inkOnBrand, Colors.white];
   return candidates.reduce(
     (best, candidate) => _contrastRatio(candidate, paintedBackground) >
             _contrastRatio(best, paintedBackground)

@@ -250,9 +250,10 @@ class _AllergiesSelectionViewState
     int id,
     String name,
   ) async {
+    final m = MedicoTokens.of(context);
     await showSacSheet<void>(
       context: context,
-      backgroundColor: MedicoTokens.paper,
+      backgroundColor: m.paper,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -264,14 +265,14 @@ class _AllergiesSelectionViewState
               mainAxisSize: MainAxisSize.min,
               children: [
                 ListTile(
-                  leading: const HugeIcon(
+                  leading: HugeIcon(
                     icon: HugeIcons.strokeRoundedEdit02,
                     size: 22,
-                    color: MedicoTokens.ink700,
+                    color: m.iconStrong,
                   ),
                   title: Text(
                     'post_registration.health.allergies.edit_chip_a11y'.tr(),
-                    style: const TextStyle(color: MedicoTokens.ink900),
+                    style: TextStyle(color: m.textPrimary),
                   ),
                   onTap: () {
                     Navigator.of(ctx).pop();
@@ -451,7 +452,7 @@ class _AllergiesSelectionViewState
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             action: SnackBarAction(
               label: 'common.retry'.tr(),
-              textColor: MedicoTokens.paper,
+              textColor: Colors.white,
               onPressed: () => _save(context),
             ),
           ),
@@ -482,31 +483,32 @@ class _AllergiesSelectionViewState
     final savedNone =
         ref.watch(healthNoneStateProvider).valueOrNull?.allergies ?? false;
     _hydrateSavedNone(savedNone);
+    final m = MedicoTokens.of(context);
 
     return Scaffold(
-      backgroundColor: MedicoTokens.canvas,
+      backgroundColor: m.canvas,
       appBar: AppBar(
-        backgroundColor: MedicoTokens.paper,
+        backgroundColor: m.paper,
         surfaceTintColor: Colors.transparent,
         title: Text(
           'post_registration.health.allergies.title'.tr(),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: MedicoTokens.ink900,
+            color: m.textPrimary,
           ),
         ),
         leading: IconButton(
-          icon: const HugeIcon(
+          icon: HugeIcon(
             icon: HugeIcons.strokeRoundedArrowLeft01,
             size: 24,
-            color: MedicoTokens.ink700,
+            color: m.iconStrong,
           ),
           onPressed: () => Navigator.of(context).pop(),
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: MedicoTokens.ink150),
+          child: Container(height: 1, color: m.border),
         ),
       ),
       body: catalogAsync.when(
@@ -535,7 +537,7 @@ class _AllergiesSelectionViewState
                   variant: SacButtonVariant.primary,
                   fullWidth: false,
                   backgroundColor: MedicoTokens.coral500,
-                  textColor: MedicoTokens.paper,
+                  textColor: Colors.white,
                   onPressed: () => ref.refresh(allergiesCatalogProvider),
                 ),
               ],
@@ -576,12 +578,12 @@ class _AllergiesSelectionViewState
                                 text:
                                     'post_registration.health.allergies.info_text'
                                         .tr(),
-                                bgColor: MedicoTokens.rose50,
-                                fgColor: MedicoTokens.roseInk,
-                                iconWidget: const HugeIcon(
+                                bgColor: m.roseSoft,
+                                fgColor: m.roseInk,
+                                iconWidget: HugeIcon(
                                   icon: HugeIcons.strokeRoundedFirstAidKit,
                                   size: 16,
-                                  color: MedicoTokens.rose500,
+                                  color: m.roseFg,
                                 ),
                               ),
 
@@ -593,12 +595,12 @@ class _AllergiesSelectionViewState
                               else if (_serverIds.isNotEmpty) ...[
                                 MedicoSectionCard(
                                   dense: true,
-                                  iconWidget: const HugeIcon(
+                                  iconWidget: HugeIcon(
                                     icon: HugeIcons.strokeRoundedFirstAidKit,
                                     size: 20,
-                                    color: MedicoTokens.rose500,
+                                    color: m.roseFg,
                                   ),
-                                  iconBg: MedicoTokens.rose50,
+                                  iconBg: m.roseSoft,
                                   title: _registeredTitle(
                                       context, _serverIds.length),
                                   child: _RegisteredChipsSection(
@@ -630,10 +632,10 @@ class _AllergiesSelectionViewState
                               Text(
                                 'post_registration.health.allergies.add_new_section'
                                     .tr(),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w800,
-                                  color: MedicoTokens.ink600,
+                                  color: m.iconMuted,
                                 ),
                               ),
 
@@ -644,31 +646,31 @@ class _AllergiesSelectionViewState
                                 controller: _searchController,
                                 onChanged: (v) =>
                                     setState(() => _searchQuery = v),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w500,
-                                  color: MedicoTokens.ink900,
+                                  color: m.textPrimary,
                                 ),
                                 decoration: InputDecoration(
                                   hintText:
                                       'post_registration.health.allergies.search_hint'
                                           .tr(),
-                                  hintStyle: const TextStyle(
-                                      color: MedicoTokens.ink400, fontSize: 15),
+                                  hintStyle: TextStyle(
+                                      color: m.textSecondary, fontSize: 15),
                                   prefixIconConstraints:
                                       FixedInputIconSlot.constraints,
-                                  prefixIcon: const FixedInputIconSlot(
+                                  prefixIcon: FixedInputIconSlot(
                                     icon: HugeIcons.strokeRoundedSearch01,
                                     iconSize: 22,
-                                    color: MedicoTokens.ink400,
+                                    color: m.textSecondary,
                                   ),
                                   suffixIcon: _searchQuery.isNotEmpty
                                       ? IconButton(
-                                          icon: const HugeIcon(
+                                          icon: HugeIcon(
                                             icon:
                                                 HugeIcons.strokeRoundedCancel01,
                                             size: 20,
-                                            color: MedicoTokens.ink400,
+                                            color: m.textSecondary,
                                           ),
                                           onPressed: () => setState(() {
                                             _searchController.clear();
@@ -677,7 +679,7 @@ class _AllergiesSelectionViewState
                                         )
                                       : null,
                                   filled: true,
-                                  fillColor: MedicoTokens.ink100,
+                                  fillColor: m.controlBg,
                                   contentPadding: const EdgeInsets.symmetric(
                                       horizontal: 16, vertical: 14),
                                   border: OutlineInputBorder(
@@ -728,9 +730,9 @@ class _AllergiesSelectionViewState
                                 child: Text(
                                   'post_registration.health.allergies.none_active_caption'
                                       .tr(),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 13,
-                                    color: MedicoTokens.ink500,
+                                    color: m.textSecondary,
                                   ),
                                 ),
                               ),
@@ -743,16 +745,15 @@ class _AllergiesSelectionViewState
                             padding: const EdgeInsets.symmetric(vertical: 48),
                             child: Column(
                               children: [
-                                const HugeIcon(
+                                HugeIcon(
                                   icon: HugeIcons.strokeRoundedSearchMinus,
                                   size: 64,
-                                  color: MedicoTokens.ink300,
+                                  color: m.iconMuted.withValues(alpha: 0.6),
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
                                   'common.no_results'.tr(),
-                                  style: const TextStyle(
-                                      color: MedicoTokens.ink500),
+                                  style: TextStyle(color: m.textSecondary),
                                 ),
                               ],
                             ),
@@ -769,7 +770,7 @@ class _AllergiesSelectionViewState
                                   _expandedAvailableId == item.id;
                               final severity = _severityFor(item.id);
                               final tone = _toneForSeverity(severity);
-                              final toneData = MedicoTokens.toneFor(tone);
+                              final toneData = m.toneFor(tone);
 
                               _tileKeys[item.id] ??= GlobalKey();
 
@@ -935,11 +936,12 @@ class _AvailableTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final m = MedicoTokens.of(context);
     return Container(
       key: tileKey,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 1),
       decoration: BoxDecoration(
-        color: isSelected ? toneData.bg : MedicoTokens.paper,
+        color: isSelected ? toneData.bg : m.paper,
         borderRadius: BorderRadius.circular(12),
         border: Border(
           left: isSelected
@@ -970,7 +972,7 @@ class _AvailableTile extends StatelessWidget {
                           fontSize: 15,
                           fontWeight:
                               isSelected ? FontWeight.w600 : FontWeight.w500,
-                          color: MedicoTokens.ink900,
+                          color: m.textPrimary,
                         ),
                       ),
                     ),
@@ -998,7 +1000,7 @@ class _AvailableTile extends StatelessWidget {
                     TextButton(
                       onPressed: onRemove,
                       style: TextButton.styleFrom(
-                        foregroundColor: MedicoTokens.ink600,
+                        foregroundColor: m.iconMuted,
                         padding: EdgeInsets.zero,
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -1033,6 +1035,7 @@ class _CompactSeverityEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final m = MedicoTokens.of(context);
     return SegmentedButton<AllergySeverity>(
       segments: [
         ButtonSegment(
@@ -1068,13 +1071,13 @@ class _CompactSeverityEditor extends StatelessWidget {
           if (states.contains(WidgetState.selected)) {
             return MedicoTokens.coral500;
           }
-          return MedicoTokens.paper;
+          return m.paper;
         }),
         foregroundColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return MedicoTokens.paper;
+            return Colors.white;
           }
-          return MedicoTokens.ink600;
+          return m.iconMuted;
         }),
       ),
     );
@@ -1147,16 +1150,17 @@ class _NoneToggleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final m = MedicoTokens.of(context);
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: isActive ? MedicoTokens.mint50 : MedicoTokens.paper,
+          color: isActive ? m.mintSoft : m.paper,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isActive ? MedicoTokens.mint500 : MedicoTokens.ink150,
+            color: isActive ? m.mintFg : m.border,
           ),
         ),
         child: Row(
@@ -1167,18 +1171,18 @@ class _NoneToggleCard extends StatelessWidget {
                 children: [
                   Text(
                     label,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: MedicoTokens.ink900,
+                      color: m.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     helper,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: MedicoTokens.ink500,
+                      color: m.textSecondary,
                     ),
                   ),
                 ],
@@ -1187,10 +1191,10 @@ class _NoneToggleCard extends StatelessWidget {
             Switch(
               value: isActive,
               onChanged: (_) => onTap(),
-              activeThumbColor: MedicoTokens.paper,
-              activeTrackColor: MedicoTokens.mintInk,
-              inactiveThumbColor: MedicoTokens.paper,
-              inactiveTrackColor: MedicoTokens.ink300,
+              activeThumbColor: m.paper,
+              activeTrackColor: m.mintInk,
+              inactiveThumbColor: m.paper,
+              inactiveTrackColor: m.iconMuted.withValues(alpha: 0.6),
             ),
           ],
         ),
@@ -1235,6 +1239,7 @@ class _StickyFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final m = MedicoTokens.of(context);
     return Container(
       padding: EdgeInsets.only(
         left: 16,
@@ -1242,19 +1247,19 @@ class _StickyFooter extends StatelessWidget {
         top: 12,
         bottom: 12 + MediaQuery.of(context).padding.bottom,
       ),
-      decoration: const BoxDecoration(
-        color: MedicoTokens.paper,
-        border: Border(top: BorderSide(color: MedicoTokens.ink150)),
+      decoration: BoxDecoration(
+        color: m.paper,
+        border: Border(top: BorderSide(color: m.border)),
       ),
       child: Row(
         children: [
           Expanded(
             child: Text(
               _counterText(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
-                color: MedicoTokens.ink600,
+                color: m.iconMuted,
               ),
             ),
           ),
@@ -1265,7 +1270,7 @@ class _StickyFooter extends StatelessWidget {
             fullWidth: false,
             isLoading: isSaving,
             backgroundColor: MedicoTokens.coral500,
-            textColor: MedicoTokens.paper,
+            textColor: Colors.white,
             onPressed: canSave && !isSaving ? onSave : null,
           ),
         ],

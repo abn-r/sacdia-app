@@ -121,9 +121,11 @@ class MedicalInfoView extends ConsumerWidget {
     if (contacts.isNotEmpty) filled++;
     const total = 5;
 
+    final m = MedicoTokens.of(context);
+
     return SecureScreen(
       child: Scaffold(
-        backgroundColor: MedicoTokens.canvas,
+        backgroundColor: m.canvas,
         body: SafeArea(
           bottom: false,
           child: Column(
@@ -157,8 +159,8 @@ class MedicalInfoView extends ConsumerWidget {
                     // ── Contactos de emergencia ─────────────────────────────
                     MedicoSectionCard(
                       icon: HugeIcons.strokeRoundedContactBook,
-                      iconBg: MedicoTokens.coral100,
-                      iconFg: MedicoTokens.coral600,
+                      iconBg: m.coralSoft,
+                      iconFg: m.coralFg,
                       title: 'profile.medical_info.emergency_contacts'.tr(),
                       actionLabel: 'profile.medical_info.action_manage'.tr(),
                       onAction: () => Navigator.of(context).push(
@@ -210,8 +212,8 @@ class MedicalInfoView extends ConsumerWidget {
                     // ── Alergias ────────────────────────────────────────────
                     MedicoSectionCard(
                       icon: HugeIcons.strokeRoundedFirstAidKit,
-                      iconBg: MedicoTokens.rose50,
-                      iconFg: MedicoTokens.rose500,
+                      iconBg: m.roseSoft,
+                      iconFg: m.roseFg,
                       title: 'profile.medical_info.allergies'.tr(),
                       actionLabel: 'profile.medical_info.action_edit'.tr(),
                       onAction: () => Navigator.of(context).push(
@@ -259,8 +261,8 @@ class MedicalInfoView extends ConsumerWidget {
                     // ── Enfermedades ────────────────────────────────────────
                     MedicoSectionCard(
                       icon: HugeIcons.strokeRoundedHealth,
-                      iconBg: MedicoTokens.amber50,
-                      iconFg: MedicoTokens.amber500,
+                      iconBg: m.amberSoft,
+                      iconFg: m.amberFg,
                       title: 'profile.medical_info.diseases'.tr(),
                       actionLabel: 'profile.medical_info.action_edit'.tr(),
                       onAction: () => Navigator.of(context).push(
@@ -308,8 +310,8 @@ class MedicalInfoView extends ConsumerWidget {
                     // ── Medicamentos ────────────────────────────────────────
                     MedicoSectionCard(
                       icon: HugeIcons.strokeRoundedMedicine01,
-                      iconBg: MedicoTokens.mint50,
-                      iconFg: MedicoTokens.mint500,
+                      iconBg: m.mintSoft,
+                      iconFg: m.mintFg,
                       title: 'profile.medical_info.medicines'.tr(),
                       actionLabel: 'profile.medical_info.action_edit'.tr(),
                       onAction: () => Navigator.of(context).push(
@@ -361,8 +363,8 @@ class MedicalInfoView extends ConsumerWidget {
                         if (!isRequired) return const SizedBox.shrink();
                         return MedicoSectionCard(
                           icon: HugeIcons.strokeRoundedSecurityCheck,
-                          iconBg: MedicoTokens.lavender100,
-                          iconFg: MedicoTokens.lavender500,
+                          iconBg: m.lavenderSoft,
+                          iconFg: m.lavenderFg,
                           title: 'profile.medical_info.legal_rep'.tr(),
                           actionLabel: 'profile.medical_info.action_edit'.tr(),
                           onAction: () => Navigator.of(context).push(
@@ -392,18 +394,18 @@ class MedicalInfoView extends ConsumerWidget {
                                 children: [
                                   Text(
                                     '${rep.name} ${rep.paternalSurname} ${rep.maternalSurname}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
-                                      color: MedicoTokens.ink900,
+                                      color: m.textPrimary,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
                                     '${rep.type} · ${rep.phone}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 12,
-                                      color: MedicoTokens.ink500,
+                                      color: m.textSecondary,
                                     ),
                                   ),
                                 ],
@@ -433,17 +435,18 @@ class _MedicoAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final m = MedicoTokens.of(context);
     return Container(
-      decoration: const BoxDecoration(
-        color: MedicoTokens.paper,
-        border: Border(bottom: BorderSide(color: MedicoTokens.ink150)),
+      decoration: BoxDecoration(
+        color: m.paper,
+        border: Border(bottom: BorderSide(color: m.border)),
       ),
       padding: const EdgeInsets.fromLTRB(18, 0, 18, 8),
       child: Row(
         children: [
           _circleBtn(
-            color: MedicoTokens.ink100,
-            iconColor: MedicoTokens.ink800,
+            color: m.controlBg,
+            iconColor: m.iconStrong,
             icon: HugeIcons.strokeRoundedArrowLeft01,
             onTap: onBack,
           ),
@@ -463,10 +466,10 @@ class _MedicoAppBar extends StatelessWidget {
                 const SizedBox(height: 1),
                 Text(
                   'profile.medical_info.title'.tr(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
-                    color: MedicoTokens.ink900,
+                    color: m.textPrimary,
                     letterSpacing: -0.17,
                   ),
                 ),

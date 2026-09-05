@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/role_utils.dart';
 import '../../../../core/widgets/sac_back_button.dart';
 import '../../../../core/widgets/sac_card.dart';
@@ -159,7 +160,7 @@ class ClassCounselorAssignmentsView extends ConsumerWidget {
     final canRevoke = hasAnyPermission(user, const {'club_roles:revoke'});
 
     return Scaffold(
-      backgroundColor: AppColors.canvas,
+      backgroundColor: context.sac.canvas,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         leading: sacAutoBackButton(context),
@@ -270,7 +271,7 @@ class ClassCounselorAssignmentsView extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      backgroundColor: AppColors.paper,
+      backgroundColor: context.sac.paper,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -436,7 +437,7 @@ class _ClassGroupHeader extends StatelessWidget {
             className,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w800,
-                  color: AppColors.ink900,
+                  color: context.sac.ink900,
                   letterSpacing: -0.2,
                 ),
           ),
@@ -470,7 +471,7 @@ class _AssignmentsHeader extends StatelessWidget {
                   ? 'classes.class_assignments.header_body'.tr()
                   : 'classes.class_assignments.readonly_body'.tr(),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.ink600,
+                    color: context.sac.ink600,
                     height: 1.35,
                   ),
             ),
@@ -509,7 +510,8 @@ class _AssignmentAddActionState extends State<_AssignmentAddAction> {
   @override
   Widget build(BuildContext context) {
     final enabled = widget.onTap != null;
-    final color = enabled ? AppColors.primary : AppColors.ink400;
+    final c = context.sac;
+    final color = enabled ? AppColors.primary : c.ink400;
     final reduce = SacMotion.reduceMotionOf(context);
 
     return Semantics(
@@ -530,7 +532,7 @@ class _AssignmentAddActionState extends State<_AssignmentAddAction> {
             decoration: BoxDecoration(
               color: enabled
                   ? AppColors.primary.withValues(alpha: 0.10)
-                  : AppColors.ink50,
+                  : c.ink50,
               borderRadius: BorderRadius.circular(999),
             ),
             child: Row(
@@ -596,6 +598,7 @@ class _AssignmentTile extends StatelessWidget {
       _responsibilityLabel(assignment.responsibilityType),
     ];
     final exceptionReason = assignment.exceptionReason?.trim() ?? '';
+    final c = context.sac;
 
     return SacCard(
       animate: true,
@@ -619,7 +622,7 @@ class _AssignmentTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: AppColors.ink900,
+                          color: c.ink900,
                           letterSpacing: -0.2,
                         ),
                   ),
@@ -634,7 +637,7 @@ class _AssignmentTile extends StatelessWidget {
                           style: Theme.of(context)
                               .textTheme
                               .bodySmall
-                              ?.copyWith(color: AppColors.ink600),
+                              ?.copyWith(color: c.ink600),
                         ),
                       ),
                       if (assignment.exceptional) ...[
@@ -688,14 +691,14 @@ class _AssignmentTile extends StatelessWidget {
                 child: InkWell(
                   borderRadius: BorderRadius.circular(999),
                   onTap: () => _showActionsSheet(context, personName),
-                  child: const SizedBox(
+                  child: SizedBox(
                     width: 34,
                     height: 34,
                     child: Center(
                       child: HugeIcon(
                         icon: HugeIcons.strokeRoundedMoreHorizontal,
                         size: 18,
-                        color: AppColors.ink400,
+                        color: c.ink400,
                       ),
                     ),
                   ),
@@ -712,10 +715,11 @@ class _AssignmentTile extends StatelessWidget {
     String personName,
   ) async {
     final classColor = AppColors.classColor(assignment.clazz.name);
+    final c = context.sac;
 
     final action = await showSacSheet<String>(
       context: context,
-      backgroundColor: AppColors.canvas,
+      backgroundColor: c.canvas,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -733,7 +737,7 @@ class _AssignmentTile extends StatelessWidget {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.ink150,
+                    color: c.ink150,
                     borderRadius: BorderRadius.circular(999),
                   ),
                 ),
@@ -761,7 +765,7 @@ class _AssignmentTile extends StatelessWidget {
                               .titleMedium
                               ?.copyWith(
                                 fontWeight: FontWeight.w800,
-                                color: AppColors.ink900,
+                                color: c.ink900,
                                 letterSpacing: -0.3,
                               ),
                         ),
@@ -786,7 +790,7 @@ class _AssignmentTile extends StatelessWidget {
                                     .textTheme
                                     .bodySmall
                                     ?.copyWith(
-                                      color: AppColors.ink600,
+                                      color: c.ink600,
                                       fontWeight: FontWeight.w600,
                                     ),
                               ),
@@ -804,16 +808,16 @@ class _AssignmentTile extends StatelessWidget {
               if (canEdit)
                 Container(
                   decoration: BoxDecoration(
-                    color: AppColors.paper,
+                    color: c.paper,
                     borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: AppColors.ink150),
+                    border: Border.all(color: c.ink150),
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: _SheetAction(
                     icon: HugeIcons.strokeRoundedPencilEdit02,
                     label: 'common.edit'.tr(),
                     tint: AppColors.primary,
-                    labelColor: AppColors.ink900,
+                    labelColor: c.ink900,
                     onTap: () => Navigator.of(sheetContext).pop('edit'),
                   ),
                 ),
@@ -823,7 +827,7 @@ class _AssignmentTile extends StatelessWidget {
               if (canRevoke)
                 Container(
                   decoration: BoxDecoration(
-                    color: AppColors.paper,
+                    color: c.paper,
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
                       color: AppColors.error.withValues(alpha: 0.16),
@@ -843,7 +847,7 @@ class _AssignmentTile extends StatelessWidget {
               // Cancelar: salida obvia, sin scrim-hunting
               Container(
                 decoration: BoxDecoration(
-                  color: AppColors.ink50,
+                  color: c.ink50,
                   borderRadius: BorderRadius.circular(18),
                 ),
                 clipBehavior: Clip.antiAlias,
@@ -858,7 +862,7 @@ class _AssignmentTile extends StatelessWidget {
                             .textTheme
                             .bodyMedium
                             ?.copyWith(
-                              color: AppColors.ink600,
+                              color: c.ink600,
                               fontWeight: FontWeight.w700,
                             ),
                       ),
@@ -951,7 +955,7 @@ class _SheetActionState extends State<_SheetAction> {
               HugeIcon(
                 icon: HugeIcons.strokeRoundedArrowRight01,
                 size: 16,
-                color: AppColors.ink400,
+                color: context.sac.ink400,
               ),
             ],
           ),
@@ -1127,6 +1131,7 @@ class _ClassCounselorAssignmentSheetState
       classCounselorAssignmentsNotifierProvider(widget.query),
     );
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final c = context.sac;
 
     return Padding(
       padding: EdgeInsets.only(bottom: bottomInset),
@@ -1143,7 +1148,7 @@ class _ClassCounselorAssignmentSheetState
                   width: 44,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.ink150,
+                    color: c.ink150,
                     borderRadius: BorderRadius.circular(999),
                   ),
                 ),
@@ -1155,14 +1160,14 @@ class _ClassCounselorAssignmentSheetState
                     : 'classes.class_assignments.create_title'.tr(),
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w800,
-                      color: AppColors.ink900,
+                      color: c.ink900,
                     ),
               ),
               const SizedBox(height: 6),
               Text(
                 'classes.class_assignments.form_body'.tr(),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.ink600,
+                      color: c.ink600,
                       height: 1.35,
                     ),
               ),
@@ -1359,13 +1364,14 @@ class _ReadOnlyField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.ink50,
+        color: c.ink50,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.ink150),
+        border: Border.all(color: c.ink150),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1373,7 +1379,7 @@ class _ReadOnlyField extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: AppColors.ink500,
+                  color: c.ink500,
                   fontWeight: FontWeight.w700,
                 ),
           ),
@@ -1381,7 +1387,7 @@ class _ReadOnlyField extends StatelessWidget {
           Text(
             value,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.ink900,
+                  color: c.ink900,
                   fontWeight: FontWeight.w700,
                 ),
           ),
@@ -1423,7 +1429,7 @@ class _AssignmentsErrorState extends StatelessWidget {
               message,
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.ink600),
+              ).textTheme.bodyMedium?.copyWith(color: context.sac.ink600),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
@@ -1458,7 +1464,7 @@ class _MessageState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            HugeIcon(icon: icon, size: 54, color: AppColors.ink400),
+            HugeIcon(icon: icon, size: 54, color: context.sac.ink400),
             const SizedBox(height: 14),
             Text(
               title,
@@ -1472,7 +1478,7 @@ class _MessageState extends StatelessWidget {
               message,
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.ink600),
+              ).textTheme.bodyMedium?.copyWith(color: context.sac.ink600),
               textAlign: TextAlign.center,
             ),
           ],

@@ -8,6 +8,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../providers/receipts_provider.dart';
 import '../providers/order_detail_provider.dart';
 import '../widgets/price_input.dart';
@@ -223,7 +224,7 @@ class _UploadProgress extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 '${(progress * 100).toStringAsFixed(0)}%',
-                style: const TextStyle(color: AppColors.lightTextSecondary),
+                style: TextStyle(color: context.sac.textSecondary),
               ),
             ],
           ],
@@ -272,6 +273,7 @@ class _FormBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final c = context.sac;
 
     return Form(
       key: formKey,
@@ -339,7 +341,7 @@ class _FormBody extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
-                border: Border.all(color: AppColors.lightBorder),
+                border: Border.all(color: c.border),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Row(
@@ -356,14 +358,14 @@ class _FormBody extends StatelessWidget {
                           : 'Seleccionar fecha',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: fechaPago != null
-                            ? AppColors.lightText
-                            : AppColors.lightTextSecondary,
+                            ? c.text
+                            : c.textSecondary,
                       ),
                     ),
                   ),
-                  const HugeIcon(
+                  HugeIcon(
                       icon: HugeIcons.strokeRoundedArrowRight01,
-                      color: AppColors.lightTextSecondary),
+                      color: c.textSecondary),
                 ],
               ),
             ),
@@ -435,7 +437,7 @@ class _FilePreview extends StatelessWidget {
                 Text(
                   fileSize,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.lightTextSecondary,
+                    color: context.sac.textSecondary,
                   ),
                 ),
               ],
@@ -463,7 +465,7 @@ class _SectionLabel extends StatelessWidget {
       label,
       style: Theme.of(context).textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w700,
-            color: AppColors.lightText,
+            color: context.sac.text,
           ),
     );
   }

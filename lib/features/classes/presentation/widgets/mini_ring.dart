@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 
 /// Anillo de progreso compacto 36×36 para [ModuleRow].
 ///
@@ -24,19 +25,23 @@ class MiniRing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pct = (progress.clamp(0.0, 1.0) * 100).round();
+    final c = context.sac;
     return RepaintBoundary(
       child: SizedBox(
         width: size,
         height: size,
         child: CustomPaint(
-          painter: _MiniRingPainter(progress: progress.clamp(0.0, 1.0)),
+          painter: _MiniRingPainter(
+            progress: progress.clamp(0.0, 1.0),
+            trackColor: c.ink100,
+          ),
           child: Center(
             child: Text(
               '$pct',
               style: TextStyle(
                 fontSize: size * 0.25,
                 fontWeight: FontWeight.w700,
-                color: AppColors.ink800,
+                color: c.ink800,
                 height: 1,
                 fontFeatures: const [FontFeature.tabularFigures()],
                 fontFamily: 'monospace',
@@ -51,8 +56,9 @@ class MiniRing extends StatelessWidget {
 
 class _MiniRingPainter extends CustomPainter {
   final double progress;
+  final Color trackColor;
 
-  const _MiniRingPainter({required this.progress});
+  const _MiniRingPainter({required this.progress, required this.trackColor});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -62,7 +68,7 @@ class _MiniRingPainter extends CustomPainter {
 
     // Track
     final trackPaint = Paint()
-      ..color = AppColors.ink100
+      ..color = trackColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
@@ -89,5 +95,5 @@ class _MiniRingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _MiniRingPainter oldDelegate) =>
-      oldDelegate.progress != progress;
+      oldDelegate.progress != progress || oldDelegate.trackColor != trackColor;
 }
