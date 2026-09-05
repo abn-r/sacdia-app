@@ -383,7 +383,8 @@
       "description_label": "Descrição",
       "see_more": "Ver mais",
       "see_less": "Ver menos",
-      "how_it_works": "Como funciona?",
+      "how_it_works": "Como funciona",
+      "how_it_works_intro": "Você se inscreve, escolhe como trabalhar e um responsável valida.",
       "progress_summary": "{completed} de {total} concluídos",
       "requirements_label": "Requisitos",
       "more_requirements": "e mais {count}...",
@@ -437,12 +438,12 @@
       "skill_intermediate": "Intermediário",
       "skill_advanced": "Avançado",
       "skill_level_n": "Nível {level}",
-      "step1_title": "Cadastre-se",
-      "step1_subtitle": "Inscreva-se na especialidade para começar sua jornada",
-      "step2_title": "Conclua os requisitos",
-      "step2_subtitle": "Marque cada requisito cumprido no app ou com seu instrutor",
-      "step3_title": "Envie as evidências",
-      "step3_subtitle": "Fotografe ou digitalize as folhas assinadas como comprovação",
+      "step1_title": "Inscreva-se",
+      "step1_subtitle": "Fica no seu perfil para retomar quando quiser.",
+      "step2_title": "Escolha o caminho",
+      "step2_subtitle": "Checklist no app, ou formulário e evidências fora dele.",
+      "step3_title": "Envie para revisão",
+      "step3_subtitle": "Ao terminar, um responsável do clube valida seu trabalho.",
       "step4_title": "Envie para revisão",
       "step4_subtitle": "Quando estiver pronto, envie seu progresso para ser validado",
       "validation_history_title": "Histórico de validação",
@@ -537,7 +538,7 @@
       "general_section_title": "Evidências gerais",
       "empty_first": "Envie sua primeira evidência",
       "empty_subtitle": "Fotos, imagens ou documentos PDF",
-      "general_empty_first": "Envie sua primeira evidência geral",
+      "general_empty_first": "Evidências gerais",
       "general_empty_subtitle": "Fotos ou imagens que acompanham o formulário",
       "add_button": "Adicionar evidência",
       "add_cell_label": "Adicionar",
@@ -549,12 +550,12 @@
       "rejection_no_reason": "Sem motivo especificado",
       "rejection_hint": "Você pode corrigir e reenviar",
       "material_title": "Material de estudo",
-      "material_subtitle": "Baixar PDF",
+      "material_subtitle": "Ver PDF",
       "completed_format_title": "Formulário concluído",
       "completed_format_uploaded": "Pronto. O arquivo final foi enviado.",
-      "completed_format_missing": "Envie aqui o formulário já concluído.",
+      "completed_format_missing": "PDF já preenchido",
       "upload_completed_format": "Enviar formulário",
-      "replace_completed_format": "Substituir formulário",
+      "replace_completed_format": "Substituir",
       "open_completed_format": "Abrir formulário concluído",
       "cta_upload": "Enviar evidência",
       "cta_upload_format": "Enviar formulário concluído",
@@ -3716,7 +3717,7 @@
       "reports": "Relatórios",
       "my_ranking": "Meu ranking",
       "section_ranking": "Ranking da seção",
-      "club_rankings": "Ranking de clubes"
+      "club_rankings": "Progresso anual"
     },
     "stats": {
       "honors_completed": "Esp. concluídas",
@@ -4082,7 +4083,7 @@
       }
     },
     "club_rankings": {
-      "title": "Ranking de clubes",
+      "title": "Progresso anual",
       "header_title": "Clubes por campo local",
       "header_body": "Compara os clubes do seu campo local por tipo de clube durante {year}. Este é um ranking institucional; não substitui o membro do mês.",
       "clubs_ranked": "Clubes classificados",
@@ -4366,6 +4367,42 @@
       "not_draft": "O plano já não é um rascunho",
       "not_submitted": "O plano ainda não foi enviado",
       "qty_invalid": "A quantidade é inválida"
+    }
+  },
+  "materials": {
+    "catalog": {
+      "title": "Materiais",
+      "cart": "Carrinho",
+      "search_hint": "Buscar materiais",
+      "filter_all": "Todos",
+      "filter_all_categories": "Todas",
+      "in_stock": "Disponível",
+      "low_stock": "Poucas unidades",
+      "out_of_stock": "Esgotado",
+      "empty": "Nenhum material",
+      "load_more": "Carregar mais"
+    },
+    "history": {
+      "title": "Pedidos",
+      "empty_title": "Sem pedidos",
+      "empty_subtitle": "Seus pedidos aparecerão aqui.",
+      "go_catalog": "Ir ao catálogo",
+      "error_title": "Não foi possível carregar o histórico",
+      "no_folio": "Sem folio"
+    },
+    "errors": {
+      "browse_catalog": "Não foi possível carregar o catálogo",
+      "get_product": "Não foi possível carregar o produto",
+      "list_categorias": "Não foi possível carregar as categorias",
+      "list_programas": "Não foi possível carregar os programas",
+      "create_order": "Não foi possível criar o pedido",
+      "list_ordenes": "Não foi possível carregar os pedidos",
+      "get_history": "Não foi possível carregar o histórico",
+      "get_orden": "Não foi possível carregar o pedido",
+      "cancel_order": "Não foi possível cancelar o pedido",
+      "list_comprobantes": "Não foi possível carregar os comprovantes",
+      "upload_comprobante": "Não foi possível enviar o comprovante",
+      "get_config": "Não foi possível carregar a configuração de pagamento"
     }
   }
 }

@@ -383,7 +383,8 @@
       "description_label": "Description",
       "see_more": "Voir plus",
       "see_less": "Voir moins",
-      "how_it_works": "Comment ça fonctionne ?",
+      "how_it_works": "Comment ça marche",
+      "how_it_works_intro": "Vous vous inscrivez, choisissez comment la travailler, puis un responsable la valide.",
       "progress_summary": "{completed} sur {total} complétés",
       "requirements_label": "Exigences",
       "more_requirements": "et {count} de plus ...",
@@ -438,11 +439,11 @@
       "skill_advanced": "Avancé",
       "skill_level_n": "Niveau {level}",
       "step1_title": "Inscrivez-vous",
-      "step1_subtitle": "Inscrivez-vous à la spécialité pour commencer votre parcours",
-      "step2_title": "Complétez les exigences",
-      "step2_subtitle": "Cochez chaque exigence accomplie dans l'appli ou avec votre instructeur",
-      "step3_title": "Téléversez les preuves",
-      "step3_subtitle": "Photographiez ou numérisez les feuilles signées comme justificatif",
+      "step1_subtitle": "Elle reste dans votre profil pour que vous puissiez la reprendre.",
+      "step2_title": "Choisissez le parcours",
+      "step2_subtitle": "Checklist dans l'appli, ou formulaire et preuves hors de l'appli.",
+      "step3_title": "Envoyez pour révision",
+      "step3_subtitle": "Une fois terminé, un responsable du club valide votre travail.",
       "step4_title": "Envoyez pour révision",
       "step4_subtitle": "Lorsque vous êtes prêt, envoyez votre progression pour validation",
       "validation_history_title": "Historique de validation",
@@ -537,7 +538,7 @@
       "general_section_title": "Preuves générales",
       "empty_first": "Téléversez votre première preuve",
       "empty_subtitle": "Photos, images ou documents PDF",
-      "general_empty_first": "Téléversez votre première preuve générale",
+      "general_empty_first": "Preuves générales",
       "general_empty_subtitle": "Photos ou images qui accompagnent le formulaire",
       "add_button": "Ajouter une preuve",
       "add_cell_label": "Ajouter",
@@ -549,12 +550,12 @@
       "rejection_no_reason": "Aucun motif spécifié",
       "rejection_hint": "Vous pouvez corriger et renvoyer",
       "material_title": "Matériel d'étude",
-      "material_subtitle": "Télécharger le PDF",
+      "material_subtitle": "Voir le PDF",
       "completed_format_title": "Formulaire complété",
       "completed_format_uploaded": "Prêt. Le fichier final est téléversé.",
-      "completed_format_missing": "Téléversez ici le formulaire déjà complété.",
+      "completed_format_missing": "PDF déjà rempli",
       "upload_completed_format": "Téléverser le formulaire",
-      "replace_completed_format": "Remplacer le formulaire",
+      "replace_completed_format": "Remplacer",
       "open_completed_format": "Ouvrir le formulaire complété",
       "cta_upload": "Téléverser une preuve",
       "cta_upload_format": "Téléverser le formulaire complété",
@@ -3716,7 +3717,7 @@
       "reports": "Rapports",
       "my_ranking": "Mon classement",
       "section_ranking": "Classement de section",
-      "club_rankings": "Classement des clubs"
+      "club_rankings": "Progression annuelle"
     },
     "stats": {
       "honors_completed": "Spéc. terminées",
@@ -4082,7 +4083,7 @@
       }
     },
     "club_rankings": {
-      "title": "Classement des clubs",
+      "title": "Progression annuelle",
       "header_title": "Clubs par champ local",
       "header_body": "Compare les clubs de votre champ local par type de club pendant {year}. C'est un classement institutionnel ; il ne remplace pas le membre du mois.",
       "clubs_ranked": "Clubs classés",
@@ -4366,6 +4367,42 @@
       "not_draft": "Le plan n'est plus un brouillon",
       "not_submitted": "Le plan n'a pas encore été soumis",
       "qty_invalid": "La quantité est invalide"
+    }
+  },
+  "materials": {
+    "catalog": {
+      "title": "Matériel",
+      "cart": "Panier",
+      "search_hint": "Rechercher du matériel",
+      "filter_all": "Tous",
+      "filter_all_categories": "Toutes",
+      "in_stock": "En stock",
+      "low_stock": "Stock faible",
+      "out_of_stock": "Rupture de stock",
+      "empty": "Aucun article",
+      "load_more": "Charger plus"
+    },
+    "history": {
+      "title": "Commandes",
+      "empty_title": "Aucune commande",
+      "empty_subtitle": "Vos commandes apparaîtront ici.",
+      "go_catalog": "Voir le catalogue",
+      "error_title": "Impossible de charger l'historique",
+      "no_folio": "Sans folio"
+    },
+    "errors": {
+      "browse_catalog": "Impossible de charger le catalogue",
+      "get_product": "Impossible de charger le produit",
+      "list_categorias": "Impossible de charger les catégories",
+      "list_programas": "Impossible de charger les programmes",
+      "create_order": "Impossible de créer la commande",
+      "list_ordenes": "Impossible de charger les commandes",
+      "get_history": "Impossible de charger l'historique",
+      "get_orden": "Impossible de charger la commande",
+      "cancel_order": "Impossible d'annuler la commande",
+      "list_comprobantes": "Impossible de charger les justificatifs",
+      "upload_comprobante": "Impossible d’envoyer le justificatif",
+      "get_config": "Impossible de charger la configuration de paiement"
     }
   }
 }
