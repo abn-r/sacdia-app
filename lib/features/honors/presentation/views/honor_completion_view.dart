@@ -291,7 +291,7 @@ class _CompletionBody extends StatelessWidget {
 
 // ── Honor Badge ───────────────────────────────────────────────────────────────
 
-/// 88px yellow circle with the honor image or a trophy fallback.
+/// 88px yellow circle with the honor image or a medal fallback.
 class _HonorBadge extends StatelessWidget {
   final Honor? honor;
   final UserHonor userHonor;

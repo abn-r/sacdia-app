@@ -1466,7 +1466,7 @@ HugeIconData _eventCategoryIcon(String category) {
     case 'taller':
       return HugeIcons.strokeRoundedTools;
     case 'ceremonial':
-      return HugeIcons.strokeRoundedFlag01;
+      return HugeIcons.strokeRoundedBackpack03;
     case 'social':
       return HugeIcons.strokeRoundedUserGroup;
     default:
