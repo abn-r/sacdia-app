@@ -77,8 +77,8 @@ void main() {
     expect(find.text('honors.evidence.progress_format'), findsNothing);
     expect(find.text('honors.evidence.completed_format_title'), findsOneWidget);
     expect(find.text('honors.evidence.material_title'), findsOneWidget);
-    expect(find.text('honors.evidence.upload_completed_format'), findsOneWidget);
-    expect(find.text('honors.evidence.add_button'), findsOneWidget);
+    expect(find.text('honors.evidence.upload_completed_format'), findsNothing);
+    expect(find.text('honors.evidence.add_button'), findsNothing);
     expect(find.text('honors.evidence.cta_upload_format'), findsNothing);
     expect(find.text('honors.evidence.cta_send'), findsNothing);
     expect(find.text('honors.evidence.general_empty_first'), findsOneWidget);
@@ -103,7 +103,20 @@ void main() {
     );
   });
 
-  testWidgets('completed format eye opens in-app PDF viewer', (tester) async {
+  testWidgets('study material opens in-app PDF viewer', (tester) async {
+    await pumpEvidence(tester, userHonor());
+
+    await tester.tap(find.text('honors.evidence.material_title'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+
+    expect(
+      find.byType(SacPdfViewer, skipOffstage: false),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('completed format row opens in-app PDF viewer', (tester) async {
     await pumpEvidence(
       tester,
       userHonor(
@@ -112,7 +125,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byTooltip('honors.evidence.open_completed_format'));
+    await tester.tap(find.text('honors.evidence.completed_format_title'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
 

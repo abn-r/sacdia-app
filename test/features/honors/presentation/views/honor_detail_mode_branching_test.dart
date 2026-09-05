@@ -3,13 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor_category.dart';
+import 'package:sacdia_app/features/honors/domain/entities/honor_requirement.dart';
 import 'package:sacdia_app/features/honors/domain/entities/requirement_evidence.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor_requirement_progress.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/honors/presentation/views/honor_detail_view.dart';
+import 'package:sacdia_app/features/honors/presentation/widgets/honor_badge_image.dart';
 
 class _FakeAuthNotifier extends AuthNotifier {
   _FakeAuthNotifier(this._user);
@@ -60,7 +63,9 @@ void main() {
       id: 7,
       name: 'Arte de acampar',
       categoryId: 1,
+      categoryName: 'Artes y Actividades Manuales',
       approval: 1,
+      skillLevel: 1,
       clubTypeId: 1,
       materialUrl: 'https://example.com/form.pdf',
     );
@@ -127,6 +132,9 @@ void main() {
           userHonorProgressProvider(currentHonor.id).overrideWith(
             (ref) async => progress,
           ),
+          honorRequirementsProvider(currentHonor.id).overrideWith(
+            (ref) async => const <HonorRequirement>[],
+          ),
           ...extraOverrides,
         ],
         child: MaterialApp(
@@ -152,6 +160,53 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 900));
   }
+
+  testWidgets(
+      'catalog honor without enrollment uses quiet detail and three how-it-works steps',
+      (tester) async {
+    final currentHonor = honor();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          honorCategoriesProvider.overrideWith(
+            (ref) async => const <HonorCategory>[],
+          ),
+          allHonorsProvider.overrideWith((ref) async => [currentHonor]),
+          activeHonorCatalogClubTypeIdProvider.overrideWith(
+            (ref) => const AsyncValue.data(null),
+          ),
+          userHonorsProvider.overrideWith((ref) async => <UserHonor>[]),
+          honorRequirementsProvider(currentHonor.id).overrideWith(
+            (ref) async => const <HonorRequirement>[],
+          ),
+        ],
+        child: MaterialApp(
+          home: HonorDetailView(
+            honorId: currentHonor.id,
+            initialHonor: currentHonor,
+          ),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.byType(SliverAppBar), findsNothing);
+    expect(find.byType(SacTopBar), findsOneWidget);
+    expect(find.byType(HonorBadgeImage), findsOneWidget);
+    expect(find.text('Artes y Actividades Manuales'), findsOneWidget);
+    expect(find.text('Arte de acampar'), findsOneWidget);
+    expect(find.text('honors.detail.how_it_works'), findsOneWidget);
+    expect(find.text('honors.detail.how_it_works_intro'), findsOneWidget);
+    expect(find.text('honors.detail.step1_title'), findsOneWidget);
+    expect(find.text('honors.detail.step2_title'), findsOneWidget);
+    expect(find.text('honors.detail.step3_title'), findsOneWidget);
+    expect(find.text('honors.detail.step4_title'), findsNothing);
+    expect(find.text('honors.detail.enroll_cta'), findsOneWidget);
+    expect(find.text('honors.detail.material_available'), findsOneWidget);
+  });
 
   testWidgets('undecided mode shows selector and no workflow CTA',
       (tester) async {
@@ -210,6 +265,7 @@ void main() {
   testWidgets('in-app mode shows requirements CTA only', (tester) async {
     await pumpDetail(tester, HonorCompletionMode.inApp);
 
+    expect(find.byType(SliverAppBar), findsNothing);
     expect(
         find.text('honors.detail.continue_requirements_cta'), findsOneWidget);
     expect(find.text('honors.detail.change_work_mode_cta'), findsOneWidget);

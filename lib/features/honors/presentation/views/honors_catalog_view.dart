@@ -16,6 +16,7 @@ import '../../domain/entities/honor.dart';
 import '../theme/honor_category_palette.dart';
 import '../../domain/entities/user_honor.dart';
 import '../providers/honors_providers.dart';
+import '../utils/honor_work_navigation.dart';
 import '../widgets/honor_card.dart';
 import '../widgets/honor_category_chip.dart';
 
@@ -60,7 +61,7 @@ class _HonorCardWithProgress extends ConsumerWidget {
       completedCount: stats.total > 0 ? stats.completed : null,
       totalRequirements: stats.total > 0 ? stats.total : null,
       onTap: () => context.push(
-        RouteNames.honorDetailPath(honor.id.toString()),
+        honorWorkDestinationPath(userHonor!, honorName: honor.name),
         extra: honor,
       ),
     );

@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -21,6 +19,7 @@ import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/honor.dart';
@@ -28,41 +27,21 @@ import '../../domain/entities/requirement_evidence.dart';
 import '../../domain/entities/user_honor_requirement_progress.dart';
 import '../theme/honor_category_palette.dart';
 import '../providers/honors_providers.dart';
+import '../utils/honor_work_navigation.dart';
 import '../widgets/honor_badge_image.dart';
 import '../widgets/honor_signed_evidence_image.dart';
 import '../widgets/honor_work_mode_selector.dart';
 import '../../domain/entities/user_honor.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 
 // Note: background, surface, text, and border colors are resolved at runtime
 // via context.sac.* to support light and dark themes. See SacColors extension.
-const _kScreenPad = 20.0;
 const _kSectionGap = 24.0;
-const _kHeroHeight = 300.0;
 const _kCompletedBadgeSize = 148.0;
 
 // ── Label helpers ─────────────────────────────────────────────────────────────
-
-bool _isLightColor(Color color) => isNearWhiteCategoryColor(color);
-
-Color _heroForegroundColor(BuildContext context, Color categoryColor) {
-  return _isLightColor(categoryColor) ? context.sac.text : Colors.white;
-}
-
-Color _heroSecondaryForegroundColor(BuildContext context, Color categoryColor) {
-  return _isLightColor(categoryColor)
-      ? context.sac.textSecondary
-      : Colors.white.withValues(alpha: 0.85);
-}
-
-Color _heroOverlayColor(BuildContext context, Color categoryColor) {
-  return _isLightColor(categoryColor)
-      ? context.sac.surfaceVariant.withValues(alpha: 0.85)
-      : Colors.white.withValues(alpha: 0.20);
-}
 
 String _approvalLabel(int level) {
   switch (level) {
@@ -390,23 +369,14 @@ class _LoadingScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.sac.background,
-      body: Column(
-        children: [
-          Container(
-            height: _kHeroHeight,
-            color: AppColors.lightText.withValues(alpha: 0.85),
-            child: const SafeArea(
-              child: Center(
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2.5,
-                ),
-              ),
-            ),
-          ),
-          Expanded(child: Container(color: context.sac.background)),
-        ],
+      appBar: SacTopBar(
+        title: 'honors.catalog.title'.tr(),
+        onBack: () {
+          HapticFeedback.lightImpact();
+          Navigator.of(context).maybePop();
+        },
       ),
+      body: const Center(child: SacLoading()),
     );
   }
 }
@@ -422,21 +392,22 @@ class _ErrorScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.sac.background,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        backgroundColor: AppColors.lightText,
-        foregroundColor: Colors.white,
-        elevation: 0,
+      appBar: SacTopBar(
+        title: 'honors.catalog.title'.tr(),
+        onBack: () {
+          HapticFeedback.lightImpact();
+          Navigator.of(context).maybePop();
+        },
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const HugeIcon(
-                icon: HugeIcons.strokeRoundedAlert02,
-                size: 48,
-                color: AppColors.primary),
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedAlert02,
+              size: 48,
+              color: context.sac.textTertiary,
+            ),
             const SizedBox(height: 16),
             Text(
               'honors.detail.error_load'.tr(),
@@ -447,7 +418,7 @@ class _ErrorScaffold extends StatelessWidget {
               onPressed: onRetry,
               child: Text(
                 'honors.catalog.retry'.tr(),
-                style: const TextStyle(color: AppColors.info, fontSize: 14),
+                style: TextStyle(color: context.sac.text, fontSize: 14),
               ),
             ),
           ],
@@ -489,7 +460,6 @@ class _HonorDetailContent extends ConsumerWidget {
       categoryId: honor.categoryId,
       categoryName: honor.categoryName ?? categoryName,
     );
-    final heroForegroundColor = _heroForegroundColor(context, categoryColor);
     final isEnrolled = userHonor != null;
 
     // After enrollment, refresh providers so UI switches to enrolled state
@@ -531,6 +501,9 @@ class _HonorDetailContent extends ConsumerWidget {
 
     if (userHonor != null &&
         userHonor.completionMode == HonorCompletionMode.external) {
+      if (GoRouter.maybeOf(context) != null) {
+        return _ResumeHonorWork(honor: honor, userHonor: userHonor);
+      }
       return _ExternalWorkModeDetail(
         honor: honor,
         userHonor: userHonor,
@@ -543,104 +516,78 @@ class _HonorDetailContent extends ConsumerWidget {
       );
     }
 
+    if (!isEnrolled) {
+      return _CatalogHonorDetail(
+        honor: honor,
+        honorId: honorId,
+        categoryName: honor.categoryName ?? categoryName,
+        categoryPaintColor: categoryPaintColor,
+        userHonorsLoading: userHonorsLoading,
+        enrollAsync: enrollAsync,
+      );
+    }
+
+    if (GoRouter.maybeOf(context) != null) {
+      return _ResumeHonorWork(honor: honor, userHonor: userHonor);
+    }
+
+    final hPad = Responsive.horizontalPadding(context);
+    final barTitle =
+        _trimmedOrNull(honor.categoryName ?? categoryName) ?? honor.name;
+
     return Scaffold(
       backgroundColor: context.sac.background,
-      body: Stack(
+      appBar: SacTopBar(
+        title: barTitle,
+        onBack: () {
+          HapticFeedback.lightImpact();
+          context.pop();
+        },
+      ),
+      body: Column(
         children: [
-          // ── Scrollable content ──────────────────────────────────────
-          CustomScrollView(
-            slivers: [
-              // Hero SliverAppBar
-              SliverAppBar(
-                expandedHeight: _kHeroHeight,
-                pinned: true,
-                backgroundColor: categoryColor,
-                foregroundColor: heroForegroundColor,
-                elevation: 0,
-                leading: GestureDetector(
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    context.pop();
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: _heroOverlayColor(context, categoryColor),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: HugeIcon(
-                      icon: HugeIcons.strokeRoundedArrowLeft01,
-                      color: heroForegroundColor,
-                      size: 22,
-                    ),
-                  ),
-                ),
-                title: Text(
-                  categoryName ?? '',
-                  style: TextStyle(
-                    color: heroForegroundColor,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                actions: isEnrolled
-                    ? [
-                        _StatusBadgePill(
-                          status: userHonor.displayStatus,
-                          defaultBackgroundColor:
-                              _heroOverlayColor(context, categoryColor),
-                          defaultForegroundColor: heroForegroundColor,
+          Expanded(
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 8),
+                    child: Column(
+                      children: [
+                        _WorkModeHonorIdentity(
+                          honor: honor,
+                          userHonor: userHonor,
+                          caption: _completionModeLabel(
+                            userHonor.completionMode,
+                          ),
                         ),
-                        const SizedBox(width: 12),
-                      ]
-                    : null,
-                flexibleSpace: FlexibleSpaceBar(
-                  background: _HeroSection(
-                    honor: honor,
-                    categoryColor: categoryColor,
-                    foregroundColor: heroForegroundColor,
-                    userHonor: userHonor,
-                    honorId: honorId,
-                    isEnrolled: isEnrolled,
+                        _StaggeredCards(
+                          honor: honor,
+                          honorId: honorId,
+                          categoryColor: categoryPaintColor,
+                          userHonor: userHonor,
+                          modeActionState: modeActionState,
+                          onSelectCompletionMode: (mode) =>
+                              _selectCompletionMode(context, ref, mode),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-
-              // ── Body cards ─────────────────────────────────────────
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: _kScreenPad),
-                  child: _StaggeredCards(
-                    honor: honor,
-                    honorId: honorId,
-                    categoryColor: categoryPaintColor,
-                    userHonor: userHonor,
-                    isEnrolled: isEnrolled,
-                    userHonorsLoading: userHonorsLoading,
-                    enrollAsync: enrollAsync,
-                    modeActionState: modeActionState,
-                    onSelectCompletionMode: (mode) =>
-                        _selectCompletionMode(context, ref, mode),
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          // ── Floating CTA ────────────────────────────────────────────
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: _BottomCtaBar(
-              honor: honor,
-              honorId: honorId,
-              userHonor: userHonor,
-              isEnrolled: isEnrolled,
-              categoryColor: categoryPaintColor,
-              userHonorsLoading: userHonorsLoading,
-              enrollAsync: enrollAsync,
+              ],
             ),
+          ),
+          _BottomCtaBar(
+            honor: honor,
+            honorId: honorId,
+            userHonor: userHonor,
+            isEnrolled: true,
+            categoryColor: categoryPaintColor,
+            userHonorsLoading: userHonorsLoading,
+            enrollAsync: enrollAsync,
           ),
         ],
       ),
@@ -707,6 +654,243 @@ class _HonorDetailContent extends ConsumerWidget {
     );
 
     return result ?? false;
+  }
+}
+
+class _ResumeHonorWork extends StatefulWidget {
+  final Honor honor;
+  final UserHonor userHonor;
+
+  const _ResumeHonorWork({
+    required this.honor,
+    required this.userHonor,
+  });
+
+  @override
+  State<_ResumeHonorWork> createState() => _ResumeHonorWorkState();
+}
+
+class _ResumeHonorWorkState extends State<_ResumeHonorWork> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      openEnrolledHonorWork(
+        context,
+        widget.userHonor,
+        honorName: widget.honor.name,
+        extraHonor: widget.honor,
+        replace: true,
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => const _LoadingScaffold();
+}
+
+class _CatalogHonorDetail extends StatelessWidget {
+  final Honor honor;
+  final int honorId;
+  final String? categoryName;
+  final Color categoryPaintColor;
+  final bool userHonorsLoading;
+  final AsyncValue<UserHonor?> enrollAsync;
+
+  const _CatalogHonorDetail({
+    required this.honor,
+    required this.honorId,
+    required this.categoryName,
+    required this.categoryPaintColor,
+    required this.userHonorsLoading,
+    required this.enrollAsync,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final hPad = Responsive.horizontalPadding(context);
+    final barTitle = _trimmedOrNull(categoryName) ?? honor.name;
+    var cardIndex = 0;
+    Duration nextDelay() {
+      final delay = SacMotion.stagger * cardIndex;
+      cardIndex += 1;
+      return delay;
+    }
+
+    return Scaffold(
+      backgroundColor: c.background,
+      appBar: SacTopBar(
+        title: barTitle,
+        onBack: () {
+          HapticFeedback.lightImpact();
+          context.pop();
+        },
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _CatalogHonorIdentity(
+                          honor: honor,
+                          categoryPaintColor: categoryPaintColor,
+                        ),
+                        const SizedBox(height: 24),
+                        _JourneyPreviewCard(
+                          honor: honor,
+                          honorId: honorId,
+                          categoryColor: categoryPaintColor,
+                          animationDelay: nextDelay(),
+                        ),
+                        if (honor.description != null &&
+                            honor.description!.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          _DescriptionSection(
+                            description: honor.description,
+                            animationDelay: nextDelay(),
+                          ),
+                        ],
+                        const SizedBox(height: 12),
+                        _HowItWorksCard(
+                          categoryPaintColor: categoryPaintColor,
+                          animationDelay: nextDelay(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _BottomCtaBar(
+            honor: honor,
+            honorId: honorId,
+            userHonor: null,
+            isEnrolled: false,
+            categoryColor: categoryPaintColor,
+            userHonorsLoading: userHonorsLoading,
+            enrollAsync: enrollAsync,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CatalogHonorIdentity extends StatelessWidget {
+  final Honor honor;
+  final Color categoryPaintColor;
+
+  const _CatalogHonorIdentity({
+    required this.honor,
+    required this.categoryPaintColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final chipBackground = categoryPaintColor.withValues(alpha: 0.12);
+    final chipForeground = onCategoryPaintColor(
+      categoryPaintColor,
+      onNearWhite: c.text,
+      onSaturated: categoryPaintColor,
+    );
+
+    return _HonorHeroMotion(
+      builder: (context, badgeScale, _) {
+        return Column(
+          children: [
+            ScaleTransition(
+              scale: badgeScale,
+              child: HonorBadgeImage(
+                imageUrl: honor.imageUrl,
+                width: _kCompletedBadgeSize,
+                height: _kCompletedBadgeSize,
+                memCacheWidth: (_kCompletedBadgeSize * 3).round(),
+                memCacheHeight: (_kCompletedBadgeSize * 3).round(),
+                fallbackColor: c.textTertiary,
+                fallbackBackgroundColor: c.surfaceVariant,
+                fallbackIconSize: 40,
+                fallbackBorderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              honor.name,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: c.text,
+                    letterSpacing: -0.4,
+                    height: 1.15,
+                  ),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              alignment: WrapAlignment.center,
+              children: [
+                if (honor.skillLevel != null)
+                  _CatalogMetaChip(
+                    label: _skillLevelLabel(honor.skillLevel),
+                    background: chipBackground,
+                    foreground: chipForeground,
+                  ),
+                _CatalogMetaChip(
+                  label: _approvalLabel(honor.approval),
+                  background: chipBackground,
+                  foreground: chipForeground,
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _CatalogMetaChip extends StatelessWidget {
+  final String label;
+  final Color background;
+  final Color foreground;
+
+  const _CatalogMetaChip({
+    required this.label,
+    required this.background,
+    required this.foreground,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: foreground,
+          height: 1,
+        ),
+      ),
+    );
   }
 }
 
@@ -1073,6 +1257,7 @@ class _ExternalWorkModeDetail extends StatelessWidget {
                           const SizedBox(height: 16),
                           _MaterialDownloadCard(
                             materialUrl: honor.materialUrl!,
+                            honorName: honor.name,
                             categoryColor: categoryPaintColor,
                             animationDelay: nextDelay(),
                           ),
@@ -1302,8 +1487,7 @@ class _WorkModeContinueBar extends StatelessWidget {
         textColor: canSubmit
             ? onCategoryPaintColor(categoryColor, onNearWhite: c.text)
             : c.textTertiary,
-        borderColor:
-            canSubmit && nearWhiteFill ? categoryPaintColor : null,
+        borderColor: canSubmit && nearWhiteFill ? categoryPaintColor : null,
         onPressed: canSubmit ? onContinue : null,
       ),
     );
@@ -1349,7 +1533,7 @@ class _HonorHeroMotionState extends State<_HonorHeroMotion>
 
     _progressValue = CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeOutCubic,
+      curve: SacMotion.easeOut,
     );
   }
 
@@ -1383,316 +1567,13 @@ class _HonorHeroMotionState extends State<_HonorHeroMotion>
       widget.builder(context, _badgeScale, _progressValue);
 }
 
-class _HeroSection extends ConsumerStatefulWidget {
-  final Honor honor;
-  final Color categoryColor;
-  final Color foregroundColor;
-  final UserHonor? userHonor;
-  final int honorId;
-  final bool isEnrolled;
-
-  const _HeroSection({
-    required this.honor,
-    required this.categoryColor,
-    required this.foregroundColor,
-    required this.userHonor,
-    required this.honorId,
-    required this.isEnrolled,
-  });
-
-  @override
-  ConsumerState<_HeroSection> createState() => _HeroSectionState();
-}
-
-class _HeroSectionState extends ConsumerState<_HeroSection> {
-  @override
-  Widget build(BuildContext context) {
-    final showInAppProgress = widget.isEnrolled &&
-        widget.userHonor?.completionMode == HonorCompletionMode.inApp;
-    final progressStats = showInAppProgress
-        ? ref.watch(honorProgressStatsProvider(widget.honorId))
-        : null;
-    final progressPercent = progressStats?.percentage ?? 0.0;
-    final heroSecondaryForeground =
-        _heroSecondaryForegroundColor(context, widget.categoryColor);
-    final heroOverlay = _heroOverlayColor(context, widget.categoryColor);
-
-    return _HonorHeroMotion(
-      builder: (context, badgeScale, progressValue) => Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              widget.categoryColor,
-              widget.categoryColor.withValues(alpha: 0.72),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          bottom: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 48, 20, 20),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                ScaleTransition(
-                  scale: badgeScale,
-                  child: widget.isEnrolled
-                      ? _ProgressBadge(
-                          honor: widget.honor,
-                          categoryColor: widget.categoryColor,
-                          progressValue: progressValue,
-                          progressPercent: progressPercent,
-                        )
-                      : _SimpleBadge(honor: widget.honor),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  widget.honor.name,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: widget.foregroundColor,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
-                    height: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                if (showInAppProgress && progressStats != null) ...[
-                  Text(
-                    'honors.detail.progress_summary'.tr(namedArgs: {
-                      'completed': '${progressStats.completed}',
-                      'total': '${progressStats.total}',
-                    }),
-                    style: TextStyle(
-                      color: heroSecondaryForeground,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  AnimatedBuilder(
-                    animation: progressValue,
-                    builder: (context, _) {
-                      return ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: progressValue.value * progressPercent,
-                          minHeight: 4,
-                          backgroundColor: heroOverlay,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            widget.foregroundColor,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ] else if (widget.isEnrolled && widget.userHonor != null) ...[
-                  _FrostedPill(
-                    label:
-                        _completionModeLabel(widget.userHonor!.completionMode),
-                    foregroundColor: widget.foregroundColor,
-                    backgroundColor: heroOverlay,
-                  ),
-                ] else ...[
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 6,
-                    alignment: WrapAlignment.center,
-                    children: [
-                      if (widget.honor.skillLevel != null)
-                        _FrostedPill(
-                          label: _skillLevelLabel(widget.honor.skillLevel),
-                          foregroundColor: widget.foregroundColor,
-                          backgroundColor: heroOverlay,
-                        ),
-                      _FrostedPill(
-                        label: _approvalLabel(widget.honor.approval),
-                        foregroundColor: widget.foregroundColor,
-                        backgroundColor: heroOverlay,
-                      ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SimpleBadge extends StatelessWidget {
-  final Honor honor;
-
-  const _SimpleBadge({required this.honor});
-
-  @override
-  Widget build(BuildContext context) {
-    return _BadgeImage(honor: honor, size: 110);
-  }
-}
-
-class _ProgressBadge extends StatelessWidget {
-  final Honor honor;
-  final Color categoryColor;
-  final Animation<double> progressValue;
-  final double progressPercent;
-
-  const _ProgressBadge({
-    required this.honor,
-    required this.categoryColor,
-    required this.progressValue,
-    required this.progressPercent,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return _BadgeImage(honor: honor, size: 130);
-  }
-}
-
-class _BadgeImage extends StatelessWidget {
-  final Honor honor;
-  final double size;
-
-  const _BadgeImage({required this.honor, required this.size});
-
-  @override
-  Widget build(BuildContext context) {
-    return HonorBadgeImage(
-      imageUrl: honor.imageUrl,
-      width: size,
-      height: size,
-      padding: const EdgeInsets.all(4),
-      memCacheWidth: (size * 3).round(),
-      memCacheHeight: (size * 3).round(),
-      fallbackColor: AppColors.lightText,
-      fallbackBackgroundColor: Colors.white.withValues(alpha: 0.20),
-      fallbackIconSize: 36,
-      fallbackBorderRadius: BorderRadius.circular(18),
-    );
-  }
-}
-
-class _FrostedPill extends StatelessWidget {
-  final String label;
-  final Color foregroundColor;
-  final Color backgroundColor;
-
-  const _FrostedPill({
-    required this.label,
-    required this.foregroundColor,
-    required this.backgroundColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: foregroundColor,
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.3,
-        ),
-      ),
-    );
-  }
-}
-
-class _StatusBadgePill extends StatelessWidget {
-  final String status;
-  final Color defaultBackgroundColor;
-  final Color defaultForegroundColor;
-
-  const _StatusBadgePill({
-    required this.status,
-    required this.defaultBackgroundColor,
-    required this.defaultForegroundColor,
-  });
-
-  Color _bgColor() {
-    switch (status) {
-      case 'validado':
-        return AppColors.success;
-      case 'enviado':
-        return AppColors.accent;
-      case 'rechazado':
-        return AppColors.error;
-      default:
-        return defaultBackgroundColor;
-    }
-  }
-
-  Color _fgColor() {
-    switch (status) {
-      case 'validado':
-      case 'enviado':
-      case 'rechazado':
-        return Colors.white;
-      default:
-        return defaultForegroundColor;
-    }
-  }
-
-  String _label() {
-    switch (status) {
-      case 'validado':
-        return 'honors.detail.status_validated'.tr();
-      case 'enviado':
-        return 'honors.detail.status_sent'.tr();
-      case 'en_progreso':
-        return 'honors.detail.status_in_progress'.tr();
-      case 'rechazado':
-        return 'honors.detail.status_rejected'.tr();
-      default:
-        return 'honors.detail.status_enrolled'.tr();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: _bgColor(),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        _label(),
-        style: TextStyle(
-          color: _fgColor(),
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.5,
-        ),
-      ),
-    );
-  }
-}
-
 // ── Staggered Cards Body ───────────────────────────────────────────────────────
 
 class _StaggeredCards extends StatefulWidget {
   final Honor honor;
   final int honorId;
   final Color categoryColor;
-  final UserHonor? userHonor;
-  final bool isEnrolled;
-  final bool userHonorsLoading;
-  final AsyncValue<UserHonor?> enrollAsync;
+  final UserHonor userHonor;
   final AsyncValue<void> modeActionState;
   final ValueChanged<HonorCompletionMode> onSelectCompletionMode;
 
@@ -1701,9 +1582,6 @@ class _StaggeredCards extends StatefulWidget {
     required this.honorId,
     required this.categoryColor,
     required this.userHonor,
-    required this.isEnrolled,
-    required this.userHonorsLoading,
-    required this.enrollAsync,
     required this.modeActionState,
     required this.onSelectCompletionMode,
   });
@@ -1799,82 +1677,44 @@ class _StaggeredCardsState extends State<_StaggeredCards>
 
   @override
   Widget build(BuildContext context) {
-    if (widget.isEnrolled) {
-      final userHonor = widget.userHonor!;
-      final completionMode = userHonor.completionMode;
-      final canChangeCompletionMode = userHonor.canSubmit;
+    final userHonor = widget.userHonor;
+    final completionMode = userHonor.completionMode;
+    final canChangeCompletionMode = userHonor.canSubmit;
 
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: _kSectionGap),
-
-          // Quick stats row
-          _animated(
-            0,
-            _QuickStatsRow(
-              honorId: widget.honorId,
-              userHonor: userHonor,
-              categoryColor: widget.categoryColor,
-            ),
-          ),
-          const SizedBox(height: _kSectionGap),
-
-          // Requirements preview
-          _animated(
-            1,
-            _RequirementsPreviewCard(
-              honorId: widget.honorId,
-              userHonorId: userHonor.id,
-              honorName: widget.honor.name,
-              categoryColor: widget.categoryColor,
-            ),
-          ),
-          if (canChangeCompletionMode) ...[
-            const SizedBox(height: 12),
-            _animated(
-              2,
-              _ChangeWorkModeButton(
-                categoryColor: widget.categoryColor,
-                isLoading: widget.modeActionState.isLoading,
-                onPressed: () => _changeWorkMode(completionMode),
-              ),
-            ),
-          ],
-
-          // Bottom padding for CTA
-          const SizedBox(height: 100),
-        ],
-      );
-    }
-
-    // NOT ENROLLED state
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: _kSectionGap),
         _animated(
           0,
-          _JourneyPreviewCard(
-            honor: widget.honor,
+          _QuickStatsRow(
             honorId: widget.honorId,
+            userHonor: userHonor,
             categoryColor: widget.categoryColor,
           ),
         ),
-        if (widget.honor.description != null &&
-            widget.honor.description!.isNotEmpty) ...[
-          const SizedBox(height: 16),
+        const SizedBox(height: _kSectionGap),
+        _animated(
+          1,
+          _RequirementsPreviewCard(
+            honorId: widget.honorId,
+            userHonorId: userHonor.id,
+            honorName: widget.honor.name,
+            categoryColor: widget.categoryColor,
+          ),
+        ),
+        if (canChangeCompletionMode) ...[
+          const SizedBox(height: 12),
           _animated(
-            1,
-            _DescriptionSection(description: widget.honor.description),
+            2,
+            _ChangeWorkModeButton(
+              categoryColor: widget.categoryColor,
+              isLoading: widget.modeActionState.isLoading,
+              onPressed: () => _changeWorkMode(completionMode),
+            ),
           ),
         ],
-        const SizedBox(height: 16),
-        _animated(
-          2,
-          _JourneyStepperPath(categoryColor: widget.categoryColor),
-        ),
-        const SizedBox(height: 120),
+        const SizedBox(height: 100),
       ],
     );
   }
@@ -2827,18 +2667,26 @@ class _ChangeWorkModeButton extends StatelessWidget {
   }
 }
 
-// ── Journey Preview Card (NOT ENROLLED) ───────────────────────────────────────
+// ── Catalog facts (NOT ENROLLED) ──────────────────────────────────────────────
 
 class _JourneyPreviewCard extends ConsumerWidget {
   final Honor honor;
   final int honorId;
   final Color categoryColor;
+  final Duration animationDelay;
 
   const _JourneyPreviewCard({
     required this.honor,
     required this.honorId,
     required this.categoryColor,
+    this.animationDelay = Duration.zero,
   });
+
+  void _openMaterial(BuildContext context) {
+    final url = honor.materialUrl?.trim();
+    if (url == null || url.isEmpty) return;
+    SacPdfViewer.show(context, pdfSource: url, title: honor.name);
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -2847,8 +2695,13 @@ class _JourneyPreviewCard extends ConsumerWidget {
       data: (reqs) => reqs.length,
       orElse: () => null,
     );
+    final hasMaterial =
+        honor.materialUrl != null && honor.materialUrl!.isNotEmpty;
 
-    return _ShadowCard(
+    return SacCard(
+      animate: true,
+      animationDelay: animationDelay,
+      padding: EdgeInsets.zero,
       child: Column(
         children: [
           _PreviewRow(
@@ -2859,29 +2712,20 @@ class _JourneyPreviewCard extends ConsumerWidget {
                     .tr(namedArgs: {'count': '$requirementsCount'})
                 : 'honors.detail.requirements_loading'.tr(),
           ),
-          _CardDivider(),
-          _PreviewRow(
-            icon: HugeIcons.strokeRoundedStar,
-            iconColor: categoryColor,
-            label: honor.skillLevel != null
-                ? 'honors.detail.skill_level_with'.tr(
-                    namedArgs: {'level': _skillLevelLabel(honor.skillLevel)})
-                : 'honors.detail.skill_level_general'.tr(),
-          ),
-          if (honor.materialUrl != null && honor.materialUrl!.isNotEmpty) ...[
+          if (hasMaterial) ...[
             _CardDivider(),
             _PreviewRow(
               icon: HugeIcons.strokeRoundedPdf01,
               iconColor: categoryColor,
               label: 'honors.detail.material_available'.tr(),
               trailing: HugeIcon(
-                icon: HugeIcons.strokeRoundedDownload01,
+                icon: HugeIcons.strokeRoundedArrowRight01,
                 size: 16,
-                color: categoryColor,
+                color: context.sac.textTertiary,
               ),
+              onTap: () => _openMaterial(context),
             ),
           ],
-          const SizedBox(width: 300),
         ],
       ),
     );
@@ -2893,17 +2737,19 @@ class _PreviewRow extends StatelessWidget {
   final Color iconColor;
   final String label;
   final Widget? trailing;
+  final VoidCallback? onTap;
 
   const _PreviewRow({
     required this.icon,
     required this.iconColor,
     required this.label,
     this.trailing,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    final row = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
         children: [
@@ -2931,6 +2777,14 @@ class _PreviewRow extends StatelessWidget {
         ],
       ),
     );
+
+    if (onTap == null) return row;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: row,
+    );
   }
 }
 
@@ -2945,12 +2799,14 @@ class _CardDivider extends StatelessWidget {
   }
 }
 
-// ── Description Section ───────────────────────────────────────────────────────
-
 class _DescriptionSection extends StatefulWidget {
   final String? description;
+  final Duration animationDelay;
 
-  const _DescriptionSection({required this.description});
+  const _DescriptionSection({
+    required this.description,
+    this.animationDelay = Duration.zero,
+  });
 
   @override
   State<_DescriptionSection> createState() => _DescriptionSectionState();
@@ -2965,75 +2821,65 @@ class _DescriptionSectionState extends State<_DescriptionSection> {
       return const SizedBox.shrink();
     }
 
-    return _ShadowCard(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'honors.detail.description_label'.tr(),
+    final c = context.sac;
+
+    return SacCard(
+      animate: true,
+      animationDelay: widget.animationDelay,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'honors.detail.description_label'.tr(),
+            style: TextStyle(
+              color: c.text,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            widget.description!,
+            maxLines: _expanded ? null : 4,
+            overflow: _expanded ? TextOverflow.visible : TextOverflow.ellipsis,
+            style: TextStyle(
+              color: c.textSecondary,
+              fontSize: 14,
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: () => setState(() => _expanded = !_expanded),
+            child: Text(
+              _expanded
+                  ? 'honors.detail.see_less'.tr()
+                  : 'honors.detail.see_more'.tr(),
               style: TextStyle(
-                color: context.sac.text,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+                color: c.text,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
               ),
             ),
-            const SizedBox(height: 8),
-            AnimatedCrossFade(
-              duration: const Duration(milliseconds: 250),
-              crossFadeState: _expanded
-                  ? CrossFadeState.showSecond
-                  : CrossFadeState.showFirst,
-              firstChild: Text(
-                widget.description!,
-                maxLines: 4,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: context.sac.textSecondary,
-                  fontSize: 14,
-                  height: 1.6,
-                ),
-              ),
-              secondChild: Text(
-                widget.description!,
-                style: TextStyle(
-                  color: context.sac.textSecondary,
-                  fontSize: 14,
-                  height: 1.6,
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            GestureDetector(
-              onTap: () => setState(() => _expanded = !_expanded),
-              child: Text(
-                _expanded
-                    ? 'honors.detail.see_less'.tr()
-                    : 'honors.detail.see_more'.tr(),
-                style: TextStyle(
-                  color: AppColors.info,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
-// ── Journey Stepper Path (NOT ENROLLED — ¿Cómo funciona?) ────────────────────
+class _HowItWorksCard extends StatelessWidget {
+  final Color categoryPaintColor;
+  final Duration animationDelay;
 
-class _JourneyStepperPath extends StatelessWidget {
-  final Color categoryColor;
-
-  const _JourneyStepperPath({required this.categoryColor});
+  const _HowItWorksCard({
+    required this.categoryPaintColor,
+    this.animationDelay = Duration.zero,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     final steps = [
       (
         title: 'honors.detail.step1_title'.tr(),
@@ -3047,171 +2893,142 @@ class _JourneyStepperPath extends StatelessWidget {
         title: 'honors.detail.step3_title'.tr(),
         subtitle: 'honors.detail.step3_subtitle'.tr(),
       ),
-      (
-        title: 'honors.detail.step4_title'.tr(),
-        subtitle: 'honors.detail.step4_subtitle'.tr(),
-      ),
     ];
 
-    return _ShadowCard(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'honors.detail.how_it_works'.tr(),
-              style: TextStyle(
-                color: context.sac.text,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 16),
-            ...steps.asMap().entries.map((entry) {
-              final i = entry.key;
-              final step = entry.value;
-              final isLast = i == steps.length - 1;
-              return _StepItem(
-                index: i,
-                title: step.title,
-                subtitle: step.subtitle,
-                categoryColor: categoryColor,
-                isLast: isLast,
-              );
-            }),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _StepItem extends StatelessWidget {
-  final int index;
-  final String title;
-  final String subtitle;
-  final Color categoryColor;
-  final bool isLast;
-
-  const _StepItem({
-    required this.index,
-    required this.title,
-    required this.subtitle,
-    required this.categoryColor,
-    required this.isLast,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return IntrinsicHeight(
-      child: Row(
+    return SacCard(
+      animate: true,
+      animationDelay: animationDelay,
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Number + dotted connector
-          SizedBox(
-            width: 32,
-            child: Column(
-              children: [
-                // Numbered circle
-                Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: categoryColor,
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    '${index + 1}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-                // Dotted line connector
-                if (!isLast)
-                  Expanded(
-                    child: Container(
-                      width: 2,
-                      margin: const EdgeInsets.symmetric(vertical: 4),
-                      child: RepaintBoundary(
-                        child: CustomPaint(
-                          painter: _DottedLinePainter(
-                            color: categoryColor.withValues(alpha: 0.35),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+          Text(
+            'honors.detail.how_it_works'.tr(),
+            style: TextStyle(
+              color: c.text,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(width: 12),
-          // Text content
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(bottom: isLast ? 0 : 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 4),
-                  Text(
-                    title,
-                    style: TextStyle(
-                      color: context.sac.text,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      color: context.sac.textSecondary,
-                      fontSize: 12,
-                      height: 1.5,
-                    ),
-                  ),
-                ],
-              ),
+          const SizedBox(height: 6),
+          Text(
+            'honors.detail.how_it_works_intro'.tr(),
+            style: TextStyle(
+              color: c.textSecondary,
+              fontSize: 13,
+              height: 1.4,
             ),
           ),
+          const SizedBox(height: 16),
+          for (var i = 0; i < steps.length; i++)
+            _HowItWorksStep(
+              index: i + 1,
+              title: steps[i].title,
+              subtitle: steps[i].subtitle,
+              categoryPaintColor: categoryPaintColor,
+              isLast: i == steps.length - 1,
+            ),
         ],
       ),
     );
   }
 }
 
-class _DottedLinePainter extends CustomPainter {
-  final Color color;
+class _HowItWorksStep extends StatelessWidget {
+  final int index;
+  final String title;
+  final String subtitle;
+  final Color categoryPaintColor;
+  final bool isLast;
 
-  const _DottedLinePainter({required this.color});
+  const _HowItWorksStep({
+    required this.index,
+    required this.title,
+    required this.subtitle,
+    required this.categoryPaintColor,
+    required this.isLast,
+  });
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
+  Widget build(BuildContext context) {
+    final c = context.sac;
 
-    const dotHeight = 4.0;
-    const gapHeight = 4.0;
-    double y = 0;
-    while (y < size.height) {
-      canvas.drawLine(
-          Offset(0, y), Offset(0, math.min(y + dotHeight, size.height)), paint);
-      y += dotHeight + gapHeight;
-    }
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 4),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              width: 28,
+              child: Column(
+                children: [
+                  Container(
+                    width: 28,
+                    height: 28,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: c.surfaceVariant,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '$index',
+                      style: TextStyle(
+                        color: categoryPaintColor,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        height: 1,
+                      ),
+                    ),
+                  ),
+                  if (!isLast)
+                    Expanded(
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: Container(
+                          width: 1,
+                          margin: const EdgeInsets.symmetric(vertical: 6),
+                          color: c.border,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: c.text,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: c.textSecondary,
+                        fontSize: 13,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
-
-  @override
-  bool shouldRepaint(_DottedLinePainter old) => old.color != color;
 }
-
-// ── Quick Stats Row (ENROLLED) ────────────────────────────────────────────────
 
 class _QuickStatsRow extends ConsumerWidget {
   final int honorId;
@@ -3664,58 +3481,18 @@ class _EvidenceSection extends StatelessWidget {
 
 // ── Material Download Card ────────────────────────────────────────────────────
 
-class _MaterialDownloadCard extends StatefulWidget {
+class _MaterialDownloadCard extends StatelessWidget {
   final String materialUrl;
+  final String honorName;
   final Color categoryColor;
   final Duration animationDelay;
 
   const _MaterialDownloadCard({
     required this.materialUrl,
+    required this.honorName,
     required this.categoryColor,
     this.animationDelay = Duration.zero,
   });
-
-  @override
-  State<_MaterialDownloadCard> createState() => _MaterialDownloadCardState();
-}
-
-class _MaterialDownloadCardState extends State<_MaterialDownloadCard> {
-  bool _isLaunching = false;
-
-  Future<void> _openMaterial() async {
-    if (_isLaunching) return;
-    setState(() => _isLaunching = true);
-
-    try {
-      final uri = Uri.tryParse(widget.materialUrl);
-      if (uri == null || !['http', 'https'].contains(uri.scheme)) {
-        _showError('honors.detail.material_error'.tr());
-        return;
-      }
-      final canLaunch = await canLaunchUrl(uri);
-      if (canLaunch) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        _showError('honors.detail.material_error'.tr());
-      }
-    } catch (_) {
-      _showError('honors.detail.material_pdf_error'.tr());
-    } finally {
-      if (mounted) setState(() => _isLaunching = false);
-    }
-  }
-
-  void _showError(String msg) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: AppColors.primary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -3723,8 +3500,12 @@ class _MaterialDownloadCardState extends State<_MaterialDownloadCard> {
 
     return SacCard(
       animate: true,
-      animationDelay: widget.animationDelay,
-      onTap: _isLaunching ? null : _openMaterial,
+      animationDelay: animationDelay,
+      onTap: () => SacPdfViewer.show(
+        context,
+        pdfSource: materialUrl,
+        title: honorName,
+      ),
       child: Row(
         children: [
           Container(
@@ -3737,7 +3518,7 @@ class _MaterialDownloadCardState extends State<_MaterialDownloadCard> {
             child: HugeIcon(
               icon: HugeIcons.strokeRoundedPdf01,
               size: 20,
-              color: widget.categoryColor,
+              color: categoryColor,
             ),
           ),
           const SizedBox(width: 12),
@@ -3764,21 +3545,11 @@ class _MaterialDownloadCardState extends State<_MaterialDownloadCard> {
               ],
             ),
           ),
-          if (_isLaunching)
-            SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: widget.categoryColor,
-              ),
-            )
-          else
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedDownload01,
-              color: widget.categoryColor,
-              size: 20,
-            ),
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowRight01,
+            color: c.textTertiary,
+            size: 16,
+          ),
         ],
       ),
     );
@@ -3875,7 +3646,7 @@ class _BottomCtaBar extends ConsumerWidget {
 
 // ── Enroll CTA Button ─────────────────────────────────────────────────────────
 
-class _EnrollCtaButton extends ConsumerStatefulWidget {
+class _EnrollCtaButton extends ConsumerWidget {
   final int honorId;
   final Color categoryColor;
 
@@ -3885,71 +3656,20 @@ class _EnrollCtaButton extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<_EnrollCtaButton> createState() => _EnrollCtaButtonState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.sac;
 
-class _EnrollCtaButtonState extends ConsumerState<_EnrollCtaButton> {
-  bool _pressed = false;
-
-  void _setPressed(bool value) {
-    if (_pressed == value) return;
-    setState(() => _pressed = value);
-  }
-
-  Future<void> _onTap() async {
-    final authState = ref.read(authNotifierProvider);
-    final userId = authState.value?.id;
-    if (userId == null) return;
-
-    await ref
-        .read(honorEnrollmentNotifierProvider.notifier)
-        .enrollInHonor(userId, widget.honorId);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final reduce = SacMotion.reduceMotionOf(context);
-    final foregroundColor = _heroForegroundColor(context, widget.categoryColor);
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapDown: (_) {
-        HapticFeedback.lightImpact();
-        _setPressed(true);
+    return SacButton.primary(
+      text: 'honors.detail.enroll_cta'.tr(),
+      backgroundColor: categoryColor,
+      textColor: onCategoryPaintColor(categoryColor, onNearWhite: c.text),
+      onPressed: () async {
+        final userId = ref.read(authNotifierProvider).value?.id;
+        if (userId == null) return;
+        await ref
+            .read(honorEnrollmentNotifierProvider.notifier)
+            .enrollInHonor(userId, honorId);
       },
-      onTapUp: (_) => _setPressed(false),
-      onTapCancel: () => _setPressed(false),
-      onTap: _onTap,
-      child: AnimatedScale(
-        scale: (!reduce && _pressed) ? SacMotion.pressScale : 1,
-        duration: SacMotion.press,
-        curve: SacMotion.easeOut,
-        child: Container(
-          width: double.infinity,
-          height: 48,
-          decoration: BoxDecoration(
-            color: widget.categoryColor,
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              BoxShadow(
-                color: widget.categoryColor.withValues(alpha: 0.30),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            'honors.detail.enroll_cta'.tr(),
-            style: TextStyle(
-              color: foregroundColor,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.2,
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
@@ -3963,24 +3683,14 @@ class _LoadingCtaButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final foregroundColor = _heroForegroundColor(context, categoryColor);
-
-    return Container(
-      width: double.infinity,
-      height: 48,
-      decoration: BoxDecoration(
-        color: categoryColor.withValues(alpha: 0.60),
-        borderRadius: BorderRadius.circular(14),
+    return SacButton.primary(
+      text: 'honors.detail.enroll_cta'.tr(),
+      backgroundColor: categoryColor,
+      textColor: onCategoryPaintColor(
+        categoryColor,
+        onNearWhite: context.sac.text,
       ),
-      alignment: Alignment.center,
-      child: SizedBox(
-        width: 22,
-        height: 22,
-        child: CircularProgressIndicator(
-          color: foregroundColor,
-          strokeWidth: 2.5,
-        ),
-      ),
+      isLoading: true,
     );
   }
 }
@@ -4000,7 +3710,8 @@ class _EnrolledCtaButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final actionForegroundColor = _heroForegroundColor(context, categoryColor);
+    final actionForegroundColor =
+        onCategoryPaintColor(categoryColor, onNearWhite: context.sac.text);
 
     // Under review — disabled
     if (userHonor.isUnderReview) {

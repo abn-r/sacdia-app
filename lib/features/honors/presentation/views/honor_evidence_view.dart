@@ -25,7 +25,6 @@ import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../validation/domain/entities/validation.dart';
@@ -40,10 +39,9 @@ import '../widgets/honor_signed_evidence_image.dart';
 
 /// Evidence & progress screen for an enrolled honor in EXTERNAL mode.
 ///
-/// Working screen: white [SacTopBar], patch on page background, category color
-/// as accent only. Drop wells for format and evidence; format opens the file
-/// picker directly. The bottom bar is reserved for submit when both artifacts
-/// are ready.
+/// Working screen: white [SacTopBar], identity row (patch + name), one grouped
+/// work list (format, evidence, material). Category color as accent only.
+/// The bottom bar is reserved for submit when both artifacts are ready.
 ///
 /// Integration with validation feature:
 /// - Uses [SubmitValidationNotifier] from `features/validation/` for submit
@@ -146,7 +144,6 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
               _deleteEvidenceFile(userHonor, imageUrl),
           onViewEvidence: _openEvidenceFile,
           onOpenDocument: _openCompletedFormat,
-          onOpenMaterial: _launchUrl,
         ),
         if (_isUploading)
           Container(
@@ -571,23 +568,6 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
       );
     }
   }
-
-  Future<void> _launchUrl(String url) async {
-    final uri = Uri.tryParse(url);
-    if (uri == null || !['http', 'https'].contains(uri.scheme)) return;
-    try {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('honors.evidence.open_error'.tr()),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    }
-  }
 }
 
 class _ModeGuardScaffold extends StatelessWidget {
@@ -664,7 +644,6 @@ class _EvidenceBody extends StatelessWidget {
   final void Function(String url, List<String> imageUrls, int initialIndex)
       onViewEvidence;
   final void Function(String url) onOpenDocument;
-  final Future<void> Function(String url) onOpenMaterial;
 
   const _EvidenceBody({
     required this.userHonor,
@@ -675,7 +654,6 @@ class _EvidenceBody extends StatelessWidget {
     required this.onDeleteEvidence,
     required this.onViewEvidence,
     required this.onOpenDocument,
-    required this.onOpenMaterial,
   });
 
   @override
@@ -699,18 +677,10 @@ class _EvidenceBody extends StatelessWidget {
         userHonor.hasCompletedFormat &&
         userHonor.hasGeneralEvidence;
 
-    var cardIndex = 0;
-    Duration nextDelay() {
-      final delay = SacMotion.stagger * cardIndex;
-      cardIndex += 1;
-      return delay;
-    }
-
     return Scaffold(
       backgroundColor: c.background,
       appBar: SacTopBar(
         title: 'honors.detail.external_flow_cta'.tr(),
-        subtitle: honorName,
         onBack: () {
           HapticFeedback.lightImpact();
           context.pop();
@@ -734,40 +704,27 @@ class _EvidenceBody extends StatelessWidget {
               slivers: [
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 24),
+                    padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _EvidenceIdentity(
                           honor: honor,
                           userHonor: userHonor,
+                          honorName: honorName,
                         ),
-                        const SizedBox(height: 24),
-                        _CompletedFormatCard(
+                        const SizedBox(height: 16),
+                        _EvidenceWorkCard(
                           userHonor: userHonor,
+                          honorName: honorName,
+                          materialUrl: hasMaterial ? honor!.materialUrl : null,
                           categoryColor: categoryPaintColor,
-                          animationDelay: nextDelay(),
                           onUploadCompletedFormat: onUploadCompletedFormat,
-                          onOpenDocument: onOpenDocument,
-                        ),
-                        const SizedBox(height: 12),
-                        _EvidenceSectionCard(
-                          userHonor: userHonor,
-                          categoryColor: categoryPaintColor,
-                          animationDelay: nextDelay(),
                           onAddEvidence: onAddEvidence,
                           onDeleteEvidence: onDeleteEvidence,
                           onViewEvidence: onViewEvidence,
+                          onOpenDocument: onOpenDocument,
                         ),
-                        if (hasMaterial) ...[
-                          const SizedBox(height: 12),
-                          _MaterialCard(
-                            materialUrl: honor!.materialUrl!,
-                            categoryColor: categoryPaintColor,
-                            animationDelay: nextDelay(),
-                            onOpen: onOpenMaterial,
-                          ),
-                        ],
                         if (userHonor.displayStatus == 'rechazado') ...[
                           const SizedBox(height: 16),
                           _RejectionCard(
@@ -823,15 +780,17 @@ class _EvidenceStatusBadge extends StatelessWidget {
   }
 }
 
-const _kEvidenceBadgeSize = 132.0;
+const _kEvidenceBadgeSize = 52.0;
 
 class _EvidenceIdentity extends StatelessWidget {
   final Honor? honor;
   final UserHonor userHonor;
+  final String honorName;
 
   const _EvidenceIdentity({
     required this.honor,
     required this.userHonor,
+    required this.honorName,
   });
 
   @override
@@ -839,16 +798,34 @@ class _EvidenceIdentity extends StatelessWidget {
     final c = context.sac;
 
     return _EnterScale(
-      child: HonorBadgeImage(
-        imageUrl: honor?.imageUrl ?? userHonor.honorImageUrl,
-        width: _kEvidenceBadgeSize,
-        height: _kEvidenceBadgeSize,
-        memCacheWidth: (_kEvidenceBadgeSize * 3).round(),
-        memCacheHeight: (_kEvidenceBadgeSize * 3).round(),
-        fallbackColor: c.textTertiary,
-        fallbackBackgroundColor: c.surfaceVariant,
-        fallbackIconSize: 36,
-        fallbackBorderRadius: BorderRadius.circular(20),
+      child: Row(
+        children: [
+          HonorBadgeImage(
+            imageUrl: honor?.imageUrl ?? userHonor.honorImageUrl,
+            width: _kEvidenceBadgeSize,
+            height: _kEvidenceBadgeSize,
+            memCacheWidth: (_kEvidenceBadgeSize * 3).round(),
+            memCacheHeight: (_kEvidenceBadgeSize * 3).round(),
+            fallbackColor: c.textTertiary,
+            fallbackBackgroundColor: c.surfaceVariant,
+            fallbackIconSize: 22,
+            fallbackBorderRadius: BorderRadius.circular(12),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              honorName,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: c.text,
+                    letterSpacing: -0.3,
+                    height: 1.15,
+                  ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -909,190 +886,68 @@ class _EnterScaleState extends State<_EnterScale>
   Widget build(BuildContext context) {
     return ScaleTransition(
       scale: _scale,
-      child: Center(child: widget.child),
+      child: widget.child,
     );
   }
 }
 
 Widget _iconWell({
-  required BuildContext context,
   required HugeIconData icon,
   required Color iconColor,
 }) {
   return Container(
-    width: 44,
-    height: 44,
+    width: 32,
+    height: 32,
     decoration: BoxDecoration(
-      color: context.sac.surfaceVariant,
-      borderRadius: BorderRadius.circular(12),
+      color: iconColor.withValues(alpha: 0.10),
+      borderRadius: BorderRadius.circular(8),
     ),
-    child: HugeIcon(icon: icon, color: iconColor, size: 22),
+    child: HugeIcon(icon: icon, color: iconColor, size: 16),
   );
 }
 
-class _DropWell extends StatelessWidget {
+class _WorkRow extends StatefulWidget {
   final HugeIconData icon;
+  final Color iconColor;
   final String title;
   final String subtitle;
-  final String? actionLabel;
-  final Color categoryColor;
-  final bool enabled;
+  final bool showChevron;
+  final Widget? trailing;
+  final VoidCallback? onTap;
 
-  const _DropWell({
+  const _WorkRow({
     required this.icon,
+    required this.iconColor,
     required this.title,
     required this.subtitle,
-    required this.categoryColor,
-    required this.enabled,
-    this.actionLabel,
+    this.showChevron = true,
+    this.trailing,
+    this.onTap,
   });
+
+  @override
+  State<_WorkRow> createState() => _WorkRowState();
+}
+
+class _WorkRowState extends State<_WorkRow> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() => _pressed = value);
+  }
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final accent = enabled ? categoryColor : c.border;
-    final iconColor = enabled ? categoryColor : c.textTertiary;
-
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: c.surfaceVariant,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: CustomPaint(
-        painter: _DashedRRectPainter(color: accent),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 32, 20, 32),
-          child: Column(
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: c.surface,
-                  border: Border.all(color: accent, width: 1.5),
-                ),
-                child: HugeIcon(icon: icon, color: iconColor, size: 24),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: c.text,
-                  height: 1.25,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                subtitle,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: c.textSecondary,
-                  height: 1.4,
-                ),
-              ),
-              if (actionLabel != null) ...[
-                const SizedBox(height: 14),
-                Text(
-                  actionLabel!,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: categoryColor,
-                    height: 1.2,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DashedRRectPainter extends CustomPainter {
-  final Color color;
-
-  const _DashedRRectPainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    const strokeWidth = 1.5;
-    const dashLength = 6.0;
-    const gapLength = 4.0;
-    const radius = 12.0;
-
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    final rrect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(
-        strokeWidth / 2,
-        strokeWidth / 2,
-        size.width - strokeWidth,
-        size.height - strokeWidth,
-      ),
-      const Radius.circular(radius),
-    );
-
-    final path = Path()..addRRect(rrect);
-    for (final metric in path.computeMetrics()) {
-      var distance = 0.0;
-      while (distance < metric.length) {
-        final end = (distance + dashLength).clamp(0, metric.length);
-        canvas.drawPath(
-          metric.extractPath(distance, end.toDouble()),
-          paint,
-        );
-        distance += dashLength + gapLength;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_DashedRRectPainter oldDelegate) =>
-      oldDelegate.color != color;
-}
-
-// ── Material Card ─────────────────────────────────────────────────────────────
-
-class _MaterialCard extends StatelessWidget {
-  final String materialUrl;
-  final Color categoryColor;
-  final Duration animationDelay;
-  final Future<void> Function(String url) onOpen;
-
-  const _MaterialCard({
-    required this.materialUrl,
-    required this.categoryColor,
-    required this.onOpen,
-    this.animationDelay = Duration.zero,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return SacCard(
-      animate: true,
-      animationDelay: animationDelay,
-      onTap: () => onOpen(materialUrl),
+    final reduce = SacMotion.reduceMotionOf(context);
+    final row = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
           _iconWell(
-            context: context,
-            icon: HugeIcons.strokeRoundedPdf01,
-            iconColor: categoryColor,
+            icon: widget.icon,
+            iconColor: widget.iconColor,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -1100,228 +955,207 @@ class _MaterialCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'honors.evidence.material_title'.tr(),
+                  widget.title,
                   style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
                     color: c.text,
+                    height: 1.25,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'honors.evidence.material_subtitle'.tr(),
+                  widget.subtitle,
                   style: TextStyle(
-                    fontSize: 12,
-                    color: c.textTertiary,
+                    fontSize: 13,
+                    color: c.textSecondary,
+                    height: 1.35,
                   ),
                 ),
               ],
             ),
           ),
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedDownload01,
-            color: categoryColor,
-            size: 20,
-          ),
+          if (widget.trailing != null) widget.trailing!,
+          if (widget.showChevron && widget.onTap != null) ...[
+            const SizedBox(width: 4),
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowRight01,
+              size: 16,
+              color: c.textTertiary,
+            ),
+          ],
         ],
+      ),
+    );
+
+    if (widget.onTap == null) return row;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) {
+        HapticFeedback.lightImpact();
+        _setPressed(true);
+      },
+      onTapUp: (_) => _setPressed(false),
+      onTapCancel: () => _setPressed(false),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: (!reduce && _pressed) ? SacMotion.pressScale : 1,
+        duration: SacMotion.press,
+        curve: SacMotion.easeOut,
+        child: row,
       ),
     );
   }
 }
 
-// ── Completed Format Card ────────────────────────────────────────────────────
+class _RowDivider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 1,
+      margin: const EdgeInsets.only(left: 60),
+      color: context.sac.border,
+    );
+  }
+}
 
-class _CompletedFormatCard extends StatelessWidget {
+class _EvidenceWorkCard extends StatelessWidget {
   final UserHonor userHonor;
+  final String honorName;
+  final String? materialUrl;
   final Color categoryColor;
-  final Duration animationDelay;
   final VoidCallback onUploadCompletedFormat;
+  final VoidCallback onAddEvidence;
+  final void Function(String imageUrl) onDeleteEvidence;
+  final void Function(String url, List<String> imageUrls, int initialIndex)
+      onViewEvidence;
   final void Function(String url) onOpenDocument;
 
-  const _CompletedFormatCard({
+  const _EvidenceWorkCard({
     required this.userHonor,
+    required this.honorName,
+    required this.materialUrl,
     required this.categoryColor,
     required this.onUploadCompletedFormat,
+    required this.onAddEvidence,
+    required this.onDeleteEvidence,
+    required this.onViewEvidence,
     required this.onOpenDocument,
-    this.animationDelay = Duration.zero,
   });
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
     final hasDocument = userHonor.hasCompletedFormat;
-    final canEdit = userHonor.canSubmit;
-    final documentUrl = userHonor.document;
-
-    if (!hasDocument) {
-      return SacCard(
-        animate: true,
-        animationDelay: animationDelay,
-        padding: const EdgeInsets.all(12),
-        onTap: canEdit ? onUploadCompletedFormat : null,
-        child: _DropWell(
-          icon: HugeIcons.strokeRoundedUpload01,
-          title: 'honors.evidence.completed_format_title'.tr(),
-          subtitle: 'honors.evidence.completed_format_missing'.tr(),
-          actionLabel: canEdit
-              ? 'honors.evidence.upload_completed_format'.tr()
-              : null,
-          categoryColor: categoryColor,
-          enabled: canEdit,
-        ),
-      );
-    }
-
-    return SacCard(
-      animate: true,
-      animationDelay: animationDelay,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              _iconWell(
-                context: context,
-                icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                iconColor: AppColors.success,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'honors.evidence.completed_format_title'.tr(),
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: c.text,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      'honors.evidence.completed_format_uploaded'.tr(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: c.textSecondary,
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (documentUrl != null)
-                IconButton(
-                  tooltip: 'honors.evidence.open_completed_format'.tr(),
-                  onPressed: () => onOpenDocument(documentUrl),
-                  icon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedView,
-                    color: c.textTertiary,
-                    size: 20,
-                  ),
-                ),
-            ],
-          ),
-          if (canEdit) ...[
-            const SizedBox(height: 8),
-            SacButton.ghost(
-              text: 'honors.evidence.replace_completed_format'.tr(),
-              icon: HugeIcons.strokeRoundedUpload01,
-              textColor: categoryColor,
-              iconSize: 16,
-              fontSize: 13,
-              onPressed: onUploadCompletedFormat,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-// ── Evidence Section Card ─────────────────────────────────────────────────────
-
-class _EvidenceSectionCard extends StatelessWidget {
-  final UserHonor userHonor;
-  final Color categoryColor;
-  final Duration animationDelay;
-  final VoidCallback onAddEvidence;
-  final void Function(String imageUrl) onDeleteEvidence;
-  final void Function(String url, List<String> imageUrls, int initialIndex)
-      onViewEvidence;
-
-  const _EvidenceSectionCard({
-    required this.userHonor,
-    required this.categoryColor,
-    required this.onAddEvidence,
-    required this.onDeleteEvidence,
-    required this.onViewEvidence,
-    this.animationDelay = Duration.zero,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // canEdit: user may add or delete evidence (in_progress or rejected)
+    final hasEvidence = userHonor.images.isNotEmpty;
     final canEdit = userHonor.canSubmit;
     final showAddCell = canEdit && userHonor.generalEvidenceCount < 10;
-    final hasEvidence = userHonor.images.isNotEmpty;
-
-    if (!hasEvidence) {
-      return SacCard(
-        animate: true,
-        animationDelay: animationDelay,
-        padding: const EdgeInsets.all(12),
-        onTap: showAddCell ? onAddEvidence : null,
-        child: _DropWell(
-          icon: HugeIcons.strokeRoundedImage01,
-          title: 'honors.evidence.general_empty_first'.tr(),
-          subtitle: 'honors.evidence.general_empty_subtitle'.tr(),
-          actionLabel:
-              showAddCell ? 'honors.evidence.add_button'.tr() : null,
-          categoryColor: categoryColor,
-          enabled: showAddCell,
-        ),
-      );
-    }
+    final documentUrl = userHonor.document;
 
     return SacCard(
       animate: true,
-      animationDelay: animationDelay,
+      padding: EdgeInsets.zero,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'honors.evidence.general_section_title'.tr(),
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: context.sac.text,
+          _WorkRow(
+            icon: hasDocument
+                ? HugeIcons.strokeRoundedCheckmarkCircle02
+                : HugeIcons.strokeRoundedUpload01,
+            iconColor: hasDocument ? AppColors.success : categoryColor,
+            title: 'honors.evidence.completed_format_title'.tr(),
+            subtitle: hasDocument
+                ? 'honors.evidence.completed_format_uploaded'.tr()
+                : 'honors.evidence.completed_format_missing'.tr(),
+            showChevron: !(hasDocument && canEdit),
+            onTap: hasDocument
+                ? (documentUrl == null
+                    ? null
+                    : () => onOpenDocument(documentUrl))
+                : (canEdit ? onUploadCompletedFormat : null),
+            trailing: hasDocument && canEdit
+                ? GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: onUploadCompletedFormat,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(8, 8, 4, 8),
+                      child: Text(
+                        'honors.evidence.replace_completed_format'.tr(),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: categoryColor,
+                        ),
+                      ),
+                    ),
+                  )
+                : null,
+          ),
+          _RowDivider(),
+          if (!hasEvidence)
+            _WorkRow(
+              icon: HugeIcons.strokeRoundedImage01,
+              iconColor: showAddCell ? categoryColor : c.textTertiary,
+              title: 'honors.evidence.general_empty_first'.tr(),
+              subtitle: 'honors.evidence.general_empty_subtitle'.tr(),
+              onTap: showAddCell ? onAddEvidence : null,
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'honors.evidence.general_section_title'.tr(),
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: c.text,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        '${userHonor.generalEvidenceCount}/10',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: categoryColor,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
+                  const SizedBox(height: 12),
+                  _EvidenceGrid(
+                    images: userHonor.images,
+                    showAddCell: showAddCell,
+                    canDelete: canEdit,
+                    categoryColor: categoryColor,
+                    onAddEvidence: onAddEvidence,
+                    onDeleteEvidence: onDeleteEvidence,
+                    onViewEvidence: onViewEvidence,
+                  ),
+                ],
               ),
-              Text(
-                '${userHonor.generalEvidenceCount}/10',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: categoryColor,
-                ),
+            ),
+          if (materialUrl != null) ...[
+            _RowDivider(),
+            _WorkRow(
+              icon: HugeIcons.strokeRoundedPdf01,
+              iconColor: categoryColor,
+              title: 'honors.evidence.material_title'.tr(),
+              subtitle: 'honors.evidence.material_subtitle'.tr(),
+              onTap: () => SacPdfViewer.show(
+                context,
+                pdfSource: materialUrl!,
+                title: honorName,
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _EvidenceGrid(
-            images: userHonor.images,
-            showAddCell: showAddCell,
-            canDelete: canEdit,
-            categoryColor: categoryColor,
-            onAddEvidence: onAddEvidence,
-            onDeleteEvidence: onDeleteEvidence,
-            onViewEvidence: onViewEvidence,
-          ),
+            ),
+          ],
         ],
       ),
     );
@@ -1444,9 +1278,6 @@ class _AddEvidenceCellState extends State<_AddEvidenceCell> {
             decoration: BoxDecoration(
               color: context.sac.surfaceVariant,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: widget.categoryColor.withValues(alpha: 0.40),
-              ),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

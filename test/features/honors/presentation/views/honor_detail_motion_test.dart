@@ -10,6 +10,7 @@ import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor_requirement_progress.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/honors/presentation/views/honor_detail_view.dart';
+import 'package:sacdia_app/features/honors/presentation/widgets/honor_badge_image.dart';
 
 void main() {
   testWidgets(
@@ -21,7 +22,6 @@ void main() {
       await _pumpDetail(tester, reduceMotion);
 
       expect(_heroScale(tester).scale.value, SacMotion.enterScale);
-      expect(_heroProgress(tester).value, 0);
       expect(tester.binding.hasScheduledFrame, isTrue);
 
       for (var elapsed = 0;
@@ -33,7 +33,6 @@ void main() {
       }
 
       expect(_heroScale(tester).scale.value, 1);
-      expect(_heroProgress(tester).value, 0.5);
     },
   );
 
@@ -46,7 +45,6 @@ void main() {
     await _pumpDetail(tester, reduceMotion);
 
     expect(_heroScale(tester).scale.value, 1);
-    expect(_heroProgress(tester).value, 0.5);
     expect(tester.binding.hasScheduledFrame, isFalse);
   });
 
@@ -59,13 +57,11 @@ void main() {
       await _pumpDetail(tester, reduceMotion);
       await tester.pump(const Duration(milliseconds: 40));
       expect(_heroScale(tester).scale.value, inExclusiveRange(0.96, 1));
-      expect(_heroProgress(tester).value, inExclusiveRange(0, 0.5));
 
       reduceMotion.value = true;
       await tester.pump();
 
       expect(_heroScale(tester).scale.value, 1);
-      expect(_heroProgress(tester).value, 0.5);
       await tester.pump();
       expect(tester.binding.hasScheduledFrame, isFalse);
 
@@ -73,7 +69,6 @@ void main() {
       await tester.pump();
 
       expect(_heroScale(tester).scale.value, 1);
-      expect(_heroProgress(tester).value, 0.5);
       expect(tester.binding.hasScheduledFrame, isFalse);
     },
   );
@@ -148,14 +143,9 @@ Future<void> _pumpDetail(
 }
 
 ScaleTransition _heroScale(WidgetTester tester) =>
-    tester.widget<ScaleTransition>(_heroDescendant(ScaleTransition));
-
-LinearProgressIndicator _heroProgress(WidgetTester tester) =>
-    tester.widget<LinearProgressIndicator>(
-      _heroDescendant(LinearProgressIndicator),
-    );
-
-Finder _heroDescendant(Type type) => find.descendant(
-      of: find.byType(SliverAppBar),
-      matching: find.byType(type),
+    tester.widget<ScaleTransition>(
+      find.ancestor(
+        of: find.byType(HonorBadgeImage),
+        matching: find.byType(ScaleTransition),
+      ),
     );

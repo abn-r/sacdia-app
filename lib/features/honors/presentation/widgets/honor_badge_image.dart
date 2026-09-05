@@ -67,7 +67,7 @@ class HonorBadgeImage extends StatelessWidget {
         borderRadius: fallbackBorderRadius,
       ),
       child: HugeIcon(
-        icon: HugeIcons.strokeRoundedAward01,
+        icon: HugeIcons.strokeRoundedMedal05,
         color: fallbackColor,
         size: fallbackIconSize,
       ),
