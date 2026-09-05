@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/camporees/presentation/providers/camporees_providers.dart';
@@ -68,7 +69,7 @@ final List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
   // Administrative: club management — clubs:update is held by secretary+
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.club',
-    icon: HugeIcons.strokeRoundedFlag01,
+    icon: HugeIcons.strokeRoundedBackpack03,
     color: AppColors.secondary,
     route: RouteNames.homeClub,
     requiredPermissions: {'clubs:update'},
@@ -159,7 +160,7 @@ final List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
   // Ranking institucional — clubes por tipo dentro del campo local autorizado.
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.club_rankings',
-    icon: HugeIcons.strokeRoundedAward01,
+    icon: HugeIcons.strokeRoundedMedal05,
     color: AppColors.primary,
     route: RouteNames.homeClubRankings,
     requiredPermissions: clubRankingReadPermissions,
@@ -173,7 +174,9 @@ const _judgeQuickAccessItem = _QuickAccessItemConfig(
   route: RouteNames.camporeeJudgeAssignments,
 );
 
-/// Grid 2xN de acceso rápido a los módulos principales del sistema.
+/// Acceso rápido: 2×N de [SacCard] (well centrado + label).
+///
+/// Same surface as [ClubInfoCard]. Press scale, no [InkWell].
 ///
 /// Watches the full [AsyncValue] from [authNotifierProvider] to distinguish
 /// three states:
@@ -283,7 +286,7 @@ class QuickAccessGrid extends ConsumerWidget {
 
 /// Skeleton placeholder shown while auth is resolving.
 ///
-/// Renders 4 shimmer-like boxes in a 2x2 layout so the page height stays
+/// Renders 4 card placeholders in a 2x2 layout so the page height stays
 /// stable and the grid doesn't cause a layout jump when it appears.
 class _QuickAccessSkeleton extends StatelessWidget {
   const _QuickAccessSkeleton();
@@ -319,14 +322,23 @@ class _QuickAccessSkeleton extends StatelessWidget {
             childAspectRatio: 1.2,
           ),
           itemCount: 4,
-          itemBuilder: (_, __) => Container(
-            decoration: BoxDecoration(
-              color: shimmerColor,
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
+          itemBuilder: (_, __) => const _QuickAccessSkeletonTile(),
         ),
       ],
+    );
+  }
+}
+
+class _QuickAccessSkeletonTile extends StatelessWidget {
+  const _QuickAccessSkeletonTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox.expand(
+      child: SacCard(
+        padding: EdgeInsets.zero,
+        child: SizedBox.expand(),
+      ),
     );
   }
 }
@@ -337,9 +349,6 @@ class _QuickAccessTile extends StatelessWidget {
   /// Pre-resolved navigation path (static route or resolved dynamic route).
   final String resolvedRoute;
 
-  // Shared BorderRadius to avoid repeated allocations on every build.
-  static final _kTileRadius = BorderRadius.circular(16);
-
   const _QuickAccessTile({required this.item, required this.resolvedRoute});
 
   @override
@@ -347,52 +356,41 @@ class _QuickAccessTile extends StatelessWidget {
     final c = context.sac;
     final effectiveColor = item.color ?? c.text;
 
-    return Material(
-      color: c.surface,
-      borderRadius: _kTileRadius,
-      child: InkWell(
-        borderRadius: _kTileRadius,
+    return SizedBox.expand(
+      child: SacCard(
         onTap: () => context.push(resolvedRoute),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: _kTileRadius,
-            border: Border.all(color: c.border),
-          ),
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: effectiveColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: HugeIcon(
-                    icon: item.icon,
-                    size: 24,
-                    color: effectiveColor,
-                  ),
-                ),
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: effectiveColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
               ),
-              const SizedBox(height: 8),
-              Text(
-                tr(item.labelKey),
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: c.text,
-                  height: 1.3,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+              child: HugeIcon(
+                icon: item.icon,
+                size: 24,
+                color: effectiveColor,
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              tr(item.labelKey),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: c.text,
+                height: 1.3,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       ),
     );

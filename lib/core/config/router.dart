@@ -1411,7 +1411,7 @@ const List<_NavItemConfig> _navItemsConfig = [
   _NavItemConfig(
     branchIndex: 1,
     route: RouteNames.homeClasses,
-    icon: HugeIcons.strokeRoundedSchool,
+    icon: HugeIcons.strokeRoundedCourse,
     labelKey: 'router.nav.classes',
     requiredPermissions: {'classes:read'},
   ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
@@ -176,6 +177,35 @@ void main() {
         );
 
         expect(find.text('dashboard.quick_access.camporee_judge'), findsOne);
+      },
+    );
+
+    testWidgets(
+      'shortcut tiles use SacCard press, not Material InkWell',
+      (tester) async {
+        final user = _userWithPermissions(
+          const [
+            'users:read_detail',
+            'clubs:update',
+          ],
+        );
+
+        await _pumpQuickAccessGrid(tester, user);
+
+        expect(
+          find.descendant(
+            of: find.byType(QuickAccessGrid),
+            matching: find.byType(InkWell),
+          ),
+          findsNothing,
+        );
+        expect(
+          find.descendant(
+            of: find.byType(QuickAccessGrid),
+            matching: find.byType(SacCard),
+          ),
+          findsWidgets,
+        );
       },
     );
 
