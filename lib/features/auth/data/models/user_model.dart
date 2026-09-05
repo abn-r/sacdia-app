@@ -121,6 +121,9 @@ class UserModel extends UserEntity {
         (sectionData is Map<String, dynamic>
             ? sectionData['club_type_id']
             : null);
+    final rawClubName = club is Map<String, dynamic>
+        ? club['club_name']?.toString().trim()
+        : null;
 
     return AuthorizationGrant(
       assignmentId: value['assignment_id']?.toString(),
@@ -129,6 +132,8 @@ class UserModel extends UserEntity {
       clubId: club is Map<String, dynamic>
           ? int.tryParse(club['club_id']?.toString() ?? '')
           : null,
+      clubName:
+          (rawClubName != null && rawClubName.isNotEmpty) ? rawClubName : null,
       sectionId: sectionData != null
           ? int.tryParse(
               (sectionData['club_section_id'] ?? sectionData['instance_id'])
@@ -188,7 +193,12 @@ class UserModel extends UserEntity {
           'assignment_id': grant.assignmentId,
           'role_name': grant.roleName,
           'permissions': grant.permissions,
-          'club': grant.clubId == null ? null : {'club_id': grant.clubId},
+          'club': grant.clubId == null && grant.clubName == null
+              ? null
+              : {
+                  'club_id': grant.clubId,
+                  'club_name': grant.clubName,
+                },
           'section': {
             'club_section_id': grant.sectionId,
             'club_type_id': grant.clubTypeId,

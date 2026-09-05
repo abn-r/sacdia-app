@@ -75,6 +75,20 @@ int _clubTypeCycleRank(String? clubTypeName) {
   return 3;
 }
 
+String _optionTitle(AuthorizationGrant grant) {
+  final clubName = grant.clubName?.trim() ?? '';
+  if (clubName.isNotEmpty) return clubName;
+  final typeName = grant.clubTypeName?.trim() ?? '';
+  if (typeName.isNotEmpty) return typeName;
+  return tr('core.section_switcher.default_club_name');
+}
+
+bool _shouldShowTypeBadge(AuthorizationGrant grant, String title) {
+  final typeName = grant.clubTypeName?.trim() ?? '';
+  if (typeName.isEmpty) return false;
+  return typeName.toLowerCase() != title.toLowerCase();
+}
+
 List<AuthorizationGrant> _sortAssignmentsByClubTypeCycle(
   List<AuthorizationGrant> assignments,
 ) {
@@ -304,6 +318,9 @@ class _OptionCard extends StatelessWidget {
     final (badgeBg, badgeFg) = clubBadgeColorsFromName(grant.clubTypeName);
     final roleName = RoleUtils.translate(grant.roleName, gender: userGender);
     final isNonActive = !grant.isActive;
+    final title = _optionTitle(grant);
+    final typeLabel = grant.clubTypeName?.trim() ?? '';
+    final showTypeBadge = _shouldShowTypeBadge(grant, title);
 
     // Determine card decoration.
     final BoxDecoration decoration;
@@ -385,10 +402,8 @@ class _OptionCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              // Row 1: club type name
                               Text(
-                                grant.clubTypeName ??
-                                    tr('core.section_switcher.default_club_name'),
+                                title,
                                 style: Theme.of(context)
                                     .textTheme
                                     .titleSmall
@@ -397,16 +412,16 @@ class _OptionCard extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 4),
-                              // Row 2: section badge + role text
                               Row(
                                 children: [
-                                  _SectionBadge(
-                                    label: grant.clubTypeName ??
-                                        tr('core.section_switcher.default_club_name'),
-                                    bg: badgeBg,
-                                    fg: badgeFg,
-                                  ),
-                                  const SizedBox(width: 8),
+                                  if (showTypeBadge) ...[
+                                    _SectionBadge(
+                                      label: typeLabel,
+                                      bg: badgeBg,
+                                      fg: badgeFg,
+                                    ),
+                                    const SizedBox(width: 8),
+                                  ],
                                   Flexible(
                                     child: Text(
                                       roleName,

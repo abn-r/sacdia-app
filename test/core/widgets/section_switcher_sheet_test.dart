@@ -19,9 +19,11 @@ AuthorizationGrant _grant({
   required String id,
   required String clubTypeName,
   required String roleName,
+  String? clubName,
 }) {
   return AuthorizationGrant(
     assignmentId: id,
+    clubName: clubName,
     clubTypeName: clubTypeName,
     roleName: roleName,
     clubId: 1,
@@ -40,70 +42,124 @@ double _firstTextY(WidgetTester tester, String text) {
       .reduce((a, b) => a < b ? a : b);
 }
 
-void main() {
-  testWidgets(
-    'orders club assignments by formation age cycle',
-    (tester) async {
-      final assignments = [
-        _grant(
-          id: 'conquistadores',
-          clubTypeName: 'Conquistadores',
-          roleName: 'director',
-        ),
-        _grant(
-          id: 'guias',
-          clubTypeName: 'Guías Mayores',
-          roleName: 'member',
-        ),
-        _grant(
-          id: 'aventureros',
-          clubTypeName: 'Aventureros',
-          roleName: 'director',
-        ),
-      ];
+Future<void> _openSheet(
+  WidgetTester tester, {
+  required List<AuthorizationGrant> assignments,
+  String activeAssignmentId = 'aventureros',
+}) async {
+  final user = UserEntity(
+    id: 'user-1',
+    email: 'user@example.com',
+    authorization: AuthorizationSnapshot(
+      activeAssignmentId: activeAssignmentId,
+      clubAssignments: assignments,
+    ),
+  );
 
-      final user = UserEntity(
-        id: 'user-1',
-        email: 'user@example.com',
-        authorization: AuthorizationSnapshot(
-          activeAssignmentId: 'aventureros',
-          clubAssignments: assignments,
-        ),
-      );
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            authNotifierProvider.overrideWith(() => _FakeAuthNotifier(user)),
-          ],
-          child: MaterialApp(
-            home: Scaffold(
-              body: Consumer(
-                builder: (context, ref, _) => ElevatedButton(
-                  onPressed: () => showSectionSwitcher(
-                    context: context,
-                    ref: ref,
-                    assignments: assignments,
-                    activeAssignmentId: 'aventureros',
-                    userGender: null,
-                  ),
-                  child: const Text('open'),
-                ),
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        authNotifierProvider.overrideWith(() => _FakeAuthNotifier(user)),
+      ],
+      child: MaterialApp(
+        home: Scaffold(
+          body: Consumer(
+            builder: (context, ref, _) => ElevatedButton(
+              onPressed: () => showSectionSwitcher(
+                context: context,
+                ref: ref,
+                assignments: assignments,
+                activeAssignmentId: activeAssignmentId,
+                userGender: null,
               ),
+              child: const Text('open'),
             ),
           ),
         ),
-      );
-
-      await tester.tap(find.text('open'));
-      await tester.pumpAndSettle();
-
-      final aventurerosY = _firstTextY(tester, 'Aventureros');
-      final conquistadoresY = _firstTextY(tester, 'Conquistadores');
-      final guiasY = _firstTextY(tester, 'Guías Mayores');
-
-      expect(aventurerosY, lessThan(conquistadoresY));
-      expect(conquistadoresY, lessThan(guiasY));
-    },
+      ),
+    ),
   );
+
+  await tester.tap(find.text('open'));
+  await tester.pumpAndSettle();
+}
+
+void main() {
+  group('SectionSwitcherSheet', () {
+    final cycleAssignments = [
+      _grant(
+        id: 'conquistadores',
+        clubTypeName: 'Conquistadores',
+        roleName: 'director',
+      ),
+      _grant(
+        id: 'guias',
+        clubTypeName: 'Guías Mayores',
+        roleName: 'member',
+      ),
+      _grant(
+        id: 'aventureros',
+        clubTypeName: 'Aventureros',
+        roleName: 'director',
+      ),
+    ];
+
+    testWidgets(
+      'should order club assignments by formation age cycle',
+      (tester) async {
+        await _openSheet(tester, assignments: cycleAssignments);
+
+        final aventurerosY = _firstTextY(tester, 'Aventureros');
+        final conquistadoresY = _firstTextY(tester, 'Conquistadores');
+        final guiasY = _firstTextY(tester, 'Guías Mayores');
+
+        expect(aventurerosY, lessThan(conquistadoresY));
+        expect(conquistadoresY, lessThan(guiasY));
+      },
+    );
+
+    testWidgets(
+      'should show each club type name once when club name is absent',
+      (tester) async {
+        await _openSheet(tester, assignments: cycleAssignments);
+
+        expect(find.text('Aventureros'), findsOneWidget);
+        expect(find.text('Conquistadores'), findsOneWidget);
+        expect(find.text('Guías Mayores'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'should use club name as title and club type as badge',
+      (tester) async {
+        final assignments = [
+          _grant(
+            id: 'conquistadores',
+            clubName: 'ACV',
+            clubTypeName: 'Conquistadores',
+            roleName: 'director',
+          ),
+          _grant(
+            id: 'guias',
+            clubName: 'ACV',
+            clubTypeName: 'Guías Mayores',
+            roleName: 'member',
+          ),
+          _grant(
+            id: 'aventureros',
+            clubName: 'ACV',
+            clubTypeName: 'Aventureros',
+            roleName: 'director',
+          ),
+        ];
+
+        await _openSheet(tester, assignments: assignments);
+
+        expect(find.text('ACV'), findsNWidgets(3));
+        expect(find.text('Aventureros'), findsOneWidget);
+        expect(find.text('Conquistadores'), findsOneWidget);
+        expect(find.text('Guías Mayores'), findsOneWidget);
+      },
+    );
+  });
 }

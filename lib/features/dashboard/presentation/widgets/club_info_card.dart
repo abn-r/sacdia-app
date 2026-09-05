@@ -18,8 +18,8 @@ import '../../../profile/presentation/providers/profile_providers.dart';
 ///
 /// Club type and role are derived from the auth state's active grant (the same
 /// source the section switcher sheet uses) so the card and the sheet always
-/// agree on which section is active. [clubName] is the only prop still taken
-/// from the dashboard summary, since the grant does not include it.
+/// agree on which section is active. [clubName] still comes from the dashboard
+/// summary when present; otherwise it falls back to the active grant.
 ///
 /// Cuando el usuario tiene más de un club asignado, el tap abre el
 /// [showSectionSwitcher] bottom sheet personalizado para cambiar de sección.
@@ -89,7 +89,7 @@ class ClubInfoCard extends ConsumerWidget {
             ),
             child: Center(
               child: HugeIcon(
-                icon: HugeIcons.strokeRoundedFlag01,
+                icon: HugeIcons.strokeRoundedBackpack03,
                 color: clubColor,
                 size: 24,
               ),
@@ -103,7 +103,9 @@ class ClubInfoCard extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  clubName ?? tr('dashboard.club_info.no_club'),
+                  clubName ??
+                      activeGrant?.clubName ??
+                      tr('dashboard.club_info.no_club'),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),

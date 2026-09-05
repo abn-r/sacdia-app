@@ -227,7 +227,8 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     final cachedClubTypeId = _parseCachedInt(
       await secureStorage.read(AppConstants.cachedActiveClubTypeId),
     );
-    // cachedActiveClubName is reserved for future use — not read yet.
+    final cachedClubName =
+        await secureStorage.read(AppConstants.cachedActiveClubName);
     final prefs = ref.read(sharedPreferencesProvider);
 
     AppLogger.i('Token encontrado, validando con /auth/me', tag: _tag);
@@ -253,6 +254,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
                 roleName: cachedRoleName,
                 permissions: cachedActivePermissions,
                 clubId: cachedClubId,
+                clubName: cachedClubName,
                 sectionId: cachedSectionId,
                 clubTypeId: cachedClubTypeId,
                 clubTypeName: cachedClubType,
@@ -381,8 +383,15 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       } else {
         secureStorage.delete(AppConstants.cachedActiveClubTypeId);
       }
-      // cachedActiveClubName reserved for future use (club display name not yet in grant)
-      secureStorage.delete(AppConstants.cachedActiveClubName);
+      final clubNameToCache = activeGrant.clubName?.trim();
+      if (clubNameToCache != null && clubNameToCache.isNotEmpty) {
+        secureStorage.write(
+          AppConstants.cachedActiveClubName,
+          clubNameToCache,
+        );
+      } else {
+        secureStorage.delete(AppConstants.cachedActiveClubName);
+      }
     } else {
       // No active grant — clear any stale cached grant data.
       secureStorage.delete(AppConstants.cachedActiveAssignmentId);
