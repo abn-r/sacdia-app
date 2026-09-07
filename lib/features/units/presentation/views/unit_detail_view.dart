@@ -18,9 +18,14 @@ import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../../../features/auth/domain/utils/authorization_utils.dart';
 import '../../../../features/auth/presentation/providers/auth_providers.dart';
+import '../../../../core/utils/scoring_week.dart';
+import '../../../activities/domain/entities/activity.dart';
+import '../../../activities/presentation/providers/activities_providers.dart';
+import '../../../members/presentation/providers/members_providers.dart';
 import '../../domain/entities/scoring_category.dart';
 import '../../domain/entities/unit.dart';
 import '../../domain/entities/unit_member.dart';
+import '../../domain/week_activities.dart';
 import '../providers/units_providers.dart';
 
 /// Asignación semanal de puntos — UI minimalista.
@@ -93,6 +98,7 @@ class UnitDetailView extends ConsumerWidget {
       ),
       body: Column(
         children: [
+          _WeekActivitiesBanner(unit: unit),
           if (state.isSavedToday) const _SavedStatusStrip(),
           Expanded(
             child: members.isEmpty
@@ -248,6 +254,156 @@ class UnitDetailView extends ConsumerWidget {
 }
 
 // ── Status ────────────────────────────────────────────────────────────────────
+
+class _WeekActivitiesBanner extends ConsumerWidget {
+  const _WeekActivitiesBanner({required this.unit});
+
+  final Unit unit;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.sac;
+    final ctx = ref.watch(clubContextProvider).valueOrNull;
+    if (ctx == null) return const SizedBox.shrink();
+
+    final activitiesAsync = ref.watch(
+      clubActivitiesProvider(
+        ClubActivitiesParams(
+          clubId: ctx.clubId,
+          clubTypeId: unit.clubTypeId ?? ctx.clubTypeId,
+        ),
+      ),
+    );
+
+    return activitiesAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (activities) {
+        final period = getScoringWeekPeriod();
+        final sectionId = unit.clubSectionId ?? ctx.sectionId;
+        final weekActivities = activitiesForScoringWeek(
+          activities: activities,
+          period: period,
+          sectionId: sectionId,
+        );
+        final locale = context.locale.toString();
+        final dateFormat = DateFormat.MMMEd(locale);
+
+        return Container(
+          width: double.infinity,
+          margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+          decoration: BoxDecoration(
+            color: c.surfaceVariant,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: c.borderLight),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'units.detail.week_activities_title'.tr(),
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.2,
+                      color: c.text,
+                    ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'units.detail.week_range_label'.tr(
+                  namedArgs: {
+                    'start': dateFormat.format(period.startDate),
+                    'end': dateFormat.format(period.endDate),
+                  },
+                ),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: c.textSecondary,
+                    ),
+              ),
+              const SizedBox(height: 10),
+              if (weekActivities.isEmpty)
+                Text(
+                  'units.detail.week_activities_empty'.tr(),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: c.textSecondary,
+                      ),
+                )
+              else
+                ...weekActivities.map(
+                  (activity) => Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: _WeekActivityRow(
+                      activity: activity,
+                      dateFormat: dateFormat,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _WeekActivityRow extends StatelessWidget {
+  const _WeekActivityRow({
+    required this.activity,
+    required this.dateFormat,
+  });
+
+  final Activity activity;
+  final DateFormat dateFormat;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final date = activity.activityDate;
+    final time = activity.activityTime?.trim();
+    final dateLabel = date == null ? '' : dateFormat.format(date);
+    final meta = [
+      if (dateLabel.isNotEmpty) dateLabel,
+      if (time != null && time.isNotEmpty) time,
+    ].join(' · ');
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: HugeIcon(
+            icon: HugeIcons.strokeRoundedCalendar03,
+            size: 16,
+            color: AppColors.primary,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                activity.name,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: c.text,
+                    ),
+              ),
+              if (meta.isNotEmpty)
+                Text(
+                  meta,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: c.textSecondary,
+                      ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
 
 class _SavedStatusStrip extends StatelessWidget {
   const _SavedStatusStrip();

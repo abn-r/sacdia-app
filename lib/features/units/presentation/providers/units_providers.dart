@@ -27,6 +27,7 @@ import '../../domain/usecases/get_weekly_records.dart';
 import '../../domain/usecases/remove_unit_member.dart';
 import '../../domain/usecases/update_unit.dart';
 import '../../domain/usecases/update_weekly_record.dart';
+import '../../../../core/utils/scoring_week.dart';
 import 'unit_member_delta.dart';
 
 // ── Infrastructure ─────────────────────────────────────────────────────────────
@@ -316,9 +317,9 @@ class UnitsNotifier extends Notifier<UnitsState> {
     final ctx = await ref.read(clubContextProvider.future);
     if (ctx == null) return;
 
-    final now = DateTime.now();
-    final week = _isoWeekNumber(now);
-    final year = _isoWeekYear(now);
+    final period = getScoringWeekPeriod();
+    final week = period.week;
+    final year = period.year;
 
     final result = await ref.read(getWeeklyRecordsUseCaseProvider).call(
           GetWeeklyRecordsParams(clubId: ctx.clubId, unitId: unit.id),
@@ -564,9 +565,9 @@ class UnitsNotifier extends Notifier<UnitsState> {
 
     state = state.copyWith(isSaving: true, clearError: true);
 
-    final now = DateTime.now();
-    final week = _isoWeekNumber(now);
-    final year = _isoWeekYear(now);
+    final period = getScoringWeekPeriod();
+    final week = period.week;
+    final year = period.year;
 
     final records = pendingScores.entries.map((entry) {
       final memberCategoryScores = entry.value;
@@ -948,27 +949,6 @@ class UnitsNotifier extends Notifier<UnitsState> {
     }
 
     return initial;
-  }
-
-  /// Calcula el número de semana ISO 8601 para una fecha dada.
-  ///
-  /// ISO 8601: la semana empieza el lunes, y la semana 1 es la que contiene
-  /// el primer jueves del año. Esto coincide con el cálculo del backend.
-  int _isoWeekNumber(DateTime date) {
-    // Ajustar al jueves de la misma semana ISO
-    final thursday = date.add(Duration(days: DateTime.thursday - date.weekday));
-    final jan1 = DateTime(thursday.year, 1, 1);
-    final dayOfYear = thursday.difference(jan1).inDays;
-    return (dayOfYear ~/ 7) + 1;
-  }
-
-  /// Retorna el año ISO 8601 para una fecha dada.
-  ///
-  /// Para semanas que cruzan el fin de año (ej. semana 1 de enero que pertenece
-  /// al año anterior), el año ISO puede diferir del año calendario.
-  int _isoWeekYear(DateTime date) {
-    final thursday = date.add(Duration(days: DateTime.thursday - date.weekday));
-    return thursday.year;
   }
 }
 

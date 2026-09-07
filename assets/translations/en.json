@@ -1380,7 +1380,10 @@
       "boolean_category_hint": "All or nothing",
       "bulk_action_button": "To all",
       "min_button": "Min",
-      "bulk_done_button": "Done"
+      "bulk_done_button": "Done",
+      "week_activities_title": "Activities this week",
+      "week_activities_empty": "No activities scheduled this week.",
+      "week_range_label": "{start} – {end}"
     },
     "member_of_month": {
       "history_title": "Miembro del Mes — Historial",
