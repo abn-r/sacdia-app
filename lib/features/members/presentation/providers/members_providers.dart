@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../classes/data/datasources/classes_remote_data_source.dart';
 import '../../../classes/domain/entities/progressive_class.dart';
 import '../../../honors/data/datasources/honors_remote_data_source.dart';
@@ -15,6 +16,7 @@ import '../../../post_registration/data/models/emergency_contact_model.dart';
 import '../../../post_registration/data/models/medicine_model.dart';
 import '../../data/datasources/members_remote_data_source.dart';
 import '../../data/repositories/members_repository_impl.dart';
+import '../../domain/entities/annual_continuation.dart';
 import '../../domain/entities/club_member.dart';
 import '../../domain/entities/join_request.dart';
 import '../../domain/repositories/members_repository.dart';
@@ -527,3 +529,155 @@ final memberHonorsProvider = FutureProvider.autoDispose
   final models = await ds.getUserHonors(userId, cancelToken: cancelToken);
   return models.map((m) => m.toEntity()).toList();
 });
+
+// ── Annual Continuations ──────────────────────────────────────────────────────
+
+/// Estado del notifier de no inscritos anuales.
+class AnnualContinuationsState {
+  final List<AnnualContinuation> items;
+  final Set<String> selectedIds;
+
+  const AnnualContinuationsState({
+    this.items = const [],
+    this.selectedIds = const {},
+  });
+
+  AnnualContinuationsState copyWith({
+    List<AnnualContinuation>? items,
+    Set<String>? selectedIds,
+  }) {
+    return AnnualContinuationsState(
+      items: items ?? this.items,
+      selectedIds: selectedIds ?? this.selectedIds,
+    );
+  }
+
+  List<AnnualContinuation> get enrollableItems =>
+      items.where((m) => !m.isBlocked).toList();
+
+  String? get periodLabel {
+    if (items.isEmpty) return null;
+    return items.first.ecclesiasticalYearId.toString();
+  }
+}
+
+/// Notifier para la lista de continuaciones anuales de la sección activa.
+class AnnualContinuationsNotifier
+    extends AutoDisposeAsyncNotifier<AnnualContinuationsState> {
+  @override
+  Future<AnnualContinuationsState> build() async {
+    final ctx = await ref.watch(clubContextProvider.future);
+    if (ctx == null) return const AnnualContinuationsState();
+
+    final repo = ref.read(membersRepositoryProvider);
+    final result = await repo.getAnnualContinuations(ctx.sectionId);
+
+    return result.fold(
+      (failure) => throw Exception(failure.message),
+      (items) {
+        final selectedIds = items
+            .where((m) => !m.isBlocked)
+            .map((m) => m.userId)
+            .toSet();
+        return AnnualContinuationsState(items: items, selectedIds: selectedIds);
+      },
+    );
+  }
+
+  void toggleSelection(String userId) {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    if (current.items.any((m) => m.userId == userId && m.isBlocked)) {
+      return;
+    }
+    final selected = Set<String>.from(current.selectedIds);
+    if (selected.contains(userId)) {
+      selected.remove(userId);
+    } else {
+      selected.add(userId);
+    }
+    state = AsyncValue.data(current.copyWith(selectedIds: selected));
+  }
+
+  /// Inscribe los IDs seleccionados elegibles.
+  /// Recarga auth y purga datos operativos de la sección.
+  Future<ContinuationBatchResult?> submit() async {
+    final ctx = await ref.read(clubContextProvider.future);
+    if (ctx == null) return null;
+
+    final current = state.valueOrNull;
+    if (current == null) return null;
+
+    final toSubmit = current.selectedIds
+        .where(
+          (id) => current.items.any((m) => m.userId == id && !m.isBlocked),
+        )
+        .toList();
+
+    if (toSubmit.isEmpty) {
+      return const ContinuationBatchResult();
+    }
+
+    final repo = ref.read(membersRepositoryProvider);
+    final result = await repo.submitAnnualContinuations(
+      sectionId: ctx.sectionId,
+      userIds: toSubmit,
+    );
+
+    return await result.fold<Future<ContinuationBatchResult?>>(
+      (_) async => null,
+      (data) async {
+        await ref
+            .read(authNotifierProvider.notifier)
+            .refreshCurrentUser(keepCurrentOnFailure: true);
+        ref.invalidateSelf();
+        ref.invalidate(membersNotifierProvider);
+        ref.invalidate(clubContextProvider);
+        ref.invalidate(dashboardNotifierProvider);
+        return data;
+      },
+    );
+  }
+}
+
+final annualContinuationsNotifierProvider = AsyncNotifierProvider.autoDispose<
+    AnnualContinuationsNotifier, AnnualContinuationsState>(
+  AnnualContinuationsNotifier.new,
+);
+
+// ── Annual Enroll (D01 bloqueado: sin CTA) ───────────────────────────────────
+
+/// Conservado por si D01 habilita autoinscripción. La UI no lo llama.
+class AnnualEnrollNotifier extends AutoDisposeAsyncNotifier<void> {
+  @override
+  Future<void> build() async {}
+
+  /// Inscribe al usuario al año actual. Retorna null si tuvo éxito, o un
+  /// mensaje de error localizado.
+  Future<String?> enroll({
+    required String userId,
+    int? clubSectionId,
+  }) async {
+    state = const AsyncValue.loading();
+
+    final repo = ref.read(membersRepositoryProvider);
+    final result =
+        await repo.annualEnroll(userId, clubSectionId: clubSectionId);
+
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return failure.message;
+      },
+      (_) {
+        state = const AsyncValue.data(null);
+        return null;
+      },
+    );
+  }
+}
+
+final annualEnrollNotifierProvider =
+    AsyncNotifierProvider.autoDispose<AnnualEnrollNotifier, void>(
+  AnnualEnrollNotifier.new,
+);

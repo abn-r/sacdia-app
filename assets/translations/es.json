@@ -1373,9 +1373,9 @@
       "category_points": "{points}/{max}",
       "reset_button": "Reiniciar puntos",
       "save_button": "Guardar semana",
-  "week_activities_title": "Actividades de esta semana",
-  "week_activities_empty": "Esta semana no hay actividades programadas.",
-  "week_range_label": "{start} – {end}",
+      "week_activities_title": "Actividades de esta semana",
+      "week_activities_empty": "Esta semana no hay actividades programadas.",
+      "week_range_label": "{start} – {end}",
       "assign_all_button": "Asignar todo",
       "clear_button": "Limpiar",
       "bulk_categories_title": "Aplicar una categoría a todos",
@@ -1831,7 +1831,8 @@
       "empty_body": "Esta clase todavía no tiene miembros activos en la sección.",
       "load_error_title": "No se pudo cargar el progreso",
       "member_count": "{count} miembros inscritos",
-      "completed_sections": "Secciones completadas: {value}"
+      "completed_sections": "Secciones completadas: {value}",
+      "cross_type_chip": "Cursado cruzado"
     }
   },
   "camporees": {
@@ -2352,6 +2353,35 @@
       "approve": "Aprobar",
       "approved": "Aprobado",
       "rejected": "Rechazado"
+    },
+    "continuations": {
+      "title": "Miembros no inscritos",
+      "subtitle": "Selecciona a quién inscribir en esta sección. El cargo anterior no se copia.",
+      "card_title": "Miembros no inscritos",
+      "card_subtitle": "Inscribir miembros del año vigente",
+      "card_label": "Miembros no inscritos",
+      "last_role": "Cargo anterior: {role}",
+      "current_role": "Cargo actual: {role}",
+      "already_continued": "Ya inscrito",
+      "blocked": "No elegible",
+      "submit_button": "Inscribir para {period}",
+      "success": "{count} inscrito(s)",
+      "success_partial": "{enrolled} inscrito(s). {blocked} bloqueado(s). {failed} con error.",
+      "empty_title": "Nadie pendiente de inscripción",
+      "empty_subtitle": "Todos los miembros de esta sección ya están inscritos este año.",
+      "blocked_reasons": {
+        "ANNUAL_CLASS_POLICY_UNRESOLVED": "No hay clase aplicable para este año",
+        "ANNUAL_MEMBERSHIP_BASE_UNRESOLVED": "No se resolvió la sección de pertenencia",
+        "CLASS_PREREQUISITE_NOT_MET": "Falta un prerrequisito de clase",
+        "CLASS_GM_INVESTITURE_REQUIRED": "Requiere investidura de Guías Mayores",
+        "CLASS_NOT_AVAILABLE_FOR_YEAR": "La clase no está disponible este año",
+        "CLASS_NOT_FOUND": "No se encontró la clase",
+        "MR_ALREADY_PENDING": "Hay una solicitud de membresía pendiente"
+      },
+      "errors": {
+        "fetch": "No se pudo cargar la lista de no inscritos",
+        "submit": "No se pudo completar la inscripción"
+      }
     }
   },
   "certifications": {
@@ -4409,5 +4439,10 @@
       "upload_comprobante": "No se pudo subir el comprobante",
       "get_config": "No se pudo cargar la configuración de pago"
     }
+  },
+  "membership": {
+    "not_enrolled_this_year": "No inscrito este año. La directiva realiza tu inscripción",
+    "enroll_this_year": "Inscribirme",
+    "enroll_error": "Error al inscribirse. Intenta de nuevo."
   }
 }

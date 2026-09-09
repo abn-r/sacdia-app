@@ -3,6 +3,8 @@ import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 
+// ignore_for_file: avoid_redundant_argument_values
+
 UserEntity buildUser({
   required String id,
   List<String> permissions = const [],
@@ -178,6 +180,95 @@ void main() {
         ),
         isTrue,
       );
+    });
+  });
+
+  // ── Inactive (ghost) status ──────────────────────────────────────────────
+
+  group('AuthorizationGrant.isInactive', () {
+    test('inactive grant returns isInactive=true', () {
+      const grant = AuthorizationGrant(status: 'inactive');
+      expect(grant.isInactive, isTrue);
+    });
+
+    test('inactive grant returns isActive=false', () {
+      const grant = AuthorizationGrant(status: 'inactive');
+      expect(grant.isActive, isFalse);
+    });
+
+    test('active grant returns isInactive=false', () {
+      const grant = AuthorizationGrant(status: 'active');
+      expect(grant.isInactive, isFalse);
+      expect(grant.isActive, isTrue);
+    });
+
+    test('designated status is not inactive (no ghost banner)', () {
+      const grant = AuthorizationGrant(status: 'designated', roleName: 'director');
+      expect(grant.isInactive, isFalse);
+      expect(grant.isActive, isFalse);
+    });
+  });
+
+  group('AuthorizationSnapshot.hasRestrictedAccess includes inactive', () {
+    AuthorizationSnapshot _snapshotWithActiveGrant(String status) {
+      const id = 'assign-1';
+      final grant = AuthorizationGrant(assignmentId: id, status: status);
+      return AuthorizationSnapshot(
+        clubAssignments: [grant],
+        activeAssignmentId: id,
+      );
+    }
+
+    test('inactive → hasRestrictedAccess=true', () {
+      final snap = _snapshotWithActiveGrant('inactive');
+      expect(snap.isActiveInactive, isTrue);
+      expect(snap.hasRestrictedAccess, isTrue);
+    });
+
+    test('pending → hasRestrictedAccess=true', () {
+      final snap = _snapshotWithActiveGrant('pending');
+      expect(snap.hasRestrictedAccess, isTrue);
+    });
+
+    test('active → hasRestrictedAccess=false', () {
+      final snap = _snapshotWithActiveGrant('active');
+      expect(snap.hasRestrictedAccess, isFalse);
+    });
+
+    test('null status → hasRestrictedAccess=false', () {
+      const id = 'assign-1';
+      const grant = AuthorizationGrant(assignmentId: id);
+      final snap = AuthorizationSnapshot(
+        clubAssignments: [grant],
+        activeAssignmentId: id,
+      );
+      expect(snap.hasRestrictedAccess, isFalse);
+    });
+  });
+
+  group('membershipGrantForDisplay for inactive', () {
+    test('returns inactive grant for display', () {
+      const id = 'assign-1';
+      const grant = AuthorizationGrant(
+          assignmentId: id, status: 'inactive', clubId: 1, sectionId: 2);
+      final snap = AuthorizationSnapshot(
+        clubAssignments: [grant],
+        activeAssignmentId: id,
+      );
+      final result = membershipGrantForDisplay(snap);
+      expect(result, isNotNull);
+      expect(result!.isInactive, isTrue);
+    });
+
+    test('returns null for active grant (nothing to display)', () {
+      const id = 'assign-1';
+      const grant = AuthorizationGrant(
+          assignmentId: id, status: 'active', clubId: 1, sectionId: 2);
+      final snap = AuthorizationSnapshot(
+        clubAssignments: [grant],
+        activeAssignmentId: id,
+      );
+      expect(membershipGrantForDisplay(snap), isNull);
     });
   });
 }

@@ -62,6 +62,14 @@ class ApiEndpoints {
   // ── Members / Enrollment ──────────────────────────────────────────────────
   static const String enrollments = '/enrollments';
 
+  // ── Annual Continuations ──────────────────────────────────────────────────
+  /// Appended to `$clubSections/$sectionId` for the annual continuation list.
+  static const String annualContinuations = '/annual-continuations';
+
+  // ── Annual Membership Enroll ──────────────────────────────────────────────
+  /// Appended to `$users/$userId/membership` for self-enrollment.
+  static const String annualEnroll = '/annual-enroll';
+
   // ── Investiture ───────────────────────────────────────────────────────────
   static const String investiture = '/investiture';
 

@@ -3,6 +3,8 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../../domain/entities/annual_continuation.dart';
+import '../models/annual_continuation_model.dart';
 import '../models/club_member_model.dart';
 import '../models/join_request_model.dart';
 
@@ -42,6 +44,18 @@ abstract class MembersRemoteDataSource {
 
   /// Remueve una asignación de rol
   Future<bool> removeClubRole(String assignmentId);
+
+  /// No inscritos del año vigente. Requiere `club_members:approve`.
+  Future<List<AnnualContinuationModel>> getAnnualContinuations(int sectionId);
+
+  /// Inscribe no inscritos. Resultados por usuario.
+  Future<ContinuationBatchResult> submitAnnualContinuations({
+    required int sectionId,
+    required List<String> userIds,
+  });
+
+  /// D01: el backend responde 403 ANNUAL_ENROLL_REQUIRES_DIRECTIVE. Sin CTA.
+  Future<void> annualEnroll(String userId, {int? clubSectionId});
 }
 
 /// Implementación de la fuente de datos remota para miembros
@@ -76,12 +90,13 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
   }
 
   Map<String, dynamic> _unwrapMap(dynamic responseData) {
-    if (responseData is Map<String, dynamic>) {
-      if (responseData.containsKey('data') &&
-          responseData['data'] is Map<String, dynamic>) {
-        return responseData['data'] as Map<String, dynamic>;
+    if (responseData is Map) {
+      final map = Map<String, dynamic>.from(responseData);
+      final data = map['data'];
+      if (data is Map) {
+        return Map<String, dynamic>.from(data);
       }
-      return responseData;
+      return map;
     }
     return {};
   }
@@ -382,6 +397,105 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       );
     } catch (e) {
       if (e is AuthException || e is ServerException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<List<AnnualContinuationModel>> getAnnualContinuations(
+      int sectionId) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.clubSections}/$sectionId${ApiEndpoints.annualContinuations}',
+        queryParameters: const {'page': 1, 'limit': 100},
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw ServerException(
+          message: tr('members.continuations.errors.fetch'),
+          code: response.statusCode,
+        );
+      }
+
+      final list = unwrapAnnualContinuationItems(response.data);
+      return list;
+    } on DioException catch (e) {
+      AppLogger.e('Error al obtener continuaciones anuales',
+          tag: _tag, error: e);
+      throw ServerException(
+        message: e.response?.data?['message'] ??
+            tr('members.continuations.errors.fetch'),
+        code: e.response?.statusCode,
+      );
+    } catch (e) {
+      if (e is AuthException || e is ServerException) rethrow;
+      AppLogger.e('Error inesperado en getAnnualContinuations',
+          tag: _tag, error: e);
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<ContinuationBatchResult> submitAnnualContinuations({
+    required int sectionId,
+    required List<String> userIds,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.clubSections}/$sectionId${ApiEndpoints.annualContinuations}',
+        data: {'user_ids': userIds},
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw ServerException(
+          message: tr('members.continuations.errors.submit'),
+          code: response.statusCode,
+        );
+      }
+
+      return ContinuationBatchResult.fromJson(_unwrapMap(response.data));
+    } on DioException catch (e) {
+      AppLogger.e('Error al enviar continuaciones', tag: _tag, error: e);
+      throw ServerException(
+        message: e.response?.data?['message'] ??
+            tr('members.continuations.errors.submit'),
+        code: e.response?.statusCode,
+      );
+    } catch (e) {
+      if (e is AuthException || e is ServerException) rethrow;
+      AppLogger.e('Error inesperado en submitAnnualContinuations',
+          tag: _tag, error: e);
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<void> annualEnroll(String userId, {int? clubSectionId}) async {
+    try {
+      final body = <String, dynamic>{};
+      if (clubSectionId != null) body['club_section_id'] = clubSectionId;
+
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.users}/$userId/membership${ApiEndpoints.annualEnroll}',
+        data: body.isNotEmpty ? body : null,
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw ServerException(
+          message: tr('membership.enroll_error'),
+          code: response.statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      AppLogger.e('Error al inscribir anualmente', tag: _tag, error: e);
+      throw ServerException(
+        message:
+            e.response?.data?['message'] ?? tr('membership.enroll_error'),
+        code: e.response?.statusCode,
+      );
+    } catch (e) {
+      if (e is AuthException || e is ServerException) rethrow;
+      AppLogger.e('Error inesperado en annualEnroll', tag: _tag, error: e);
       throw ServerException(message: e.toString());
     }
   }

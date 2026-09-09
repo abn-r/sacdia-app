@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/section_switcher_sheet.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../profile/presentation/providers/profile_providers.dart';
 
 /// Card de información del club - Estilo "Scout Vibrante"
@@ -47,8 +48,10 @@ class ClubInfoCard extends ConsumerWidget {
     final authorization = ref.watch(
       authNotifierProvider.select((v) => v.valueOrNull?.authorization),
     );
-    final assignments = authorization?.clubAssignments ?? const [];
-    final hasMultiple = assignments.length > 1;
+    final assignments = visibleClubAssignments(
+      authorization?.clubAssignments ?? const [],
+    );
+    final hasMultiple = selectableClubAssignments(assignments).length > 1;
     final activeGrant = authorization?.activeGrant;
 
     // Derive club type and role from the active grant (same source as the

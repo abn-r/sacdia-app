@@ -16,7 +16,7 @@ class AuthorizationGrant extends Equatable {
   /// Populated from `club_type_name` in the backend grant response.
   final String? clubTypeName;
 
-  /// Membership status: 'pending', 'active', 'rejected', 'expired'.
+  /// Membership status: pending, active, rejected, expired, inactive, designated, ended.
   final String? status;
 
   /// When the membership request expires (only relevant for pending status).
@@ -40,7 +40,12 @@ class AuthorizationGrant extends Equatable {
   });
 
   /// Whether this assignment is in a usable (active) state.
+  /// Note: 'inactive' is explicitly NOT active.
   bool get isActive => status == null || status == 'active';
+
+  /// Whether this assignment is an inactive ghost (assigned to club but not
+  /// yet enrolled for the current ecclesiastical year).
+  bool get isInactive => status == 'inactive';
 
   /// Whether this assignment is pending approval.
   bool get isPending => status == 'pending';
@@ -104,9 +109,13 @@ class AuthorizationSnapshot extends Equatable {
   /// Whether the active assignment has expired.
   bool get isActiveExpired => activeGrant?.isExpired ?? false;
 
-  /// Whether the active assignment is in a non-active state (pending/rejected/expired).
+  /// Whether the active assignment is an inactive ghost.
+  bool get isActiveInactive => activeGrant?.isInactive ?? false;
+
+  /// Whether the active assignment is in a non-active state
+  /// (pending/rejected/expired/inactive).
   bool get hasRestrictedAccess =>
-      isActivePending || isActiveRejected || isActiveExpired;
+      isActivePending || isActiveRejected || isActiveExpired || isActiveInactive;
 
   /// Role names relevant to the current context: global grants + the active
   /// club assignment only. Roles from inactive club assignments are excluded so

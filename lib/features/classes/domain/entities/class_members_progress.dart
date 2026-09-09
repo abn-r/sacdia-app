@@ -10,6 +10,7 @@ class ClassMemberProgress extends Equatable {
   final int completedSections;
   final int totalSections;
   final int overallProgress;
+  final bool crossTypeEnrollment;
 
   const ClassMemberProgress({
     required this.userId,
@@ -21,6 +22,7 @@ class ClassMemberProgress extends Equatable {
     required this.completedSections,
     required this.totalSections,
     required this.overallProgress,
+    this.crossTypeEnrollment = false,
   });
 
   @override
@@ -34,6 +36,7 @@ class ClassMemberProgress extends Equatable {
         completedSections,
         totalSections,
         overallProgress,
+        crossTypeEnrollment,
       ];
 }
 

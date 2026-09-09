@@ -13,6 +13,7 @@ class ClassMemberProgressModel extends Equatable {
   final int completedSections;
   final int totalSections;
   final int overallProgress;
+  final bool crossTypeEnrollment;
 
   const ClassMemberProgressModel({
     required this.userId,
@@ -24,6 +25,7 @@ class ClassMemberProgressModel extends Equatable {
     required this.completedSections,
     required this.totalSections,
     required this.overallProgress,
+    this.crossTypeEnrollment = false,
   });
 
   factory ClassMemberProgressModel.fromJson(Map<String, dynamic> json) {
@@ -37,6 +39,7 @@ class ClassMemberProgressModel extends Equatable {
       completedSections: safeInt(json['completed_sections']),
       totalSections: safeInt(json['total_sections']),
       overallProgress: safeInt(json['overall_progress']),
+      crossTypeEnrollment: json['cross_type_enrollment'] == true,
     );
   }
 
@@ -51,6 +54,7 @@ class ClassMemberProgressModel extends Equatable {
       'completed_sections': completedSections,
       'total_sections': totalSections,
       'overall_progress': overallProgress,
+      'cross_type_enrollment': crossTypeEnrollment,
     };
   }
 
@@ -65,6 +69,7 @@ class ClassMemberProgressModel extends Equatable {
       completedSections: completedSections,
       totalSections: totalSections,
       overallProgress: overallProgress,
+      crossTypeEnrollment: crossTypeEnrollment,
     );
   }
 
@@ -79,6 +84,7 @@ class ClassMemberProgressModel extends Equatable {
         completedSections,
         totalSections,
         overallProgress,
+        crossTypeEnrollment,
       ];
 }
 

@@ -54,6 +54,11 @@ class DashboardView extends ConsumerWidget {
               if (statusGrant?.isPending ?? false) {
                 return const _PendingMembershipDashboardState();
               }
+              if (statusGrant?.isInactive ?? false) {
+                // Ghost: member belongs to a club but not enrolled this year.
+                // Show dedicated empty state with the ghost banner.
+                return const _GhostMembershipDashboardState();
+              }
 
               return Center(
                 child: Column(
@@ -268,6 +273,29 @@ class _PendingMembershipDashboardState extends StatelessWidget {
               icon: HugeIcons.strokeRoundedUser,
               onPressed: () => context.go(RouteNames.homeProfile),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Estado del dashboard para usuarios ghost (miembro del club pero sin
+/// inscripción para el año eclesiástico actual).
+class _GhostMembershipDashboardState extends StatelessWidget {
+  const _GhostMembershipDashboardState();
+
+  @override
+  Widget build(BuildContext context) {
+    final hPad = Responsive.horizontalPadding(context);
+    return Center(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(horizontal: hPad, vertical: 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Banner de no inscrito: copy informativo, sin autoinscripción.
+            const MembershipStatusBanner(),
           ],
         ),
       ),

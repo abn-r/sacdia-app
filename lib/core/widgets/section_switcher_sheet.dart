@@ -10,6 +10,7 @@ import '../theme/club_type.dart';
 import '../theme/sac_colors.dart';
 import '../utils/role_utils.dart';
 import '../../features/auth/domain/entities/authorization_snapshot.dart';
+import '../../features/auth/domain/utils/authorization_utils.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/dashboard/presentation/providers/dashboard_providers.dart';
 
@@ -211,8 +212,9 @@ class _SectionSwitcherSheetState extends ConsumerState<_SectionSwitcherSheet> {
 
     // Show at most 3 assignments per spec, ordered by formation age cycle:
     // Aventureros → Conquistadores → Guías Mayores.
-    final display =
-        _sortAssignmentsByClubTypeCycle(widget.assignments).take(3).toList();
+    final display = _sortAssignmentsByClubTypeCycle(
+      selectableClubAssignments(widget.assignments),
+    ).take(3).toList();
 
     return Container(
       decoration: BoxDecoration(

@@ -242,13 +242,29 @@ class _MemberProgressTile extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          member.name.isEmpty ? member.userId : member.name,
-                          style:
-                              Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                    color: c.ink900,
-                                  ),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                member.name.isEmpty
+                                    ? member.userId
+                                    : member.name,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      color: c.ink900,
+                                    ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (member.crossTypeEnrollment) ...[
+                              const SizedBox(width: 6),
+                              _CrossTypeChip(classColor: classColor),
+                            ],
+                          ],
                         ),
                         const SizedBox(height: 3),
                         Text(
@@ -300,6 +316,32 @@ class _MemberProgressTile extends StatelessWidget {
     final first = parts.first.characters.first;
     final second = parts.length > 1 ? parts.last.characters.first : '';
     return '$first$second'.toUpperCase();
+  }
+}
+
+class _CrossTypeChip extends StatelessWidget {
+  final Color classColor;
+
+  const _CrossTypeChip({required this.classColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: classColor.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: classColor.withValues(alpha: 0.30)),
+      ),
+      child: Text(
+        'classes.members_progress.cross_type_chip'.tr(),
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: classColor,
+              fontWeight: FontWeight.w700,
+              fontSize: 10,
+            ),
+      ),
+    );
   }
 }
 

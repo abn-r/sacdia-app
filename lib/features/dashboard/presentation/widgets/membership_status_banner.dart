@@ -33,6 +33,10 @@ class MembershipStatusBanner extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
+    if (statusGrant.isInactive) {
+      return const _GhostBanner();
+    }
+
     if (statusGrant.isPending) {
       return _PendingBanner(grant: statusGrant);
     }
@@ -46,6 +50,27 @@ class MembershipStatusBanner extends ConsumerWidget {
     }
 
     return const SizedBox.shrink();
+  }
+}
+
+// ── Ghost (inactive) ─────────────────────────────────────────────────────────
+
+class _GhostBanner extends StatelessWidget {
+  const _GhostBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return _BannerContainer(
+      backgroundColor: AppColors.primaryLight.withValues(alpha: 0.15),
+      borderColor: AppColors.primary.withValues(alpha: 0.3),
+      iconBackgroundColor: AppColors.primary.withValues(alpha: 0.12),
+      icon: HugeIcons.strokeRoundedUserAdd01,
+      iconColor: AppColors.primary,
+      title: tr('membership.not_enrolled_this_year'),
+      titleColor: c.text,
+    );
   }
 }
 

@@ -122,18 +122,42 @@ bool canViewClubRankings(UserEntity? user) {
   return hasAnyPermission(user, clubRankingReadPermissions);
 }
 
+bool _isDesignated(AuthorizationGrant grant) => grant.status == 'designated';
+
+/// Assignments that may appear in the club switcher (never a scheduled director).
+List<AuthorizationGrant> visibleClubAssignments(
+  List<AuthorizationGrant> assignments,
+) {
+  return assignments.where((grant) => !_isDesignated(grant)).toList();
+}
+
+/// Assignments that can become the active operational context.
+List<AuthorizationGrant> selectableClubAssignments(
+  List<AuthorizationGrant> assignments,
+) {
+  return assignments.where((grant) => grant.isActive).toList();
+}
+
 AuthorizationGrant? membershipGrantForDisplay(
   AuthorizationSnapshot? authorization,
 ) {
   if (authorization == null) return null;
 
-  final activeGrant = authorization.activeGrant;
-  if (activeGrant != null) {
-    return activeGrant.isActive ? null : activeGrant;
+  final assignments = authorization.clubAssignments;
+  if (selectableClubAssignments(assignments).isNotEmpty) {
+    return null;
   }
 
-  for (final grant in authorization.clubAssignments) {
-    if (!grant.isActive) return grant;
+  final activeGrant = authorization.activeGrant;
+  if (activeGrant != null &&
+      !_isDesignated(activeGrant) &&
+      !activeGrant.isActive) {
+    return activeGrant;
+  }
+
+  for (final grant in assignments) {
+    if (_isDesignated(grant) || grant.isActive) continue;
+    return grant;
   }
 
   return null;

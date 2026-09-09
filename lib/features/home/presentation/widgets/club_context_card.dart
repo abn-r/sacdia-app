@@ -9,6 +9,7 @@ import '../../../../core/utils/role_utils.dart';
 import '../../../../core/widgets/sac_card.dart';
 import '../../../../core/widgets/section_switcher_sheet.dart';
 import '../../../auth/domain/entities/authorization_snapshot.dart';
+import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../club/presentation/providers/club_providers.dart';
 import '../../../profile/presentation/providers/profile_providers.dart';
@@ -30,7 +31,8 @@ class ClubContextCard extends ConsumerWidget {
 
     // No renderizar si no hay assignments
     final assignments = authorization?.clubAssignments ?? const [];
-    if (assignments.isEmpty) return const SizedBox.shrink();
+    final visible = visibleClubAssignments(assignments);
+    if (visible.isEmpty) return const SizedBox.shrink();
 
     final activeGrant = authorization?.activeGrant;
     final userGender = ref.watch(
@@ -65,7 +67,7 @@ class ClubContextCard extends ConsumerWidget {
         showSectionSwitcher(
           context: context,
           ref: ref,
-          assignments: assignments,
+          assignments: visible,
           activeAssignmentId: authorization?.activeAssignmentId,
           userGender: userGender,
         );

@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/cancellation_token.dart';
+import '../entities/annual_continuation.dart';
 import '../entities/club_member.dart';
 import '../entities/join_request.dart';
 
@@ -41,4 +42,18 @@ abstract class MembersRepository {
 
   /// Remueve un rol de club de un miembro
   Future<Either<Failure, bool>> removeClubRole(String assignmentId);
+
+  /// No inscritos del año vigente para la sección destino.
+  Future<Either<Failure, List<AnnualContinuation>>> getAnnualContinuations(
+      int sectionId);
+
+  /// Inscribe no inscritos. Resultados por usuario.
+  Future<Either<Failure, ContinuationBatchResult>> submitAnnualContinuations({
+    required int sectionId,
+    required List<String> userIds,
+  });
+
+  /// Inscribe al usuario owner al año eclesiástico actual.
+  Future<Either<Failure, void>> annualEnroll(String userId,
+      {int? clubSectionId});
 }

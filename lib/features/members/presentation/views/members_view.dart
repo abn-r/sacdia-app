@@ -20,6 +20,7 @@ import '../widgets/join_request_card.dart';
 import '../widgets/member_card.dart';
 import '../widgets/member_class_group_header.dart';
 import '../widgets/members_filter_bar.dart';
+import 'annual_continuations_view.dart';
 import 'member_profile_view.dart';
 import 'role_assignment_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
@@ -62,12 +63,20 @@ class _MembersViewState extends ConsumerState<MembersView>
     });
   }
 
+  /// Determina si el usuario puede aprobar continuaciones anuales.
+  bool _canManageContinuations(WidgetRef ref) {
+    final user = ref.read(authNotifierProvider).valueOrNull;
+    if (user == null) return false;
+    return hasAnyPermission(user, const {'club_members:approve'});
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
     final hPad = Responsive.horizontalPadding(context);
     final pendingCount = ref.watch(pendingRequestsCountProvider);
     final isDirector = _canManageClubRoles(ref);
+    final canContinue = _canManageContinuations(ref);
     final clubCtxAsync = ref.watch(clubContextProvider);
     final membersAsync = ref.watch(membersNotifierProvider);
 
@@ -174,6 +183,7 @@ class _MembersViewState extends ConsumerState<MembersView>
                       _MembersTab(
                         clubContext: ctx,
                         isDirector: isDirector,
+                        canManageContinuations: canContinue,
                         membersAsync: membersAsync,
                       ),
                       _JoinRequestsTab(
@@ -205,11 +215,13 @@ class _MembersViewState extends ConsumerState<MembersView>
 class _MembersTab extends ConsumerWidget {
   final ClubContext clubContext;
   final bool isDirector;
+  final bool canManageContinuations;
   final AsyncValue<MembersData> membersAsync;
 
   const _MembersTab({
     required this.clubContext,
     required this.isDirector,
+    required this.canManageContinuations,
     required this.membersAsync,
   });
 
@@ -220,6 +232,20 @@ class _MembersTab extends ConsumerWidget {
 
     return Column(
       children: [
+        // ── Miembros no inscritos ───────────────────────────────────
+        if (canManageContinuations)
+          Padding(
+            padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 4),
+            child: _AnnualContinuationsCard(
+              onTap: () => Navigator.push(
+                context,
+                SacSharedAxisRoute(
+                  builder: (_) => const AnnualContinuationsView(),
+                ),
+              ),
+            ),
+          ),
+
         // ── Filter bar ──────────────────────────────────────────────
         Padding(
           padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 8),
@@ -652,6 +678,89 @@ class _ErrorState extends StatelessWidget {
               ),
             ],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Annual Continuations Card ─────────────────────────────────────────────────
+
+/// Tarjeta de acceso rápido a la vista de continuaciones anuales.
+/// Solo visible para usuarios con `club_members:approve`.
+class _AnnualContinuationsCard extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _AnnualContinuationsCard({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return Semantics(
+      button: true,
+      label: tr('members.continuations.card_label'),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: onTap,
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.25),
+              ),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Center(
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedUserCheck01,
+                      size: 18,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        tr('members.continuations.card_title'),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      Text(
+                        tr('members.continuations.card_subtitle'),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: c.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedArrowRight01,
+                  size: 16,
+                  color: AppColors.primary,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

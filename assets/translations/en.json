@@ -1831,7 +1831,8 @@
       "empty_body": "This class does not have active members in the section yet.",
       "load_error_title": "Could not load progress",
       "member_count": "{count} enrolled members",
-      "completed_sections": "Completed sections: {value}"
+      "completed_sections": "Completed sections: {value}",
+      "cross_type_chip": "Cross-type"
     }
   },
   "camporees": {
@@ -2352,6 +2353,35 @@
       "approve": "Approve",
       "approved": "Approved",
       "rejected": "Rejected"
+    },
+    "continuations": {
+      "title": "Members not enrolled",
+      "subtitle": "Select who to enroll in this section. Previous offices are not copied.",
+      "card_title": "Members not enrolled",
+      "card_subtitle": "Enroll members for the current year",
+      "card_label": "Members not enrolled",
+      "last_role": "Previous role: {role}",
+      "current_role": "Current role: {role}",
+      "already_continued": "Already enrolled",
+      "blocked": "Not eligible",
+      "submit_button": "Enroll for {period}",
+      "success": "{count} enrolled",
+      "success_partial": "{enrolled} enrolled. {blocked} blocked. {failed} failed.",
+      "empty_title": "No one pending enrollment",
+      "empty_subtitle": "Everyone in this section is already enrolled this year.",
+      "blocked_reasons": {
+        "ANNUAL_CLASS_POLICY_UNRESOLVED": "No applicable class for this year",
+        "ANNUAL_MEMBERSHIP_BASE_UNRESOLVED": "Home section could not be resolved",
+        "CLASS_PREREQUISITE_NOT_MET": "A class prerequisite is missing",
+        "CLASS_GM_INVESTITURE_REQUIRED": "Master Guide investiture is required",
+        "CLASS_NOT_AVAILABLE_FOR_YEAR": "The class is not available this year",
+        "CLASS_NOT_FOUND": "Class not found",
+        "MR_ALREADY_PENDING": "A membership request is already pending"
+      },
+      "errors": {
+        "fetch": "Could not load the not-enrolled list",
+        "submit": "Could not complete enrollment"
+      }
     }
   },
   "certifications": {
@@ -4409,5 +4439,10 @@
       "upload_comprobante": "Couldn't upload the receipt",
       "get_config": "Couldn't load payment settings"
     }
+  },
+  "membership": {
+    "not_enrolled_this_year": "Not enrolled this year. Club officers complete your enrollment",
+    "enroll_this_year": "Enroll",
+    "enroll_error": "Error enrolling. Please try again."
   }
 }

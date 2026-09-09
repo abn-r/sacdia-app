@@ -6,6 +6,7 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/network/cancel_token_adapter.dart';
+import '../../domain/entities/annual_continuation.dart';
 import '../../domain/entities/club_member.dart';
 import '../../domain/entities/join_request.dart';
 import '../../domain/repositories/members_repository.dart';
@@ -149,6 +150,60 @@ class MembersRepositoryImpl implements MembersRepository {
     try {
       final result = await remoteDataSource.removeClubRole(assignmentId);
       return Right(result);
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<AnnualContinuation>>> getAnnualContinuations(
+      int sectionId) async {
+    try {
+      final models = await remoteDataSource.getAnnualContinuations(sectionId);
+      return Right(models.map((m) => m.toEntity()).toList());
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
+      return Left(UnexpectedFailure(message: e.toString()));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, ContinuationBatchResult>> submitAnnualContinuations({
+    required int sectionId,
+    required List<String> userIds,
+  }) async {
+    try {
+      final result = await remoteDataSource.submitAnnualContinuations(
+        sectionId: sectionId,
+        userIds: userIds,
+      );
+      return Right(result);
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> annualEnroll(String userId,
+      {int? clubSectionId}) async {
+    try {
+      await remoteDataSource.annualEnroll(userId,
+          clubSectionId: clubSectionId);
+      return const Right(null);
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message, code: e.code));
     } on ServerException catch (e) {

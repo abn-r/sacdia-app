@@ -1831,7 +1831,8 @@
       "empty_body": "Esta classe ainda não tem membros ativos na seção.",
       "load_error_title": "Não foi possível carregar o progresso",
       "member_count": "{count} membros inscritos",
-      "completed_sections": "Seções concluídas: {value}"
+      "completed_sections": "Seções concluídas: {value}",
+      "cross_type_chip": "Cursado cruzado"
     }
   },
   "camporees": {
@@ -2351,6 +2352,35 @@
       "approve": "Aprovar",
       "approved": "Aprovado",
       "rejected": "Rejeitado"
+    },
+    "continuations": {
+      "title": "Membros não inscritos",
+      "subtitle": "Selecione quem inscrever nesta seção. O cargo anterior não é copiado.",
+      "card_title": "Membros não inscritos",
+      "card_subtitle": "Inscrever membros do ano vigente",
+      "card_label": "Membros não inscritos",
+      "last_role": "Cargo anterior: {role}",
+      "current_role": "Cargo atual: {role}",
+      "already_continued": "Já inscrito",
+      "blocked": "Não elegível",
+      "submit_button": "Inscrever para {period}",
+      "success": "{count} inscrito(s)",
+      "success_partial": "{enrolled} inscrito(s). {blocked} bloqueado(s). {failed} com erro.",
+      "empty_title": "Ninguém pendente de inscrição",
+      "empty_subtitle": "Todos os membros desta seção já estão inscritos este ano.",
+      "blocked_reasons": {
+        "ANNUAL_CLASS_POLICY_UNRESOLVED": "Não há classe aplicável para este ano",
+        "ANNUAL_MEMBERSHIP_BASE_UNRESOLVED": "Não foi possível resolver a seção de pertencimento",
+        "CLASS_PREREQUISITE_NOT_MET": "Falta um pré-requisito de classe",
+        "CLASS_GM_INVESTITURE_REQUIRED": "É necessária a investidura de Guias Maiores",
+        "CLASS_NOT_AVAILABLE_FOR_YEAR": "A classe não está disponível neste ano",
+        "CLASS_NOT_FOUND": "Classe não encontrada",
+        "MR_ALREADY_PENDING": "Há uma solicitação de associação pendente"
+      },
+      "errors": {
+        "fetch": "Não foi possível carregar a lista de não inscritos",
+        "submit": "Não foi possível concluir a inscrição"
+      }
     }
   },
   "certifications": {
@@ -4407,5 +4437,10 @@
       "upload_comprobante": "Não foi possível enviar o comprovante",
       "get_config": "Não foi possível carregar a configuração de pagamento"
     }
+  },
+  "membership": {
+    "not_enrolled_this_year": "Não inscrito este ano. A diretoria realiza sua inscrição",
+    "enroll_this_year": "Inscrever-me",
+    "enroll_error": "Erro ao inscrever. Tente novamente."
   }
 }
