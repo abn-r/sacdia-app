@@ -18,7 +18,7 @@ class ZarzaRojaCredit extends StatelessWidget {
           color: context.sac.textTertiary,
           fontWeight: FontWeight.w500,
         );
-    final iconSize = 45.0;
+    final iconSize = 60.0;
     final dpr = MediaQuery.devicePixelRatioOf(context);
     final cacheSize = (iconSize * dpr).round().clamp(48, 512);
 
@@ -36,7 +36,7 @@ class ZarzaRojaCredit extends StatelessWidget {
       ),
     );
 
-    final label = Text('by Zarza Roja', style: style);
+    final label = Text('Zarza Roja', style: style);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
