@@ -41,6 +41,7 @@ class SacButton extends StatefulWidget {
   final double? fontSize;
   final double? borderRadius;
   final EdgeInsetsGeometry? padding;
+  final double? minHeight;
   final double? iconSize;
   final double spaceBetween;
   final int labelMaxLines;
@@ -64,6 +65,7 @@ class SacButton extends StatefulWidget {
     this.fontSize,
     this.borderRadius,
     this.padding,
+    this.minHeight,
     this.iconSize,
     this.spaceBetween = 8,
     this.labelMaxLines = 1,
@@ -93,7 +95,8 @@ class SacButton extends StatefulWidget {
     this.loadingSemanticLabel,
   })  : variant = SacButtonVariant.primary,
         size = SacButtonSize.medium,
-        fullWidth = true;
+        fullWidth = true,
+        minHeight = null;
 
   /// Constructor rápido para botón outline
   const SacButton.outline({
@@ -117,7 +120,8 @@ class SacButton extends StatefulWidget {
     this.loadingSemanticLabel,
   })  : variant = SacButtonVariant.outline,
         size = SacButtonSize.medium,
-        fullWidth = true;
+        fullWidth = true,
+        minHeight = null;
 
   /// Constructor rápido para botón ghost (texto)
   const SacButton.ghost({
@@ -141,7 +145,8 @@ class SacButton extends StatefulWidget {
     this.loadingSemanticLabel,
   })  : variant = SacButtonVariant.ghost,
         size = SacButtonSize.medium,
-        fullWidth = false;
+        fullWidth = false,
+        minHeight = null;
 
   /// Constructor para botón destructivo (rojo)
   const SacButton.destructive({
@@ -165,7 +170,8 @@ class SacButton extends StatefulWidget {
     this.loadingSemanticLabel,
   })  : variant = SacButtonVariant.destructive,
         size = SacButtonSize.medium,
-        fullWidth = true;
+        fullWidth = true,
+        minHeight = null;
 
   /// Constructor para botón success (emerald)
   const SacButton.success({
@@ -189,7 +195,8 @@ class SacButton extends StatefulWidget {
     this.loadingSemanticLabel,
   })  : variant = SacButtonVariant.success,
         size = SacButtonSize.medium,
-        fullWidth = true;
+        fullWidth = true,
+        minHeight = null;
 
   @override
   State<SacButton> createState() => _SacButtonState();
@@ -236,6 +243,7 @@ class _SacButtonState extends State<SacButton> {
   }
 
   double get _minHeight {
+    if (widget.minHeight != null) return widget.minHeight!;
     switch (widget.size) {
       case SacButtonSize.small:
         return 36;

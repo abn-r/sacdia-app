@@ -84,6 +84,10 @@ class AppConstants {
   static const String biometricEnabledKey = 'biometric_enabled';
   static const String biometricEnrolledAtKey = 'biometric_enrolled_at';
 
+  /// First-run pre-login carousel. Device-level, not per-account. Logout
+  /// must not clear this; reinstall does.
+  static const String welcomeCarouselSeenKey = 'welcome_carousel_seen_v7';
+
   // Dimensiones
   static const double paddingXS = 4.0;
   static const double paddingS = 8.0;

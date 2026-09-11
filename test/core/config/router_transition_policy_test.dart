@@ -76,6 +76,23 @@ void main() {
       );
       final router = container.read(routerProvider);
 
+      const publicAuthRoutes = {
+        RouteNames.welcome,
+        RouteNames.login,
+        RouteNames.register,
+        RouteNames.forgotPassword,
+      };
+      for (final path in publicAuthRoutes) {
+        final page = _buildPage(router, _routeByPath(router, path), context);
+        final transition = page.transitionsBuilder(
+          context,
+          const AlwaysStoppedAnimation(0.1),
+          const AlwaysStoppedAnimation(0),
+          const SizedBox(),
+        );
+        expect(transition, isA<SlideTransition>(), reason: path);
+      }
+
       const quickAccessDestinations = {
         RouteNames.coordinator,
         RouteNames.homeMembers,

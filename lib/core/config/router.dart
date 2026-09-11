@@ -90,10 +90,12 @@ import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/providers/logout_cleanup.dart';
 import '../providers/app_bootstrap_provider.dart';
 import '../notifications/push_notification_provider.dart';
+import '../../features/auth/presentation/providers/welcome_carousel_provider.dart';
 import '../../features/auth/presentation/views/forgot_password_view.dart';
 import '../../features/auth/presentation/views/login_view.dart';
 import '../../features/auth/presentation/views/register_view.dart';
 import '../../features/auth/presentation/views/splash_view.dart';
+import '../../features/auth/presentation/views/welcome_carousel_view.dart';
 import '../../features/post_registration/presentation/views/post_registration_shell.dart';
 import '../../features/dashboard/presentation/views/dashboard_view.dart';
 import '../../features/classes/presentation/views/classes_tabs_view.dart';
@@ -165,6 +167,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Rutas públicas que no requieren autenticación
       const publicRoutes = [
         RouteNames.splash,
+        RouteNames.welcome,
         RouteNames.login,
         RouteNames.register,
         RouteNames.forgotPassword,
@@ -239,7 +242,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       // with state.matchedLocation == the final intended path, NOT the transient
       // splash, so deep links never hit this block).
       if (currentPath == RouteNames.splash) {
-        if (!isLoggedIn) return RouteNames.login;
+        if (!isLoggedIn) {
+          return unauthenticatedSplashTarget(
+            welcomeCarouselSeen: ref.read(welcomeCarouselSeenProvider),
+          );
+        }
         if (!user.postRegisterComplete) return RouteNames.postRegistration;
         return RouteNames.homeDashboard;
       }
@@ -276,6 +283,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: RouteNames.splash,
         pageBuilder: (context, state) =>
             _sharedAxisBuild(context, state, const SplashView()),
+      ),
+
+      GoRoute(
+        path: RouteNames.welcome,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const WelcomeCarouselView()),
       ),
 
       // Login

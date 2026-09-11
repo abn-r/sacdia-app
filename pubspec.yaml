@@ -127,6 +127,7 @@ flutter:
   assets:
     - assets/img/
     - assets/img/logos-clases/
+    - assets/img/welcome/
     - assets/svg/
     - assets/translations/
     - assets/support/
