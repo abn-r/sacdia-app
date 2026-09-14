@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../domain/entities/club_member.dart';
 import '../providers/members_providers.dart';
@@ -69,27 +70,17 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
     setState(() => _isLoading = false);
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            tr('members.role_assignment.assigned_role', namedArgs: {
-              'role': RoleUtils.translate(_selectedRole,
-                  gender: widget.member.gender)
-            }),
-          ),
-          backgroundColor: AppColors.secondary,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      SacSnackBar.show(
+          context,
+          tr('members.role_assignment.assigned_role', namedArgs: {
+            'role':
+                RoleUtils.translate(_selectedRole, gender: widget.member.gender)
+          }),
+          backgroundColor: AppColors.secondary);
       Navigator.pop(context, true);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('members.role_assignment.assign_error'.tr()),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      SacSnackBar.show(context, 'members.role_assignment.assign_error'.tr(),
+          isError: true);
     }
   }
 

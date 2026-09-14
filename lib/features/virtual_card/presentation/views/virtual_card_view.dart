@@ -26,6 +26,7 @@ import '../../../master_honors/presentation/widgets/master_honor_history_section
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 class VirtualCardView extends ConsumerStatefulWidget {
   const VirtualCardView({super.key});
@@ -83,13 +84,8 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
     } catch (e) {
       AppLogger.e('Error al compartir credencial',
           tag: 'VirtualCard', error: e);
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('virtual_card.share_error'.tr()),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.red.shade700,
-        ),
-      );
+      SacSnackBar.showMessenger(messenger, 'virtual_card.share_error'.tr(),
+          isError: true);
     } finally {
       if (mounted) setState(() => _sharingCredential = false);
     }
@@ -99,15 +95,8 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
   Widget build(BuildContext context) {
     ref.listen<int>(virtualCardRateLimitNoticeProvider, (previous, next) {
       if (previous == null || next <= previous) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text('virtual_card.errors.rate_limited'.tr()),
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 3),
-          ),
-        );
+      SacSnackBar.show(context, 'virtual_card.errors.rate_limited'.tr(),
+          duration: const Duration(seconds: 3));
     });
 
     final state = ref.watch(virtualCardProvider);

@@ -16,6 +16,7 @@ import '../../domain/entities/data_export.dart';
 import '../providers/data_export_providers.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -113,14 +114,7 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
 
   void _showSnackBar(String message, {bool isError = false}) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? AppColors.error : AppColors.secondary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
+    SacSnackBar.show(context, message, isError: isError);
   }
 
   // ── Handlers ───────────────────────────────────────────────────────────────

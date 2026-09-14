@@ -12,6 +12,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../domain/entities/resource.dart';
 import '../providers/resources_providers.dart';
@@ -134,9 +135,7 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    SacSnackBar.show(context, message);
   }
 
   @override

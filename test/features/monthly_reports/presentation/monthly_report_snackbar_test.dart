@@ -1,51 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sacdia_app/features/monthly_reports/presentation/widgets/monthly_report_motion.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 void main() {
-  testWidgets(
-    'keeps monthly report snackbars visible above shell navigation',
-    (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Builder(
-              builder: (context) => Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      monthlyReportSnackBar(
-                        content: const Text('Downloading report'),
-                      ),
-                    );
-                  },
-                  child: const Text('Show snackbar'),
+  group('SacSnackBar monthly reports', () {
+    testWidgets(
+      'should stay visible above shell navigation when behavior is fixed',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: AppTheme.lightTheme,
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => Center(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      SacSnackBar.show(
+                        context,
+                        'Downloading report',
+                        behavior: SnackBarBehavior.fixed,
+                      );
+                    },
+                    child: const Text('Show snackbar'),
+                  ),
                 ),
               ),
-            ),
-            bottomNavigationBar: NavigationBar(
-              destinations: [
-                NavigationDestination(
-                  icon: Icon(Icons.home_outlined),
-                  selectedIcon: Icon(Icons.home),
-                  label: 'Home',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.person_outline),
-                  selectedIcon: Icon(Icons.person),
-                  label: 'Profile',
-                ),
-              ],
+              bottomNavigationBar: NavigationBar(
+                destinations: const [
+                  NavigationDestination(
+                    icon: Icon(Icons.home_outlined),
+                    selectedIcon: Icon(Icons.home),
+                    label: 'Home',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.person_outline),
+                    selectedIcon: Icon(Icons.person),
+                    label: 'Profile',
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      await tester.tap(find.text('Show snackbar'));
-      await tester.pump();
+        await tester.tap(find.text('Show snackbar'));
+        await tester.pump();
 
-      expect(tester.takeException(), isNull);
-      expect(find.text('Downloading report'), findsOneWidget);
-    },
-  );
+        expect(tester.takeException(), isNull);
+        expect(find.text('Downloading report'), findsOneWidget);
+      },
+    );
+  });
 }

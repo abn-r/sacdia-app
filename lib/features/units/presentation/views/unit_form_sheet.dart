@@ -12,6 +12,7 @@ import '../../../../core/widgets/fixed_input_icon_slot.dart';
 import '../../../../core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import '../../domain/entities/unit.dart';
 import '../../domain/usecases/get_unit_detail.dart';
 import '../../../members/domain/entities/club_member.dart';
@@ -313,11 +314,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     if (_captain == null || _secretary == null || _advisor == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('units.form.roles_required_error'.tr()),
-        ),
-      );
+      SacSnackBar.show(context, 'units.form.roles_required_error'.tr());
       return;
     }
 
@@ -345,11 +342,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
       final ctx = await ref.read(clubContextProvider.future);
       if (ctx == null) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('units.form.club_context_error'.tr()),
-            ),
-          );
+          SacSnackBar.show(context, 'units.form.club_context_error'.tr());
           setState(() => _isSaving = false);
         }
         return;
@@ -380,12 +373,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
     } else {
       final errorMsg = ref.read(unitsNotifierProvider).errorMessage ??
           'common.error_generic'.tr();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMsg),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      SacSnackBar.show(context, errorMsg, isError: true);
     }
   }
 

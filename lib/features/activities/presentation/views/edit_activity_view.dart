@@ -14,6 +14,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/post_registration/presentation/widgets/bottom_sheet_picker.dart';
 import 'package:sacdia_app/providers/catalogs_provider.dart';
 
@@ -128,14 +129,7 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
   // ── Helpers ────────────────────────────────────────────────────────────────
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+    SacSnackBar.show(context, message, isError: true);
   }
 
   Future<void> _pickTime() async {
@@ -308,33 +302,19 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
 
       if (!uploadSuccess) {
         final error = ref.read(activityImageUploadNotifierProvider).error;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'activities.edit.success_image_error'.tr(
-                namedArgs: {'error': error?.toString() ?? tr('common.error')},
-              ),
+        SacSnackBar.show(
+            context,
+            'activities.edit.success_image_error'.tr(
+              namedArgs: {'error': error?.toString() ?? tr('common.error')},
             ),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
+            isError: true);
       }
     }
 
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('activities.edit.success'.tr()),
-        backgroundColor: AppColors.secondary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+    SacSnackBar.show(context, 'activities.edit.success'.tr(),
+        backgroundColor: AppColors.secondary);
     Navigator.of(context).pop(true);
   }
 

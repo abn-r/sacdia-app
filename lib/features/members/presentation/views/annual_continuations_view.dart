@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../domain/entities/annual_continuation.dart';
 import '../providers/members_providers.dart';
@@ -134,20 +135,14 @@ class AnnualContinuationsView extends ConsumerWidget {
   }
 
   Future<void> _submit(BuildContext context, WidgetRef ref) async {
-    final result = await ref
-        .read(annualContinuationsNotifierProvider.notifier)
-        .submit();
+    final result =
+        await ref.read(annualContinuationsNotifierProvider.notifier).submit();
 
     if (!context.mounted) return;
 
     if (result == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(tr('members.continuations.errors.submit')),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      SacSnackBar.show(context, tr('members.continuations.errors.submit'),
+          isError: true);
       return;
     }
 
@@ -166,15 +161,9 @@ class AnnualContinuationsView extends ConsumerWidget {
             namedArgs: {'count': enrolled.toString()},
           );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: result.hasPartialFailure
-            ? AppColors.accent
-            : AppColors.secondary,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    SacSnackBar.show(context, message,
+        backgroundColor:
+            result.hasPartialFailure ? AppColors.accent : AppColors.secondary);
   }
 }
 

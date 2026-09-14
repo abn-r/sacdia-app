@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:gal/gal.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:screen_brightness/screen_brightness.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../../../../core/widgets/secure_screen.dart';
 import 'credencial_tokens.dart';
@@ -114,21 +115,14 @@ class _CredencialQrFullscreenState extends State<CredencialQrFullscreen> {
         name: 'sacdia_qr_$safeFolio',
       );
 
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('QR guardado en galería'),
-          behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 2),
-        ),
+      SacSnackBar.showMessenger(
+        messenger,
+        'QR guardado en galería',
+        duration: const Duration(seconds: 2),
       );
     } catch (e) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('No se pudo guardar: $e'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.red.shade700,
-        ),
-      );
+      SacSnackBar.showMessenger(messenger, 'No se pudo guardar: $e',
+          isError: true);
     } finally {
       if (mounted) setState(() => _saving = false);
     }

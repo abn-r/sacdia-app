@@ -15,6 +15,7 @@ import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -76,14 +77,7 @@ class _ActiveSessionsViewState extends ConsumerState<ActiveSessionsView> {
 
   void _showSnackBar(String message, {bool isError = false}) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? AppColors.error : AppColors.secondary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
+    SacSnackBar.show(context, message, isError: isError);
   }
 
   Future<void> _handleRevoke(ActiveSession session) async {

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../../../core/realtime/realtime_ref.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -158,17 +159,12 @@ class SyncCacheSection extends ConsumerWidget {
     final ok = await ref.read(clearCacheControllerProvider.notifier).run(mode);
     if (!context.mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          ok
-              ? 'settings.clear_cache_success'.tr()
-              : 'settings.clear_cache_error'.tr(),
-        ),
-        backgroundColor: ok ? AppColors.success : AppColors.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
+    SacSnackBar.show(
+      context,
+      ok
+          ? 'settings.clear_cache_success'.tr()
+          : 'settings.clear_cache_error'.tr(),
+      isError: !ok,
     );
   }
 
@@ -179,17 +175,12 @@ class SyncCacheSection extends ConsumerWidget {
 
     if (!context.mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          result.success
-              ? 'settings.force_sync_success'.tr()
-              : (result.errorMessage ?? 'settings.force_sync_error'.tr()),
-        ),
-        backgroundColor: result.success ? AppColors.success : AppColors.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
+    SacSnackBar.show(
+      context,
+      result.success
+          ? 'settings.force_sync_success'.tr()
+          : (result.errorMessage ?? 'settings.force_sync_error'.tr()),
+      isError: !result.success,
     );
   }
 }

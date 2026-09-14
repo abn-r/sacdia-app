@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -90,36 +91,20 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
 
       if (mounted) {
         Navigator.of(context).pop(true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _isEditing
-                  ? 'post_registration.contact_form.contact_updated'.tr()
-                  : 'post_registration.contact_form.contact_added'.tr(),
-            ),
-            backgroundColor: AppColors.secondary,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
+        SacSnackBar.show(
+            context,
+            _isEditing
+                ? 'post_registration.contact_form.contact_updated'.tr()
+                : 'post_registration.contact_form.contact_added'.tr(),
+            backgroundColor: AppColors.secondary);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'post_registration.contact_form.error_saving'
-                  .tr(namedArgs: {'error': e.toString()}),
-            ),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
+        SacSnackBar.show(
+            context,
+            'post_registration.contact_form.error_saving'
+                .tr(namedArgs: {'error': e.toString()}),
+            isError: true);
       }
     } finally {
       if (mounted) {

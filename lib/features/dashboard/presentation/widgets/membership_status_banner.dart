@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -304,9 +305,7 @@ Future<void> _cancelPendingRequest(BuildContext context, WidgetRef ref) async {
 
   final userId = ref.read(authNotifierProvider).valueOrNull?.id;
   if (userId == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(tr('errors.user_not_authenticated'))),
-    );
+    SacSnackBar.show(context, tr('errors.user_not_authenticated'));
     return;
   }
 
@@ -317,14 +316,10 @@ Future<void> _cancelPendingRequest(BuildContext context, WidgetRef ref) async {
   if (!context.mounted) return;
 
   if (error != null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error)),
-    );
+    SacSnackBar.show(context, error);
     return;
   }
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(tr('dashboard.banner.cancel_request_success'))),
-  );
+  SacSnackBar.show(context, tr('dashboard.banner.cancel_request_success'));
   context.go(RouteNames.postRegistration);
 }

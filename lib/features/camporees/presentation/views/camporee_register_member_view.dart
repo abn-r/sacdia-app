@@ -18,6 +18,7 @@ import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_part
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/payment_orders/presentation/providers/payment_orders_providers.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../domain/utils/camporee_registration_payment_flow.dart';
 import '../providers/camporees_providers.dart';
@@ -165,14 +166,7 @@ class _CamporeeRegisterMemberViewState
   }
 
   void _showSnack(BuildContext context, String message, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: color,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+    SacSnackBar.show(context, message, backgroundColor: color);
   }
 }
 

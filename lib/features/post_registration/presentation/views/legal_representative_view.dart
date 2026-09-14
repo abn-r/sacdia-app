@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../data/models/legal_representative_model.dart';
 import '../providers/personal_info_providers.dart';
@@ -94,36 +95,19 @@ class _LegalRepresentativeViewState
           .saveRepresentative(representative);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'post_registration.legal_representative.save_success'.tr(),
-            ),
-            backgroundColor: AppColors.secondary,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
+        SacSnackBar.show(
+            context, 'post_registration.legal_representative.save_success'.tr(),
+            backgroundColor: AppColors.secondary);
         Navigator.of(context).pop(true);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'post_registration.legal_representative.error_saving'.tr(
-                namedArgs: {'error': e.toString()},
-              ),
+        SacSnackBar.show(
+            context,
+            'post_registration.legal_representative.error_saving'.tr(
+              namedArgs: {'error': e.toString()},
             ),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
+            isError: true);
       }
     } finally {
       if (mounted) {

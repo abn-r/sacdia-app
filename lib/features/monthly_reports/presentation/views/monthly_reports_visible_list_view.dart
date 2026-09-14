@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/enrollment/presentation/providers/enrollment_providers.dart';
 
 import '../../domain/entities/monthly_report.dart';
@@ -119,11 +120,8 @@ class _NextActionBar extends ConsumerWidget {
     if (!context.mounted) return;
     final enrollmentId = enrollment?.endpointId;
     if (enrollmentId == null || enrollmentId == '0') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        monthlyReportSnackBar(
-          content: Text('monthly_reports.visible.no_enrollment'.tr()),
-        ),
-      );
+      SacSnackBar.show(context, 'monthly_reports.visible.no_enrollment'.tr(),
+          behavior: SnackBarBehavior.fixed);
       return;
     }
 
@@ -150,13 +148,9 @@ class _NextActionBar extends ConsumerWidget {
     if (!context.mounted) return;
     if (report == null) {
       final state = ref.read(monthlyReportMutationProvider);
-      ScaffoldMessenger.of(context).showSnackBar(
-        monthlyReportSnackBar(
-          content: Text(
-            state.errorMessage ?? 'monthly_reports.visible.prepare_error'.tr(),
-          ),
-        ),
-      );
+      SacSnackBar.show(context,
+          state.errorMessage ?? 'monthly_reports.visible.prepare_error'.tr(),
+          behavior: SnackBarBehavior.fixed);
       return;
     }
 

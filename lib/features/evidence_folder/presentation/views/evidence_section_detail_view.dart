@@ -11,6 +11,7 @@ import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart'
 import '../../../../core/widgets/evidence_staging/staged_file.dart';
 import '../../../../core/widgets/sac_dialog.dart';
 import '../../../../core/widgets/sac_loading.dart';
+import '../../../../core/widgets/sac_snack_bar.dart';
 import '../../domain/entities/evidence_file.dart';
 import '../../domain/entities/evidence_section.dart';
 import '../providers/evidence_folder_providers.dart';
@@ -284,40 +285,23 @@ class _EvidenceSectionDetailViewState
                             ).notifier,
                           )
                           .submitSection(widget.section.id);
-                      if (success && mounted) {
-                        // ignore: use_build_context_synchronously
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Row(
-                              children: [
-                                const HugeIcon(
-                                  icon:
-                                      HugeIcons.strokeRoundedCheckmarkCircle02,
-                                  color: Colors.white,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'evidence_folder.submit_success'.tr(
-                                      namedArgs: {
-                                        'sectionName': widget.section.name,
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            backgroundColor: AppColors.secondary,
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        );
-                        // ignore: use_build_context_synchronously
-                        Navigator.pop(context);
-                      }
+                      if (!success) return;
+                      if (!context.mounted) return;
+                      SacSnackBar.show(
+                        context,
+                        'evidence_folder.submit_success'.tr(
+                          namedArgs: {
+                            'sectionName': widget.section.name,
+                          },
+                        ),
+                        backgroundColor: AppColors.secondary,
+                        leading: const HugeIcon(
+                          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      );
+                      Navigator.pop(context);
                     },
                     fileNameBuilder: (originalName, index) {
                       final ext = originalName.contains('.')
@@ -358,22 +342,14 @@ class _EvidenceSectionDetailViewState
 
   void _showErrorSnackbar(BuildContext context, String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              color: Colors.white,
-              size: 18,
-            ),
-            const SizedBox(width: 8),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: AppColors.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    SacSnackBar.show(
+      context,
+      message,
+      isError: true,
+      leading: const HugeIcon(
+        icon: HugeIcons.strokeRoundedAlert02,
+        color: Colors.white,
+        size: 18,
       ),
     );
   }

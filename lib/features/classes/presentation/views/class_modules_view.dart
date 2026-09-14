@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/classes_providers.dart';
@@ -93,22 +94,14 @@ class ClassModulesView extends ConsumerWidget {
                     ref.invalidate(classModulesProvider(classId));
 
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            isCompleted
-                                ? 'classes.modules.section_completed_snack'.tr()
-                                : 'classes.modules.section_pending_snack'.tr(),
-                          ),
+                      SacSnackBar.show(
+                          context,
+                          isCompleted
+                              ? 'classes.modules.section_completed_snack'.tr()
+                              : 'classes.modules.section_pending_snack'.tr(),
                           backgroundColor: isCompleted
                               ? AppColors.secondary
-                              : AppColors.accent,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      );
+                              : AppColors.accent);
                     }
                   },
                 );

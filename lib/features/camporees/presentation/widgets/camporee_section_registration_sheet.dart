@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
 import 'package:sacdia_app/features/camporees/presentation/providers/camporees_providers.dart';
@@ -76,11 +77,7 @@ class _CamporeeSectionRegistrationSheetState
     }
 
     final message = 'camporees.section_registration.success'.tr();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Semantics(liveRegion: true, child: Text(message)),
-      ),
-    );
+    SacSnackBar.show(context, message);
     setState(() => _isSubmitting = false);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) Navigator.of(context).pop(true);

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../domain/entities/activity.dart';
 import 'activity_map_options_sheet.dart';
@@ -18,17 +19,9 @@ class ActivityLocationRow extends StatelessWidget {
 
   void _copyAddress(BuildContext context) {
     Clipboard.setData(ClipboardData(text: activity.activityPlace));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('activities.widgets.address_copied'.tr()),
+    SacSnackBar.show(context, 'activities.widgets.address_copied'.tr(),
         backgroundColor: AppColors.secondaryDark,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-    );
+        duration: const Duration(seconds: 2));
   }
 
   @override

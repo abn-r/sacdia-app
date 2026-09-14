@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../profile/presentation/widgets/setting_tile.dart';
@@ -35,24 +36,16 @@ class BiometricSettingsSection extends ConsumerWidget {
     if (!context.mounted) return;
     switch (result) {
       case BiometricEnableResult.ok:
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('biometric.enabled_success'.tr())),
-        );
+        SacSnackBar.show(context, 'biometric.enabled_success'.tr());
         break;
       case BiometricEnableResult.notSupported:
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('biometric.device_not_supported'.tr())),
-        );
+        SacSnackBar.show(context, 'biometric.device_not_supported'.tr());
         break;
       case BiometricEnableResult.noneEnrolled:
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('biometric.no_biometric_enrolled'.tr())),
-        );
+        SacSnackBar.show(context, 'biometric.no_biometric_enrolled'.tr());
         break;
       case BiometricEnableResult.authFailed:
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('biometric.auth_failed'.tr())),
-        );
+        SacSnackBar.show(context, 'biometric.auth_failed'.tr());
         break;
     }
   }

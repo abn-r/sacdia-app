@@ -21,6 +21,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 /// Pantalla principal del módulo de Inventario del club.
 ///
@@ -256,16 +257,12 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
         .read(inventoryDeleteNotifierProvider.notifier)
         .deleteItem(item.id);
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          success
-              ? 'inventory.detail.deleted_success'.tr()
-              : 'inventory.detail.delete_error'.tr(),
-        ),
-        backgroundColor: success ? AppColors.secondary : AppColors.error,
-        behavior: SnackBarBehavior.floating,
-      ),
+    SacSnackBar.show(
+      context,
+      success
+          ? 'inventory.detail.deleted_success'.tr()
+          : 'inventory.detail.delete_error'.tr(),
+      isError: !success,
     );
   }
 }

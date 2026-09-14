@@ -10,6 +10,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -274,59 +275,34 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
 
     // Validate required dates
     if (_startDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('insurance.form.error_start_date_required'.tr()),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      SacSnackBar.show(context, 'insurance.form.error_start_date_required'.tr(),
+          isError: true);
       return;
     }
 
     if (_endDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('insurance.form.error_end_date_required'.tr()),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      SacSnackBar.show(context, 'insurance.form.error_end_date_required'.tr(),
+          isError: true);
       return;
     }
 
     if (_endDate!.isBefore(_startDate!)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('insurance.form.error_end_after_start'.tr()),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      SacSnackBar.show(context, 'insurance.form.error_end_after_start'.tr(),
+          isError: true);
       return;
     }
 
     // Validate evidence for new records
     final selectedFile = ref.read(insuranceFormNotifierProvider).selectedFile;
     if (!_isEditing && selectedFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('insurance.form.error_evidence_required'.tr()),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      SacSnackBar.show(context, 'insurance.form.error_evidence_required'.tr(),
+          isError: true);
       return;
     }
 
     if (_memberId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('insurance.form.error_member_unknown'.tr()),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      SacSnackBar.show(context, 'insurance.form.error_member_unknown'.tr(),
+          isError: true);
       return;
     }
 
@@ -352,17 +328,12 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
 
     if (success && mounted) {
       ref.read(insuranceFormNotifierProvider.notifier).reset();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _isEditing
-                ? 'insurance.form.success_updated'.tr()
-                : 'insurance.form.success_created'.tr(),
-          ),
-          backgroundColor: AppColors.secondary,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      SacSnackBar.show(
+          context,
+          _isEditing
+              ? 'insurance.form.success_updated'.tr()
+              : 'insurance.form.success_created'.tr(),
+          backgroundColor: AppColors.secondary);
       Navigator.pop(context, true);
     }
   }

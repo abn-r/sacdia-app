@@ -16,6 +16,7 @@ import '../utils/money_format.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 /// Pantalla de resumen y confirmación de pedido.
 ///
@@ -269,12 +270,7 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
 
     result.fold(
       (failure) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(failure.message),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        SacSnackBar.show(context, failure.message, isError: true);
       },
       (order) {
         ref.read(cartProvider.notifier).clear();

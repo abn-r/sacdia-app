@@ -13,6 +13,7 @@ import '../utils/money_format.dart';
 import '../widgets/qty_stepper.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 /// Pantalla de detalle de producto del catálogo de materiales.
 class ProductDetailView extends ConsumerStatefulWidget {
@@ -282,25 +283,20 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
           qty: _qty,
         );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'materials.product.added_snackbar'.tr(
-            namedArgs: {'title': item.title},
-          ),
+    SacSnackBar.show(
+        context,
+        'materials.product.added_snackbar'.tr(
+          namedArgs: {'title': item.title},
         ),
         backgroundColor: AppColors.secondary,
-        behavior: SnackBarBehavior.floating,
         action: SnackBarAction(
           label: 'materials.product.view_cart'.tr(),
           textColor: Colors.white,
           onPressed: () {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            SacSnackBar.hide(context);
             // Navigate back and let the cart icon guide the user
           },
-        ),
-      ),
-    );
+        ));
   }
 }
 

@@ -14,6 +14,7 @@ import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/certifications/domain/entities/certification_detail.dart';
 import 'package:sacdia_app/features/certifications/domain/entities/certification_module.dart';
 import 'package:sacdia_app/features/certifications/domain/entities/user_certification.dart';
@@ -307,16 +308,8 @@ class _DetailBody extends ConsumerWidget {
     if (!context.mounted) return;
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('certifications.detail.enroll_success'.tr()),
-          backgroundColor: AppColors.secondary,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
+      SacSnackBar.show(context, 'certifications.detail.enroll_success'.tr(),
+          backgroundColor: AppColors.secondary);
       return;
     }
 
@@ -324,16 +317,7 @@ class _DetailBody extends ConsumerWidget {
             .read(certificationEnrollmentNotifierProvider(certificationId))
             .errorMessage ??
         'certifications.errors.enroll_certification'.tr();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-    );
+    SacSnackBar.show(context, message, isError: true);
   }
 }
 
@@ -560,7 +544,7 @@ class _ModuleSections extends StatelessWidget {
     }
 
     return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
       child: Column(
         children: [
           for (final section in module.sections)

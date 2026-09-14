@@ -61,21 +61,6 @@ class _MonthlyReportEntranceState extends State<MonthlyReportEntrance> {
   }
 }
 
-/// SnackBars shown from the monthly-report flow must coexist with the shell's
-/// bottom NavigationBar. A floating SnackBar can be laid out above the
-/// available viewport and trigger Flutter's off-screen assertion, so this
-/// feature uses the fixed variant consistently.
-SnackBar monthlyReportSnackBar({
-  required Widget content,
-  Duration duration = const Duration(seconds: 4),
-}) {
-  return SnackBar(
-    content: content,
-    duration: duration,
-    behavior: SnackBarBehavior.fixed,
-  );
-}
-
 /// Frosted sticky chrome for bottom CTAs / app bars.
 class MonthlyReportFrostBar extends StatelessWidget {
   final Widget child;

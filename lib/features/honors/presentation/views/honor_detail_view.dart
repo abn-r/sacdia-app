@@ -33,6 +33,7 @@ import '../widgets/honor_signed_evidence_image.dart';
 import '../widgets/honor_work_mode_selector.dart';
 import '../../domain/entities/user_honor.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 
@@ -274,25 +275,15 @@ Future<void> _openExternalHistoryUrl(BuildContext context, String url) async {
   final uri = Uri.tryParse(url);
   if (uri == null || !['http', 'https'].contains(uri.scheme)) {
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('honors.detail.open_file_error'.tr()),
-        backgroundColor: AppColors.primary,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    SacSnackBar.show(context, 'honors.detail.open_file_error'.tr(),
+        backgroundColor: AppColors.primary);
     return;
   }
 
   final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
   if (!launched && context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('honors.detail.open_file_error'.tr()),
-        backgroundColor: AppColors.primary,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    SacSnackBar.show(context, 'honors.detail.open_file_error'.tr(),
+        backgroundColor: AppColors.primary);
   }
 }
 
@@ -609,12 +600,8 @@ class _HonorDetailContent extends ConsumerWidget {
 
     final userId = user?.id;
     if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('honors.detail.work_mode_no_session'.tr()),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      SacSnackBar.show(context, 'honors.detail.work_mode_no_session'.tr(),
+          isError: true);
       return;
     }
 
@@ -628,17 +615,12 @@ class _HonorDetailContent extends ConsumerWidget {
 
     if (!context.mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          success
-              ? 'honors.detail.work_mode_saved'.tr()
-              : 'honors.detail.work_mode_error'.tr(),
-        ),
-        backgroundColor: success ? AppColors.success : AppColors.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+    SacSnackBar.show(
+      context,
+      success
+          ? 'honors.detail.work_mode_saved'.tr()
+          : 'honors.detail.work_mode_error'.tr(),
+      isError: !success,
     );
   }
 

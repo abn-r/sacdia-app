@@ -6,6 +6,7 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/utils/app_logger.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/post_registration_providers.dart';
 import '../widgets/profile_photo_picker.dart';
@@ -41,15 +42,8 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
     } catch (e) {
       AppLogger.e('Error al tomar foto', tag: _tag, error: e);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('post_registration.photo.errors.camera'.tr()),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-        );
+        SacSnackBar.show(context, 'post_registration.photo.errors.camera'.tr(),
+            isError: true);
       }
     }
   }
@@ -69,15 +63,8 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
     } catch (e) {
       AppLogger.e('Error al seleccionar foto', tag: _tag, error: e);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('post_registration.photo.errors.gallery'.tr()),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-        );
+        SacSnackBar.show(context, 'post_registration.photo.errors.gallery'.tr(),
+            isError: true);
       }
     }
   }
@@ -113,15 +100,8 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
     } catch (e) {
       AppLogger.e('Error al recortar imagen', tag: _tag, error: e);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('post_registration.photo.errors.crop'.tr()),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-        );
+        SacSnackBar.show(context, 'post_registration.photo.errors.crop'.tr(),
+            isError: true);
       }
     }
   }
@@ -141,16 +121,12 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
 
     if (!success) {
       final error = ref.read(profilePhotoUploadNotifierProvider).error;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('post_registration.photo.errors.upload'.tr(
+      SacSnackBar.show(
+          context,
+          'post_registration.photo.errors.upload'.tr(
             namedArgs: {'message': error?.toString() ?? tr('common.error')},
-          )),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-      );
+          ),
+          isError: true);
       ref.read(selectedPhotoPathProvider.notifier).state = null;
       return;
     }

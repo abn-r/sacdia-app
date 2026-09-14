@@ -12,6 +12,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../domain/entities/payment_order.dart';
 import '../providers/payment_orders_providers.dart';
@@ -171,14 +172,7 @@ class PaymentOrderDetailView extends ConsumerWidget {
   }
 
   void _showSnack(BuildContext context, String message, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: color,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+    SacSnackBar.show(context, message, backgroundColor: color);
   }
 
   String _mimeFromExtension(String? extension) {

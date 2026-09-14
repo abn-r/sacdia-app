@@ -20,6 +20,7 @@ import '../widgets/folder_closed_banner.dart';
 import '../widgets/section_card.dart';
 import 'evidence_section_detail_view.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 /// Vista principal de la Carpeta Anual de Evidencias.
 ///
@@ -155,28 +156,16 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
     setState(() => _submittingSectionId = null);
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const HugeIcon(
-                  icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                  color: Colors.white,
-                  size: 18),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'evidence_folder.submit_success'.tr(namedArgs: {
-                    'sectionName': section.name,
-                  }),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: AppColors.secondary,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      SacSnackBar.show(
+        context,
+        'evidence_folder.submit_success'.tr(namedArgs: {
+          'sectionName': section.name,
+        }),
+        backgroundColor: AppColors.secondary,
+        leading: const HugeIcon(
+          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+          color: Colors.white,
+          size: 18,
         ),
       );
     } else {
@@ -184,22 +173,14 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
           .read(evidenceSectionNotifierProvider(widget.clubSectionId))
           .errorMessage;
       if (errorMsg != null && errorMsg.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const HugeIcon(
-                    icon: HugeIcons.strokeRoundedAlert02,
-                    color: Colors.white,
-                    size: 18),
-                const SizedBox(width: 8),
-                Expanded(child: Text(errorMsg)),
-              ],
-            ),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        SacSnackBar.show(
+          context,
+          errorMsg,
+          isError: true,
+          leading: const HugeIcon(
+            icon: HugeIcons.strokeRoundedAlert02,
+            color: Colors.white,
+            size: 18,
           ),
         );
       }
@@ -474,23 +455,14 @@ class _NoFolderBody extends ConsumerWidget {
     final creationState =
         ref.read(evidenceFolderCreationNotifierProvider(clubSectionId));
     if (created) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('evidence_folder.no_folder.create_success'.tr()),
-          backgroundColor: AppColors.secondary,
-        ),
-      );
+      SacSnackBar.show(context, 'evidence_folder.no_folder.create_success'.tr(),
+          backgroundColor: AppColors.secondary);
       return;
     }
 
     final message = creationState.errorMessage ??
         'evidence_folder.errors.create_folder'.tr();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.error,
-      ),
-    );
+    SacSnackBar.show(context, message, isError: true);
   }
 
   @override

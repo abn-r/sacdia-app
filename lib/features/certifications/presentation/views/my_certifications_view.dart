@@ -11,6 +11,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_progress_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/certifications/domain/entities/user_certification.dart';
 
 import '../providers/certifications_providers.dart';
@@ -296,31 +297,17 @@ class MyCertificationsView extends ConsumerWidget {
       ref.invalidate(userCertificationsProvider);
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('certifications.my.unenroll_success'.tr(namedArgs: {
+        SacSnackBar.show(
+            context,
+            'certifications.my.unenroll_success'.tr(namedArgs: {
               'name': uc.certificationName,
-            })),
-            backgroundColor: AppColors.secondary,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
+            }),
+            backgroundColor: AppColors.secondary);
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceFirst('Exception: ', '')),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
+        SacSnackBar.show(context, e.toString().replaceFirst('Exception: ', ''),
+            isError: true);
       }
     }
   }

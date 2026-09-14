@@ -9,6 +9,7 @@ import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart'
 import '../../../../core/widgets/evidence_staging/staged_file.dart';
 import '../../../../core/widgets/sac_dialog.dart';
 import '../../../../core/widgets/sac_loading.dart';
+import '../../../../core/widgets/sac_snack_bar.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../domain/entities/class_requirement.dart';
 import '../providers/classes_providers.dart';
@@ -94,21 +95,14 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
 
   void _showErrorSnackbar(BuildContext context, String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const HugeIcon(
-                icon: HugeIcons.strokeRoundedAlert02,
-                color: Colors.white,
-                size: 18),
-            const SizedBox(width: 8),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: AppColors.rejectedColor,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    SacSnackBar.show(
+      context,
+      message,
+      isError: true,
+      leading: const HugeIcon(
+        icon: HugeIcons.strokeRoundedAlert02,
+        color: Colors.white,
+        size: 18,
       ),
     );
   }
@@ -399,36 +393,21 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                                               _progressQuery)
                                           .notifier)
                                       .submit(requirement.id);
-                                  if (success && mounted) {
-                                    // ignore: use_build_context_synchronously
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Row(
-                                          children: [
-                                            const HugeIcon(
-                                                icon: HugeIcons
-                                                    .strokeRoundedCheckmarkCircle02,
-                                                color: Colors.white,
-                                                size: 18),
-                                            const SizedBox(width: 8),
-                                            Expanded(
-                                              child: Text(
-                                                  'classes.requirement_detail.submit_success'
-                                                      .tr()),
-                                            ),
-                                          ],
-                                        ),
-                                        backgroundColor:
-                                            AppColors.validatedColor,
-                                        behavior: SnackBarBehavior.floating,
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(12)),
-                                      ),
-                                    );
-                                    // ignore: use_build_context_synchronously
-                                    Navigator.pop(context);
-                                  }
+                                  if (!success) return;
+                                  if (!context.mounted) return;
+                                  SacSnackBar.show(
+                                    context,
+                                    'classes.requirement_detail.submit_success'
+                                        .tr(),
+                                    backgroundColor: AppColors.validatedColor,
+                                    leading: const HugeIcon(
+                                      icon: HugeIcons
+                                          .strokeRoundedCheckmarkCircle02,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
+                                  );
+                                  Navigator.pop(context);
                                 },
                                 fileNameBuilder: _buildFileNameWithIndex,
                                 canModify: canModify,
@@ -531,27 +510,16 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
         .read(requirementNotifierProvider(_progressQuery).notifier)
         .submit(req.id);
     if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const HugeIcon(
-                  icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                  color: Colors.white,
-                  size: 18),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text('classes.requirement_detail.submit_success'.tr()),
-              ),
-            ],
-          ),
-          backgroundColor: AppColors.validatedColor,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      SacSnackBar.show(
+        context,
+        'classes.requirement_detail.submit_success'.tr(),
+        backgroundColor: AppColors.validatedColor,
+        leading: const HugeIcon(
+          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+          color: Colors.white,
+          size: 18,
         ),
       );
-      // ignore: use_build_context_synchronously
       Navigator.pop(context);
     }
   }

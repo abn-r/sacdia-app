@@ -16,6 +16,7 @@ import '../providers/investiture_providers.dart';
 import '../widgets/investiture_status_badge.dart';
 import 'investiture_history_view.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Vista para directores/consejeros: enviar un enrollment a validación.
@@ -291,18 +292,12 @@ class _MemberSubmitCard extends ConsumerWidget {
       );
 
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            ok
-                ? 'investiture.submit.snack_sent'.tr()
-                : 'investiture.submit.snack_send_error'.tr(),
-          ),
-          backgroundColor: ok ? AppColors.secondary : AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
+      SacSnackBar.show(
+        context,
+        ok
+            ? 'investiture.submit.snack_sent'.tr()
+            : 'investiture.submit.snack_send_error'.tr(),
+        isError: !ok,
       );
     } finally {
       commentsCtrl.dispose();

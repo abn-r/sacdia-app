@@ -18,6 +18,7 @@ import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 /// Pantalla de detalle de un ítem del inventario.
 ///
@@ -301,21 +302,12 @@ class InventoryItemDetailView extends ConsumerWidget {
         .read(inventoryDeleteNotifierProvider.notifier)
         .deleteItem(selectedItem.id);
     if (success && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('inventory.detail.deleted_success'.tr()),
-          backgroundColor: AppColors.secondary,
-        ),
-      );
+      SacSnackBar.show(context, 'inventory.detail.deleted_success'.tr(),
+          backgroundColor: AppColors.secondary);
       Navigator.pop(context);
     } else if (!success && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('inventory.detail.delete_error'.tr()),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      SacSnackBar.show(context, 'inventory.detail.delete_error'.tr(),
+          isError: true);
     }
   }
 }

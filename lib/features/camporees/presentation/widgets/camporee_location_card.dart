@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../domain/entities/camporee.dart';
 import 'camporee_map_options_sheet.dart';
@@ -24,15 +25,9 @@ class CamporeeLocationCard extends StatelessWidget {
 
   void _copyAddress(BuildContext context) {
     Clipboard.setData(ClipboardData(text: camporee.place));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('camporees.detail.address_copied'.tr()),
+    SacSnackBar.show(context, 'camporees.detail.address_copied'.tr(),
         backgroundColor: AppColors.secondaryDark,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+        duration: const Duration(seconds: 2));
   }
 
   @override

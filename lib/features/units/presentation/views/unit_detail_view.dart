@@ -15,6 +15,7 @@ import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../../../features/auth/domain/utils/authorization_utils.dart';
 import '../../../../features/auth/presentation/providers/auth_providers.dart';
@@ -168,17 +169,12 @@ class UnitDetailView extends ConsumerWidget {
   void _handleSave(BuildContext context, UnitsNotifier notifier) {
     notifier.saveSession().then((saved) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            saved
-                ? 'units.detail.save_success'.tr()
-                : 'units.detail.save_error'.tr(),
-          ),
-          backgroundColor: saved ? AppColors.secondary : null,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      SacSnackBar.show(
+          context,
+          saved
+              ? 'units.detail.save_success'.tr()
+              : 'units.detail.save_error'.tr(),
+          backgroundColor: saved ? AppColors.secondary : null);
       if (saved) HapticFeedback.mediumImpact();
     });
   }

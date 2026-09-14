@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../../../core/animations/animated_counter.dart';
 import '../../../../core/animations/motion_tokens.dart';
@@ -310,18 +311,13 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
     }
 
     final state = ref.read(submitForValidationNotifierProvider(enrollmentId));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          ok
-              ? 'Clase enviada a validación de investidura.'
-              : state.errorMessage ??
-                  'No pudimos enviar la clase a validación. Intenta nuevamente.',
-        ),
-        backgroundColor: ok ? AppColors.coral700 : AppColors.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
+    SacSnackBar.show(
+      context,
+      ok
+          ? 'Clase enviada a validación de investidura.'
+          : state.errorMessage ??
+              'No pudimos enviar la clase a validación. Intenta nuevamente.',
+      isError: !ok,
     );
   }
 

@@ -16,6 +16,7 @@ import '../widgets/price_input.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 // ── Constantes de validación ──────────────────────────────────────────────────
 
@@ -118,9 +119,7 @@ class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_fechaPago == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('materials.receipt.date_required'.tr())),
-      );
+      SacSnackBar.show(context, 'materials.receipt.date_required'.tr());
       return;
     }
 
@@ -148,22 +147,13 @@ class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
         ref.invalidate(orderDetailProvider(widget.folioOrId));
         if (context.mounted) {
           context.go(RouteNames.materialsOrderDetail(widget.folioOrId));
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('materials.receipt.sent'.tr()),
-              backgroundColor: AppColors.secondary,
-            ),
-          );
+          SacSnackBar.show(context, 'materials.receipt.sent'.tr(),
+              backgroundColor: AppColors.secondary);
         }
       }
       if (next.errorMessage != null && prev?.errorMessage == null) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(next.errorMessage!),
-              backgroundColor: AppColors.error,
-            ),
-          );
+          SacSnackBar.show(context, next.errorMessage!, isError: true);
         }
       }
     });

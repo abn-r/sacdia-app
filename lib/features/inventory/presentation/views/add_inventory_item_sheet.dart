@@ -11,6 +11,7 @@ import 'package:mime/mime.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../../../core/widgets/evidence_staging/image_source_dialog.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -488,17 +489,12 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
 
     if (mounted) {
       ref.read(inventoryItemFormNotifierProvider.notifier).reset();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _isEditing
-                ? 'inventory.form.updated_success'.tr()
-                : 'inventory.form.registered_success'.tr(),
-          ),
-          backgroundColor: AppColors.secondary,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      SacSnackBar.show(
+          context,
+          _isEditing
+              ? 'inventory.form.updated_success'.tr()
+              : 'inventory.form.registered_success'.tr(),
+          backgroundColor: AppColors.secondary);
       Navigator.pop(context, true);
     }
   }

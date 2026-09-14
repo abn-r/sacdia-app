@@ -13,6 +13,7 @@ import '../providers/order_detail_provider.dart';
 import '../utils/money_format.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 /// Pantalla "Datos para pago" — muestra la CLABE, referencia bancaria y
 /// total a pagar una vez que la orden fue aprobada.
@@ -327,11 +328,8 @@ class _CopyCard extends StatelessWidget {
               color: AppColors.primary,
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: value));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text('materials.payment.copied'
-                          .tr(namedArgs: {'label': label}))),
-                );
+                SacSnackBar.show(context,
+                    'materials.payment.copied'.tr(namedArgs: {'label': label}));
               },
             ),
           ],
@@ -391,11 +389,8 @@ class _DataRow extends StatelessWidget {
             GestureDetector(
               onTap: () {
                 Clipboard.setData(ClipboardData(text: value));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text('materials.payment.copied'
-                          .tr(namedArgs: {'label': label}))),
-                );
+                SacSnackBar.show(context,
+                    'materials.payment.copied'.tr(namedArgs: {'label': label}));
               },
               child: const Padding(
                 padding: EdgeInsets.only(left: 4),

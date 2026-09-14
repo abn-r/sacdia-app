@@ -76,14 +76,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
   Future<void> _openLegalDocument(String url) async {
     final opened = await openInAppDocument(Uri.parse(url));
     if (!opened && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('settings.open_document_failed'.tr()),
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
+      SacSnackBar.show(context, 'settings.open_document_failed'.tr());
     }
   }
 
@@ -96,15 +89,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
         await ref.read(notificationPreferencesProvider.notifier).patch(delta);
 
     if (error != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
+      SacSnackBar.show(context, error, isError: true);
     }
   }
 
@@ -292,15 +277,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
       currentCtrl.dispose();
       newCtrl.dispose();
       confirmCtrl.dispose();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('profile.settings.operation_cancelled'.tr()),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
+      SacSnackBar.show(context, 'profile.settings.operation_cancelled'.tr(),
+          isError: true);
       return;
     }
 
@@ -314,13 +292,10 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     confirmCtrl.dispose();
 
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(error ?? 'profile.settings.password_updated'.tr()),
-        backgroundColor: error != null ? AppColors.error : AppColors.success,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
+    SacSnackBar.show(
+      context,
+      error ?? 'profile.settings.password_updated'.tr(),
+      isError: error != null,
     );
   }
 

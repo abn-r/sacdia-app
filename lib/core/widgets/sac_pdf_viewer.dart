@@ -8,6 +8,7 @@ import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 /// A full-screen PDF viewer that accepts either a local file path or a public
 /// remote URL.
@@ -165,12 +166,8 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
       );
     } catch (_) {
       if (!mounted) return;
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(tr('core.pdf_viewer.error_download')),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      SacSnackBar.showMessenger(
+          messenger, tr('core.pdf_viewer.error_download'));
     } finally {
       if (mounted) setState(() => _isSharing = false);
     }

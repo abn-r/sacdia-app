@@ -18,6 +18,7 @@ import '../../../profile/presentation/providers/profile_providers.dart';
 import '../../domain/entities/transfer_request.dart';
 import '../providers/transfer_providers.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 /// Pantalla principal de solicitudes de traslado.
 ///
@@ -368,15 +369,8 @@ class _TransferRequestFormViewState
     final toSectionId = ref.read(selectedClubSectionProvider);
 
     if (fromSectionId == null || toSectionId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('transfers.form.select_valid_club'.tr()),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
+      SacSnackBar.show(context, 'transfers.form.select_valid_club'.tr(),
+          isError: true);
       return;
     }
 
@@ -389,15 +383,8 @@ class _TransferRequestFormViewState
     if (!mounted) return;
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('transfers.form.success_message'.tr()),
-          backgroundColor: AppColors.secondary,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
+      SacSnackBar.show(context, 'transfers.form.success_message'.tr(),
+          backgroundColor: AppColors.secondary);
       Navigator.of(context).pop();
     }
   }

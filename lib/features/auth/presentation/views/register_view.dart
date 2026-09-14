@@ -12,6 +12,7 @@ import 'package:sacdia_app/core/utils/validators.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/auth/presentation/widgets/auth_sky_wash.dart';
 import 'package:sacdia_app/features/auth/presentation/widgets/sac_brand_mark.dart';
@@ -101,14 +102,8 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
 
     if (success && mounted) {
       context.pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('auth.register_success'.tr()),
-          backgroundColor: AppColors.secondary,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-      );
+      SacSnackBar.show(context, 'auth.register_success'.tr(),
+          backgroundColor: AppColors.secondary);
     }
     // Error is surfaced via ref.watch in build().
   }

@@ -16,6 +16,7 @@ import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
 import 'package:sacdia_app/features/classes/presentation/views/classes_list_view.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
@@ -102,29 +103,13 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         if (!mounted) return;
 
         if (!success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('profile.view.photo_upload_error'.tr()),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          );
+          SacSnackBar.show(context, 'profile.view.photo_upload_error'.tr(),
+              isError: true);
         } else {
           ref.invalidate(profileNotifierProvider);
           ref.invalidate(authNotifierProvider);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('profile.view.photo_upload_success'.tr()),
-              backgroundColor: AppColors.secondary,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          );
+          SacSnackBar.show(context, 'profile.view.photo_upload_success'.tr(),
+              backgroundColor: AppColors.secondary);
         }
       } finally {
         if (mounted) {
@@ -135,16 +120,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       AppLogger.e('Error al cambiar foto de perfil', tag: _tag, error: e);
       if (mounted) {
         setState(() => _isUploadingPhoto = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('profile.view.photo_upload_error'.tr()),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
+        SacSnackBar.show(context, 'profile.view.photo_upload_error'.tr(),
+            isError: true);
       }
     }
   }

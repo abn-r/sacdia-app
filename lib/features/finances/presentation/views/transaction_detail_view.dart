@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -183,19 +184,13 @@ class TransactionDetailView extends ConsumerWidget {
 
     if (success) {
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('finances.transaction_detail.delete_success'.tr())),
-      );
+      SacSnackBar.show(
+          context, 'finances.transaction_detail.delete_success'.tr());
     } else {
       final error = ref.read(transactionFormNotifierProvider).errorMessage;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content:
-              Text(error ?? 'finances.transaction_detail.delete_error'.tr()),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      SacSnackBar.show(
+          context, error ?? 'finances.transaction_detail.delete_error'.tr(),
+          isError: true);
     }
   }
 

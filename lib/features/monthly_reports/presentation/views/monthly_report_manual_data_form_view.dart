@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../domain/entities/monthly_report.dart';
 import '../providers/monthly_reports_providers.dart';
@@ -244,14 +245,13 @@ class _MonthlyReportManualDataFormViewState
         .saveManualData(widget.report.id, _buildData());
     if (!mounted) return;
     final state = ref.read(monthlyReportMutationProvider);
-    ScaffoldMessenger.of(context).showSnackBar(
-      monthlyReportSnackBar(
-        content: Text(
-          ok
-              ? 'monthly_reports.form.saved'.tr()
-              : state.errorMessage ?? 'monthly_reports.form.save_error'.tr(),
-        ),
-      ),
+    SacSnackBar.show(
+      context,
+      ok
+          ? 'monthly_reports.form.saved'.tr()
+          : state.errorMessage ?? 'monthly_reports.form.save_error'.tr(),
+      behavior: SnackBarBehavior.fixed,
+      isError: !ok,
     );
     if (ok) Navigator.of(context).pop(true);
   }

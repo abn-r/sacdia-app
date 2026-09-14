@@ -15,6 +15,7 @@ import '../../../../core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/domain/entities/club_member.dart';
@@ -1477,11 +1478,5 @@ class _MessageState extends StatelessWidget {
 
 void _showSnack(BuildContext context, String message, {bool isError = false}) {
   if (!context.mounted) return;
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(message),
-      backgroundColor: isError ? AppColors.error : AppColors.secondary,
-      behavior: SnackBarBehavior.floating,
-    ),
-  );
+  SacSnackBar.show(context, message, isError: isError);
 }

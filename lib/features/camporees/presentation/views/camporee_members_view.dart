@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_participant_access_gate.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
@@ -118,33 +119,18 @@ class CamporeeMembersView extends ConsumerWidget {
 
     if (context.mounted) {
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'camporees.members.member_removed'
-                  .tr(namedArgs: {'name': member.userName ?? member.userId}),
-            ),
-            backgroundColor: AppColors.secondary,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
+        SacSnackBar.show(
+            context,
+            'camporees.members.member_removed'
+                .tr(namedArgs: {'name': member.userName ?? member.userId}),
+            backgroundColor: AppColors.secondary);
       } else {
         final errorMsg = ref
             .read(camporeeRemoveMemberNotifierProvider(camporeeId))
             .errorMessage;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMsg ?? 'camporees.members.remove_error'.tr()),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
+        SacSnackBar.show(
+            context, errorMsg ?? 'camporees.members.remove_error'.tr(),
+            isError: true);
       }
     }
   }

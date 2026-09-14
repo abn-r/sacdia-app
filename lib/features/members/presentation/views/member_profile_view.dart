@@ -11,6 +11,7 @@ import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/investiture/domain/entities/investiture_status.dart';
@@ -843,13 +844,9 @@ class _EmergencyContactsBody extends ConsumerWidget {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
 
     if (!launched && context.mounted) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('members.profile_view.call_contact_failed'.tr()),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: AppColors.error,
-        ),
-      );
+      SacSnackBar.showMessenger(
+          messenger, 'members.profile_view.call_contact_failed'.tr(),
+          isError: true);
     }
   }
 }

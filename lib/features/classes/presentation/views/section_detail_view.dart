@@ -11,6 +11,7 @@ import '../../domain/entities/class_section.dart';
 import '../providers/classes_providers.dart';
 
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 /// Vista de detalle de una sección de clase
 class SectionDetailView extends ConsumerStatefulWidget {
@@ -137,17 +138,13 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
                   _isCompleted = newStatus;
                 });
 
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      newStatus
-                          ? 'classes.section_detail.mark_completed_snack'.tr()
-                          : 'classes.section_detail.mark_pending_snack'.tr(),
-                    ),
+                SacSnackBar.showMessenger(
+                    messenger,
+                    newStatus
+                        ? 'classes.section_detail.mark_completed_snack'.tr()
+                        : 'classes.section_detail.mark_pending_snack'.tr(),
                     backgroundColor:
-                        newStatus ? AppColors.success : AppColors.warning,
-                  ),
-                );
+                        newStatus ? AppColors.success : AppColors.warning);
               },
               text: _isCompleted
                   ? 'classes.section_detail.button_completed'.tr()

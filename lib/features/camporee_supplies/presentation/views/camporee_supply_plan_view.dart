@@ -17,6 +17,7 @@ import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/camporee_orders/domain/entities/camporee_order.dart';
 import 'package:sacdia_app/features/camporee_supplies/domain/entities/camporee_supply_plan.dart';
 import 'package:sacdia_app/features/camporee_supplies/domain/utils/camporee_supply_plan_groups.dart';
@@ -333,8 +334,7 @@ class _CamporeeSupplyPlanViewState
 
   void _toast(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    SacSnackBar.show(context, message);
   }
 }
 
@@ -802,9 +802,7 @@ class _AddSupplySheetState extends State<_AddSupplySheet> {
     final qty = double.tryParse(_qtyController.text.replaceAll(',', '.'));
     if (_date == null || _slotId == null || _productId == null) return;
     if (qty == null || qty <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('camporee_supplies.errors.qty_invalid'.tr())),
-      );
+      SacSnackBar.show(context, 'camporee_supplies.errors.qty_invalid'.tr());
       return;
     }
     HapticFeedback.selectionClick();

@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/secure_screen.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/post_registration/data/models/allergy_model.dart';
 import 'package:sacdia_app/features/post_registration/presentation/providers/personal_info_providers.dart';
 import 'package:sacdia_app/features/post_registration/presentation/views/allergies_selection_view.dart';
@@ -76,19 +77,15 @@ class MedicalInfoView extends ConsumerWidget {
       ref.invalidate(virtualCardFetcherProvider);
     }
 
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          ok
-              ? 'profile.medical_info.blood_type_updated'.tr(
-                  namedArgs: {'value': selected.display},
-                )
-              : 'profile.medical_info.blood_type_update_failed'.tr(),
-        ),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: ok ? null : AppColors.error,
-        duration: const Duration(seconds: 2),
-      ),
+    SacSnackBar.showMessenger(
+      messenger,
+      ok
+          ? 'profile.medical_info.blood_type_updated'.tr(
+              namedArgs: {'value': selected.display},
+            )
+          : 'profile.medical_info.blood_type_update_failed'.tr(),
+      isError: !ok,
+      duration: const Duration(seconds: 2),
     );
   }
 

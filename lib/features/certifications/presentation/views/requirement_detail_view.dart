@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -47,31 +48,15 @@ class CertificationRequirementDetailView extends ConsumerWidget {
 
     ref.listen(certificationRequirementNotifierProvider(_query), (prev, next) {
       if (next.errorMessage != null && next.errorMessage!.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.errorMessage!),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-        );
+        SacSnackBar.show(context, next.errorMessage!, isError: true);
         ref
             .read(certificationRequirementNotifierProvider(_query).notifier)
             .clearError();
       }
       if (next.submitSuccess && prev?.submitSuccess != true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'certifications.requirement_detail.submit_success'.tr(),
-            ),
-            backgroundColor: AppColors.secondary,
-            behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-        );
+        SacSnackBar.show(
+            context, 'certifications.requirement_detail.submit_success'.tr(),
+            backgroundColor: AppColors.secondary);
         Navigator.of(context).pop();
       }
     });

@@ -12,6 +12,7 @@ import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/post_registration_flow_providers.dart';
 import '../providers/post_registration_providers.dart';
@@ -141,11 +142,10 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
       if (result.success) {
         _goToStep(2);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(result.errorMessage ??
-                  tr('post_registration.shell.error_step_failed'))),
-        );
+        SacSnackBar.show(
+            context,
+            result.errorMessage ??
+                tr('post_registration.shell.error_step_failed'));
       }
     } finally {
       if (mounted) setState(() => _isCompletingStep = false);
@@ -170,12 +170,10 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
       if (result.success) {
         _goToStep(3);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result.errorMessage ??
-                tr('post_registration.shell.error_step_failed')),
-          ),
-        );
+        SacSnackBar.show(
+            context,
+            result.errorMessage ??
+                tr('post_registration.shell.error_step_failed'));
       }
     } finally {
       if (mounted) setState(() => _isCompletingStep = false);
@@ -190,11 +188,10 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
     if (!mounted) return;
 
     if (!result.success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(result.errorMessage ??
-                tr('post_registration.shell.error_step_failed'))),
-      );
+      SacSnackBar.show(
+          context,
+          result.errorMessage ??
+              tr('post_registration.shell.error_step_failed'));
       return;
     }
 
@@ -224,11 +221,8 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
     if (confirmed == true && mounted) {
       final success = await ref.read(authNotifierProvider.notifier).signOut();
       if (!success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(tr('post_registration.shell.error_logout_failed')),
-          ),
-        );
+        SacSnackBar.show(
+            context, tr('post_registration.shell.error_logout_failed'));
       }
     }
   }

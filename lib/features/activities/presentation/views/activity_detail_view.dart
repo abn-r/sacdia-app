@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:easy_localization/easy_localization.dart';
@@ -168,15 +169,8 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
     if (!mounted) return;
 
     if (success) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('activities.detail.deleted_ok'.tr()),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
+      SacSnackBar.showMessenger(messenger, 'activities.detail.deleted_ok'.tr(),
+          isError: true);
       navigator.pop();
     } else {
       final deleteState = ref.read(deleteActivityNotifierProvider);
@@ -184,15 +178,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
           ? deleteState.error?.toString() ??
               'activities.detail.error_delete'.tr()
           : 'activities.detail.error_delete'.tr();
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(errorMsg),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
+      SacSnackBar.showMessenger(messenger, errorMsg, isError: true);
     }
   }
 
@@ -519,14 +505,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
   }
 
   void _snack(String message, {bool error = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: error ? AppColors.error : AppColors.secondary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+    SacSnackBar.show(context, message, isError: error);
   }
 
   Widget _buildSeriesActions(BuildContext context, Activity activity) {

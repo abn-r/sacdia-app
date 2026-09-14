@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../providers/personal_info_providers.dart';
 import '../widgets/contact_card.dart';
@@ -38,33 +39,17 @@ class EmergencyContactsView extends ConsumerWidget {
             .read(emergencyContactsProvider.notifier)
             .deleteContact(contactId);
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                  'post_registration.emergency_contacts.delete_success'.tr()),
-              backgroundColor: AppColors.secondary,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          );
+          SacSnackBar.show(context,
+              'post_registration.emergency_contacts.delete_success'.tr(),
+              backgroundColor: AppColors.secondary);
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'post_registration.emergency_contacts.error_deleting'
-                    .tr(namedArgs: {'error': e.toString()}),
-              ),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          );
+          SacSnackBar.show(
+              context,
+              'post_registration.emergency_contacts.error_deleting'
+                  .tr(namedArgs: {'error': e.toString()}),
+              isError: true);
         }
       }
     }

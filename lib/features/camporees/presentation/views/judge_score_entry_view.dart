@@ -15,6 +15,7 @@ import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_progress_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_rubric.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_score_submission.dart';
 import 'package:sacdia_app/features/camporees/domain/utils/camporee_score_format.dart';
@@ -108,9 +109,7 @@ class _JudgeScoreEntryViewState extends ConsumerState<JudgeScoreEntryView> {
     for (final rubric in rubrics) {
       final awarded = _pointsFor(rubric.rubricId);
       if (awarded < 0 || awarded > rubric.maxPoints) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('camporees.judge.score_invalid'.tr())),
-        );
+        SacSnackBar.show(context, 'camporees.judge.score_invalid'.tr());
         return;
       }
       items.add(CamporeeScoreSubmissionItem(
@@ -128,15 +127,11 @@ class _JudgeScoreEntryViewState extends ConsumerState<JudgeScoreEntryView> {
         );
 
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          ok
-              ? 'camporees.judge.score_saved'.tr()
-              : 'camporees.judge.score_save_failed'.tr(),
-        ),
-      ),
-    );
+    SacSnackBar.show(
+        context,
+        ok
+            ? 'camporees.judge.score_saved'.tr()
+            : 'camporees.judge.score_save_failed'.tr());
   }
 
   @override

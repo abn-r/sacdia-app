@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../data/models/allergy_model.dart';
 import '../providers/personal_info_providers.dart';
@@ -329,32 +330,18 @@ class _AllergiesSelectionViewState
           if (_expandedRegisteredId == allergyId) _expandedRegisteredId = null;
         });
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                  'post_registration.health.allergies.delete_success'.tr()),
-              backgroundColor: MedicoTokens.mint500,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-            ),
-          );
+          SacSnackBar.show(
+              context, 'post_registration.health.allergies.delete_success'.tr(),
+              backgroundColor: MedicoTokens.mint500);
         }
       } catch (e) {
         AppLogger.e('Delete allergy error', tag: 'AllergiesView', error: e);
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'post_registration.health.allergies.delete_error'
-                    .tr(namedArgs: {'error': e.toString()}),
-              ),
-              backgroundColor: MedicoTokens.coral600,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-            ),
-          );
+          SacSnackBar.show(
+              context,
+              'post_registration.health.allergies.delete_error'
+                  .tr(namedArgs: {'error': e.toString()}),
+              isError: true);
         }
       }
     }
@@ -424,15 +411,8 @@ class _AllergiesSelectionViewState
       _seedFromServer(updated);
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('common.save'.tr()),
-            backgroundColor: MedicoTokens.mint500,
-            behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-        );
+        SacSnackBar.show(context, 'common.save'.tr(),
+            backgroundColor: MedicoTokens.mint500);
         await Future.delayed(const Duration(milliseconds: 300));
         if (context.mounted) Navigator.of(context).pop();
       }
@@ -442,22 +422,13 @@ class _AllergiesSelectionViewState
         _isSaving = false;
       });
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'common.save_error_retry'.tr(),
-            ),
-            backgroundColor: MedicoTokens.coral600,
-            behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        SacSnackBar.show(context, 'common.save_error_retry'.tr(),
+            isError: true,
             action: SnackBarAction(
               label: 'common.retry'.tr(),
               textColor: Colors.white,
               onPressed: () => _save(context),
-            ),
-          ),
-        );
+            ));
       }
     }
   }

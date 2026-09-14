@@ -21,6 +21,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 /// Pantalla de revisión de una orden por folio o ID.
 ///
@@ -444,9 +445,7 @@ class _ActionCard extends ConsumerWidget {
 
       final reason = reasonController.text.trim();
       if (reason.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('materials.order.reason_required'.tr())),
-        );
+        SacSnackBar.show(context, 'materials.order.reason_required'.tr());
         return;
       }
 
@@ -459,20 +458,13 @@ class _ActionCard extends ConsumerWidget {
 
       result.fold(
         (failure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(failure.message),
-              backgroundColor: AppColors.error,
-            ),
-          );
+          SacSnackBar.show(context, failure.message, isError: true);
         },
         (_) {
           ref.invalidate(
             orderDetailProvider(orden.folioReferencia ?? orden.id),
           );
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('materials.order.cancelled_snackbar'.tr())),
-          );
+          SacSnackBar.show(context, 'materials.order.cancelled_snackbar'.tr());
         },
       );
     } finally {

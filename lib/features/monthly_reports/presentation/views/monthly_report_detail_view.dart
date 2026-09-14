@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/utils/app_logger.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../domain/entities/monthly_report.dart';
 import '../providers/monthly_reports_providers.dart';
@@ -320,17 +321,14 @@ class _StickyActionBarState extends ConsumerState<_StickyActionBar> {
   Future<void> _openPdf() async {
     setState(() => _isOpeningPdf = true);
     try {
-      ScaffoldMessenger.of(context).showSnackBar(
-        monthlyReportSnackBar(
-          content: Text('monthly_reports.detail.downloading_pdf'.tr()),
+      SacSnackBar.show(context, 'monthly_reports.detail.downloading_pdf'.tr(),
           duration: const Duration(seconds: 30),
-        ),
-      );
+          behavior: SnackBarBehavior.fixed);
       final localPath = await ref.read(
         monthlyReportPdfProvider(widget.report.id).future,
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      SacSnackBar.hide(context);
       SacPdfViewer.show(
         context,
         pdfSource: localPath,
@@ -343,18 +341,15 @@ class _StickyActionBarState extends ConsumerState<_StickyActionBar> {
         error: e,
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        monthlyReportSnackBar(
-          content: Text(
-            'monthly_reports.detail.pdf_error'.tr(
-              namedArgs: {
-                'error': e.toString().replaceFirst('Exception: ', ''),
-              },
-            ),
+      SacSnackBar.hide(context);
+      SacSnackBar.show(
+          context,
+          'monthly_reports.detail.pdf_error'.tr(
+            namedArgs: {
+              'error': e.toString().replaceFirst('Exception: ', ''),
+            },
           ),
-        ),
-      );
+          behavior: SnackBarBehavior.fixed);
     } finally {
       if (mounted) setState(() => _isOpeningPdf = false);
     }

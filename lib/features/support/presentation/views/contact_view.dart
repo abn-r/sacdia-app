@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ContactView extends StatelessWidget {
@@ -53,12 +54,7 @@ class ContactView extends StatelessWidget {
   }
 
   void _showMessage(BuildContext context, String value) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(value),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    SacSnackBar.show(context, value);
   }
 
   @override

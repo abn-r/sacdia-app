@@ -12,6 +12,7 @@ import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 
@@ -511,17 +512,13 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
           .approveRequest(request.assignmentId);
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              success
-                  ? tr('members.view.request_approved',
-                      namedArgs: {'name': request.fullName})
-                  : 'members.view.approve_error'.tr(),
-            ),
-            backgroundColor: success ? AppColors.secondary : AppColors.error,
-            behavior: SnackBarBehavior.floating,
-          ),
+        SacSnackBar.show(
+          context,
+          success
+              ? tr('members.view.request_approved',
+                  namedArgs: {'name': request.fullName})
+              : 'members.view.approve_error'.tr(),
+          isError: !success,
         );
       }
     } finally {
@@ -540,17 +537,13 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
           .rejectRequest(request.assignmentId);
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              success
-                  ? tr('members.view.request_rejected',
-                      namedArgs: {'name': request.fullName})
-                  : 'members.view.reject_error'.tr(),
-            ),
-            backgroundColor: success ? AppColors.secondary : AppColors.error,
-            behavior: SnackBarBehavior.floating,
-          ),
+        SacSnackBar.show(
+          context,
+          success
+              ? tr('members.view.request_rejected',
+                  namedArgs: {'name': request.fullName})
+              : 'members.view.reject_error'.tr(),
+          isError: !success,
         );
       }
     } finally {

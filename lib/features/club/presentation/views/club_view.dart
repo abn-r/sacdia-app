@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/animations/page_transitions.dart';
@@ -184,15 +185,8 @@ class _ClubViewState extends ConsumerState<ClubView> {
 
       ref.invalidate(currentClubSectionProvider);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('club.update_success'.tr()),
-          backgroundColor: AppColors.secondary,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
+      SacSnackBar.show(context, 'club.update_success'.tr(),
+          backgroundColor: AppColors.secondary);
     }
   }
 
@@ -217,14 +211,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+    SacSnackBar.show(context, message, isError: true);
   }
 
   String? _coordsHelper() {

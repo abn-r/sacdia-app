@@ -7,11 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../theme/app_colors.dart';
 import '../../theme/sac_colors.dart';
 import '../../utils/app_logger.dart';
 import '../sac_button.dart';
 import '../sac_dialog.dart';
+import '../sac_snack_bar.dart';
 import 'image_source_dialog.dart';
 import 'staged_file.dart';
 import 'staged_file_grid.dart';
@@ -642,32 +642,30 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
 
   void _showErrorSnackbar(BuildContext context, String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      _buildErrorSnackBar(message),
+    SacSnackBar.show(
+      context,
+      message,
+      isError: true,
+      leading: const HugeIcon(
+        icon: HugeIcons.strokeRoundedAlert02,
+        color: Colors.white,
+        size: 18,
+      ),
     );
   }
 
   void _showErrorSnackbarViaMessenger(
       ScaffoldMessengerState messenger, String message) {
     if (!mounted) return;
-    messenger.showSnackBar(_buildErrorSnackBar(message));
-  }
-
-  SnackBar _buildErrorSnackBar(String message) {
-    return SnackBar(
-      content: Row(
-        children: [
-          const HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              color: Colors.white,
-              size: 18),
-          const SizedBox(width: 8),
-          Expanded(child: Text(message)),
-        ],
+    SacSnackBar.showMessenger(
+      messenger,
+      message,
+      isError: true,
+      leading: const HugeIcon(
+        icon: HugeIcons.strokeRoundedAlert02,
+        color: Colors.white,
+        size: 18,
       ),
-      backgroundColor: AppColors.error,
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     );
   }
 

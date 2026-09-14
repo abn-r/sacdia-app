@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/widgets/sac_network_image.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/classes/domain/entities/progressive_class.dart';
 import 'package:sacdia_app/features/classes/domain/usecases/enroll_previous_class.dart';
@@ -539,15 +540,9 @@ class _EnrollPreviousClassSheetState
       (_) {
         ref.invalidate(userClassesProvider);
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Inscripción en "${_selectedClass!.name}" registrada exitosamente',
-            ),
-            backgroundColor: AppColors.secondary,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        SacSnackBar.show(context,
+            'Inscripción en "${_selectedClass!.name}" registrada exitosamente',
+            backgroundColor: AppColors.secondary);
       },
     );
   }

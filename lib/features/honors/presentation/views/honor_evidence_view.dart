@@ -25,6 +25,7 @@ import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../validation/domain/entities/validation.dart';
@@ -167,12 +168,8 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
       ref.invalidate(userHonorsProvider);
       ref.invalidate(userHonorForHonorProvider(widget.honorId));
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('honors.evidence.sent_review'.tr()),
-          backgroundColor: AppColors.success,
-        ),
-      );
+      SacSnackBar.show(context, 'honors.evidence.sent_review'.tr(),
+          backgroundColor: AppColors.success);
     }
   }
 
@@ -330,13 +327,11 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
       final fileSize = await File(localPath).length();
       if (fileSize > _maxFileSizeBytes) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('honors.evidence.file_size_error'
-                  .tr(namedArgs: {'name': pickedFile.name})),
-              backgroundColor: AppColors.error,
-            ),
-          );
+          SacSnackBar.show(
+              context,
+              'honors.evidence.file_size_error'
+                  .tr(namedArgs: {'name': pickedFile.name}),
+              isError: true);
         }
         continue;
       }
@@ -472,12 +467,8 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
     final userId = ref.read(authNotifierProvider).value?.id;
     if (userId == null) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('honors.evidence.no_session'.tr()),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        SacSnackBar.show(context, 'honors.evidence.no_session'.tr(),
+            isError: true);
       }
       throw StateError('No active session');
     }
@@ -515,23 +506,18 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
           );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(success
-                ? 'honors.evidence.delete_success'.tr()
-                : 'honors.evidence.delete_error'.tr()),
-            backgroundColor: success ? AppColors.success : AppColors.error,
-          ),
+        SacSnackBar.show(
+          context,
+          success
+              ? 'honors.evidence.delete_success'.tr()
+              : 'honors.evidence.delete_error'.tr(),
+          isError: !success,
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('honors.evidence.delete_error'.tr()),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        SacSnackBar.show(context, 'honors.evidence.delete_error'.tr(),
+            isError: true);
       }
     } finally {
       if (mounted) setState(() => _isUploading = false);

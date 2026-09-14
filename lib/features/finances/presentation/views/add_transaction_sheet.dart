@@ -11,6 +11,7 @@ import 'package:mime/mime.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -368,13 +369,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
           final error =
               _evidenceError ?? 'finances.errors.upload_evidence'.tr();
           ref.read(transactionFormNotifierProvider.notifier).reset();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(error),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          SacSnackBar.show(context, error, isError: true);
           Navigator.pop(context, true);
         }
         return;
@@ -383,13 +378,8 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
 
     if (mounted) {
       ref.read(transactionFormNotifierProvider.notifier).reset();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('finances.add_transaction.save_success'.tr()),
-          backgroundColor: AppColors.secondary,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      SacSnackBar.show(context, 'finances.add_transaction.save_success'.tr(),
+          backgroundColor: AppColors.secondary);
       Navigator.pop(context, true);
     }
   }

@@ -23,6 +23,7 @@ import 'package:sacdia_app/features/honors/presentation/providers/honors_provide
 import 'package:sacdia_app/features/honors/presentation/widgets/choice_group_header.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/requirement_tree_item.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 // ── Local state helpers ───────────────────────────────────────────────────────
 
@@ -298,16 +299,8 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
         );
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('honors.requirements.success_saved'.tr()),
-          backgroundColor: categoryColor,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      SacSnackBar.show(context, 'honors.requirements.success_saved'.tr(),
+          backgroundColor: categoryColor, duration: const Duration(seconds: 2));
     }
   }
 
@@ -416,12 +409,8 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
     final userId = ref.read(authNotifierProvider).valueOrNull?.id;
     if (userId == null) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('honors.evidence.no_session'.tr()),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      SacSnackBar.show(context, 'honors.evidence.no_session'.tr(),
+          isError: true);
       return;
     }
 
@@ -441,15 +430,12 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
 
     setState(() => _uploadingRequirementId = null);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          success
-              ? 'honors.requirements.requirement_evidence_success'.tr()
-              : 'honors.requirements.requirement_evidence_error'.tr(),
-        ),
-        backgroundColor: success ? AppColors.success : AppColors.error,
-      ),
+    SacSnackBar.show(
+      context,
+      success
+          ? 'honors.requirements.requirement_evidence_success'.tr()
+          : 'honors.requirements.requirement_evidence_error'.tr(),
+      isError: !success,
     );
   }
 

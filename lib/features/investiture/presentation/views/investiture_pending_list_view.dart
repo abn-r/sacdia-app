@@ -14,6 +14,7 @@ import '../providers/investiture_providers.dart';
 import '../widgets/investiture_status_badge.dart';
 import 'investiture_history_view.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// Vista para coordinadores/admins: lista de enrollments pendientes de validación.
@@ -481,14 +482,7 @@ class _PendingCard extends ConsumerWidget {
   }
 
   void _showSnackbar(BuildContext context, String msg, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: color,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+    SacSnackBar.show(context, msg, backgroundColor: color);
   }
 }
 

@@ -13,6 +13,7 @@ import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
+import '../../../../core/widgets/sac_snack_bar.dart';
 import '../../../../core/widgets/sac_text_field.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -315,28 +316,11 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
   // ── Helpers ──────────────────────────────────────────────────────────────
 
   void _showSnackbar(String message, Color color, dynamic icon) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            HugeIcon(icon: icon, color: Colors.white, size: 18),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                message,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: color,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(16),
-      ),
+    SacSnackBar.show(
+      context,
+      message,
+      backgroundColor: color,
+      leading: HugeIcon(icon: icon, color: Colors.white, size: 18),
     );
   }
 

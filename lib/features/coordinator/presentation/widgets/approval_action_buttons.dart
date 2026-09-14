@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import '../../../../core/theme/app_colors.dart';
 
 /// Barra de acciones de aprobación/rechazo para evidencias y camporees.
@@ -183,12 +184,5 @@ void showActionSnackbar(
   required bool success,
 }) {
   if (!context.mounted) return;
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(message),
-      backgroundColor: success ? AppColors.secondary : AppColors.error,
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-    ),
-  );
+  SacSnackBar.show(context, message, isError: !success);
 }

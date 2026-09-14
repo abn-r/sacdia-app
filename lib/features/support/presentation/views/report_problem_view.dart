@@ -11,6 +11,7 @@ import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../domain/entities/support_category.dart';
 import '../../domain/entities/support_report.dart';
@@ -78,13 +79,8 @@ class _ReportProblemViewState extends ConsumerState<ReportProblemView> {
     if (state.success != null) {
       _showSuccessDialog();
     } else if (state.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(state.errorMessage!),
-          backgroundColor: context.sac.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      SacSnackBar.show(context, state.errorMessage!,
+          backgroundColor: context.sac.error);
     }
   }
 

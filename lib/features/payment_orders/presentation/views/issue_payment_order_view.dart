@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/insurance/domain/entities/member_insurance.dart';
 import 'package:sacdia_app/features/insurance/presentation/providers/insurance_providers.dart';
 import 'package:sacdia_app/features/insurance/presentation/widgets/insurance_status_badge.dart';
@@ -275,19 +276,12 @@ class _IssueOrderForm extends ConsumerWidget {
           );
 
     if (order != null && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'payment_orders.issue.success'.tr(
-              namedArgs: {'folio': order.folioReference},
-            ),
+      SacSnackBar.show(
+          context,
+          'payment_orders.issue.success'.tr(
+            namedArgs: {'folio': order.folioReference},
           ),
-          backgroundColor: AppColors.secondary,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
+          backgroundColor: AppColors.secondary);
       context.pushReplacement(
         RouteNames.paymentOrderDetailPath(order.orderId),
       );

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
@@ -181,16 +182,12 @@ class _SectionSwitcherSheetState extends ConsumerState<_SectionSwitcherSheet> {
       // directly guarantees the dashboard re-fetches with the new context.
       ref.invalidate(dashboardNotifierProvider);
 
-      messenger.showSnackBar(
-        SnackBar(content: Text(tr('core.section_switcher.switch_success'))),
-      );
+      SacSnackBar.showMessenger(
+          messenger, tr('core.section_switcher.switch_success'));
     } else {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(tr('core.section_switcher.switch_error')),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      SacSnackBar.showMessenger(
+          messenger, tr('core.section_switcher.switch_error'),
+          isError: true);
     }
   }
 

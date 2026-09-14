@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../domain/entities/camporee_payment.dart';
 import '../providers/camporees_providers.dart';
@@ -675,15 +676,8 @@ class _CamporeePaymentFormSheetState
             );
 
     if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('camporees.payments.success'.tr()),
-          backgroundColor: AppColors.secondary,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
+      SacSnackBar.show(context, 'camporees.payments.success'.tr(),
+          backgroundColor: AppColors.secondary);
       Navigator.of(context).pop();
     }
   }
