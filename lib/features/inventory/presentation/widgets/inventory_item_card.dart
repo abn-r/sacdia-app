@@ -50,7 +50,7 @@ class InventoryItemCard extends StatelessWidget {
         background: _SwipeBackground(
           alignment: Alignment.centerLeft,
           color: AppColors.secondary.withValues(alpha: 0.15),
-          icon: HugeIcons.strokeRoundedEdit01,
+          icon: HugeIcons.strokeRoundedEdit02,
           iconColor: AppColors.secondary,
           label: 'inventory.item_card.edit_label'.tr(),
           labelColor: AppColors.secondary,

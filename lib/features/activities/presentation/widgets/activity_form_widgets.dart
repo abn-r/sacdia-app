@@ -74,7 +74,6 @@ class _TimePickerSheetState extends State<_TimePickerSheet> {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final theme = Theme.of(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -86,51 +85,25 @@ class _TimePickerSheetState extends State<_TimePickerSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Drag handle
-          Padding(
-            padding: const EdgeInsets.only(top: 12, bottom: 4),
-            child: Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: c.border,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                ),
-              ),
-            ),
-          ),
-
-          // Header — título y botón Listo
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'activities.widgets.time_picker_title'.tr(),
-                  style: theme.textTheme.titleMedium?.copyWith(
+          SacSheetHeader(
+            title: 'activities.widgets.time_picker_title'.tr(),
+            actions: [
+              TextButton(
+                onPressed: _confirm,
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  textStyle: const TextStyle(
+                    fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: c.text,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
                   ),
                 ),
-                TextButton(
-                  onPressed: _confirm,
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    textStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                  ),
-                  child: Text('activities.widgets.time_picker_done'.tr()),
-                ),
-              ],
-            ),
+                child: Text('activities.widgets.time_picker_done'.tr()),
+              ),
+            ],
           ),
 
           Divider(height: 1, color: c.border),

@@ -746,7 +746,7 @@ class _AllergiesSelectionViewState
                             child: Column(
                               children: [
                                 HugeIcon(
-                                  icon: HugeIcons.strokeRoundedSearchMinus,
+                                  icon: HugeIcons.strokeRoundedSearchRemove,
                                   size: 64,
                                   color: m.iconMuted.withValues(alpha: 0.6),
                                 ),

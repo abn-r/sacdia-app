@@ -72,18 +72,7 @@ class NotificationCard extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Center(
-                          child: Container(
-                            width: 38,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: sheetC.textTertiary.withValues(
-                                alpha: 0.36,
-                              ),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                          ),
-                        ),
+                        const SacSheetGrabber(padded: false),
                         const SizedBox(height: 18),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,

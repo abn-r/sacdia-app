@@ -1,5 +1,5 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -38,10 +38,10 @@ class CertificateImportItemCard extends StatelessWidget {
         : '${(item.ocrConfidence! * 100).round()}% OCR';
     final isRejected = item.isRejected || item.rejectionReason != null;
     final statusLabel = isRejected
-        ? 'RECHAZADO'
+        ? 'certificate_import.item.rejected'.tr()
         : _isComplete
-            ? 'LISTO'
-            : 'FALTA DATO';
+            ? 'certificate_import.item.ready'.tr()
+            : 'certificate_import.item.missing'.tr();
 
     return SacCard(
       child: Column(
@@ -50,7 +50,9 @@ class CertificateImportItemCard extends StatelessWidget {
           Row(
             children: [
               SacBadge(
-                label: isHonor ? 'HONOR' : 'CLASE',
+                label: isHonor
+                    ? 'certificate_import.item.honor'.tr()
+                    : 'certificate_import.item.class'.tr(),
                 variant:
                     isHonor ? SacBadgeVariant.accent : SacBadgeVariant.primary,
               ),
@@ -75,7 +77,7 @@ class CertificateImportItemCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            item.detectedName ?? 'Sin nombre detectado',
+            item.detectedName ?? 'certificate_import.item.unnamed'.tr(),
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: c.text,
                   fontWeight: FontWeight.w700,
@@ -101,14 +103,14 @@ class CertificateImportItemCard extends StatelessWidget {
           const SizedBox(height: 14),
           if (onResubmit != null && isRejected)
             SacButton.outline(
-              text: 'Corregir y reenviar',
+              text: 'certificate_import.item.fix_resubmit'.tr(),
               onPressed: onResubmit,
             )
           else
             Align(
               alignment: Alignment.centerRight,
               child: SacButton.ghost(
-                text: 'Corregir',
+                text: 'certificate_import.item.fix'.tr(),
                 onPressed: onEdit,
               ),
             ),
@@ -120,11 +122,14 @@ class CertificateImportItemCard extends StatelessWidget {
   String _subtitle() {
     final date = item.completedAt ?? item.detectedDate;
     final formattedDate = date == null
-        ? 'fecha pendiente'
+        ? 'certificate_import.proof.date_pending'.tr()
         : DateFormat('dd/MM/yyyy').format(date);
     final catalogId = item.type == CertificateImportItemType.honor
         ? item.honorId
         : item.classId;
-    return 'Catálogo: ${catalogId ?? 'pendiente'} · $formattedDate';
+    return 'certificate_import.item.catalog_meta'.tr(namedArgs: {
+      'id': '${catalogId ?? 'certificate_import.item.catalog_pending'.tr()}',
+      'date': formattedDate,
+    });
   }
 }

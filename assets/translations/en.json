@@ -1401,8 +1401,10 @@
       "delete_sheet_body": "The unit \"{name}\" will become inactive and keep its operational history.",
       "delete_sheet_confirm": "Deactivate unit",
       "delete_sheet_cancel": "Keep unit",
-      "empty_title": "You have no units assigned",
-      "empty_subtitle": "Contact your club director\nto have a unit assigned to you."
+      "empty_title": "No units",
+      "empty_subtitle": "Contact your club director\nto have a unit assigned to you.",
+      "empty_subtitle_can_create": "Create the first unit for your club.",
+      "empty_action": "Create unit"
     },
     "detail": {
       "scores_title": "Weekly points",
@@ -1431,7 +1433,7 @@
     },
     "member_of_month": {
       "history_title": "Miembro del Mes — Historial",
-      "empty": "No hay datos de miembro del mes aun.",
+      "empty": "No member of the month data yet.",
       "no_more_records": "No hay mas registros",
       "tie_badge": "Tied",
       "points": "{points} puntos"
@@ -1791,7 +1793,8 @@
       "node_current": "IN PROGRESS · {progress}%",
       "node_not_taken": "NOT TAKEN",
       "node_upcoming": "UPCOMING",
-      "node_expired": "EXPIRED"
+      "node_expired": "EXPIRED",
+      "title": "My Journey"
     },
     "status_history": {
       "title": "Status history",
@@ -2050,7 +2053,7 @@
       "payment_type_transfer": "Transfer",
       "payment_type_check": "Check",
       "payment_type_card": "Card",
-      "empty": "No payments registered",
+      "empty": "No payments recorded",
       "empty_hint": "This member has no payments registered for this camporee.",
       "form_title": "Register payment",
       "amount_label": "Amount *",
@@ -2196,7 +2199,7 @@
     "view": {
       "title": "Finances",
       "empty_title": "No movements this month",
-      "empty_subtitle": "Tap Add to create the first record.",
+      "empty_subtitle": "Add the first record.",
       "error_title": "Error loading finances",
       "recent_transactions": "Recent Transactions",
       "view_all": "View all →",
@@ -2575,7 +2578,7 @@
     "header_title": "All resources",
     "error_loading": "Error loading resources",
     "empty_title": "No resources available",
-    "empty_subtitle": "Prueba con otro filtro o búsqueda",
+    "empty_subtitle": "Try another filter or search",
     "no_more": "No more resources",
     "list_label": {
       "all": "All files",
@@ -2670,7 +2673,7 @@
       },
       "filter_status": "Status: {status}",
       "error_load": "Error loading inventory",
-      "empty_title": "Your inventory is empty",
+      "empty_title": "No items in inventory",
       "empty_subtitle_can_add": "Start by registering the first item\nof your club",
       "empty_subtitle_cannot_add": "The club inventory is empty.",
       "add_first_item": "Add first item",
@@ -3739,7 +3742,7 @@
       "label_assigned": "Assigned",
       "label_revoked": "Revoked",
       "empty_title": "No assigned roles",
-      "empty_body": "You have no assigned roles in any club. Administrators can assign you roles from the admin panel.",
+      "empty_body": "There are no roles assigned in any club. Administrators can assign roles from the admin panel.",
       "retry": "Retry"
     }
   },
@@ -4463,7 +4466,7 @@
     },
     "history": {
       "title": "Orders",
-      "empty_title": "No orders yet",
+      "empty_title": "No orders",
       "empty_subtitle": "Orders you place will show up here.",
       "go_catalog": "Go to catalog",
       "error_title": "Couldn't load order history",
@@ -4482,11 +4485,205 @@
       "list_comprobantes": "Couldn't load receipts",
       "upload_comprobante": "Couldn't upload the receipt",
       "get_config": "Couldn't load payment settings"
+    },
+    "cart": {
+      "title": "Cart",
+      "clear": "Clear",
+      "clear_title": "Clear cart",
+      "clear_body": "Remove every product from the cart?",
+      "subtotal": "Subtotal",
+      "continue": "Continue",
+      "empty_title": "No products in the cart",
+      "empty_subtitle": "Add products from the catalog",
+      "go_catalog": "Go to catalog"
+    },
+    "product": {
+      "title": "Product details",
+      "sku": "SKU: {sku}",
+      "select_variant": "Select {name}:",
+      "qty": "Quantity:",
+      "add_to_cart": "Add to cart",
+      "out_of_stock": "Out of stock",
+      "added_snackbar": "{title} added to cart",
+      "view_cart": "View cart"
+    },
+    "summary": {
+      "title": "Confirm order",
+      "intro": "Review the details before confirming your order.",
+      "delivery_section": "Delivery details",
+      "mode": "Method",
+      "pickup": "Pick up at camp",
+      "ship": "Ship to address",
+      "ship_hint": "Local field will coordinate shipping details after approving the order.",
+      "order_section": "Order summary",
+      "notes_label": "Notes (optional)",
+      "notes_hint": "Special instructions, comments…",
+      "shipping": "Shipping cost",
+      "total": "Total",
+      "confirm": "Confirm order"
+    },
+    "order": {
+      "title": "Order details",
+      "refresh": "Refresh",
+      "created_on": "Created on {date}",
+      "review_banner": "Request is under review by local field.",
+      "products": "Products",
+      "totals": "Totals",
+      "shipping": "Shipping",
+      "receipts": "Receipts",
+      "cancel": "Cancel order",
+      "approved_title": "Order approved",
+      "approved_body": "Your order was approved. Make the transfer and upload the receipt.",
+      "view_payment": "View payment details",
+      "upload_receipt": "Upload receipt",
+      "paid_waiting": "Payment validated. Waiting for delivery.",
+      "delivered_title": "Your order was delivered",
+      "cancel_reason": "Cancellation reason",
+      "new_order": "Place a new order",
+      "cancel_title": "Cancel order",
+      "cancel_body": "Are you sure you want to cancel this order?",
+      "reason_label": "Reason (required)",
+      "reason_required": "Enter a cancellation reason.",
+      "cancelled_snackbar": "Order cancelled.",
+      "no_receipts": "No receipts uploaded yet.",
+      "receipt_approved": "Approved",
+      "receipt_rejected": "Rejected",
+      "receipt_pending": "Pending",
+      "load_error": "Couldn't load the order"
+    },
+    "payment": {
+      "title": "Payment details",
+      "bank_ref": "Bank reference",
+      "reference": "Reference",
+      "account": "Account details",
+      "bank": "Bank",
+      "holder": "Account holder",
+      "clabe": "CLABE",
+      "amount": "Amount due",
+      "transfer_hint": "Transfer to the CLABE above. Use the reference as the payment concept so local field can identify it.",
+      "paid_upload": "I already paid, upload receipt",
+      "no_payment_needed": "This order does not require payment",
+      "cannot_upload": "The current order status does not allow uploading a receipt.",
+      "copy": "Copy",
+      "copied": "{label} copied"
+    },
+    "receipt": {
+      "title": "Upload receipt",
+      "file_too_large": "The file exceeds the 10 MB limit.",
+      "file_required": "Select a file to continue.",
+      "date_required": "Select the payment date.",
+      "sent": "Receipt sent. Local field will validate it soon.",
+      "sending": "Sending receipt…",
+      "file_section": "Receipt file",
+      "pick_file": "Select file (PDF, JPG, PNG)",
+      "amount": "Amount paid",
+      "concept": "Transfer concept",
+      "concept_hint": "E.g. SOL20260001",
+      "concept_required": "Enter the reference you used.",
+      "date_section": "Payment date",
+      "pick_date": "Select date",
+      "submit": "Send receipt",
+      "change": "Change",
+      "amount_min": "Enter an amount greater than $0.00"
+    },
+    "status": {
+      "in_review": "In review",
+      "approved": "Approved",
+      "paid": "Paid",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
     }
   },
   "membership": {
     "not_enrolled_this_year": "Not enrolled this year. Club officers complete your enrollment",
     "enroll_this_year": "Enroll",
     "enroll_error": "Error enrolling. Please try again."
+  },
+  "certificate_import": {
+    "upload": {
+      "title": "Certificate upload",
+      "hint": "You can mix honors and classes. SACDIA detects candidates; confirm the data before submitting.",
+      "submit": "Upload receipt",
+      "camera": "Take photo",
+      "file": "Choose file",
+      "picker_error": "Couldn't open the receipt picker.",
+      "no_submit": "No process is configured to submit receipts.",
+      "hero_title": "Upload your receipts and SACDIA will read them",
+      "hero_body": "Assisted OCR for honors and classes. Less manual entry, same duty: review before sending.",
+      "selected_one": "Receipt selected",
+      "selected_other": "{count} receipts selected"
+    },
+    "processing": {
+      "title": "Reading receipt",
+      "running_title": "We are reading your receipt",
+      "error_title": "We couldn't read everything",
+      "running_body": "We extract honors, classes and dates so you can confirm the data.",
+      "error_body": "You can retry OCR or complete the data manually. We won't leave you stuck.",
+      "step_upload": "Uploading file",
+      "step_ocr": "Reading text",
+      "step_results": "Preparing results",
+      "manual": "Complete manually",
+      "retry": "Retry reading"
+    },
+    "review": {
+      "title": "Review the data",
+      "load_error": "We couldn't load the batch: {error}",
+      "found": "We found",
+      "honor_one": "{count} honor",
+      "honor_other": "{count} honors",
+      "class_one": "{count} class",
+      "class_other": "{count} classes",
+      "and": "and",
+      "filter_all": "All {count}",
+      "filter_ready": "Ready {count}",
+      "filter_missing": "Missing data {count}",
+      "empty_filter": "No rows for this filter.",
+      "submit": "Send for review",
+      "ready_dock": "{count} ready",
+      "missing_dock": "{count} missing data"
+    },
+    "status": {
+      "title": "Submission status",
+      "load_error": "We couldn't load the status: {error}",
+      "corrections_title": "Pending corrections",
+      "in_review_title": "In review",
+      "corrections_body": "There are pending corrections",
+      "in_review_body": "Your local field is reviewing this submission.",
+      "counts": "Approved: {approved} · Rejected: {rejected} · Pending: {pending}"
+    },
+    "item": {
+      "honor": "HONOR",
+      "class": "CLASS",
+      "rejected": "REJECTED",
+      "ready": "READY",
+      "missing": "MISSING DATA",
+      "unnamed": "No name detected",
+      "fix_resubmit": "Fix and resubmit",
+      "fix": "Fix",
+      "catalog_meta": "Catalog: {id} · {date}",
+      "catalog_pending": "pending"
+    },
+    "editor": {
+      "title": "Edit row",
+      "honor": "Honor",
+      "class": "Class",
+      "name": "Detected name",
+      "catalog_id": "Catalog ID",
+      "completed_at": "Completion date",
+      "date_hint": "YYYY-MM-DD",
+      "save": "Save correction"
+    },
+    "proof": {
+      "title": "Imported record",
+      "missing": "Details unavailable. Open it from an imported record.",
+      "unnamed": "Unnamed record",
+      "imported_badge": "Imported record",
+      "date_pending": "Date pending",
+      "applied": "Applied in {type} #{id}"
+    }
+  },
+  "master_honors": {
+    "title": "Master honors",
+    "empty_title": "No master honors available"
   }
 }

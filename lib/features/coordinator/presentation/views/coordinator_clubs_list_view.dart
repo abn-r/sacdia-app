@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/coordinator_club.dart';
 import 'package:sacdia_app/features/coordinator/presentation/providers/coordinator_providers.dart';
@@ -409,37 +410,10 @@ class _ClubsEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedBuilding04,
-              size: 56,
-              color: c.textTertiary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'coordinator.clubs.empty_title'.tr(),
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
-                color: c.text,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'coordinator.clubs.empty_subtitle'.tr(),
-              style: TextStyle(fontSize: 14, color: c.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
+    return SacEmptyState(
+      icon: HugeIcons.strokeRoundedBuilding04,
+      title: 'coordinator.clubs.empty_title'.tr(),
+      body: 'coordinator.clubs.empty_subtitle'.tr(),
     );
   }
 }

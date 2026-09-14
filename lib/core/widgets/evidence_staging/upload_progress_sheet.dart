@@ -129,15 +129,7 @@ class _UploadProgressSheetContentState
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Drag handle
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: c.border,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
+            const SacSheetGrabber(padded: false),
             const SizedBox(height: 16),
 
             // Header

@@ -10,7 +10,8 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../../auth/domain/utils/authorization_utils.dart';
@@ -163,29 +164,30 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
     // Lo obtenemos del provider (asíncrono — usamos una variable local)
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: Text('units.list.title'.tr()),
-      ),
-      floatingActionButton: canCreate
-          ? FloatingActionButton(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
+      appBar: SacTopBar(
+        title: 'units.list.title'.tr(),
+        actions: [
+          if (canCreate)
+            IconButton(
+              tooltip: 'units.list.empty_action'.tr(),
               onPressed: () {
-                // Notifier already calls refresh() internally on success,
-                // so the provider state update is automatic. No extra call needed.
                 showUnitFormSheet(context: context, ref: ref);
               },
-              child: const HugeIcon(
+              icon: HugeIcon(
                 icon: HugeIcons.strokeRoundedAdd01,
-                size: 26,
-                color: Colors.white,
+                size: 22,
+                color: AppColors.primary,
               ),
-            )
-          : null,
+            ),
+        ],
+      ),
       body: visibleUnits.isEmpty && !state.isLoading
-          ? _EmptyState()
+          ? _EmptyState(
+              canCreate: canCreate,
+              onCreate: canCreate
+                  ? () => showUnitFormSheet(context: context, ref: ref)
+                  : null,
+            )
           : _Body(
               state: state,
               visibleUnits: visibleUnits,
@@ -1005,7 +1007,7 @@ class _UnitActionsSheet extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           _ActionSheetTile(
-            icon: HugeIcons.strokeRoundedPencilEdit02,
+            icon: HugeIcons.strokeRoundedEdit02,
             title: 'units.list.edit_action_title'.tr(),
             subtitle: 'units.list.edit_action_subtitle'.tr(),
             color: accent,
@@ -1214,36 +1216,21 @@ class _ActionSheetTile extends StatelessWidget {
 // ── Empty State ───────────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
+  const _EmptyState({required this.canCreate, this.onCreate});
+
+  final bool canCreate;
+  final VoidCallback? onCreate;
+
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedUserGroup,
-            size: 64,
-            color: c.textTertiary,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'units.list.empty_title'.tr(),
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: c.textSecondary,
-                ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'units.list.empty_subtitle'.tr(),
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: c.textTertiary,
-                ),
-          ),
-        ],
-      ),
+    return SacEmptyState(
+      icon: HugeIcons.strokeRoundedUserGroup,
+      title: 'units.list.empty_title'.tr(),
+      body: canCreate
+          ? 'units.list.empty_subtitle_can_create'.tr()
+          : 'units.list.empty_subtitle'.tr(),
+      actionLabel: canCreate ? 'units.list.empty_action'.tr() : null,
+      onAction: onCreate,
     );
   }
 }

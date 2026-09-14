@@ -97,15 +97,7 @@ class _MasterHonorDetailSheetState extends State<MasterHonorDetailSheet>
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             child: Column(
               children: [
-                const SizedBox(height: 10),
-                Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: c.border.withValues(alpha: 0.9),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
+                const SacSheetGrabber(),
                 Expanded(
                   child: FadeTransition(
                     opacity: _fade,

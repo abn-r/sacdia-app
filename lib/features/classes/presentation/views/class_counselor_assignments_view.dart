@@ -8,7 +8,7 @@ import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/role_utils.dart';
-import '../../../../core/widgets/sac_back_button.dart';
+import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../../core/widgets/sac_card.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_text_field.dart';
@@ -161,10 +161,8 @@ class ClassCounselorAssignmentsView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.sac.canvas,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: Text('classes.class_assignments.title'.tr()),
+      appBar: SacTopBar(
+        title: 'classes.class_assignments.title'.tr(),
       ),
       body: assignmentsAsync.when(
         loading: () => const Center(child: SacLoading()),
@@ -530,9 +528,8 @@ class _AssignmentAddActionState extends State<_AssignmentAddAction> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
             decoration: BoxDecoration(
-              color: enabled
-                  ? AppColors.primary.withValues(alpha: 0.10)
-                  : c.ink50,
+              color:
+                  enabled ? AppColors.primary.withValues(alpha: 0.10) : c.ink50,
               borderRadius: BorderRadius.circular(999),
             ),
             child: Row(
@@ -731,17 +728,7 @@ class _AssignmentTile extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 10),
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: c.ink150,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                ),
-              ),
+              const SacSheetGrabber(),
               const SizedBox(height: 18),
 
               // Identity header: quién y qué asignación
@@ -814,7 +801,7 @@ class _AssignmentTile extends StatelessWidget {
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: _SheetAction(
-                    icon: HugeIcons.strokeRoundedPencilEdit02,
+                    icon: HugeIcons.strokeRoundedEdit02,
                     label: 'common.edit'.tr(),
                     tint: AppColors.primary,
                     labelColor: c.ink900,

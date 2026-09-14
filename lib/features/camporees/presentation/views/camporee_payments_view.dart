@@ -5,9 +5,11 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../../domain/entities/camporee_payment.dart';
 import '../providers/camporees_providers.dart';
@@ -38,28 +40,10 @@ class CamporeePaymentsView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        backgroundColor: c.background,
-        surfaceTintColor: Colors.transparent,
-        title: Text(
-          memberName != null
-              ? 'camporees.payments.title'.tr(namedArgs: {'name': memberName!})
-              : 'camporees.payments.title_fallback'.tr(),
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
-            color: c.text,
-          ),
-        ),
-        centerTitle: false,
-        leading: IconButton(
-          icon: HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowLeft01,
-            color: c.text,
-            size: 22,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+      appBar: SacTopBar(
+        title: memberName != null
+            ? 'camporees.payments.title'.tr(namedArgs: {'name': memberName!})
+            : 'camporees.payments.title_fallback'.tr(),
         actions: [
           IconButton(
             icon: HugeIcon(
@@ -70,7 +54,6 @@ class CamporeePaymentsView extends ConsumerWidget {
             tooltip: 'camporees.payments.register_tooltip'.tr(),
             onPressed: () => _openPaymentForm(context, ref),
           ),
-          const SizedBox(width: 4),
         ],
       ),
       body: paymentsAsync.when(
@@ -112,25 +95,10 @@ class CamporeePaymentsView extends ConsumerWidget {
                         child: _PaymentCard(payment: entry.value),
                       ),
                     ),
-                const SizedBox(height: 80),
               ],
             ),
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openPaymentForm(context, ref),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        icon: const HugeIcon(
-          icon: HugeIcons.strokeRoundedAdd01,
-          color: Colors.white,
-          size: 20,
-        ),
-        label: Text(
-          'camporees.payments.register_button'.tr(),
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
       ),
     );
   }
@@ -486,17 +454,7 @@ class _CamporeePaymentFormSheetState
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Handle
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: c.border,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
+                const SacSheetGrabber(padded: false),
                 const SizedBox(height: 16),
 
                 Text(
@@ -740,43 +698,12 @@ class _EmptyBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedMoney01,
-              color: c.textTertiary,
-              size: 56,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'camporees.payments.empty'.tr(),
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: c.text,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'camporees.payments.empty_hint'.tr(),
-              style: TextStyle(fontSize: 14, color: c.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            SacButton.primary(
-              text: 'camporees.payments.register_button'.tr(),
-              icon: HugeIcons.strokeRoundedAdd01,
-              onPressed: onAdd,
-            ),
-          ],
-        ),
-      ),
+    return SacEmptyState(
+      icon: HugeIcons.strokeRoundedMoney01,
+      title: 'camporees.payments.empty'.tr(),
+      body: 'camporees.payments.empty_hint'.tr(),
+      actionLabel: 'camporees.payments.register_button'.tr(),
+      onAction: onAdd,
     );
   }
 }

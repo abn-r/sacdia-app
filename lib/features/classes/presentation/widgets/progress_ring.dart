@@ -91,7 +91,7 @@ class HeroDonut extends StatelessWidget {
         height: 56,
         child: TweenAnimationBuilder<double>(
           tween: Tween<double>(begin: 0, end: target),
-          duration: reduce ? Duration.zero : const Duration(milliseconds: 800),
+          duration: reduce ? Duration.zero : SacMotion.modal,
           curve: SacMotion.easeOut,
           builder: (context, animatedProgress, _) => CustomPaint(
             painter: _HeroDonutPainter(

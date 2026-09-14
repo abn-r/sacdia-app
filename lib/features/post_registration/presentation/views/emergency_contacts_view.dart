@@ -5,9 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/sac_colors.dart';
 import '../providers/personal_info_providers.dart';
 import '../widgets/contact_card.dart';
 import 'add_edit_contact_view.dart';
@@ -86,12 +86,14 @@ class EmergencyContactsView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final contactsAsync = ref.watch(emergencyContactsProvider);
+    final canAddMore = contactsAsync.maybeWhen(
+      data: (contacts) => contacts.isNotEmpty && contacts.length < 5,
+      orElse: () => false,
+    );
 
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: Text('post_registration.emergency_contacts.title'.tr()),
+      appBar: SacTopBar(
+        title: 'post_registration.emergency_contacts.title'.tr(),
         actions: [
           IconButton(
             icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 24),
@@ -101,6 +103,16 @@ class EmergencyContactsView extends ConsumerWidget {
             tooltip:
                 'post_registration.emergency_contacts.refresh_tooltip'.tr(),
           ),
+          if (canAddMore)
+            IconButton(
+              tooltip: 'post_registration.emergency_contacts.add_button'.tr(),
+              onPressed: () => _navigateToAddEdit(context),
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedAdd01,
+                size: 22,
+                color: AppColors.primary,
+              ),
+            ),
         ],
       ),
       body: contactsAsync.when(
@@ -131,41 +143,13 @@ class EmergencyContactsView extends ConsumerWidget {
         ),
         data: (contacts) {
           if (contacts.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedContactBook,
-                    size: 64,
-                    color: context.sac.textTertiary,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'post_registration.emergency_contacts.empty_title'.tr(),
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: context.sac.textSecondary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'post_registration.emergency_contacts.empty_subtitle'.tr(),
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: context.sac.textTertiary,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  SacButton(
-                    text:
-                        'post_registration.emergency_contacts.add_button'.tr(),
-                    icon: HugeIcons.strokeRoundedAdd01,
-                    onPressed: () => _navigateToAddEdit(context),
-                  ),
-                ],
-              ),
+            return SacEmptyState(
+              icon: HugeIcons.strokeRoundedContactBook,
+              title: 'post_registration.emergency_contacts.empty_title'.tr(),
+              body: 'post_registration.emergency_contacts.empty_subtitle'.tr(),
+              actionLabel:
+                  'post_registration.emergency_contacts.add_button'.tr(),
+              onAction: () => _navigateToAddEdit(context),
             );
           }
 
@@ -235,34 +219,6 @@ class EmergencyContactsView extends ConsumerWidget {
             ],
           );
         },
-      ),
-      floatingActionButton: contactsAsync.maybeWhen(
-        data: (contacts) {
-          // Solo mostrar cuando ya existan contactos y no se haya alcanzado el límite
-          if (contacts.isEmpty || contacts.length >= 5) return null;
-          return FloatingActionButton.extended(
-            onPressed: () => _navigateToAddEdit(context),
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedAdd01,
-              size: 22,
-              color: Colors.white,
-            ),
-            label: Text(
-              'post_registration.emergency_contacts.add_button'.tr(),
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.3,
-              ),
-            ),
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-          );
-        },
-        orElse: () => null,
       ),
     );
   }

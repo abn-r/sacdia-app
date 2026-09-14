@@ -1595,7 +1595,7 @@ class _StaggeredCardsState extends State<_StaggeredCards>
   // Single controller drives all stagger animations via per-card Intervals.
   // Saves N-1 controllers vs the previous design (one per card).
   static const int _count = 4;
-  static const Duration _totalDuration = Duration(milliseconds: 800);
+  static const Duration _totalDuration = SacMotion.modal;
   static const double _cardWindow = 350 / 800; // 0.4375
   static const double _cardOffset = 100 / 800; // 0.125 between starts
   static const double _baseStart = 150 / 800; // first card kickoff

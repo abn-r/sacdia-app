@@ -1401,8 +1401,10 @@
       "delete_sheet_body": "L'unité « {name} » deviendra inactive et conservera son historique opérationnel.",
       "delete_sheet_confirm": "Désactiver l'unité",
       "delete_sheet_cancel": "Conserver l'unité",
-      "empty_title": "Aucune unité ne vous est attribuée",
-      "empty_subtitle": "Contactez le directeur de votre club\npour qu'il vous attribue une unité."
+      "empty_title": "Aucune unité",
+      "empty_subtitle": "Contactez le directeur de votre club\npour qu'il vous attribue une unité.",
+      "empty_subtitle_can_create": "Créez la première unité de votre club.",
+      "empty_action": "Créer une unité"
     },
     "detail": {
       "scores_title": "Points de la semaine",
@@ -1431,7 +1433,7 @@
     },
     "member_of_month": {
       "history_title": "Miembro del Mes — Historial",
-      "empty": "No hay datos de miembro del mes aun.",
+      "empty": "Aucune donnée de membre du mois pour le moment.",
       "no_more_records": "No hay mas registros",
       "tie_badge": "Ex æquo",
       "points": "{points} puntos"
@@ -1791,7 +1793,8 @@
       "node_current": "EN COURS · {progress}%",
       "node_not_taken": "NON SUIVIE",
       "node_upcoming": "À SUIVRE",
-      "node_expired": "EXPIRÉE"
+      "node_expired": "EXPIRÉE",
+      "title": "Mon parcours"
     },
     "status_history": {
       "title": "Historique des statuts",
@@ -2195,7 +2198,7 @@
     "view": {
       "title": "Finances",
       "empty_title": "Aucun mouvement ce mois-ci",
-      "empty_subtitle": "Appuyez sur Ajouter pour créer le premier enregistrement.",
+      "empty_subtitle": "Ajoutez le premier mouvement.",
       "error_title": "Erreur lors du chargement des finances",
       "recent_transactions": "Transactions récentes",
       "view_all": "Voir tout →",
@@ -2574,7 +2577,7 @@
     "header_title": "Toutes les ressources",
     "error_loading": "Erreur lors du chargement des ressources",
     "empty_title": "Aucune ressource disponible",
-    "empty_subtitle": "Prueba con otro filtro o búsqueda",
+    "empty_subtitle": "Essayez un autre filtre ou une autre recherche",
     "no_more": "Plus de ressources",
     "list_label": {
       "all": "Tous les fichiers",
@@ -2669,7 +2672,7 @@
       },
       "filter_status": "Statut : {status}",
       "error_load": "Erreur lors du chargement de l'inventaire",
-      "empty_title": "Votre inventaire est vide",
+      "empty_title": "Aucun article dans l'inventaire",
       "empty_subtitle_can_add": "Commencez par enregistrer le premier article\nde votre club",
       "empty_subtitle_cannot_add": "L'inventaire du club est vide.",
       "add_first_item": "Ajouter le premier article",
@@ -3738,7 +3741,7 @@
       "label_assigned": "Attribué",
       "label_revoked": "Révoqué",
       "empty_title": "Aucun rôle attribué",
-      "empty_body": "Vous n'avez aucun rôle attribué dans aucun club. Les administrateurs peuvent vous attribuer des rôles depuis le panneau d'administration.",
+      "empty_body": "Il n'y a aucun rôle attribué dans un club. Les administrateurs peuvent attribuer des rôles depuis le panneau d'administration.",
       "retry": "Réessayer"
     }
   },
@@ -4480,11 +4483,205 @@
       "list_comprobantes": "Impossible de charger les justificatifs",
       "upload_comprobante": "Impossible d’envoyer le justificatif",
       "get_config": "Impossible de charger la configuration de paiement"
+    },
+    "cart": {
+      "title": "Panier",
+      "clear": "Vider",
+      "clear_title": "Vider le panier",
+      "clear_body": "Supprimer tous les produits du panier ?",
+      "subtotal": "Sous-total",
+      "continue": "Continuer",
+      "empty_title": "Aucun produit dans le panier",
+      "empty_subtitle": "Ajoutez des produits depuis le catalogue",
+      "go_catalog": "Voir le catalogue"
+    },
+    "product": {
+      "title": "Détail du produit",
+      "sku": "SKU : {sku}",
+      "select_variant": "Sélectionnez {name} :",
+      "qty": "Quantité :",
+      "add_to_cart": "Ajouter au panier",
+      "out_of_stock": "Produit épuisé",
+      "added_snackbar": "{title} ajouté au panier",
+      "view_cart": "Voir le panier"
+    },
+    "summary": {
+      "title": "Confirmer la commande",
+      "intro": "Vérifiez les informations avant de confirmer votre commande.",
+      "delivery_section": "Livraison",
+      "mode": "Mode",
+      "pickup": "Retrait sur le camp",
+      "ship": "Livraison à domicile",
+      "ship_hint": "Le champ local coordonnera l’expédition après approbation.",
+      "order_section": "Récapitulatif",
+      "notes_label": "Notes (facultatif)",
+      "notes_hint": "Instructions spéciales, observations…",
+      "shipping": "Frais de livraison",
+      "total": "Total",
+      "confirm": "Confirmer la commande"
+    },
+    "order": {
+      "title": "Détail de la commande",
+      "refresh": "Actualiser",
+      "created_on": "Créée le {date}",
+      "review_banner": "Demande en cours d’examen par le champ local.",
+      "products": "Produits",
+      "totals": "Totaux",
+      "shipping": "Livraison",
+      "receipts": "Justificatifs",
+      "cancel": "Annuler la commande",
+      "approved_title": "Commande approuvée",
+      "approved_body": "Votre commande a été approuvée. Effectuez le virement et envoyez le justificatif.",
+      "view_payment": "Voir les données de paiement",
+      "upload_receipt": "Envoyer le justificatif",
+      "paid_waiting": "Paiement validé. En attente de livraison.",
+      "delivered_title": "Votre commande a été livrée",
+      "cancel_reason": "Motif d’annulation",
+      "new_order": "Passer une nouvelle commande",
+      "cancel_title": "Annuler la commande",
+      "cancel_body": "Voulez-vous vraiment annuler cette commande ?",
+      "reason_label": "Motif (obligatoire)",
+      "reason_required": "Saisissez un motif d’annulation.",
+      "cancelled_snackbar": "Commande annulée.",
+      "no_receipts": "Aucun justificatif envoyé pour le moment.",
+      "receipt_approved": "Approuvé",
+      "receipt_rejected": "Rejeté",
+      "receipt_pending": "En attente",
+      "load_error": "Impossible de charger la commande"
+    },
+    "payment": {
+      "title": "Données de paiement",
+      "bank_ref": "Référence bancaire",
+      "reference": "Référence",
+      "account": "Compte",
+      "bank": "Banque",
+      "holder": "Titulaire",
+      "clabe": "CLABE",
+      "amount": "Montant à payer",
+      "transfer_hint": "Effectuez le virement vers la CLABE ci-dessus. Utilisez la référence comme motif de paiement pour que le champ local puisse l’identifier.",
+      "paid_upload": "J’ai déjà payé, envoyer le justificatif",
+      "no_payment_needed": "Cette commande ne nécessite pas de paiement",
+      "cannot_upload": "L’état actuel de la commande n’autorise pas l’envoi d’un justificatif.",
+      "copy": "Copier",
+      "copied": "{label} copiée"
+    },
+    "receipt": {
+      "title": "Envoyer le justificatif",
+      "file_too_large": "Le fichier dépasse la limite de 10 Mo.",
+      "file_required": "Sélectionnez un fichier pour continuer.",
+      "date_required": "Sélectionnez la date de paiement.",
+      "sent": "Justificatif envoyé. Le champ local le validera bientôt.",
+      "sending": "Envoi du justificatif…",
+      "file_section": "Fichier du justificatif",
+      "pick_file": "Sélectionner un fichier (PDF, JPG, PNG)",
+      "amount": "Montant payé",
+      "concept": "Motif du virement",
+      "concept_hint": "Ex. : SOL20260001",
+      "concept_required": "Saisissez la référence utilisée.",
+      "date_section": "Date de paiement",
+      "pick_date": "Sélectionner la date",
+      "submit": "Envoyer le justificatif",
+      "change": "Changer",
+      "amount_min": "Saisissez un montant supérieur à 0,00 $"
+    },
+    "status": {
+      "in_review": "En révision",
+      "approved": "Approuvée",
+      "paid": "Payée",
+      "delivered": "Livrée",
+      "cancelled": "Annulée"
     }
   },
   "membership": {
     "not_enrolled_this_year": "Non inscrit cette année. La directive effectue ton inscription",
     "enroll_this_year": "M'inscrire",
     "enroll_error": "Erreur lors de l'inscription. Veuillez réessayer."
+  },
+  "certificate_import": {
+    "upload": {
+      "title": "Import par certificat",
+      "hint": "Vous pouvez mélanger spécialités et classes. SACDIA détecte des candidats ; confirmez les données avant d’envoyer.",
+      "submit": "Envoyer le justificatif",
+      "camera": "Prendre une photo",
+      "file": "Choisir un fichier",
+      "picker_error": "Impossible d’ouvrir le sélecteur de justificatifs.",
+      "no_submit": "Aucun processus n’est configuré pour envoyer des justificatifs.",
+      "hero_title": "Chargez vos justificatifs, SACDIA les lira",
+      "hero_body": "OCR assisté pour honneurs et classes. Moins de saisie manuelle, même responsabilité : vérifier avant d’envoyer.",
+      "selected_one": "Justificatif sélectionné",
+      "selected_other": "{count} justificatifs sélectionnés"
+    },
+    "processing": {
+      "title": "Lecture du justificatif",
+      "running_title": "Nous lisons votre justificatif",
+      "error_title": "Nous n’avons pas tout lu",
+      "running_body": "Nous extrayons honneurs, classes et dates pour que vous confirmiez les données.",
+      "error_body": "Vous pouvez relancer l’OCR ou compléter les données manuellement. Nous ne vous laissons pas bloqué.",
+      "step_upload": "Envoi du fichier",
+      "step_ocr": "Lecture du texte",
+      "step_results": "Préparation des résultats",
+      "manual": "Compléter manuellement",
+      "retry": "Relancer la lecture"
+    },
+    "review": {
+      "title": "Vérifiez les données",
+      "load_error": "Impossible de charger le lot : {error}",
+      "found": "Nous avons trouvé",
+      "honor_one": "{count} spécialité",
+      "honor_other": "{count} spécialités",
+      "class_one": "{count} classe",
+      "class_other": "{count} classes",
+      "and": "et",
+      "filter_all": "Toutes {count}",
+      "filter_ready": "Prêtes {count}",
+      "filter_missing": "Donnée manquante {count}",
+      "empty_filter": "Aucune ligne pour ce filtre.",
+      "submit": "Envoyer en révision",
+      "ready_dock": "{count} prêtes",
+      "missing_dock": "{count} données manquantes"
+    },
+    "status": {
+      "title": "État de l’envoi",
+      "load_error": "Impossible de charger l’état : {error}",
+      "corrections_title": "Corrections en attente",
+      "in_review_title": "En révision",
+      "corrections_body": "Des corrections sont en attente",
+      "in_review_body": "Votre champ local examine cet envoi.",
+      "counts": "Approuvées : {approved} · Rejetées : {rejected} · En attente : {pending}"
+    },
+    "item": {
+      "honor": "HONNEUR",
+      "class": "CLASSE",
+      "rejected": "REJETÉ",
+      "ready": "PRÊT",
+      "missing": "DONNÉE MANQUANTE",
+      "unnamed": "Aucun nom détecté",
+      "fix_resubmit": "Corriger et renvoyer",
+      "fix": "Corriger",
+      "catalog_meta": "Catalogue : {id} · {date}",
+      "catalog_pending": "en attente"
+    },
+    "editor": {
+      "title": "Corriger la ligne",
+      "honor": "Honneur",
+      "class": "Classe",
+      "name": "Nom détecté",
+      "catalog_id": "ID catalogue",
+      "completed_at": "Date de fin",
+      "date_hint": "AAAA-MM-JJ",
+      "save": "Enregistrer la correction"
+    },
+    "proof": {
+      "title": "Enregistrement importé",
+      "missing": "Détail indisponible. Ouvrez-le depuis un enregistrement importé.",
+      "unnamed": "Enregistrement sans nom",
+      "imported_badge": "Enregistrement importé",
+      "date_pending": "Date en attente",
+      "applied": "Appliqué dans {type} n°{id}"
+    }
+  },
+  "master_honors": {
+    "title": "Maîtrises",
+    "empty_title": "Aucune maîtrise disponible"
   }
 }

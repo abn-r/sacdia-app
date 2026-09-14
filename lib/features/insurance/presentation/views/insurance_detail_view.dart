@@ -11,7 +11,7 @@ import '../../domain/entities/member_insurance.dart';
 import '../providers/insurance_providers.dart';
 import '../widgets/insurance_status_badge.dart';
 import 'insurance_form_sheet.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 /// Pantalla de detalle completo del seguro de un miembro.
@@ -27,25 +27,15 @@ class InsuranceDetailView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.sac.background,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
+      appBar: SacTopBar(
+        title: 'insurance.detail.title'.tr(),
         backgroundColor: context.sac.background,
-        surfaceTintColor: Colors.transparent,
-        title: Text(
-          'insurance.detail.title'.tr(),
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: context.sac.text,
-              ),
-        ),
-        centerTitle: false,
         actions: [
           if (canManage)
             IconButton(
               onPressed: () => _openEdit(context),
               icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedEdit01,
+                icon: HugeIcons.strokeRoundedEdit02,
                 size: 22,
                 color: context.sac.textSecondary,
               ),
@@ -150,7 +140,7 @@ class InsuranceDetailView extends ConsumerWidget {
                     ),
                   if (insurance.modifiedByName != null)
                     _InfoRow(
-                      icon: HugeIcons.strokeRoundedEdit01,
+                      icon: HugeIcons.strokeRoundedEdit02,
                       label: 'insurance.detail.label_modified_by'.tr(),
                       value: insurance.modifiedAt != null
                           ? '${insurance.modifiedByName!} · ${DateFormat('dd/MM/yyyy').format(insurance.modifiedAt!.toLocal())}'

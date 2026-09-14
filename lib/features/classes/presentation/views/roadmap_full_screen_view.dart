@@ -1,6 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../roadmap/widgets/roadmap_screen_connected.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 /// Pantalla completa del Roadmap de Clases.
 ///
@@ -20,14 +21,9 @@ class RoadmapFullScreenView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: const Text('Mi Camino'),
-        backgroundColor: colorScheme.surface,
-        // automaticallyImplyLeading: true (default) provee el botón back via GoRouter.
+      appBar: SacTopBar(
+        title: 'classes.roadmap.title'.tr(),
       ),
       body: const RoadmapScreenConnected(),
     );

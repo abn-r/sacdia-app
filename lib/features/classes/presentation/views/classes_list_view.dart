@@ -11,6 +11,7 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/progressive_class.dart';
 import '../providers/classes_providers.dart';
@@ -89,8 +90,8 @@ class ClassesListView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        title: const Text('Clases'),
+      appBar: SacTopBar(
+        title: 'classes.list.title'.tr(),
         automaticallyImplyLeading: false,
         actions: [
           if (hasActiveClub)

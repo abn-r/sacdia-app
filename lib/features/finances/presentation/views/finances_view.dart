@@ -21,6 +21,7 @@ import 'all_transactions_view.dart';
 import 'transaction_detail_view.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 /// Pantalla principal del módulo de Finanzas.
@@ -74,10 +75,13 @@ class FinancesView extends ConsumerWidget {
                   centerTitle: false,
                   actions: [
                     if (showAddButton)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: _AddTransactionAction(
-                          onTap: () => _openAddSheet(context, ref),
+                      IconButton(
+                        tooltip: 'finances.add_transaction.new_title'.tr(),
+                        onPressed: () => _openAddSheet(context, ref),
+                        icon: HugeIcon(
+                          icon: HugeIcons.strokeRoundedAdd01,
+                          size: 22,
+                          color: AppColors.primary,
                         ),
                       ),
                     if (financeMonthAsync.isLoading)
@@ -271,37 +275,10 @@ class _FinanceBody extends ConsumerWidget {
 class _EmptyTransactions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(40),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedMoneyReceive01,
-              size: 56,
-              color: context.sac.textTertiary,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'finances.view.empty_title'.tr(),
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: context.sac.textSecondary,
-                  ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'finances.view.empty_subtitle'.tr(),
-              textAlign: TextAlign.center,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: context.sac.textTertiary),
-            ),
-          ],
-        ),
-      ),
+    return SacEmptyState(
+      icon: HugeIcons.strokeRoundedMoneyReceive01,
+      title: 'finances.view.empty_title'.tr(),
+      body: 'finances.view.empty_subtitle'.tr(),
     );
   }
 }
@@ -464,60 +441,6 @@ class _VerTodoLink extends StatelessWidget {
               color: context.sac.textSecondary,
               decoration: TextDecoration.underline,
               decorationColor: context.sac.textTertiary,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── Header add action ─────────────────────────────────────────────────────────
-
-class _AddTransactionAction extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _AddTransactionAction({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return Semantics(
-      label: 'finances.add_transaction.new_title'.tr(),
-      button: true,
-      child: Material(
-        color: c.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: c.border),
-        ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 44),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedAdd01,
-                    size: 20,
-                    color: c.textSecondary,
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    'common.add'.tr(),
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: c.text,
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
         ),

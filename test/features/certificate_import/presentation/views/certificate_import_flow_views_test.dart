@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
@@ -14,11 +18,30 @@ import 'package:sacdia_app/features/certificate_import/presentation/views/certif
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_status_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_upload_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_import_proof_card.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-Widget _wrap(Widget child) => MaterialApp(
-      theme: AppTheme.lightTheme,
-      home: child,
+Widget _wrap(Widget child) => EasyLocalization(
+      supportedLocales: const [Locale('es')],
+      path: 'assets/translations',
+      assetLoader: const _FileAssetLoader(),
+      fallbackLocale: const Locale('es'),
+      startLocale: const Locale('es'),
+      child: Builder(
+        builder: (context) => MaterialApp(
+          theme: AppTheme.lightTheme,
+          locale: context.locale,
+          localizationsDelegates: context.localizationDelegates,
+          supportedLocales: context.supportedLocales,
+          home: child,
+        ),
+      ),
     );
+
+Future<void> _pump(WidgetTester tester, Widget child) async {
+  await tester.pumpWidget(_wrap(child));
+  await tester.pump();
+  await tester.pump();
+}
 
 CertificateImportBatch _batch({bool complete = false, bool rejected = false}) {
   return CertificateImportBatch(
@@ -60,6 +83,13 @@ CertificateImportBatch _batch({bool complete = false, bool rejected = false}) {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() async {
+    SharedPreferences.setMockInitialValues({});
+    await EasyLocalization.ensureInitialized();
+  });
+
   group('Certificate import routing', () {
     test(
         'declares route names for upload, processing, review and imported proof',
@@ -79,14 +109,17 @@ void main() {
     testWidgets('disables upload until a proof file is selected',
         (tester) async {
       var uploadCalls = 0;
-      await tester.pumpWidget(_wrap(CertificateImportUploadView(
-        onSubmitProofs: (_) async => uploadCalls++,
-        onPickFile: () async => const CertificateImportFilePayload(
-          url: 'mock://proof.jpg',
-          name: 'comprobante.jpg',
-          type: 'image/jpeg',
+      await _pump(
+        tester,
+        CertificateImportUploadView(
+          onSubmitProofs: (_) async => uploadCalls++,
+          onPickFile: () async => const CertificateImportFilePayload(
+            url: 'mock://proof.jpg',
+            name: 'comprobante.jpg',
+            type: 'image/jpeg',
+          ),
         ),
-      )));
+      );
 
       expect(find.text('Subir comprobante'), findsOneWidget);
       expect(find.text('Tomar foto'), findsOneWidget);
@@ -116,11 +149,14 @@ void main() {
     testWidgets('keeps upload disabled when proof selection is cancelled',
         (tester) async {
       var uploadCalls = 0;
-      await tester.pumpWidget(_wrap(CertificateImportUploadView(
-        onSubmitProofs: (_) async => uploadCalls++,
-        onPickFile: () async => null,
-        onPickCamera: () async => null,
-      )));
+      await _pump(
+        tester,
+        CertificateImportUploadView(
+          onSubmitProofs: (_) async => uploadCalls++,
+          onPickFile: () async => null,
+          onPickCamera: () async => null,
+        ),
+      );
 
       await tester.tap(find.text('Elegir archivo'));
       await tester.pumpAndSettle();
@@ -149,11 +185,14 @@ void main() {
   group('CertificateImportProcessingView', () {
     testWidgets('shows OCR steps and a manual fallback action', (tester) async {
       var fallbackCalls = 0;
-      await tester.pumpWidget(_wrap(CertificateImportProcessingView(
-        batchId: 'batch-1',
-        autoStart: false,
-        onManualFallback: () => fallbackCalls++,
-      )));
+      await _pump(
+        tester,
+        CertificateImportProcessingView(
+          batchId: 'batch-1',
+          autoStart: false,
+          onManualFallback: () => fallbackCalls++,
+        ),
+      );
 
       expect(find.text('Leyendo comprobante'), findsOneWidget);
       expect(find.text('Subiendo archivo'), findsOneWidget);
@@ -170,9 +209,12 @@ void main() {
     testWidgets(
         'renders mixed HONOR/CLASS cards, counters and disabled submit when data is missing',
         (tester) async {
-      await tester.pumpWidget(_wrap(CertificateImportReviewView(
-        initialBatch: _batch(),
-      )));
+      await _pump(
+        tester,
+        CertificateImportReviewView(
+          initialBatch: _batch(),
+        ),
+      );
 
       expect(find.text('1 especialidad y 1 clase'), findsOneWidget);
       expect(find.text('HONOR'), findsOneWidget);
@@ -189,10 +231,13 @@ void main() {
     testWidgets('opens editor and enables submit after item correction',
         (tester) async {
       CertificateImportItem? updated;
-      await tester.pumpWidget(_wrap(CertificateImportReviewView(
-        initialBatch: _batch(),
-        onUpdateItem: (item) async => updated = item,
-      )));
+      await _pump(
+        tester,
+        CertificateImportReviewView(
+          initialBatch: _batch(),
+          onUpdateItem: (item) async => updated = item,
+        ),
+      );
 
       await tester.tap(find.text('Corregir').first);
       await tester.pumpAndSettle();
@@ -226,10 +271,13 @@ void main() {
     testWidgets('shows rejected correction and resubmit affordance',
         (tester) async {
       var resubmitCalls = 0;
-      await tester.pumpWidget(_wrap(CertificateImportStatusView(
-        batch: _batch(rejected: true),
-        onResubmitItem: (_) async => resubmitCalls++,
-      )));
+      await _pump(
+        tester,
+        CertificateImportStatusView(
+          batch: _batch(rejected: true),
+          onResubmitItem: (_) async => resubmitCalls++,
+        ),
+      );
 
       expect(find.text('Hay correcciones pendientes'), findsOneWidget);
       expect(
@@ -244,14 +292,27 @@ void main() {
   group('CertificateImportProofCard', () {
     testWidgets('renders simplified imported proof from item props',
         (tester) async {
-      await tester.pumpWidget(_wrap(Scaffold(
-        body: CertificateImportProofCard(
-            item: _batch(complete: true).items.first),
-      )));
+      await _pump(
+        tester,
+        Scaffold(
+          body: CertificateImportProofCard(
+              item: _batch(complete: true).items.first),
+        ),
+      );
 
       expect(find.text('Registro importado'), findsOneWidget);
       expect(find.text('Primeros Auxilios'), findsOneWidget);
       expect(find.text('12/04/2026'), findsOneWidget);
     });
   });
+}
+
+class _FileAssetLoader extends AssetLoader {
+  const _FileAssetLoader();
+
+  @override
+  Future<Map<String, dynamic>?> load(String path, Locale locale) async {
+    final file = File('$path/${locale.toLanguageTag()}.json');
+    return jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
+  }
 }

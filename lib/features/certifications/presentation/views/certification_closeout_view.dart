@@ -6,7 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart';
-import '../../../../core/widgets/sac_back_button.dart';
+import '../../../../core/widgets/sac_top_bar.dart';
 import '../providers/certification_requirement_providers.dart';
 
 /// Vista de cierre de una certificación (Task 12): sube el comprobante de
@@ -69,14 +69,9 @@ class CertificationCloseoutView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
+      appBar: SacTopBar(
+        title: 'certifications.closeout.title'.tr(),
         backgroundColor: c.background,
-        surfaceTintColor: Colors.transparent,
-        leading: sacAutoBackButton(context),
-        title: Text(
-          'certifications.closeout.title'.tr(),
-          style: TextStyle(fontWeight: FontWeight.w700, color: c.text),
-        ),
       ),
       body: SafeArea(
         child: Column(

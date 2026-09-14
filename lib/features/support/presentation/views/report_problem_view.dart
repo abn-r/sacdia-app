@@ -10,11 +10,11 @@ import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../../domain/entities/support_category.dart';
 import '../../domain/entities/support_report.dart';
 import '../providers/support_providers.dart';
-import '../widgets/support_chrome.dart';
 
 class ReportProblemView extends ConsumerStatefulWidget {
   const ReportProblemView({super.key});
@@ -167,7 +167,10 @@ class _ReportProblemViewState extends ConsumerState<ReportProblemView> {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: supportAppBar(context, title: 'support.report_title'.tr()),
+      appBar: SacTopBar(
+        title: 'support.report_title'.tr(),
+        centerTitle: true,
+      ),
       body: AbsorbPointer(
         absorbing: submitState.isSubmitting,
         child: Form(

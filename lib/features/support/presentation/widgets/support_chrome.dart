@@ -5,30 +5,6 @@ import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
-
-AppBar supportAppBar(BuildContext context, {required String title}) {
-  final c = context.sac;
-  return AppBar(
-    automaticallyImplyLeading: false,
-    leading: sacAutoBackButton(context),
-    backgroundColor: c.background.withValues(alpha: 0.92),
-    foregroundColor: c.text,
-    elevation: 0,
-    scrolledUnderElevation: 0.5,
-    surfaceTintColor: Colors.transparent,
-    centerTitle: true,
-    title: Text(
-      title,
-      style: TextStyle(
-        fontWeight: FontWeight.w700,
-        fontSize: 17,
-        letterSpacing: -0.3,
-        color: c.text,
-      ),
-    ),
-  );
-}
 
 class SupportDestination {
   const SupportDestination({

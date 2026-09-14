@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +6,7 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
@@ -29,13 +31,19 @@ class CertificateImportReviewRouteView extends ConsumerWidget {
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (error, _) => Scaffold(
-        appBar: AppBar(
+        appBar: SacTopBar(
+          title: 'certificate_import.review.title'.tr(),
           leading: const CertificateImportBackButton(
             fallbackLocation: RouteNames.certificateImportUpload,
           ),
-          title: const Text('Revisa los datos'),
         ),
-        body: Center(child: Text('No pudimos cargar el lote: $error')),
+        body: Center(
+          child: Text(
+            'certificate_import.review.load_error'.tr(
+              namedArgs: {'error': '$error'},
+            ),
+          ),
+        ),
       ),
       data: (batch) => CertificateImportReviewView(
         initialBatch: batch,
@@ -130,11 +138,11 @@ class _CertificateImportReviewViewState
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
+      appBar: SacTopBar(
+        title: 'certificate_import.review.title'.tr(),
         leading: const CertificateImportBackButton(
           fallbackLocation: RouteNames.certificateImportUpload,
         ),
-        title: const Text('Revisa los datos'),
       ),
       body: Stack(
         children: [
@@ -146,11 +154,15 @@ class _CertificateImportReviewViewState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Encontramos',
+                      Text('certificate_import.review.found'.tr(),
                           style: TextStyle(color: c.textSecondary)),
                       const SizedBox(height: 2),
                       Text(
-                        '$_honorCount ${_honorCount == 1 ? 'especialidad' : 'especialidades'} y $_classCount ${_classCount == 1 ? 'clase' : 'clases'}',
+                        '${(_honorCount == 1 ? 'certificate_import.review.honor_one' : 'certificate_import.review.honor_other').tr(namedArgs: {
+                              'count': '$_honorCount'
+                            })} ${'certificate_import.review.and'.tr()} ${(_classCount == 1 ? 'certificate_import.review.class_one' : 'certificate_import.review.class_other').tr(namedArgs: {
+                              'count': '$_classCount'
+                            })}',
                         style:
                             Theme.of(context).textTheme.displaySmall?.copyWith(
                                   color: c.text,
@@ -163,17 +175,20 @@ class _CertificateImportReviewViewState
                         runSpacing: 8,
                         children: [
                           _FilterButton(
-                            label: 'Todas ${_items.length}',
+                            label: 'certificate_import.review.filter_all'
+                                .tr(namedArgs: {'count': '${_items.length}'}),
                             selected: _filter == 'all',
                             onPressed: () => setState(() => _filter = 'all'),
                           ),
                           _FilterButton(
-                            label: 'Listas $_readyCount',
+                            label: 'certificate_import.review.filter_ready'
+                                .tr(namedArgs: {'count': '$_readyCount'}),
                             selected: _filter == 'ready',
                             onPressed: () => setState(() => _filter = 'ready'),
                           ),
                           _FilterButton(
-                            label: 'Falta dato $_missingCount',
+                            label: 'certificate_import.review.filter_missing'
+                                .tr(namedArgs: {'count': '$_missingCount'}),
                             selected: _filter == 'missing',
                             onPressed: () =>
                                 setState(() => _filter = 'missing'),
@@ -189,7 +204,7 @@ class _CertificateImportReviewViewState
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: SacCard(
-                      child: Text('No hay filas para este filtro.',
+                      child: Text('certificate_import.review.empty_filter'.tr(),
                           style: TextStyle(color: c.textSecondary)),
                     ),
                   ),
@@ -229,15 +244,18 @@ class _CertificateImportReviewViewState
                     children: [
                       Row(
                         children: [
-                          SacBadge.success(label: '$_readyCount listas'),
+                          SacBadge.success(
+                              label: 'certificate_import.review.ready_dock'
+                                  .tr(namedArgs: {'count': '$_readyCount'})),
                           const SizedBox(width: 8),
                           SacBadge.warning(
-                              label: '$_missingCount con datos faltantes'),
+                              label: 'certificate_import.review.missing_dock'
+                                  .tr(namedArgs: {'count': '$_missingCount'})),
                         ],
                       ),
                       const SizedBox(height: 10),
                       SacButton.primary(
-                        text: 'Enviar a revisión',
+                        text: 'certificate_import.review.submit'.tr(),
                         isEnabled: _canSubmit,
                         isLoading: _submitting,
                         onPressed: _canSubmit ? _submit : null,

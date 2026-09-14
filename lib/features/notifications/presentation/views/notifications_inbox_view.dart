@@ -9,7 +9,8 @@ import '../../../../core/widgets/sac_button.dart';
 import '../providers/notifications_providers.dart';
 import '../providers/unread_notifications_count_provider.dart';
 import '../widgets/notification_card.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 /// Pantalla de historial/bandeja de notificaciones.
 ///
@@ -80,19 +81,9 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
+      appBar: SacTopBar(
+        title: 'notifications.inbox.title'.tr(),
         backgroundColor: c.surface,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        title: Text(
-          'notifications.inbox.title'.tr(),
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: c.text,
-              ),
-        ),
         actions: [
           // Bell icon with unread badge
           Stack(

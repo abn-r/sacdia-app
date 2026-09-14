@@ -8,12 +8,12 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../../domain/entities/faq_item.dart';
 import '../providers/support_providers.dart';
 import '../widgets/faq_category_strip.dart';
 import '../widgets/faq_item_card.dart';
-import '../widgets/support_chrome.dart';
 
 class FaqView extends ConsumerStatefulWidget {
   const FaqView({super.key});
@@ -69,7 +69,10 @@ class _FaqViewState extends ConsumerState<FaqView> {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: supportAppBar(context, title: 'support.faq_title'.tr()),
+      appBar: SacTopBar(
+        title: 'support.faq_title'.tr(),
+        centerTitle: true,
+      ),
       body: filteredAsync.when(
         loading: () => const Center(child: SacLoading()),
         error: (e, _) => FaqErrorState(

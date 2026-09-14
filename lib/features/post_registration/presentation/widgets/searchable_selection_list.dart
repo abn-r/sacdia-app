@@ -182,7 +182,7 @@ class _SearchableSelectionListState extends State<SearchableSelectionList> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       HugeIcon(
-                        icon: HugeIcons.strokeRoundedSearchMinus,
+                        icon: HugeIcons.strokeRoundedSearchRemove,
                         size: 64,
                         color: context.sac.textTertiary,
                       ),

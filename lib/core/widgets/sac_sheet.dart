@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 
+export 'sac_sheet_header.dart';
+
 /// Modal bottom sheet with [SacMotion] drawer motion.
 ///
 /// Enter [SacMotion.modal] (240ms), exit [SacMotion.routeExit] (200ms),

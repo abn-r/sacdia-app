@@ -8,7 +8,9 @@ import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
+import '../../../../core/widgets/sac_empty_state.dart';
 import '../../../../core/widgets/sac_loading.dart';
+import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../post_registration/presentation/providers/club_selection_providers.dart';
 import '../../../post_registration/presentation/views/club_selection_step_view.dart';
@@ -21,7 +23,7 @@ import 'package:sacdia_app/core/animations/page_transitions.dart';
 ///
 /// Muestra:
 ///  - Lista de mis solicitudes con estado
-///  - FAB para crear nueva solicitud
+///  - IconButton Add01 en SacTopBar + empty CTA para crear solicitud
 class TransferRequestsView extends ConsumerWidget {
   const TransferRequestsView({super.key});
 
@@ -32,26 +34,19 @@ class TransferRequestsView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        backgroundColor: c.background,
-        surfaceTintColor: Colors.transparent,
-        title: Text(
-          tr('transfers.list.title'),
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
-            color: c.text,
+      appBar: SacTopBar(
+        title: tr('transfers.list.title'),
+        actions: [
+          IconButton(
+            tooltip: tr('transfers.list.new_request'),
+            onPressed: () => _openNewRequest(context),
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedAdd01,
+              size: 22,
+              color: AppColors.primary,
+            ),
           ),
-        ),
-        centerTitle: false,
-        leading: IconButton(
-          icon: HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowLeft01,
-            color: c.text,
-            size: 22,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        ],
       ),
       body: requestsAsync.when(
         loading: () => const Center(child: SacLoading()),
@@ -82,20 +77,6 @@ class TransferRequestsView extends ConsumerWidget {
             ),
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openNewRequest(context),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        icon: const HugeIcon(
-          icon: HugeIcons.strokeRoundedAdd01,
-          color: Colors.white,
-          size: 20,
-        ),
-        label: Text(
-          'transfers.list.new_request'.tr(),
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
       ),
     );
   }
@@ -293,46 +274,12 @@ class _EmptyBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedExchange01,
-              color: c.textTertiary,
-              size: 56,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              tr('transfers.list.empty_title'),
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: c.text,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              tr('transfers.list.empty_subtitle'),
-              style: TextStyle(
-                fontSize: 14,
-                color: c.textSecondary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            SacButton.primary(
-              text: tr('transfers.list.empty_action'),
-              icon: HugeIcons.strokeRoundedAdd01,
-              onPressed: onNewRequest,
-            ),
-          ],
-        ),
-      ),
+    return SacEmptyState(
+      icon: HugeIcons.strokeRoundedExchange01,
+      title: tr('transfers.list.empty_title'),
+      body: tr('transfers.list.empty_subtitle'),
+      actionLabel: tr('transfers.list.empty_action'),
+      onAction: onNewRequest,
     );
   }
 }

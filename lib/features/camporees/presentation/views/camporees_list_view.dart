@@ -13,6 +13,7 @@ import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee.dart';
 
@@ -446,47 +447,14 @@ class _EmptyCamporeesState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _IconTile(
-              icon: HugeIcons.strokeRoundedCampfire,
-              color: AppColors.primary,
-              size: 88,
-            ),
-            const SizedBox(height: 18),
-            Text(
-              'camporees.list.empty'.tr(),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: c.text,
-                    fontWeight: FontWeight.w800,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'camporees.list.subtitle'.tr(),
-              style: TextStyle(
-                color: c.textSecondary,
-                height: 1.45,
-                fontSize: 15,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 22),
-            SacButton.outline(
-              text: 'common.retry'.tr(),
-              icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: onRetry,
-            ),
-          ],
-        ),
-      ),
+    return SacEmptyState(
+      icon: HugeIcons.strokeRoundedCampfire,
+      title: 'camporees.list.empty'.tr(),
+      body: 'camporees.list.subtitle'.tr(),
+      actionLabel: 'common.retry'.tr(),
+      onAction: onRetry,
+      actionIcon: HugeIcons.strokeRoundedRefresh,
+      actionVariant: SacButtonVariant.outline,
     );
   }
 }

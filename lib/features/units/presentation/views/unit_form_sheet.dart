@@ -446,47 +446,11 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
             key: _formKey,
             child: Column(
               children: [
-                // ── Drag handle ───────────────────────────────────────────
-                Padding(
-                  padding: const EdgeInsets.only(top: 12, bottom: 4),
-                  child: Center(
-                    child: Container(
-                      width: 36,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: c.textTertiary.withValues(alpha: 0.3),
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.radiusFull),
-                      ),
-                    ),
-                  ),
-                ),
-
-                // ── Header ────────────────────────────────────────────────
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          _isEditMode
-                              ? 'units.form.edit_title'.tr()
-                              : 'units.form.create_title'.tr(),
-                          style: theme.textTheme.headlineSmall
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                      IconButton(
-                        icon: HugeIcon(
-                          icon: HugeIcons.strokeRoundedCancel01,
-                          color: c.textSecondary,
-                          size: 22,
-                        ),
-                        onPressed: () => Navigator.of(context).pop(null),
-                        tooltip: 'common.cancel'.tr(),
-                      ),
-                    ],
-                  ),
+                SacSheetHeader(
+                  title: _isEditMode
+                      ? 'units.form.edit_title'.tr()
+                      : 'units.form.create_title'.tr(),
+                  showClose: true,
                 ),
 
                 const Divider(height: 1),
@@ -514,7 +478,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                               children: [
                                 // ── Name ────────────────────────────────────
                                 _SectionLabel(
-                                  icon: HugeIcons.strokeRoundedPencilEdit01,
+                                  icon: HugeIcons.strokeRoundedEdit02,
                                   label: 'units.form.name_label'.tr(),
                                 ),
                                 const SizedBox(height: 8),
@@ -741,32 +705,7 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Drag handle
-          Padding(
-            padding: const EdgeInsets.only(top: 12, bottom: 4),
-            child: Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: c.textTertiary.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                ),
-              ),
-            ),
-          ),
-
-          // Title
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                widget.title,
-                style: theme.textTheme.headlineSmall,
-              ),
-            ),
-          ),
+          SacSheetHeader(title: widget.title),
 
           const Divider(height: 1),
 
@@ -969,58 +908,24 @@ class _MultiMemberPickerSheetState extends State<_MultiMemberPickerSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Drag handle
-          Padding(
-            padding: const EdgeInsets.only(top: 12, bottom: 4),
-            child: Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: c.textTertiary.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                ),
+          SacSheetHeader(
+            title: 'units.form.add_member_button'.tr(),
+            subtitle: _selected.isEmpty
+                ? null
+                : _selected.length == 1
+                    ? tr('units.form.selected_count_one',
+                        namedArgs: {'count': '${_selected.length}'})
+                    : tr('units.form.selected_count_other',
+                        namedArgs: {'count': '${_selected.length}'}),
+            actions: [
+              SacButton(
+                text: 'units.form.done'.tr(),
+                variant: SacButtonVariant.primary,
+                size: SacButtonSize.small,
+                fullWidth: false,
+                onPressed: _confirm,
               ),
-            ),
-          ),
-
-          // Header row
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'units.form.add_member_button'.tr(),
-                        style: theme.textTheme.headlineSmall,
-                      ),
-                      if (_selected.isNotEmpty)
-                        Text(
-                          _selected.length == 1
-                              ? tr('units.form.selected_count_one',
-                                  namedArgs: {'count': '${_selected.length}'})
-                              : tr('units.form.selected_count_other',
-                                  namedArgs: {'count': '${_selected.length}'}),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                SacButton(
-                  text: 'units.form.done'.tr(),
-                  variant: SacButtonVariant.primary,
-                  size: SacButtonSize.small,
-                  fullWidth: false,
-                  onPressed: _confirm,
-                ),
-              ],
-            ),
+            ],
           ),
 
           const Divider(height: 1),

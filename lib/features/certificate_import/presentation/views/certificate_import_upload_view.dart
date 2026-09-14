@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +10,7 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../../domain/entities/certificate_import_payloads.dart';
 import '../../domain/usecases/create_certificate_import_batch.dart';
@@ -128,11 +130,11 @@ class _CertificateImportUploadViewState
     final c = context.sac;
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
+      appBar: SacTopBar(
+        title: 'certificate_import.upload.title'.tr(),
         leading: const CertificateImportBackButton(
           fallbackLocation: RouteNames.homeProfile,
         ),
-        title: const Text('Carga por certificado'),
       ),
       body: Stack(
         children: [
@@ -151,7 +153,7 @@ class _CertificateImportUploadViewState
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Puedes mezclar especialidades y clases. SACDIA detecta candidatos; confirma los datos antes de enviar.',
+                        'certificate_import.upload.hint'.tr(),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: c.textSecondary,
                             ),
@@ -193,7 +195,7 @@ class _CertificateImportUploadViewState
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       SacButton.primary(
-                        text: 'Subir comprobante',
+                        text: 'certificate_import.upload.submit'.tr(),
                         icon: HugeIcons.strokeRoundedFileUpload,
                         isLoading: _loading,
                         isEnabled: _hasFilesToAnalyze,
@@ -205,7 +207,7 @@ class _CertificateImportUploadViewState
                         children: [
                           Expanded(
                             child: SacButton.outline(
-                              text: 'Tomar foto',
+                              text: 'certificate_import.upload.camera'.tr(),
                               icon: HugeIcons.strokeRoundedCamera01,
                               isLoading: _picking,
                               onPressed: _picking
@@ -216,7 +218,7 @@ class _CertificateImportUploadViewState
                           const SizedBox(width: 8),
                           Expanded(
                             child: SacButton.outline(
-                              text: 'Elegir archivo',
+                              text: 'certificate_import.upload.file'.tr(),
                               icon: HugeIcons.strokeRoundedFolder01,
                               isLoading: _picking,
                               onPressed: _picking
@@ -239,7 +241,7 @@ class _CertificateImportUploadViewState
 
   Future<void> _pickProof(CertificateImportProofPicker? picker) async {
     if (picker == null) {
-      setState(() => _error = 'No se pudo abrir el selector de comprobantes.');
+      setState(() => _error = 'certificate_import.upload.picker_error'.tr());
       return;
     }
 
@@ -266,8 +268,7 @@ class _CertificateImportUploadViewState
     if (!_hasFilesToAnalyze) return;
     if (widget.onSubmitProofs == null) {
       setState(
-        () =>
-            _error = 'No hay un proceso configurado para enviar comprobantes.',
+        () => _error = 'certificate_import.upload.no_submit'.tr(),
       );
       return;
     }
@@ -326,7 +327,7 @@ class _UploadHero extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Carga tus comprobantes y SACDIA los leerá',
+            'certificate_import.upload.hero_title'.tr(),
             style: Theme.of(context).textTheme.displaySmall?.copyWith(
                   color: c.text,
                   fontWeight: FontWeight.w700,
@@ -334,7 +335,7 @@ class _UploadHero extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'OCR asistido para honores y clases. Menos captura manual, misma responsabilidad: revisar antes de enviar.',
+            'certificate_import.upload.hero_body'.tr(),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: c.textSecondary,
                 ),
@@ -372,8 +373,10 @@ class _SelectedProofCard extends StatelessWidget {
               children: [
                 Text(
                   fileCount == 1
-                      ? 'Comprobante seleccionado'
-                      : '$fileCount comprobantes seleccionados',
+                      ? 'certificate_import.upload.selected_one'.tr()
+                      : 'certificate_import.upload.selected_other'.tr(
+                          namedArgs: {'count': '$fileCount'},
+                        ),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: c.text,
                         fontWeight: FontWeight.w700,

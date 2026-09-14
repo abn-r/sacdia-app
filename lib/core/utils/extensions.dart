@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 /// Extensiones para objetos String
 extension StringExtensions on String {
@@ -126,13 +127,17 @@ extension ContextExtensions on BuildContext {
     Navigator.of(this).pop<T>(result);
   }
 
-  /// Mostrar un SnackBar
-  void showSnackBar(String message, {Color? backgroundColor}) {
-    ScaffoldMessenger.of(this).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: backgroundColor ?? colors.primary,
-      ),
+  /// Canonical toast. Prefer [SacSnackBar.show] for new call sites.
+  void showSnackBar(
+    String message, {
+    Color? backgroundColor,
+    bool isError = false,
+  }) {
+    SacSnackBar.show(
+      this,
+      message,
+      backgroundColor: backgroundColor,
+      isError: isError,
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -44,15 +45,35 @@ class MaterialStatusBadge extends StatelessWidget {
   ) {
     switch (status) {
       case MaterialStatus.enRevision:
-        return (context.sac.ink100, context.sac.ink600, 'En revisión');
+        return (
+          context.sac.ink100,
+          context.sac.ink600,
+          'materials.status.in_review'.tr()
+        );
       case MaterialStatus.aprobada:
-        return (AppColors.accentLight, AppColors.accentDark, 'Aprobada');
+        return (
+          AppColors.accentLight,
+          AppColors.accentDark,
+          'materials.status.approved'.tr()
+        );
       case MaterialStatus.pagada:
-        return (AppColors.secondaryLight, AppColors.secondaryDark, 'Pagada');
+        return (
+          AppColors.secondaryLight,
+          AppColors.secondaryDark,
+          'materials.status.paid'.tr()
+        );
       case MaterialStatus.entregada:
-        return (AppColors.secondaryLight, AppColors.secondaryDark, 'Entregada');
+        return (
+          AppColors.secondaryLight,
+          AppColors.secondaryDark,
+          'materials.status.delivered'.tr()
+        );
       case MaterialStatus.cancelada:
-        return (AppColors.errorLight, AppColors.errorDark, 'Cancelada');
+        return (
+          AppColors.errorLight,
+          AppColors.errorDark,
+          'materials.status.cancelled'.tr()
+        );
     }
   }
 }

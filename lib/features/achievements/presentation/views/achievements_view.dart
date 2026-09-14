@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
@@ -531,30 +532,9 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(48),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedAward01,
-              size: 64,
-              color: context.sac.textTertiary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'achievements.views.empty_title'.tr(),
-              style: TextStyle(
-                color: context.sac.textSecondary,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
+    return SacEmptyState(
+      icon: HugeIcons.strokeRoundedAward01,
+      title: 'achievements.views.empty_title'.tr(),
     );
   }
 }
@@ -566,35 +546,12 @@ class _FilterEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(40),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedFilter,
-              size: 40,
-              color: context.sac.textTertiary,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'achievements.views.filter_empty'.tr(),
-              style: TextStyle(
-                color: context.sac.textSecondary,
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            TextButton(
-              onPressed: onClear,
-              child: Text('achievements.views.filter_all'.tr()),
-            ),
-          ],
-        ),
-      ),
+    return SacEmptyState(
+      icon: HugeIcons.strokeRoundedFilter,
+      title: 'achievements.views.filter_empty'.tr(),
+      actionLabel: 'achievements.views.filter_all'.tr(),
+      onAction: onClear,
+      actionVariant: SacButtonVariant.outline,
     );
   }
 }

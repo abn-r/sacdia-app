@@ -363,12 +363,12 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                     final derivation = _deriveActivities(
                       activities: activities,
                       selectedFilter: selectedFilter,
-                      selectedDate: ref.read(activitySeriesFilterProvider) == null
-                          ? selectedDate
-                          : null,
-                      isChronologicalView:
-                          isChronologicalView ||
-                              ref.read(activitySeriesFilterProvider) != null,
+                      selectedDate:
+                          ref.read(activitySeriesFilterProvider) == null
+                              ? selectedDate
+                              : null,
+                      isChronologicalView: isChronologicalView ||
+                          ref.read(activitySeriesFilterProvider) != null,
                     );
                     final filtered = derivation.filtered;
 
@@ -649,7 +649,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                             child: Row(
                               children: [
                                 HugeIcon(
-                                  icon: HugeIcons.strokeRoundedCalendarAdd01,
+                                  icon: HugeIcons.strokeRoundedAdd01,
                                   size: 20,
                                   color: c.textSecondary,
                                 ),
@@ -1155,43 +1155,6 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
           ],
         ),
       ),
-
-      // Botón flotante dentro del body para evitar que sea recortado por el widget padre
-      // bottomNavigationBar: Padding(
-      //   padding: const EdgeInsets.fromLTRB(0, 0, 16, 16),
-      //   child: Row(
-      //     mainAxisAlignment: MainAxisAlignment.end,
-      //     children: [
-      //       FloatingActionButton.extended(
-      //         heroTag: 'fab_nueva_actividad',
-      //         onPressed: () {
-      //           Navigator.push(
-      //             context,
-      //             MaterialPageRoute(
-      //               builder: (context) => CreateActivityView(
-      //                 clubId: widget.clubId,
-      //                 clubSectionId: widget.clubSectionId ?? 0,
-      //               ),
-      //             ),
-      //           ).then((created) {
-      //             // Si la actividad fue creada, refrescar la lista
-      //             if (created == true && mounted) {
-      //               ref.invalidate(clubActivitiesProvider);
-      //             }
-      //           });
-      //         },
-      //         backgroundColor: AppColors.primary,
-      //         foregroundColor: Colors.white,
-      //         elevation: 4,
-      //         icon: const HugeIcon(icon: HugeIcons.strokeRoundedAdd01, size: 22),
-      //         label: const Text(
-      //           'Nueva Actividad',
-      //           style: TextStyle(fontWeight: FontWeight.w600),
-      //         ),
-      //       ),
-      //     ],
-      //   ),
-      // ),
     );
   }
 }

@@ -8,9 +8,8 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import '../widgets/support_chrome.dart';
 
 class ContactView extends StatelessWidget {
   const ContactView({super.key});
@@ -70,7 +69,10 @@ class ContactView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: supportAppBar(context, title: 'support.contact_title'.tr()),
+      appBar: SacTopBar(
+        title: 'support.contact_title'.tr(),
+        centerTitle: true,
+      ),
       body: ListView(
         padding: EdgeInsets.fromLTRB(
           padding,

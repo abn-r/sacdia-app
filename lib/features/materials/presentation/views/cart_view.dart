@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,9 +10,10 @@ import '../../../../core/theme/sac_colors.dart';
 import '../providers/cart_provider.dart';
 import '../utils/money_format.dart';
 import '../widgets/qty_stepper.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 /// Pantalla del carrito de materiales.
 ///
@@ -27,17 +29,17 @@ class CartView extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: const Text('Carrito'),
+      appBar: SacTopBar(
+        title: 'materials.cart.title'.tr(),
         actions: [
           if (cart.lines.isNotEmpty)
-            TextButton(
+            IconButton(
+              tooltip: 'materials.cart.clear'.tr(),
               onPressed: () => _confirmClear(context, ref),
-              child: const Text(
-                'Vaciar',
-                style: TextStyle(color: AppColors.error),
+              icon: const HugeIcon(
+                icon: HugeIcons.strokeRoundedDelete02,
+                size: 22,
+                color: AppColors.error,
               ),
             ),
         ],
@@ -88,7 +90,7 @@ class CartView extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Subtotal',
+                        'materials.cart.subtotal'.tr(),
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -104,7 +106,7 @@ class CartView extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
                   SacButton.primary(
-                    text: 'Continuar',
+                    text: 'materials.cart.continue'.tr(),
                     onPressed: () => context.push(RouteNames.materialsSummary),
                   ),
                 ],
@@ -116,10 +118,10 @@ class CartView extends ConsumerWidget {
   Future<void> _confirmClear(BuildContext context, WidgetRef ref) async {
     final confirmed = await SacDialog.show(
       context,
-      title: 'Vaciar carrito',
-      content: '¿Quieres eliminar todos los productos del carrito?',
-      confirmLabel: 'Vaciar',
-      cancelLabel: 'Cancelar',
+      title: 'materials.cart.clear_title'.tr(),
+      content: 'materials.cart.clear_body'.tr(),
+      confirmLabel: 'materials.cart.clear'.tr(),
+      cancelLabel: 'common.cancel'.tr(),
       confirmIsDestructive: true,
     );
     if (confirmed == true) {
@@ -248,39 +250,14 @@ class _EmptyCart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedShoppingCart01,
-            size: 72,
-            color: c.textTertiary,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Tu carrito está vacío',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: c.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Agrega productos desde el catálogo',
-            style: TextStyle(color: c.textTertiary),
-          ),
-          const SizedBox(height: 24),
-          SacButton(
-            text: 'Ir al catálogo',
-            icon: HugeIcons.strokeRoundedArrowLeft01,
-            variant: SacButtonVariant.outline,
-            onPressed: onBackToCatalog,
-          ),
-        ],
-      ),
+    return SacEmptyState(
+      icon: HugeIcons.strokeRoundedShoppingCart01,
+      title: 'materials.cart.empty_title'.tr(),
+      body: 'materials.cart.empty_subtitle'.tr(),
+      actionLabel: 'materials.cart.go_catalog'.tr(),
+      onAction: onBackToCatalog,
+      actionIcon: HugeIcons.strokeRoundedArrowLeft01,
+      actionVariant: SacButtonVariant.outline,
     );
   }
 }

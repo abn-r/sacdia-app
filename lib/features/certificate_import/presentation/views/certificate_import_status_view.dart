@@ -1,9 +1,11 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../../domain/entities/certificate_import_payloads.dart';
 import '../../domain/entities/certificate_import_batch.dart';
@@ -25,13 +27,19 @@ class CertificateImportStatusRouteView extends ConsumerWidget {
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (error, _) => Scaffold(
-          appBar: AppBar(
+          appBar: SacTopBar(
+            title: 'certificate_import.status.title'.tr(),
             leading: const CertificateImportBackButton(
               fallbackLocation: RouteNames.certificateImportUpload,
             ),
-            title: const Text('Estado del envío'),
           ),
-          body: Center(child: Text('No pudimos cargar el estado: $error'))),
+          body: Center(
+            child: Text(
+              'certificate_import.status.load_error'.tr(
+                namedArgs: {'error': '$error'},
+              ),
+            ),
+          )),
       data: (batch) => CertificateImportStatusView(
         batch: batch,
         onResubmitItem: (item) async {
@@ -90,11 +98,11 @@ class CertificateImportStatusView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
+      appBar: SacTopBar(
+        title: 'certificate_import.status.title'.tr(),
         leading: CertificateImportBackButton(
           fallbackLocation: RouteNames.certificateImportReviewPath(batch.id),
         ),
-        title: const Text('Estado del envío'),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
@@ -105,8 +113,8 @@ class CertificateImportStatusView extends StatelessWidget {
               children: [
                 SacBadge(
                   label: rejected.isNotEmpty
-                      ? 'Correcciones pendientes'
-                      : 'En revisión',
+                      ? 'certificate_import.status.corrections_title'.tr()
+                      : 'certificate_import.status.in_review_title'.tr(),
                   variant: rejected.isNotEmpty
                       ? SacBadgeVariant.error
                       : SacBadgeVariant.accent,
@@ -114,8 +122,8 @@ class CertificateImportStatusView extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(
                   rejected.isNotEmpty
-                      ? 'Hay correcciones pendientes'
-                      : 'Tu Campo Local está revisando este envío.',
+                      ? 'certificate_import.status.corrections_body'.tr()
+                      : 'certificate_import.status.in_review_body'.tr(),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         color: c.text,
                         fontWeight: FontWeight.w700,
@@ -123,7 +131,11 @@ class CertificateImportStatusView extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Aprobadas: $approved · Rechazadas: ${rejected.length} · Pendientes: $pending',
+                  'certificate_import.status.counts'.tr(namedArgs: {
+                    'approved': '$approved',
+                    'rejected': '${rejected.length}',
+                    'pending': '$pending',
+                  }),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: c.textSecondary,
                       ),

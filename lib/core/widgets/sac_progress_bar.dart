@@ -49,7 +49,7 @@ class SacProgressBar extends StatefulWidget {
     this.label,
     this.showPercentage = false,
     this.showShimmer = false,
-    this.fillDuration = const Duration(milliseconds: 700),
+    this.fillDuration = SacMotion.standard,
   });
 
   @override

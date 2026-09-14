@@ -7,7 +7,7 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/camporee_orders/domain/entities/camporee_order.dart';
@@ -165,13 +165,10 @@ class CamporeeOrderCatalogView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: Text('camporee_orders.catalog.title'.tr()),
+      appBar: SacTopBar(
+        title: 'camporee_orders.catalog.title'.tr(),
         backgroundColor: c.surface,
         foregroundColor: c.text,
-        elevation: 0,
       ),
       body: SafeArea(
         child: RefreshIndicator(

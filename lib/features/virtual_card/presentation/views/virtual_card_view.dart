@@ -24,7 +24,8 @@ import '../utils/credential_share_capture.dart';
 import '../utils/share_position_origin.dart';
 import '../../../master_honors/presentation/widgets/master_honor_history_section.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 class VirtualCardView extends ConsumerStatefulWidget {
   const VirtualCardView({super.key});
@@ -113,10 +114,8 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
 
     return SecureScreen(
       child: Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          leading: sacAutoBackButton(context),
-          title: Text('virtual_card.title'.tr()),
+        appBar: SacTopBar(
+          title: 'virtual_card.title'.tr(),
           actions: [
             IconButton(
               tooltip: 'virtual_card.refresh'.tr(),

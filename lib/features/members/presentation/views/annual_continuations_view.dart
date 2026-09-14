@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 
 import '../../domain/entities/annual_continuation.dart';
 import '../providers/members_providers.dart';
@@ -321,37 +322,10 @@ class _ContinuationItem extends StatelessWidget {
 class _EmptyView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedUserCheck01,
-              size: 56,
-              color: c.textTertiary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              tr('members.continuations.empty_title'),
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
-                color: c.text,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              tr('members.continuations.empty_subtitle'),
-              style: TextStyle(fontSize: 14, color: c.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
+    return SacEmptyState(
+      icon: HugeIcons.strokeRoundedUserCheck01,
+      title: tr('members.continuations.empty_title'),
+      body: tr('members.continuations.empty_subtitle'),
     );
   }
 }

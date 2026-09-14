@@ -983,7 +983,7 @@ class _ProfileHeaderCard extends StatelessWidget {
                   width: double.infinity,
                   child: SacButton.primary(
                     text: 'profile.view.update_profile'.tr(),
-                    icon: HugeIcons.strokeRoundedEdit02,
+                    icon: HugeIcons.strokeRoundedPencilEdit01,
                     onPressed: onEditProfile,
                   ),
                 ),

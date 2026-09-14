@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 import '../../domain/entities/role_assignment.dart';
@@ -350,36 +351,10 @@ class _EmptyBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedUserStar01,
-              color: c.textTertiary,
-              size: 56,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'role_assignments.view.empty_title'.tr(),
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: c.text,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'role_assignments.view.empty_body'.tr(),
-              style: TextStyle(fontSize: 14, color: c.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
+    return SacEmptyState(
+      icon: HugeIcons.strokeRoundedUserStar01,
+      title: 'role_assignments.view.empty_title'.tr(),
+      body: 'role_assignments.view.empty_body'.tr(),
     );
   }
 }

@@ -14,7 +14,7 @@ import '../../domain/entities/inventory_item.dart';
 import '../providers/inventory_providers.dart';
 import '../widgets/condition_badge.dart';
 import 'add_inventory_item_sheet.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
@@ -40,19 +40,9 @@ class InventoryItemDetailView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.sac.background,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
+      appBar: SacTopBar(
+        title: 'inventory.detail.title'.tr(),
         backgroundColor: context.sac.background,
-        surfaceTintColor: Colors.transparent,
-        title: Text(
-          'inventory.detail.title'.tr(),
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: context.sac.text,
-              ),
-        ),
-        centerTitle: false,
       ),
 
       // Action bar at bottom — thumb zone
@@ -265,7 +255,7 @@ class InventoryItemDetailView extends ConsumerWidget {
                 if (detailItem.modifiedAt != null ||
                     detailItem.modifiedByName != null)
                   _InfoRow(
-                    icon: HugeIcons.strokeRoundedEdit01,
+                    icon: HugeIcons.strokeRoundedEdit02,
                     label: 'inventory.detail.last_modified'.tr(),
                     value: _joinNonEmpty([
                       detailItem.modifiedByName,
@@ -402,7 +392,7 @@ class _BottomActionBar extends StatelessWidget {
             Expanded(
               child: SacButton(
                 text: 'inventory.detail.edit_button'.tr(),
-                icon: HugeIcons.strokeRoundedEdit01,
+                icon: HugeIcons.strokeRoundedEdit02,
                 variant: SacButtonVariant.primary,
                 size: SacButtonSize.large,
                 fullWidth: true,

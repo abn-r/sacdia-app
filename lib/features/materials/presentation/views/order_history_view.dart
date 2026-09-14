@@ -6,8 +6,9 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../providers/history_provider.dart';
 import '../widgets/order_card.dart';
@@ -23,18 +24,8 @@ class OrderHistoryView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        backgroundColor: c.background,
-        surfaceTintColor: Colors.transparent,
-        title: Text(
-          'materials.history.title'.tr(),
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            color: c.text,
-          ),
-        ),
+      appBar: SacTopBar(
+        title: 'materials.history.title'.tr(),
       ),
       body: historialAsync.when(
         loading: () => const _HistorySkeleton(),
@@ -149,43 +140,13 @@ class _EmptyHistorial extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedInvoice03,
-              size: 64,
-              color: c.textTertiary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'materials.history.empty_title'.tr(),
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: c.text,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'materials.history.empty_subtitle'.tr(),
-              style: TextStyle(color: c.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            SacButton.primary(
-              text: 'materials.history.go_catalog'.tr(),
-              icon: HugeIcons.strokeRoundedStoreManagement01,
-              onPressed: onGoCatalog,
-            ),
-          ],
-        ),
-      ),
+    return SacEmptyState(
+      icon: HugeIcons.strokeRoundedInvoice03,
+      title: 'materials.history.empty_title'.tr(),
+      body: 'materials.history.empty_subtitle'.tr(),
+      actionLabel: 'materials.history.go_catalog'.tr(),
+      onAction: onGoCatalog,
+      actionIcon: HugeIcons.strokeRoundedStoreManagement01,
     );
   }
 }

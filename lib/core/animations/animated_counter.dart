@@ -50,7 +50,7 @@ class AnimatedCounter extends StatefulWidget {
     required this.value,
     this.begin = 0,
     this.style,
-    this.duration = const Duration(milliseconds: 900),
+    this.duration = SacMotion.standard,
     this.curve = SacMotion.easeOut,
     this.suffix = '',
     this.prefix = '',

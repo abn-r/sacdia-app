@@ -11,9 +11,10 @@ import '../../../../core/utils/ip_masker.dart';
 import '../../../biometric/presentation/providers/biometric_provider.dart';
 import '../../domain/entities/active_session.dart';
 import '../providers/active_sessions_providers.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -165,14 +166,10 @@ class _ActiveSessionsViewState extends ConsumerState<ActiveSessionsView> {
 
     return Scaffold(
       backgroundColor: c.surfaceVariant,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: Text('profile.active_sessions.ui.title'.tr()),
+      appBar: SacTopBar(
+        title: 'profile.active_sessions.ui.title'.tr(),
         backgroundColor: c.surfaceVariant,
         foregroundColor: c.text,
-        elevation: 0,
-        scrolledUnderElevation: 0,
       ),
       body: sessionsAsync.when(
         loading: () => const _LoadingState(),
@@ -258,26 +255,9 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedDeviceAccess,
-              size: 48,
-              color: c.textTertiary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'profile.active_sessions.ui.no_sessions'.tr(),
-              style: TextStyle(fontSize: 15, color: c.textSecondary),
-            ),
-          ],
-        ),
-      ),
+    return SacEmptyState(
+      icon: HugeIcons.strokeRoundedDeviceAccess,
+      title: 'profile.active_sessions.ui.no_sessions'.tr(),
     );
   }
 }

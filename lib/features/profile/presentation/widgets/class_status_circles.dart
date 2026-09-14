@@ -415,16 +415,7 @@ class _ClassInfoSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Center(
-            child: Container(
-              width: 36,
-              height: 5,
-              decoration: BoxDecoration(
-                color: c.border,
-                borderRadius: BorderRadius.circular(2.5),
-              ),
-            ),
-          ),
+          const SacSheetGrabber(padded: false),
           const SizedBox(height: 20),
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,

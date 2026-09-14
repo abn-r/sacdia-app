@@ -5,7 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/widgets/sac_back_button.dart';
+import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../domain/entities/certification_requirement.dart';
@@ -78,16 +78,10 @@ class CertificationRequirementDetailView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
+      appBar: SacTopBar(
+        title: state.requirement?.name ??
+            'certifications.requirement_detail.title'.tr(),
         backgroundColor: c.background,
-        surfaceTintColor: Colors.transparent,
-        leading: sacAutoBackButton(context),
-        title: Text(
-          state.requirement?.name ??
-              'certifications.requirement_detail.title'.tr(),
-          style: TextStyle(fontWeight: FontWeight.w700, color: c.text),
-          overflow: TextOverflow.ellipsis,
-        ),
       ),
       body: SafeArea(
         child: state.isLoading && state.requirement == null

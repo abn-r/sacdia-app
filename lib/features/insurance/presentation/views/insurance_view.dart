@@ -15,6 +15,7 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/fixed_input_icon_slot.dart';
 import '../../../../core/widgets/sac_back_button.dart';
 import '../../../../core/widgets/sac_button.dart';
+import '../../../../core/widgets/sac_empty_state.dart';
 import '../../../payment_orders/presentation/providers/payment_orders_providers.dart';
 import '../../domain/entities/member_insurance.dart';
 import '../providers/insurance_providers.dart';
@@ -605,42 +606,16 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 40, 32, 16),
-      child: Column(
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedShield01,
-            size: 48,
-            color: c.textTertiary,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            hasFilters
-                ? 'insurance.view.empty_filtered_title'.tr()
-                : 'insurance.view.empty_title'.tr(),
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: c.textSecondary,
-                  fontWeight: FontWeight.w600,
-                ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            hasFilters
-                ? 'insurance.view.empty_filtered_subtitle'.tr()
-                : canManage
-                    ? 'insurance.view.empty_subtitle_manager'.tr()
-                    : 'insurance.view.empty_subtitle_member'.tr(),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: c.textTertiary,
-                ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
+    return SacEmptyState(
+      icon: HugeIcons.strokeRoundedShield01,
+      title: hasFilters
+          ? 'insurance.view.empty_filtered_title'.tr()
+          : 'insurance.view.empty_title'.tr(),
+      body: hasFilters
+          ? 'insurance.view.empty_filtered_subtitle'.tr()
+          : canManage
+              ? 'insurance.view.empty_subtitle_manager'.tr()
+              : 'insurance.view.empty_subtitle_member'.tr(),
     );
   }
 }

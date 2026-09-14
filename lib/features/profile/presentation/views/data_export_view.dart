@@ -14,7 +14,7 @@ import '../../../../core/utils/icon_helper.dart';
 import '../../../biometric/presentation/providers/biometric_provider.dart';
 import '../../domain/entities/data_export.dart';
 import '../providers/data_export_providers.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -200,14 +200,10 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
 
     return Scaffold(
       backgroundColor: c.surfaceVariant,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: Text('profile.data_export.ui.title'.tr()),
+      appBar: SacTopBar(
+        title: 'profile.data_export.ui.title'.tr(),
         backgroundColor: c.surfaceVariant,
         foregroundColor: c.text,
-        elevation: 0,
-        scrolledUnderElevation: 0,
       ),
       body: exportsAsync.when(
         loading: () => _buildBody(

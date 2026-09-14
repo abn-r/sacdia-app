@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,9 +13,9 @@ import '../../../../core/theme/sac_colors.dart';
 import '../providers/receipts_provider.dart';
 import '../providers/order_detail_provider.dart';
 import '../widgets/price_input.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 // ── Constantes de validación ──────────────────────────────────────────────────
 
@@ -76,7 +77,7 @@ class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
         _selectedFile = null;
         _selectedFileName = null;
         _selectedFileSizeBytes = null;
-        _fileError = 'El archivo supera el límite de 10 MB.';
+        _fileError = 'materials.receipt.file_too_large'.tr();
       });
       return;
     }
@@ -109,7 +110,7 @@ class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
   Future<void> _submit() async {
     // Validate file selection
     if (_selectedFile == null) {
-      setState(() => _fileError = 'Selecciona un archivo para continuar.');
+      setState(() => _fileError = 'materials.receipt.file_required'.tr());
       return;
     }
 
@@ -118,7 +119,7 @@ class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
 
     if (_fechaPago == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecciona la fecha de pago.')),
+        SnackBar(content: Text('materials.receipt.date_required'.tr())),
       );
       return;
     }
@@ -148,9 +149,8 @@ class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
         if (context.mounted) {
           context.go(RouteNames.materialsOrderDetail(widget.folioOrId));
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                  'Comprobante enviado. El campo local lo validará pronto.'),
+            SnackBar(
+              content: Text('materials.receipt.sent'.tr()),
               backgroundColor: AppColors.secondary,
             ),
           );
@@ -169,10 +169,9 @@ class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
     });
 
     return Scaffold(
-      appBar: AppBar(
-          automaticallyImplyLeading: false,
-          leading: sacAutoBackButton(context),
-          title: const Text('Subir comprobante')),
+      appBar: SacTopBar(
+        title: 'materials.receipt.title'.tr(),
+      ),
       body: uploadState.isLoading
           ? _UploadProgress(progress: uploadState.progress)
           : _FormBody(
@@ -211,7 +210,7 @@ class _UploadProgress extends StatelessWidget {
                 color: AppColors.primary),
             const SizedBox(height: 16),
             Text(
-              'Enviando comprobante…',
+              'materials.receipt.sending'.tr(),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
@@ -281,11 +280,11 @@ class _FormBody extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         children: [
           // ── File picker area ─────────────────────────────────────────────────
-          _SectionLabel(label: 'Archivo del comprobante'),
+          _SectionLabel(label: 'materials.receipt.file_section'.tr()),
           const SizedBox(height: 8),
           if (selectedFileName == null)
             SacButton.outline(
-              text: 'Seleccionar archivo (PDF, JPG, PNG)',
+              text: 'materials.receipt.pick_file'.tr(),
               icon: HugeIcons.strokeRoundedAttachment01,
               borderColor:
                   fileError != null ? AppColors.error : AppColors.primary,
@@ -311,7 +310,7 @@ class _FormBody extends StatelessWidget {
 
           // ── Monto pagado ─────────────────────────────────────────────────────
           PriceInput(
-            label: 'Monto pagado',
+            label: 'materials.receipt.amount'.tr(),
             hint: '0.00',
             onChanged: onMontoChanged,
           ),
@@ -321,11 +320,11 @@ class _FormBody extends StatelessWidget {
           // ── Referencia bancaria ──────────────────────────────────────────────
           SacTextField(
             controller: refController,
-            label: 'Concepto de la transferencia',
-            hint: 'Ej: SOL20260001',
+            label: 'materials.receipt.concept'.tr(),
+            hint: 'materials.receipt.concept_hint'.tr(),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
-                return 'Ingresa la referencia que usaste.';
+                return 'materials.receipt.concept_required'.tr();
               }
               return null;
             },
@@ -334,7 +333,7 @@ class _FormBody extends StatelessWidget {
           const SizedBox(height: 20),
 
           // ── Fecha de pago ─────────────────────────────────────────────────────
-          _SectionLabel(label: 'Fecha de pago'),
+          _SectionLabel(label: 'materials.receipt.date_section'.tr()),
           const SizedBox(height: 8),
           GestureDetector(
             onTap: onPickDate,
@@ -355,11 +354,9 @@ class _FormBody extends StatelessWidget {
                     child: Text(
                       fechaPago != null
                           ? _formatDate(fechaPago!)
-                          : 'Seleccionar fecha',
+                          : 'materials.receipt.pick_date'.tr(),
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: fechaPago != null
-                            ? c.text
-                            : c.textSecondary,
+                        color: fechaPago != null ? c.text : c.textSecondary,
                       ),
                     ),
                   ),
@@ -375,7 +372,7 @@ class _FormBody extends StatelessWidget {
 
           // ── Submit ────────────────────────────────────────────────────────────
           SacButton.primary(
-            text: 'Enviar comprobante',
+            text: 'materials.receipt.submit'.tr(),
             icon: HugeIcons.strokeRoundedSent,
             onPressed: onSubmit,
           ),
@@ -445,7 +442,7 @@ class _FilePreview extends StatelessWidget {
           ),
           TextButton(
             onPressed: onReplace,
-            child: const Text('Cambiar'),
+            child: Text('materials.receipt.change'.tr()),
           ),
         ],
       ),

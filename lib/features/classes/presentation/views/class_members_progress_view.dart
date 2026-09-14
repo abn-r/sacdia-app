@@ -5,7 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/widgets/sac_back_button.dart';
+import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../domain/entities/class_members_progress.dart';
@@ -42,10 +42,8 @@ class ClassMembersProgressView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.sac.canvas,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: Text(className),
+      appBar: SacTopBar(
+        title: className,
       ),
       body: membersAsync.when(
         loading: () => const Center(child: SacLoading()),

@@ -111,7 +111,7 @@ import '../../features/auth/domain/entities/authorization_snapshot.dart';
 import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/domain/utils/authorization_utils.dart';
 import 'route_names.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 /// Shared-axis slide for standard forward/back navigation.
 Page<void> _sharedAxisBuild(
@@ -780,17 +780,13 @@ final routerProvider = Provider<GoRouter>((ref) {
             context,
             state,
             Scaffold(
-              appBar: AppBar(
-                automaticallyImplyLeading: false,
-                leading: sacAutoBackButton(context),
-                title: const Text('Registro importado'),
+              appBar: SacTopBar(
+                title: 'certificate_import.proof.title'.tr(),
               ),
               body: Padding(
                 padding: const EdgeInsets.all(16),
                 child: item == null
-                    ? const Text(
-                        'Detalle no disponible. Ábrelo desde un registro importado.',
-                      )
+                    ? Text('certificate_import.proof.missing'.tr())
                     : CertificateImportProofCard(item: item),
               ),
             ),
@@ -1570,10 +1566,8 @@ class _EvidenceFolderShell extends ConsumerWidget {
         ),
       ),
       error: (e, _) => Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          leading: sacAutoBackButton(context),
-          title: Text(tr('router.evidence_folder.title')),
+        appBar: SacTopBar(
+          title: tr('router.evidence_folder.title'),
         ),
         body: Center(
           child: Padding(
@@ -1593,10 +1587,8 @@ class _EvidenceFolderShell extends ConsumerWidget {
       data: (section) {
         if (section == null) {
           return Scaffold(
-            appBar: AppBar(
-              automaticallyImplyLeading: false,
-              leading: sacAutoBackButton(context),
-              title: Text(tr('router.evidence_folder.title')),
+            appBar: SacTopBar(
+              title: tr('router.evidence_folder.title'),
             ),
             body: Center(
               child: Padding(

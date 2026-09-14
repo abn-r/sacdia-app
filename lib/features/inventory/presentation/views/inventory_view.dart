@@ -19,13 +19,14 @@ import 'inventory_item_detail_view.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 /// Pantalla principal del módulo de Inventario del club.
 ///
 /// Muestra stats compactas, búsqueda, chips de categoría inline y la lista
-/// de artículos con SliverList.builder (no spread en Column). El FAB solo
-/// aparece para roles autorizados.
+/// de artículos con SliverList.builder (no spread en Column). El alta va
+/// en IconButton Add01 del chrome, solo para roles autorizados.
 class InventoryView extends ConsumerStatefulWidget {
   const InventoryView({super.key});
 
@@ -540,85 +541,16 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 48, 32, 32),
-      child: Column(
-        children: [
-          // Composed icon illustration
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                width: 96,
-                height: 96,
-                decoration: BoxDecoration(
-                  color: AppColors.primarySurface,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const HugeIcon(
-                icon: HugeIcons.strokeRoundedBoxingBag,
-                size: 48,
-                color: AppColors.primary,
-              ),
-              Positioned(
-                bottom: 4,
-                right: 4,
-                child: Container(
-                  width: 28,
-                  height: 28,
-                  decoration: const BoxDecoration(
-                    color: AppColors.secondary,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Center(
-                    child: HugeIcon(
-                      icon: HugeIcons.strokeRoundedAdd01,
-                      size: 16,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 20),
-
-          Text(
-            'inventory.view.empty_title'.tr(),
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: c.text,
-                  fontWeight: FontWeight.w700,
-                ),
-            textAlign: TextAlign.center,
-          ),
-
-          const SizedBox(height: 8),
-
-          Text(
-            canAdd
-                ? 'inventory.view.empty_subtitle_can_add'.tr()
-                : 'inventory.view.empty_subtitle_cannot_add'.tr(),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: c.textSecondary,
-                  height: 1.5,
-                ),
-            textAlign: TextAlign.center,
-          ),
-
-          if (canAdd && onAddTap != null) ...[
-            const SizedBox(height: 28),
-            SacButton.primary(
-              text: 'inventory.view.add_first_item'.tr(),
-              icon: HugeIcons.strokeRoundedAdd01,
-              onPressed: onAddTap,
-            ),
-          ],
-        ],
-      ),
+    return SacEmptyState(
+      icon: HugeIcons.strokeRoundedBoxingBag,
+      title: 'inventory.view.empty_title'.tr(),
+      body: canAdd
+          ? 'inventory.view.empty_subtitle_can_add'.tr()
+          : 'inventory.view.empty_subtitle_cannot_add'.tr(),
+      actionLabel: canAdd && onAddTap != null
+          ? 'inventory.view.add_first_item'.tr()
+          : null,
+      onAction: onAddTap,
     );
   }
 }

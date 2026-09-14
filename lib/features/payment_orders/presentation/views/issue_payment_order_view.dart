@@ -6,7 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/insurance/domain/entities/member_insurance.dart';
@@ -50,17 +50,12 @@ class IssuePaymentOrderView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: Text(
-          purpose == PaymentOrderPurpose.insurance
-              ? 'payment_orders.issue.title_insurance'.tr()
-              : 'payment_orders.issue.title_camporee'.tr(),
-        ),
+      appBar: SacTopBar(
+        title: purpose == PaymentOrderPurpose.insurance
+            ? 'payment_orders.issue.title_insurance'.tr()
+            : 'payment_orders.issue.title_camporee'.tr(),
         backgroundColor: c.surface,
         foregroundColor: c.text,
-        elevation: 0,
       ),
       body: SafeArea(
         child: contextAsync.when(

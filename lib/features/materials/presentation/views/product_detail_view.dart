@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -10,8 +11,8 @@ import '../providers/cart_provider.dart';
 import '../providers/product_detail_provider.dart';
 import '../utils/money_format.dart';
 import '../widgets/qty_stepper.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 /// Pantalla de detalle de producto del catálogo de materiales.
 class ProductDetailView extends ConsumerStatefulWidget {
@@ -34,10 +35,8 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
     final c = context.sac;
 
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: const Text('Detalle del producto'),
+      appBar: SacTopBar(
+        title: 'materials.product.title'.tr(),
       ),
       body: itemAsync.when(
         loading: () => const Center(
@@ -59,7 +58,7 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
               ),
               const SizedBox(height: 16),
               SacButton(
-                text: 'Reintentar',
+                text: 'common.retry'.tr(),
                 variant: SacButtonVariant.primary,
                 fullWidth: false,
                 onPressed: () =>
@@ -107,7 +106,7 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'SKU: ${item.sku}',
+                  'materials.product.sku'.tr(namedArgs: {'sku': item.sku}),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: c.textSecondary,
                   ),
@@ -152,7 +151,9 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                 // ── Variant selector ──
                 if (item.hasVariants && item.variant != null) ...[
                   Text(
-                    'Selecciona ${item.variant!.type.name}:',
+                    'materials.product.select_variant'.tr(
+                      namedArgs: {'name': item.variant!.type.name},
+                    ),
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -188,9 +189,7 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                                     : c.surface,
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: selected
-                                  ? AppColors.primary
-                                  : c.border,
+                              color: selected ? AppColors.primary : c.border,
                             ),
                           ),
                           child: Column(
@@ -232,7 +231,7 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                 Row(
                   children: [
                     Text(
-                      'Cantidad:',
+                      'materials.product.qty'.tr(),
                       style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -250,7 +249,7 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
 
                 // ── Add to cart CTA ──
                 SacButton.primary(
-                  text: 'Agregar al carrito',
+                  text: 'materials.product.add_to_cart'.tr(),
                   icon: HugeIcons.strokeRoundedShoppingCartAdd01,
                   onPressed:
                       maxQty > 0 ? () => _addToCart(item, context) : null,
@@ -258,9 +257,9 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
 
                 if (maxQty == 0) ...[
                   const SizedBox(height: 8),
-                  const Center(
+                  Center(
                     child: Text(
-                      'Producto agotado',
+                      'materials.product.out_of_stock'.tr(),
                       style: TextStyle(
                         color: AppColors.error,
                         fontWeight: FontWeight.w500,
@@ -285,11 +284,15 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${item.title} agregado al carrito'),
+        content: Text(
+          'materials.product.added_snackbar'.tr(
+            namedArgs: {'title': item.title},
+          ),
+        ),
         backgroundColor: AppColors.secondary,
         behavior: SnackBarBehavior.floating,
         action: SnackBarAction(
-          label: 'Ver carrito',
+          label: 'materials.product.view_cart'.tr(),
           textColor: Colors.white,
           onPressed: () {
             ScaffoldMessenger.of(context).hideCurrentSnackBar();

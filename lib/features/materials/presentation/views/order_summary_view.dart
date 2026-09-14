@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,9 +13,9 @@ import '../providers/cart_provider.dart';
 import '../providers/config_provider.dart';
 import '../providers/create_order_provider.dart';
 import '../utils/money_format.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 /// Pantalla de resumen y confirmación de pedido.
 ///
@@ -60,17 +61,15 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
     final total = cart.subtotalCentavos + envioCentavos;
 
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: const Text('Confirmar pedido'),
+      appBar: SacTopBar(
+        title: 'materials.summary.title'.tr(),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
         children: [
           // ── Subtitle ─────────────────────────────────────────────────────
           Text(
-            'Revisa los datos antes de confirmar tu pedido.',
+            'materials.summary.intro'.tr(),
             style: theme.textTheme.bodyMedium?.copyWith(
               color: c.textSecondary,
             ),
@@ -78,7 +77,7 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
           const SizedBox(height: 24),
 
           // ── Datos de entrega ──────────────────────────────────────────────
-          _SectionHeader(title: 'Datos de entrega'),
+          _SectionHeader(title: 'materials.summary.delivery_section'.tr()),
           const SizedBox(height: 12),
           Card(
             elevation: 0,
@@ -92,7 +91,7 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Modalidad',
+                    'materials.summary.mode'.tr(),
                     style: theme.textTheme.labelMedium?.copyWith(
                       color: c.textSecondary,
                     ),
@@ -108,14 +107,14 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
                       value: _entrega,
                       isExpanded: true,
                       underline: const SizedBox.shrink(),
-                      items: const [
+                      items: [
                         DropdownMenuItem(
                           value: MaterialDelivery.recoger,
-                          child: Text('Recoger en campo'),
+                          child: Text('materials.summary.pickup'.tr()),
                         ),
                         DropdownMenuItem(
                           value: MaterialDelivery.envio,
-                          child: Text('Envío a domicilio'),
+                          child: Text('materials.summary.ship'.tr()),
                         ),
                       ],
                       onChanged: (v) {
@@ -141,7 +140,7 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'El campo local coordinará los datos de envío tras aprobar el pedido.',
+                              'materials.summary.ship_hint'.tr(),
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: AppColors.accentDark,
                               ),
@@ -158,7 +157,7 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
           const SizedBox(height: 24),
 
           // ── Resumen del pedido ────────────────────────────────────────────
-          _SectionHeader(title: 'Resumen del pedido'),
+          _SectionHeader(title: 'materials.summary.order_section'.tr()),
           const SizedBox(height: 12),
           Card(
             elevation: 0,
@@ -181,8 +180,8 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
           // ── Notas opcionales ──────────────────────────────────────────────
           SacTextField(
             controller: _notasController,
-            label: 'Notas (opcional)',
-            hint: 'Instrucciones especiales, observaciones…',
+            label: 'materials.summary.notes_label'.tr(),
+            hint: 'materials.summary.notes_hint'.tr(),
             maxLines: 3,
           ),
         ],
@@ -209,25 +208,25 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
           mainAxisSize: MainAxisSize.min,
           children: [
             _TotalRow(
-              label: 'Subtotal',
+              label: 'materials.cart.subtotal'.tr(),
               amount: cart.subtotalCentavos,
               isTotal: false,
             ),
             const SizedBox(height: 4),
             _TotalRow(
-              label: 'Costo de envío',
+              label: 'materials.summary.shipping'.tr(),
               amount: envioCentavos,
               isTotal: false,
             ),
             const Divider(height: 16),
             _TotalRow(
-              label: 'Total',
+              label: 'materials.summary.total'.tr(),
               amount: total,
               isTotal: true,
             ),
             const SizedBox(height: 12),
             SacButton.primary(
-              text: 'Confirmar pedido',
+              text: 'materials.summary.confirm'.tr(),
               isLoading: createState.isLoading,
               onPressed:
                   createState.isLoading ? null : () => _confirm(context, ref),

@@ -9,7 +9,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_participant_access_gate.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
@@ -49,16 +49,10 @@ class CamporeeMembersView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: Text(
-          'camporees.members.title'.tr(),
-          style: TextStyle(color: c.text),
-        ),
+      appBar: SacTopBar(
+        title: 'camporees.members.title'.tr(),
         backgroundColor: c.surface,
         foregroundColor: c.text,
-        elevation: 0,
         actions: canRegisterParticipants
             ? [
                 IconButton(
@@ -71,7 +65,7 @@ class CamporeeMembersView extends ConsumerWidget {
                   tooltip: 'camporees.members.enroll_member_tooltip'.tr(),
                 ),
               ]
-            : null,
+            : const [],
       ),
       body: SafeArea(
         child: CamporeeParticipantAccessGate(
@@ -488,7 +482,7 @@ class _MemberTile extends StatelessWidget {
             IconButton(
               onPressed: onRemove,
               icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedDelete01,
+                icon: HugeIcons.strokeRoundedDelete02,
                 size: 20,
                 color: AppColors.error,
               ),

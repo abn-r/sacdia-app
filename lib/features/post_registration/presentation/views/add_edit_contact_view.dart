@@ -4,7 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -133,12 +133,10 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
     final relationshipTypesAsync = ref.watch(relationshipTypesProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: Text(_isEditing
+      appBar: SacTopBar(
+        title: _isEditing
             ? 'post_registration.contact_form.edit_title'.tr()
-            : 'post_registration.contact_form.add_title'.tr()),
+            : 'post_registration.contact_form.add_title'.tr(),
         actions: [
           if (_isLoading)
             const Center(

@@ -6,7 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/camporee_orders/domain/entities/camporee_order.dart';
 import 'package:sacdia_app/features/camporee_orders/presentation/providers/camporee_orders_providers.dart';
@@ -41,13 +41,10 @@ class CamporeeOrderReviewView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: Text('camporee_orders.review.title'.tr()),
+      appBar: SacTopBar(
+        title: 'camporee_orders.review.title'.tr(),
         backgroundColor: c.surface,
         foregroundColor: c.text,
-        elevation: 0,
       ),
       body: SafeArea(
         child: draft.lines.isEmpty

@@ -5,7 +5,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../theme/app_colors.dart';
-import '../../theme/sac_colors.dart';
 
 /// Shows a bottom sheet asking the user to pick an image source.
 ///
@@ -21,24 +20,9 @@ Future<ImageSource?> showImageSourceDialog(BuildContext context) {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(height: 8),
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: context.sac.border,
-              borderRadius: BorderRadius.circular(2),
-            ),
+          SacSheetHeader(
+            title: tr('core.evidence_staging.image_source_title'),
           ),
-          const SizedBox(height: 16),
-          Text(
-            tr('core.evidence_staging.image_source_title'),
-            style: Theme.of(context)
-                .textTheme
-                .titleSmall
-                ?.copyWith(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 16),
           ListTile(
             leading: Container(
               width: 40,

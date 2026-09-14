@@ -12,7 +12,8 @@ import '../../domain/entities/evidence_review_item.dart';
 import '../providers/coordinator_providers.dart';
 import '../widgets/evidence_file_gallery.dart';
 import '../widgets/approval_action_buttons.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 /// Detalle de una evidencia para revisión.
 ///
@@ -38,10 +39,8 @@ class EvidenceReviewDetailView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: Text(type.displayLabel),
+      appBar: SacTopBar(
+        title: type.displayLabel,
         actions: [
           IconButton(
             onPressed: () => ref.invalidate(evidenceDetailProvider(key)),

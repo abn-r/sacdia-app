@@ -49,7 +49,7 @@ class SacProgressRing extends StatefulWidget {
     this.color,
     this.trackColor,
     this.animate = true,
-    this.animationDuration = const Duration(milliseconds: 900),
+    this.animationDuration = SacMotion.modal,
   });
 
   @override

@@ -2,7 +2,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
@@ -28,20 +29,9 @@ class InvestitureHistoryView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.canvas,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
+      appBar: SacTopBar(
+        title: 'investiture.history.title'.tr(),
         backgroundColor: c.canvas,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        title: Text(
-          'investiture.history.title'.tr(),
-          style: TextStyle(
-            color: c.ink900,
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
         actions: [
           IconButton(
             onPressed: () =>

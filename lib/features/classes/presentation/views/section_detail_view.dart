@@ -9,7 +9,8 @@ import '../../../../core/widgets/sac_card.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/class_section.dart';
 import '../providers/classes_providers.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 /// Vista de detalle de una sección de clase
 class SectionDetailView extends ConsumerStatefulWidget {
@@ -42,10 +43,8 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
     );
 
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: Text('classes.section_detail.title'.tr()),
+      appBar: SacTopBar(
+        title: 'classes.section_detail.title'.tr(),
         backgroundColor: AppColors.primary,
       ),
       body: SingleChildScrollView(

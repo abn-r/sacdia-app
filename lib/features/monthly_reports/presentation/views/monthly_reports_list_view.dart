@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 import '../../domain/entities/monthly_report.dart';
@@ -325,36 +326,10 @@ class _EmptyBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedFile01,
-              color: c.textTertiary,
-              size: 56,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'monthly_reports.list.empty_title'.tr(),
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: c.text,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'monthly_reports.list.empty_subtitle'.tr(),
-              style: TextStyle(fontSize: 14, color: c.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
+    return SacEmptyState(
+      icon: HugeIcons.strokeRoundedFile01,
+      title: 'monthly_reports.list.empty_title'.tr(),
+      body: 'monthly_reports.list.empty_subtitle'.tr(),
     );
   }
 }

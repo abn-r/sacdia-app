@@ -160,7 +160,7 @@ class _AnnualRankingProgressBody extends ConsumerWidget {
 
 /// Reveal compartido por número, track y barras: todo aterriza en el mismo
 /// frame (una sola "voz" de movimiento en la pantalla).
-const Duration _kReveal = Duration(milliseconds: 600);
+const Duration _kReveal = SacMotion.standard;
 
 class AnnualRankingProgressContent extends StatelessWidget {
   final AnnualRankingProgress progress;
@@ -258,7 +258,8 @@ class _ProgressHeroCard extends StatelessWidget {
       tr(
         'rankings.annual_progress.progress_percentage',
         namedArgs: {
-          'percent': progress.progressPercentage.clamp(0, 100).toStringAsFixed(0)
+          'percent':
+              progress.progressPercentage.clamp(0, 100).toStringAsFixed(0)
         },
       ),
       hasCurrent
@@ -562,9 +563,8 @@ class _TierLadderRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final name = locked
-        ? tr('rankings.annual_progress.no_tier_yet')
-        : tier!.name.trim();
+    final name =
+        locked ? tr('rankings.annual_progress.no_tier_yet') : tier!.name.trim();
 
     return Row(
       crossAxisAlignment:
@@ -805,8 +805,7 @@ class _AxesCard extends StatelessWidget {
           const SizedBox(height: 4),
           for (var index = 0; index < axes.length; index++) ...[
             _AxisSection(axis: axes[index]),
-            if (index != axes.length - 1)
-              Divider(height: 1, color: c.divider),
+            if (index != axes.length - 1) Divider(height: 1, color: c.divider),
           ],
         ],
       ),

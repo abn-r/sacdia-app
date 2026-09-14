@@ -226,20 +226,7 @@ class _SectionSwitcherSheetState extends ConsumerState<_SectionSwitcherSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ── Drag handle ──────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.only(top: 12, bottom: 4),
-            child: Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: c.textTertiary.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                ),
-              ),
-            ),
-          ),
+          const SacSheetGrabber(),
 
           // ── Header ───────────────────────────────────────────────
           Padding(

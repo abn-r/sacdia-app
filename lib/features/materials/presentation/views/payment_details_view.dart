@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,7 +11,7 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/material_status.dart';
 import '../providers/order_detail_provider.dart';
 import '../utils/money_format.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 
 /// Pantalla "Datos para pago" — muestra la CLABE, referencia bancaria y
@@ -28,10 +29,8 @@ class PaymentDetailsView extends ConsumerWidget {
     final ordenAsync = ref.watch(orderDetailProvider(folioOrId));
 
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: const Text('Datos para pago'),
+      appBar: SacTopBar(
+        title: 'materials.payment.title'.tr(),
       ),
       body: ordenAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -69,10 +68,10 @@ class _PagoBody extends StatelessWidget {
       children: [
         // ── Referencia bancaria ───────────────────────────────────────────────
         if (orden.folioReferencia != null) ...[
-          _SectionLabel(label: 'Referencia bancaria'),
+          _SectionLabel(label: 'materials.payment.bank_ref'.tr()),
           const SizedBox(height: 8),
           _CopyCard(
-            label: 'Referencia',
+            label: 'materials.payment.reference'.tr(),
             value: orden.folioReferencia!,
             mono: true,
           ),
@@ -80,7 +79,7 @@ class _PagoBody extends StatelessWidget {
         ],
 
         // ── Datos de la cuenta ────────────────────────────────────────────────
-        _SectionLabel(label: 'Datos de la cuenta'),
+        _SectionLabel(label: 'materials.payment.account'.tr()),
         const SizedBox(height: 8),
         Card(
           elevation: 0,
@@ -93,20 +92,24 @@ class _PagoBody extends StatelessWidget {
             child: Column(
               children: [
                 if (orden.bankName != null && orden.bankName!.isNotEmpty)
-                  _DataRow(label: 'Banco', value: orden.bankName!),
+                  _DataRow(
+                      label: 'materials.payment.bank'.tr(),
+                      value: orden.bankName!),
                 if (orden.accountHolder != null &&
                     orden.accountHolder!.isNotEmpty)
-                  _DataRow(label: 'Titular', value: orden.accountHolder!),
+                  _DataRow(
+                      label: 'materials.payment.holder'.tr(),
+                      value: orden.accountHolder!),
                 if (orden.bankAccountClabe != null &&
                     orden.bankAccountClabe!.isNotEmpty)
                   _DataRow(
-                    label: 'CLABE',
+                    label: 'materials.payment.clabe'.tr(),
                     value: orden.bankAccountClabe!,
                     mono: true,
                     copyable: true,
                   ),
                 _DataRow(
-                  label: 'Monto a pagar',
+                  label: 'materials.payment.amount'.tr(),
                   value: formatMxn(orden.totalCentavos),
                   bold: true,
                 ),
@@ -136,9 +139,7 @@ class _PagoBody extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Realizá la transferencia a la CLABE de arriba. '
-                  'Usa la referencia como concepto de pago para que el '
-                  'campo local identifique tu depósito.',
+                  'materials.payment.transfer_hint'.tr(),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: AppColors.statusInfoText,
                   ),
@@ -152,7 +153,7 @@ class _PagoBody extends StatelessWidget {
 
         // ── CTA ───────────────────────────────────────────────────────────────
         SacButton.primary(
-          text: 'Ya pagué, subir comprobante',
+          text: 'materials.payment.paid_upload'.tr(),
           icon: HugeIcons.strokeRoundedFileUpload,
           onPressed: () =>
               context.push(RouteNames.materialsOrderReceipt(folioOrId)),
@@ -184,19 +185,19 @@ class _NotRequiredBody extends StatelessWidget {
                 color: c.textTertiary),
             const SizedBox(height: 12),
             Text(
-              'Esta orden no requiere pago',
+              'materials.payment.no_payment_needed'.tr(),
               style: theme.textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              'El estado actual de la orden no admite subir comprobante.',
+              'materials.payment.cannot_upload'.tr(),
               style: TextStyle(color: c.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
             SacButton(
-              text: 'Volver',
+              text: 'common.back'.tr(),
               icon: HugeIcons.strokeRoundedArrowLeft01,
               variant: SacButtonVariant.outline,
               onPressed: onBack,
@@ -230,7 +231,7 @@ class _ErrorBody extends StatelessWidget {
                 color: c.textTertiary),
             const SizedBox(height: 12),
             Text(
-              'No se pudo cargar el pedido',
+              'materials.order.load_error'.tr(),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
@@ -241,7 +242,7 @@ class _ErrorBody extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             SacButton(
-              text: 'Reintentar',
+              text: 'common.retry'.tr(),
               icon: HugeIcons.strokeRoundedRefresh,
               variant: SacButtonVariant.outline,
               onPressed: onRetry,
@@ -322,12 +323,14 @@ class _CopyCard extends StatelessWidget {
             ),
             IconButton(
               icon: const HugeIcon(icon: HugeIcons.strokeRoundedCopy01),
-              tooltip: 'Copiar',
+              tooltip: 'materials.payment.copy'.tr(),
               color: AppColors.primary,
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: value));
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('$label copiada')),
+                  SnackBar(
+                      content: Text('materials.payment.copied'
+                          .tr(namedArgs: {'label': label}))),
                 );
               },
             ),
@@ -389,7 +392,9 @@ class _DataRow extends StatelessWidget {
               onTap: () {
                 Clipboard.setData(ClipboardData(text: value));
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('$label copiada')),
+                  SnackBar(
+                      content: Text('materials.payment.copied'
+                          .tr(namedArgs: {'label': label}))),
                 );
               },
               child: const Padding(

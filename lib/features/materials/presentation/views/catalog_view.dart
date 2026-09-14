@@ -10,8 +10,9 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../providers/cart_provider.dart';
 import '../providers/catalog_provider.dart';
@@ -67,15 +68,8 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        backgroundColor: c.background,
-        surfaceTintColor: Colors.transparent,
-        title: Text(
-          'materials.catalog.title'.tr(),
-          style: TextStyle(fontWeight: FontWeight.w700, color: c.text),
-        ),
+      appBar: SacTopBar(
+        title: 'materials.catalog.title'.tr(),
         actions: [
           IconButton(
             icon: HugeIcon(
@@ -405,27 +399,9 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedPackage,
-            size: 56,
-            color: c.textTertiary,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'materials.catalog.empty'.tr(),
-            style: TextStyle(
-              color: c.textSecondary,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
+    return SacEmptyState(
+      icon: HugeIcons.strokeRoundedPackage,
+      title: 'materials.catalog.empty'.tr(),
     );
   }
 }

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
@@ -37,18 +37,15 @@ class TransactionDetailView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.sac.background,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
+      appBar: SacTopBar(
+        title: 'finances.transaction_detail.title'.tr(),
         backgroundColor: context.sac.background,
-        surfaceTintColor: Colors.transparent,
-        title: Text('finances.transaction_detail.title'.tr()),
         actions: [
           if (canEdit) ...[
             IconButton(
               onPressed: () => _confirmDelete(context, ref),
               icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedDelete01,
+                icon: HugeIcons.strokeRoundedDelete02,
                 size: 20,
                 color: AppColors.error,
               ),
@@ -56,7 +53,7 @@ class TransactionDetailView extends ConsumerWidget {
             IconButton(
               onPressed: () => _openEditSheet(context),
               icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedPencilEdit01,
+                icon: HugeIcons.strokeRoundedEdit02,
                 size: 20,
                 color: AppColors.primary,
               ),
@@ -133,7 +130,7 @@ class TransactionDetailView extends ConsumerWidget {
                 if (transaction.modifiedByName != null) ...[
                   _divider(),
                   _DetailRow(
-                    icon: HugeIcons.strokeRoundedPencilEdit01,
+                    icon: HugeIcons.strokeRoundedEdit02,
                     label: 'finances.transaction_detail.modified_by'.tr(),
                     value: transaction.modifiedByName!,
                   ),

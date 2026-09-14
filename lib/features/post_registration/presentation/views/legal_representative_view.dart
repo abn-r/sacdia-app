@@ -4,7 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -135,10 +135,8 @@ class _LegalRepresentativeViewState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: Text('post_registration.legal_representative.title'.tr()),
+      appBar: SacTopBar(
+        title: 'post_registration.legal_representative.title'.tr(),
         actions: [
           if (_isLoading)
             const Center(

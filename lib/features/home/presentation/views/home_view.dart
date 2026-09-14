@@ -197,7 +197,7 @@ class HomeView extends ConsumerWidget {
       if (success && context.mounted) {
         context.showSnackBar(tr('home.logout_success'));
       } else if (!success && context.mounted) {
-        context.showSnackBar(tr('home.logout_error'));
+        context.showSnackBar(tr('home.logout_error'), isError: true);
       }
     }
   }

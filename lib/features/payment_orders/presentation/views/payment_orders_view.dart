@@ -6,8 +6,9 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 import '../../../camporee_orders/presentation/providers/camporee_orders_providers.dart';
@@ -36,13 +37,10 @@ class PaymentOrdersView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: Text('payment_orders.list.title'.tr()),
+      appBar: SacTopBar(
+        title: 'payment_orders.list.title'.tr(),
         backgroundColor: c.surface,
         foregroundColor: c.text,
-        elevation: 0,
       ),
       body: SafeArea(
         child: RefreshIndicator(
@@ -75,7 +73,7 @@ class PaymentOrdersView extends ConsumerWidget {
                       ref.invalidate(paymentOrdersListProvider(filter)),
                 ),
                 data: (orders) => orders.isEmpty
-                    ? _EmptyState(c: c)
+                    ? const _EmptyState()
                     : Column(
                         children: [
                           for (var i = 0; i < orders.length; i++) ...[
@@ -323,29 +321,13 @@ class _OrderCard extends StatelessWidget {
 }
 
 class _EmptyState extends StatelessWidget {
-  final SacColors c;
-
-  const _EmptyState({required this.c});
+  const _EmptyState();
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 28),
-      child: Column(
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedInvoice01,
-            size: 48,
-            color: c.textTertiary,
-          ),
-          const SizedBox(height: 14),
-          Text(
-            'payment_orders.list.empty'.tr(),
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: c.textSecondary),
-          ),
-        ],
-      ),
+    return SacEmptyState(
+      icon: HugeIcons.strokeRoundedInvoice01,
+      title: 'payment_orders.list.empty'.tr(),
     );
   }
 }

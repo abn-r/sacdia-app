@@ -271,32 +271,7 @@ class _BottomSheetPickerSheetState extends State<BottomSheetPickerSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Drag handle
-          Padding(
-            padding: const EdgeInsets.only(top: 12, bottom: 4),
-            child: Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: context.sac.border,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                ),
-              ),
-            ),
-          ),
-
-          // Title
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                widget.title,
-                style: theme.textTheme.headlineSmall,
-              ),
-            ),
-          ),
+          SacSheetHeader(title: widget.title),
 
           const Divider(height: 1),
 

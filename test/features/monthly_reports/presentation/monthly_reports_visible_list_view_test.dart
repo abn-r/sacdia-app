@@ -85,7 +85,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 80));
 
       expect(tester.takeException(), isNull);
-      expect(find.text('Reportes'), findsOneWidget);
+      expect(find.text('Informes'), findsOneWidget);
       expect(find.text('Historial'), findsOneWidget);
       expect(find.text('Continuar'), findsOneWidget);
       expect(find.text('Borrador en curso'), findsOneWidget);

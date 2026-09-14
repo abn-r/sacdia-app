@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,7 +7,7 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../providers/certificate_import_providers.dart';
 
@@ -71,10 +72,9 @@ class _CertificateImportProcessingViewState
     final c = context.sac;
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-          automaticallyImplyLeading: false,
-          leading: sacAutoBackButton(context),
-          title: const Text('Leyendo comprobante')),
+      appBar: SacTopBar(
+        title: 'certificate_import.processing.title'.tr(),
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
         children: [
@@ -88,8 +88,8 @@ class _CertificateImportProcessingViewState
                 const SizedBox(height: 16),
                 Text(
                   _error == null
-                      ? 'Estamos leyendo tu comprobante'
-                      : 'No pudimos leer todo',
+                      ? 'certificate_import.processing.running_title'.tr()
+                      : 'certificate_import.processing.error_title'.tr(),
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         color: c.text,
@@ -99,8 +99,8 @@ class _CertificateImportProcessingViewState
                 const SizedBox(height: 8),
                 Text(
                   _error == null
-                      ? 'Extraemos honores, clases y fechas para que confirmes los datos.'
-                      : 'Puedes reintentar OCR o completar los datos manualmente. No te dejamos en un callejón sin salida.',
+                      ? 'certificate_import.processing.running_body'.tr()
+                      : 'certificate_import.processing.error_body'.tr(),
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: c.textSecondary,
@@ -110,10 +110,14 @@ class _CertificateImportProcessingViewState
             ),
           ),
           const SizedBox(height: 16),
-          _Step(label: 'Subiendo archivo', done: true),
-          _Step(label: 'Leyendo texto', active: _running && _error == null),
           _Step(
-              label: 'Preparando resultados',
+              label: 'certificate_import.processing.step_upload'.tr(),
+              done: true),
+          _Step(
+              label: 'certificate_import.processing.step_ocr'.tr(),
+              active: _running && _error == null),
+          _Step(
+              label: 'certificate_import.processing.step_results'.tr(),
               active: _running && _error == null),
           if (_error != null) ...[
             const SizedBox(height: 12),
@@ -121,13 +125,13 @@ class _CertificateImportProcessingViewState
           ],
           const SizedBox(height: 22),
           SacButton.outline(
-            text: 'Completar manualmente',
+            text: 'certificate_import.processing.manual'.tr(),
             icon: HugeIcons.strokeRoundedNoteEdit,
             onPressed: widget.onManualFallback,
           ),
           const SizedBox(height: 10),
           SacButton.ghost(
-            text: 'Reintentar lectura',
+            text: 'certificate_import.processing.retry'.tr(),
             onPressed: _running ? null : _start,
           ),
         ],

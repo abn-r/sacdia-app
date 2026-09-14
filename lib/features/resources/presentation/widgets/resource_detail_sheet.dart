@@ -174,17 +174,7 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
           ),
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: c.border,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
+              const SacSheetGrabber(),
               Expanded(
                 child: SingleChildScrollView(
                   controller: scrollController,

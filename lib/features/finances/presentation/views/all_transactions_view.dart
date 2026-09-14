@@ -7,6 +7,7 @@ import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_loading.dart';
+import '../../../../core/widgets/sac_empty_state.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../domain/entities/transaction.dart';
 import '../providers/finances_providers.dart';
@@ -385,42 +386,12 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(40),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedSearch01,
-              size: 56,
-              color: context.sac.textTertiary,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'finances.all_transactions.empty_title'.tr(),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: context.sac.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              hasActiveSearch
-                  ? 'finances.all_transactions.empty_search_subtitle'.tr()
-                  : 'finances.all_transactions.empty_range_subtitle'.tr(),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w400,
-                color: context.sac.textTertiary,
-              ),
-            ),
-          ],
-        ),
-      ),
+    return SacEmptyState(
+      icon: HugeIcons.strokeRoundedSearch01,
+      title: 'finances.all_transactions.empty_title'.tr(),
+      body: hasActiveSearch
+          ? 'finances.all_transactions.empty_search_subtitle'.tr()
+          : 'finances.all_transactions.empty_range_subtitle'.tr(),
     );
   }
 }

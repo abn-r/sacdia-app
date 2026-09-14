@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -72,7 +73,7 @@ class _CertificateImportItemEditorSheetState
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Corregir fila',
+                'certificate_import.editor.title'.tr(),
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       color: c.text,
                       fontWeight: FontWeight.w700,
@@ -83,7 +84,7 @@ class _CertificateImportItemEditorSheetState
                 children: [
                   Expanded(
                     child: SacButton(
-                      text: 'Honor',
+                      text: 'certificate_import.editor.honor'.tr(),
                       variant: _type == CertificateImportItemType.honor
                           ? SacButtonVariant.primary
                           : SacButtonVariant.outline,
@@ -94,7 +95,7 @@ class _CertificateImportItemEditorSheetState
                   const SizedBox(width: 10),
                   Expanded(
                     child: SacButton(
-                      text: 'Clase',
+                      text: 'certificate_import.editor.class'.tr(),
                       variant: _type == CertificateImportItemType.clazz
                           ? SacButtonVariant.primary
                           : SacButtonVariant.outline,
@@ -106,27 +107,27 @@ class _CertificateImportItemEditorSheetState
               ),
               const SizedBox(height: 12),
               SacTextField(
-                label: 'Nombre detectado',
+                label: 'certificate_import.editor.name'.tr(),
                 controller: _nameController,
                 textInputAction: TextInputAction.next,
               ),
               const SizedBox(height: 12),
               SacTextField(
-                label: 'ID catálogo',
+                label: 'certificate_import.editor.catalog_id'.tr(),
                 controller: _catalogController,
                 keyboardType: TextInputType.number,
                 textInputAction: TextInputAction.next,
               ),
               const SizedBox(height: 12),
               SacTextField(
-                label: 'Fecha completada',
+                label: 'certificate_import.editor.completed_at'.tr(),
                 controller: _dateController,
                 keyboardType: TextInputType.datetime,
-                hint: 'AAAA-MM-DD',
+                hint: 'certificate_import.editor.date_hint'.tr(),
               ),
               const SizedBox(height: 18),
               SacButton.primary(
-                text: 'Guardar corrección',
+                text: 'certificate_import.editor.save'.tr(),
                 isLoading: _saving,
                 onPressed: _saving ? null : _save,
               ),

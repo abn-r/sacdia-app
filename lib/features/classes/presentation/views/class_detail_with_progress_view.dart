@@ -914,7 +914,7 @@ class _HeroCard extends StatelessWidget {
                       children: [
                         AnimatedCounter(
                           value: pct,
-                          duration: const Duration(milliseconds: 700),
+                          duration: SacMotion.standard,
                           style: TextStyle(
                             fontSize: 44,
                             fontWeight: FontWeight.w800,
@@ -1198,7 +1198,7 @@ class _AdvancedTrackSection extends StatelessWidget {
                 AnimatedCounter(
                   value: _percentage,
                   suffix: '%',
-                  duration: const Duration(milliseconds: 500),
+                  duration: SacMotion.standard,
                   style: TextStyle(
                     fontSize: 16,
                     color: c.ink900,
@@ -1228,7 +1228,7 @@ class _AdvancedTrackSection extends StatelessWidget {
                 tween: Tween<double>(begin: 0, end: _percentage / 100),
                 duration: SacMotion.reduceMotionOf(context)
                     ? Duration.zero
-                    : const Duration(milliseconds: 600),
+                    : SacMotion.standard,
                 curve: SacMotion.easeOut,
                 builder: (context, value, _) => LinearProgressIndicator(
                   value: value,

@@ -9,7 +9,7 @@ import '../../../../core/utils/icon_helper.dart';
 import '../../../profile/presentation/widgets/setting_tile.dart';
 import '../../domain/entities/accessibility_settings.dart';
 import '../providers/accessibility_provider.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 class AccessibilityView extends ConsumerWidget {
@@ -23,14 +23,10 @@ class AccessibilityView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.surfaceVariant,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: Text('accessibility.title'.tr()),
+      appBar: SacTopBar(
+        title: 'accessibility.title'.tr(),
         backgroundColor: c.surfaceVariant,
         foregroundColor: c.text,
-        elevation: 0,
-        scrolledUnderElevation: 0,
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

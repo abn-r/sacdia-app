@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../providers/support_providers.dart';
 import '../widgets/support_chrome.dart';
@@ -46,7 +47,10 @@ class _SupportViewState extends ConsumerState<SupportView> {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: supportAppBar(context, title: 'support.title'.tr()),
+      appBar: SacTopBar(
+        title: 'support.title'.tr(),
+        centerTitle: true,
+      ),
       body: ListView(
         padding: EdgeInsets.fromLTRB(
           padding,

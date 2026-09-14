@@ -7,7 +7,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sacdia_app/core/auth/club_role_names.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 
 import '../../../../core/animations/motion_tokens.dart';
@@ -375,11 +376,6 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
   }
 
   Future<void> _handleDeleteAccount() async {
-    final c = context.sac;
-    final confirmCtrl = TextEditingController();
-    final passwordCtrl = TextEditingController();
-    String? fieldError;
-    bool isLoading = false;
     final deleteConfirmationWord =
         'profile.settings.delete_account_confirmation_word'.tr();
 
@@ -391,180 +387,48 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
       confirmIsDestructive: true,
     );
 
-    if (firstConfirmed != true || !mounted) {
-      confirmCtrl.dispose();
-      passwordCtrl.dispose();
-      return;
-    }
+    if (firstConfirmed != true || !mounted) return;
 
-    // Segunda confirmación: escribir la palabra localizada + contraseña actual.
-    final secondConfirmed = await showDialog<bool>(
-      context: context,
-      barrierColor: c.barrierColor,
+    final password = await SacDialog.present<String>(
+      context,
       barrierDismissible: false,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(
-            'profile.settings.delete_account_second_title'.tr(),
-            style: const TextStyle(color: AppColors.error),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'profile.settings.delete_account_write_eliminate'.tr(
-                  namedArgs: {'word': deleteConfirmationWord},
-                ),
-                style: TextStyle(fontSize: 14, color: c.textSecondary),
-              ),
-              const SizedBox(height: 12),
-              SacTextField(
-                controller: confirmCtrl,
-                hint: deleteConfirmationWord,
-                enabled: !isLoading,
-                textCapitalization: TextCapitalization.characters,
-                inputFormatters: [
-                  TextInputFormatter.withFunction(
-                    (old, val) => val.copyWith(
-                      text: val.text.toUpperCase(),
-                      selection: val.selection,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'profile.settings.delete_account_enter_password'.tr(),
-                style: TextStyle(fontSize: 14, color: c.textSecondary),
-              ),
-              const SizedBox(height: 8),
-              SacTextField(
-                controller: passwordCtrl,
-                hint: 'profile.settings.field_password_hint'.tr(),
-                obscureText: true,
-                enabled: !isLoading,
-                textInputAction: TextInputAction.done,
-              ),
-              if (fieldError != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  fieldError!,
-                  style: const TextStyle(color: AppColors.error, fontSize: 13),
-                ),
-              ],
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: isLoading ? null : () => Navigator.pop(ctx, false),
-              child: Text('common.cancel'.tr()),
-            ),
-            FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.error,
-              ),
-              onPressed: isLoading
-                  ? null
-                  : () {
-                      if (confirmCtrl.text.trim() !=
-                          deleteConfirmationWord.toUpperCase()) {
-                        setDialogState(() {
-                          fieldError =
-                              'profile.settings.delete_account_error_type_wrong'
-                                  .tr(namedArgs: {
-                            'word': deleteConfirmationWord,
-                          });
-                        });
-                        return;
-                      }
-                      if (passwordCtrl.text.trim().isEmpty) {
-                        setDialogState(() => fieldError =
-                            'profile.settings.delete_account_error_no_password'
-                                .tr());
-                        return;
-                      }
-                      setDialogState(() {
-                        fieldError = null;
-                        isLoading = true;
-                      });
-                      Navigator.pop(ctx, true);
-                    },
-              child: isLoading
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : Text('profile.settings.delete_account_tile'.tr()),
-            ),
-          ],
-        ),
+      builder: (_) => _DeleteAccountConfirmDialog(
+        confirmationWord: deleteConfirmationWord,
       ),
     );
 
-    final password = passwordCtrl.text.trim();
-    confirmCtrl.dispose();
-    passwordCtrl.dispose();
+    if (password == null || password.isEmpty || !mounted) return;
 
-    if (secondConfirmed != true || !mounted) return;
-
-    // Mostrar loading en la pantalla mientras corre la request.
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text('profile.settings.deleting_account'.tr()),
-            ],
-          ),
-          duration: const Duration(seconds: 30),
-          behavior: SnackBarBehavior.floating,
+    SacSnackBar.show(
+      context,
+      'profile.settings.deleting_account'.tr(),
+      duration: const Duration(seconds: 30),
+      leading: const SizedBox(
+        width: 16,
+        height: 16,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: Colors.white,
         ),
-      );
-    }
+      ),
+    );
 
     final error =
         await ref.read(authNotifierProvider.notifier).deleteAccount(password);
 
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    SacSnackBar.hide(context);
 
     if (error == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('profile.settings.account_deleted'.tr()),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
+      SacSnackBar.show(
+        context,
+        'profile.settings.account_deleted'.tr(),
+        backgroundColor: AppColors.success,
       );
-      // El router detectará state=null y redirigirá a login automáticamente.
       Navigator.of(context).popUntil((route) => route.isFirst);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
+      SacSnackBar.show(context, error, isError: true);
     }
   }
 
@@ -583,14 +447,10 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
 
     return Scaffold(
       backgroundColor: c.surfaceVariant,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: Text('settings.title'.tr()),
+      appBar: SacTopBar(
+        title: 'settings.title'.tr(),
         backgroundColor: c.surfaceVariant,
         foregroundColor: c.text,
-        elevation: 0,
-        scrolledUnderElevation: 0,
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1288,6 +1148,121 @@ class _ScaleFadeInState extends State<_ScaleFadeIn>
         ),
       ),
       child: widget.child,
+    );
+  }
+}
+
+class _DeleteAccountConfirmDialog extends StatefulWidget {
+  const _DeleteAccountConfirmDialog({required this.confirmationWord});
+
+  final String confirmationWord;
+
+  @override
+  State<_DeleteAccountConfirmDialog> createState() =>
+      _DeleteAccountConfirmDialogState();
+}
+
+class _DeleteAccountConfirmDialogState
+    extends State<_DeleteAccountConfirmDialog> {
+  late final TextEditingController _confirmCtrl;
+  late final TextEditingController _passwordCtrl;
+  String? _fieldError;
+
+  @override
+  void initState() {
+    super.initState();
+    _confirmCtrl = TextEditingController();
+    _passwordCtrl = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _confirmCtrl.dispose();
+    _passwordCtrl.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (_confirmCtrl.text.trim() != widget.confirmationWord.toUpperCase()) {
+      setState(() {
+        _fieldError = 'profile.settings.delete_account_error_type_wrong'.tr(
+          namedArgs: {'word': widget.confirmationWord},
+        );
+      });
+      return;
+    }
+    if (_passwordCtrl.text.trim().isEmpty) {
+      setState(() {
+        _fieldError = 'profile.settings.delete_account_error_no_password'.tr();
+      });
+      return;
+    }
+    Navigator.of(context).pop(_passwordCtrl.text.trim());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return SacDialog(
+      title: 'profile.settings.delete_account_second_title'.tr(),
+      icon: HugeIcons.strokeRoundedAlert02,
+      iconColor: AppColors.error,
+      iconBackgroundColor: AppColors.errorLight,
+      content: 'profile.settings.delete_account_write_eliminate'.tr(
+        namedArgs: {'word': widget.confirmationWord},
+      ),
+      body: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SacTextField(
+            controller: _confirmCtrl,
+            hint: widget.confirmationWord,
+            textCapitalization: TextCapitalization.characters,
+            inputFormatters: [
+              TextInputFormatter.withFunction(
+                (old, val) => val.copyWith(
+                  text: val.text.toUpperCase(),
+                  selection: val.selection,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'profile.settings.delete_account_enter_password'.tr(),
+            style: TextStyle(fontSize: 14, color: c.textSecondary),
+          ),
+          const SizedBox(height: 8),
+          SacTextField(
+            controller: _passwordCtrl,
+            hint: 'profile.settings.field_password_hint'.tr(),
+            obscureText: true,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _submit(),
+          ),
+          if (_fieldError != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              _fieldError!,
+              style: const TextStyle(color: AppColors.error, fontSize: 13),
+            ),
+          ],
+        ],
+      ),
+      actions: [
+        SacDialogAction(
+          label: 'common.cancel'.tr(),
+          onPressed: () => Navigator.of(context).pop(),
+          style: SacDialogActionStyle.cancel,
+        ),
+        SacDialogAction(
+          label: 'profile.settings.delete_account_tile'.tr(),
+          onPressed: _submit,
+          style: SacDialogActionStyle.destructive,
+        ),
+      ],
     );
   }
 }

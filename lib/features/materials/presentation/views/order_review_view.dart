@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -16,10 +17,10 @@ import '../providers/receipts_provider.dart';
 import '../providers/order_detail_provider.dart';
 import '../utils/money_format.dart';
 import '../widgets/material_status_badge.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 /// Pantalla de revisión de una orden por folio o ID.
 ///
@@ -40,14 +41,12 @@ class _OrderReviewViewState extends ConsumerState<OrderReviewView> {
     final ordenAsync = ref.watch(orderDetailProvider(widget.folioOrId));
 
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: const Text('Detalle del pedido'),
+      appBar: SacTopBar(
+        title: 'materials.order.title'.tr(),
         actions: [
           IconButton(
             icon: const HugeIcon(icon: HugeIcons.strokeRoundedRefresh),
-            tooltip: 'Actualizar',
+            tooltip: 'materials.order.refresh'.tr(),
             onPressed: () => ref.invalidate(
               orderDetailProvider(widget.folioOrId),
             ),
@@ -96,7 +95,8 @@ class _OrdenBody extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Creado el ${_formatDate(orden.createdAt)}',
+            'materials.order.created_on'
+                .tr(namedArgs: {'date': _formatDate(orden.createdAt)}),
             style: theme.textTheme.bodySmall?.copyWith(
               color: c.textSecondary,
             ),
@@ -121,7 +121,7 @@ class _OrdenBody extends ConsumerWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Solicitud en revisión por el campo local.',
+                      'materials.order.review_banner'.tr(),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: AppColors.statusInfoText,
                       ),
@@ -135,7 +135,7 @@ class _OrdenBody extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // ── Líneas ─────────────────────────────────────────────────────────
-          _SectionHeader(title: 'Productos'),
+          _SectionHeader(title: 'materials.order.products'.tr()),
           const SizedBox(height: 8),
           Card(
             elevation: 0,
@@ -157,7 +157,7 @@ class _OrdenBody extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // ── Totales ────────────────────────────────────────────────────────
-          _SectionHeader(title: 'Totales'),
+          _SectionHeader(title: 'materials.order.totals'.tr()),
           const SizedBox(height: 8),
           Card(
             elevation: 0,
@@ -170,19 +170,19 @@ class _OrdenBody extends ConsumerWidget {
               child: Column(
                 children: [
                   _TotalRow(
-                    label: 'Subtotal',
+                    label: 'materials.cart.subtotal'.tr(),
                     amount: orden.subtotalCentavos,
                     isTotal: false,
                   ),
                   const SizedBox(height: 6),
                   _TotalRow(
-                    label: 'Envío',
+                    label: 'materials.order.shipping'.tr(),
                     amount: orden.envioCentavos,
                     isTotal: false,
                   ),
                   const Divider(height: 16),
                   _TotalRow(
-                    label: 'Total',
+                    label: 'materials.summary.total'.tr(),
                     amount: orden.totalCentavos,
                     isTotal: true,
                   ),
@@ -197,7 +197,7 @@ class _OrdenBody extends ConsumerWidget {
           if (orden.status == MaterialStatus.aprobada ||
               orden.status == MaterialStatus.pagada ||
               orden.status == MaterialStatus.entregada) ...[
-            _SectionHeader(title: 'Comprobantes'),
+            _SectionHeader(title: 'materials.order.receipts'.tr()),
             const SizedBox(height: 8),
             _ComprobantesSection(folioOrId: orden.folioReferencia ?? orden.id),
             const SizedBox(height: 24),
@@ -234,7 +234,7 @@ class _ActionCard extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SacButton.destructive(
-              text: 'Cancelar pedido',
+              text: 'materials.order.cancel'.tr(),
               icon: HugeIcons.strokeRoundedCancelCircle,
               isLoading: cancelState.isLoading,
               onPressed: cancelState.isLoading
@@ -267,7 +267,7 @@ class _ActionCard extends ConsumerWidget {
                           size: 20),
                       const SizedBox(width: 8),
                       Text(
-                        'Pedido aprobado',
+                        'materials.order.approved_title'.tr(),
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: AppColors.accentDark,
@@ -277,7 +277,7 @@ class _ActionCard extends ConsumerWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Tu pedido fue aprobado. Realiza la transferencia y sube el comprobante.',
+                    'materials.order.approved_body'.tr(),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: AppColors.accentDark,
                     ),
@@ -287,7 +287,7 @@ class _ActionCard extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             SacButton.outline(
-              text: 'Ver datos de pago',
+              text: 'materials.order.view_payment'.tr(),
               icon: HugeIcons.strokeRoundedBank,
               onPressed: () => context.push(
                 RouteNames.materialsOrderPayment(
@@ -296,7 +296,7 @@ class _ActionCard extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             SacButton.primary(
-              text: 'Subir comprobante',
+              text: 'materials.order.upload_receipt'.tr(),
               icon: HugeIcons.strokeRoundedFileUpload,
               onPressed: () => context.push(
                 RouteNames.materialsOrderReceipt(
@@ -324,7 +324,7 @@ class _ActionCard extends ConsumerWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Pago validado. Esperando entrega.',
+                  'materials.order.paid_waiting'.tr(),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: AppColors.secondaryDark,
                     fontWeight: FontWeight.w600,
@@ -350,7 +350,7 @@ class _ActionCard extends ConsumerWidget {
                   size: 40),
               const SizedBox(height: 8),
               Text(
-                'Tu pedido fue entregado',
+                'materials.order.delivered_title'.tr(),
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: AppColors.secondaryDark,
@@ -376,7 +376,7 @@ class _ActionCard extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Motivo de cancelación',
+                      'materials.order.cancel_reason'.tr(),
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: AppColors.errorDark,
                         fontWeight: FontWeight.w600,
@@ -394,7 +394,7 @@ class _ActionCard extends ConsumerWidget {
               ),
             const SizedBox(height: 12),
             SacButton.outline(
-              text: 'Hacer un nuevo pedido',
+              text: 'materials.order.new_order'.tr(),
               onPressed: () => context.go(RouteNames.homeMaterials),
             ),
           ],
@@ -409,27 +409,27 @@ class _ActionCard extends ConsumerWidget {
       final confirmed = await SacDialog.present<bool>(
         context,
         builder: (ctx) => SacDialog(
-          title: 'Cancelar pedido',
-          content: '¿Estás seguro de que deseas cancelar este pedido?',
+          title: 'materials.order.cancel_title'.tr(),
+          content: 'materials.order.cancel_body'.tr(),
           body: Form(
             key: formKey,
             child: SacTextField(
               controller: reasonController,
-              label: 'Motivo (requerido)',
+              label: 'materials.order.reason_label'.tr(),
               maxLines: 2,
               validator: (value) => (value == null || value.trim().isEmpty)
-                  ? 'Ingresa un motivo de cancelación.'
+                  ? 'materials.order.reason_required'.tr()
                   : null,
             ),
           ),
           actions: [
             SacDialogAction(
-              label: 'Volver',
+              label: 'common.back'.tr(),
               style: SacDialogActionStyle.cancel,
               onPressed: () => Navigator.of(ctx).pop(false),
             ),
             SacDialogAction(
-              label: 'Cancelar pedido',
+              label: 'materials.order.cancel'.tr(),
               style: SacDialogActionStyle.destructive,
               onPressed: () {
                 if (formKey.currentState?.validate() != true) return;
@@ -445,7 +445,7 @@ class _ActionCard extends ConsumerWidget {
       final reason = reasonController.text.trim();
       if (reason.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ingresa un motivo de cancelación.')),
+          SnackBar(content: Text('materials.order.reason_required'.tr())),
         );
         return;
       }
@@ -471,7 +471,7 @@ class _ActionCard extends ConsumerWidget {
             orderDetailProvider(orden.folioReferencia ?? orden.id),
           );
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Pedido cancelado.')),
+            SnackBar(content: Text('materials.order.cancelled_snackbar'.tr())),
           );
         },
       );
@@ -671,7 +671,7 @@ class _ComprobantesSection extends ConsumerWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              'No hay comprobantes subidos aún.',
+              'materials.order.no_receipts'.tr(),
               style: TextStyle(color: context.sac.textSecondary),
             ),
           );
@@ -720,11 +720,11 @@ class _ComprobanteCard extends StatelessWidget {
   String get _statusLabel {
     switch (comprobante.status) {
       case MaterialReceiptStatus.aprobado:
-        return 'Aprobado';
+        return 'materials.order.receipt_approved'.tr();
       case MaterialReceiptStatus.rechazado:
-        return 'Rechazado';
+        return 'materials.order.receipt_rejected'.tr();
       case MaterialReceiptStatus.pendiente:
-        return 'Pendiente';
+        return 'materials.order.receipt_pending'.tr();
     }
   }
 
@@ -842,7 +842,7 @@ class _ErrorBody extends StatelessWidget {
                 color: c.textTertiary),
             const SizedBox(height: 12),
             Text(
-              'No se pudo cargar el pedido',
+              'materials.order.load_error'.tr(),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
@@ -853,7 +853,7 @@ class _ErrorBody extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             SacButton(
-              text: 'Reintentar',
+              text: 'common.retry'.tr(),
               icon: HugeIcons.strokeRoundedRefresh,
               variant: SacButtonVariant.outline,
               onPressed: onRetry,

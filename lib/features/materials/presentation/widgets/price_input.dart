@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
@@ -87,7 +88,7 @@ class _PriceInputState extends State<PriceInput> {
       validator: widget.validator ??
           (value) {
             final centavos = _parseAsCentavos(value ?? '');
-            if (centavos <= 0) return 'Ingresa un monto mayor a \$0.00';
+            if (centavos <= 0) return 'materials.receipt.amount_min'.tr();
             return null;
           },
       onChanged: (value) {

@@ -5,7 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/widgets/sac_back_button.dart';
+import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
@@ -56,10 +56,8 @@ class TeachingScopeView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.sac.canvas,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: Text('classes.teaching_scope.title'.tr()),
+      appBar: SacTopBar(
+        title: 'classes.teaching_scope.title'.tr(),
         actions: [
           if (canManageAssignments && activeClubContext != null)
             IconButton(
