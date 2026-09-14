@@ -12,6 +12,7 @@ import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/fixed_input_icon_slot.dart';
 import '../../../../core/widgets/sac_text_field.dart';
+import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../activities/presentation/views/location_picker_view.dart';
 import '../../../activities/presentation/widgets/activity_form_widgets.dart';
 import '../../../members/domain/entities/club_member.dart';
@@ -478,33 +479,11 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        backgroundColor: c.background,
-        surfaceTintColor: Colors.transparent,
-        title: Text(
-          _isEdit
-              ? 'enrollment.form.title_edit'.tr()
-              : 'enrollment.form.title_create'.tr(),
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
-            color: c.text,
-          ),
-        ),
-        centerTitle: false,
-        leading: IconButton(
-          icon: HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowLeft01,
-            color: c.text,
-            size: 22,
-          ),
-          onPressed:
-              formState.isLoading ? null : () => Navigator.of(context).pop(),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: c.border),
-        ),
+      appBar: SacTopBar(
+        title: _isEdit
+            ? 'enrollment.form.title_edit'.tr()
+            : 'enrollment.form.title_create'.tr(),
+        automaticallyImplyLeading: !formState.isLoading,
       ),
       body: Form(
         key: _formKey,

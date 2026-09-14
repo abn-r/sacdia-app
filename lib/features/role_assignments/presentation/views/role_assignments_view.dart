@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../../domain/entities/role_assignment.dart';
 import '../providers/role_assignments_providers.dart';
@@ -25,26 +26,8 @@ class RoleAssignmentsView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        backgroundColor: c.background,
-        surfaceTintColor: Colors.transparent,
-        title: Text(
-          'role_assignments.view.title'.tr(),
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
-            color: c.text,
-          ),
-        ),
-        centerTitle: false,
-        leading: IconButton(
-          icon: HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowLeft01,
-            color: c.text,
-            size: 22,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+      appBar: SacTopBar(
+        title: 'role_assignments.view.title'.tr(),
         actions: [
           IconButton(
             icon: HugeIcon(
@@ -54,7 +37,6 @@ class RoleAssignmentsView extends ConsumerWidget {
             ),
             onPressed: () => ref.invalidate(roleAssignmentsProvider),
           ),
-          const SizedBox(width: 4),
         ],
       ),
       body: assignmentsAsync.when(

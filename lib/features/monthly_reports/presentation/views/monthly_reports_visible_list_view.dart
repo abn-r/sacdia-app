@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/features/enrollment/presentation/providers/enrollment_providers.dart';
 
 import '../../domain/entities/monthly_report.dart';
@@ -27,28 +28,9 @@ class MonthlyReportsVisibleListView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        backgroundColor: c.background.withValues(alpha: 0.92),
-        surfaceTintColor: Colors.transparent,
-        scrolledUnderElevation: 0.5,
-        title: Text(
-          'monthly_reports.visible.title'.tr(),
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
-            color: c.text,
-            letterSpacing: -0.2,
-          ),
-        ),
-        centerTitle: false,
-        leading: IconButton(
-          icon: HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowLeft01,
-            color: c.text,
-            size: 22,
-          ),
-          onPressed: () => context.go(RouteNames.homeDashboard),
-        ),
+      appBar: SacTopBar(
+        title: 'monthly_reports.visible.title'.tr(),
+        onBack: () => context.go(RouteNames.homeDashboard),
       ),
       body: reportsAsync.when(
         loading: () => const MonthlyReportSkeletonList(),

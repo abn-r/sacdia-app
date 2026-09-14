@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../../domain/entities/monthly_report.dart';
 import '../providers/monthly_reports_providers.dart';
@@ -271,10 +272,13 @@ class _MonthlyReportManualDataFormViewState
       },
       child: Scaffold(
         backgroundColor: c.background,
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          backgroundColor: c.background,
-          surfaceTintColor: Colors.transparent,
+        appBar: SacTopBar(
+          title: 'monthly_reports.form.sheet_title'.tr(
+            namedArgs: {
+              'month': widget.report.monthName,
+              'year': '${widget.report.year}',
+            },
+          ),
           leading: IconButton(
             icon: HugeIcon(
               icon: isSheet
@@ -289,20 +293,6 @@ class _MonthlyReportManualDataFormViewState
                 navigator.pop(false);
               }
             },
-          ),
-          title: Text(
-            'monthly_reports.form.sheet_title'.tr(
-              namedArgs: {
-                'month': widget.report.monthName,
-                'year': '${widget.report.year}',
-              },
-            ),
-            style: TextStyle(
-              color: c.text,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.2,
-              fontSize: 17,
-            ),
           ),
         ),
         body: Column(

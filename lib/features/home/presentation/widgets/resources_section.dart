@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DATA MODELS (hardcoded mock)
@@ -127,33 +128,10 @@ class _ResourcesSectionState extends State<ResourcesSection> {
     final c = context.sac;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: context.sac.background,
-        foregroundColor: context.sac.text,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
+      appBar: SacTopBar(
+        title: tr('home.resources.title'),
         centerTitle: true,
-        leading: IconButton(
-          icon: HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowLeft01,
-            color: context.sac.text,
-            size: 22,
-          ),
-          onPressed: () => context.go(RouteNames.homeDashboard),
-          tooltip: tr('common.back'),
-        ),
-        title: Text(
-          tr('home.resources.title'),
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 17,
-            color: context.sac.text,
-          ),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: context.sac.border),
-        ),
+        onBack: () => context.go(RouteNames.homeDashboard),
       ),
       body: SafeArea(
         child: Padding(

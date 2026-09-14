@@ -7,8 +7,8 @@ import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -30,13 +30,8 @@ class JudgeAssignmentsView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.surfaceVariant,
-      appBar: AppBar(
-        backgroundColor: c.surfaceVariant,
-        foregroundColor: c.text,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        leading: const SacBackButton(),
-        title: Text('camporees.judge.assignments_title'.tr()),
+      appBar: SacTopBar(
+        title: 'camporees.judge.assignments_title'.tr(),
       ),
       body: SafeArea(
         child: RefreshIndicator(

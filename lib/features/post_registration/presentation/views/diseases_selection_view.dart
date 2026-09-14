@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../data/models/disease_model.dart';
 import '../providers/personal_info_providers.dart';
@@ -469,29 +470,8 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
 
     return Scaffold(
       backgroundColor: m.canvas,
-      appBar: AppBar(
-        backgroundColor: m.paper,
-        surfaceTintColor: Colors.transparent,
-        title: Text(
-          'post_registration.health.diseases.title'.tr(),
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: m.textPrimary,
-          ),
-        ),
-        leading: IconButton(
-          icon: HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowLeft01,
-            size: 24,
-            color: m.iconStrong,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: m.border),
-        ),
+      appBar: SacTopBar(
+        title: 'post_registration.health.diseases.title'.tr(),
       ),
       body: catalogAsync.when(
         loading: () => const Center(child: SacLoading()),

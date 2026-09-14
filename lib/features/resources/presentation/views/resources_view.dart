@@ -16,6 +16,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import '../../domain/entities/resource.dart';
 import '../providers/resources_providers.dart';
 import '../widgets/resource_card.dart';
@@ -97,31 +98,10 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        backgroundColor: c.background.withValues(alpha: 0.92),
-        foregroundColor: c.text,
-        elevation: 0,
-        scrolledUnderElevation: 0.5,
-        surfaceTintColor: Colors.transparent,
+      appBar: SacTopBar(
+        title: 'resources.title'.tr(),
         centerTitle: true,
-        leading: IconButton(
-          icon: HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowLeft01,
-            color: c.text,
-            size: 22,
-          ),
-          onPressed: () => context.go(RouteNames.homeDashboard),
-          tooltip: 'common.back'.tr(),
-        ),
-        title: Text(
-          'resources.title'.tr(),
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 17,
-            color: c.text,
-            letterSpacing: -0.2,
-          ),
-        ),
+        onBack: () => context.go(RouteNames.homeDashboard),
       ),
       body: RefreshIndicator(
         color: AppColors.primary,

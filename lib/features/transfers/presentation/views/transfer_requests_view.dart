@@ -432,26 +432,8 @@ class _TransferRequestFormViewState
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        backgroundColor: c.background,
-        surfaceTintColor: Colors.transparent,
-        title: Text(
-          tr('transfers.form.title'),
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
-            color: c.text,
-          ),
-        ),
-        centerTitle: false,
-        leading: IconButton(
-          icon: HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowLeft01,
-            color: c.text,
-            size: 22,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+      appBar: SacTopBar(
+        title: tr('transfers.form.title'),
       ),
       body: activeGrant == null || activeClubTypeId == null
           ? _ErrorBody(

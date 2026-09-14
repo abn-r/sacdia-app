@@ -8,6 +8,7 @@ import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_loading.dart';
+import '../../../../core/widgets/sac_top_bar.dart';
 import '../../domain/entities/transfer_request.dart';
 import '../providers/transfer_providers.dart';
 
@@ -24,26 +25,8 @@ class TransferRequestDetailView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        backgroundColor: c.background,
-        surfaceTintColor: Colors.transparent,
-        title: Text(
-          tr('transfers.detail.title'),
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
-            color: c.text,
-          ),
-        ),
-        centerTitle: false,
-        leading: IconButton(
-          icon: HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowLeft01,
-            color: c.text,
-            size: 22,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+      appBar: SacTopBar(
+        title: tr('transfers.detail.title'),
       ),
       body: requestAsync.when(
         loading: () => const Center(child: SacLoading()),

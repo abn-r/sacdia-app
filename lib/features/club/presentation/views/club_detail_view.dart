@@ -9,6 +9,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_loading.dart';
+import '../../../../core/widgets/sac_top_bar.dart';
 import '../../domain/entities/club_info.dart';
 import '../providers/club_providers.dart';
 
@@ -28,41 +29,12 @@ class ClubDetailView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        backgroundColor: c.background,
-        foregroundColor: c.text,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          icon: HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowLeft01,
-            color: c.text,
-            size: 22,
-          ),
-          onPressed: () => Navigator.of(context).maybePop(),
-          tooltip: 'common.back'.tr(),
-        ),
-        title: Row(
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedBackpack03,
-              size: 20,
-              color: AppColors.primary,
-            ),
-            const SizedBox(width: 10),
-            Text(
-              'club.detail_title'.tr(),
-              style: TextStyle(
-                color: c.text,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: c.border),
+      appBar: SacTopBar(
+        title: 'club.detail_title'.tr(),
+        titleIcon: HugeIcon(
+          icon: HugeIcons.strokeRoundedBackpack03,
+          size: 22,
+          color: AppColors.primary,
         ),
       ),
       body: clubAsync.when(

@@ -14,6 +14,7 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_text_field.dart';
+import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../post_registration/presentation/providers/post_registration_providers.dart';
 import '../providers/profile_providers.dart';
@@ -351,33 +352,9 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: context.sac.background,
-        foregroundColor: context.sac.text,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
+      appBar: SacTopBar(
+        title: tr('profile.edit.title'),
         centerTitle: true,
-        leading: IconButton(
-          icon: HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowLeft01,
-            color: context.sac.text,
-            size: 22,
-          ),
-          onPressed: () => Navigator.pop(context),
-          tooltip: tr('profile.edit.back_tooltip'),
-        ),
-        title: Text(
-          tr('profile.edit.title'),
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 17,
-            color: context.sac.text,
-          ),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: context.sac.border),
-        ),
       ),
       body: Form(
         key: _formKey,

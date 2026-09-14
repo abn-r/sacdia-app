@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../../domain/entities/member_of_month.dart';
 import '../providers/units_providers.dart';
@@ -70,16 +71,8 @@ class _MemberOfMonthHistoryViewState
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        title: Text('units.member_of_month.history_title'.tr()),
-        leading: IconButton(
-          icon: HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowLeft01,
-            color: context.sac.text,
-            size: 22,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+      appBar: SacTopBar(
+        title: 'units.member_of_month.history_title'.tr(),
       ),
       body: _buildBody(context, c, historyState),
     );

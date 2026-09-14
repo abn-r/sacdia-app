@@ -13,6 +13,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/features/post_registration/presentation/widgets/bottom_sheet_picker.dart';
 import 'package:sacdia_app/providers/catalogs_provider.dart';
 import '../../domain/entities/create_activity_request.dart';
@@ -494,56 +495,14 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        backgroundColor: c.background,
-        foregroundColor: c.text,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          icon: HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowLeft01,
-            color: c.text,
-            size: 22,
-          ),
-          onPressed: isLoading ? null : () => Navigator.pop(context),
-          tooltip: 'common.back'.tr(),
-        ),
-        title: Row(
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedCalendarAdd01,
-              size: 20,
-              color: AppColors.primary,
-            ),
-            const SizedBox(width: 20),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'activities.create.title'.tr(),
-                  style: TextStyle(
-                    color: c.text,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0,
-                  ),
-                ),
-                Text(
-                  'activities.create.subtitle'.tr(),
-                  style: TextStyle(
-                    color: c.textSecondary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: c.border),
+      appBar: SacTopBar(
+        title: 'activities.create.title'.tr(),
+        subtitle: 'activities.create.subtitle'.tr(),
+        automaticallyImplyLeading: !isLoading,
+        titleIcon: HugeIcon(
+          icon: HugeIcons.strokeRoundedCalendarAdd01,
+          size: 22,
+          color: AppColors.primary,
         ),
       ),
       body: Form(

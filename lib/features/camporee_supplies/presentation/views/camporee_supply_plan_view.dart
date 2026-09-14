@@ -11,8 +11,8 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/date_formatter.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
@@ -108,19 +108,8 @@ class _CamporeeSupplyPlanViewState
 
     return Scaffold(
       backgroundColor: c.surfaceVariant,
-      appBar: AppBar(
-        backgroundColor: c.surfaceVariant,
-        foregroundColor: c.text,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        leading: SacBackButton(color: c.text),
-        title: Text(
-          'camporee_supplies.plan.title'.tr(),
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: c.text,
-              ),
-        ),
+      appBar: SacTopBar(
+        title: 'camporee_supplies.plan.title'.tr(),
       ),
       body: envelopeAsync.when(
         loading: () => const SacLoading(),

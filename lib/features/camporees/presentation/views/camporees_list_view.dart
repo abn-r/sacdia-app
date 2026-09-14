@@ -11,8 +11,8 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee.dart';
@@ -36,28 +36,10 @@ class CamporeesListView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        backgroundColor: c.background,
-        foregroundColor: c.text,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
+      appBar: SacTopBar(
+        title: 'camporees.list.title'.tr(),
         centerTitle: true,
-        leading: SacBackButton(
-          color: c.text,
-          tooltip: 'common.back'.tr(),
-          onPressed: () => context.go(RouteNames.homeDashboard),
-        ),
-        title: Text(
-          'camporees.list.title'.tr(),
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: c.text,
-              ),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: c.border),
-        ),
+        onBack: () => context.go(RouteNames.homeDashboard),
       ),
       body: SafeArea(
         top: false,

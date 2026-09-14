@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/investiture/domain/entities/investiture_status.dart';
@@ -53,25 +54,8 @@ class MemberProfileView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        backgroundColor: c.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowLeft01,
-            color: c.text,
-            size: 24,
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          title ?? 'members.profile_view.title'.tr(),
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: c.text,
-          ),
-        ),
+      appBar: SacTopBar(
+        title: title ?? 'members.profile_view.title'.tr(),
         centerTitle: true,
         actions: [
           Padding(

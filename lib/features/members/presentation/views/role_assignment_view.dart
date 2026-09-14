@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../../domain/entities/club_member.dart';
 import '../providers/members_providers.dart';
@@ -98,28 +99,10 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        backgroundColor: c.background,
-        elevation: 0,
-        leading: _isLoading
-            ? const SizedBox.shrink()
-            : IconButton(
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedArrowLeft01,
-                  color: c.text,
-                  size: 24,
-                ),
-                onPressed: () => Navigator.pop(context),
-              ),
-        title: Text(
-          'members.role_assignment.title'.tr(),
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: c.text,
-          ),
-        ),
+      appBar: SacTopBar(
+        title: 'members.role_assignment.title'.tr(),
         centerTitle: true,
+        automaticallyImplyLeading: !_isLoading,
       ),
       body: SafeArea(
         child: Column(
