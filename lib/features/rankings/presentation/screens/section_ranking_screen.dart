@@ -8,6 +8,7 @@ import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_card.dart';
+import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../../features/auth/domain/utils/authorization_utils.dart';
 import '../../../../features/auth/presentation/providers/auth_providers.dart';
 import '../../../../providers/catalogs_provider.dart';
@@ -18,7 +19,6 @@ import '../providers/section_ranking_provider.dart';
 import '../widgets/member_ranking_list_tile.dart';
 import '../widgets/ranking_empty_state.dart';
 import '../widgets/ranking_skeleton.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Pantalla de ranking de miembros clasificados dentro de una sección.
 ///
@@ -39,36 +39,20 @@ class SectionRankingScreen extends ConsumerWidget {
       ),
     );
 
+    final subtitle = yearAsync.maybeWhen(
+      data: (year) => year != null
+          ? tr(
+              'rankings.section_ranking.subtitle_with_year',
+              namedArgs: {'year': year.name},
+            )
+          : tr('rankings.section_ranking.subtitle'),
+      orElse: () => tr('rankings.section_ranking.subtitle'),
+    );
+
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              tr('rankings.section_ranking.title'),
-              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
-            ),
-            yearAsync.maybeWhen(
-              data: (year) => Text(
-                year != null
-                    ? tr('rankings.section_ranking.subtitle_with_year',
-                        namedArgs: {'year': year.name})
-                    : tr('rankings.section_ranking.subtitle'),
-                style:
-                    const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
-              ),
-              orElse: () => Text(
-                tr('rankings.section_ranking.subtitle'),
-                style:
-                    const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
-              ),
-            ),
-          ],
-        ),
-        toolbarHeight: 60,
+      appBar: SacTopBar(
+        title: tr('rankings.section_ranking.title'),
+        subtitle: subtitle,
       ),
       body: yearAsync.when(
         data: (year) {

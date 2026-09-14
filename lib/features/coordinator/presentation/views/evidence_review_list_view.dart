@@ -13,6 +13,7 @@ import '../../domain/entities/evidence_review_item.dart';
 import '../providers/coordinator_providers.dart';
 import '../widgets/evidence_review_card.dart';
 
+import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 /// Lista de evidencias pendientes de revisión con filtros por tipo.
@@ -249,7 +250,7 @@ class _FilterChips extends ConsumerWidget {
     ];
 
     return SizedBox(
-      height: 40,
+      height: 48,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: filters.length,
@@ -257,19 +258,11 @@ class _FilterChips extends ConsumerWidget {
         itemBuilder: (context, index) {
           final filter = filters[index];
           final isSelected = activeFilter == filter.value;
-          return FilterChip(
-            label: Text(filter.label),
+          return SacFilterChip(
+            label: filter.label,
             selected: isSelected,
-            onSelected: (_) => ref
-                .read(evidenceTypeFilterProvider.notifier)
-                .state = filter.value,
-            selectedColor: AppColors.primaryLight,
-            checkmarkColor: AppColors.primary,
-            labelStyle: TextStyle(
-              fontSize: 12,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-              color: isSelected ? AppColors.primary : null,
-            ),
+            onTap: () => ref.read(evidenceTypeFilterProvider.notifier).state =
+                filter.value,
           );
         },
       ),

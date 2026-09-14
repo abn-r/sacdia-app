@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
@@ -401,125 +402,39 @@ class _FilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 44,
+      height: 56,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
-          _FilterChip(
+          SacFilterChip(
             label: 'achievements.views.filter_all'.tr(),
             count: counts.all,
             selected: filter == _AchievementFilter.all,
             onTap: () => onChanged(_AchievementFilter.all),
           ),
           const SizedBox(width: 8),
-          _FilterChip(
+          SacFilterChip(
             label: 'achievements.views.filter_unlocked'.tr(),
             count: counts.unlocked,
             selected: filter == _AchievementFilter.unlocked,
             onTap: () => onChanged(_AchievementFilter.unlocked),
           ),
           const SizedBox(width: 8),
-          _FilterChip(
+          SacFilterChip(
             label: 'achievements.views.filter_in_progress'.tr(),
             count: counts.inProgress,
             selected: filter == _AchievementFilter.inProgress,
             onTap: () => onChanged(_AchievementFilter.inProgress),
           ),
           const SizedBox(width: 8),
-          _FilterChip(
+          SacFilterChip(
             label: 'achievements.views.filter_locked'.tr(),
             count: counts.locked,
             selected: filter == _AchievementFilter.locked,
             onTap: () => onChanged(_AchievementFilter.locked),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _FilterChip extends StatefulWidget {
-  final String label;
-  final int count;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _FilterChip({
-    required this.label,
-    required this.count,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  State<_FilterChip> createState() => _FilterChipState();
-}
-
-class _FilterChipState extends State<_FilterChip> {
-  bool _pressed = false;
-
-  void _setPressed(bool value) {
-    if (_pressed == value) return;
-    setState(() => _pressed = value);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final reduce = SacMotion.reduceMotionOf(context);
-    final bg = widget.selected
-        ? AppColors.primary.withValues(alpha: 0.14)
-        : c.surfaceVariant.withValues(alpha: 0.7);
-    final fg = widget.selected ? AppColors.primary : c.textSecondary;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapDown: (_) => _setPressed(true),
-      onTapUp: (_) => _setPressed(false),
-      onTapCancel: () => _setPressed(false),
-      onTap: widget.onTap,
-      child: AnimatedScale(
-        scale: (!reduce && _pressed) ? 0.97 : 1,
-        duration: SacMotion.press,
-        curve: SacMotion.easeOut,
-        child: AnimatedContainer(
-          duration: SacMotion.standard,
-          curve: SacMotion.easeOut,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: widget.selected
-                  ? AppColors.primary.withValues(alpha: 0.35)
-                  : c.border.withValues(alpha: 0.5),
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                widget.label,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight:
-                      widget.selected ? FontWeight.w700 : FontWeight.w500,
-                  color: fg,
-                ),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                '${widget.count}',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: fg.withValues(alpha: 0.85),
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

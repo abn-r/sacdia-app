@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
 
 import 'package:sacdia_app/providers/catalogs_provider.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
@@ -1087,7 +1088,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
 
             // Filter chips - cargados dinámicamente desde el catálogo
             SizedBox(
-              height: 36,
+              height: 48,
               child: ValueListenableBuilder<int?>(
                 valueListenable: _selectedFilter,
                 builder: (_, selectedFilter, __) {
@@ -1104,27 +1105,24 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       children: [
-                        _ActivityFilterChip(
+                        SacFilterChip(
                           label: 'activities.list.all_filter'.tr(),
-                          isSelected: selectedFilter == null,
-                          c: c,
+                          selected: selectedFilter == null,
                           onTap: () => _selectedFilter.value = null,
                         ),
                       ],
                     ),
                     data: (types) {
                       final chips = <Widget>[
-                        _ActivityFilterChip(
+                        SacFilterChip(
                           label: 'activities.list.all_filter'.tr(),
-                          isSelected: selectedFilter == null,
-                          c: c,
+                          selected: selectedFilter == null,
                           onTap: () => _selectedFilter.value = null,
                         ),
                         ...types.map(
-                          (t) => _ActivityFilterChip(
+                          (t) => SacFilterChip(
                             label: t.name,
-                            isSelected: selectedFilter == t.activityTypeId,
-                            c: c,
+                            selected: selectedFilter == t.activityTypeId,
                             onTap: () =>
                                 _selectedFilter.value = t.activityTypeId,
                           ),
@@ -1162,62 +1160,6 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
 // ─────────────────────────────────────────────────────────────────────────────
 // Filter chip helpers
 // ─────────────────────────────────────────────────────────────────────────────
-
-class _ActivityFilterChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final SacColors c;
-  final VoidCallback onTap;
-
-  const _ActivityFilterChip({
-    required this.label,
-    required this.isSelected,
-    required this.c,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      label: label,
-      button: true,
-      selected: isSelected,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : c.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : c.border,
-          ),
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(20),
-            splashColor:
-                isSelected ? Colors.white.withValues(alpha: 0.2) : null,
-            onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Align(
-                alignment: Alignment.center,
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: isSelected ? Colors.white : c.textSecondary,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _FilterChipSkeleton extends StatelessWidget {
   final SacColors c;

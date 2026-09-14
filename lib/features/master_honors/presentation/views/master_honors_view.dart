@@ -1,13 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/features/master_honors/presentation/providers/master_honors_providers.dart';
 import 'package:sacdia_app/features/master_honors/presentation/widgets/master_honor_roadmap_grid.dart';
 
@@ -23,29 +23,9 @@ class MasterHonorsView extends ConsumerWidget {
     final roadmapAsync = ref.watch(userMasterHonorRoadmapProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
-        foregroundColor: context.sac.text,
+      appBar: SacTopBar(
+        title: 'master_honors.title'.tr(),
         centerTitle: true,
-        title: Text(
-          'Maestrías',
-          style: TextStyle(
-            color: context.sac.text,
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        leading: IconButton(
-          icon: HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowLeft01,
-            color: context.sac.text,
-            size: 22,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
       ),
       body: roadmapAsync.when(
         loading: () => const Center(child: SacLoading()),

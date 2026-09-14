@@ -11,6 +11,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/features/post_registration/presentation/widgets/bottom_sheet_picker.dart';
 import 'package:sacdia_app/providers/catalogs_provider.dart';
@@ -855,41 +856,21 @@ class _SectionMultiPicker extends ConsumerWidget {
                 final label =
                     section.clubTypeName ?? 'Sección ${section.clubSectionId}';
 
-                return FilterChip(
-                  label: Text(label),
+                return SacFilterChip(
+                  label: label,
                   selected: isSelected,
-                  onSelected: enabled && !isOwn
-                      ? (selected) {
+                  icon: isOwn ? HugeIcons.strokeRoundedStar : null,
+                  onTap: enabled && !isOwn
+                      ? () {
                           final updated = Set<int>.from(selectedIds);
-                          // Own section is always included
                           updated.add(ownSectionId);
-                          if (selected) {
-                            updated.add(section.clubSectionId);
-                          } else {
+                          if (isSelected) {
                             updated.remove(section.clubSectionId);
+                          } else {
+                            updated.add(section.clubSectionId);
                           }
                           onChanged(updated);
                         }
-                      : null,
-                  selectedColor: AppColors.primaryLight,
-                  checkmarkColor: AppColors.primary,
-                  labelStyle: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: isSelected ? AppColors.primaryDark : c.textSecondary,
-                  ),
-                  backgroundColor: c.surface,
-                  side: BorderSide(
-                    color: isSelected
-                        ? AppColors.primary.withValues(alpha: 0.5)
-                        : c.border,
-                  ),
-                  avatar: isOwn
-                      ? HugeIcon(
-                          icon: HugeIcons.strokeRoundedStar,
-                          size: 14,
-                          color: AppColors.primary,
-                        )
                       : null,
                 );
               }).toList(),

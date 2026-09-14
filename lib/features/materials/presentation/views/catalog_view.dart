@@ -5,13 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../providers/cart_provider.dart';
@@ -159,21 +159,28 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
             data: (programas) {
               if (programas.isEmpty) return const SizedBox.shrink();
               return SizedBox(
-                height: 40,
+                height: 48,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.fromLTRB(16, 0, 28, 0),
                   children: [
-                    _FilterChip(
-                      label: 'materials.catalog.filter_all'.tr(),
-                      selected: _selectedProgramaId == null,
-                      onTap: () => setState(() => _selectedProgramaId = null),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: SacFilterChip(
+                        label: 'materials.catalog.filter_all'.tr(),
+                        selected: _selectedProgramaId == null,
+                        onTap: () => setState(() => _selectedProgramaId = null),
+                      ),
                     ),
                     ...programas.map(
-                      (p) => _FilterChip(
-                        label: p.label,
-                        selected: _selectedProgramaId == p.id,
-                        onTap: () => setState(() => _selectedProgramaId = p.id),
+                      (p) => Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: SacFilterChip(
+                          label: p.label,
+                          selected: _selectedProgramaId == p.id,
+                          onTap: () =>
+                              setState(() => _selectedProgramaId = p.id),
+                        ),
                       ),
                     ),
                   ],
@@ -189,21 +196,28 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
               return Padding(
                 padding: const EdgeInsets.only(top: 6),
                 child: SizedBox(
-                  height: 40,
+                  height: 48,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.fromLTRB(16, 0, 28, 0),
                     children: [
-                      _FilterChip(
-                        label: 'materials.catalog.filter_all_categories'.tr(),
-                        selected: _selectedCat == null,
-                        onTap: () => setState(() => _selectedCat = null),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: SacFilterChip(
+                          label: 'materials.catalog.filter_all_categories'.tr(),
+                          selected: _selectedCat == null,
+                          onTap: () => setState(() => _selectedCat = null),
+                        ),
                       ),
                       ...cats.map(
-                        (cat) => _FilterChip(
-                          label: cat.label,
-                          selected: _selectedCat == cat.slug,
-                          onTap: () => setState(() => _selectedCat = cat.slug),
+                        (cat) => Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: SacFilterChip(
+                            label: cat.label,
+                            selected: _selectedCat == cat.slug,
+                            onTap: () =>
+                                setState(() => _selectedCat = cat.slug),
+                          ),
                         ),
                       ),
                     ],
@@ -261,68 +275,6 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _FilterChip extends StatefulWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _FilterChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  State<_FilterChip> createState() => _FilterChipState();
-}
-
-class _FilterChipState extends State<_FilterChip> {
-  bool _pressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final reduce = SacMotion.reduceMotionOf(context);
-
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: GestureDetector(
-        onTapDown: (_) => setState(() => _pressed = true),
-        onTapUp: (_) => setState(() => _pressed = false),
-        onTapCancel: () => setState(() => _pressed = false),
-        onTap: widget.onTap,
-        child: AnimatedScale(
-          scale: (!reduce && _pressed) ? 0.97 : 1,
-          duration: SacMotion.press,
-          curve: Curves.easeOut,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            curve: Curves.easeOut,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              color: widget.selected ? AppColors.primary : c.surface,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: widget.selected ? AppColors.primary : c.border,
-              ),
-            ),
-            child: Text(
-              widget.label,
-              maxLines: 1,
-              softWrap: false,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: widget.selected ? Colors.white : c.text,
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }

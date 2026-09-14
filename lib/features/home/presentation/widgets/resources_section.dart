@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DATA MODELS (hardcoded mock)
@@ -311,99 +312,35 @@ class _FilterChipsRow extends StatelessWidget {
       clipBehavior: Clip.none,
       child: Row(
         children: [
-          _Chip(
+          SacFilterChip(
             label: tr('home.resources.filter_all'),
             icon: HugeIcons.strokeRoundedGridView,
-            isActive: activeFilter == null,
+            selected: activeFilter == null,
             onTap: () => onFilterChanged(null),
           ),
           const SizedBox(width: 8),
-          _Chip(
+          SacFilterChip(
             label: tr('home.resources.filter_documents'),
             icon: HugeIcons.strokeRoundedFile01,
-            isActive: activeFilter == ResourceType.pdf ||
+            selected: activeFilter == ResourceType.pdf ||
                 activeFilter == ResourceType.document,
             onTap: () => onFilterChanged(ResourceType.pdf),
           ),
           const SizedBox(width: 8),
-          _Chip(
+          SacFilterChip(
             label: tr('home.resources.filter_images'),
             icon: HugeIcons.strokeRoundedImage01,
-            isActive: activeFilter == ResourceType.image,
+            selected: activeFilter == ResourceType.image,
             onTap: () => onFilterChanged(ResourceType.image),
           ),
           const SizedBox(width: 8),
-          _Chip(
+          SacFilterChip(
             label: tr('home.resources.filter_audio'),
             icon: HugeIcons.strokeRoundedHeadphones,
-            isActive: activeFilter == ResourceType.audio,
+            selected: activeFilter == ResourceType.audio,
             onTap: () => onFilterChanged(ResourceType.audio),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _Chip extends StatelessWidget {
-  final String label;
-  final List<List<dynamic>> icon;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const _Chip({
-    required this.label,
-    required this.icon,
-    required this.isActive,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: isActive ? AppColors.primary : c.surface,
-          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-          border: Border.all(
-            color: isActive ? AppColors.primary : c.border,
-            width: 1.2,
-          ),
-          boxShadow: isActive
-              ? [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.25),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            HugeIcon(
-              icon: icon,
-              size: 15,
-              color: isActive ? Colors.white : c.textSecondary,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: isActive ? Colors.white : c.textSecondary,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

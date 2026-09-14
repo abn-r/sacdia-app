@@ -11,6 +11,7 @@ import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 
@@ -855,30 +856,30 @@ class _JoinRequestSearchBarState extends State<_JoinRequestSearchBar> {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              _StatusFilterChip(
+              SacFilterChip(
                 label: 'members.view.all_status'.tr(),
-                isActive: filters.statusFilter == null,
+                selected: filters.statusFilter == null,
                 onTap: () => widget
                     .onFiltersChanged(filters.copyWith(clearStatus: true)),
               ),
               const SizedBox(width: 6),
-              _StatusFilterChip(
+              SacFilterChip(
                 label: 'members.view.pending_status'.tr(),
-                isActive: filters.statusFilter == JoinRequestStatus.pending,
+                selected: filters.statusFilter == JoinRequestStatus.pending,
                 onTap: () => widget.onFiltersChanged(
                     filters.copyWith(statusFilter: JoinRequestStatus.pending)),
               ),
               const SizedBox(width: 6),
-              _StatusFilterChip(
+              SacFilterChip(
                 label: 'members.view.approved_status'.tr(),
-                isActive: filters.statusFilter == JoinRequestStatus.approved,
+                selected: filters.statusFilter == JoinRequestStatus.approved,
                 onTap: () => widget.onFiltersChanged(
                     filters.copyWith(statusFilter: JoinRequestStatus.approved)),
               ),
               const SizedBox(width: 6),
-              _StatusFilterChip(
+              SacFilterChip(
                 label: 'members.view.rejected_status'.tr(),
-                isActive: filters.statusFilter == JoinRequestStatus.rejected,
+                selected: filters.statusFilter == JoinRequestStatus.rejected,
                 onTap: () => widget.onFiltersChanged(
                     filters.copyWith(statusFilter: JoinRequestStatus.rejected)),
               ),
@@ -886,54 +887,6 @@ class _JoinRequestSearchBarState extends State<_JoinRequestSearchBar> {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _StatusFilterChip extends StatelessWidget {
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const _StatusFilterChip({
-    required this.label,
-    required this.isActive,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Semantics(
-      label: label,
-      button: true,
-      selected: isActive,
-      child: Material(
-        color: isActive
-            ? AppColors.primary.withValues(alpha: 0.12)
-            : c.surfaceVariant,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(
-            color: isActive ? AppColors.primaryLight : c.border,
-          ),
-        ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                color: isActive ? AppColors.primary : c.textSecondary,
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
