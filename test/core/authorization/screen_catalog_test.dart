@@ -43,11 +43,11 @@ void main() {
       expect(canViewScreen(subject, 'coordinator-hub'), isTrue);
     });
 
-    test('does not treat coordination:manage as the app hub', () {
+    test('opens coordinator hub for director-lf via coordinator alias', () {
       final subject = subjectFromUser(
         _user(permissions: ['coordination:manage'], roles: ['director-lf']),
       );
-      expect(canViewScreen(subject, 'coordinator-hub'), isFalse);
+      expect(canViewScreen(subject, 'coordinator-hub'), isTrue);
     });
 
     test('opens members with users:read_detail and no field role', () {
