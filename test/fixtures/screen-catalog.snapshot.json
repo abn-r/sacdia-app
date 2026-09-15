@@ -1,0 +1,214 @@
+{
+  "version": 1,
+  "aliases": {
+    "admin": [
+      "admin",
+      "assistant-admin"
+    ],
+    "assistant-admin": [
+      "assistant-admin",
+      "admin"
+    ],
+    "assistant-dia": [
+      "director-lf",
+      "assistant-lf",
+      "director-union",
+      "assistant-union",
+      "director-dia",
+      "assistant-dia"
+    ],
+    "assistant-lf": [
+      "director-lf",
+      "assistant-lf",
+      "director-union",
+      "assistant-union",
+      "director-dia",
+      "assistant-dia"
+    ],
+    "assistant-union": [
+      "director-lf",
+      "assistant-lf",
+      "director-union",
+      "assistant-union",
+      "director-dia",
+      "assistant-dia"
+    ],
+    "coordinator": [
+      "coordinator",
+      "zone-coordinator",
+      "general-coordinator"
+    ],
+    "director-dia": [
+      "director-lf",
+      "assistant-lf",
+      "director-union",
+      "assistant-union",
+      "director-dia",
+      "assistant-dia"
+    ],
+    "director-lf": [
+      "director-lf",
+      "assistant-lf",
+      "director-union",
+      "assistant-union",
+      "director-dia",
+      "assistant-dia"
+    ],
+    "director-union": [
+      "director-lf",
+      "assistant-lf",
+      "director-union",
+      "assistant-union",
+      "director-dia",
+      "assistant-dia"
+    ],
+    "general-coordinator": [
+      "general-coordinator"
+    ],
+    "pastor": [
+      "pastor"
+    ],
+    "super-admin": [
+      "super-admin"
+    ],
+    "user": [
+      "user"
+    ],
+    "zone-coordinator": [
+      "zone-coordinator",
+      "general-coordinator"
+    ]
+  },
+  "screens": [
+    {
+      "id": "activities",
+      "surfaces": ["admin", "app"],
+      "viewAny": { "permissions": ["activities:read"] },
+      "capabilities": [
+        { "id": "create", "kind": "button", "gate": { "permissions": ["activities:create"] } },
+        { "id": "update", "kind": "button", "gate": { "permissions": ["activities:update"] } }
+      ]
+    },
+    {
+      "id": "annual-folders-rankings",
+      "surfaces": ["admin", "app"],
+      "viewAny": { "permissions": ["rankings:read"] },
+      "capabilities": []
+    },
+    {
+      "id": "app-classes",
+      "surfaces": ["app"],
+      "viewAny": { "permissions": ["classes:read"] },
+      "capabilities": []
+    },
+    {
+      "id": "app-club",
+      "surfaces": ["app"],
+      "viewAny": { "permissions": ["clubs:update"] },
+      "capabilities": []
+    },
+    {
+      "id": "app-grouped-class",
+      "surfaces": ["app"],
+      "viewAny": { "permissions": ["classes:submit_progress"] },
+      "capabilities": []
+    },
+    {
+      "id": "app-materials",
+      "surfaces": ["app"],
+      "viewAny": { "permissions": ["materiales:create"] },
+      "capabilities": []
+    },
+    {
+      "id": "app-members",
+      "surfaces": ["app"],
+      "viewAny": { "permissions": ["users:read_detail"] },
+      "capabilities": []
+    },
+    {
+      "id": "app-units",
+      "surfaces": ["app"],
+      "viewAny": { "permissions": ["units:update"] },
+      "capabilities": []
+    },
+    {
+      "id": "campamentos-list-local",
+      "surfaces": ["admin", "app"],
+      "viewAny": { "permissions": ["camporees:read"] },
+      "capabilities": [
+        { "id": "create", "kind": "button", "gate": { "permissions": ["camporees:create"] } },
+        { "id": "delete", "kind": "button", "gate": { "permissions": ["camporees:delete"] } },
+        { "id": "events.create", "kind": "button", "gate": { "permissions": ["camporee_events:create"] } },
+        { "id": "events.delete", "kind": "button", "gate": { "permissions": ["camporee_events:delete"] } },
+        { "id": "events.update", "kind": "button", "gate": { "permissions": ["camporee_events:update"] } },
+        { "id": "orders.configure_offering", "kind": "section", "gate": { "permissions": ["camporee-orders:offering-configure"] } },
+        { "id": "scoring.read", "kind": "section", "gate": { "permissions": ["camporee_events:read"] } },
+        { "id": "supplies.configure", "kind": "button", "gate": { "permissions": ["camporee-supplies:configure"] } },
+        { "id": "supplies.deliver", "kind": "button", "gate": { "permissions": ["camporee-supplies:deliver"] } },
+        { "id": "supplies.review_pay", "kind": "button", "gate": { "permissions": ["camporee-supplies:review-pay"] } },
+        { "id": "update", "kind": "button", "gate": { "permissions": ["camporees:update"] } },
+        { "id": "venues.create", "kind": "button", "gate": { "permissions": ["camporee_events:create"] } },
+        { "id": "venues.delete", "kind": "button", "gate": { "permissions": ["camporee_events:delete"] } },
+        { "id": "venues.update", "kind": "button", "gate": { "permissions": ["camporee_events:update"] } }
+      ]
+    },
+    {
+      "id": "club-inventory",
+      "surfaces": ["admin", "app"],
+      "viewAny": { "permissions": ["inventory:read"] },
+      "capabilities": [
+        { "id": "create", "kind": "button", "gate": { "permissions": ["inventory:create"] } },
+        { "id": "delete", "kind": "button", "gate": { "permissions": ["inventory:delete"] } },
+        { "id": "update", "kind": "button", "gate": { "permissions": ["inventory:update"] } }
+      ]
+    },
+    {
+      "id": "clubs-evidence-folders-list",
+      "surfaces": ["admin", "app"],
+      "viewAny": { "permissions": ["evidence_folders:read"] },
+      "capabilities": []
+    },
+    {
+      "id": "coordinator-hub",
+      "surfaces": ["app"],
+      "viewAny": { "roles": ["admin", "coordinator"] },
+      "capabilities": []
+    },
+    {
+      "id": "finances",
+      "surfaces": ["admin", "app"],
+      "viewAny": { "permissions": ["finances:read"] },
+      "capabilities": [
+        { "id": "create", "kind": "button", "gate": { "permissions": ["finances:create"] } },
+        { "id": "delete", "kind": "button", "gate": { "permissions": ["finances:delete"] } },
+        { "id": "update", "kind": "button", "gate": { "permissions": ["finances:update"] } }
+      ]
+    },
+    {
+      "id": "insurance-by-section",
+      "surfaces": ["admin", "app"],
+      "viewAny": { "permissions": ["insurance:read"] },
+      "capabilities": [
+        { "id": "create", "kind": "button", "gate": { "permissions": ["insurance:create"] } },
+        { "id": "delete", "kind": "button", "gate": { "permissions": ["insurance:update"] } },
+        { "id": "update", "kind": "button", "gate": { "permissions": ["insurance:update"] } }
+      ]
+    },
+    {
+      "id": "reports-list",
+      "surfaces": ["admin", "app"],
+      "viewAny": { "permissions": ["reports:read"] },
+      "capabilities": []
+    },
+    {
+      "id": "resources-list",
+      "surfaces": ["admin", "app"],
+      "viewAny": { "permissions": ["resources:read"] },
+      "capabilities": [
+        { "id": "create", "kind": "button", "gate": { "permissions": ["resources:create"] } },
+        { "id": "delete", "kind": "button", "gate": { "permissions": ["resources:delete"] } },
+        { "id": "update", "kind": "button", "gate": { "permissions": ["resources:update"] } }
+      ]
+    }
+  ]
+}

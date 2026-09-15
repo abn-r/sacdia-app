@@ -107,6 +107,10 @@ flutter build apk --release \
   -P GOOGLE_MAPS_API_KEY=<key>
 ```
 
+## Authorization (screen catalog)
+
+Hermano Dart de `sacdia-admin/src/lib/auth/screen-catalog/`. Entrada: `lib/core/authorization/`. Quick access y tabs Clases/Actividades usan `canViewScreen(screenId)`. Paridad: `test/fixtures/screen-catalog.snapshot.json` vs `dumpAppCatalog()` en admin. Regenerar el fixture cuando cambie un gate `app` en TS y copiar el registro Dart.
+
 ## Deployment
 
 - **Android**: Google Play Console

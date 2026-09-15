@@ -110,6 +110,8 @@ import '../utils/responsive.dart';
 import '../../features/auth/domain/entities/authorization_snapshot.dart';
 import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/domain/utils/authorization_utils.dart';
+import 'package:sacdia_app/core/authorization/access_subject.dart';
+import 'package:sacdia_app/core/authorization/screen_catalog.dart';
 import 'route_names.dart';
 import 'package:sacdia_app/core/widgets/sac_nav_icon.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
@@ -1398,14 +1400,14 @@ class _NavItemConfig {
   final String route;
   final List<List<dynamic>> icon;
   final String labelKey;
-  final Set<String> requiredPermissions;
+  final String? screenId;
 
   const _NavItemConfig({
     required this.branchIndex,
     required this.route,
     required this.icon,
     required this.labelKey,
-    this.requiredPermissions = const {},
+    this.screenId,
   });
 
   String get label => tr(labelKey);
@@ -1423,14 +1425,14 @@ const List<_NavItemConfig> _navItemsConfig = [
     route: RouteNames.homeClasses,
     icon: HugeIcons.strokeRoundedCourse,
     labelKey: 'router.nav.classes',
-    requiredPermissions: {'classes:read'},
+    screenId: 'app-classes',
   ),
   _NavItemConfig(
     branchIndex: 2,
     route: RouteNames.homeActivities,
     icon: HugeIcons.strokeRoundedCalendar01,
     labelKey: 'router.nav.activities',
-    requiredPermissions: {'activities:read'},
+    screenId: 'activities',
   ),
   _NavItemConfig(
     branchIndex: 3,
@@ -1446,11 +1448,13 @@ List<_NavItemConfig> _filterNavItems(
   AuthorizationSnapshot? authorization,
 ) {
   if (authorization == null) return items;
+  final subject = subjectFromUser(user);
 
   return items.where((item) {
-    if (item.requiredPermissions.isEmpty) return true;
+    final screenId = item.screenId;
+    if (screenId == null) return true;
     if (!canAccessClubOperationalSurface(user)) return false;
-    return hasAnyPermission(user, item.requiredPermissions);
+    return canViewScreen(subject, screenId);
   }).toList();
 }
 

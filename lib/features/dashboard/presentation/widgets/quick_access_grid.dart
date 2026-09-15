@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/authorization/access_subject.dart';
+import 'package:sacdia_app/core/authorization/screen_catalog.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -20,150 +22,115 @@ class _QuickAccessItemConfig {
   /// Static route path.
   final String route;
 
-  final Set<String> requiredPermissions;
-
-  /// Canonical role names to gate against when the item is not permission-based.
-  /// Only used for global roles whose authority cannot be modeled as a single
-  /// permission (e.g. `coordinator`, `admin`). Leave empty when the item is
-  /// gated purely by [requiredPermissions].
-  final Set<String> requiredRoles;
+  /// Screen catalog id. Omit only for runtime tiles (judge assignment).
+  final String? screenId;
 
   const _QuickAccessItemConfig({
     required this.labelKey,
     required this.icon,
     this.color,
     this.route = '',
-    this.requiredPermissions = const {},
-    this.requiredRoles = const {},
+    this.screenId,
   });
 }
 
-// ignore: prefer_const_declarations
-final List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
-  // Coordination hub — gated by GLOBAL role only. The concept "is the user a
-  // coordinator / admin" does not map to a single permission, because club
-  // directors also hold operational permissions like `investiture:validate`;
-  // using those would incorrectly reveal the hub to directors.
+const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.coordination',
     icon: HugeIcons.strokeRoundedAnalytics01,
     color: AppColors.info,
     route: RouteNames.coordinator,
-    requiredRoles: {
-      'coordinator',
-      'zone-coordinator',
-      'general-coordinator',
-      'admin',
-      'super-admin',
-      'assistant-admin',
-    },
+    screenId: 'coordinator-hub',
   ),
-  // Administrative: member list — users:read_detail is held by counselor+
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.members',
     icon: HugeIcons.strokeRoundedUserGroup,
     color: AppColors.primary,
     route: RouteNames.homeMembers,
-    requiredPermissions: {'users:read_detail'},
+    screenId: 'app-members',
   ),
-  // Administrative: club management — clubs:update is held by secretary+
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.club',
     icon: HugeIcons.strokeRoundedBackpack03,
     color: AppColors.secondary,
     route: RouteNames.homeClub,
-    requiredPermissions: {'clubs:update'},
+    screenId: 'app-club',
   ),
-  // Administrative: Annual Evidence Folder. Visible only to roles that can
-  // read/update the canonical annual-folders flow for the active section.
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.evidence_folder',
     icon: HugeIcons.strokeRoundedFolder01,
     color: AppColors.accent,
     route: RouteNames.homeEvidences,
-    requiredPermissions: {'evidence_folders:read'},
+    screenId: 'clubs-evidence-folders-list',
   ),
-  // Institutional camporees/campamentos — list endpoint is protected by
-  // camporees:read, so the dashboard shortcut must use the same canonical
-  // permission instead of role names.
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.camporees',
     icon: HugeIcons.strokeRoundedCampfire,
     color: AppColors.warning,
     route: RouteNames.homeCamporees,
-    requiredPermissions: {'camporees:read'},
+    screenId: 'campamentos-list-local',
   ),
-  // Administrative: financial records — finances:read is held by treasurer+
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.finances',
     icon: HugeIcons.strokeRoundedCreditCard,
     color: AppColors.info,
     route: RouteNames.homeFinances,
-    requiredPermissions: {'finances:read'},
+    screenId: 'finances',
   ),
-  // Administrative: unit management — units:update is held by counselor+
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.units',
     icon: HugeIcons.strokeRoundedCompass01,
     color: AppColors.secondary,
     route: RouteNames.homeUnits,
-    requiredPermissions: {'units:update'},
+    screenId: 'app-units',
   ),
-  // Pedagogical class supervision — classes:submit_progress is held by counselor+
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.grouped_class',
     icon: HugeIcons.strokeRoundedBookOpen01,
     color: AppColors.primary,
     route: RouteNames.homeGroupedClass,
-    requiredPermissions: {'classes:submit_progress'},
+    screenId: 'app-grouped-class',
   ),
-  // Administrative: insurance management
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.insurance',
     icon: HugeIcons.strokeRoundedShield01,
     color: AppColors.secondaryDark,
     route: RouteNames.homeInsurance,
-    requiredPermissions: {'insurance:read'},
+    screenId: 'insurance-by-section',
   ),
-  // Administrative: inventory management
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.inventory',
     icon: HugeIcons.strokeRoundedPackage,
     color: AppColors.accent,
     route: RouteNames.homeInventory,
-    requiredPermissions: {'inventory:read'},
+    screenId: 'club-inventory',
   ),
-  // Pedidos de materiales — materiales:create es el permiso de directores
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.materials',
     icon: HugeIcons.strokeRoundedShoppingCart01,
     color: AppColors.info,
     route: RouteNames.homeMaterials,
-    requiredPermissions: {'materiales:create'},
+    screenId: 'app-materials',
   ),
-  // Club-wide shared resources — independent from retired legacy folders.
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.resources',
     icon: HugeIcons.strokeRoundedFiles01,
     route: RouteNames.homeResources,
-    requiredPermissions: {'resources:read'},
+    screenId: 'resources-list',
   ),
-  // Reportes institucionales — backend scopes directors/secretaries to their
-  // active club section and higher roles to their hierarchy.
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.reports',
     icon: HugeIcons.strokeRoundedAnalytics01,
     color: AppColors.info,
     route: RouteNames.homeReports,
-    requiredPermissions: reportReadPermissions,
+    screenId: 'reports-list',
   ),
-  // Ranking institucional — clubes por tipo dentro del campo local autorizado.
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.club_rankings',
     icon: HugeIcons.strokeRoundedMedal05,
     color: AppColors.primary,
     route: RouteNames.homeClubRankings,
-    requiredPermissions: clubRankingReadPermissions,
+    screenId: 'annual-folders-rankings',
   ),
 ];
 
@@ -182,7 +149,7 @@ const _judgeQuickAccessItem = _QuickAccessItemConfig(
 /// three states:
 ///   - loading  → show skeleton placeholders (avoids the flip-flop where
 ///                 `valueOrNull == null` while the Future is still in flight)
-///   - data with authorization → filter items by permissions and render grid
+///   - data with authorization → filter items by screen catalog and render grid
 ///   - data without authorization (genuinely empty) → SizedBox.shrink()
 class QuickAccessGrid extends ConsumerWidget {
   const QuickAccessGrid({super.key});
@@ -215,21 +182,11 @@ class QuickAccessGrid extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
+    final subject = subjectFromUser(user);
     final filteredItems = _quickAccessItemsConfig.where((item) {
-      // Ungated items (no permissions AND no roles) are visible to every
-      // authenticated user — used only when authorization is not a concern.
-      if (item.requiredPermissions.isEmpty && item.requiredRoles.isEmpty) {
-        return true;
-      }
-      if (item.requiredPermissions.isNotEmpty &&
-          hasAnyPermission(user, item.requiredPermissions)) {
-        return true;
-      }
-      if (item.requiredRoles.isNotEmpty &&
-          hasAnyRole(user, item.requiredRoles)) {
-        return true;
-      }
-      return false;
+      final screenId = item.screenId;
+      if (screenId == null) return true;
+      return canViewScreen(subject, screenId);
     }).toList();
 
     final showJudgeTile = ref.watch(camporeeJudgeAssignmentsProvider).maybeWhen(
