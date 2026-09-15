@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../theme/app_colors.dart';
@@ -11,8 +10,8 @@ import '../../theme/sac_colors.dart';
 import '../sac_image_viewer.dart';
 import '../sac_pdf_viewer.dart';
 import '../sac_dialog.dart';
+import '../sac_top_bar.dart';
 import 'staged_file.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import '../../animations/page_transitions.dart';
 
 /// Unified grid for displaying both remote (uploaded) and local (staged) files.
@@ -464,14 +463,11 @@ class _StagedFileCell extends StatelessWidget {
         SacFadeThroughRoute(
           builder: (_) => Scaffold(
             backgroundColor: Colors.black,
-            appBar: AppBar(
-              automaticallyImplyLeading: false,
-              leading: sacAutoBackButton(context),
+            appBar: SacTopBar(
+              title: file.name,
               backgroundColor: Colors.transparent,
-              systemOverlayStyle: SystemUiOverlayStyle.light,
-              iconTheme: const IconThemeData(color: Colors.white),
-              title:
-                  Text(file.name, style: const TextStyle(color: Colors.white)),
+              foregroundColor: Colors.white,
+              borderColor: Colors.transparent,
             ),
             body: Center(
               child: InteractiveViewer(

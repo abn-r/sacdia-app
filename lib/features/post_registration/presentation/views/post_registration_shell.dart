@@ -286,6 +286,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
             // Header with staggered entrance on first mount
             StaggeredListItem(
               index: 0,
+              animate: true,
               initialDelay: const Duration(milliseconds: 60),
               child: Padding(
                 padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 0),
@@ -346,6 +347,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
             // Stepper — slides in after header
             StaggeredListItem(
               index: 1,
+              animate: true,
               initialDelay: const Duration(milliseconds: 60),
               child: StepIndicator(
                 totalSteps: 3,

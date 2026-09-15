@@ -8,6 +8,7 @@ import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_dialog.dart';
 import '../../../../core/widgets/sac_loading.dart';
+import '../../../../core/widgets/sac_top_bar.dart';
 import '../../domain/entities/camporee_approval.dart';
 import '../providers/coordinator_providers.dart';
 import '../widgets/approval_action_buttons.dart';
@@ -51,21 +52,22 @@ class _CamporeeApprovalsViewState extends ConsumerState<CamporeeApprovalsView>
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
+      appBar: SacTopBar(
         title: selected == null
-            ? Text('coordinator.camporee_approvals.title'.tr())
-            : Text(selected.name, overflow: TextOverflow.ellipsis),
+            ? 'coordinator.camporee_approvals.title'.tr()
+            : selected.name,
         leading: selected != null
             ? IconButton(
                 icon: HugeIcon(
                   icon: HugeIcons.strokeRoundedArrowLeft01,
                   size: 22,
-                  color: context.sac.text,
+                  color: c.text,
                 ),
                 onPressed: () =>
                     ref.read(selectedCamporeeProvider.notifier).state = null,
               )
             : null,
+        automaticallyImplyLeading: selected == null,
         bottom: selected == null
             ? TabBar(
                 controller: _scopeTabController,

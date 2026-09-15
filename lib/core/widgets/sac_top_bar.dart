@@ -23,6 +23,7 @@ class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
   final Color? backgroundColor;
   final Color? foregroundColor;
   final Color? borderColor;
+  final PreferredSizeWidget? bottom;
 
   const SacTopBar({
     super.key,
@@ -37,6 +38,7 @@ class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
     this.backgroundColor,
     this.foregroundColor,
     this.borderColor,
+    this.bottom,
   });
 
   static const double compactHeight = 56;
@@ -48,7 +50,9 @@ class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
       subtitle == null ? compactHeight : subtitleHeight;
 
   @override
-  Size get preferredSize => Size.fromHeight(_toolbarHeight + borderHeight);
+  Size get preferredSize => Size.fromHeight(
+        _toolbarHeight + borderHeight + (bottom?.preferredSize.height ?? 0),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -92,10 +96,18 @@ class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: actions,
       bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(1),
-        child: Container(
-          height: 1,
-          color: borderColor ?? c.border.withValues(alpha: 0.7),
+        preferredSize: Size.fromHeight(
+          borderHeight + (bottom?.preferredSize.height ?? 0),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              height: borderHeight,
+              color: borderColor ?? c.border.withValues(alpha: 0.7),
+            ),
+            if (bottom != null) bottom!,
+          ],
         ),
       ),
     );

@@ -111,6 +111,7 @@ import '../../features/auth/domain/entities/authorization_snapshot.dart';
 import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/domain/utils/authorization_utils.dart';
 import 'route_names.dart';
+import 'package:sacdia_app/core/widgets/sac_nav_icon.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 /// Shared-axis slide for standard forward/back navigation.
@@ -1503,14 +1504,13 @@ class _MainShell extends ConsumerWidget {
               destinations: filteredItems
                   .map(
                     (item) => NavigationRailDestination(
-                      icon: HugeIcon(
+                      icon: SacNavIcon(
                         icon: item.icon,
-                        size: 24,
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
-                      selectedIcon: HugeIcon(
+                      selectedIcon: SacNavIcon(
                         icon: item.icon,
-                        size: 24,
+                        selected: true,
                         color: Theme.of(context).colorScheme.primary,
                       ),
                       label: Text(item.label),
@@ -1534,8 +1534,8 @@ class _MainShell extends ConsumerWidget {
         destinations: filteredItems
             .map(
               (item) => NavigationDestination(
-                icon: HugeIcon(icon: item.icon),
-                selectedIcon: HugeIcon(icon: item.icon),
+                icon: SacNavIcon(icon: item.icon),
+                selectedIcon: SacNavIcon(icon: item.icon, selected: true),
                 label: item.label,
               ),
             )

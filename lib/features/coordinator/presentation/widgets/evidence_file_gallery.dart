@@ -4,8 +4,8 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/evidence_review_item.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 /// Galería de archivos de evidencia.
 ///
@@ -261,15 +261,11 @@ class _FullscreenImageViewerState extends State<_FullscreenImageViewer> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
+      appBar: SacTopBar(
+        title: '${_currentIndex + 1} / ${widget.images.length}',
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
-        title: Text(
-          '${_currentIndex + 1} / ${widget.images.length}',
-          style: const TextStyle(color: Colors.white, fontSize: 14),
-        ),
+        borderColor: Colors.transparent,
       ),
       body: PageView.builder(
         controller: _pageController,

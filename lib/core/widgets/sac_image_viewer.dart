@@ -12,6 +12,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 /// Visor de imagenes fullscreen con zoom (pinch-to-zoom).
 ///
@@ -100,13 +101,16 @@ class _SacImageViewerState extends State<SacImageViewer> {
       child: Scaffold(
         backgroundColor: Colors.black,
         extendBodyBehindAppBar: true,
-        appBar: AppBar(
+        appBar: SacTopBar(
+          title: _titleLabel(),
           backgroundColor: Colors.transparent,
-          elevation: 0,
           foregroundColor: Colors.white,
-          title: _buildTitle(),
+          borderColor: Colors.transparent,
           leading: IconButton(
-            icon: const HugeIcon(icon: HugeIcons.strokeRoundedCancel01),
+            icon: const HugeIcon(
+              icon: HugeIcons.strokeRoundedCancel01,
+              color: Colors.white,
+            ),
             onPressed: () => Navigator.pop(context),
           ),
           actions: [
@@ -194,23 +198,15 @@ class _SacImageViewerState extends State<SacImageViewer> {
     }
   }
 
-  Widget? _buildTitle() {
+  String _titleLabel() {
     final title = widget.title;
     final counter =
         _hasMultipleImages ? '${_currentIndex + 1}/${_imageUrls.length}' : null;
 
-    final text = [
+    return [
       if (title != null && title.isNotEmpty) title,
       if (counter != null) counter,
     ].join(' · ');
-
-    if (text.isEmpty) return null;
-
-    return Text(
-      text,
-      style: const TextStyle(fontSize: 14, color: Colors.white70),
-      overflow: TextOverflow.ellipsis,
-    );
   }
 
   Widget _buildPageIndicator() {

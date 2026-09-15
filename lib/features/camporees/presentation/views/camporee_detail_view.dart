@@ -14,10 +14,10 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/date_formatter.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
@@ -88,32 +88,18 @@ class _CamporeeScaffold extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: c.surfaceVariant,
-      appBar: AppBar(
+      appBar: SacTopBar(
+        title: title ?? 'camporees.list.title'.tr(),
         backgroundColor: c.surfaceVariant,
-        foregroundColor: c.text,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
         centerTitle: true,
-        leading: SacBackButton(
-          color: c.text,
-          onPressed: () {
-            final navigator = Navigator.of(context);
-            if (navigator.canPop()) {
-              navigator.pop();
-            } else {
-              context.go(RouteNames.homeDashboard);
-            }
-          },
-        ),
-        title: Text(
-          title ?? 'camporees.list.title'.tr(),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: c.text,
-              ),
-        ),
+        onBack: () {
+          final navigator = Navigator.of(context);
+          if (navigator.canPop()) {
+            navigator.pop();
+          } else {
+            context.go(RouteNames.homeDashboard);
+          }
+        },
       ),
       body: SafeArea(top: false, child: body),
     );
@@ -1231,27 +1217,9 @@ class _CamporeeEventDetailPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
-        backgroundColor: c.background,
-        foregroundColor: c.text,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
+      appBar: SacTopBar(
+        title: 'camporees.detail.event_detail_title'.tr(),
         centerTitle: true,
-        leading: SacBackButton(
-          color: c.text,
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          'camporees.detail.event_detail_title'.tr(),
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: c.text,
-              ),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: c.border),
-        ),
       ),
       body: SafeArea(
         top: false,

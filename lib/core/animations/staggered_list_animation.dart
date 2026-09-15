@@ -22,9 +22,10 @@ import 'package:sacdia_app/core/animations/motion_tokens.dart';
 
 /// A single animated list item that fades in and slides up.
 ///
-/// Triggers on first build. Stagger is [SacMotion.stagger] (40ms) per index,
-/// capped at index 5. Duration is [SacMotion.standard] (200ms).
-/// Set [animate] to false to opt out. Reduced Motion skips movement.
+/// Opt in with [animate] `true` on rare first-run surfaces (login, onboarding).
+/// Dense lists stay still: tens of visits per day must not stagger.
+/// Stagger is [SacMotion.stagger] (40ms) per index, capped at index 5.
+/// Duration is [SacMotion.standard] (200ms). Reduced Motion skips movement.
 class StaggeredListItem extends StatefulWidget {
   final Widget child;
 
@@ -54,7 +55,7 @@ class StaggeredListItem extends StatefulWidget {
     this.staggerDelay = SacMotion.stagger,
     this.duration = SacMotion.standard,
     this.slideOffset = 8.0,
-    this.animate = true,
+    this.animate = false,
   });
 
   @override
@@ -169,7 +170,7 @@ class StaggeredColumn extends StatelessWidget {
     this.staggerDelay = SacMotion.stagger,
     this.duration = SacMotion.standard,
     this.slideOffset = 8.0,
-    this.animate = true,
+    this.animate = false,
   });
 
   @override

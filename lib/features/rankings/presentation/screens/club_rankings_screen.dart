@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' show FontFeature, ImageFilter;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart' show listEquals;
@@ -12,9 +11,9 @@ import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/widgets/sac_back_button.dart';
 import '../../../../core/widgets/sac_card.dart';
 import '../../../../core/widgets/sac_network_image.dart';
+import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../../features/auth/domain/entities/user_entity.dart';
 import '../../../../features/auth/domain/utils/authorization_utils.dart';
 import '../../../../features/auth/presentation/providers/auth_providers.dart';
@@ -46,29 +45,8 @@ class ClubRankingsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.background,
-      extendBodyBehindAppBar: false,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: sacAutoBackButton(context),
-        title: Text(
-          tr('rankings.annual_progress.title'),
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: c.text,
-                letterSpacing: -0.2,
-              ),
-        ),
-        centerTitle: true,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        surfaceTintColor: Colors.transparent,
-        backgroundColor: c.background.withValues(alpha: 0.92),
-        flexibleSpace: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-            child: const SizedBox.expand(),
-          ),
-        ),
+      appBar: SacTopBar(
+        title: tr('rankings.annual_progress.title'),
       ),
       body: Builder(
         builder: (context) {

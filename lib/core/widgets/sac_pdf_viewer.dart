@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 /// A full-screen PDF viewer that accepts either a local file path or a public
 /// remote URL.
@@ -175,37 +176,22 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
 
   @override
   Widget build(BuildContext context) {
+    final title = widget.title?.trim();
+    final pageLabel = _totalPages > 0
+        ? tr(
+            'core.pdf_viewer.page_indicator',
+            namedArgs: {
+              'current': '${_currentPage + 1}',
+              'total': '$_totalPages',
+            },
+          )
+        : null;
+
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (widget.title != null)
-              Text(
-                widget.title!,
-                style: const TextStyle(fontSize: 14),
-                overflow: TextOverflow.ellipsis,
-              ),
-            if (_totalPages > 0)
-              Text(
-                tr(
-                  'core.pdf_viewer.page_indicator',
-                  namedArgs: {
-                    'current': '${_currentPage + 1}',
-                    'total': '$_totalPages',
-                  },
-                ),
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.6),
-                ),
-              ),
-          ],
-        ),
+      appBar: SacTopBar(
+        title: (title != null && title.isNotEmpty) ? title : (pageLabel ?? ''),
+        subtitle: (title != null && title.isNotEmpty) ? pageLabel : null,
         leading: IconButton(
           icon: const HugeIcon(icon: HugeIcons.strokeRoundedCancel01),
           onPressed: () => Navigator.pop(context),
