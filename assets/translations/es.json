@@ -2417,7 +2417,7 @@
       "empty_title": "Nadie pendiente de inscripción",
       "empty_subtitle": "Todos los miembros de esta sección ya están inscritos este año.",
       "blocked_reasons": {
-        "ANNUAL_CLASS_POLICY_UNRESOLVED": "No hay clase aplicable para este año",
+        "ANNUAL_CLASS_POLICY_UNRESOLVED": "No hay clase aplicable: catálogo, edad o sección destino incompletos",
         "ANNUAL_MEMBERSHIP_BASE_UNRESOLVED": "No se resolvió la sección de pertenencia",
         "CLASS_PREREQUISITE_NOT_MET": "Falta un prerrequisito de clase",
         "CLASS_GM_INVESTITURE_REQUIRED": "Requiere investidura de Guías Mayores",

@@ -63,6 +63,14 @@ final List<ScreenDefinition> kAppScreenCatalog = [
     ],
   ),
   _view(
+    'annual_continuations',
+    surfaces: _adminApp,
+    permissions: ['club_members:approve'],
+    capabilities: [
+      _cap('enroll', 'club_members:approve'),
+    ],
+  ),
+  _view(
     'annual-folders-rankings',
     surfaces: _adminApp,
     permissions: ['rankings:read'],

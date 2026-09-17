@@ -52,8 +52,4 @@ abstract class MembersRepository {
     required int sectionId,
     required List<String> userIds,
   });
-
-  /// Inscribe al usuario owner al año eclesiástico actual.
-  Future<Either<Failure, void>> annualEnroll(String userId,
-      {int? clubSectionId});
 }

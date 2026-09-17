@@ -53,9 +53,6 @@ abstract class MembersRemoteDataSource {
     required int sectionId,
     required List<String> userIds,
   });
-
-  /// D01: el backend responde 403 ANNUAL_ENROLL_REQUIRES_DIRECTIVE. Sin CTA.
-  Future<void> annualEnroll(String userId, {int? clubSectionId});
 }
 
 /// Implementación de la fuente de datos remota para miembros
@@ -465,37 +462,6 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       if (e is AuthException || e is ServerException) rethrow;
       AppLogger.e('Error inesperado en submitAnnualContinuations',
           tag: _tag, error: e);
-      throw ServerException(message: e.toString());
-    }
-  }
-
-  @override
-  Future<void> annualEnroll(String userId, {int? clubSectionId}) async {
-    try {
-      final body = <String, dynamic>{};
-      if (clubSectionId != null) body['club_section_id'] = clubSectionId;
-
-      final response = await _dio.post(
-        '$_baseUrl${ApiEndpoints.users}/$userId/membership${ApiEndpoints.annualEnroll}',
-        data: body.isNotEmpty ? body : null,
-      );
-
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        throw ServerException(
-          message: tr('membership.enroll_error'),
-          code: response.statusCode,
-        );
-      }
-    } on DioException catch (e) {
-      AppLogger.e('Error al inscribir anualmente', tag: _tag, error: e);
-      throw ServerException(
-        message:
-            e.response?.data?['message'] ?? tr('membership.enroll_error'),
-        code: e.response?.statusCode,
-      );
-    } catch (e) {
-      if (e is AuthException || e is ServerException) rethrow;
-      AppLogger.e('Error inesperado en annualEnroll', tag: _tag, error: e);
       throw ServerException(message: e.toString());
     }
   }

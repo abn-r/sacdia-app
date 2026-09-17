@@ -2417,7 +2417,7 @@
       "empty_title": "No one pending enrollment",
       "empty_subtitle": "Everyone in this section is already enrolled this year.",
       "blocked_reasons": {
-        "ANNUAL_CLASS_POLICY_UNRESOLVED": "No applicable class for this year",
+        "ANNUAL_CLASS_POLICY_UNRESOLVED": "No applicable class: catalog, age, or destination section is incomplete",
         "ANNUAL_MEMBERSHIP_BASE_UNRESOLVED": "Home section could not be resolved",
         "CLASS_PREREQUISITE_NOT_MET": "A class prerequisite is missing",
         "CLASS_GM_INVESTITURE_REQUIRED": "Master Guide investiture is required",

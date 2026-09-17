@@ -2416,7 +2416,7 @@
       "empty_title": "Personne en attente d'inscription",
       "empty_subtitle": "Tous les membres de cette section sont déjà inscrits cette année.",
       "blocked_reasons": {
-        "ANNUAL_CLASS_POLICY_UNRESOLVED": "Aucune classe applicable pour cette année",
+        "ANNUAL_CLASS_POLICY_UNRESOLVED": "Aucune classe applicable : catalogue, âge ou section de destination incomplets",
         "ANNUAL_MEMBERSHIP_BASE_UNRESOLVED": "La section d'appartenance n'a pas pu être résolue",
         "CLASS_PREREQUISITE_NOT_MET": "Un prérequis de classe manque",
         "CLASS_GM_INVESTITURE_REQUIRED": "L'investiture Guides Majeurs est requise",

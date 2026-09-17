@@ -196,20 +196,4 @@ class MembersRepositoryImpl implements MembersRepository {
       return Left(UnexpectedFailure(message: e.toString()));
     }
   }
-
-  @override
-  Future<Either<Failure, void>> annualEnroll(String userId,
-      {int? clubSectionId}) async {
-    try {
-      await remoteDataSource.annualEnroll(userId,
-          clubSectionId: clubSectionId);
-      return const Right(null);
-    } on AuthException catch (e) {
-      return Left(AuthFailure(message: e.message, code: e.code));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, code: e.code));
-    } catch (e) {
-      return Left(UnexpectedFailure(message: e.toString()));
-    }
-  }
 }

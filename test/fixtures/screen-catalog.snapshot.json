@@ -98,6 +98,14 @@
       "capabilities": []
     },
     {
+      "id": "annual_continuations",
+      "surfaces": ["admin", "app"],
+      "viewAny": { "permissions": ["club_members:approve"] },
+      "capabilities": [
+        { "id": "enroll", "kind": "button", "gate": { "permissions": ["club_members:approve"] } }
+      ]
+    },
+    {
       "id": "app-classes",
       "surfaces": ["app"],
       "viewAny": { "permissions": ["classes:read"] },

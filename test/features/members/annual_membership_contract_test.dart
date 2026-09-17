@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
@@ -190,6 +193,27 @@ void main() {
       final grant = membershipGrantForDisplay(snap);
       expect(grant, isNotNull);
       expect(grant!.isInactive, isTrue);
+    });
+  });
+
+  group('D02 policy copy and D01 CTA', () {
+    test('ANNUAL_CLASS_POLICY_UNRESOLVED names catalog, age or dest section', () {
+      final decoded = jsonDecode(
+        File('assets/translations/es.json').readAsStringSync(),
+      ) as Map<String, dynamic>;
+      final text = decoded['members']['continuations']['blocked_reasons']
+          ['ANNUAL_CLASS_POLICY_UNRESOLVED'] as String;
+      expect(text.toLowerCase(), contains('catálogo'));
+      expect(text.toLowerCase(), contains('edad'));
+      expect(text.toLowerCase(), contains('sección'));
+    });
+
+    test('app source does not keep an annual-enroll CTA', () {
+      final providers = File(
+        'lib/features/members/presentation/providers/members_providers.dart',
+      ).readAsStringSync();
+      expect(providers.contains('annualEnrollNotifierProvider'), isFalse);
+      expect(providers.contains('class AnnualEnrollNotifier'), isFalse);
     });
   });
 }
