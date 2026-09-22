@@ -1,19 +1,34 @@
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
-/// App-wide image cache manager.
+/// Disk key for a network image.
 ///
-/// Overrides the [DefaultCacheManager] defaults to match SACDIA's catalog size:
-/// - maxNrOfCacheObjects: 500  (honors catalog alone can exceed 200 badges)
-/// - stalePeriod: 30 days      (honor badge images rarely change)
+/// Drops the query and fragment so a signed URL (a new signature every few
+/// minutes) hits the same file. A new object path, such as
+/// `photo-{userId}-{timestamp}`, is a new key and downloads immediately.
+/// When the URL has no query or fragment, the original string is returned so
+/// it still matches an [ImageProvider] keyed by that URL.
+String stableImageCacheKey(String url) {
+  final uri = Uri.tryParse(url);
+  if (uri == null || !uri.hasScheme || (!uri.hasQuery && !uri.hasFragment)) {
+    return url;
+  }
+  return Uri(
+    scheme: uri.scheme,
+    userInfo: uri.userInfo.isEmpty ? null : uri.userInfo,
+    host: uri.host,
+    port: uri.hasPort ? uri.port : null,
+    path: uri.path,
+  ).toString();
+}
+
+/// Catalog images (honor badges, class art).
 ///
-/// Usage: pass [SacCacheManager.instance] as the `cacheManager` parameter
-/// to any [CachedNetworkImage] that needs non-default caching behavior,
-/// or use it directly when pre-caching assets.
+/// Installed as [CachedNetworkImageProvider.defaultCacheManager] in `main`.
+/// Unused files are removed after 30 days. The store holds 500 objects so the
+/// honors catalog does not evict itself.
 ///
-/// For the majority of call sites that do not specify a cacheManager,
-/// [CachedNetworkImage] falls back to [DefaultCacheManager] (200 objects /
-/// 30 days). Only high-volume screens (honors catalog, profile honors grid)
-/// benefit from this larger instance.
+/// Profile photos do not use this store. Their signed URL changes every few
+/// minutes and would fill these 500 slots. See [SacProfileCacheManager].
 class SacCacheManager extends CacheManager with ImageCacheManager {
   static const _key = 'sacCacheManager';
 
@@ -25,6 +40,27 @@ class SacCacheManager extends CacheManager with ImageCacheManager {
             _key,
             stalePeriod: const Duration(days: 30),
             maxNrOfCacheObjects: 500,
+          ),
+        );
+}
+
+/// Profile photos.
+///
+/// Separate from [SacCacheManager] so avatar signatures do not evict badges.
+/// Unused files are removed after 1 day. Call sites must pass
+/// [stableImageCacheKey]: the signature is not part of the key, and a replaced
+/// photo (new object name) downloads at once.
+class SacProfileCacheManager extends CacheManager with ImageCacheManager {
+  static const _key = 'sacProfileCache';
+
+  static final SacProfileCacheManager instance = SacProfileCacheManager._();
+
+  SacProfileCacheManager._()
+      : super(
+          Config(
+            _key,
+            stalePeriod: const Duration(days: 1),
+            maxNrOfCacheObjects: 200,
           ),
         );
 }

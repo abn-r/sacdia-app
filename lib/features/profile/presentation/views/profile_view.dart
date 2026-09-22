@@ -1,6 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -871,7 +871,7 @@ class _ProfileHeaderCard extends StatelessWidget {
                                       width: avatarRadius * 2,
                                       height: avatarRadius * 2,
                                       child: avatar != null
-                                          ? CachedNetworkImage(
+                                          ? SacProfileImage(
                                               imageUrl: avatar!,
                                               fit: BoxFit.cover,
                                               memCacheWidth: 176,

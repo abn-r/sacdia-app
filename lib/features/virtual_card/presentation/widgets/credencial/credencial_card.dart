@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -210,11 +211,11 @@ class CredencialCard extends StatelessWidget {
             ),
             child: ClipOval(
               child: hasPhoto
-                  ? Image.network(
-                      vm.fotoUrl!,
+                  ? SacProfileImage(
+                      imageUrl: vm.fotoUrl!,
                       fit: BoxFit.cover,
-                      cacheWidth: 200,
-                      errorBuilder: (_, __, ___) => _avatarFallback(sec),
+                      memCacheWidth: 200,
+                      errorWidget: (_, __, ___) => _avatarFallback(sec),
                     )
                   : _avatarFallback(sec),
             ),

@@ -1,5 +1,5 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -977,7 +977,7 @@ class _CreatorAvatar extends StatelessWidget {
 
     if (hasImage) {
       return ClipOval(
-        child: CachedNetworkImage(
+        child: SacProfileImage(
           imageUrl: imageUrl!,
           width: size,
           height: size,

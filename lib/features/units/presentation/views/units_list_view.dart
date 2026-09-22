@@ -1,6 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -568,7 +568,7 @@ class _SingleAvatar extends StatelessWidget {
         width: 56,
         height: 56,
         child: (member.photoUrl != null && member.photoUrl!.isNotEmpty)
-            ? CachedNetworkImage(
+            ? SacProfileImage(
                 imageUrl: member.photoUrl!,
                 fit: BoxFit.cover,
                 memCacheWidth: 112,
@@ -617,7 +617,7 @@ class _TieAvatarStack extends StatelessWidget {
                 width: _size,
                 height: _size,
                 child: (member.photoUrl != null && member.photoUrl!.isNotEmpty)
-                    ? CachedNetworkImage(
+                    ? SacProfileImage(
                         imageUrl: member.photoUrl!,
                         fit: BoxFit.cover,
                         memCacheWidth: 80,

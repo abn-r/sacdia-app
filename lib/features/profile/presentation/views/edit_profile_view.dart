@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -13,6 +12,7 @@ import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
+import '../../../../core/widgets/sac_profile_image.dart';
 import '../../../../core/widgets/sac_snack_bar.dart';
 import '../../../../core/widgets/sac_text_field.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
@@ -564,7 +564,7 @@ class _AvatarHeader extends StatelessWidget {
                         radius: radius,
                         backgroundColor: AppColors.primarySurface,
                         backgroundImage: avatar != null
-                            ? CachedNetworkImageProvider(avatar!)
+                            ? sacProfileImageProvider(avatar!)
                             : null,
                         child: avatar == null
                             ? Text(

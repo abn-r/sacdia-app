@@ -14,6 +14,7 @@ import '../../features/members/presentation/providers/members_providers.dart';
 import '../../features/profile/presentation/providers/profile_providers.dart';
 import '../../features/enrollment/presentation/providers/enrollment_providers.dart';
 import '../../features/activities/presentation/providers/activities_providers.dart';
+import '../../features/classes/presentation/providers/classes_providers.dart';
 import '../../features/club/presentation/providers/club_providers.dart';
 import '../../features/notifications/presentation/providers/notifications_providers.dart';
 
@@ -23,6 +24,7 @@ import '../../features/notifications/presentation/providers/notifications_provid
 final List<ProviderOrFamily> userSpecificProviders = [
   dashboardNotifierProvider,
   userHonorsProvider,
+  userClassesProvider,
   clubContextProvider,
   currentClubSectionProvider,
   profileNotifierProvider,

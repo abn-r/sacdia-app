@@ -378,7 +378,8 @@ void main() {
       await Future<void>.delayed(Duration.zero);
     });
 
-    test('falls back to API when TTL expires', () async {
+    test('shows an expired cache immediately and refreshes it in background',
+        () async {
       final authNotifier = _FakeAuthNotifier(
         _buildUser(userId: 'user-1', activeAssignmentId: 'assign-a'),
       );
@@ -403,7 +404,53 @@ void main() {
 
       final result = await container.read(dashboardNotifierProvider.future);
 
-      expect(result?.clubName, equals('Fresh'));
+      expect(result?.clubName, equals('Old'));
+
+      String? clubName;
+      for (var i = 0; i < 20 && clubName != 'Fresh'; i++) {
+        await Future<void>.delayed(Duration.zero);
+        clubName =
+            container.read(dashboardNotifierProvider).value?.clubName;
+      }
+
+      expect(clubName, equals('Fresh'));
+      expect(useCase.calls, equals(1));
+    });
+
+    test('keeps an expired cache when the background refresh fails', () async {
+      final authNotifier = _FakeAuthNotifier(
+        _buildUser(userId: 'user-1', activeAssignmentId: 'assign-a'),
+      );
+      final key = _dashboardCacheKey(
+        userId: 'user-1',
+        assignmentId: 'assign-a',
+      );
+      final cached = _summary(userName: 'Ana', clubName: 'Old');
+      final useCase = _FakeGetDashboardSummary(
+        result: left(const ServerFailure(message: 'server down')),
+      );
+      final container = await _buildDashboardContainer(
+        authNotifier: authNotifier,
+        useCase: useCase,
+        initialPrefs: {
+          key: jsonEncode(_summaryJson(cached)),
+          '${key}_cached_at': DateTime.now()
+              .subtract(const Duration(minutes: 2))
+              .millisecondsSinceEpoch,
+        },
+      );
+      addTearDown(container.dispose);
+
+      final result = await container.read(dashboardNotifierProvider.future);
+      expect(result?.clubName, equals('Old'));
+
+      for (var i = 0; i < 20; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+
+      final state = container.read(dashboardNotifierProvider);
+      expect(state.hasError, isFalse);
+      expect(state.value?.clubName, equals('Old'));
       expect(useCase.calls, equals(1));
     });
 

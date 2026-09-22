@@ -3,12 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/realtime/realtime_ref.dart';
 import '../../../../core/realtime/realtime_resource_registry.dart';
+import '../../../../providers/catalogs_provider.dart';
+import '../../../../providers/json_file_cache_provider.dart';
 import '../../../../providers/storage_provider.dart';
+import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import '../../data/repositories/cache_repository_impl.dart';
 import '../../domain/entities/cache_info.dart';
 import '../../domain/entities/sync_result.dart';
 import '../../domain/repositories/cache_repository.dart';
+import 'server_cache_invalidation.dart';
 
 /// Singleton repository. Kept non-autoDispose — the repo is cheap and we
 /// want [cacheInfoProvider] / mutations to share one instance across
@@ -67,8 +71,15 @@ class SyncController extends AutoDisposeNotifier<SyncControllerState> {
     final repo = ref.read(cacheRepositoryProvider);
     SyncResult result;
     try {
+      // Disk first. Invalidating providers while the 24h catalog JSON or the
+      // 90s dashboard JSON is still valid just paints the same payload.
+      final storage = ref.read(localStorageProvider);
+      await bumpCatalogCacheGeneration(storage);
+      await clearDashboardSummaryDiskCache(storage);
+      await ref.read(jsonFileCacheProvider).deleteAll();
       final ctx = rtRef.read(clubContextProvider).valueOrNull;
       RealtimeResourceRegistry.invalidateAll(rtRef, ctx?.sectionId ?? -1);
+      invalidateSessionServerCaches(rtRef);
       result = await repo.recordSuccessfulSync(DateTime.now());
     } catch (e) {
       String message;
@@ -121,6 +132,11 @@ class ClearCacheController extends AutoDisposeNotifier<ClearCacheState> {
         await repo.clearImageCaches();
       } else {
         await repo.clearAllData();
+        ref.read(jsonFileCacheProvider).resetSession();
+        final rtRef = RealtimeRef.fromRef(ref);
+        final ctx = ref.read(clubContextProvider).valueOrNull;
+        RealtimeResourceRegistry.invalidateAll(rtRef, ctx?.sectionId ?? -1);
+        invalidateSessionServerCaches(rtRef);
       }
       ref.invalidate(cacheInfoProvider);
       state = const ClearCacheState(inProgress: false, errorMessage: null);

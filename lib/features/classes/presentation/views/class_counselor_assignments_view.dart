@@ -1,6 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -989,7 +989,7 @@ class _PersonIdentityMark extends StatelessWidget {
                     letterSpacing: -0.3,
                   ),
             )
-          : CachedNetworkImage(
+          : SacProfileImage(
               imageUrl: image,
               fit: BoxFit.cover,
               width: 44,

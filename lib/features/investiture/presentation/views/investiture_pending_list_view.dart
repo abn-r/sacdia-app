@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -499,7 +500,7 @@ class _Avatar extends StatelessWidget {
     if (photoUrl != null && photoUrl!.isNotEmpty) {
       return CircleAvatar(
         radius: 22,
-        backgroundImage: NetworkImage(photoUrl!),
+        backgroundImage: sacProfileImageProvider(photoUrl!),
       );
     }
     final initials = name.isNotEmpty

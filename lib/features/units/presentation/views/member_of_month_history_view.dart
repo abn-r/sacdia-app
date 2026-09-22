@@ -1,6 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -326,7 +326,7 @@ class _WinnerAvatar extends StatelessWidget {
         width: 48,
         height: 48,
         child: (member.photoUrl != null && member.photoUrl!.isNotEmpty)
-            ? CachedNetworkImage(
+            ? SacProfileImage(
                 imageUrl: member.photoUrl!,
                 fit: BoxFit.cover,
                 memCacheWidth: 96,

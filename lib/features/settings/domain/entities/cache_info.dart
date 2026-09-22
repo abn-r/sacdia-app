@@ -11,8 +11,8 @@ class CacheInfo {
   /// Total bytes across all app-managed caches (image cache + temp + memory).
   final int totalBytes;
 
-  /// Subset of [totalBytes]: disk bytes held by [SacCacheManager] +
-  /// [DefaultCacheManager] (the CachedNetworkImage disk caches).
+  /// Subset of [totalBytes]: disk bytes held by [SacCacheManager],
+  /// [SacProfileCacheManager] and [DefaultCacheManager].
   final int imagesBytes;
 
   /// Subset of [totalBytes]: size of the recursive scan of

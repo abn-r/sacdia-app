@@ -1,9 +1,11 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/config/cache_config.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
@@ -765,7 +767,11 @@ class ActivityImagePicker extends StatelessWidget {
                     )
                   : hasNetworkImage
                       ? _ActivityPreviewBody(
-                          imageProvider: NetworkImage(networkImageUrl!),
+                          imageProvider: CachedNetworkImageProvider(
+                            networkImageUrl!,
+                            cacheKey: stableImageCacheKey(networkImageUrl!),
+                            cacheManager: SacCacheManager.instance,
+                          ),
                           enabled: enabled,
                           onPickGallery: onPickGallery,
                           onPickCamera: onPickCamera,

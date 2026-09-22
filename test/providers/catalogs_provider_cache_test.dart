@@ -212,5 +212,76 @@ void main() {
       expect(result!.ecclesiasticalYearId, year.ecclesiasticalYearId);
       expect(dataSource.currentEcclesiasticalYearCalls, equals(0));
     });
+
+    test('bumped generation ignores a catalog that is still inside the TTL',
+        () async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final cached = _sampleClubType();
+      final remote = const ClubTypeModel(
+        clubTypeId: 9,
+        name: 'Nuevo',
+      );
+      final dataSource = _FakeCatalogsRemoteDataSource(clubTypes: [remote]);
+      final container = await _buildCatalogsContainer(
+        dataSource: dataSource,
+        initialPrefs: {
+          AppConstants.catalogClubTypesCacheKey: jsonEncode([cached.toJson()]),
+          '${AppConstants.catalogClubTypesCacheKey}_cached_at': now,
+        },
+      );
+      addTearDown(container.dispose);
+
+      final first = await container.read(clubTypesProvider.future);
+      expect(first.first.clubTypeId, cached.clubTypeId);
+      expect(dataSource.clubTypesCalls, equals(0));
+
+      final storage = container.read(localStorageProvider);
+      await bumpCatalogCacheGeneration(storage);
+      container.invalidate(clubTypesProvider);
+
+      final refreshed = await container.read(clubTypesProvider.future);
+      expect(refreshed.first.clubTypeId, remote.clubTypeId);
+      expect(dataSource.clubTypesCalls, equals(1));
+
+      container.invalidate(clubTypesProvider);
+      final cachedAgain = await container.read(clubTypesProvider.future);
+      expect(cachedAgain.first.clubTypeId, remote.clubTypeId);
+      expect(dataSource.clubTypesCalls, equals(1));
+    });
+
+    test('bumped generation ignores the cached current ecclesiastical year',
+        () async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final cached = _sampleEcclesiasticalYear();
+      final remote = EcclesiasticalYearModel(
+        ecclesiasticalYearId: 2027,
+        name: '2027-2028',
+        startDate: DateTime.utc(2027, 1, 1),
+        endDate: DateTime.utc(2027, 12, 31),
+        active: true,
+      );
+      final dataSource = _FakeCatalogsRemoteDataSource(
+        currentEcclesiasticalYear: remote,
+      );
+      final container = await _buildCatalogsContainer(
+        dataSource: dataSource,
+        initialPrefs: {
+          AppConstants.catalogCurrentEcclesiasticalYearCacheKey:
+              jsonEncode([cached.toJson()]),
+          '${AppConstants.catalogCurrentEcclesiasticalYearCacheKey}_cached_at':
+              now,
+        },
+      );
+      addTearDown(container.dispose);
+
+      await bumpCatalogCacheGeneration(container.read(localStorageProvider));
+      container.invalidate(currentEcclesiasticalYearProvider);
+
+      final result =
+          await container.read(currentEcclesiasticalYearProvider.future);
+
+      expect(result!.ecclesiasticalYearId, remote.ecclesiasticalYearId);
+      expect(dataSource.currentEcclesiasticalYearCalls, equals(1));
+    });
   });
 }

@@ -17,7 +17,6 @@ import '../../domain/entities/dashboard_summary.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 import '../../domain/usecases/get_dashboard_data.dart';
 
-const Duration _dashboardSummaryTtl = Duration(seconds: 90);
 const Duration _dashboardSummaryRefreshThrottle = Duration(seconds: 30);
 const String _dashboardSummaryRefreshAttemptedAtSuffix =
     '_refresh_attempted_at';
@@ -31,14 +30,29 @@ String _dashboardSummaryCacheKey({
       '_assignment_$assignmentId';
 }
 
+/// Borra el resumen del dashboard guardado en disco, incluida la marca de
+/// tiempo y el throttle de refresco. Lo usan el logout y la sincronización
+/// forzada: invalidar el provider no basta, porque un TTL vigente vuelve a
+/// pintar el JSON viejo.
+Future<void> clearDashboardSummaryDiskCache(LocalStorage storage) {
+  final keys = storage
+      .getKeys()
+      .where(
+        (key) => key.startsWith(AppConstants.dashboardSummaryCacheKeyPrefix),
+      )
+      .toList(growable: false);
+  return Future.wait(keys.map(storage.remove));
+}
+
+/// Último resumen guardado, aunque ya no esté fresco.
+///
+/// El home lo pinta al instante y [DashboardNotifier] refresca detrás si el
+/// snapshot tiene más de [_dashboardSummaryRefreshThrottle]. Un JSON corrupto
+/// se descarta para no dejar la pantalla trabada.
 DashboardSummary? _readCachedDashboardSummary({
   required LocalStorage storage,
   required String cacheKey,
 }) {
-  if (storage.isExpired(cacheKey, maxAge: _dashboardSummaryTtl)) {
-    return null;
-  }
-
   final raw = storage.getString(cacheKey);
   if (raw == null || raw.isEmpty) return null;
 

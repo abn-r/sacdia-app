@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -206,7 +207,7 @@ class _MemberHeaderCard extends StatelessWidget {
                 child: ClipOval(
                   child: insurance.memberPhotoUrl != null &&
                           insurance.memberPhotoUrl!.isNotEmpty
-                      ? CachedNetworkImage(
+                      ? SacProfileImage(
                           imageUrl: insurance.memberPhotoUrl!,
                           fit: BoxFit.cover,
                           memCacheWidth: 180,

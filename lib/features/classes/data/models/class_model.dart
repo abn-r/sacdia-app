@@ -85,7 +85,8 @@ class ClassModel extends Equatable {
       enrollmentDate: _parseDate(json['enrollment_date']),
       submittedAt: _parseDate(json['submitted_at']),
       validatedAt: _parseDate(json['validated_at']),
-      ecclesiasticalYearLabel: _yearLabel(json['ecclesiastical_year']),
+      ecclesiasticalYearLabel: _yearLabel(json['ecclesiastical_year']) ??
+          safeStringOrNull(json['ecclesiastical_year_label']),
       availableFromYearId: safeIntOrNull(
           json['available_from_year_id'] ?? json['availableFromYearId']),
       availableUntilYearId: safeIntOrNull(
@@ -153,6 +154,30 @@ class ClassModel extends Equatable {
           .map((p) => {'class_id': p.classId, 'name': p.name})
           .toList(),
     };
+  }
+
+  factory ClassModel.fromEntity(ProgressiveClass entity) {
+    return ClassModel(
+      id: entity.id,
+      name: entity.name,
+      description: entity.description,
+      clubTypeId: entity.clubTypeId,
+      imageUrl: entity.imageUrl,
+      enrollmentId: entity.enrollmentId,
+      investitureStatus: entity.investitureStatus,
+      overallProgress: entity.overallProgress,
+      assetCode: entity.assetCode,
+      minimumAge: entity.minimumAge,
+      enrollmentDate: entity.enrollmentDate,
+      submittedAt: entity.submittedAt,
+      validatedAt: entity.validatedAt,
+      ecclesiasticalYearLabel: entity.ecclesiasticalYearLabel,
+      availableFromYearId: entity.availableFromYearId,
+      availableUntilYearId: entity.availableUntilYearId,
+      minDurationYears: entity.minDurationYears,
+      maxDurationYears: entity.maxDurationYears,
+      prerequisites: entity.prerequisites,
+    );
   }
 
   /// Convierte el modelo a entidad de dominio
@@ -248,4 +273,20 @@ class ClassModel extends Equatable {
         maxDurationYears,
         prerequisites,
       ];
+}
+
+List<ProgressiveClass> decodeClassCache(Object? payload) {
+  if (payload is! List) {
+    throw const FormatException('class cache is not a list');
+  }
+  return payload
+      .map(
+        (item) => ClassModel.fromJson(Map<String, dynamic>.from(item as Map))
+            .toEntity(),
+      )
+      .toList();
+}
+
+List<Map<String, dynamic>> encodeClassCache(List<ProgressiveClass> classes) {
+  return classes.map((item) => ClassModel.fromEntity(item).toJson()).toList();
 }

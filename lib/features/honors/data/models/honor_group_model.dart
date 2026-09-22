@@ -76,3 +76,44 @@ class HonorGroupModel extends Equatable {
   @override
   List<Object?> get props => [category, honors];
 }
+
+Map<String, dynamic> honorGroupToCacheJson(HonorGroup group) {
+  return {
+    'category': HonorCategoryModel(
+      id: group.category.id,
+      name: group.category.name,
+      description: group.category.description,
+    ).toJson(),
+    'honors': group.honors
+        .map((honor) => HonorModel.fromEntity(honor).toJson())
+        .toList(),
+  };
+}
+
+HonorGroup honorGroupFromCacheJson(Map<String, dynamic> json) {
+  final category = HonorCategoryModel.fromJson(
+    Map<String, dynamic>.from(json['category'] as Map),
+  ).toEntity();
+  final honors = (json['honors'] as List? ?? const [])
+      .map(
+        (item) => HonorModel.fromJson(Map<String, dynamic>.from(item as Map))
+            .toEntity(),
+      )
+      .toList();
+  return HonorGroup(category: category, honors: honors);
+}
+
+List<HonorGroup> decodeHonorGroupCache(Object? payload) {
+  if (payload is! List) {
+    throw const FormatException('honor group cache is not a list');
+  }
+  return payload
+      .map(
+        (item) => honorGroupFromCacheJson(Map<String, dynamic>.from(item as Map)),
+      )
+      .toList();
+}
+
+List<Map<String, dynamic>> encodeHonorGroupCache(List<HonorGroup> groups) {
+  return groups.map(honorGroupToCacheJson).toList();
+}

@@ -79,6 +79,9 @@ class RealtimeResourceRegistry {
   ///
   /// Catalogs are invalidated unconditionally — they are global (not
   /// section-scoped), so bypassing the per-handler section guard is correct.
+  /// Disk TTL is separate: a caller that must ignore the 24h catalog JSON
+  /// (force sync) has to bump the catalog cache generation before this method.
+  /// Clearing SharedPreferences (clear-all) already drops that JSON.
   /// Individual resource handlers keep their own section guards, so passing
   /// the user's active sectionId is required for them to fire.
   static void invalidateAll(RealtimeRef ref, int sectionId) {

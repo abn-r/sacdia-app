@@ -13,6 +13,28 @@ import '../providers/storage_provider.dart';
 
 const Duration _catalogsTtl = Duration(hours: 24);
 
+/// SharedPreferences int. Bumped by force-sync so every catalog key written
+/// under an older generation is treated as a miss, even inside the TTL.
+const _catalogCacheGenerationKey = 'catalog_cache_generation';
+const _catalogCacheGenerationSuffix = '_cache_gen';
+
+/// Marks every on-disk catalog entry stale. The next read of each catalog
+/// provider goes to the network and stores the new generation.
+///
+/// Entries written before this mechanism existed have no generation suffix and
+/// count as generation 0, so a normal launch still uses them.
+Future<bool> bumpCatalogCacheGeneration(LocalStorage storage) {
+  final current = storage.getInt(_catalogCacheGenerationKey) ?? 0;
+  return storage.saveInt(_catalogCacheGenerationKey, current + 1);
+}
+
+bool _isCurrentCatalogGeneration(LocalStorage storage, String cacheKey) {
+  final current = storage.getInt(_catalogCacheGenerationKey) ?? 0;
+  final written =
+      storage.getInt('$cacheKey$_catalogCacheGenerationSuffix') ?? 0;
+  return written == current;
+}
+
 String _districtsCacheKey(int? localFieldId) =>
     '${AppConstants.catalogDistrictsCacheKey}'
     '${localFieldId == null ? '' : '_local_field_$localFieldId'}';
@@ -33,6 +55,10 @@ List<T>? _readCachedList<T>({
   required String cacheKey,
   required T Function(Map<String, dynamic> json) fromJson,
 }) {
+  if (!_isCurrentCatalogGeneration(storage, cacheKey)) {
+    return null;
+  }
+
   if (storage.isExpired(cacheKey, maxAge: _catalogsTtl)) {
     return null;
   }
@@ -65,6 +91,10 @@ Future<void> _saveCachedList<T>({
   final payload = items.map((model) => toJson(model)).toList();
   await storage.saveString(cacheKey, jsonEncode(payload));
   await storage.setCachedAt(cacheKey);
+  await storage.saveInt(
+    '$cacheKey$_catalogCacheGenerationSuffix',
+    storage.getInt(_catalogCacheGenerationKey) ?? 0,
+  );
 }
 
 Future<List<T>> _getCachedOrFresh<T>({

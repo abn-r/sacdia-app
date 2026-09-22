@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +6,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
@@ -107,7 +107,7 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
                     radius: 28,
                     backgroundColor: AppColors.primarySurface,
                     backgroundImage: widget.member.avatar != null
-                        ? CachedNetworkImageProvider(widget.member.avatar!)
+                        ? sacProfileImageProvider(widget.member.avatar!)
                         : null,
                     child: widget.member.avatar == null
                         ? Text(

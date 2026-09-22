@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 
@@ -166,7 +167,8 @@ class TransactionTile extends StatelessWidget {
                       radius: 6,
                       backgroundColor: context.sac.surfaceVariant,
                       backgroundImage: transaction.registeredByPhoto != null
-                          ? NetworkImage(transaction.registeredByPhoto!)
+                          ? sacProfileImageProvider(
+                              transaction.registeredByPhoto!)
                           : null,
                       onBackgroundImageError:
                           transaction.registeredByPhoto != null

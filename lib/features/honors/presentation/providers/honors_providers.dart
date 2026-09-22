@@ -5,7 +5,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../providers/dio_provider.dart';
+import '../../../../providers/json_file_cache_provider.dart';
+import '../../../../core/storage/cache_first.dart';
+import '../../../../core/storage/json_file_cache.dart';
 import '../../../../core/usecases/usecase.dart';
+import '../../data/models/honor_group_model.dart';
 import '../../data/datasources/honors_remote_data_source.dart';
 import '../../data/repositories/honors_repository_impl.dart';
 import '../../domain/entities/honor.dart';
@@ -228,19 +232,31 @@ final userHonorStatsLocalProvider =
   });
 });
 
-/// Provider para especialidades agrupadas por categoría
+/// Catálogo agrupado. El primer arranque del proceso pinta el archivo y, si
+/// tiene más de un día, lo refresca detrás. Un invalidate posterior va a la red.
 final honorsGroupedByCategoryProvider =
     FutureProvider.autoDispose<List<HonorGroup>>((ref) async {
   ref.keepAlive();
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
 
-  final repository = ref.read(honorsRepositoryProvider);
-  final result =
-      await repository.getHonorsGroupedByCategory(cancelToken: cancelToken);
-  return result.fold(
-    (failure) => throw Exception(failure.message),
-    (groups) => groups,
+  return cacheFirst<List<HonorGroup>>(
+    ref: ref,
+    cache: ref.read(jsonFileCacheProvider),
+    key: kHonorsGroupedCacheKey,
+    refreshAfter: const Duration(hours: 24),
+    decode: decodeHonorGroupCache,
+    encode: encodeHonorGroupCache,
+    fetch: () async {
+      final repository = ref.read(honorsRepositoryProvider);
+      final result = await repository.getHonorsGroupedByCategory(
+        cancelToken: cancelToken,
+      );
+      return result.fold(
+        (failure) => throw Exception(failure.message),
+        (groups) => groups,
+      );
+    },
   );
 });
 

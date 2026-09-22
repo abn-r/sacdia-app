@@ -1,5 +1,5 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -980,7 +980,7 @@ class _MemberProfileHeader extends StatelessWidget {
               width: 88,
               height: 88,
               child: member.avatar != null
-                  ? CachedNetworkImage(
+                  ? SacProfileImage(
                       imageUrl: member.avatar!,
                       fit: BoxFit.cover,
                       memCacheWidth: 176,

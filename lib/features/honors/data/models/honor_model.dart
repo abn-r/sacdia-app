@@ -56,6 +56,24 @@ class HonorModel extends Equatable {
     this.active = true,
   });
 
+  factory HonorModel.fromEntity(Honor honor) {
+    return HonorModel(
+      id: honor.id,
+      name: honor.name,
+      description: honor.description,
+      categoryId: honor.categoryId,
+      categoryName: honor.categoryName,
+      imageUrl: honor.imageUrl,
+      skillLevel: honor.skillLevel,
+      materialUrl: honor.materialUrl,
+      approval: honor.approval,
+      year: honor.year,
+      clubTypeId: honor.clubTypeId,
+      clubTypeName: honor.clubTypeName,
+      active: honor.active,
+    );
+  }
+
   /// Crea una instancia desde JSON
   factory HonorModel.fromJson(Map<String, dynamic> json) {
     return HonorModel(

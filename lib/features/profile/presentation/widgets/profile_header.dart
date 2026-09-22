@@ -1,5 +1,5 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 
@@ -87,7 +87,7 @@ class ProfileHeader extends StatelessWidget {
                     width: avatarRadius * 2,
                     height: avatarRadius * 2,
                     child: avatar != null
-                        ? CachedNetworkImage(
+                        ? SacProfileImage(
                             imageUrl: avatar!,
                             fit: BoxFit.cover,
                             memCacheWidth: 176,

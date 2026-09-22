@@ -6,6 +6,10 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../providers/dio_provider.dart';
+import '../../../../providers/json_file_cache_provider.dart';
+import '../../../../core/storage/cache_first.dart';
+import '../../../../core/storage/json_file_cache.dart';
+import '../../data/models/class_model.dart';
 import '../../data/datasources/classes_remote_data_source.dart';
 import '../../data/repositories/classes_repository_impl.dart';
 import '../../domain/entities/progressive_class.dart';
@@ -89,7 +93,9 @@ final enrollPreviousClassUseCaseProvider = Provider<EnrollPreviousClass>((ref) {
 
 // ── Data providers ────────────────────────────────────────────────────────────
 
-/// Provider para las clases de un usuario.
+/// Clases del usuario. El archivo es por userId y se borra al cerrar sesión.
+/// El primer arranque lo pinta al instante y, si tiene más de 5 minutos, lo
+/// refresca detrás.
 final userClassesProvider =
     FutureProvider.autoDispose<List<ProgressiveClass>>((ref) async {
   ref.keepAlive();
@@ -104,13 +110,24 @@ final userClassesProvider =
     throw Exception(tr('errors.user_not_authenticated'));
   }
 
-  final getUserClasses = ref.read(getUserClassesProvider);
-  final result = await getUserClasses(GetUserClassesParams(userId: userId),
-      cancelToken: cancelToken);
-
-  return result.fold(
-    (failure) => throw Exception(failure.message),
-    (classes) => classes,
+  return cacheFirst<List<ProgressiveClass>>(
+    ref: ref,
+    cache: ref.read(jsonFileCacheProvider),
+    key: userClassesCacheKey(userId),
+    refreshAfter: const Duration(minutes: 5),
+    decode: decodeClassCache,
+    encode: encodeClassCache,
+    fetch: () async {
+      final getUserClasses = ref.read(getUserClassesProvider);
+      final result = await getUserClasses(
+        GetUserClassesParams(userId: userId),
+        cancelToken: cancelToken,
+      );
+      return result.fold(
+        (failure) => throw Exception(failure.message),
+        (classes) => classes,
+      );
+    },
   );
 });
 
@@ -130,16 +147,28 @@ final isInvestedMasterGuideProvider = Provider<bool>((ref) {
 /// Usado cuando se necesita listar clases de un tipo específico.
 final classesByClubTypeProvider = FutureProvider.autoDispose
     .family<List<ProgressiveClass>, int>((ref, clubTypeId) async {
+  ref.keepAlive();
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
-  final repository = ref.read(classesRepositoryProvider);
-  final result = await repository.getClasses(
-    clubTypeId: clubTypeId,
-    cancelToken: cancelToken,
-  );
-  return result.fold(
-    (failure) => throw Exception(failure.message),
-    (classes) => classes,
+
+  return cacheFirst<List<ProgressiveClass>>(
+    ref: ref,
+    cache: ref.read(jsonFileCacheProvider),
+    key: classesByClubTypeCacheKey(clubTypeId),
+    refreshAfter: const Duration(hours: 24),
+    decode: decodeClassCache,
+    encode: encodeClassCache,
+    fetch: () async {
+      final repository = ref.read(classesRepositoryProvider);
+      final result = await repository.getClasses(
+        clubTypeId: clubTypeId,
+        cancelToken: cancelToken,
+      );
+      return result.fold(
+        (failure) => throw Exception(failure.message),
+        (classes) => classes,
+      );
+    },
   );
 });
 
@@ -150,13 +179,25 @@ final classesByClubTypeProvider = FutureProvider.autoDispose
 /// puede haber completado clases de cualquier categoría en el pasado.
 final allClassesProvider =
     FutureProvider.autoDispose<List<ProgressiveClass>>((ref) async {
+  ref.keepAlive();
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
-  final repository = ref.read(classesRepositoryProvider);
-  final result = await repository.getClasses(cancelToken: cancelToken);
-  return result.fold(
-    (failure) => throw Exception(failure.message),
-    (classes) => classes,
+
+  return cacheFirst<List<ProgressiveClass>>(
+    ref: ref,
+    cache: ref.read(jsonFileCacheProvider),
+    key: kAllClassesCacheKey,
+    refreshAfter: const Duration(hours: 24),
+    decode: decodeClassCache,
+    encode: encodeClassCache,
+    fetch: () async {
+      final repository = ref.read(classesRepositoryProvider);
+      final result = await repository.getClasses(cancelToken: cancelToken);
+      return result.fold(
+        (failure) => throw Exception(failure.message),
+        (classes) => classes,
+      );
+    },
   );
 });
 

@@ -198,9 +198,9 @@ Future<void> main() async {
         CertificationDraftLocalDataSource.boxName,
       );
 
-      // Use SACDIA's bounded image cache for every CachedNetworkImage call site
-      // by default. This avoids silently falling back to DefaultCacheManager
-      // on high-volume screens such as honors/profile grids.
+      // Catalog images (badges, class art) share this store. Profile photos
+      // use SacProfileCacheManager instead, so signed avatar URLs do not
+      // evict the honors catalog.
       CachedNetworkImageProvider.defaultCacheManager = SacCacheManager.instance;
 
       // Diferimos la activación de AppCheck al post-frame: no bloquea el primer

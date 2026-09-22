@@ -1,5 +1,5 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -721,7 +721,7 @@ class _AccountHeaderTile extends StatelessWidget {
               ),
               clipBehavior: Clip.antiAlias,
               child: avatar != null && avatar.isNotEmpty
-                  ? CachedNetworkImage(
+                  ? SacProfileImage(
                       imageUrl: avatar,
                       fit: BoxFit.cover,
                       memCacheWidth: 156,

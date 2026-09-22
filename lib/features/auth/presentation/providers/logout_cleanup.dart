@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/providers/app_bootstrap_provider.dart';
+import '../../../../core/storage/json_file_cache.dart';
 import '../../../../core/utils/app_logger.dart';
-import '../../../../core/constants/app_constants.dart';
+import '../../../../providers/json_file_cache_provider.dart';
 import '../../../../providers/storage_provider.dart';
+import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 
 /// Invalida providers con estado de usuario al cerrar sesión.
 ///
@@ -33,12 +35,16 @@ import '../../../../providers/storage_provider.dart';
 ///   - currentEnrollmentProvider   FutureProvider                 (non-autoDispose)
 ///   - currentClubSectionProvider  FutureProvider.autoDispose     + keepAlive (club-specific)
 ///   - clubActivitiesProvider      FutureProvider.autoDispose     + keepAlive (club-specific)
+///   - userClassesProvider         FutureProvider.autoDispose     + keepAlive (user-specific)
 void clearUserStateOnLogout(Ref ref) {
   for (final provider in userSpecificProviders) {
     ref.invalidate(provider);
   }
   ref.invalidate(appBootstrapProvider);
   _clearScopedDashboardCache(ref);
+  unawaited(
+    ref.read(jsonFileCacheProvider).deleteByPrefix(kUserClassesCacheKeyPrefix),
+  );
 
   AppLogger.i(
     'Estado de usuario limpiado (providers invalidados)',
@@ -48,12 +54,5 @@ void clearUserStateOnLogout(Ref ref) {
 
 void _clearScopedDashboardCache(Ref ref) {
   final storage = ref.read(localStorageProvider);
-  final keysToRemove = storage.getKeys().where(
-        (key) => key.startsWith(AppConstants.dashboardSummaryCacheKeyPrefix),
-      );
-
-  for (final key in keysToRemove) {
-    unawaited(storage.remove(key));
-    unawaited(storage.remove('${key}_cached_at'));
-  }
+  unawaited(clearDashboardSummaryDiskCache(storage));
 }

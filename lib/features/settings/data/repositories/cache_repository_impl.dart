@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/config/cache_config.dart';
+import '../../../../core/storage/json_file_cache.dart';
 import '../../../../core/storage/local_storage.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/cache_info.dart';
@@ -62,9 +63,11 @@ class CacheRepositoryImpl implements CacheRepository {
   Future<CacheInfo> getCacheInfo() async {
     // Cache-manager sizes (disk, maintained by flutter_cache_manager).
     int sacBytes = 0;
+    int profileBytes = 0;
     int defaultBytes = 0;
     try {
       sacBytes = await _safeStoreSize(SacCacheManager.instance);
+      profileBytes = await _safeStoreSize(SacProfileCacheManager.instance);
       defaultBytes = await _safeStoreSize(DefaultCacheManager());
     } catch (e, st) {
       AppLogger.e('cache-manager size failed',
@@ -86,7 +89,7 @@ class CacheRepositoryImpl implements CacheRepository {
     // In-memory decoded images. Cheap, synchronous read.
     final inMemoryBytes = PaintingBinding.instance.imageCache.currentSizeBytes;
 
-    final imagesBytes = sacBytes + defaultBytes;
+    final imagesBytes = sacBytes + profileBytes + defaultBytes;
     // Avoid double-counting: the disk managers usually live INSIDE temp,
     // so subtract to get a realistic "total". Clamp to ≥0 for safety.
     final tempOnly = (tempBytes - imagesBytes).clamp(0, tempBytes);
@@ -115,6 +118,12 @@ class CacheRepositoryImpl implements CacheRepository {
       await SacCacheManager.instance.emptyCache();
     } catch (e) {
       AppLogger.w('SacCacheManager.emptyCache failed',
+          tag: 'CacheRepo', error: e);
+    }
+    try {
+      await SacProfileCacheManager.instance.emptyCache();
+    } catch (e) {
+      AppLogger.w('SacProfileCacheManager.emptyCache failed',
           tag: 'CacheRepo', error: e);
     }
     try {
@@ -169,6 +178,13 @@ class CacheRepositoryImpl implements CacheRepository {
       }
     } catch (e, st) {
       AppLogger.e('SharedPreferences selective clear failed',
+          tag: 'CacheRepo', error: e, stackTrace: st);
+    }
+
+    try {
+      await DiskJsonFileCache().deleteAll();
+    } catch (e, st) {
+      AppLogger.e('json file cache wipe failed',
           tag: 'CacheRepo', error: e, stackTrace: st);
     }
   }
