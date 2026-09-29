@@ -266,7 +266,6 @@ class _FullscreenImageViewerState extends State<_FullscreenImageViewer> {
         title: '${_currentIndex + 1} / ${widget.images.length}',
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
-        borderColor: Colors.transparent,
       ),
       body: PageView.builder(
         controller: _pageController,

@@ -466,293 +466,301 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
         : null;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: _isEdit
-            ? 'enrollment.form.title_edit'.tr()
-            : 'enrollment.form.title_create'.tr(),
-        automaticallyImplyLeading: !formState.isLoading,
-      ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            // ── Sección: Lugar de reunión ────────────────────────────────
-            _SectionHeader(
-              icon: HugeIcons.strokeRoundedLocation03,
-              label: 'enrollment.form.section_location'.tr(),
-            ),
-            const SizedBox(height: 12),
+          title: _isEdit
+              ? 'enrollment.form.title_edit'.tr()
+              : 'enrollment.form.title_create'.tr(),
+          automaticallyImplyLeading: !formState.isLoading,
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => Form(
+            key: _formKey,
+            child: ListView(
+              padding:
+                  SacTopBar.paddingBelowBar(context, const EdgeInsets.all(20)),
+              children: [
+                // ── Sección: Lugar de reunión ────────────────────────────────
+                _SectionHeader(
+                  icon: HugeIcons.strokeRoundedLocation03,
+                  label: 'enrollment.form.section_location'.tr(),
+                ),
+                const SizedBox(height: 12),
 
-            // Selector de ubicación con mapa
-            _LocationPickerField(
-              result: _selectedLocation,
-              hasError: _locationTouched && _selectedLocation == null,
-              enabled: !formState.isLoading,
-              onTap: formState.isLoading ? null : _openLocationPicker,
-            ),
-            const SizedBox(height: 24),
-
-            // ── Sección: Días y horarios de reunión ──────────────────────
-            _SectionHeader(
-              icon: HugeIcons.strokeRoundedCalendar01,
-              label: 'enrollment.form.section_schedule'.tr(),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'enrollment.form.schedule_hint'.tr(),
-              style: TextStyle(fontSize: 12, color: c.textTertiary),
-            ),
-            const SizedBox(height: 12),
-
-            // Chips de días
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _kWeekDays.map((day) {
-                final isSelected = _meetingSchedule.containsKey(day);
-                final time = _meetingSchedule[day];
-                return _DayScheduleChip(
-                  day: _dayLabel(day),
-                  isSelected: isSelected,
-                  time: time,
+                // Selector de ubicación con mapa
+                _LocationPickerField(
+                  result: _selectedLocation,
+                  hasError: _locationTouched && _selectedLocation == null,
                   enabled: !formState.isLoading,
-                  onTapDay: () => _toggleDay(day),
-                  onTapTime: isSelected ? () => _pickTimeForDay(day) : null,
-                );
-              }).toList(),
-            ),
-
-            const SizedBox(height: 24),
-
-            // ── Sección: Datos del club ──────────────────────────────────
-            _SectionHeader(
-              icon: HugeIcons.strokeRoundedBuilding01,
-              label: 'enrollment.form.section_club_data'.tr(),
-            ),
-            const SizedBox(height: 12),
-
-            // Almas (objetivo)
-            _FieldLabel(label: 'enrollment.form.label_souls_target'.tr()),
-            const SizedBox(height: 8),
-            SacTextField(
-              controller: _soulsCtrl,
-              enabled: !formState.isLoading,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              hint: 'enrollment.form.hint_souls'.tr(),
-              prefixIcon: HugeIcons.strokeRoundedUserAdd01,
-              textInputAction: TextInputAction.done,
-            ),
-
-            const SizedBox(height: 20),
-
-            // Cuota (toggle)
-            _ToggleRow(
-              icon: HugeIcons.strokeRoundedCreditCard,
-              label: 'enrollment.form.label_fee_toggle'.tr(),
-              subtitle: 'enrollment.form.subtitle_fee_toggle'.tr(),
-              value: _fee,
-              enabled: !formState.isLoading,
-              onChanged: (v) => setState(() {
-                _fee = v;
-                if (!v) _feeAmountCtrl.clear();
-              }),
-            ),
-
-            // Monto de cuota (visible solo cuando el toggle está activo)
-            if (_fee) ...[
-              const SizedBox(height: 12),
-              _FieldLabel(label: 'enrollment.form.label_fee_amount'.tr()),
-              const SizedBox(height: 8),
-              SacTextField(
-                controller: _feeAmountCtrl,
-                enabled: !formState.isLoading,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                  signed: false,
+                  onTap: formState.isLoading ? null : _openLocationPicker,
                 ),
-                inputFormatters: [
-                  // Allow digits and a single decimal point
-                  FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
+                const SizedBox(height: 24),
+
+                // ── Sección: Días y horarios de reunión ──────────────────────
+                _SectionHeader(
+                  icon: HugeIcons.strokeRoundedCalendar01,
+                  label: 'enrollment.form.section_schedule'.tr(),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'enrollment.form.schedule_hint'.tr(),
+                  style: TextStyle(fontSize: 12, color: c.textTertiary),
+                ),
+                const SizedBox(height: 12),
+
+                // Chips de días
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _kWeekDays.map((day) {
+                    final isSelected = _meetingSchedule.containsKey(day);
+                    final time = _meetingSchedule[day];
+                    return _DayScheduleChip(
+                      day: _dayLabel(day),
+                      isSelected: isSelected,
+                      time: time,
+                      enabled: !formState.isLoading,
+                      onTapDay: () => _toggleDay(day),
+                      onTapTime: isSelected ? () => _pickTimeForDay(day) : null,
+                    );
+                  }).toList(),
+                ),
+
+                const SizedBox(height: 24),
+
+                // ── Sección: Datos del club ──────────────────────────────────
+                _SectionHeader(
+                  icon: HugeIcons.strokeRoundedBuilding01,
+                  label: 'enrollment.form.section_club_data'.tr(),
+                ),
+                const SizedBox(height: 12),
+
+                // Almas (objetivo)
+                _FieldLabel(label: 'enrollment.form.label_souls_target'.tr()),
+                const SizedBox(height: 8),
+                SacTextField(
+                  controller: _soulsCtrl,
+                  enabled: !formState.isLoading,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  hint: 'enrollment.form.hint_souls'.tr(),
+                  prefixIcon: HugeIcons.strokeRoundedUserAdd01,
+                  textInputAction: TextInputAction.done,
+                ),
+
+                const SizedBox(height: 20),
+
+                // Cuota (toggle)
+                _ToggleRow(
+                  icon: HugeIcons.strokeRoundedCreditCard,
+                  label: 'enrollment.form.label_fee_toggle'.tr(),
+                  subtitle: 'enrollment.form.subtitle_fee_toggle'.tr(),
+                  value: _fee,
+                  enabled: !formState.isLoading,
+                  onChanged: (v) => setState(() {
+                    _fee = v;
+                    if (!v) _feeAmountCtrl.clear();
+                  }),
+                ),
+
+                // Monto de cuota (visible solo cuando el toggle está activo)
+                if (_fee) ...[
+                  const SizedBox(height: 12),
+                  _FieldLabel(label: 'enrollment.form.label_fee_amount'.tr()),
+                  const SizedBox(height: 8),
+                  SacTextField(
+                    controller: _feeAmountCtrl,
+                    enabled: !formState.isLoading,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                      signed: false,
+                    ),
+                    inputFormatters: [
+                      // Allow digits and a single decimal point
+                      FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
+                    ],
+                    hint: 'enrollment.form.hint_fee_amount'.tr(),
+                    prefixText: '\$',
+                    textInputAction: TextInputAction.done,
+                    validator: (value) {
+                      if (!_fee) return null;
+                      final text = value?.trim() ?? '';
+                      if (text.isEmpty) {
+                        return 'enrollment.form.error_fee_amount_required'.tr();
+                      }
+                      final amount = double.tryParse(text);
+                      if (amount == null || amount <= 0) {
+                        return 'enrollment.form.error_fee_amount_positive'.tr();
+                      }
+                      return null;
+                    },
+                  ),
                 ],
-                hint: 'enrollment.form.hint_fee_amount'.tr(),
-                prefixText: '\$',
-                textInputAction: TextInputAction.done,
-                validator: (value) {
-                  if (!_fee) return null;
-                  final text = value?.trim() ?? '';
-                  if (text.isEmpty) {
-                    return 'enrollment.form.error_fee_amount_required'.tr();
-                  }
-                  final amount = double.tryParse(text);
-                  if (amount == null || amount <= 0) {
-                    return 'enrollment.form.error_fee_amount_positive'.tr();
-                  }
-                  return null;
-                },
-              ),
-            ],
 
-            const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-            // ── Sección: Directivos ──────────────────────────────────────
-            _SectionHeader(
-              icon: HugeIcons.strokeRoundedUserGroup,
-              label: 'enrollment.form.section_leadership'.tr(),
-            ),
-            const SizedBox(height: 12),
-
-            // Director (solo lectura — viene del contexto)
-            _FieldLabel(label: 'enrollment.form.label_director'.tr()),
-            const SizedBox(height: 8),
-            _ReadOnlyMemberField(
-              member: directorMember,
-              placeholder: 'enrollment.form.placeholder_director'.tr(),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Subdirector (multi, hasta 2)
-            _FieldLabel(
-              label: 'enrollment.form.label_deputy_directors'.tr(),
-              badge: '${_deputyDirectorIds.length}/2',
-            ),
-            const SizedBox(height: 8),
-            _MultiMemberSelector(
-              selectedIds: _deputyDirectorIds,
-              members: members,
-              maxCount: 2,
-              placeholder: 'enrollment.form.placeholder_deputy_directors'.tr(),
-              emptyMessage: 'enrollment.form.empty_members'.tr(),
-              enabled: !formState.isLoading && members.isNotEmpty,
-              onChanged: (ids) => setState(() => _deputyDirectorIds = ids),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Secretario-Tesorero (condicional: si el club tiene ese rol)
-            // Mutuamente exclusivo con Secretario + Tesorero individuales
-            if (widget.hasSecretaryTreasurerRole) ...[
-              // Toggle para elegir el modo
-              _ToggleRow(
-                icon: HugeIcons.strokeRoundedUserShield01,
-                label: 'enrollment.form.label_use_secretary_treasurer'.tr(),
-                subtitle:
-                    'enrollment.form.subtitle_use_secretary_treasurer'.tr(),
-                value: _secretaryTreasurerId != null,
-                enabled: !formState.isLoading,
-                onChanged: (v) => setState(() {
-                  if (v) {
-                    // Al activar: limpiar secretario y tesorero
-                    _secretaryId = null;
-                    _treasurerId = null;
-                    // Mantener el ID si ya había uno
-                    _secretaryTreasurerId ??= '';
-                  } else {
-                    _secretaryTreasurerId = null;
-                  }
-                }),
-              ),
-              const SizedBox(height: 12),
-            ],
-
-            // Secretario y Tesorero: solo se muestran si NO se usa el cargo combinado
-            if (!widget.hasSecretaryTreasurerRole ||
-                _secretaryTreasurerId == null) ...[
-              _FieldLabel(label: 'enrollment.form.label_secretary'.tr()),
-              const SizedBox(height: 8),
-              _SingleMemberSelector(
-                selectedId: _secretaryId,
-                members: members,
-                placeholder: 'enrollment.form.placeholder_secretary'.tr(),
-                emptyMessage: 'enrollment.form.empty_members'.tr(),
-                enabled: !formState.isLoading && members.isNotEmpty,
-                onChanged: (id) => setState(() => _secretaryId = id),
-                onClear: () => setState(() => _secretaryId = null),
-              ),
-              const SizedBox(height: 20),
-              _FieldLabel(label: 'enrollment.form.label_treasurer'.tr()),
-              const SizedBox(height: 8),
-              _SingleMemberSelector(
-                selectedId: _treasurerId,
-                members: members,
-                placeholder: 'enrollment.form.placeholder_treasurer'.tr(),
-                emptyMessage: 'enrollment.form.empty_members'.tr(),
-                enabled: !formState.isLoading && members.isNotEmpty,
-                onChanged: (id) => setState(() => _treasurerId = id),
-                onClear: () => setState(() => _treasurerId = null),
-              ),
-              const SizedBox(height: 20),
-            ],
-
-            // Selector de Secretario-Tesorero (visible solo cuando está activo el toggle)
-            if (widget.hasSecretaryTreasurerRole &&
-                _secretaryTreasurerId != null) ...[
-              _FieldLabel(
-                label: 'enrollment.form.label_secretary_treasurer'.tr(),
-              ),
-              const SizedBox(height: 8),
-              _SingleMemberSelector(
-                selectedId: _secretaryTreasurerId!.isEmpty
-                    ? null
-                    : _secretaryTreasurerId,
-                members: members,
-                placeholder:
-                    'enrollment.form.placeholder_secretary_treasurer'.tr(),
-                emptyMessage: 'enrollment.form.empty_members'.tr(),
-                enabled: !formState.isLoading && members.isNotEmpty,
-                onChanged: (id) => setState(() => _secretaryTreasurerId = id),
-                onClear: () => setState(() => _secretaryTreasurerId = ''),
-              ),
-              const SizedBox(height: 20),
-            ],
-
-            // ── Error ────────────────────────────────────────────────────
-            if (formState.errorMessage != null) ...[
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.errorLight,
-                  borderRadius: BorderRadius.circular(10),
+                // ── Sección: Directivos ──────────────────────────────────────
+                _SectionHeader(
+                  icon: HugeIcons.strokeRoundedUserGroup,
+                  label: 'enrollment.form.section_leadership'.tr(),
                 ),
-                child: Row(
-                  children: [
-                    const HugeIcon(
-                      icon: HugeIcons.strokeRoundedAlert02,
-                      color: AppColors.error,
-                      size: 16,
+                const SizedBox(height: 12),
+
+                // Director (solo lectura — viene del contexto)
+                _FieldLabel(label: 'enrollment.form.label_director'.tr()),
+                const SizedBox(height: 8),
+                _ReadOnlyMemberField(
+                  member: directorMember,
+                  placeholder: 'enrollment.form.placeholder_director'.tr(),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Subdirector (multi, hasta 2)
+                _FieldLabel(
+                  label: 'enrollment.form.label_deputy_directors'.tr(),
+                  badge: '${_deputyDirectorIds.length}/2',
+                ),
+                const SizedBox(height: 8),
+                _MultiMemberSelector(
+                  selectedIds: _deputyDirectorIds,
+                  members: members,
+                  maxCount: 2,
+                  placeholder:
+                      'enrollment.form.placeholder_deputy_directors'.tr(),
+                  emptyMessage: 'enrollment.form.empty_members'.tr(),
+                  enabled: !formState.isLoading && members.isNotEmpty,
+                  onChanged: (ids) => setState(() => _deputyDirectorIds = ids),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Secretario-Tesorero (condicional: si el club tiene ese rol)
+                // Mutuamente exclusivo con Secretario + Tesorero individuales
+                if (widget.hasSecretaryTreasurerRole) ...[
+                  // Toggle para elegir el modo
+                  _ToggleRow(
+                    icon: HugeIcons.strokeRoundedUserShield01,
+                    label: 'enrollment.form.label_use_secretary_treasurer'.tr(),
+                    subtitle:
+                        'enrollment.form.subtitle_use_secretary_treasurer'.tr(),
+                    value: _secretaryTreasurerId != null,
+                    enabled: !formState.isLoading,
+                    onChanged: (v) => setState(() {
+                      if (v) {
+                        // Al activar: limpiar secretario y tesorero
+                        _secretaryId = null;
+                        _treasurerId = null;
+                        // Mantener el ID si ya había uno
+                        _secretaryTreasurerId ??= '';
+                      } else {
+                        _secretaryTreasurerId = null;
+                      }
+                    }),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+
+                // Secretario y Tesorero: solo se muestran si NO se usa el cargo combinado
+                if (!widget.hasSecretaryTreasurerRole ||
+                    _secretaryTreasurerId == null) ...[
+                  _FieldLabel(label: 'enrollment.form.label_secretary'.tr()),
+                  const SizedBox(height: 8),
+                  _SingleMemberSelector(
+                    selectedId: _secretaryId,
+                    members: members,
+                    placeholder: 'enrollment.form.placeholder_secretary'.tr(),
+                    emptyMessage: 'enrollment.form.empty_members'.tr(),
+                    enabled: !formState.isLoading && members.isNotEmpty,
+                    onChanged: (id) => setState(() => _secretaryId = id),
+                    onClear: () => setState(() => _secretaryId = null),
+                  ),
+                  const SizedBox(height: 20),
+                  _FieldLabel(label: 'enrollment.form.label_treasurer'.tr()),
+                  const SizedBox(height: 8),
+                  _SingleMemberSelector(
+                    selectedId: _treasurerId,
+                    members: members,
+                    placeholder: 'enrollment.form.placeholder_treasurer'.tr(),
+                    emptyMessage: 'enrollment.form.empty_members'.tr(),
+                    enabled: !formState.isLoading && members.isNotEmpty,
+                    onChanged: (id) => setState(() => _treasurerId = id),
+                    onClear: () => setState(() => _treasurerId = null),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+
+                // Selector de Secretario-Tesorero (visible solo cuando está activo el toggle)
+                if (widget.hasSecretaryTreasurerRole &&
+                    _secretaryTreasurerId != null) ...[
+                  _FieldLabel(
+                    label: 'enrollment.form.label_secretary_treasurer'.tr(),
+                  ),
+                  const SizedBox(height: 8),
+                  _SingleMemberSelector(
+                    selectedId: _secretaryTreasurerId!.isEmpty
+                        ? null
+                        : _secretaryTreasurerId,
+                    members: members,
+                    placeholder:
+                        'enrollment.form.placeholder_secretary_treasurer'.tr(),
+                    emptyMessage: 'enrollment.form.empty_members'.tr(),
+                    enabled: !formState.isLoading && members.isNotEmpty,
+                    onChanged: (id) =>
+                        setState(() => _secretaryTreasurerId = id),
+                    onClear: () => setState(() => _secretaryTreasurerId = ''),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+
+                // ── Error ────────────────────────────────────────────────────
+                if (formState.errorMessage != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.errorLight,
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        formState.errorMessage!,
-                        style: const TextStyle(
-                          fontSize: 13,
+                    child: Row(
+                      children: [
+                        const HugeIcon(
+                          icon: HugeIcons.strokeRoundedAlert02,
                           color: AppColors.error,
+                          size: 16,
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            formState.errorMessage!,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.error,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
-            // ── Submit ───────────────────────────────────────────────────
-            SacButton.primary(
-              text: _isEdit
-                  ? 'enrollment.form.button_save_changes'.tr()
-                  : 'enrollment.form.button_enroll'.tr(),
-              icon: _isEdit
-                  ? HugeIcons.strokeRoundedCheckmarkCircle02
-                  : HugeIcons.strokeRoundedUserAdd01,
-              isLoading: formState.isLoading,
-              onPressed: formState.isLoading ? null : _submit,
+                // ── Submit ───────────────────────────────────────────────────
+                SacButton.primary(
+                  text: _isEdit
+                      ? 'enrollment.form.button_save_changes'.tr()
+                      : 'enrollment.form.button_enroll'.tr(),
+                  icon: _isEdit
+                      ? HugeIcons.strokeRoundedCheckmarkCircle02
+                      : HugeIcons.strokeRoundedUserAdd01,
+                  isLoading: formState.isLoading,
+                  onPressed: formState.isLoading ? null : _submit,
+                ),
+                const SizedBox(height: 24),
+              ],
             ),
-            const SizedBox(height: 24),
-          ],
+          ),
         ),
       ),
     );
@@ -1037,7 +1045,8 @@ class _DayScheduleChip extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: SacAccent.of(context).color.withValues(alpha: 0.85),
+                      color:
+                          SacAccent.of(context).color.withValues(alpha: 0.85),
                     ),
                   ),
                 ],
@@ -1112,7 +1121,8 @@ class _ToggleRow extends StatelessWidget {
               value: value,
               onChanged: enabled ? onChanged : null,
               activeThumbColor: SacAccent.of(context).color,
-              activeTrackColor: SacAccent.of(context).color.withValues(alpha: 0.5),
+              activeTrackColor:
+                  SacAccent.of(context).color.withValues(alpha: 0.5),
             ),
           ),
         ],
@@ -1242,7 +1252,9 @@ class _SingleMemberSelector extends StatelessWidget {
               icon: selected != null
                   ? HugeIcons.strokeRoundedUserCheck01
                   : HugeIcons.strokeRoundedUserAdd01,
-              color: selected != null ? SacAccent.of(context).color : c.textTertiary,
+              color: selected != null
+                  ? SacAccent.of(context).color
+                  : c.textTertiary,
               size: 20,
             ),
             const SizedBox(width: 12),
@@ -1349,7 +1361,9 @@ class _MultiMemberSelector extends StatelessWidget {
           color: c.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selectedMembers.isNotEmpty ? SacAccent.of(context).color : c.border,
+            color: selectedMembers.isNotEmpty
+                ? SacAccent.of(context).color
+                : c.border,
             width: selectedMembers.isNotEmpty ? 1.5 : 1,
           ),
         ),
@@ -1625,7 +1639,8 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                     ),
                   )
                 : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    padding: SacTopBar.paddingBelowBar(
+                        context, const EdgeInsets.symmetric(horizontal: 8)),
                     itemCount: filtered.length,
                     itemBuilder: (_, i) {
                       final member = filtered[i];
@@ -1639,9 +1654,10 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                         child: ListTile(
                           enableFeedback: false,
                           leading: CircleAvatar(
-                            backgroundColor: SacAccent.of(context).color.withValues(
-                              alpha: 0.15,
-                            ),
+                            backgroundColor:
+                                SacAccent.of(context).color.withValues(
+                                      alpha: 0.15,
+                                    ),
                             radius: 18,
                             child: Text(
                               member.initials,

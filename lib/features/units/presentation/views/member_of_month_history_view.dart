@@ -70,11 +70,18 @@ class _MemberOfMonthHistoryViewState
     final historyState = ref.watch(memberOfMonthHistoryProvider(_params));
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'units.member_of_month.history_title'.tr(),
+          title: 'units.member_of_month.history_title'.tr(), frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => Padding(
+            padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+            child: _buildBody(context, c, historyState),
+          ),
+        ),
       ),
-      body: _buildBody(context, c, historyState),
     );
   }
 
@@ -141,7 +148,8 @@ class _MemberOfMonthHistoryViewState
     // Lista con scroll infinito
     return ListView.builder(
       controller: _scrollController,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      padding: SacTopBar.paddingBelowBar(
+          context, const EdgeInsets.fromLTRB(16, 12, 16, 24)),
       itemCount: historyState.items.length + 1, // +1 para el footer de carga
       itemBuilder: (context, index) {
         // Footer: indicador de carga o fin de lista

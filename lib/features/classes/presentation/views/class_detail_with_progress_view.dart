@@ -65,34 +65,38 @@ class ClassDetailWithProgressView extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.canvas,
       appBar: SacTopBar(
-        title: 'Clase',
-        centerTitle: true,
-        backgroundColor: c.canvas,
-        borderColor: c.ink150,
-      ),
-      body: SafeArea(
-        top: false,
-        child: classAsync.when(
-          loading: () => const _SkeletonBody(),
-          error: (error, _) => _ErrorBody(
-            message: error.toString().replaceFirst('Exception: ', ''),
-            onRetry: () =>
-                ref.invalidate(classWithProgressProvider(progressQuery)),
-          ),
-          data: (classWithProgress) => _ClassBody(
-            classWithProgress: classWithProgress,
-            classId: classId,
-            enrollmentId: enrollmentId ?? classWithProgress.enrollmentId,
-            targetUserId: targetUserId,
-            prerequisites:
-                prerequisitesAsync.valueOrNull?.prerequisites ?? const [],
-            onRefresh: () async {
-              ref.invalidate(classWithProgressProvider(progressQuery));
-              ref.invalidate(classDetailProvider(classId));
-              ref.invalidate(classHonorsProvider(classId));
-            },
+          title: 'Clase',
+          centerTitle: true,
+          backgroundColor: c.canvas,
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            top: false,
+            child: classAsync.when(
+              loading: () => const _SkeletonBody(),
+              error: (error, _) => _ErrorBody(
+                message: error.toString().replaceFirst('Exception: ', ''),
+                onRetry: () =>
+                    ref.invalidate(classWithProgressProvider(progressQuery)),
+              ),
+              data: (classWithProgress) => _ClassBody(
+                classWithProgress: classWithProgress,
+                classId: classId,
+                enrollmentId: enrollmentId ?? classWithProgress.enrollmentId,
+                targetUserId: targetUserId,
+                prerequisites:
+                    prerequisitesAsync.valueOrNull?.prerequisites ?? const [],
+                onRefresh: () async {
+                  ref.invalidate(classWithProgressProvider(progressQuery));
+                  ref.invalidate(classDetailProvider(classId));
+                  ref.invalidate(classHonorsProvider(classId));
+                },
+              ),
+            ),
           ),
         ),
       ),
@@ -344,6 +348,8 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
         physics: const BouncingScrollPhysics(
             parent: AlwaysScrollableScrollPhysics()),
         slivers: [
+          SliverToBoxAdapter(
+              child: SizedBox(height: SacTopBar.frostedInset(context))),
           // ── HeroCard + PillsRow + SearchBar + SectionLabel ────────────────
           SliverToBoxAdapter(
             child: Padding(

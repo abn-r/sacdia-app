@@ -45,57 +45,62 @@ class ClubRankingsScreen extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
-      appBar: SacTopBar(
-        title: tr('rankings.annual_progress.title'),
-      ),
-      body: Builder(
-        builder: (context) {
-          if (authView.isLoading) {
-            return RankingSkeleton.annualProgress();
-          }
-          if (authView.hasError || !_canViewAnnualProgress(authView.user)) {
-            return const RankingEmptyState(
-              reason: RankingEmptyReason.unauthorized,
-            );
-          }
-
-          return yearAsync.when(
-            data: (year) {
-              if (year == null) {
+      appBar:
+          SacTopBar(title: tr('rankings.annual_progress.title'), frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => Builder(
+            builder: (context) {
+              if (authView.isLoading) {
+                return RankingSkeleton.annualProgress();
+              }
+              if (authView.hasError || !_canViewAnnualProgress(authView.user)) {
                 return const RankingEmptyState(
-                  reason: RankingEmptyReason.noData,
+                  reason: RankingEmptyReason.unauthorized,
                 );
               }
 
-              return ctxAsync.when(
-                data: (ctx) {
-                  if (ctx == null) {
+              return yearAsync.when(
+                data: (year) {
+                  if (year == null) {
                     return const RankingEmptyState(
-                      reason: RankingEmptyReason.unauthorized,
+                      reason: RankingEmptyReason.noData,
                     );
                   }
 
-                  return _AnnualRankingProgressBody(
-                    sectionId: ctx.sectionId,
-                    yearId: year.ecclesiasticalYearId,
-                    yearName: year.name,
+                  return ctxAsync.when(
+                    data: (ctx) {
+                      if (ctx == null) {
+                        return const RankingEmptyState(
+                          reason: RankingEmptyReason.unauthorized,
+                        );
+                      }
+
+                      return _AnnualRankingProgressBody(
+                        sectionId: ctx.sectionId,
+                        yearId: year.ecclesiasticalYearId,
+                        yearName: year.name,
+                      );
+                    },
+                    loading: () => RankingSkeleton.annualProgress(),
+                    error: (_, __) => RankingEmptyState(
+                      reason: RankingEmptyReason.networkError,
+                      onRetry: () => ref.invalidate(clubContextProvider),
+                    ),
                   );
                 },
                 loading: () => RankingSkeleton.annualProgress(),
                 error: (_, __) => RankingEmptyState(
                   reason: RankingEmptyReason.networkError,
-                  onRetry: () => ref.invalidate(clubContextProvider),
+                  onRetry: () =>
+                      ref.invalidate(currentEcclesiasticalYearProvider),
                 ),
               );
             },
-            loading: () => RankingSkeleton.annualProgress(),
-            error: (_, __) => RankingEmptyState(
-              reason: RankingEmptyReason.networkError,
-              onRetry: () => ref.invalidate(currentEcclesiasticalYearProvider),
-            ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
@@ -171,7 +176,8 @@ class AnnualRankingProgressContent extends StatelessWidget {
       color: SacAccent.of(context).color,
       child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+        padding: SacTopBar.paddingBelowBar(
+            context, const EdgeInsets.fromLTRB(16, 8, 16, 32)),
         itemCount: sections.length,
         itemBuilder: (context, index) => StaggeredListItem(
           index: index ~/ 2,

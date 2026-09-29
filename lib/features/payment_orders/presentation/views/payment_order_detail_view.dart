@@ -43,48 +43,54 @@ class PaymentOrderDetailView extends ConsumerWidget {
     });
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'payment_orders.detail.title'.tr(),
-        backgroundColor: c.surface,
-        foregroundColor: c.text,
-      ),
-      body: SafeArea(
-        child: orderAsync.when(
-          loading: () => const Center(child: SacLoading()),
-          error: (error, _) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedAlert02,
-                    size: 42,
-                    color: AppColors.error,
+          title: 'payment_orders.detail.title'.tr(),
+          backgroundColor: c.surface,
+          foregroundColor: c.text,
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            top: false,
+            child: orderAsync.when(
+              loading: () => const Center(child: SacLoading()),
+              error: (error, _) => Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedAlert02,
+                        size: 42,
+                        color: AppColors.error,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        error.toString().replaceFirst('Exception: ', ''),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 13, color: c.textSecondary),
+                      ),
+                      const SizedBox(height: 14),
+                      SacButton.outline(
+                        text: 'common.retry'.tr(),
+                        onPressed: () =>
+                            ref.invalidate(paymentOrderDetailProvider(orderId)),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    error.toString().replaceFirst('Exception: ', ''),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 13, color: c.textSecondary),
-                  ),
-                  const SizedBox(height: 14),
-                  SacButton.outline(
-                    text: 'common.retry'.tr(),
-                    onPressed: () =>
-                        ref.invalidate(paymentOrderDetailProvider(orderId)),
-                  ),
-                ],
+                ),
+              ),
+              data: (order) => _OrderDetailBody(
+                order: order,
+                isWorking: actionsState.isWorking,
+                onViewPdf: () => _viewPdf(context, ref, order),
+                onUploadProof: () => _pickAndUploadProof(context, ref),
+                onCancel: () => _confirmCancel(context, ref),
               ),
             ),
-          ),
-          data: (order) => _OrderDetailBody(
-            order: order,
-            isWorking: actionsState.isWorking,
-            onViewPdf: () => _viewPdf(context, ref, order),
-            onUploadProof: () => _pickAndUploadProof(context, ref),
-            onCancel: () => _confirmCancel(context, ref),
           ),
         ),
       ),
@@ -214,7 +220,7 @@ class _OrderDetailBody extends StatelessWidget {
     final dateFormat = DateFormat.yMMMd(context.locale.toString());
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(20)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

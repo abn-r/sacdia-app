@@ -53,51 +53,58 @@ class _CamporeeApprovalsViewState extends ConsumerState<CamporeeApprovalsView>
     final selected = ref.watch(selectedCamporeeProvider);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: selected == null
-            ? 'coordinator.camporee_approvals.title'.tr()
-            : selected.name,
-        leading: selected != null
-            ? SacPressable(
-                listenOnly: true,
-                child: IconButton(
-                  enableFeedback: false,
-                  icon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedArrowLeft01,
-                    size: 22,
-                    color: c.text,
+          title: selected == null
+              ? 'coordinator.camporee_approvals.title'.tr()
+              : selected.name,
+          leading: selected != null
+              ? SacPressable(
+                  listenOnly: true,
+                  child: IconButton(
+                    enableFeedback: false,
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowLeft01,
+                      size: 22,
+                      color: c.text,
+                    ),
+                    onPressed: () => ref
+                        .read(selectedCamporeeProvider.notifier)
+                        .state = null,
                   ),
-                  onPressed: () =>
-                      ref.read(selectedCamporeeProvider.notifier).state = null,
-                ),
-              )
-            : null,
-        automaticallyImplyLeading: selected == null,
-        bottom: selected == null
-            ? TabBar(
-                controller: _scopeTabController,
-                enableFeedback: false,
-                tabs:
-                    _scopeTabs.map((s) => sacPressTab(s.displayLabel)).toList(),
-                indicatorColor: SacAccent.of(context).color,
-                labelColor: SacAccent.of(context).color,
-                unselectedLabelColor: c.textSecondary,
-                labelStyle: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              )
-            : null,
+                )
+              : null,
+          automaticallyImplyLeading: selected == null,
+          bottom: selected == null
+              ? TabBar(
+                  controller: _scopeTabController,
+                  enableFeedback: false,
+                  tabs: _scopeTabs
+                      .map((s) => sacPressTab(s.displayLabel))
+                      .toList(),
+                  indicatorColor: SacAccent.of(context).color,
+                  labelColor: SacAccent.of(context).color,
+                  unselectedLabelColor: c.textSecondary,
+                  labelStyle: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                )
+              : null,
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => selected == null
+              ? TabBarView(
+                  controller: _scopeTabController,
+                  children: _scopeTabs
+                      .map((scope) => _CamporeePickerTab(scope: scope))
+                      .toList(),
+                )
+              : _CamporeeApprovalDetail(camporee: selected),
+        ),
       ),
-      body: selected == null
-          ? TabBarView(
-              controller: _scopeTabController,
-              children: _scopeTabs
-                  .map((scope) => _CamporeePickerTab(scope: scope))
-                  .toList(),
-            )
-          : _CamporeeApprovalDetail(camporee: selected),
     );
   }
 }
@@ -135,7 +142,8 @@ class _CamporeePickerTab extends ConsumerWidget {
           },
           child: ListView.separated(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 32),
+            padding: SacTopBar.paddingBelowBar(
+                context, EdgeInsets.fromLTRB(hPad, 16, hPad, 32)),
             itemCount: list.length,
             separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
@@ -502,7 +510,8 @@ class _ClubsTab extends ConsumerWidget {
           ref.invalidate(camporeePendingProvider(pendingKey)),
       child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 24),
+        padding: SacTopBar.paddingBelowBar(
+            context, EdgeInsets.fromLTRB(hPad, 12, hPad, 24)),
         itemCount: items.length + 1,
         itemBuilder: (context, index) {
           if (index == 0) {
@@ -569,7 +578,8 @@ class _MembersTab extends ConsumerWidget {
           ref.invalidate(camporeePendingProvider(pendingKey)),
       child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 24),
+        padding: SacTopBar.paddingBelowBar(
+            context, EdgeInsets.fromLTRB(hPad, 12, hPad, 24)),
         itemCount: items.length + 1,
         itemBuilder: (context, index) {
           if (index == 0) {
@@ -636,7 +646,8 @@ class _PaymentsTab extends ConsumerWidget {
           ref.invalidate(camporeePendingProvider(pendingKey)),
       child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 24),
+        padding: SacTopBar.paddingBelowBar(
+            context, EdgeInsets.fromLTRB(hPad, 12, hPad, 24)),
         itemCount: items.length + 1,
         itemBuilder: (context, index) {
           if (index == 0) {

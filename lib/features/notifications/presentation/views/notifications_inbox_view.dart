@@ -82,96 +82,101 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'notifications.inbox.title'.tr(),
-        backgroundColor: c.surface,
-        actions: [
-          // Bell icon with unread badge
-          Stack(
-            alignment: Alignment.center,
-            children: [
+          title: 'notifications.inbox.title'.tr(),
+          backgroundColor: c.surface,
+          actions: [
+            // Bell icon with unread badge
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                SacPressable(
+                  listenOnly: true,
+                  enabled: false,
+                  child: IconButton(
+                    enableFeedback: false,
+                    onPressed: null, // Decorative — tapping the list navigates
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedNotification01,
+                      size: 22,
+                      color: c.text,
+                    ),
+                    tooltip: 'notifications.inbox.tooltip_bell'.tr(),
+                  ),
+                ),
+                if (unreadCount > 0)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 1,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.error,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      constraints: const BoxConstraints(minWidth: 16),
+                      child: Text(
+                        unreadCount > 99 ? '99+' : '$unreadCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            // Mark all as read
+            if (unreadCount > 0)
               SacPressable(
                 listenOnly: true,
-                enabled: false,
                 child: IconButton(
                   enableFeedback: false,
-                  onPressed: null, // Decorative — tapping the list navigates
+                  onPressed: inboxState.isLoading
+                      ? null
+                      : () => ref
+                          .read(notificationsInboxProvider.notifier)
+                          .markAllAsRead(),
                   icon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedNotification01,
+                    icon: HugeIcons.strokeRoundedCheckmarkSquare01,
                     size: 22,
                     color: c.text,
                   ),
-                  tooltip: 'notifications.inbox.tooltip_bell'.tr(),
+                  tooltip: 'notifications.inbox.tooltip_mark_read'.tr(),
                 ),
               ),
-              if (unreadCount > 0)
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: 1,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.error,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    constraints: const BoxConstraints(minWidth: 16),
-                    child: Text(
-                      unreadCount > 99 ? '99+' : '$unreadCount',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          // Mark all as read
-          if (unreadCount > 0)
+            // Refresh
             SacPressable(
               listenOnly: true,
               child: IconButton(
                 enableFeedback: false,
                 onPressed: inboxState.isLoading
                     ? null
-                    : () => ref
-                        .read(notificationsInboxProvider.notifier)
-                        .markAllAsRead(),
+                    : () =>
+                        ref.read(notificationsInboxProvider.notifier).refresh(),
                 icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedCheckmarkSquare01,
+                  icon: HugeIcons.strokeRoundedRefresh,
                   size: 22,
                   color: c.text,
                 ),
-                tooltip: 'notifications.inbox.tooltip_mark_read'.tr(),
+                tooltip: 'notifications.inbox.tooltip_refresh'.tr(),
               ),
             ),
-          // Refresh
-          SacPressable(
-            listenOnly: true,
-            child: IconButton(
-              enableFeedback: false,
-              onPressed: inboxState.isLoading
-                  ? null
-                  : () =>
-                      ref.read(notificationsInboxProvider.notifier).refresh(),
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedRefresh,
-                size: 22,
-                color: c.text,
-              ),
-              tooltip: 'notifications.inbox.tooltip_refresh'.tr(),
-            ),
+          ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            child: _buildBody(context, inboxState, c),
           ),
-        ],
-      ),
-      body: SafeArea(
-        child: _buildBody(context, inboxState, c),
+        ),
       ),
     );
   }
@@ -201,6 +206,7 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
       color: SacAccent.of(context).color,
       onRefresh: () => ref.read(notificationsInboxProvider.notifier).refresh(),
       child: ListView.builder(
+        padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         // +1 para el footer de "cargando más" o el indicador de fin de lista
@@ -219,6 +225,7 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
 
   Widget _buildSkeletonList(SacColors c) {
     return ListView.builder(
+      padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
       physics: const NeverScrollableScrollPhysics(),
       itemCount: 8,
       itemBuilder: (_, __) => const NotificationCardSkeleton(),

@@ -165,43 +165,48 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
     // Necesitamos el clubId/sectionId para navegar al historial
     // Lo obtenemos del provider (asíncrono — usamos una variable local)
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'units.list.title'.tr(),
-        actions: [
-          if (canCreate)
-            SacPressable(
-              listenOnly: true,
-              child: IconButton(
-                enableFeedback: false,
-                tooltip: 'units.list.empty_action'.tr(),
-                onPressed: () {
-                  showUnitFormSheet(context: context, ref: ref);
-                },
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedAdd01,
-                  size: 22,
-                  color: SacAccent.of(context).color,
+          title: 'units.list.title'.tr(),
+          actions: [
+            if (canCreate)
+              SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  tooltip: 'units.list.empty_action'.tr(),
+                  onPressed: () {
+                    showUnitFormSheet(context: context, ref: ref);
+                  },
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedAdd01,
+                    size: 22,
+                    color: SacAccent.of(context).color,
+                  ),
                 ),
               ),
-            ),
-        ],
+          ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => visibleUnits.isEmpty && !state.isLoading
+              ? _EmptyState(
+                  canCreate: canCreate,
+                  onCreate: canCreate
+                      ? () => showUnitFormSheet(context: context, ref: ref)
+                      : null,
+                )
+              : _Body(
+                  state: state,
+                  visibleUnits: visibleUnits,
+                  canManage: canManage,
+                  canDelete: canDelete,
+                  onUnitTap: _navigateToUnit,
+                  onMemberOfMonthTap: _navigateToMemberOfMonthHistory,
+                ),
+        ),
       ),
-      body: visibleUnits.isEmpty && !state.isLoading
-          ? _EmptyState(
-              canCreate: canCreate,
-              onCreate: canCreate
-                  ? () => showUnitFormSheet(context: context, ref: ref)
-                  : null,
-            )
-          : _Body(
-              state: state,
-              visibleUnits: visibleUnits,
-              canManage: canManage,
-              canDelete: canDelete,
-              onUnitTap: _navigateToUnit,
-              onMemberOfMonthTap: _navigateToMemberOfMonthHistory,
-            ),
     );
   }
 }
@@ -235,7 +240,8 @@ class _Body extends ConsumerWidget {
 
     return clubContextAsync.when(
       data: (ctx) => ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+        padding: SacTopBar.paddingBelowBar(
+            context, const EdgeInsets.fromLTRB(16, 12, 16, 100)),
         children: [
           _UnitsOverviewHeader(
             count: visibleUnits.length,
@@ -258,7 +264,8 @@ class _Body extends ConsumerWidget {
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, __) => ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+        padding: SacTopBar.paddingBelowBar(
+            context, const EdgeInsets.fromLTRB(16, 12, 16, 100)),
         children: [
           _UnitsOverviewHeader(
             count: visibleUnits.length,

@@ -130,144 +130,157 @@ class _ResourcesSectionState extends State<ResourcesSection> {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: SacTopBar(
-        title: tr('home.resources.title'),
-        centerTitle: true,
-        onBack: () => context.go(RouteNames.homeDashboard),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Header ──────────────────────────────────────────────
-              Row(
+          title: tr('home.resources.title'),
+          centerTitle: true,
+          onBack: () => context.go(RouteNames.homeDashboard),
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: SacAccent.of(context).surface,
-                      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-                    ),
-                    child: Center(
-                      child: HugeIcon(
-                        icon: HugeIcons.strokeRoundedFolder02,
-                        size: 20,
-                        color: SacAccent.of(context).color,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      tr('home.resources.title'),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                    ),
-                  ),
-                  SacPressable(
-                    listenOnly: true,
-                    child: TextButton(
-                      onPressed: () {},
-                      style: (TextButton.styleFrom(
-                        foregroundColor: SacAccent.of(context).color,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      )).copyWith(enableFeedback: false),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            tr('home.resources.view_all'),
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: SacAccent.of(context).color,
-                            ),
-                          ),
-                          const SizedBox(width: 2),
-                          HugeIcon(
-                            icon: HugeIcons.strokeRoundedArrowRight01,
-                            size: 14,
+                  // ── Header ──────────────────────────────────────────────
+                  Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: SacAccent.of(context).surface,
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusSM),
+                        ),
+                        child: Center(
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedFolder02,
+                            size: 20,
                             color: SacAccent.of(context).color,
                           ),
-                        ],
+                        ),
                       ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          tr('home.resources.title'),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                        ),
+                      ),
+                      SacPressable(
+                        listenOnly: true,
+                        child: TextButton(
+                          onPressed: () {},
+                          style: (TextButton.styleFrom(
+                            foregroundColor: SacAccent.of(context).color,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          )).copyWith(enableFeedback: false),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                tr('home.resources.view_all'),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: SacAccent.of(context).color,
+                                ),
+                              ),
+                              const SizedBox(width: 2),
+                              HugeIcon(
+                                icon: HugeIcons.strokeRoundedArrowRight01,
+                                size: 14,
+                                color: SacAccent.of(context).color,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+
+                  // ── Filter chips ─────────────────────────────────────────
+                  _FilterChipsRow(
+                    activeFilter: _activeFilter,
+                    onFilterChanged: (type) =>
+                        setState(() => _activeFilter = type),
+                  ),
+                  const SizedBox(height: 18),
+
+                  // ── Archivos recientes ────────────────────────────────────
+                  Text(
+                    tr('home.resources.recent_files'),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: c.textSecondary,
                     ),
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    height: 148,
+                    child: _filteredFiles.isEmpty
+                        ? Center(
+                            child: Text(
+                              tr('home.resources.no_files_in_category'),
+                              style: TextStyle(
+                                  fontSize: 13, color: c.textTertiary),
+                            ),
+                          )
+                        : ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            clipBehavior: Clip.none,
+                            itemCount: _filteredFiles.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(width: 12),
+                            itemBuilder: (context, index) =>
+                                _FileCard(file: _filteredFiles[index]),
+                          ),
+                  ),
+                  const SizedBox(height: 22),
+
+                  // ── Categorías ───────────────────────────────────────────
+                  Text(
+                    tr('home.resources.categories'),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: c.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  GridView.builder(
+                    padding:
+                        EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+                    // shrinkWrap OK: _mockCategories is a compile-time constant
+                    // list (bounded). Widget lives in a non-scrolling Column whose
+                    // parent is SafeArea — intrinsic height is required.
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 1.55,
+                    ),
+                    itemCount: _mockCategories.length,
+                    itemBuilder: (context, index) =>
+                        _CategoryCard(category: _mockCategories[index]),
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
-
-              // ── Filter chips ─────────────────────────────────────────
-              _FilterChipsRow(
-                activeFilter: _activeFilter,
-                onFilterChanged: (type) => setState(() => _activeFilter = type),
-              ),
-              const SizedBox(height: 18),
-
-              // ── Archivos recientes ────────────────────────────────────
-              Text(
-                tr('home.resources.recent_files'),
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: c.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 10),
-              SizedBox(
-                height: 148,
-                child: _filteredFiles.isEmpty
-                    ? Center(
-                        child: Text(
-                          tr('home.resources.no_files_in_category'),
-                          style: TextStyle(fontSize: 13, color: c.textTertiary),
-                        ),
-                      )
-                    : ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        clipBehavior: Clip.none,
-                        itemCount: _filteredFiles.length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 12),
-                        itemBuilder: (context, index) =>
-                            _FileCard(file: _filteredFiles[index]),
-                      ),
-              ),
-              const SizedBox(height: 22),
-
-              // ── Categorías ───────────────────────────────────────────
-              Text(
-                tr('home.resources.categories'),
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: c.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 10),
-              GridView.builder(
-                // shrinkWrap OK: _mockCategories is a compile-time constant
-                // list (bounded). Widget lives in a non-scrolling Column whose
-                // parent is SafeArea — intrinsic height is required.
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 1.55,
-                ),
-                itemCount: _mockCategories.length,
-                itemBuilder: (context, index) =>
-                    _CategoryCard(category: _mockCategories[index]),
-              ),
-            ],
+            ),
           ),
         ),
       ),

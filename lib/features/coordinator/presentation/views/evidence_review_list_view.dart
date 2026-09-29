@@ -30,39 +30,44 @@ class EvidenceReviewListView extends StatelessWidget {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'coordinator.evidence_review.list.title'.tr(),
-        actions: [
-          Consumer(
-            builder: (_, ref, __) => SacPressable(
-              listenOnly: true,
-              child: IconButton(
-                enableFeedback: false,
-                onPressed: () {
-                  final filter = ref.read(evidenceTypeFilterProvider);
-                  ref.invalidate(pendingEvidenceProvider(filter));
-                },
-                icon: const HugeIcon(
-                  icon: HugeIcons.strokeRoundedRefresh,
-                  size: 22,
+          title: 'coordinator.evidence_review.list.title'.tr(),
+          actions: [
+            Consumer(
+              builder: (_, ref, __) => SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  onPressed: () {
+                    final filter = ref.read(evidenceTypeFilterProvider);
+                    ref.invalidate(pendingEvidenceProvider(filter));
+                  },
+                  icon: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedRefresh,
+                    size: 22,
+                  ),
+                  tooltip:
+                      'coordinator.evidence_review.list.refresh_tooltip'.tr(),
                 ),
-                tooltip:
-                    'coordinator.evidence_review.list.refresh_tooltip'.tr(),
               ),
             ),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 0),
-              child: const _FilterChips(),
-            ),
-            Expanded(child: _EvidenceList(hPad: hPad)),
           ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 0),
+                  child: const _FilterChips(),
+                ),
+                Expanded(child: _EvidenceList(hPad: hPad)),
+              ],
+            ),
+          ),
         ),
       ),
     );

@@ -13,19 +13,24 @@ import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 /// El back-button retorna a Mis Clases con el estado preservado
 /// (StatefulShellBranch mantiene el árbol de widgets vivo).
 ///
-/// [extendBodyBehindAppBar] se omite (valor por defecto: false) para que el
-/// body empiece limpiamente debajo de la AppBar y el primer track header no
-/// quede oculto detrás del título "Mi Camino".
+/// El contenido reserva el alto de la barra. La leyenda queda debajo del
+/// título y el camino puede deslizarse hacia el blur.
 class RoadmapFullScreenView extends StatelessWidget {
   const RoadmapFullScreenView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: SacTopBar(
-        title: 'classes.roadmap.title'.tr(),
+      extendBodyBehindAppBar: true,
+      appBar: SacTopBar(title: 'classes.roadmap.title'.tr(), frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => Padding(
+            padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+            child: const RoadmapScreenConnected(),
+          ),
+        ),
       ),
-      body: const RoadmapScreenConnected(),
     );
   }
 }

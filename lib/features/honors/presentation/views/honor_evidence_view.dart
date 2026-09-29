@@ -84,29 +84,45 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
     // Surface any hard error from userHonorsProvider
     if (userHonorsAsync.hasError) {
       return Scaffold(
+        extendBodyBehindAppBar: true,
         backgroundColor: context.sac.background,
         appBar: SacTopBar(
-          title: 'honors.evidence.error_load'.tr(),
-          onBack: () {
-            HapticFeedback.lightImpact();
-            context.pop();
-          },
+            title: 'honors.evidence.error_load'.tr(),
+            onBack: () {
+              HapticFeedback.lightImpact();
+              context.pop();
+            },
+            frosted: true),
+        body: SacFrostedVeil(
+          child: Builder(
+            builder: (context) => Padding(
+              padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+              child: Center(child: Text('honors.evidence.error_load'.tr())),
+            ),
+          ),
         ),
-        body: Center(child: Text('honors.evidence.error_load'.tr())),
       );
     }
 
     if (userHonor == null) {
       return Scaffold(
+        extendBodyBehindAppBar: true,
         backgroundColor: context.sac.background,
         appBar: SacTopBar(
-          title: 'honors.evidence.not_found'.tr(),
-          onBack: () {
-            HapticFeedback.lightImpact();
-            context.pop();
-          },
+            title: 'honors.evidence.not_found'.tr(),
+            onBack: () {
+              HapticFeedback.lightImpact();
+              context.pop();
+            },
+            frosted: true),
+        body: SacFrostedVeil(
+          child: Builder(
+            builder: (context) => Padding(
+              padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+              child: Center(child: Text('honors.evidence.not_found'.tr())),
+            ),
+          ),
         ),
-        body: Center(child: Text('honors.evidence.not_found'.tr())),
       );
     }
 
@@ -578,50 +594,58 @@ class _ModeGuardScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: context.sac.background,
       appBar: SacTopBar(
-        title: title,
-        onBack: () {
-          HapticFeedback.lightImpact();
-          context.pop();
-        },
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedRoute01,
-              size: 48,
-              color: SacAccent.of(context).color,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: context.sac.text,
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
+          title: title,
+          onBack: () {
+            HapticFeedback.lightImpact();
+            context.pop();
+          },
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => Padding(
+            padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedRoute01,
+                    size: 48,
+                    color: SacAccent.of(context).color,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: context.sac.text,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: context.sac.textSecondary,
+                      fontSize: 14,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  SacButton.outline(
+                    text: 'honors.evidence.mode_guard_back'.tr(),
+                    onPressed: () => context.pop(),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: context.sac.textSecondary,
-                fontSize: 14,
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 20),
-            SacButton.outline(
-              text: 'honors.evidence.mode_guard_back'.tr(),
-              onPressed: () => context.pop(),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -674,73 +698,82 @@ class _EvidenceBody extends StatelessWidget {
         userHonor.hasGeneralEvidence;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'honors.detail.external_flow_cta'.tr(),
-        onBack: () {
-          HapticFeedback.lightImpact();
-          context.pop();
-        },
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: Center(
-              child: _EvidenceStatusBadge(userHonor: userHonor),
-            ),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
+          title: 'honors.detail.external_flow_cta'.tr(),
+          onBack: () {
+            HapticFeedback.lightImpact();
+            context.pop();
+          },
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: Center(
+                child: _EvidenceStatusBadge(userHonor: userHonor),
               ),
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _EvidenceIdentity(
-                          honor: honor,
-                          userHonor: userHonor,
-                          honorName: honorName,
-                        ),
-                        const SizedBox(height: 16),
-                        _EvidenceWorkCard(
-                          userHonor: userHonor,
-                          honorName: honorName,
-                          materialUrl: hasMaterial ? honor!.materialUrl : null,
-                          categoryColor: categoryPaintColor,
-                          onUploadCompletedFormat: onUploadCompletedFormat,
-                          onAddEvidence: onAddEvidence,
-                          onDeleteEvidence: onDeleteEvidence,
-                          onViewEvidence: onViewEvidence,
-                          onOpenDocument: onOpenDocument,
-                        ),
-                        if (userHonor.displayStatus == 'rechazado') ...[
-                          const SizedBox(height: 16),
-                          _RejectionCard(
-                            reason: userHonor.rejectionReason,
-                          ),
-                        ],
-                      ],
-                    ),
+            ),
+          ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => Column(
+            children: [
+              Expanded(
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
                   ),
+                  slivers: [
+                    SliverToBoxAdapter(
+                        child:
+                            SizedBox(height: SacTopBar.frostedInset(context))),
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _EvidenceIdentity(
+                              honor: honor,
+                              userHonor: userHonor,
+                              honorName: honorName,
+                            ),
+                            const SizedBox(height: 16),
+                            _EvidenceWorkCard(
+                              userHonor: userHonor,
+                              honorName: honorName,
+                              materialUrl:
+                                  hasMaterial ? honor!.materialUrl : null,
+                              categoryColor: categoryPaintColor,
+                              onUploadCompletedFormat: onUploadCompletedFormat,
+                              onAddEvidence: onAddEvidence,
+                              onDeleteEvidence: onDeleteEvidence,
+                              onViewEvidence: onViewEvidence,
+                              onOpenDocument: onOpenDocument,
+                            ),
+                            if (userHonor.displayStatus == 'rechazado') ...[
+                              const SizedBox(height: 16),
+                              _RejectionCard(
+                                reason: userHonor.rejectionReason,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              if (showSubmitBar)
+                _EvidenceSubmitBar(
+                  categoryColor: categoryColor,
+                  categoryPaintColor: categoryPaintColor,
+                  onSubmit: onSubmit,
+                ),
+            ],
           ),
-          if (showSubmitBar)
-            _EvidenceSubmitBar(
-              categoryColor: categoryColor,
-              categoryPaintColor: categoryPaintColor,
-              onSubmit: onSubmit,
-            ),
-        ],
+        ),
       ),
     );
   }
@@ -1185,6 +1218,7 @@ class _EvidenceGrid extends StatelessWidget {
     final itemCount = images.length + (showAddCell ? 1 : 0);
 
     return GridView.builder(
+      padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
       // shrinkWrap OK: lives inside SliverToBoxAdapter > Column (non-scrollable).
       // Item count is bounded by the evidence images a user uploads per honor.
       shrinkWrap: true,

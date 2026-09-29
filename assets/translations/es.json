@@ -184,6 +184,8 @@
     "login_error": "Error al iniciar sesión",
     "cooldown_message": "Demasiados intentos. Intenta de nuevo en {seconds}s.",
     "login_subtitle": "Inicia sesión para continuar",
+    "keyboard_send": "Enviar",
+    "keyboard_hide": "Ocultar",
     "password_hint_login": "Tu contraseña",
     "no_account": "¿No tienes cuenta? ",
     "register_link": "Regístrate",

@@ -159,29 +159,35 @@ class _ActiveSessionsViewState extends ConsumerState<ActiveSessionsView> {
     final c = context.sac;
 
     return Scaffold(
-      backgroundColor: c.surfaceVariant,
+      extendBodyBehindAppBar: true,
+      backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'profile.active_sessions.ui.title'.tr(),
-        backgroundColor: c.surfaceVariant,
-        foregroundColor: c.text,
-      ),
-      body: sessionsAsync.when(
-        loading: () => const _LoadingState(),
-        error: (error, _) => _ErrorState(
-          message: error.toString().replaceFirst('Exception: ', ''),
-          onRetry: () => ref.read(activeSessionsProvider.notifier).refresh(),
+          title: 'profile.active_sessions.ui.title'.tr(),
+          backgroundColor: c.background,
+          foregroundColor: c.text,
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => sessionsAsync.when(
+            loading: () => const _LoadingState(),
+            error: (error, _) => _ErrorState(
+              message: error.toString().replaceFirst('Exception: ', ''),
+              onRetry: () =>
+                  ref.read(activeSessionsProvider.notifier).refresh(),
+            ),
+            data: (sessions) => sessions.isEmpty
+                ? const _EmptyState()
+                : _SessionList(
+                    sessions: sessions,
+                    revokingIds: _revokingIds,
+                    isRevokingAll: _revokingAll,
+                    onRevoke: _handleRevoke,
+                    onRevokeAll: () => _handleRevokeAll(sessions),
+                    onRefresh: () =>
+                        ref.read(activeSessionsProvider.notifier).refresh(),
+                  ),
+          ),
         ),
-        data: (sessions) => sessions.isEmpty
-            ? const _EmptyState()
-            : _SessionList(
-                sessions: sessions,
-                revokingIds: _revokingIds,
-                isRevokingAll: _revokingAll,
-                onRevoke: _handleRevoke,
-                onRevokeAll: () => _handleRevokeAll(sessions),
-                onRefresh: () =>
-                    ref.read(activeSessionsProvider.notifier).refresh(),
-              ),
       ),
     );
   }
@@ -282,7 +288,8 @@ class _SessionList extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: onRefresh,
       child: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: SacTopBar.paddingBelowBar(
+            context, const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
         children: [
           // Cabecera informativa
           Padding(

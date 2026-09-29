@@ -32,47 +32,52 @@ class AnnualContinuationsView extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: tr('members.continuations.title'),
-        onBack: () => Navigator.of(context).maybePop(),
-        titleIcon: HugeIcon(
-          icon: HugeIcons.strokeRoundedUserCheck01,
-          size: 22,
-          color: SacAccent.of(context).color,
+          title: tr('members.continuations.title'),
+          onBack: () => Navigator.of(context).maybePop(),
+          titleIcon: HugeIcon(
+            icon: HugeIcons.strokeRoundedUserCheck01,
+            size: 22,
+            color: SacAccent.of(context).color,
+          ),
+          actions: [
+            if (asyncState.isLoading)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: c.textTertiary,
+                  ),
+                ),
+              )
+            else
+              SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  onPressed: () =>
+                      ref.invalidate(annualContinuationsNotifierProvider),
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedRefresh,
+                    color: c.textTertiary,
+                    size: 18,
+                  ),
+                ),
+              ),
+          ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => const SafeArea(
+            top: false,
+            child: AnnualContinuationsBody(),
+          ),
         ),
-        actions: [
-          if (asyncState.isLoading)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: c.textTertiary,
-                ),
-              ),
-            )
-          else
-            SacPressable(
-              listenOnly: true,
-              child: IconButton(
-                enableFeedback: false,
-                onPressed: () =>
-                    ref.invalidate(annualContinuationsNotifierProvider),
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedRefresh,
-                  color: c.textTertiary,
-                  size: 18,
-                ),
-              ),
-            ),
-        ],
-      ),
-      body: const SafeArea(
-        top: false,
-        child: AnnualContinuationsBody(),
       ),
     );
   }
@@ -116,7 +121,8 @@ class AnnualContinuationsBody extends ConsumerWidget {
             ),
             Expanded(
               child: ListView.separated(
-                padding: EdgeInsets.fromLTRB(hPad, 4, hPad, 100),
+                padding: SacTopBar.paddingBelowBar(
+                    context, EdgeInsets.fromLTRB(hPad, 4, hPad, 100)),
                 itemCount: items.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 6),
                 itemBuilder: (context, index) {

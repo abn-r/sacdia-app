@@ -152,42 +152,42 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
         }
       },
       child: Scaffold(
+        extendBodyBehindAppBar: true,
         backgroundColor: c.canvas,
         appBar: SacTopBar(
-          title: 'Requerimiento',
-          centerTitle: true,
-          backgroundColor: c.canvas,
-          borderColor: c.ink150,
-          leading: SacPressable(
-            listenOnly: true,
-            child: IconButton(
-              enableFeedback: false,
-              onPressed: isLoading ? null : () => Navigator.pop(context),
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedArrowLeft01,
-                size: 22,
-                color: c.ink800,
-              ),
-            ),
-          ),
-          actions: [
-            SacPressable(
+            title: 'Requerimiento',
+            centerTitle: true,
+            backgroundColor: c.canvas,
+            leading: SacPressable(
               listenOnly: true,
               child: IconButton(
                 enableFeedback: false,
-                onPressed: () => showRequirementStatusHistorySheet(
-                  context,
-                  requirement: requirement,
-                ),
+                onPressed: isLoading ? null : () => Navigator.pop(context),
                 icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedMoreHorizontal,
-                  size: 20,
-                  color: c.ink600,
+                  icon: HugeIcons.strokeRoundedArrowLeft01,
+                  size: 22,
+                  color: c.ink800,
                 ),
               ),
             ),
-          ],
-        ),
+            actions: [
+              SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  onPressed: () => showRequirementStatusHistorySheet(
+                    context,
+                    requirement: requirement,
+                  ),
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedMoreHorizontal,
+                    size: 20,
+                    color: c.ink600,
+                  ),
+                ),
+              ),
+            ],
+            frosted: true),
         bottomNavigationBar: canModify &&
                 requirement.status != RequirementStatus.observado &&
                 requirement.status != RequirementStatus.rechazado
@@ -210,245 +210,254 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                         false),
               )
             : null,
-        body: SafeArea(
-          top: false,
-          child: Stack(
-            children: [
-              Column(
+        body: SacFrostedVeil(
+          child: Builder(
+            builder: (context) => SafeArea(
+              top: false,
+              child: Stack(
                 children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Eyebrow + title
-                            Text(
-                              '${moduleName.toUpperCase()} · ${_fmt2(moduleIndex)} / ${_fmt2(moduleTotal)}',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: c.ink400,
-                                letterSpacing: 0.88,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              requirement.name,
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                color: c.ink900,
-                                letterSpacing: -0.2,
-                                height: 1.25,
-                              ),
-                            ),
-
-                            const SizedBox(height: 16),
-
-                            if (isClassExpired)
-                              const _ExpiredRequirementBanner(),
-
-                            // Status banner (observed / rejected only)
-                            if (requirement.status ==
-                                    RequirementStatus.observado ||
-                                requirement.status ==
-                                    RequirementStatus.rechazado)
-                              _BannerEstado(status: requirement.status),
-
-                            // Observation card (observed / rejected)
-                            if ((requirement.status ==
-                                        RequirementStatus.observado ||
-                                    requirement.status ==
-                                        RequirementStatus.rechazado) &&
-                                _hasInstructorComment(requirement))
-                              _ObservationCard(
-                                requirement: requirement,
-                              ),
-
-                            // Description (for all states when available)
-                            if (requirement.description != null &&
-                                requirement.description!.isNotEmpty &&
-                                requirement.status !=
-                                    RequirementStatus.observado &&
-                                requirement.status !=
-                                    RequirementStatus.rechazado) ...[
-                              _DescriptionCard(text: requirement.description!),
-                              const SizedBox(height: 16),
-                            ],
-
-                            // Status chip (for pending/sent/validated —
-                            // open history sheet)
-                            if (requirement.status !=
-                                    RequirementStatus.observado &&
-                                requirement.status !=
-                                    RequirementStatus.rechazado) ...[
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 16),
-                                child: _StatusChip(
-                                  requirement: requirement,
-                                  onTap: () =>
-                                      showRequirementStatusHistorySheet(
-                                    context,
-                                    requirement: requirement,
+                  Column(
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: EdgeInsets.only(
+                              top: SacTopBar.frostedInset(context)),
+                          physics: const BouncingScrollPhysics(),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Eyebrow + title
+                                Text(
+                                  '${moduleName.toUpperCase()} · ${_fmt2(moduleIndex)} / ${_fmt2(moduleTotal)}',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: c.ink400,
+                                    letterSpacing: 0.88,
                                   ),
                                 ),
-                              ),
-                            ],
-
-                            // Files section header
-                            Padding(
-                              padding:
-                                  const EdgeInsets.only(left: 4, bottom: 10),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'ARCHIVOS ADJUNTOS',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      color: c.ink400,
-                                      letterSpacing: 1.32,
-                                    ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  requirement.name,
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: c.ink900,
+                                    letterSpacing: -0.2,
+                                    height: 1.25,
                                   ),
-                                  Text(
-                                    '${requirement.files.length}/${requirement.maxFiles}',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      color: c.ink800,
-                                      fontFeatures: const [
-                                        FontFeature.tabularFigures()
-                                      ],
+                                ),
+
+                                const SizedBox(height: 16),
+
+                                if (isClassExpired)
+                                  const _ExpiredRequirementBanner(),
+
+                                // Status banner (observed / rejected only)
+                                if (requirement.status ==
+                                        RequirementStatus.observado ||
+                                    requirement.status ==
+                                        RequirementStatus.rechazado)
+                                  _BannerEstado(status: requirement.status),
+
+                                // Observation card (observed / rejected)
+                                if ((requirement.status ==
+                                            RequirementStatus.observado ||
+                                        requirement.status ==
+                                            RequirementStatus.rechazado) &&
+                                    _hasInstructorComment(requirement))
+                                  _ObservationCard(
+                                    requirement: requirement,
+                                  ),
+
+                                // Description (for all states when available)
+                                if (requirement.description != null &&
+                                    requirement.description!.isNotEmpty &&
+                                    requirement.status !=
+                                        RequirementStatus.observado &&
+                                    requirement.status !=
+                                        RequirementStatus.rechazado) ...[
+                                  _DescriptionCard(
+                                      text: requirement.description!),
+                                  const SizedBox(height: 16),
+                                ],
+
+                                // Status chip (for pending/sent/validated —
+                                // open history sheet)
+                                if (requirement.status !=
+                                        RequirementStatus.observado &&
+                                    requirement.status !=
+                                        RequirementStatus.rechazado) ...[
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 16),
+                                    child: _StatusChip(
+                                      requirement: requirement,
+                                      onTap: () =>
+                                          showRequirementStatusHistorySheet(
+                                        context,
+                                        requirement: requirement,
+                                      ),
                                     ),
                                   ),
                                 ],
-                              ),
-                            ),
 
-                            // For observed/rejected: custom file rows + empty slot + bigCTA
-                            if (requirement.status ==
-                                    RequirementStatus.observado ||
-                                requirement.status ==
-                                    RequirementStatus.rechazado) ...[
-                              _FileRowsList(
-                                requirement: requirement,
-                                canModify: canModify,
-                                onUploadTap: canModify
-                                    ? () => _triggerFilePicker(requirement)
-                                    : null,
-                              ),
-
-                              const SizedBox(height: 8),
-
-                              // BigCTA
-                              if (canModify)
-                                _BigCTA(
-                                  onTap: () => _handleSubmit(requirement),
-                                  isLoading: isLoading,
+                                // Files section header
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 4, bottom: 10),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'ARCHIVOS ADJUNTOS',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          color: c.ink400,
+                                          letterSpacing: 1.32,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${requirement.files.length}/${requirement.maxFiles}',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          color: c.ink800,
+                                          fontFeatures: const [
+                                            FontFeature.tabularFigures()
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                            ] else ...[
-                              // Original EvidenceStagingManager for pending/sent/validated
-                              EvidenceStagingManager(
-                                key: _stagingManagerKey,
-                                embeddedMode: true,
-                                showActionBar: false,
-                                existingFiles: requirement.files
-                                    .map(StagedFile.fromRequirementEvidence)
-                                    .toList(),
-                                maxFiles: requirement.maxFiles,
-                                isLoading: notifierState.isLoading,
-                                onUpload: (xFile, mimeType, onProgress) async {
-                                  if (isClassExpired) {
-                                    throw StateError(
-                                      'Cannot upload evidence for an expired class',
-                                    );
-                                  }
-                                  final success = await ref
-                                      .read(requirementNotifierProvider(
-                                              _progressQuery)
-                                          .notifier)
-                                      .uploadFile(
-                                        requirementId: requirement.id,
-                                        pickedFile: xFile,
-                                        mimeType: mimeType,
-                                        onProgress: onProgress,
-                                        skipInvalidation: true,
-                                      );
-                                  if (!success) {
-                                    throw Exception(
-                                        tr('classes.errors.upload_failed'));
-                                  }
-                                },
-                                onDeleteRemote: (fileId) async {
-                                  if (isClassExpired) return;
-                                  await ref
-                                      .read(requirementNotifierProvider(
-                                              _progressQuery)
-                                          .notifier)
-                                      .deleteFile(
-                                        requirementId: requirement.id,
-                                        fileId: fileId,
-                                      );
-                                },
-                                onSubmit: () async {
-                                  if (isClassExpired) return;
-                                  final success = await ref
-                                      .read(requirementNotifierProvider(
-                                              _progressQuery)
-                                          .notifier)
-                                      .submit(requirement.id);
-                                  if (!success) return;
-                                  if (!context.mounted) return;
-                                  SacSnackBar.show(
-                                    context,
-                                    'classes.requirement_detail.submit_success'
-                                        .tr(),
-                                    backgroundColor: AppColors.validatedColor,
-                                    leading: const HugeIcon(
-                                      icon: HugeIcons
-                                          .strokeRoundedCheckmarkCircle02,
-                                      color: Colors.white,
-                                      size: 18,
-                                    ),
-                                  );
-                                  Navigator.pop(context);
-                                },
-                                fileNameBuilder: _buildFileNameWithIndex,
-                                canModify: canModify,
-                                onLocalFilesChanged: (hasLocal) {
-                                  if (_hasUnsavedFiles != hasLocal) {
-                                    setState(
-                                      () => _hasUnsavedFiles = hasLocal,
-                                    );
-                                  }
-                                },
-                                onActionStateChanged: () {
-                                  if (mounted) setState(() {});
-                                },
-                              ),
-                            ],
 
-                            const SizedBox(height: 24),
-                          ],
+                                // For observed/rejected: custom file rows + empty slot + bigCTA
+                                if (requirement.status ==
+                                        RequirementStatus.observado ||
+                                    requirement.status ==
+                                        RequirementStatus.rechazado) ...[
+                                  _FileRowsList(
+                                    requirement: requirement,
+                                    canModify: canModify,
+                                    onUploadTap: canModify
+                                        ? () => _triggerFilePicker(requirement)
+                                        : null,
+                                  ),
+
+                                  const SizedBox(height: 8),
+
+                                  // BigCTA
+                                  if (canModify)
+                                    _BigCTA(
+                                      onTap: () => _handleSubmit(requirement),
+                                      isLoading: isLoading,
+                                    ),
+                                ] else ...[
+                                  // Original EvidenceStagingManager for pending/sent/validated
+                                  EvidenceStagingManager(
+                                    key: _stagingManagerKey,
+                                    embeddedMode: true,
+                                    showActionBar: false,
+                                    existingFiles: requirement.files
+                                        .map(StagedFile.fromRequirementEvidence)
+                                        .toList(),
+                                    maxFiles: requirement.maxFiles,
+                                    isLoading: notifierState.isLoading,
+                                    onUpload:
+                                        (xFile, mimeType, onProgress) async {
+                                      if (isClassExpired) {
+                                        throw StateError(
+                                          'Cannot upload evidence for an expired class',
+                                        );
+                                      }
+                                      final success = await ref
+                                          .read(requirementNotifierProvider(
+                                                  _progressQuery)
+                                              .notifier)
+                                          .uploadFile(
+                                            requirementId: requirement.id,
+                                            pickedFile: xFile,
+                                            mimeType: mimeType,
+                                            onProgress: onProgress,
+                                            skipInvalidation: true,
+                                          );
+                                      if (!success) {
+                                        throw Exception(
+                                            tr('classes.errors.upload_failed'));
+                                      }
+                                    },
+                                    onDeleteRemote: (fileId) async {
+                                      if (isClassExpired) return;
+                                      await ref
+                                          .read(requirementNotifierProvider(
+                                                  _progressQuery)
+                                              .notifier)
+                                          .deleteFile(
+                                            requirementId: requirement.id,
+                                            fileId: fileId,
+                                          );
+                                    },
+                                    onSubmit: () async {
+                                      if (isClassExpired) return;
+                                      final success = await ref
+                                          .read(requirementNotifierProvider(
+                                                  _progressQuery)
+                                              .notifier)
+                                          .submit(requirement.id);
+                                      if (!success) return;
+                                      if (!context.mounted) return;
+                                      SacSnackBar.show(
+                                        context,
+                                        'classes.requirement_detail.submit_success'
+                                            .tr(),
+                                        backgroundColor:
+                                            AppColors.validatedColor,
+                                        leading: const HugeIcon(
+                                          icon: HugeIcons
+                                              .strokeRoundedCheckmarkCircle02,
+                                          color: Colors.white,
+                                          size: 18,
+                                        ),
+                                      );
+                                      Navigator.pop(context);
+                                    },
+                                    fileNameBuilder: _buildFileNameWithIndex,
+                                    canModify: canModify,
+                                    onLocalFilesChanged: (hasLocal) {
+                                      if (_hasUnsavedFiles != hasLocal) {
+                                        setState(
+                                          () => _hasUnsavedFiles = hasLocal,
+                                        );
+                                      }
+                                    },
+                                    onActionStateChanged: () {
+                                      if (mounted) setState(() {});
+                                    },
+                                  ),
+                                ],
+
+                                const SizedBox(height: 24),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
+
+                  // Loading overlay
+                  if (isLoading)
+                    Container(
+                      color: Colors.black.withValues(alpha: 0.35),
+                      child: const Center(child: SacLoading()),
+                    ),
                 ],
               ),
-
-              // Loading overlay
-              if (isLoading)
-                Container(
-                  color: Colors.black.withValues(alpha: 0.35),
-                  child: const Center(child: SacLoading()),
-                ),
-            ],
+            ),
           ),
         ),
       ),

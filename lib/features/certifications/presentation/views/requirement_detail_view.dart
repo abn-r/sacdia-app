@@ -62,25 +62,32 @@ class CertificationRequirementDetailView extends ConsumerWidget {
     });
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: state.requirement?.name ??
-            'certifications.requirement_detail.title'.tr(),
-        backgroundColor: c.background,
-      ),
-      body: SafeArea(
-        child: state.isLoading && state.requirement == null
-            ? const Center(child: SacLoading())
-            : state.requirement == null
-                ? _ErrorBody(
-                    message: state.errorMessage ??
-                        'certifications.errors.get_requirement'.tr(),
-                    onRetry: () => ref
-                        .read(certificationRequirementNotifierProvider(_query)
-                            .notifier)
-                        .reload(),
-                  )
-                : _RequirementBody(query: _query, state: state),
+          title: state.requirement?.name ??
+              'certifications.requirement_detail.title'.tr(),
+          backgroundColor: c.background,
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            top: false,
+            child: state.isLoading && state.requirement == null
+                ? const Center(child: SacLoading())
+                : state.requirement == null
+                    ? _ErrorBody(
+                        message: state.errorMessage ??
+                            'certifications.errors.get_requirement'.tr(),
+                        onRetry: () => ref
+                            .read(
+                                certificationRequirementNotifierProvider(_query)
+                                    .notifier)
+                            .reload(),
+                      )
+                    : _RequirementBody(query: _query, state: state),
+          ),
+        ),
       ),
     );
   }
@@ -106,7 +113,8 @@ class _RequirementBody extends ConsumerWidget {
         Expanded(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+            padding: SacTopBar.paddingBelowBar(
+                context, const EdgeInsets.fromLTRB(16, 12, 16, 24)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

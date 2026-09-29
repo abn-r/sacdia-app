@@ -36,54 +36,61 @@ class TransferRequestsView extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: tr('transfers.list.title'),
-        actions: [
-          SacPressable(
-            listenOnly: true,
-            child: IconButton(
-              enableFeedback: false,
-              tooltip: tr('transfers.list.new_request'),
-              onPressed: () => _openNewRequest(context),
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedAdd01,
-                size: 22,
-                color: SacAccent.of(context).color,
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: requestsAsync.when(
-        loading: () => const Center(child: SacLoading()),
-        error: (e, _) => _ErrorBody(
-          message: e.toString().replaceFirst('Exception: ', ''),
-          onRetry: () => ref.invalidate(myTransferRequestsProvider),
-        ),
-        data: (requests) {
-          if (requests.isEmpty) {
-            return _EmptyBody(
-              onNewRequest: () => _openNewRequest(context),
-            );
-          }
-
-          return RefreshIndicator(
-            color: SacAccent.of(context).color,
-            onRefresh: () async => ref.invalidate(myTransferRequestsProvider),
-            child: ListView.separated(
-              padding: const EdgeInsets.all(20),
-              itemCount: requests.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (_, i) => _TransferCard(
-                request: requests[i],
-                onTap: () => context.push(
-                  RouteNames.transferRequestDetail(requests[i].id),
+          title: tr('transfers.list.title'),
+          actions: [
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                tooltip: tr('transfers.list.new_request'),
+                onPressed: () => _openNewRequest(context),
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedAdd01,
+                  size: 22,
+                  color: SacAccent.of(context).color,
                 ),
               ),
             ),
-          );
-        },
+          ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => requestsAsync.when(
+            loading: () => const Center(child: SacLoading()),
+            error: (e, _) => _ErrorBody(
+              message: e.toString().replaceFirst('Exception: ', ''),
+              onRetry: () => ref.invalidate(myTransferRequestsProvider),
+            ),
+            data: (requests) {
+              if (requests.isEmpty) {
+                return _EmptyBody(
+                  onNewRequest: () => _openNewRequest(context),
+                );
+              }
+
+              return RefreshIndicator(
+                color: SacAccent.of(context).color,
+                onRefresh: () async =>
+                    ref.invalidate(myTransferRequestsProvider),
+                child: ListView.separated(
+                  padding: SacTopBar.paddingBelowBar(
+                      context, const EdgeInsets.all(20)),
+                  itemCount: requests.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (_, i) => _TransferCard(
+                    request: requests[i],
+                    onTap: () => context.push(
+                      RouteNames.transferRequestDetail(requests[i].id),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }
@@ -424,44 +431,50 @@ class _TransferRequestFormViewState
         !formState.isLoading;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
-      appBar: SacTopBar(
-        title: tr('transfers.form.title'),
+      appBar: SacTopBar(title: tr('transfers.form.title'), frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => Padding(
+            padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+            child: activeGrant == null || activeClubTypeId == null
+                ? _ErrorBody(
+                    message: 'transfers.form.no_active_membership'.tr(),
+                    onRetry: () => ref
+                        .read(authNotifierProvider.notifier)
+                        .refreshCurrentUser(keepCurrentOnFailure: true),
+                  )
+                : Column(
+                    children: [
+                      Expanded(
+                        child: ClubSelectionStepView(
+                          isClubTransfer: true,
+                          preservedClassName: currentClassName,
+                        ),
+                      ),
+                      if (formState.errorMessage != null)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                          child: _InlineError(message: formState.errorMessage!),
+                        ),
+                      SafeArea(
+                        top: false,
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                          child: SacButton.primary(
+                            text: tr('transfers.form.submit'),
+                            icon: HugeIcons.strokeRoundedSent,
+                            isLoading: formState.isLoading,
+                            onPressed: canSubmit ? _submit : null,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+        ),
       ),
-      body: activeGrant == null || activeClubTypeId == null
-          ? _ErrorBody(
-              message: 'transfers.form.no_active_membership'.tr(),
-              onRetry: () => ref
-                  .read(authNotifierProvider.notifier)
-                  .refreshCurrentUser(keepCurrentOnFailure: true),
-            )
-          : Column(
-              children: [
-                Expanded(
-                  child: ClubSelectionStepView(
-                    isClubTransfer: true,
-                    preservedClassName: currentClassName,
-                  ),
-                ),
-                if (formState.errorMessage != null)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                    child: _InlineError(message: formState.errorMessage!),
-                  ),
-                SafeArea(
-                  top: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                    child: SacButton.primary(
-                      text: tr('transfers.form.submit'),
-                      icon: HugeIcons.strokeRoundedSent,
-                      isLoading: formState.isLoading,
-                      onPressed: canSubmit ? _submit : null,
-                    ),
-                  ),
-                ),
-              ],
-            ),
     );
   }
 }

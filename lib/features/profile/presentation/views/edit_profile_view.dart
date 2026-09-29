@@ -339,179 +339,193 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
     }
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      backgroundColor: context.sac.background,
       appBar: SacTopBar(
         title: tr('profile.edit.title'),
         centerTitle: true,
+        frosted: true,
       ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // ── 1. Header: avatar + nombre actual ───────────────────
-              _AvatarHeader(
-                name: profile?.fullName ?? '',
-                avatar: profile?.avatar,
-                isUploading: _isUploadingPhoto,
-                onChangeTap: _isUploadingPhoto ? null : _changePhoto,
-              ),
-
-              const SizedBox(height: 24),
-
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: hPad),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) {
+            return Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+                physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // ── 2. Sección: Nombre ────────────────────────────────
-                    _SectionHeader(
-                      icon: HugeIcons.strokeRoundedUser,
-                      label: tr('profile.edit.section_name'),
-                    ),
-                    const SizedBox(height: 6),
-                    SacTextField(
-                      controller: _nameController,
-                      label: tr('profile.edit.field_name_label'),
-                      hint: tr('profile.edit.field_name_placeholder'),
-                      prefixIcon: HugeIcons.strokeRoundedUser,
-                      textCapitalization: TextCapitalization.words,
-                      textInputAction: TextInputAction.next,
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return tr('profile.edit.field_name_required');
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: SacTextField(
-                            controller: _paternalSurnameController,
-                            label: tr('profile.edit.field_paternal_label'),
-                            hint: tr('profile.edit.field_paternal_placeholder'),
-                            prefixIcon: HugeIcons.strokeRoundedUser,
-                            textCapitalization: TextCapitalization.words,
-                            textInputAction: TextInputAction.next,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: SacTextField(
-                            controller: _maternalSurnameController,
-                            label: tr('profile.edit.field_maternal_label'),
-                            hint: tr('profile.edit.field_maternal_placeholder'),
-                            prefixIcon: HugeIcons.strokeRoundedUser,
-                            textCapitalization: TextCapitalization.words,
-                            textInputAction: TextInputAction.next,
-                          ),
-                        ),
-                      ],
+                    // ── 1. Header: avatar + nombre actual ───────────────────
+                    _AvatarHeader(
+                      name: profile?.fullName ?? '',
+                      avatar: profile?.avatar,
+                      isUploading: _isUploadingPhoto,
+                      onChangeTap: _isUploadingPhoto ? null : _changePhoto,
                     ),
 
                     const SizedBox(height: 24),
 
-                    // ── 5. Sección: Información Personal (F3) ─────
-                    _SectionHeader(
-                      icon: HugeIcons.strokeRoundedUser,
-                      label: tr('profile.edit.section_personal_info'),
-                    ),
-                    const SizedBox(height: 12),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: hPad),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // ── 2. Sección: Nombre ────────────────────────────────
+                          _SectionHeader(
+                            icon: HugeIcons.strokeRoundedUser,
+                            label: tr('profile.edit.section_name'),
+                          ),
+                          const SizedBox(height: 6),
+                          SacTextField(
+                            controller: _nameController,
+                            label: tr('profile.edit.field_name_label'),
+                            hint: tr('profile.edit.field_name_placeholder'),
+                            prefixIcon: HugeIcons.strokeRoundedUser,
+                            textCapitalization: TextCapitalization.words,
+                            textInputAction: TextInputAction.next,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return tr('profile.edit.field_name_required');
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: SacTextField(
+                                  controller: _paternalSurnameController,
+                                  label:
+                                      tr('profile.edit.field_paternal_label'),
+                                  hint: tr(
+                                      'profile.edit.field_paternal_placeholder'),
+                                  prefixIcon: HugeIcons.strokeRoundedUser,
+                                  textCapitalization: TextCapitalization.words,
+                                  textInputAction: TextInputAction.next,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: SacTextField(
+                                  controller: _maternalSurnameController,
+                                  label:
+                                      tr('profile.edit.field_maternal_label'),
+                                  hint: tr(
+                                      'profile.edit.field_maternal_placeholder'),
+                                  prefixIcon: HugeIcons.strokeRoundedUser,
+                                  textCapitalization: TextCapitalization.words,
+                                  textInputAction: TextInputAction.next,
+                                ),
+                              ),
+                            ],
+                          ),
 
-                    // Gender — bottomsheet selector (matches blood type pattern)
-                    _GenderPickerField(
-                      label: tr('profile.edit.gender_label'),
-                      selected: _selectedGender,
-                      onTap: () async {
-                        final picked = await showGenderSelector(
-                          context,
-                          current: _selectedGender,
-                        );
-                        if (picked != null) {
-                          setState(() => _selectedGender = picked);
-                        }
-                      },
-                    ),
+                          const SizedBox(height: 24),
 
-                    const SizedBox(height: 16),
+                          // ── 5. Sección: Información Personal (F3) ─────
+                          _SectionHeader(
+                            icon: HugeIcons.strokeRoundedUser,
+                            label: tr('profile.edit.section_personal_info'),
+                          ),
+                          const SizedBox(height: 12),
 
-                    // Birthdate picker
-                    _DatePickerField(
-                      label: tr('profile.edit.birthdate_label'),
-                      icon: HugeIcons.strokeRoundedBirthdayCake,
-                      date: _birthdate,
-                      errorText: _birthdateError,
-                      onTap: _selectBirthdate,
-                    ),
+                          // Gender — bottomsheet selector (matches blood type pattern)
+                          _GenderPickerField(
+                            label: tr('profile.edit.gender_label'),
+                            selected: _selectedGender,
+                            onTap: () async {
+                              final picked = await showGenderSelector(
+                                context,
+                                current: _selectedGender,
+                              );
+                              if (picked != null) {
+                                setState(() => _selectedGender = picked);
+                              }
+                            },
+                          ),
 
-                    const SizedBox(height: 12),
+                          const SizedBox(height: 16),
 
-                    // Baptism toggle
-                    SacCard(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      child: SacPressable(
-                        listenOnly: true,
-                        child: SwitchListTile(
-                          enableFeedback: false,
-                          title: Text(
-                            tr('profile.edit.baptism_toggle'),
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
+                          // Birthdate picker
+                          _DatePickerField(
+                            label: tr('profile.edit.birthdate_label'),
+                            icon: HugeIcons.strokeRoundedBirthdayCake,
+                            date: _birthdate,
+                            errorText: _birthdateError,
+                            onTap: _selectBirthdate,
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          // Baptism toggle
+                          SacCard(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            child: SacPressable(
+                              listenOnly: true,
+                              child: SwitchListTile(
+                                enableFeedback: false,
+                                title: Text(
+                                  tr('profile.edit.baptism_toggle'),
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                value: _baptized,
+                                activeTrackColor: SacAccent.of(context).light,
+                                thumbColor: WidgetStatePropertyAll(
+                                    SacAccent.of(context).color),
+                                contentPadding: EdgeInsets.zero,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _baptized = value;
+                                    if (!value) {
+                                      _baptismDate = null;
+                                      _baptismDateError = null;
+                                    }
+                                  });
+                                },
+                              ),
                             ),
                           ),
-                          value: _baptized,
-                          activeTrackColor: SacAccent.of(context).light,
-                          thumbColor:
-                              WidgetStatePropertyAll(SacAccent.of(context).color),
-                          contentPadding: EdgeInsets.zero,
-                          onChanged: (value) {
-                            setState(() {
-                              _baptized = value;
-                              if (!value) {
-                                _baptismDate = null;
-                                _baptismDateError = null;
-                              }
-                            });
-                          },
-                        ),
+
+                          // Conditional baptism date picker
+                          if (_baptized) ...[
+                            const SizedBox(height: 12),
+                            _DatePickerField(
+                              label: tr('profile.edit.baptism_date_label'),
+                              icon: HugeIcons.strokeRoundedBlood,
+                              date: _baptismDate,
+                              errorText: _baptismDateError,
+                              onTap: _selectBaptismDate,
+                            ),
+                          ],
+
+                          const SizedBox(height: 32),
+
+                          // ── 6. CTA Guardar (thumb zone) ───────────────
+                          SacButton.primary(
+                            text: tr('profile.edit.save_changes'),
+                            icon: HugeIcons.strokeRoundedFloppyDisk,
+                            isLoading: _isLoading,
+                            onPressed: (_isLoading || _isUploadingPhoto)
+                                ? null
+                                : _saveProfile,
+                          ),
+
+                          const SizedBox(height: 32),
+                        ],
                       ),
                     ),
-
-                    // Conditional baptism date picker
-                    if (_baptized) ...[
-                      const SizedBox(height: 12),
-                      _DatePickerField(
-                        label: tr('profile.edit.baptism_date_label'),
-                        icon: HugeIcons.strokeRoundedBlood,
-                        date: _baptismDate,
-                        errorText: _baptismDateError,
-                        onTap: _selectBaptismDate,
-                      ),
-                    ],
-
-                    const SizedBox(height: 32),
-
-                    // ── 6. CTA Guardar (thumb zone) ───────────────
-                    SacButton.primary(
-                      text: tr('profile.edit.save_changes'),
-                      icon: HugeIcons.strokeRoundedFloppyDisk,
-                      isLoading: _isLoading,
-                      onPressed: (_isLoading || _isUploadingPhoto)
-                          ? null
-                          : _saveProfile,
-                    ),
-
-                    const SizedBox(height: 32),
                   ],
                 ),
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
@@ -558,7 +572,8 @@ class _AvatarHeader extends StatelessWidget {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: SacAccent.of(context).color.withValues(alpha: 0.15),
+                        color:
+                            SacAccent.of(context).color.withValues(alpha: 0.15),
                         blurRadius: 16,
                         offset: const Offset(0, 4),
                       ),
@@ -655,8 +670,9 @@ class _AvatarHeader extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
-                color:
-                    isUploading ? context.sac.textTertiary : SacAccent.of(context).color,
+                color: isUploading
+                    ? context.sac.textTertiary
+                    : SacAccent.of(context).color,
               ),
             ),
           ),
@@ -741,7 +757,9 @@ class _GenderPickerField extends StatelessWidget {
               child: HugeIcon(
                 icon: hasValue ? selected!.icon : HugeIcons.strokeRoundedUser,
                 size: 20,
-                color: hasValue ? SacAccent.of(context).color : context.sac.textTertiary,
+                color: hasValue
+                    ? SacAccent.of(context).color
+                    : context.sac.textTertiary,
               ),
             ),
           ),

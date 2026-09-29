@@ -55,117 +55,126 @@ class _SLADashboardViewState extends ConsumerState<SLADashboardView> {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'coordinator.sla.dashboard.title'.tr(),
-        actions: [
-          SacPressable(
-            listenOnly: true,
-            child: IconButton(
-              enableFeedback: false,
-              onPressed: () => ref.invalidate(slaDashboardProvider),
-              icon: const HugeIcon(
-                icon: HugeIcons.strokeRoundedRefresh,
-                size: 22,
+          title: 'coordinator.sla.dashboard.title'.tr(),
+          actions: [
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                onPressed: () => ref.invalidate(slaDashboardProvider),
+                icon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedRefresh,
+                  size: 22,
+                ),
+                tooltip: 'coordinator.sla.dashboard.refresh_tooltip'.tr(),
               ),
-              tooltip: 'coordinator.sla.dashboard.refresh_tooltip'.tr(),
             ),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: slaAsync.when(
-          data: (sla) => RefreshIndicator(
-            color: SacAccent.of(context).color,
-            onRefresh: () async => ref.invalidate(slaDashboardProvider),
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ── Section label ──────────────────────────────────────
-                  Text(
-                    'coordinator.sla.dashboard.current_status'.tr(),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: c.text,
-                        ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // ── KPI cards ──────────────────────────────────────────
-                  SlaStatCard(
-                    title: 'coordinator.summary.investitures'.tr(),
-                    stat: sla.investiture,
-                    accentColor: SacAccent.of(context).color,
-                    icon: HugeIcons.strokeRoundedAward01,
-                  ),
-                  const SizedBox(height: 10),
-                  SlaStatCard(
-                    title: 'coordinator.summary.evidence'.tr(),
-                    stat: sla.evidence,
-                    accentColor: AppColors.accent,
-                    icon: HugeIcons.strokeRoundedFolder01,
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // ── Pipeline ───────────────────────────────────────────
-                  if (sla.pipeline.isNotEmpty) ...[
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: c.surface,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: c.border),
+          ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            top: false,
+            child: slaAsync.when(
+              data: (sla) => RefreshIndicator(
+                color: SacAccent.of(context).color,
+                onRefresh: () async => ref.invalidate(slaDashboardProvider),
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: SacTopBar.paddingBelowBar(
+                      context, EdgeInsets.fromLTRB(hPad, 16, hPad, 32)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── Section label ──────────────────────────────────────
+                      Text(
+                        'coordinator.sla.dashboard.current_status'.tr(),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: c.text,
+                                ),
                       ),
-                      child: SlaPipelineChart(stages: sla.pipeline),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
+                      const SizedBox(height: 12),
 
-                  // ── Throughput ─────────────────────────────────────────
-                  if (sla.throughput.isNotEmpty) ...[
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: c.surface,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: c.border),
+                      // ── KPI cards ──────────────────────────────────────────
+                      SlaStatCard(
+                        title: 'coordinator.summary.investitures'.tr(),
+                        stat: sla.investiture,
+                        accentColor: SacAccent.of(context).color,
+                        icon: HugeIcons.strokeRoundedAward01,
                       ),
-                      child: SlaThroughputChart(data: sla.throughput),
-                    ),
-                  ],
+                      const SizedBox(height: 10),
+                      SlaStatCard(
+                        title: 'coordinator.summary.evidence'.tr(),
+                        stat: sla.evidence,
+                        accentColor: AppColors.accent,
+                        icon: HugeIcons.strokeRoundedFolder01,
+                      ),
 
-                  // ── Auto-refresh note ──────────────────────────────────
-                  const SizedBox(height: 16),
-                  Center(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        HugeIcon(
-                          icon: HugeIcons.strokeRoundedClock01,
-                          size: 12,
-                          color: c.textTertiary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'coordinator.sla.dashboard.auto_refresh_note'.tr(),
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: c.textTertiary,
+                      const SizedBox(height: 24),
+
+                      // ── Pipeline ───────────────────────────────────────────
+                      if (sla.pipeline.isNotEmpty) ...[
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: c.surface,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: c.border),
                           ),
+                          child: SlaPipelineChart(stages: sla.pipeline),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // ── Throughput ─────────────────────────────────────────
+                      if (sla.throughput.isNotEmpty) ...[
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: c.surface,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: c.border),
+                          ),
+                          child: SlaThroughputChart(data: sla.throughput),
                         ),
                       ],
-                    ),
+
+                      // ── Auto-refresh note ──────────────────────────────────
+                      const SizedBox(height: 16),
+                      Center(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            HugeIcon(
+                              icon: HugeIcons.strokeRoundedClock01,
+                              size: 12,
+                              color: c.textTertiary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'coordinator.sla.dashboard.auto_refresh_note'
+                                  .tr(),
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: c.textTertiary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
+              loading: () => const Center(child: SacLoading()),
+              error: (error, _) => _buildError(context, ref, error),
             ),
           ),
-          loading: () => const Center(child: SacLoading()),
-          error: (error, _) => _buildError(context, ref, error),
         ),
       ),
     );

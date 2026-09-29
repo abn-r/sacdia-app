@@ -469,316 +469,329 @@ class _AllergiesSelectionViewState
     final m = MedicoTokens.of(context);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: m.canvas,
       appBar: SacTopBar(
-        title: 'post_registration.health.allergies.title'.tr(),
-      ),
-      body: catalogAsync.when(
-        loading: () => const Center(child: SacLoading()),
-        error: (error, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const HugeIcon(
-                  icon: HugeIcons.strokeRoundedAlert02,
-                  size: 48,
-                  color: MedicoTokens.coral600,
+          title: 'post_registration.health.allergies.title'.tr(),
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => catalogAsync.when(
+            loading: () => const Center(child: SacLoading()),
+            error: (error, _) => Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const HugeIcon(
+                      icon: HugeIcons.strokeRoundedAlert02,
+                      size: 48,
+                      color: MedicoTokens.coral600,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'post_registration.health.allergies.load_error'
+                          .tr(namedArgs: {'error': error.toString()}),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    SacButton(
+                      text: 'common.retry'.tr(),
+                      icon: HugeIcons.strokeRoundedRefresh,
+                      variant: SacButtonVariant.primary,
+                      fullWidth: false,
+                      backgroundColor: MedicoTokens.coral500,
+                      textColor: Colors.white,
+                      onPressed: () => ref.refresh(allergiesCatalogProvider),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  'post_registration.health.allergies.load_error'
-                      .tr(namedArgs: {'error': error.toString()}),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                SacButton(
-                  text: 'common.retry'.tr(),
-                  icon: HugeIcons.strokeRoundedRefresh,
-                  variant: SacButtonVariant.primary,
-                  fullWidth: false,
-                  backgroundColor: MedicoTokens.coral500,
-                  textColor: Colors.white,
-                  onPressed: () => ref.refresh(allergiesCatalogProvider),
-                ),
-              ],
+              ),
             ),
+            data: (catalog) {
+              final serverItems = userAsync.valueOrNull ?? [];
+              if (!_serverSeeded && serverItems.isNotEmpty) {
+                _seedFromServer(serverItems);
+              }
+
+              // Available = catalog minus server-registered
+              final available = catalog
+                  .where((a) => !_serverIds.contains(a.id))
+                  .where((a) =>
+                      _searchQuery.isEmpty ||
+                      a.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+                  .toList();
+
+              return Column(
+                children: [
+                  Expanded(
+                    child: RefreshIndicator(
+                      color: MedicoTokens.coral500,
+                      onRefresh: _onRefresh,
+                      child: CustomScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        slivers: [
+                          SliverToBoxAdapter(
+                              child: SizedBox(
+                                  height: SacTopBar.frostedInset(context))),
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // ── Info banner ──────────────────────────
+                                  _InfoBanner(
+                                    text:
+                                        'post_registration.health.allergies.info_text'
+                                            .tr(),
+                                    bgColor: m.roseSoft,
+                                    fgColor: m.roseInk,
+                                    iconWidget: HugeIcon(
+                                      icon: HugeIcons.strokeRoundedFirstAidKit,
+                                      size: 16,
+                                      color: m.roseFg,
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 12),
+
+                                  // ── Ya registradas ───────────────────────
+                                  if (userAsync.isLoading)
+                                    const Center(child: SacLoading())
+                                  else if (_serverIds.isNotEmpty) ...[
+                                    MedicoSectionCard(
+                                      dense: true,
+                                      iconWidget: HugeIcon(
+                                        icon:
+                                            HugeIcons.strokeRoundedFirstAidKit,
+                                        size: 20,
+                                        color: m.roseFg,
+                                      ),
+                                      iconBg: m.roseSoft,
+                                      title: _registeredTitle(
+                                          context, _serverIds.length),
+                                      child: _RegisteredChipsSection(
+                                        serverItems: serverItems,
+                                        expandedId: _expandedRegisteredId,
+                                        modifiedMap: _modifiedRegistered,
+                                        serverSeverityMap: _serverSeverityMap,
+                                        onChipTap: _handleRegisteredChipTap,
+                                        onChipLongPress: (id, name) =>
+                                            _handleRegisteredLongPress(
+                                                context, id, name),
+                                        onSeverityChange: (id, sev) {
+                                          setState(() =>
+                                              _modifiedRegistered[id] = sev);
+                                        },
+                                        onRemove: (id, name) =>
+                                            _showDeleteConfirmation(
+                                                context, id, name),
+                                        toneForSeverity: _toneForSeverity,
+                                        registeredSeverityFor:
+                                            _registeredSeverityFor,
+                                      ),
+                                    ),
+                                  ],
+
+                                  const SizedBox(height: 14),
+
+                                  // ── "Agregar nuevas" label ────────────────
+                                  Text(
+                                    'post_registration.health.allergies.add_new_section'
+                                        .tr(),
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
+                                      color: m.iconMuted,
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 8),
+
+                                  // ── Search bar ───────────────────────────
+                                  TextField(
+                                    controller: _searchController,
+                                    onChanged: (v) =>
+                                        setState(() => _searchQuery = v),
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                      color: m.textPrimary,
+                                    ),
+                                    decoration: InputDecoration(
+                                      hintText:
+                                          'post_registration.health.allergies.search_hint'
+                                              .tr(),
+                                      hintStyle: TextStyle(
+                                          color: m.textSecondary, fontSize: 15),
+                                      prefixIconConstraints:
+                                          FixedInputIconSlot.constraints,
+                                      prefixIcon: FixedInputIconSlot(
+                                        icon: HugeIcons.strokeRoundedSearch01,
+                                        iconSize: 22,
+                                        color: m.textSecondary,
+                                      ),
+                                      suffixIcon: _searchQuery.isNotEmpty
+                                          ? SacPressable(
+                                              listenOnly: true,
+                                              child: IconButton(
+                                                enableFeedback: false,
+                                                icon: HugeIcon(
+                                                  icon: HugeIcons
+                                                      .strokeRoundedCancel01,
+                                                  size: 20,
+                                                  color: m.textSecondary,
+                                                ),
+                                                onPressed: () => setState(() {
+                                                  _searchController.clear();
+                                                  _searchQuery = '';
+                                                }),
+                                              ),
+                                            )
+                                          : null,
+                                      filled: true,
+                                      fillColor: m.controlBg,
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              horizontal: 16, vertical: 14),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: const BorderSide(
+                                            color: MedicoTokens.coral500,
+                                            width: 1.5),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 12),
+
+                                  // ── None toggle ──────────────────────────
+                                  _NoneToggleCard(
+                                    isActive: _noneExplicit,
+                                    label:
+                                        'post_registration.health.allergies.no_allergies_toggle_label'
+                                            .tr(),
+                                    helper:
+                                        'post_registration.health.allergies.no_allergies_toggle_helper'
+                                            .tr(),
+                                    onTap: () => _handleNoneToggle(context),
+                                  ),
+
+                                  const SizedBox(height: 12),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          // ── Available list ────────────────────────────────
+                          if (_noneExplicit)
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                                child: Opacity(
+                                  opacity: 0.4,
+                                  child: IgnorePointer(
+                                    child: Text(
+                                      'post_registration.health.allergies.none_active_caption'
+                                          .tr(),
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: m.textSecondary,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )
+                          else if (available.isEmpty && _searchQuery.isNotEmpty)
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 48),
+                                child: Column(
+                                  children: [
+                                    HugeIcon(
+                                      icon: HugeIcons.strokeRoundedSearchRemove,
+                                      size: 64,
+                                      color: m.iconMuted.withValues(alpha: 0.6),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'common.no_results'.tr(),
+                                      style: TextStyle(color: m.textSecondary),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          else
+                            SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                                (context, index) {
+                                  if (index >= available.length) return null;
+                                  final item = available[index];
+                                  final isSelected =
+                                      _selectedIds.contains(item.id);
+                                  final isExpanded =
+                                      _expandedAvailableId == item.id;
+                                  final severity = _severityFor(item.id);
+                                  final tone = _toneForSeverity(severity);
+                                  final toneData = m.toneFor(tone);
+
+                                  _tileKeys[item.id] ??= GlobalKey();
+
+                                  return _AvailableTile(
+                                    key: ValueKey(item.id),
+                                    tileKey: _tileKeys[item.id]!,
+                                    name: item.name,
+                                    isSelected: isSelected,
+                                    isExpanded: isExpanded,
+                                    tone: tone,
+                                    toneData: toneData,
+                                    selectedSeverity: severity,
+                                    onTap: () => _handleAvailableTap(item.id),
+                                    onSeverityChanged: (sev) {
+                                      setState(() {
+                                        _pendingSeverityMap[item.id] = sev;
+                                      });
+                                    },
+                                    onRemove: () => _removeAvailable(item.id),
+                                  );
+                                },
+                                childCount: available.length,
+                              ),
+                            ),
+
+                          const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // ── Sticky footer ────────────────────────────────────────
+                  _StickyFooter(
+                    registeredCount: _serverIds.length,
+                    pendingCount: _pendingCount,
+                    isSaving: _isSaving,
+                    canSave: _hasPendingChanges,
+                    onSave: () => _save(context),
+                  ),
+                ],
+              );
+            },
           ),
         ),
-        data: (catalog) {
-          final serverItems = userAsync.valueOrNull ?? [];
-          if (!_serverSeeded && serverItems.isNotEmpty) {
-            _seedFromServer(serverItems);
-          }
-
-          // Available = catalog minus server-registered
-          final available = catalog
-              .where((a) => !_serverIds.contains(a.id))
-              .where((a) =>
-                  _searchQuery.isEmpty ||
-                  a.name.toLowerCase().contains(_searchQuery.toLowerCase()))
-              .toList();
-
-          return Column(
-            children: [
-              Expanded(
-                child: RefreshIndicator(
-                  color: MedicoTokens.coral500,
-                  onRefresh: _onRefresh,
-                  child: CustomScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    slivers: [
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // ── Info banner ──────────────────────────
-                              _InfoBanner(
-                                text:
-                                    'post_registration.health.allergies.info_text'
-                                        .tr(),
-                                bgColor: m.roseSoft,
-                                fgColor: m.roseInk,
-                                iconWidget: HugeIcon(
-                                  icon: HugeIcons.strokeRoundedFirstAidKit,
-                                  size: 16,
-                                  color: m.roseFg,
-                                ),
-                              ),
-
-                              const SizedBox(height: 12),
-
-                              // ── Ya registradas ───────────────────────
-                              if (userAsync.isLoading)
-                                const Center(child: SacLoading())
-                              else if (_serverIds.isNotEmpty) ...[
-                                MedicoSectionCard(
-                                  dense: true,
-                                  iconWidget: HugeIcon(
-                                    icon: HugeIcons.strokeRoundedFirstAidKit,
-                                    size: 20,
-                                    color: m.roseFg,
-                                  ),
-                                  iconBg: m.roseSoft,
-                                  title: _registeredTitle(
-                                      context, _serverIds.length),
-                                  child: _RegisteredChipsSection(
-                                    serverItems: serverItems,
-                                    expandedId: _expandedRegisteredId,
-                                    modifiedMap: _modifiedRegistered,
-                                    serverSeverityMap: _serverSeverityMap,
-                                    onChipTap: _handleRegisteredChipTap,
-                                    onChipLongPress: (id, name) =>
-                                        _handleRegisteredLongPress(
-                                            context, id, name),
-                                    onSeverityChange: (id, sev) {
-                                      setState(
-                                          () => _modifiedRegistered[id] = sev);
-                                    },
-                                    onRemove: (id, name) =>
-                                        _showDeleteConfirmation(
-                                            context, id, name),
-                                    toneForSeverity: _toneForSeverity,
-                                    registeredSeverityFor:
-                                        _registeredSeverityFor,
-                                  ),
-                                ),
-                              ],
-
-                              const SizedBox(height: 14),
-
-                              // ── "Agregar nuevas" label ────────────────
-                              Text(
-                                'post_registration.health.allergies.add_new_section'
-                                    .tr(),
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                  color: m.iconMuted,
-                                ),
-                              ),
-
-                              const SizedBox(height: 8),
-
-                              // ── Search bar ───────────────────────────
-                              TextField(
-                                controller: _searchController,
-                                onChanged: (v) =>
-                                    setState(() => _searchQuery = v),
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                  color: m.textPrimary,
-                                ),
-                                decoration: InputDecoration(
-                                  hintText:
-                                      'post_registration.health.allergies.search_hint'
-                                          .tr(),
-                                  hintStyle: TextStyle(
-                                      color: m.textSecondary, fontSize: 15),
-                                  prefixIconConstraints:
-                                      FixedInputIconSlot.constraints,
-                                  prefixIcon: FixedInputIconSlot(
-                                    icon: HugeIcons.strokeRoundedSearch01,
-                                    iconSize: 22,
-                                    color: m.textSecondary,
-                                  ),
-                                  suffixIcon: _searchQuery.isNotEmpty
-                                      ? SacPressable(
-                                          listenOnly: true,
-                                          child: IconButton(
-                                            enableFeedback: false,
-                                            icon: HugeIcon(
-                                              icon: HugeIcons
-                                                  .strokeRoundedCancel01,
-                                              size: 20,
-                                              color: m.textSecondary,
-                                            ),
-                                            onPressed: () => setState(() {
-                                              _searchController.clear();
-                                              _searchQuery = '';
-                                            }),
-                                          ),
-                                        )
-                                      : null,
-                                  filled: true,
-                                  fillColor: m.controlBg,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 14),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(
-                                        color: MedicoTokens.coral500,
-                                        width: 1.5),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                ),
-                              ),
-
-                              const SizedBox(height: 12),
-
-                              // ── None toggle ──────────────────────────
-                              _NoneToggleCard(
-                                isActive: _noneExplicit,
-                                label:
-                                    'post_registration.health.allergies.no_allergies_toggle_label'
-                                        .tr(),
-                                helper:
-                                    'post_registration.health.allergies.no_allergies_toggle_helper'
-                                        .tr(),
-                                onTap: () => _handleNoneToggle(context),
-                              ),
-
-                              const SizedBox(height: 12),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      // ── Available list ────────────────────────────────
-                      if (_noneExplicit)
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                            child: Opacity(
-                              opacity: 0.4,
-                              child: IgnorePointer(
-                                child: Text(
-                                  'post_registration.health.allergies.none_active_caption'
-                                      .tr(),
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: m.textSecondary,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        )
-                      else if (available.isEmpty && _searchQuery.isNotEmpty)
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 48),
-                            child: Column(
-                              children: [
-                                HugeIcon(
-                                  icon: HugeIcons.strokeRoundedSearchRemove,
-                                  size: 64,
-                                  color: m.iconMuted.withValues(alpha: 0.6),
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'common.no_results'.tr(),
-                                  style: TextStyle(color: m.textSecondary),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      else
-                        SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                              if (index >= available.length) return null;
-                              final item = available[index];
-                              final isSelected = _selectedIds.contains(item.id);
-                              final isExpanded =
-                                  _expandedAvailableId == item.id;
-                              final severity = _severityFor(item.id);
-                              final tone = _toneForSeverity(severity);
-                              final toneData = m.toneFor(tone);
-
-                              _tileKeys[item.id] ??= GlobalKey();
-
-                              return _AvailableTile(
-                                key: ValueKey(item.id),
-                                tileKey: _tileKeys[item.id]!,
-                                name: item.name,
-                                isSelected: isSelected,
-                                isExpanded: isExpanded,
-                                tone: tone,
-                                toneData: toneData,
-                                selectedSeverity: severity,
-                                onTap: () => _handleAvailableTap(item.id),
-                                onSeverityChanged: (sev) {
-                                  setState(() {
-                                    _pendingSeverityMap[item.id] = sev;
-                                  });
-                                },
-                                onRemove: () => _removeAvailable(item.id),
-                              );
-                            },
-                            childCount: available.length,
-                          ),
-                        ),
-
-                      const SliverToBoxAdapter(child: SizedBox(height: 8)),
-                    ],
-                  ),
-                ),
-              ),
-
-              // ── Sticky footer ────────────────────────────────────────
-              _StickyFooter(
-                registeredCount: _serverIds.length,
-                pendingCount: _pendingCount,
-                isSaving: _isSaving,
-                canSave: _hasPendingChanges,
-                onSave: () => _save(context),
-              ),
-            ],
-          );
-        },
       ),
     );
   }

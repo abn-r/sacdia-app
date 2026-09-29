@@ -40,98 +40,108 @@ class CamporeeOrderReviewView extends ConsumerWidget {
     });
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'camporee_orders.review.title'.tr(),
-        backgroundColor: c.surface,
-        foregroundColor: c.text,
-      ),
-      body: SafeArea(
-        child: draft.lines.isEmpty
-            ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(
-                    'camporee_orders.review.empty'.tr(),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: c.textSecondary),
-                  ),
-                ),
-              )
-            : Column(
-                children: [
-                  Expanded(
-                    child: ListView(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                      children: [
-                        if (draft.errorMessage != null) ...[
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: AppColors.error.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: AppColors.error.withValues(alpha: 0.3),
+          title: 'camporee_orders.review.title'.tr(),
+          backgroundColor: c.surface,
+          foregroundColor: c.text,
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            top: false,
+            child: draft.lines.isEmpty
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text(
+                        'camporee_orders.review.empty'.tr(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 14, color: c.textSecondary),
+                      ),
+                    ),
+                  )
+                : Column(
+                    children: [
+                      Expanded(
+                        child: ListView(
+                          padding: SacTopBar.paddingBelowBar(context,
+                              const EdgeInsets.fromLTRB(20, 16, 20, 24)),
+                          children: [
+                            if (draft.errorMessage != null) ...[
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color:
+                                      AppColors.error.withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color:
+                                        AppColors.error.withValues(alpha: 0.3),
+                                  ),
+                                ),
+                                child: Text(
+                                  draft.errorMessage!,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: AppColors.error,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                            ],
+                            Text(
+                              'camporee_orders.review.summary_title'.tr(),
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                                color: c.text,
                               ),
                             ),
-                            child: Text(
-                              draft.errorMessage!,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: AppColors.error,
+                            const SizedBox(height: 10),
+                            _SummaryCard(
+                              items: deriveDraftSummary(draft.lines),
+                              totalCentavos: draft.totalCentavos,
+                            ),
+                            const SizedBox(height: 22),
+                            Text(
+                              'camporee_orders.review.named_title'.tr(),
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                                color: c.text,
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 14),
-                        ],
-                        Text(
-                          'camporee_orders.review.summary_title'.tr(),
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: c.text,
-                          ),
+                            const SizedBox(height: 10),
+                            for (final line in draft.lines) ...[
+                              _NamedLineTile(line: line),
+                              const SizedBox(height: 8),
+                            ],
+                          ],
                         ),
-                        const SizedBox(height: 10),
-                        _SummaryCard(
-                          items: deriveDraftSummary(draft.lines),
-                          totalCentavos: draft.totalCentavos,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                        child: SacButton.primary(
+                          key: const Key('camporee-order-submit'),
+                          text: 'camporee_orders.review.submit'.tr(),
+                          icon: HugeIcons.strokeRoundedInvoice03,
+                          isLoading: draft.isSubmitting,
+                          isEnabled: !draft.isSubmitting,
+                          onPressed: draft.isSubmitting
+                              ? null
+                              : () => ref
+                                  .read(camporeeOrderDraftProvider(scope)
+                                      .notifier)
+                                  .submit(),
                         ),
-                        const SizedBox(height: 22),
-                        Text(
-                          'camporee_orders.review.named_title'.tr(),
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: c.text,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        for (final line in draft.lines) ...[
-                          _NamedLineTile(line: line),
-                          const SizedBox(height: 8),
-                        ],
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                    child: SacButton.primary(
-                      key: const Key('camporee-order-submit'),
-                      text: 'camporee_orders.review.submit'.tr(),
-                      icon: HugeIcons.strokeRoundedInvoice03,
-                      isLoading: draft.isSubmitting,
-                      isEnabled: !draft.isSubmitting,
-                      onPressed: draft.isSubmitting
-                          ? null
-                          : () => ref
-                              .read(camporeeOrderDraftProvider(scope).notifier)
-                              .submit(),
-                    ),
-                  ),
-                ],
-              ),
+          ),
+        ),
       ),
     );
   }

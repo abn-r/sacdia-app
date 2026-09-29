@@ -36,58 +36,64 @@ class CamporeesListView extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'camporees.list.title'.tr(),
-        centerTitle: true,
-        onBack: () => context.go(RouteNames.homeDashboard),
-      ),
-      body: SafeArea(
-        top: false,
-        child: camporeesAsync.when(
-          data: (camporees) {
-            if (camporees.isEmpty) {
-              return _EmptyCamporeesState(
-                onRetry: () => ref.invalidate(camporeesProvider),
-              );
-            }
-
-            return RefreshIndicator(
-              color: SacAccent.of(context).color,
-              onRefresh: () async => ref.invalidate(camporeesProvider),
-              child: ListView.builder(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 28),
-                itemCount: camporees.length,
-                itemBuilder: (context, index) {
-                  final camporee = camporees[index];
-                  return StaggeredListItem(
-                    index: index,
-                    initialDelay: const Duration(milliseconds: 40),
-                    staggerDelay: SacMotion.stagger,
-                    child: _CamporeeCard(
-                      camporee: camporee,
-                      onTap: () {
-                        HapticFeedback.selectionClick();
-                        Navigator.push(
-                          context,
-                          SacSharedAxisRoute(
-                            builder: (context) => CamporeeDetailView(
-                              camporeeId: camporee.camporeeId,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+          title: 'camporees.list.title'.tr(),
+          centerTitle: true,
+          onBack: () => context.go(RouteNames.homeDashboard),
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            top: false,
+            child: camporeesAsync.when(
+              data: (camporees) {
+                if (camporees.isEmpty) {
+                  return _EmptyCamporeesState(
+                    onRetry: () => ref.invalidate(camporeesProvider),
                   );
-                },
+                }
+
+                return RefreshIndicator(
+                  color: SacAccent.of(context).color,
+                  onRefresh: () async => ref.invalidate(camporeesProvider),
+                  child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: SacTopBar.paddingBelowBar(
+                        context, EdgeInsets.fromLTRB(hPad, 16, hPad, 28)),
+                    itemCount: camporees.length,
+                    itemBuilder: (context, index) {
+                      final camporee = camporees[index];
+                      return StaggeredListItem(
+                        index: index,
+                        initialDelay: const Duration(milliseconds: 40),
+                        staggerDelay: SacMotion.stagger,
+                        child: _CamporeeCard(
+                          camporee: camporee,
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            Navigator.push(
+                              context,
+                              SacSharedAxisRoute(
+                                builder: (context) => CamporeeDetailView(
+                                  camporeeId: camporee.camporeeId,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+              loading: () => const _CamporeesSkeleton(),
+              error: (error, stack) => _ErrorState(
+                message: error.toString().replaceFirst('Exception: ', ''),
+                onRetry: () => ref.invalidate(camporeesProvider),
               ),
-            );
-          },
-          loading: () => const _CamporeesSkeleton(),
-          error: (error, stack) => _ErrorState(
-            message: error.toString().replaceFirst('Exception: ', ''),
-            onRetry: () => ref.invalidate(camporeesProvider),
+            ),
           ),
         ),
       ),
@@ -500,7 +506,8 @@ class _CamporeesSkeleton extends StatelessWidget {
     final hPad = Responsive.horizontalPadding(context);
 
     return ListView.builder(
-      padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 28),
+      padding: SacTopBar.paddingBelowBar(
+          context, EdgeInsets.fromLTRB(hPad, 16, hPad, 28)),
       itemCount: 3,
       itemBuilder: (context, index) => Container(
         height: 152,

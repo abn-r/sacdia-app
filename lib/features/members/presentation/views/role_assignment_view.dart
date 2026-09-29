@@ -91,154 +91,168 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'members.role_assignment.title'.tr(),
-        centerTitle: true,
-        automaticallyImplyLeading: !_isLoading,
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ── Member info ──────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundColor: SacAccent.of(context).surface,
-                    backgroundImage: widget.member.avatar != null
-                        ? sacProfileImageProvider(widget.member.avatar!)
-                        : null,
-                    child: widget.member.avatar == null
-                        ? Text(
-                            widget.member.initials,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: SacAccent.of(context).color,
-                            ),
-                          )
-                        : null,
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.member.fullName,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: c.text,
-                          ),
-                        ),
-                        if (widget.member.clubRole != null)
-                          Text(
-                            tr('members.role_assignment.current_role',
-                                namedArgs: {
-                                  'role': RoleUtils.translate(
-                                      widget.member.clubRole,
-                                      gender: widget.member.gender)
-                                }),
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: c.textSecondary,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            Container(height: 1, color: c.divider),
-
-            // ── Role list ────────────────────────────────────────────
-            Expanded(
-              child: ListView.separated(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                itemCount: _availableRoles.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 4),
-                itemBuilder: (context, index) {
-                  final role = _availableRoles[index];
-                  final isSelected = role == _selectedRole;
-
-                  return Material(
-                    color: isSelected
-                        ? SacAccent.of(context).color.withValues(alpha: 0.08)
-                        : c.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    child: SacInkWell(
-                      onTap: () => setState(() => _selectedRole = role),
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isSelected ? SacAccent.of(context).color : c.border,
-                            width: isSelected ? 1.5 : 1,
-                          ),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                RoleUtils.translate(role,
-                                    gender: widget.member.gender),
+          title: 'members.role_assignment.title'.tr(),
+          centerTitle: true,
+          automaticallyImplyLeading: !_isLoading,
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            child: Column(
+              children: [
+                // ── Member info ──────────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 28,
+                        backgroundColor: SacAccent.of(context).surface,
+                        backgroundImage: widget.member.avatar != null
+                            ? sacProfileImageProvider(widget.member.avatar!)
+                            : null,
+                        child: widget.member.avatar == null
+                            ? Text(
+                                widget.member.initials,
                                 style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: isSelected
-                                      ? FontWeight.w600
-                                      : FontWeight.w400,
-                                  color:
-                                      isSelected ? SacAccent.of(context).color : c.text,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: SacAccent.of(context).color,
                                 ),
+                              )
+                            : null,
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.member.fullName,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: c.text,
                               ),
                             ),
-                            if (isSelected)
-                              HugeIcon(
-                                icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                                color: SacAccent.of(context).color,
-                                size: 20,
+                            if (widget.member.clubRole != null)
+                              Text(
+                                tr('members.role_assignment.current_role',
+                                    namedArgs: {
+                                      'role': RoleUtils.translate(
+                                          widget.member.clubRole,
+                                          gender: widget.member.gender)
+                                    }),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: c.textSecondary,
+                                ),
                               ),
                           ],
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
-            ),
+                    ],
+                  ),
+                ),
 
-            // ── Save button ──────────────────────────────────────────
-            Container(
-              padding: EdgeInsets.fromLTRB(
-                20,
-                12,
-                20,
-                12 + MediaQuery.of(context).padding.bottom,
-              ),
-              decoration: BoxDecoration(
-                color: c.surface,
-                border: Border(top: BorderSide(color: c.border)),
-              ),
-              child: SacButton.primary(
-                text: 'members.role_assignment.save_button'.tr(),
-                icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                isLoading: _isLoading,
-                onPressed: _isLoading || _selectedRole == null ? null : _save,
-              ),
+                Container(height: 1, color: c.divider),
+
+                // ── Role list ────────────────────────────────────────────
+                Expanded(
+                  child: ListView.separated(
+                    padding: SacTopBar.paddingBelowBar(
+                        context,
+                        const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12)),
+                    itemCount: _availableRoles.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 4),
+                    itemBuilder: (context, index) {
+                      final role = _availableRoles[index];
+                      final isSelected = role == _selectedRole;
+
+                      return Material(
+                        color: isSelected
+                            ? SacAccent.of(context)
+                                .color
+                                .withValues(alpha: 0.08)
+                            : c.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        child: SacInkWell(
+                          onTap: () => setState(() => _selectedRole = role),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isSelected
+                                    ? SacAccent.of(context).color
+                                    : c.border,
+                                width: isSelected ? 1.5 : 1,
+                              ),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    RoleUtils.translate(role,
+                                        gender: widget.member.gender),
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w600
+                                          : FontWeight.w400,
+                                      color: isSelected
+                                          ? SacAccent.of(context).color
+                                          : c.text,
+                                    ),
+                                  ),
+                                ),
+                                if (isSelected)
+                                  HugeIcon(
+                                    icon: HugeIcons
+                                        .strokeRoundedCheckmarkCircle01,
+                                    color: SacAccent.of(context).color,
+                                    size: 20,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+                // ── Save button ──────────────────────────────────────────
+                Container(
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    12,
+                    20,
+                    12 + MediaQuery.of(context).padding.bottom,
+                  ),
+                  decoration: BoxDecoration(
+                    color: c.surface,
+                    border: Border(top: BorderSide(color: c.border)),
+                  ),
+                  child: SacButton.primary(
+                    text: 'members.role_assignment.save_button'.tr(),
+                    icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                    isLoading: _isLoading,
+                    onPressed:
+                        _isLoading || _selectedRole == null ? null : _save,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

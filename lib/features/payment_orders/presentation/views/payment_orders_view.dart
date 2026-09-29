@@ -37,61 +37,68 @@ class PaymentOrdersView extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'payment_orders.list.title'.tr(),
-        backgroundColor: c.surface,
-        foregroundColor: c.text,
-      ),
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(paymentOrdersListProvider(filter));
-            ref.invalidate(pendingPaymentObligationsProvider);
-          },
-          child: ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              _PendingObligationsSection(async: obligationsAsync),
-              const SizedBox(height: 8),
-              Text(
-                'payment_orders.list.title'.tr(),
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                  color: c.text,
-                ),
-              ),
-              const SizedBox(height: 12),
-              ordersAsync.when(
-                loading: () => const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 32),
-                  child: Center(child: SacLoading()),
-                ),
-                error: (error, _) => _ErrorState(
-                  message: error.toString().replaceFirst('Exception: ', ''),
-                  onRetry: () =>
-                      ref.invalidate(paymentOrdersListProvider(filter)),
-                ),
-                data: (orders) => orders.isEmpty
-                    ? const _EmptyState()
-                    : Column(
-                        children: [
-                          for (var i = 0; i < orders.length; i++) ...[
-                            if (i > 0) const SizedBox(height: 12),
-                            _OrderCard(
-                              order: orders[i],
-                              onTap: () => context.push(
-                                RouteNames.paymentOrderDetailPath(
-                                  orders[i].orderId,
+          title: 'payment_orders.list.title'.tr(),
+          backgroundColor: c.surface,
+          foregroundColor: c.text,
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            top: false,
+            child: RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(paymentOrdersListProvider(filter));
+                ref.invalidate(pendingPaymentObligationsProvider);
+              },
+              child: ListView(
+                padding: SacTopBar.paddingBelowBar(
+                    context, const EdgeInsets.all(20)),
+                children: [
+                  _PendingObligationsSection(async: obligationsAsync),
+                  const SizedBox(height: 8),
+                  Text(
+                    'payment_orders.list.title'.tr(),
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: c.text,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ordersAsync.when(
+                    loading: () => const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 32),
+                      child: Center(child: SacLoading()),
+                    ),
+                    error: (error, _) => _ErrorState(
+                      message: error.toString().replaceFirst('Exception: ', ''),
+                      onRetry: () =>
+                          ref.invalidate(paymentOrdersListProvider(filter)),
+                    ),
+                    data: (orders) => orders.isEmpty
+                        ? const _EmptyState()
+                        : Column(
+                            children: [
+                              for (var i = 0; i < orders.length; i++) ...[
+                                if (i > 0) const SizedBox(height: 12),
+                                _OrderCard(
+                                  order: orders[i],
+                                  onTap: () => context.push(
+                                    RouteNames.paymentOrderDetailPath(
+                                      orders[i].orderId,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
+                              ],
+                            ],
+                          ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

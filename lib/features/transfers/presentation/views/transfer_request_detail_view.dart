@@ -24,41 +24,44 @@ class TransferRequestDetailView extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
-      appBar: SacTopBar(
-        title: tr('transfers.detail.title'),
-      ),
-      body: requestAsync.when(
-        loading: () => const Center(child: SacLoading()),
-        error: (e, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const HugeIcon(
-                  icon: HugeIcons.strokeRoundedAlert02,
-                  size: 48,
-                  color: AppColors.error,
+      appBar: SacTopBar(title: tr('transfers.detail.title'), frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => requestAsync.when(
+            loading: () => const Center(child: SacLoading()),
+            error: (e, _) => Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const HugeIcon(
+                      icon: HugeIcons.strokeRoundedAlert02,
+                      size: 48,
+                      color: AppColors.error,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      e.toString().replaceFirst('Exception: ', ''),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 14, color: c.textSecondary),
+                    ),
+                    const SizedBox(height: 16),
+                    SacButton.primary(
+                      text: tr('common.retry'),
+                      icon: HugeIcons.strokeRoundedRefresh,
+                      onPressed: () => ref
+                          .invalidate(transferRequestDetailProvider(requestId)),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  e.toString().replaceFirst('Exception: ', ''),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: c.textSecondary),
-                ),
-                const SizedBox(height: 16),
-                SacButton.primary(
-                  text: tr('common.retry'),
-                  icon: HugeIcons.strokeRoundedRefresh,
-                  onPressed: () =>
-                      ref.invalidate(transferRequestDetailProvider(requestId)),
-                ),
-              ],
+              ),
             ),
+            data: (request) => _DetailBody(request: request),
           ),
         ),
-        data: (request) => _DetailBody(request: request),
       ),
     );
   }
@@ -78,7 +81,7 @@ class _DetailBody extends StatelessWidget {
         : '-';
 
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(20)),
       children: [
         // ── Status header ──────────────────────────────────────────────
         Container(

@@ -44,29 +44,35 @@ class _OrderReviewViewState extends ConsumerState<OrderReviewView> {
     final ordenAsync = ref.watch(orderDetailProvider(widget.folioOrId));
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: SacTopBar(
-        title: 'materials.order.title'.tr(),
-        actions: [
-          SacPressable(
-            listenOnly: true,
-            child: IconButton(
-              enableFeedback: false,
-              icon: const HugeIcon(icon: HugeIcons.strokeRoundedRefresh),
-              tooltip: 'materials.order.refresh'.tr(),
-              onPressed: () => ref.invalidate(
-                orderDetailProvider(widget.folioOrId),
+          title: 'materials.order.title'.tr(),
+          actions: [
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                icon: const HugeIcon(icon: HugeIcons.strokeRoundedRefresh),
+                tooltip: 'materials.order.refresh'.tr(),
+                onPressed: () => ref.invalidate(
+                  orderDetailProvider(widget.folioOrId),
+                ),
               ),
             ),
+          ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => ordenAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => _ErrorBody(
+              message: e.toString(),
+              onRetry: () =>
+                  ref.invalidate(orderDetailProvider(widget.folioOrId)),
+            ),
+            data: (order) => _OrdenBody(orden: order),
           ),
-        ],
-      ),
-      body: ordenAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => _ErrorBody(
-          message: e.toString(),
-          onRetry: () => ref.invalidate(orderDetailProvider(widget.folioOrId)),
         ),
-        data: (order) => _OrdenBody(orden: order),
       ),
     );
   }
@@ -87,7 +93,8 @@ class _OrdenBody extends ConsumerWidget {
       onRefresh: () async => ref
           .invalidate(orderDetailProvider(orden.folioReferencia ?? orden.id)),
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        padding: SacTopBar.paddingBelowBar(
+            context, const EdgeInsets.fromLTRB(16, 16, 16, 32)),
         children: [
           // ── Estado + folio ─────────────────────────────────────────────────
           Row(

@@ -42,70 +42,77 @@ class CamporeePaymentsView extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: memberName != null
-            ? 'camporees.payments.title'.tr(namedArgs: {'name': memberName!})
-            : 'camporees.payments.title_fallback'.tr(),
-        actions: [
-          SacPressable(
-            listenOnly: true,
-            child: IconButton(
-              enableFeedback: false,
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedAdd01,
-                color: SacAccent.of(context).color,
-                size: 22,
-              ),
-              tooltip: 'camporees.payments.register_tooltip'.tr(),
-              onPressed: () => _openPaymentForm(context, ref),
-            ),
-          ),
-        ],
-      ),
-      body: paymentsAsync.when(
-        loading: () => const Center(child: SacLoading()),
-        error: (e, _) => _ErrorBody(
-          message: e.toString().replaceFirst('Exception: ', ''),
-          onRetry: () => ref.invalidate(camporeeMemberPaymentsProvider(params)),
-        ),
-        data: (payments) {
-          if (payments.isEmpty) {
-            return _EmptyBody(
-              onAdd: () => _openPaymentForm(context, ref),
-            );
-          }
-
-          final totalAmount = payments.fold<double>(
-            0,
-            (sum, p) => sum + p.amount,
-          );
-
-          return RefreshIndicator(
-            color: SacAccent.of(context).color,
-            onRefresh: () async =>
-                ref.invalidate(camporeeMemberPaymentsProvider(params)),
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                // Summary card
-                _SummaryCard(
-                  totalAmount: totalAmount,
-                  paymentCount: payments.length,
+          title: memberName != null
+              ? 'camporees.payments.title'.tr(namedArgs: {'name': memberName!})
+              : 'camporees.payments.title_fallback'.tr(),
+          actions: [
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedAdd01,
+                  color: SacAccent.of(context).color,
+                  size: 22,
                 ),
-                const SizedBox(height: 16),
-
-                // Payment list
-                ...payments.asMap().entries.map(
-                      (entry) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _PaymentCard(payment: entry.value),
-                      ),
-                    ),
-              ],
+                tooltip: 'camporees.payments.register_tooltip'.tr(),
+                onPressed: () => _openPaymentForm(context, ref),
+              ),
             ),
-          );
-        },
+          ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => paymentsAsync.when(
+            loading: () => const Center(child: SacLoading()),
+            error: (e, _) => _ErrorBody(
+              message: e.toString().replaceFirst('Exception: ', ''),
+              onRetry: () =>
+                  ref.invalidate(camporeeMemberPaymentsProvider(params)),
+            ),
+            data: (payments) {
+              if (payments.isEmpty) {
+                return _EmptyBody(
+                  onAdd: () => _openPaymentForm(context, ref),
+                );
+              }
+
+              final totalAmount = payments.fold<double>(
+                0,
+                (sum, p) => sum + p.amount,
+              );
+
+              return RefreshIndicator(
+                color: SacAccent.of(context).color,
+                onRefresh: () async =>
+                    ref.invalidate(camporeeMemberPaymentsProvider(params)),
+                child: ListView(
+                  padding: SacTopBar.paddingBelowBar(
+                      context, const EdgeInsets.all(20)),
+                  children: [
+                    // Summary card
+                    _SummaryCard(
+                      totalAmount: totalAmount,
+                      paymentCount: payments.length,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Payment list
+                    ...payments.asMap().entries.map(
+                          (entry) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _PaymentCard(payment: entry.value),
+                          ),
+                        ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }
@@ -153,7 +160,8 @@ class _SummaryCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: SacAccent.of(context).light,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: SacAccent.of(context).color.withValues(alpha: 0.3)),
+        border: Border.all(
+            color: SacAccent.of(context).color.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -453,8 +461,9 @@ class _CamporeePaymentFormSheetState
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       child: SafeArea(
+        top: false,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(20)),
           child: Form(
             key: _formKey,
             child: Column(

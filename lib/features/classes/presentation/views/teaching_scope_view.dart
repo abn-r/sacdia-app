@@ -57,83 +57,89 @@ class TeachingScopeView extends ConsumerWidget {
             yearId;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: context.sac.canvas,
       appBar: SacTopBar(
-        title: 'classes.teaching_scope.title'.tr(),
-        actions: [
-          if (canManageAssignments && activeClubContext != null)
-            SacPressable(
-              listenOnly: true,
-              child: IconButton(
-                enableFeedback: false,
-                tooltip: 'classes.class_assignments.title'.tr(),
-                onPressed: resolvedAssignmentYearId == null
-                    ? null
-                    : () async {
-                        final query = TeachingScopeQuery(
-                          clubId: activeClubContext.clubId,
-                          sectionId: activeClubContext.sectionId,
-                          yearId: resolvedAssignmentYearId,
-                        );
-                        await Navigator.of(context).push(
-                          SacSharedAxisRoute<void>(
-                            builder: (_) => ClassCounselorAssignmentsView(
-                              clubId: activeClubContext.clubId,
-                              sectionId: activeClubContext.sectionId,
-                              clubTypeId: activeClubContext.clubTypeId,
-                              yearId: resolvedAssignmentYearId,
+          title: 'classes.teaching_scope.title'.tr(),
+          actions: [
+            if (canManageAssignments && activeClubContext != null)
+              SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  tooltip: 'classes.class_assignments.title'.tr(),
+                  onPressed: resolvedAssignmentYearId == null
+                      ? null
+                      : () async {
+                          final query = TeachingScopeQuery(
+                            clubId: activeClubContext.clubId,
+                            sectionId: activeClubContext.sectionId,
+                            yearId: resolvedAssignmentYearId,
+                          );
+                          await Navigator.of(context).push(
+                            SacSharedAxisRoute<void>(
+                              builder: (_) => ClassCounselorAssignmentsView(
+                                clubId: activeClubContext.clubId,
+                                sectionId: activeClubContext.sectionId,
+                                clubTypeId: activeClubContext.clubTypeId,
+                                yearId: resolvedAssignmentYearId,
+                              ),
                             ),
-                          ),
-                        );
-                        ref.invalidate(classProgressScopeProvider(query));
-                      },
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedUserCheck01,
-                  size: 22,
-                  color: context.sac.ink700,
+                          );
+                          ref.invalidate(classProgressScopeProvider(query));
+                        },
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedUserCheck01,
+                    size: 22,
+                    color: context.sac.ink700,
+                  ),
                 ),
               ),
-            ),
-        ],
-      ),
-      body: clubContextAsync.when(
-        loading: () => const Center(child: SacLoading()),
-        error: (error, _) => _MessageState(
-          icon: HugeIcons.strokeRoundedAlert02,
-          title: 'classes.teaching_scope.context_error_title'.tr(),
-          message: error.toString().replaceFirst('Exception: ', ''),
-        ),
-        data: (clubContext) {
-          if (clubContext == null) {
-            return _MessageState(
-              icon: HugeIcons.strokeRoundedBuilding01,
-              title: 'classes.teaching_scope.no_context_title'.tr(),
-              message: 'classes.teaching_scope.no_context_body'.tr(),
-            );
-          }
-
-          final query = TeachingScopeQuery(
-            clubId: clubContext.clubId,
-            sectionId: clubContext.sectionId,
-            yearId: yearId,
-          );
-          final scopeAsync = ref.watch(classProgressScopeProvider(query));
-
-          return scopeAsync.when(
+          ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => clubContextAsync.when(
             loading: () => const Center(child: SacLoading()),
-            error: (error, _) => _ErrorState(
+            error: (error, _) => _MessageState(
+              icon: HugeIcons.strokeRoundedAlert02,
+              title: 'classes.teaching_scope.context_error_title'.tr(),
               message: error.toString().replaceFirst('Exception: ', ''),
-              onRetry: () => ref.invalidate(classProgressScopeProvider(query)),
             ),
-            data: (scope) => _TeachingScopeBody(
-              scope: scope,
-              clubId: clubContext.clubId,
-              sectionId: clubContext.sectionId,
-              onRefresh: () async =>
-                  ref.invalidate(classProgressScopeProvider(query)),
-            ),
-          );
-        },
+            data: (clubContext) {
+              if (clubContext == null) {
+                return _MessageState(
+                  icon: HugeIcons.strokeRoundedBuilding01,
+                  title: 'classes.teaching_scope.no_context_title'.tr(),
+                  message: 'classes.teaching_scope.no_context_body'.tr(),
+                );
+              }
+
+              final query = TeachingScopeQuery(
+                clubId: clubContext.clubId,
+                sectionId: clubContext.sectionId,
+                yearId: yearId,
+              );
+              final scopeAsync = ref.watch(classProgressScopeProvider(query));
+
+              return scopeAsync.when(
+                loading: () => const Center(child: SacLoading()),
+                error: (error, _) => _ErrorState(
+                  message: error.toString().replaceFirst('Exception: ', ''),
+                  onRetry: () =>
+                      ref.invalidate(classProgressScopeProvider(query)),
+                ),
+                data: (scope) => _TeachingScopeBody(
+                  scope: scope,
+                  clubId: clubContext.clubId,
+                  sectionId: clubContext.sectionId,
+                  onRefresh: () async =>
+                      ref.invalidate(classProgressScopeProvider(query)),
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }
@@ -159,7 +165,7 @@ class _TeachingScopeBody extends StatelessWidget {
         color: SacAccent.of(context).color,
         onRefresh: onRefresh,
         child: ListView(
-          padding: const EdgeInsets.all(24),
+          padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(24)),
           children: [
             const SizedBox(height: 120),
             _MessageState(
@@ -176,7 +182,8 @@ class _TeachingScopeBody extends StatelessWidget {
       color: SacAccent.of(context).color,
       onRefresh: onRefresh,
       child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        padding: SacTopBar.paddingBelowBar(
+            context, const EdgeInsets.fromLTRB(16, 16, 16, 32)),
         itemCount: scope.classes.length + 1,
         separatorBuilder: (_, index) =>
             index == 0 ? const SizedBox(height: 12) : const SizedBox(height: 8),
@@ -226,7 +233,8 @@ class _ScopeHeader extends StatelessWidget {
       decoration: BoxDecoration(
         color: SacAccent.of(context).color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: SacAccent.of(context).color.withValues(alpha: 0.18)),
+        border: Border.all(
+            color: SacAccent.of(context).color.withValues(alpha: 0.18)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

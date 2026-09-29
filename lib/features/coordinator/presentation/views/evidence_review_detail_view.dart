@@ -39,29 +39,38 @@ class EvidenceReviewDetailView extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: type.displayLabel,
-        actions: [
-          SacPressable(
-            listenOnly: true,
-            child: IconButton(
-              enableFeedback: false,
-              onPressed: () => ref.invalidate(evidenceDetailProvider(key)),
-              icon: const HugeIcon(
-                icon: HugeIcons.strokeRoundedRefresh,
-                size: 22,
+          title: type.displayLabel,
+          actions: [
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                onPressed: () => ref.invalidate(evidenceDetailProvider(key)),
+                icon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedRefresh,
+                  size: 22,
+                ),
+                tooltip:
+                    'coordinator.evidence_review.detail.refresh_tooltip'.tr(),
               ),
-              tooltip:
-                  'coordinator.evidence_review.detail.refresh_tooltip'.tr(),
+            ),
+          ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => Padding(
+            padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+            child: detailAsync.when(
+              data: (item) =>
+                  _buildContent(context, ref, item, actionState, hPad, c),
+              loading: () => const Center(child: SacLoading()),
+              error: (error, _) => _buildError(context, ref, error, key),
             ),
           ),
-        ],
-      ),
-      body: detailAsync.when(
-        data: (item) => _buildContent(context, ref, item, actionState, hPad, c),
-        loading: () => const Center(child: SacLoading()),
-        error: (error, _) => _buildError(context, ref, error, key),
+        ),
       ),
     );
   }
@@ -81,7 +90,8 @@ class EvidenceReviewDetailView extends ConsumerWidget {
         // ── Scrollable content ─────────────────────────────────────────────
         Expanded(
           child: SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 16),
+            padding: SacTopBar.paddingBelowBar(
+                context, EdgeInsets.fromLTRB(hPad, 16, hPad, 16)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

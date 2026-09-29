@@ -430,262 +430,272 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     final c = context.sac;
 
     return Scaffold(
-      backgroundColor: c.surfaceVariant,
+      extendBodyBehindAppBar: true,
+      backgroundColor: c.background,
       appBar: SacTopBar(
         title: 'settings.title'.tr(),
-        backgroundColor: c.surfaceVariant,
+        backgroundColor: c.background,
         foregroundColor: c.text,
+        frosted: true,
       ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        children: [
-          // ── CUENTA — header ──────────────────────────────────────
-          if (user != null) ...[
-            _AccountHeaderTile(user: user),
-            const SizedBox(height: 24),
-          ],
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) {
+            final bar = SacTopBar.frostedInset(context);
+            return ListView(
+              padding: EdgeInsets.fromLTRB(16, bar + 8, 16, 8),
+              children: [
+                // ── CUENTA — header ──────────────────────────────────────
+                if (user != null) ...[
+                  _AccountHeaderTile(user: user),
+                  const SizedBox(height: 24),
+                ],
 
-          // ── APARIENCIA ────────────────────────────────────────────
-          _SectionHeader(title: 'settings.section_appearance'.tr()),
-          _GroupContainer(
-            children: [
-              SettingTile(
-                icon: HugeIcons.strokeRoundedPaintBrush01,
-                title: 'profile.settings.theme_title'.tr(),
-                subtitle: _getThemeName(themeMode),
-                iconColor: SacAccent.of(context).color,
-                onTap: _showThemeDialog,
-              ),
-              _groupDivider(),
-              SettingTile(
-                icon: HugeIcons.strokeRoundedColors,
-                title: 'profile.settings.accent_title'.tr(),
-                subtitle: accent.labelKey.tr(),
-                iconColor: SacAccent.of(context).color,
-                onTap: () => showAccentPicker(context, ref),
-              ),
-              _groupDivider(),
-              const AccessibilitySettingsSection(),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // ── NOTIFICACIONES ────────────────────────────────────────
-          _SectionHeader(title: 'settings.section_notifications'.tr()),
-          _GroupContainer(
-            children: [
-              _SwitchTile(
-                icon: HugeIcons.strokeRoundedNotification01,
-                title: 'profile.settings.notif_push'.tr(),
-                iconColor: SacAccent.of(context).color,
-                value: master,
-                onChanged: notifPrefs == null
-                    ? null
-                    : (v) => _saveNotifPref({'master': v}),
-              ),
-              _groupDivider(),
-              _SwitchTile(
-                icon: HugeIcons.strokeRoundedCalendarCheckIn01,
-                title: 'profile.settings.notif_activities'.tr(),
-                iconColor: master ? c.textSecondary : c.textTertiary,
-                indent: true,
-                value: master && (notifPrefs?.activities ?? true),
-                // Deshabilitar (no solo ocultar) cuando master=false.
-                onChanged: (notifPrefs == null || !master)
-                    ? null
-                    : (v) => _saveNotifPref({'activities': v}),
-              ),
-              _groupDivider(),
-              _SwitchTile(
-                icon: HugeIcons.strokeRoundedChampion,
-                title: 'profile.settings.notif_achievements'.tr(),
-                iconColor: master ? c.textSecondary : c.textTertiary,
-                indent: true,
-                value: master && (notifPrefs?.achievements ?? true),
-                onChanged: (notifPrefs == null || !master)
-                    ? null
-                    : (v) => _saveNotifPref({'achievements': v}),
-              ),
-              _groupDivider(),
-              _SwitchTile(
-                icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                title: 'profile.settings.notif_approvals'.tr(),
-                iconColor: master ? c.textSecondary : c.textTertiary,
-                indent: true,
-                value: master && (notifPrefs?.approvals ?? true),
-                onChanged: (notifPrefs == null || !master)
-                    ? null
-                    : (v) => _saveNotifPref({'approvals': v}),
-              ),
-              _groupDivider(),
-              _SwitchTile(
-                icon: HugeIcons.strokeRoundedUserAdd01,
-                title: 'profile.settings.notif_invitations'.tr(),
-                iconColor: master ? c.textSecondary : c.textTertiary,
-                indent: true,
-                value: master && (notifPrefs?.invitations ?? true),
-                onChanged: (notifPrefs == null || !master)
-                    ? null
-                    : (v) => _saveNotifPref({'invitations': v}),
-              ),
-              _groupDivider(),
-              _SwitchTile(
-                icon: HugeIcons.strokeRoundedClock01,
-                title: 'profile.settings.notif_reminders'.tr(),
-                iconColor: master ? c.textSecondary : c.textTertiary,
-                indent: true,
-                value: master && (notifPrefs?.reminders ?? true),
-                onChanged: (notifPrefs == null || !master)
-                    ? null
-                    : (v) => _saveNotifPref({'reminders': v}),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // ── AYUDA Y SOPORTE ───────────────────────────────────────
-          const SupportSettingsSection(),
-          const SizedBox(height: 24),
-
-          // ── SINCRONIZACIÓN / CACHÉ ────────────────────────────────
-          const SyncCacheSection(),
-          const SizedBox(height: 24),
-
-          // ── CUENTA ────────────────────────────────────────────────
-          _SectionHeader(title: 'settings.section_account'.tr()),
-          _GroupContainer(
-            children: [
-              SettingTile(
-                icon: HugeIcons.strokeRoundedQrCode,
-                title: 'settings.member_qr'.tr(),
-                iconColor: SacAccent.of(context).color,
-                onTap: () => Navigator.push(
-                  context,
-                  SacSharedAxisRoute(
-                    builder: (_) => const VirtualCardView(),
-                  ),
-                ),
-              ),
-              _groupDivider(),
-              SettingTile(
-                icon: HugeIcons.strokeRoundedExchange01,
-                title: 'profile.settings.change_club_tile'.tr(),
-                subtitle: 'profile.settings.change_club_subtitle'.tr(),
-                iconColor: SacAccent.of(context).color,
-                onTap: () => Navigator.push(
-                  context,
-                  SacSharedAxisRoute(
-                    builder: (_) => const TransferRequestFormView(),
-                  ),
-                ),
-              ),
-              if (hasAnyPermission(user, const {'attendance:manage'}) ||
-                  hasAnyRole(user, _attendanceScannerRoles)) ...[
-                _groupDivider(),
-                SettingTile(
-                  icon: HugeIcons.strokeRoundedQrCode01,
-                  title: 'settings.scan_qr'.tr(),
-                  iconColor: SacAccent.of(context).color,
-                  onTap: () => Navigator.push(
-                    context,
-                    SacSharedAxisRoute(
-                      builder: (_) => const QrScannerView(),
+                // ── APARIENCIA ────────────────────────────────────────────
+                _SectionHeader(title: 'settings.section_appearance'.tr()),
+                _GroupContainer(
+                  children: [
+                    SettingTile(
+                      icon: HugeIcons.strokeRoundedPaintBrush01,
+                      title: 'profile.settings.theme_title'.tr(),
+                      subtitle: _getThemeName(themeMode),
+                      iconColor: SacAccent.of(context).color,
+                      onTap: _showThemeDialog,
                     ),
-                  ),
+                    _groupDivider(),
+                    SettingTile(
+                      icon: HugeIcons.strokeRoundedColors,
+                      title: 'profile.settings.accent_title'.tr(),
+                      subtitle: accent.labelKey.tr(),
+                      iconColor: SacAccent.of(context).color,
+                      onTap: () => showAccentPicker(context, ref),
+                    ),
+                    _groupDivider(),
+                    const AccessibilitySettingsSection(),
+                  ],
                 ),
+                const SizedBox(height: 24),
+
+                // ── NOTIFICACIONES ────────────────────────────────────────
+                _SectionHeader(title: 'settings.section_notifications'.tr()),
+                _GroupContainer(
+                  children: [
+                    _SwitchTile(
+                      icon: HugeIcons.strokeRoundedNotification01,
+                      title: 'profile.settings.notif_push'.tr(),
+                      iconColor: SacAccent.of(context).color,
+                      value: master,
+                      onChanged: notifPrefs == null
+                          ? null
+                          : (v) => _saveNotifPref({'master': v}),
+                    ),
+                    _groupDivider(),
+                    _SwitchTile(
+                      icon: HugeIcons.strokeRoundedCalendarCheckIn01,
+                      title: 'profile.settings.notif_activities'.tr(),
+                      iconColor: master ? c.textSecondary : c.textTertiary,
+                      indent: true,
+                      value: master && (notifPrefs?.activities ?? true),
+                      // Deshabilitar (no solo ocultar) cuando master=false.
+                      onChanged: (notifPrefs == null || !master)
+                          ? null
+                          : (v) => _saveNotifPref({'activities': v}),
+                    ),
+                    _groupDivider(),
+                    _SwitchTile(
+                      icon: HugeIcons.strokeRoundedChampion,
+                      title: 'profile.settings.notif_achievements'.tr(),
+                      iconColor: master ? c.textSecondary : c.textTertiary,
+                      indent: true,
+                      value: master && (notifPrefs?.achievements ?? true),
+                      onChanged: (notifPrefs == null || !master)
+                          ? null
+                          : (v) => _saveNotifPref({'achievements': v}),
+                    ),
+                    _groupDivider(),
+                    _SwitchTile(
+                      icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                      title: 'profile.settings.notif_approvals'.tr(),
+                      iconColor: master ? c.textSecondary : c.textTertiary,
+                      indent: true,
+                      value: master && (notifPrefs?.approvals ?? true),
+                      onChanged: (notifPrefs == null || !master)
+                          ? null
+                          : (v) => _saveNotifPref({'approvals': v}),
+                    ),
+                    _groupDivider(),
+                    _SwitchTile(
+                      icon: HugeIcons.strokeRoundedUserAdd01,
+                      title: 'profile.settings.notif_invitations'.tr(),
+                      iconColor: master ? c.textSecondary : c.textTertiary,
+                      indent: true,
+                      value: master && (notifPrefs?.invitations ?? true),
+                      onChanged: (notifPrefs == null || !master)
+                          ? null
+                          : (v) => _saveNotifPref({'invitations': v}),
+                    ),
+                    _groupDivider(),
+                    _SwitchTile(
+                      icon: HugeIcons.strokeRoundedClock01,
+                      title: 'profile.settings.notif_reminders'.tr(),
+                      iconColor: master ? c.textSecondary : c.textTertiary,
+                      indent: true,
+                      value: master && (notifPrefs?.reminders ?? true),
+                      onChanged: (notifPrefs == null || !master)
+                          ? null
+                          : (v) => _saveNotifPref({'reminders': v}),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                // ── AYUDA Y SOPORTE ───────────────────────────────────────
+                const SupportSettingsSection(),
+                const SizedBox(height: 24),
+
+                // ── SINCRONIZACIÓN / CACHÉ ────────────────────────────────
+                const SyncCacheSection(),
+                const SizedBox(height: 24),
+
+                // ── CUENTA ────────────────────────────────────────────────
+                _SectionHeader(title: 'settings.section_account'.tr()),
+                _GroupContainer(
+                  children: [
+                    SettingTile(
+                      icon: HugeIcons.strokeRoundedQrCode,
+                      title: 'settings.member_qr'.tr(),
+                      iconColor: SacAccent.of(context).color,
+                      onTap: () => Navigator.push(
+                        context,
+                        SacSharedAxisRoute(
+                          builder: (_) => const VirtualCardView(),
+                        ),
+                      ),
+                    ),
+                    _groupDivider(),
+                    SettingTile(
+                      icon: HugeIcons.strokeRoundedExchange01,
+                      title: 'profile.settings.change_club_tile'.tr(),
+                      subtitle: 'profile.settings.change_club_subtitle'.tr(),
+                      iconColor: SacAccent.of(context).color,
+                      onTap: () => Navigator.push(
+                        context,
+                        SacSharedAxisRoute(
+                          builder: (_) => const TransferRequestFormView(),
+                        ),
+                      ),
+                    ),
+                    if (hasAnyPermission(user, const {'attendance:manage'}) ||
+                        hasAnyRole(user, _attendanceScannerRoles)) ...[
+                      _groupDivider(),
+                      SettingTile(
+                        icon: HugeIcons.strokeRoundedQrCode01,
+                        title: 'settings.scan_qr'.tr(),
+                        iconColor: SacAccent.of(context).color,
+                        onTap: () => Navigator.push(
+                          context,
+                          SacSharedAxisRoute(
+                            builder: (_) => const QrScannerView(),
+                          ),
+                        ),
+                      ),
+                    ],
+                    _groupDivider(),
+                    SettingTile(
+                      icon: HugeIcons.strokeRoundedDeviceAccess,
+                      title: 'settings.active_sessions'.tr(),
+                      iconColor: SacAccent.of(context).color,
+                      onTap: () => Navigator.push(
+                        context,
+                        SacSharedAxisRoute(
+                          builder: (_) => const ActiveSessionsView(),
+                        ),
+                      ),
+                    ),
+                    _groupDivider(),
+                    SettingTile(
+                      icon: HugeIcons.strokeRoundedDownload02,
+                      title: 'settings.download_my_data'.tr(),
+                      iconColor: SacAccent.of(context).color,
+                      onTap: () => Navigator.push(
+                        context,
+                        SacSharedAxisRoute(
+                          builder: (_) => const DataExportView(),
+                        ),
+                      ),
+                    ),
+                    _groupDivider(),
+                    SettingTile(
+                      icon: HugeIcons.strokeRoundedLockPassword,
+                      title: 'settings.change_password'.tr(),
+                      iconColor: SacAccent.of(context).color,
+                      onTap: _showChangePasswordDialog,
+                    ),
+                    _groupDivider(),
+                    const BiometricSettingsSection(),
+                    _groupDivider(),
+                    const LanguagePickerTile(),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                // ── ACERCA DE ─────────────────────────────────────────────
+                _SectionHeader(title: 'settings.section_about'.tr()),
+                _GroupContainer(
+                  children: [
+                    SettingTile(
+                      icon: HugeIcons.strokeRoundedInformationCircle,
+                      title: 'profile.settings.about_version'.tr(),
+                      subtitle: _appVersion.isEmpty ? '—' : _appVersion,
+                    ),
+                    _groupDivider(),
+                    SettingTile(
+                      icon: HugeIcons.strokeRoundedSecurityCheck,
+                      title: 'profile.settings.privacy_policy'.tr(),
+                      onTap: () =>
+                          _openLegalDocument(AppConstants.privacyPolicyUrl),
+                    ),
+                    _groupDivider(),
+                    SettingTile(
+                      icon: HugeIcons.strokeRoundedLegalDocument01,
+                      title: 'profile.settings.terms'.tr(),
+                      onTap: () => _openLegalDocument(AppConstants.termsUrl),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                // ── SESIÓN ────────────────────────────────────────────────
+                _GroupContainer(
+                  children: [
+                    SettingTile(
+                      icon: HugeIcons.strokeRoundedLogout02,
+                      title: 'profile.settings.logout_tile'.tr(),
+                      iconColor: AppColors.error,
+                      onTap: _handleLogout,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // ── ZONA PELIGROSA ────────────────────────────────────────
+                _GroupContainer(
+                  children: [
+                    SettingTile(
+                      icon: HugeIcons.strokeRoundedDelete02,
+                      title: 'profile.settings.delete_account_tile'.tr(),
+                      iconColor: AppColors.error,
+                      onTap: _handleDeleteAccount,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                const ZarzaRojaCredit(),
+                SizedBox(height: 24 + MediaQuery.paddingOf(context).bottom),
               ],
-              _groupDivider(),
-              SettingTile(
-                icon: HugeIcons.strokeRoundedDeviceAccess,
-                title: 'settings.active_sessions'.tr(),
-                iconColor: SacAccent.of(context).color,
-                onTap: () => Navigator.push(
-                  context,
-                  SacSharedAxisRoute(
-                    builder: (_) => const ActiveSessionsView(),
-                  ),
-                ),
-              ),
-              _groupDivider(),
-              SettingTile(
-                icon: HugeIcons.strokeRoundedDownload02,
-                title: 'settings.download_my_data'.tr(),
-                iconColor: SacAccent.of(context).color,
-                onTap: () => Navigator.push(
-                  context,
-                  SacSharedAxisRoute(
-                    builder: (_) => const DataExportView(),
-                  ),
-                ),
-              ),
-              _groupDivider(),
-              SettingTile(
-                icon: HugeIcons.strokeRoundedLockPassword,
-                title: 'settings.change_password'.tr(),
-                iconColor: SacAccent.of(context).color,
-                onTap: _showChangePasswordDialog,
-              ),
-              _groupDivider(),
-              const BiometricSettingsSection(),
-              _groupDivider(),
-              const LanguagePickerTile(),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // ── ACERCA DE ─────────────────────────────────────────────
-          _SectionHeader(title: 'settings.section_about'.tr()),
-          _GroupContainer(
-            children: [
-              SettingTile(
-                icon: HugeIcons.strokeRoundedInformationCircle,
-                title: 'profile.settings.about_version'.tr(),
-                subtitle: _appVersion.isEmpty ? '—' : _appVersion,
-              ),
-              _groupDivider(),
-              SettingTile(
-                icon: HugeIcons.strokeRoundedSecurityCheck,
-                title: 'profile.settings.privacy_policy'.tr(),
-                onTap: () => _openLegalDocument(AppConstants.privacyPolicyUrl),
-              ),
-              _groupDivider(),
-              SettingTile(
-                icon: HugeIcons.strokeRoundedLegalDocument01,
-                title: 'profile.settings.terms'.tr(),
-                onTap: () => _openLegalDocument(AppConstants.termsUrl),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // ── SESIÓN ────────────────────────────────────────────────
-          _GroupContainer(
-            children: [
-              SettingTile(
-                icon: HugeIcons.strokeRoundedLogout02,
-                title: 'profile.settings.logout_tile'.tr(),
-                iconColor: AppColors.error,
-                onTap: _handleLogout,
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // ── ZONA PELIGROSA ────────────────────────────────────────
-          _GroupContainer(
-            children: [
-              SettingTile(
-                icon: HugeIcons.strokeRoundedDelete02,
-                title: 'profile.settings.delete_account_tile'.tr(),
-                iconColor: AppColors.error,
-                onTap: _handleDeleteAccount,
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-          const ZarzaRojaCredit(),
-          SizedBox(height: 24 + MediaQuery.paddingOf(context).bottom),
-        ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -883,7 +893,8 @@ class _SwitchTile extends StatelessWidget {
               value: value,
               onChanged: onChanged,
               activeThumbColor: SacAccent.of(context).color,
-              activeTrackColor: SacAccent.of(context).color.withValues(alpha: 0.4),
+              activeTrackColor:
+                  SacAccent.of(context).color.withValues(alpha: 0.4),
             ),
           ),
         ],

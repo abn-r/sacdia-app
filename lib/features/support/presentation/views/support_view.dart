@@ -47,119 +47,125 @@ class _SupportViewState extends ConsumerState<SupportView> {
     final padding = Responsive.horizontalPadding(context);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'support.title'.tr(),
-        centerTitle: true,
-      ),
-      body: ListView(
-        padding: EdgeInsets.fromLTRB(
-          padding,
-          8,
-          padding,
-          28 + MediaQuery.paddingOf(context).bottom,
-        ),
-        children: [
-          StaggeredListItem(
-            index: 0,
-            staggerDelay: SacMotion.stagger,
-            duration: SacMotion.standard,
-            slideOffset: 8,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'support.hub_title'.tr(),
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: c.text,
-                        fontWeight: FontWeight.w800,
-                        height: 1.15,
-                        letterSpacing: -0.6,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'support.hub_intro'.tr(),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: c.textSecondary,
-                        height: 1.45,
-                      ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          StaggeredListItem(
-            index: 1,
-            staggerDelay: SacMotion.stagger,
-            duration: SacMotion.standard,
-            slideOffset: 8,
-            child: Semantics(
-              textField: true,
-              label: 'support.hub_search_hint'.tr(),
-              child: SacTextField(
-                controller: _searchCtrl,
-                hint: 'support.hub_search_hint'.tr(),
-                prefixIcon: HugeIcons.strokeRoundedSearch01,
-                textInputAction: TextInputAction.search,
-                onChanged: (_) => setState(() {}),
-                onSubmitted: (_) => _openFaq(),
-                suffix: _searchCtrl.text.isEmpty
-                    ? null
-                    : SacPressable(
-                        listenOnly: true,
-                        child: IconButton(
-                          enableFeedback: false,
-                          tooltip: 'common.clear'.tr(),
-                          onPressed: () {
-                            setState(_searchCtrl.clear);
-                          },
-                          icon: HugeIcon(
-                            icon: HugeIcons.strokeRoundedCancelCircle,
-                            size: 20,
-                            color: c.textTertiary,
+          title: 'support.title'.tr(), centerTitle: true, frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => ListView(
+            padding: SacTopBar.paddingBelowBar(
+                context,
+                EdgeInsets.fromLTRB(
+                  padding,
+                  8,
+                  padding,
+                  28 + MediaQuery.paddingOf(context).bottom,
+                )),
+            children: [
+              StaggeredListItem(
+                index: 0,
+                staggerDelay: SacMotion.stagger,
+                duration: SacMotion.standard,
+                slideOffset: 8,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'support.hub_title'.tr(),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: c.text,
+                                fontWeight: FontWeight.w800,
+                                height: 1.15,
+                                letterSpacing: -0.6,
+                              ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'support.hub_intro'.tr(),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: c.textSecondary,
+                            height: 1.45,
                           ),
-                        ),
-                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+              const SizedBox(height: 20),
+              StaggeredListItem(
+                index: 1,
+                staggerDelay: SacMotion.stagger,
+                duration: SacMotion.standard,
+                slideOffset: 8,
+                child: Semantics(
+                  textField: true,
+                  label: 'support.hub_search_hint'.tr(),
+                  child: SacTextField(
+                    controller: _searchCtrl,
+                    hint: 'support.hub_search_hint'.tr(),
+                    prefixIcon: HugeIcons.strokeRoundedSearch01,
+                    textInputAction: TextInputAction.search,
+                    onChanged: (_) => setState(() {}),
+                    onSubmitted: (_) => _openFaq(),
+                    suffix: _searchCtrl.text.isEmpty
+                        ? null
+                        : SacPressable(
+                            listenOnly: true,
+                            child: IconButton(
+                              enableFeedback: false,
+                              tooltip: 'common.clear'.tr(),
+                              onPressed: () {
+                                setState(_searchCtrl.clear);
+                              },
+                              icon: HugeIcon(
+                                icon: HugeIcons.strokeRoundedCancelCircle,
+                                size: 20,
+                                color: c.textTertiary,
+                              ),
+                            ),
+                          ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              StaggeredListItem(
+                index: 2,
+                staggerDelay: SacMotion.stagger,
+                duration: SacMotion.standard,
+                slideOffset: 8,
+                child: SupportDestinationList(
+                  items: [
+                    SupportDestination(
+                      icon: HugeIcons.strokeRoundedHelpCircle,
+                      iconColor: scheme.primary,
+                      iconBackground: scheme.primary.withValues(alpha: 0.12),
+                      title: 'support.faq_tile'.tr(),
+                      subtitle: 'support.faq_tile_subtitle'.tr(),
+                      onTap: _openFaq,
+                    ),
+                    SupportDestination(
+                      icon: HugeIcons.strokeRoundedMail01,
+                      iconColor: scheme.secondary,
+                      iconBackground: scheme.secondary.withValues(alpha: 0.12),
+                      title: 'support.contact_tile'.tr(),
+                      subtitle: 'support.contact_tile_subtitle'.tr(),
+                      onTap: () => context.push(ContactView.routeName),
+                    ),
+                    SupportDestination(
+                      icon: HugeIcons.strokeRoundedBug01,
+                      iconColor: scheme.tertiary,
+                      iconBackground: scheme.tertiary.withValues(alpha: 0.12),
+                      title: 'support.report_tile'.tr(),
+                      subtitle: 'support.report_tile_subtitle'.tr(),
+                      onTap: () => context.push(ReportProblemView.routeName),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
-          StaggeredListItem(
-            index: 2,
-            staggerDelay: SacMotion.stagger,
-            duration: SacMotion.standard,
-            slideOffset: 8,
-            child: SupportDestinationList(
-              items: [
-                SupportDestination(
-                  icon: HugeIcons.strokeRoundedHelpCircle,
-                  iconColor: scheme.primary,
-                  iconBackground: scheme.primary.withValues(alpha: 0.12),
-                  title: 'support.faq_tile'.tr(),
-                  subtitle: 'support.faq_tile_subtitle'.tr(),
-                  onTap: _openFaq,
-                ),
-                SupportDestination(
-                  icon: HugeIcons.strokeRoundedMail01,
-                  iconColor: scheme.secondary,
-                  iconBackground: scheme.secondary.withValues(alpha: 0.12),
-                  title: 'support.contact_tile'.tr(),
-                  subtitle: 'support.contact_tile_subtitle'.tr(),
-                  onTap: () => context.push(ContactView.routeName),
-                ),
-                SupportDestination(
-                  icon: HugeIcons.strokeRoundedBug01,
-                  iconColor: scheme.tertiary,
-                  iconBackground: scheme.tertiary.withValues(alpha: 0.12),
-                  title: 'support.report_tile'.tr(),
-                  subtitle: 'support.report_tile_subtitle'.tr(),
-                  onTap: () => context.push(ReportProblemView.routeName),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

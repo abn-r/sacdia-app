@@ -198,26 +198,34 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
     });
 
     return Scaffold(
-      backgroundColor: c.surfaceVariant,
+      extendBodyBehindAppBar: true,
+      backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'profile.data_export.ui.title'.tr(),
-        backgroundColor: c.surfaceVariant,
-        foregroundColor: c.text,
-      ),
-      body: exportsAsync.when(
-        loading: () => _buildBody(
-          context: context,
-          exports: null,
-          isLoading: true,
-        ),
-        error: (error, _) => _ErrorState(
-          message: error.toString().replaceFirst('Exception: ', ''),
-          onRetry: () => ref.read(dataExportProvider.notifier).refresh(),
-        ),
-        data: (exports) => _buildBody(
-          context: context,
-          exports: exports,
-          isLoading: false,
+          title: 'profile.data_export.ui.title'.tr(),
+          backgroundColor: c.background,
+          foregroundColor: c.text,
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => Padding(
+            padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+            child: exportsAsync.when(
+              loading: () => _buildBody(
+                context: context,
+                exports: null,
+                isLoading: true,
+              ),
+              error: (error, _) => _ErrorState(
+                message: error.toString().replaceFirst('Exception: ', ''),
+                onRetry: () => ref.read(dataExportProvider.notifier).refresh(),
+              ),
+              data: (exports) => _buildBody(
+                context: context,
+                exports: exports,
+                isLoading: false,
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -237,7 +245,8 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
     return RefreshIndicator(
       onRefresh: () => ref.read(dataExportProvider.notifier).refresh(),
       child: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: SacTopBar.paddingBelowBar(
+            context, const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
         children: [
           // ── Header informativo ─────────────────────────────────────
           _InfoCard(c: c),

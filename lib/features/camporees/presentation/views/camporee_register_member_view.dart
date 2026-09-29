@@ -60,41 +60,47 @@ class _CamporeeRegisterMemberViewState
     );
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'camporees.register_member.title'.tr(),
-        backgroundColor: c.surface,
-        foregroundColor: c.text,
-      ),
-      body: SafeArea(
-        child: switch (paymentFlow) {
-          CamporeeRegistrationPaymentFlow.loading =>
-            const _PaymentOrdersContextLoading(),
-          CamporeeRegistrationPaymentFlow.unavailable =>
-            _PaymentOrdersContextError(
-              onRetry: () => ref.invalidate(paymentOrdersContextProvider),
-            ),
-          CamporeeRegistrationPaymentFlow.paymentOrder =>
-            _PaymentOrderRedirectBody(camporeeId: widget.camporeeId),
-          CamporeeRegistrationPaymentFlow.legacy =>
-            CamporeeParticipantRegistrationGate(
-              registrationAsync: sectionRegistrationAsync,
-              authAsync: authAsync,
-              onRetryRegistration: () => ref.invalidate(
-                camporeeSectionRegistrationProvider(widget.camporeeId),
-              ),
-              onRetryAuth: () => ref.invalidate(authNotifierProvider),
-              child: _EligibleRegistrationForm(
-                camporeeId: widget.camporeeId,
-                selectedUserIds: _selectedUserIds,
-                onRemove: (userId) {
-                  setState(() => _selectedUserIds.remove(userId));
-                },
-                onOpenPicker: () => _openMemberPicker(context),
-                onSubmit: (ids) => _submit(context, ids),
-              ),
-            ),
-        },
+          title: 'camporees.register_member.title'.tr(),
+          backgroundColor: c.surface,
+          foregroundColor: c.text,
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            top: false,
+            child: switch (paymentFlow) {
+              CamporeeRegistrationPaymentFlow.loading =>
+                const _PaymentOrdersContextLoading(),
+              CamporeeRegistrationPaymentFlow.unavailable =>
+                _PaymentOrdersContextError(
+                  onRetry: () => ref.invalidate(paymentOrdersContextProvider),
+                ),
+              CamporeeRegistrationPaymentFlow.paymentOrder =>
+                _PaymentOrderRedirectBody(camporeeId: widget.camporeeId),
+              CamporeeRegistrationPaymentFlow.legacy =>
+                CamporeeParticipantRegistrationGate(
+                  registrationAsync: sectionRegistrationAsync,
+                  authAsync: authAsync,
+                  onRetryRegistration: () => ref.invalidate(
+                    camporeeSectionRegistrationProvider(widget.camporeeId),
+                  ),
+                  onRetryAuth: () => ref.invalidate(authNotifierProvider),
+                  child: _EligibleRegistrationForm(
+                    camporeeId: widget.camporeeId,
+                    selectedUserIds: _selectedUserIds,
+                    onRemove: (userId) {
+                      setState(() => _selectedUserIds.remove(userId));
+                    },
+                    onOpenPicker: () => _openMemberPicker(context),
+                    onSubmit: (ids) => _submit(context, ids),
+                  ),
+                ),
+            },
+          ),
+        ),
       ),
     );
   }
@@ -207,7 +213,7 @@ class _EligibleRegistrationForm extends ConsumerWidget {
         pendingSelectedCount > insuranceIdsByUserId.length;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(20)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -753,7 +759,8 @@ class _MemberPickerSheetState extends ConsumerState<_MemberPickerSheet> {
 
     return ListView.separated(
       controller: scrollController,
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 18),
+      padding: SacTopBar.paddingBelowBar(
+          context, const EdgeInsets.fromLTRB(20, 4, 20, 18)),
       itemCount: members.length,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
@@ -926,7 +933,8 @@ class _SelectionIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final active = selected || alreadyRegistered;
-    final color = alreadyRegistered ? AppColors.secondary : SacAccent.of(context).color;
+    final color =
+        alreadyRegistered ? AppColors.secondary : SacAccent.of(context).color;
 
     return Container(
       width: 32,
@@ -1142,7 +1150,7 @@ class _PaymentOrdersContextError extends StatelessWidget {
     final c = context.sac;
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(20)),
         child: Semantics(
           container: true,
           liveRegion: true,
@@ -1205,7 +1213,8 @@ class _PaymentOrderRedirectBody extends StatelessWidget {
     return ColoredBox(
       color: c.surfaceVariant,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        padding: SacTopBar.paddingBelowBar(
+            context, const EdgeInsets.fromLTRB(16, 16, 16, 24)),
         children: [
           SacCard(
             child: Column(

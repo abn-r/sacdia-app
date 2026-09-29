@@ -110,114 +110,119 @@ class _CamporeeSupplyPlanViewState
     final c = context.sac;
 
     return Scaffold(
-      backgroundColor: c.surfaceVariant,
-      appBar: SacTopBar(
-        title: 'camporee_supplies.plan.title'.tr(),
-      ),
-      body: envelopeAsync.when(
-        loading: () => const SacLoading(),
-        error: (error, _) => Center(
-          child: Text(camporeeSuppliesErrorMessage(error)),
-        ),
-        data: (loaded) {
-          final plan = loaded.plan;
-          if (_draftLines.isEmpty && plan != null && plan.isDraft) {
-            _draftLines = plan.lines.map((line) => line.toInput()).toList();
-          }
-          final dates = _datesBetween(
-            loaded.catalog.startDate,
-            loaded.catalog.endDate,
-          );
-          _date ??= dates.isEmpty ? null : dates.first;
-          _slotId ??= loaded.catalog.slots.isEmpty
-              ? null
-              : loaded.catalog.slots.first.slotId;
-          _productId ??= loaded.catalog.products.isEmpty
-              ? null
-              : loaded.catalog.products.first.productId;
+      extendBodyBehindAppBar: true,
+      backgroundColor: c.background,
+      appBar:
+          SacTopBar(title: 'camporee_supplies.plan.title'.tr(), frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => envelopeAsync.when(
+            loading: () => const SacLoading(),
+            error: (error, _) => Center(
+              child: Text(camporeeSuppliesErrorMessage(error)),
+            ),
+            data: (loaded) {
+              final plan = loaded.plan;
+              if (_draftLines.isEmpty && plan != null && plan.isDraft) {
+                _draftLines = plan.lines.map((line) => line.toInput()).toList();
+              }
+              final dates = _datesBetween(
+                loaded.catalog.startDate,
+                loaded.catalog.endDate,
+              );
+              _date ??= dates.isEmpty ? null : dates.first;
+              _slotId ??= loaded.catalog.slots.isEmpty
+                  ? null
+                  : loaded.catalog.slots.first.slotId;
+              _productId ??= loaded.catalog.products.isEmpty
+                  ? null
+                  : loaded.catalog.products.first.productId;
 
-          final submitted = plan?.isSubmitted == true;
-          final lines = submitted
-              ? plan!.lines.map((line) => line.toInput()).toList()
-              : _draftLines;
-          final groups = groupCamporeeSupplyLines(
-            dates: dates,
-            slots: loaded.catalog.slots,
-            lines: lines,
-          );
-          final estimated = estimateCamporeeSupplyTotal(
-            lines: lines,
-            products: loaded.catalog.products,
-          );
-          final dueCentavos = submitted ? plan!.netCentavos : estimated;
+              final submitted = plan?.isSubmitted == true;
+              final lines = submitted
+                  ? plan!.lines.map((line) => line.toInput()).toList()
+                  : _draftLines;
+              final groups = groupCamporeeSupplyLines(
+                dates: dates,
+                slots: loaded.catalog.slots,
+                lines: lines,
+              );
+              final estimated = estimateCamporeeSupplyTotal(
+                lines: lines,
+                products: loaded.catalog.products,
+              );
+              final dueCentavos = submitted ? plan!.netCentavos : estimated;
 
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-            children: [
-              _CutoffCaption(time: loaded.catalog.cutoff),
-              const SizedBox(height: 16),
-              _PaymentCard(
-                plan: plan,
-                submitted: submitted,
-                dueCentavos: dueCentavos,
-              ),
-              if (!loaded.catalog.isReady) ...[
-                const SizedBox(height: 20),
-                Text(
-                  'camporee_supplies.plan.catalog_empty'.tr(),
-                  style: TextStyle(color: c.textSecondary),
-                ),
-              ] else ...[
-                const SizedBox(height: 12),
-                _AddSupplyButton(
-                  key: const Key('camporee-supply-add'),
-                  onPressed: () => _openAddSheet(loaded),
-                ),
-                const SizedBox(height: 16),
-                if (lines.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Text(
-                      'camporee_supplies.plan.empty'.tr(),
+              return ListView(
+                padding: SacTopBar.paddingBelowBar(
+                    context, const EdgeInsets.fromLTRB(16, 8, 16, 24)),
+                children: [
+                  _CutoffCaption(time: loaded.catalog.cutoff),
+                  const SizedBox(height: 16),
+                  _PaymentCard(
+                    plan: plan,
+                    submitted: submitted,
+                    dueCentavos: dueCentavos,
+                  ),
+                  if (!loaded.catalog.isReady) ...[
+                    const SizedBox(height: 20),
+                    Text(
+                      'camporee_supplies.plan.catalog_empty'.tr(),
                       style: TextStyle(color: c.textSecondary),
                     ),
-                  ),
-                for (var index = 0; index < groups.length; index++) ...[
-                  _DayCard(
-                    group: groups[index],
-                    catalog: loaded.catalog,
-                    locale: context.locale.languageCode,
-                    animationDelay: SacMotion.stagger * index,
-                    onRemove: submitted
-                        ? null
-                        : (line) => setState(
-                              () => _draftLines.removeWhere(
-                                (row) =>
-                                    row.date == line.date &&
-                                    row.slotId == line.slotId &&
-                                    row.productId == line.productId,
-                              ),
-                            ),
-                  ),
-                  if (index < groups.length - 1) const SizedBox(height: 12),
+                  ] else ...[
+                    const SizedBox(height: 12),
+                    _AddSupplyButton(
+                      key: const Key('camporee-supply-add'),
+                      onPressed: () => _openAddSheet(loaded),
+                    ),
+                    const SizedBox(height: 16),
+                    if (lines.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Text(
+                          'camporee_supplies.plan.empty'.tr(),
+                          style: TextStyle(color: c.textSecondary),
+                        ),
+                      ),
+                    for (var index = 0; index < groups.length; index++) ...[
+                      _DayCard(
+                        group: groups[index],
+                        catalog: loaded.catalog,
+                        locale: context.locale.languageCode,
+                        animationDelay: SacMotion.stagger * index,
+                        onRemove: submitted
+                            ? null
+                            : (line) => setState(
+                                  () => _draftLines.removeWhere(
+                                    (row) =>
+                                        row.date == line.date &&
+                                        row.slotId == line.slotId &&
+                                        row.productId == line.productId,
+                                  ),
+                                ),
+                      ),
+                      if (index < groups.length - 1) const SizedBox(height: 12),
+                    ],
+                    if (!submitted) ...[
+                      const SizedBox(height: 20),
+                      SacButton.outline(
+                        text: 'camporee_supplies.plan.save'.tr(),
+                        onPressed: () => _save(),
+                      ),
+                      const SizedBox(height: 8),
+                      SacButton.primary(
+                        text: 'camporee_supplies.plan.submit'.tr(),
+                        isEnabled: lines.isNotEmpty,
+                        onPressed: () => _submit(),
+                      ),
+                    ],
+                  ],
                 ],
-                if (!submitted) ...[
-                  const SizedBox(height: 20),
-                  SacButton.outline(
-                    text: 'camporee_supplies.plan.save'.tr(),
-                    onPressed: () => _save(),
-                  ),
-                  const SizedBox(height: 8),
-                  SacButton.primary(
-                    text: 'camporee_supplies.plan.submit'.tr(),
-                    isEnabled: lines.isNotEmpty,
-                    onPressed: () => _submit(),
-                  ),
-                ],
-              ],
-            ],
-          );
-        },
+              );
+            },
+          ),
+        ),
       ),
     );
   }
@@ -838,7 +843,8 @@ class _AddSupplySheetState extends State<_AddSupplySheet> {
             ),
           ),
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+            padding: SacTopBar.paddingBelowBar(
+                context, const EdgeInsets.fromLTRB(20, 12, 20, 24)),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,

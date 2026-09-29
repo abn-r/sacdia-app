@@ -32,23 +32,26 @@ class PaymentDetailsView extends ConsumerWidget {
     final ordenAsync = ref.watch(orderDetailProvider(folioOrId));
 
     return Scaffold(
-      appBar: SacTopBar(
-        title: 'materials.payment.title'.tr(),
-      ),
-      body: ordenAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => _ErrorBody(
-          message: e.toString(),
-          onRetry: () => ref.invalidate(orderDetailProvider(folioOrId)),
+      extendBodyBehindAppBar: true,
+      appBar: SacTopBar(title: 'materials.payment.title'.tr(), frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => ordenAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => _ErrorBody(
+              message: e.toString(),
+              onRetry: () => ref.invalidate(orderDetailProvider(folioOrId)),
+            ),
+            data: (orden) {
+              if (orden.status != MaterialStatus.aprobada) {
+                return _NotRequiredBody(
+                  onBack: () => context.pop(),
+                );
+              }
+              return _PagoBody(orden: orden, folioOrId: folioOrId);
+            },
+          ),
         ),
-        data: (orden) {
-          if (orden.status != MaterialStatus.aprobada) {
-            return _NotRequiredBody(
-              onBack: () => context.pop(),
-            );
-          }
-          return _PagoBody(orden: orden, folioOrId: folioOrId);
-        },
       ),
     );
   }
@@ -67,7 +70,8 @@ class _PagoBody extends StatelessWidget {
     final theme = Theme.of(context);
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+      padding: SacTopBar.paddingBelowBar(
+          context, const EdgeInsets.fromLTRB(16, 16, 16, 32)),
       children: [
         // ── Referencia bancaria ───────────────────────────────────────────────
         if (orden.folioReferencia != null) ...[

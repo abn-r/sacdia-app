@@ -120,252 +120,266 @@ class _LegalRepresentativeViewState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: SacTopBar(
-        title: 'post_registration.legal_representative.title'.tr(),
-        actions: [
-          if (_isLoading)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: SacLoadingSmall(),
-                ),
-              ),
-            )
-          else
-            SacPressable(
-              listenOnly: true,
-              child: IconButton(
-                enableFeedback: false,
-                icon: HugeIcon(icon: HugeIcons.strokeRoundedTick02, size: 24),
-                onPressed: _handleSave,
-                tooltip:
-                    'post_registration.legal_representative.save_tooltip'.tr(),
-              ),
-            ),
-        ],
-      ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            // Nota informativa
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.accentLight,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: AppColors.accent.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedInformationCircle,
-                    color: AppColors.accentDark,
-                    size: 20,
+          title: 'post_registration.legal_representative.title'.tr(),
+          actions: [
+            if (_isLoading)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: SacLoadingSmall(),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'post_registration.legal_representative.info_notice'.tr(),
-                      style: const TextStyle(
-                        fontSize: 12,
+                ),
+              )
+            else
+              SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  icon: HugeIcon(icon: HugeIcons.strokeRoundedTick02, size: 24),
+                  onPressed: _handleSave,
+                  tooltip: 'post_registration.legal_representative.save_tooltip'
+                      .tr(),
+                ),
+              ),
+          ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => Form(
+            key: _formKey,
+            child: ListView(
+              padding:
+                  SacTopBar.paddingBelowBar(context, const EdgeInsets.all(16)),
+              children: [
+                // Nota informativa
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.accentLight,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: AppColors.accent.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedInformationCircle,
                         color: AppColors.accentDark,
+                        size: 20,
                       ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Tipo de representante - cargado desde la API
-            Consumer(
-              builder: (context, ref, _) {
-                final typesAsync = ref.watch(relationshipTypesProvider);
-                return typesAsync.when(
-                  loading: () => const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(16),
-                      child: SacLoadingSmall(),
-                    ),
-                  ),
-                  error: (error, _) => Text(
-                    'post_registration.legal_representative.error_loading_types'
-                        .tr(namedArgs: {'error': error.toString()}),
-                    style: const TextStyle(color: AppColors.error),
-                  ),
-                  data: (types) {
-                    // Preseleccionar el primer tipo si no hay selección
-                    if (_selectedTypeId == null && types.isNotEmpty) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (mounted) {
-                          setState(() => _selectedTypeId = types.first.id);
-                        }
-                      });
-                    }
-                    return SacPressable(
-                      listenOnly: true,
-                      child: DropdownButtonFormField<String>(
-                        enableFeedback: false,
-                        initialValue: types.any((t) => t.id == _selectedTypeId)
-                            ? _selectedTypeId
-                            : null,
-                        decoration: InputDecoration(
-                          labelText:
-                              'post_registration.legal_representative.type_label'
-                                  .tr(),
-                          prefixIconConstraints: FixedInputIconSlot.constraints,
-                          prefixIcon: FixedInputIconSlot(
-                            icon: HugeIcons.strokeRoundedUserGroup,
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                            iconSize: 22,
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'post_registration.legal_representative.info_notice'
+                              .tr(),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.accentDark,
                           ),
-                          border: const OutlineInputBorder(),
                         ),
-                        items: types.map((type) {
-                          return DropdownMenuItem(
-                            value: type.id,
-                            child: Text(type.name),
-                          );
-                        }).toList(),
-                        onChanged: _isLoading
-                            ? null
-                            : (value) {
-                                if (value != null) {
-                                  setState(() => _selectedTypeId = value);
-                                }
-                              },
-                        validator: (value) {
-                          if (value == null) {
-                            return 'post_registration.legal_representative.type_required'
-                                .tr();
-                          }
-                          return null;
-                        },
                       ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Tipo de representante - cargado desde la API
+                Consumer(
+                  builder: (context, ref, _) {
+                    final typesAsync = ref.watch(relationshipTypesProvider);
+                    return typesAsync.when(
+                      loading: () => const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: SacLoadingSmall(),
+                        ),
+                      ),
+                      error: (error, _) => Text(
+                        'post_registration.legal_representative.error_loading_types'
+                            .tr(namedArgs: {'error': error.toString()}),
+                        style: const TextStyle(color: AppColors.error),
+                      ),
+                      data: (types) {
+                        // Preseleccionar el primer tipo si no hay selección
+                        if (_selectedTypeId == null && types.isNotEmpty) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (mounted) {
+                              setState(() => _selectedTypeId = types.first.id);
+                            }
+                          });
+                        }
+                        return SacPressable(
+                          listenOnly: true,
+                          child: DropdownButtonFormField<String>(
+                            enableFeedback: false,
+                            initialValue:
+                                types.any((t) => t.id == _selectedTypeId)
+                                    ? _selectedTypeId
+                                    : null,
+                            decoration: InputDecoration(
+                              labelText:
+                                  'post_registration.legal_representative.type_label'
+                                      .tr(),
+                              prefixIconConstraints:
+                                  FixedInputIconSlot.constraints,
+                              prefixIcon: FixedInputIconSlot(
+                                icon: HugeIcons.strokeRoundedUserGroup,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                                iconSize: 22,
+                              ),
+                              border: const OutlineInputBorder(),
+                            ),
+                            items: types.map((type) {
+                              return DropdownMenuItem(
+                                value: type.id,
+                                child: Text(type.name),
+                              );
+                            }).toList(),
+                            onChanged: _isLoading
+                                ? null
+                                : (value) {
+                                    if (value != null) {
+                                      setState(() => _selectedTypeId = value);
+                                    }
+                                  },
+                            validator: (value) {
+                              if (value == null) {
+                                return 'post_registration.legal_representative.type_required'
+                                    .tr();
+                              }
+                              return null;
+                            },
+                          ),
+                        );
+                      },
                     );
                   },
-                );
-              },
-            ),
-            const SizedBox(height: 16),
+                ),
+                const SizedBox(height: 16),
 
-            // Nombre
-            SacTextField(
-              controller: _nameController,
-              label: 'post_registration.legal_representative.first_name_label'
-                  .tr(),
-              hint:
-                  'post_registration.legal_representative.first_name_hint'.tr(),
-              prefixIcon: HugeIcons.strokeRoundedUser,
-              textCapitalization: TextCapitalization.words,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'post_registration.legal_representative.first_name_required'
-                      .tr();
-                }
-                if (value.trim().length < 2) {
-                  return 'post_registration.legal_representative.first_name_min_length'
-                      .tr();
-                }
-                return null;
-              },
-              enabled: !_isLoading,
-            ),
-            const SizedBox(height: 16),
-
-            // Apellido Paterno
-            SacTextField(
-              controller: _paternalSurnameController,
-              label:
-                  'post_registration.legal_representative.paternal_surname_label'
+                // Nombre
+                SacTextField(
+                  controller: _nameController,
+                  label:
+                      'post_registration.legal_representative.first_name_label'
+                          .tr(),
+                  hint: 'post_registration.legal_representative.first_name_hint'
                       .tr(),
-              hint:
-                  'post_registration.legal_representative.paternal_surname_hint'
-                      .tr(),
-              prefixIcon: HugeIcons.strokeRoundedUser,
-              textCapitalization: TextCapitalization.words,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'post_registration.legal_representative.paternal_surname_required'
-                      .tr();
-                }
-                if (value.trim().length < 2) {
-                  return 'post_registration.legal_representative.surname_min_length'
-                      .tr();
-                }
-                return null;
-              },
-              enabled: !_isLoading,
-            ),
-            const SizedBox(height: 16),
+                  prefixIcon: HugeIcons.strokeRoundedUser,
+                  textCapitalization: TextCapitalization.words,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'post_registration.legal_representative.first_name_required'
+                          .tr();
+                    }
+                    if (value.trim().length < 2) {
+                      return 'post_registration.legal_representative.first_name_min_length'
+                          .tr();
+                    }
+                    return null;
+                  },
+                  enabled: !_isLoading,
+                ),
+                const SizedBox(height: 16),
 
-            // Apellido Materno
-            SacTextField(
-              controller: _maternalSurnameController,
-              label:
-                  'post_registration.legal_representative.maternal_surname_label'
-                      .tr(),
-              hint:
-                  'post_registration.legal_representative.maternal_surname_hint'
-                      .tr(),
-              prefixIcon: HugeIcons.strokeRoundedUser,
-              textCapitalization: TextCapitalization.words,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'post_registration.legal_representative.maternal_surname_required'
-                      .tr();
-                }
-                if (value.trim().length < 2) {
-                  return 'post_registration.legal_representative.surname_min_length'
-                      .tr();
-                }
-                return null;
-              },
-              enabled: !_isLoading,
-            ),
-            const SizedBox(height: 16),
+                // Apellido Paterno
+                SacTextField(
+                  controller: _paternalSurnameController,
+                  label:
+                      'post_registration.legal_representative.paternal_surname_label'
+                          .tr(),
+                  hint:
+                      'post_registration.legal_representative.paternal_surname_hint'
+                          .tr(),
+                  prefixIcon: HugeIcons.strokeRoundedUser,
+                  textCapitalization: TextCapitalization.words,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'post_registration.legal_representative.paternal_surname_required'
+                          .tr();
+                    }
+                    if (value.trim().length < 2) {
+                      return 'post_registration.legal_representative.surname_min_length'
+                          .tr();
+                    }
+                    return null;
+                  },
+                  enabled: !_isLoading,
+                ),
+                const SizedBox(height: 16),
 
-            // Teléfono
-            SacTextField(
-              controller: _phoneController,
-              label: 'post_registration.legal_representative.phone_label'.tr(),
-              hint: 'post_registration.legal_representative.phone_hint'.tr(),
-              prefixIcon: HugeIcons.strokeRoundedCall,
-              keyboardType: TextInputType.phone,
-              maxLength: 10,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'post_registration.legal_representative.phone_required'
-                      .tr();
-                }
-                final phoneRegex = RegExp(r'^\d{10}$');
-                if (!phoneRegex.hasMatch(value.trim())) {
-                  return 'post_registration.legal_representative.phone_invalid'
-                      .tr();
-                }
-                return null;
-              },
-              enabled: !_isLoading,
-            ),
-            const SizedBox(height: 24),
+                // Apellido Materno
+                SacTextField(
+                  controller: _maternalSurnameController,
+                  label:
+                      'post_registration.legal_representative.maternal_surname_label'
+                          .tr(),
+                  hint:
+                      'post_registration.legal_representative.maternal_surname_hint'
+                          .tr(),
+                  prefixIcon: HugeIcons.strokeRoundedUser,
+                  textCapitalization: TextCapitalization.words,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'post_registration.legal_representative.maternal_surname_required'
+                          .tr();
+                    }
+                    if (value.trim().length < 2) {
+                      return 'post_registration.legal_representative.surname_min_length'
+                          .tr();
+                    }
+                    return null;
+                  },
+                  enabled: !_isLoading,
+                ),
+                const SizedBox(height: 16),
 
-            // Botón de guardar
-            SacButton.primary(
-              text: 'post_registration.legal_representative.save_button'.tr(),
-              icon: HugeIcons.strokeRoundedFloppyDisk,
-              isLoading: _isLoading,
-              onPressed: _isLoading ? null : _handleSave,
+                // Teléfono
+                SacTextField(
+                  controller: _phoneController,
+                  label:
+                      'post_registration.legal_representative.phone_label'.tr(),
+                  hint:
+                      'post_registration.legal_representative.phone_hint'.tr(),
+                  prefixIcon: HugeIcons.strokeRoundedCall,
+                  keyboardType: TextInputType.phone,
+                  maxLength: 10,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'post_registration.legal_representative.phone_required'
+                          .tr();
+                    }
+                    final phoneRegex = RegExp(r'^\d{10}$');
+                    if (!phoneRegex.hasMatch(value.trim())) {
+                      return 'post_registration.legal_representative.phone_invalid'
+                          .tr();
+                    }
+                    return null;
+                  },
+                  enabled: !_isLoading,
+                ),
+                const SizedBox(height: 24),
+
+                // Botón de guardar
+                SacButton.primary(
+                  text:
+                      'post_registration.legal_representative.save_button'.tr(),
+                  icon: HugeIcons.strokeRoundedFloppyDisk,
+                  isLoading: _isLoading,
+                  onPressed: _isLoading ? null : _handleSave,
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

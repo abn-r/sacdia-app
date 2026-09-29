@@ -59,73 +59,79 @@ class InvestitureSubmitView extends ConsumerWidget {
         .toList();
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
-      appBar: SacTopBar(
-        title: 'investiture.submit.title'.tr(),
-      ),
-      body: SafeArea(
-        child: ListView(
-          padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 24),
-          children: [
-            // ── Banner informativo ────────────────────────────────────────
-            _InfoBanner(),
-            const SizedBox(height: 16),
+      appBar: SacTopBar(title: 'investiture.submit.title'.tr(), frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            top: false,
+            child: ListView(
+              padding: SacTopBar.paddingBelowBar(
+                  context, EdgeInsets.fromLTRB(hPad, 16, hPad, 24)),
+              children: [
+                // ── Banner informativo ────────────────────────────────────────
+                _InfoBanner(),
+                const SizedBox(height: 16),
 
-            // ── Miembros disponibles para envío ──────────────────────────
-            if (submittable.isNotEmpty) ...[
-              Text(
-                'investiture.submit.section_available'.tr(),
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: c.text,
+                // ── Miembros disponibles para envío ──────────────────────────
+                if (submittable.isNotEmpty) ...[
+                  Text(
+                    'investiture.submit.section_available'.tr(),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: c.text,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...submittable.map(
+                    (member) => _MemberSubmitCard(
+                      member: member,
+                      clubId: clubId,
                     ),
-              ),
-              const SizedBox(height: 8),
-              ...submittable.map(
-                (member) => _MemberSubmitCard(
-                  member: member,
-                  clubId: clubId,
-                ),
-              ),
-            ],
+                  ),
+                ],
 
-            // ── Miembros en otros estados ─────────────────────────────────
-            if (alreadySent.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Text(
-                'investiture.submit.section_status'.tr(),
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: c.text,
-                    ),
-              ),
-              const SizedBox(height: 8),
-              ...alreadySent.map(
-                (member) => _MemberStatusCard(member: member),
-              ),
-            ],
+                // ── Miembros en otros estados ─────────────────────────────────
+                if (alreadySent.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    'investiture.submit.section_status'.tr(),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: c.text,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...alreadySent.map(
+                    (member) => _MemberStatusCard(member: member),
+                  ),
+                ],
 
-            // ── Sin miembros ──────────────────────────────────────────────
-            if (members.isEmpty)
-              Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 48),
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedUserGroup,
-                      size: 56,
-                      color: c.textTertiary,
+                // ── Sin miembros ──────────────────────────────────────────────
+                if (members.isEmpty)
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 48),
+                        HugeIcon(
+                          icon: HugeIcons.strokeRoundedUserGroup,
+                          size: 56,
+                          color: c.textTertiary,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'investiture.submit.empty'.tr(),
+                          style:
+                              TextStyle(fontSize: 16, color: c.textSecondary),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'investiture.submit.empty'.tr(),
-                      style: TextStyle(fontSize: 16, color: c.textSecondary),
-                    ),
-                  ],
-                ),
-              ),
-          ],
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );

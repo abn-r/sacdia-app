@@ -27,16 +27,24 @@ class CertificateImportStatusRouteView extends ConsumerWidget {
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (error, _) => Scaffold(
+          extendBodyBehindAppBar: true,
           appBar: SacTopBar(
-            title: 'certificate_import.status.title'.tr(),
-            leading: const CertificateImportBackButton(
-              fallbackLocation: RouteNames.certificateImportUpload,
-            ),
-          ),
-          body: Center(
-            child: Text(
-              'certificate_import.status.load_error'.tr(
-                namedArgs: {'error': '$error'},
+              title: 'certificate_import.status.title'.tr(),
+              leading: const CertificateImportBackButton(
+                fallbackLocation: RouteNames.certificateImportUpload,
+              ),
+              frosted: true),
+          body: SacFrostedVeil(
+            child: Builder(
+              builder: (context) => Padding(
+                padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+                child: Center(
+                  child: Text(
+                    'certificate_import.status.load_error'.tr(
+                      namedArgs: {'error': '$error'},
+                    ),
+                  ),
+                ),
               ),
             ),
           )),
@@ -97,89 +105,97 @@ class CertificateImportStatusView extends StatelessWidget {
         .length;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'certificate_import.status.title'.tr(),
-        leading: CertificateImportBackButton(
-          fallbackLocation: RouteNames.certificateImportReviewPath(batch.id),
-        ),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
-        children: [
-          SacCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SacBadge(
-                  label: rejected.isNotEmpty
-                      ? 'certificate_import.status.corrections_title'.tr()
-                      : 'certificate_import.status.in_review_title'.tr(),
-                  variant: rejected.isNotEmpty
-                      ? SacBadgeVariant.error
-                      : SacBadgeVariant.accent,
+          title: 'certificate_import.status.title'.tr(),
+          leading: CertificateImportBackButton(
+            fallbackLocation: RouteNames.certificateImportReviewPath(batch.id),
+          ),
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => ListView(
+            padding: SacTopBar.paddingBelowBar(
+                context, const EdgeInsets.fromLTRB(16, 8, 16, 28)),
+            children: [
+              SacCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SacBadge(
+                      label: rejected.isNotEmpty
+                          ? 'certificate_import.status.corrections_title'.tr()
+                          : 'certificate_import.status.in_review_title'.tr(),
+                      variant: rejected.isNotEmpty
+                          ? SacBadgeVariant.error
+                          : SacBadgeVariant.accent,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      rejected.isNotEmpty
+                          ? 'certificate_import.status.corrections_body'.tr()
+                          : 'certificate_import.status.in_review_body'.tr(),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: c.text,
+                                fontWeight: FontWeight.w700,
+                              ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'certificate_import.status.counts'.tr(namedArgs: {
+                        'approved': '$approved',
+                        'rejected': '${rejected.length}',
+                        'pending': '$pending',
+                      }),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: c.textSecondary,
+                          ),
+                    ),
+                    if (batch.items.any((item) => item.isGuiaMayorBase)) ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        'certificate_import.status.gm01_replace'.tr(),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: c.textSecondary,
+                            ),
+                      ),
+                    ],
+                    if (batch.items
+                        .any((item) => item.isInstitutionalClass)) ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        'certificate_import.status.institutional'.tr(),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: c.textSecondary,
+                            ),
+                      ),
+                    ],
+                    if (batch.items
+                        .any((item) => item.isPendingAdministrativePeriod)) ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        'certificate_import.status.period_pending'.tr(),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: c.textSecondary,
+                            ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+              for (final item in rejected) ...[
+                CertificateImportItemCard(
+                  item: item,
+                  onResubmit: () => onResubmitItem?.call(item),
                 ),
                 const SizedBox(height: 12),
-                Text(
-                  rejected.isNotEmpty
-                      ? 'certificate_import.status.corrections_body'.tr()
-                      : 'certificate_import.status.in_review_body'.tr(),
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: c.text,
-                        fontWeight: FontWeight.w700,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'certificate_import.status.counts'.tr(namedArgs: {
-                    'approved': '$approved',
-                    'rejected': '${rejected.length}',
-                    'pending': '$pending',
-                  }),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: c.textSecondary,
-                      ),
-                ),
-                if (batch.items.any((item) => item.isGuiaMayorBase)) ...[
-                  const SizedBox(height: 10),
-                  Text(
-                    'certificate_import.status.gm01_replace'.tr(),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: c.textSecondary,
-                        ),
-                  ),
-                ],
-                if (batch.items.any((item) => item.isInstitutionalClass)) ...[
-                  const SizedBox(height: 10),
-                  Text(
-                    'certificate_import.status.institutional'.tr(),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: c.textSecondary,
-                        ),
-                  ),
-                ],
-                if (batch.items
-                    .any((item) => item.isPendingAdministrativePeriod)) ...[
-                  const SizedBox(height: 10),
-                  Text(
-                    'certificate_import.status.period_pending'.tr(),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: c.textSecondary,
-                        ),
-                  ),
-                ],
               ],
-            ),
+            ],
           ),
-          const SizedBox(height: 14),
-          for (final item in rejected) ...[
-            CertificateImportItemCard(
-              item: item,
-              onResubmit: () => onResubmitItem?.call(item),
-            ),
-            const SizedBox(height: 12),
-          ],
-        ],
+        ),
       ),
     );
   }

@@ -39,128 +39,135 @@ class TransactionDetailView extends ConsumerWidget {
     final canEdit = (canManageAsync.valueOrNull ?? false) && isOpen;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: context.sac.background,
       appBar: SacTopBar(
-        title: 'finances.transaction_detail.title'.tr(),
-        backgroundColor: context.sac.background,
-        actions: [
-          if (canEdit) ...[
-            SacPressable(
-              listenOnly: true,
-              child: IconButton(
-                enableFeedback: false,
-                onPressed: () => _confirmDelete(context, ref),
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedDelete02,
-                  size: 20,
-                  color: AppColors.error,
-                ),
-              ),
-            ),
-            SacPressable(
-              listenOnly: true,
-              child: IconButton(
-                enableFeedback: false,
-                onPressed: () => _openEditSheet(context),
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedEdit02,
-                  size: 20,
-                  color: SacAccent.of(context).color,
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Type + amount hero
-            _AmountHero(transaction: transaction, color: color),
-
-            const SizedBox(height: 20),
-
-            // Details card
-            _DetailCard(
-              children: [
-                _DetailRow(
-                  icon: HugeIcons.strokeRoundedNote01,
-                  label: 'finances.transaction_detail.concept'.tr(),
-                  value: transaction.description,
-                ),
-                _divider(),
-                _DetailRow(
-                  icon: HugeIcons.strokeRoundedTag01,
-                  label: 'finances.transaction_detail.category'.tr(),
-                  value: transaction.category.name,
-                ),
-                _divider(),
-                _DetailRow(
-                  icon: HugeIcons.strokeRoundedCalendar01,
-                  label: 'finances.transaction_detail.date'.tr(),
-                  value: DateFormat('dd \'de\' MMMM \'de\' yyyy', 'es')
-                      .format(transaction.date.toLocal()),
-                ),
-                if (transaction.notes != null &&
-                    transaction.notes!.isNotEmpty) ...[
-                  _divider(),
-                  _DetailRow(
-                    icon: HugeIcons.strokeRoundedInformationCircle,
-                    label: 'finances.transaction_detail.notes'.tr(),
-                    value: transaction.notes!,
-                    multiline: true,
+          title: 'finances.transaction_detail.title'.tr(),
+          backgroundColor: context.sac.background,
+          actions: [
+            if (canEdit) ...[
+              SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  onPressed: () => _confirmDelete(context, ref),
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedDelete02,
+                    size: 20,
+                    color: AppColors.error,
                   ),
-                ],
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            if (transaction.evidences.isNotEmpty) ...[
-              _EvidenceCard(evidences: transaction.evidences),
-              const SizedBox(height: 16),
-            ],
-
-            // Audit card
-            _DetailCard(
-              children: [
-                _DetailRow(
-                  icon: HugeIcons.strokeRoundedUser,
-                  label: 'finances.transaction_detail.registered_by'.tr(),
-                  value: transaction.registeredByName,
                 ),
-                _divider(),
-                _DetailRow(
-                  icon: HugeIcons.strokeRoundedClock01,
-                  label: 'finances.transaction_detail.registration_date'.tr(),
-                  value: DateFormat('dd/MM/yyyy HH:mm')
-                      .format(transaction.registeredAt.toLocal()),
-                ),
-                if (transaction.modifiedByName != null) ...[
-                  _divider(),
-                  _DetailRow(
+              ),
+              SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  onPressed: () => _openEditSheet(context),
+                  icon: HugeIcon(
                     icon: HugeIcons.strokeRoundedEdit02,
-                    label: 'finances.transaction_detail.modified_by'.tr(),
-                    value: transaction.modifiedByName!,
+                    size: 20,
+                    color: SacAccent.of(context).color,
                   ),
-                  if (transaction.modifiedAt != null) ...[
+                ),
+              ),
+            ],
+          ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SingleChildScrollView(
+            padding:
+                SacTopBar.paddingBelowBar(context, const EdgeInsets.all(16)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Type + amount hero
+                _AmountHero(transaction: transaction, color: color),
+
+                const SizedBox(height: 20),
+
+                // Details card
+                _DetailCard(
+                  children: [
+                    _DetailRow(
+                      icon: HugeIcons.strokeRoundedNote01,
+                      label: 'finances.transaction_detail.concept'.tr(),
+                      value: transaction.description,
+                    ),
+                    _divider(),
+                    _DetailRow(
+                      icon: HugeIcons.strokeRoundedTag01,
+                      label: 'finances.transaction_detail.category'.tr(),
+                      value: transaction.category.name,
+                    ),
+                    _divider(),
+                    _DetailRow(
+                      icon: HugeIcons.strokeRoundedCalendar01,
+                      label: 'finances.transaction_detail.date'.tr(),
+                      value: DateFormat('dd \'de\' MMMM \'de\' yyyy', 'es')
+                          .format(transaction.date.toLocal()),
+                    ),
+                    if (transaction.notes != null &&
+                        transaction.notes!.isNotEmpty) ...[
+                      _divider(),
+                      _DetailRow(
+                        icon: HugeIcons.strokeRoundedInformationCircle,
+                        label: 'finances.transaction_detail.notes'.tr(),
+                        value: transaction.notes!,
+                        multiline: true,
+                      ),
+                    ],
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                if (transaction.evidences.isNotEmpty) ...[
+                  _EvidenceCard(evidences: transaction.evidences),
+                  const SizedBox(height: 16),
+                ],
+
+                // Audit card
+                _DetailCard(
+                  children: [
+                    _DetailRow(
+                      icon: HugeIcons.strokeRoundedUser,
+                      label: 'finances.transaction_detail.registered_by'.tr(),
+                      value: transaction.registeredByName,
+                    ),
                     _divider(),
                     _DetailRow(
                       icon: HugeIcons.strokeRoundedClock01,
                       label:
-                          'finances.transaction_detail.modification_date'.tr(),
+                          'finances.transaction_detail.registration_date'.tr(),
                       value: DateFormat('dd/MM/yyyy HH:mm')
-                          .format(transaction.modifiedAt!.toLocal()),
+                          .format(transaction.registeredAt.toLocal()),
                     ),
+                    if (transaction.modifiedByName != null) ...[
+                      _divider(),
+                      _DetailRow(
+                        icon: HugeIcons.strokeRoundedEdit02,
+                        label: 'finances.transaction_detail.modified_by'.tr(),
+                        value: transaction.modifiedByName!,
+                      ),
+                      if (transaction.modifiedAt != null) ...[
+                        _divider(),
+                        _DetailRow(
+                          icon: HugeIcons.strokeRoundedClock01,
+                          label: 'finances.transaction_detail.modification_date'
+                              .tr(),
+                          value: DateFormat('dd/MM/yyyy HH:mm')
+                              .format(transaction.modifiedAt!.toLocal()),
+                        ),
+                      ],
+                    ],
                   ],
-                ],
+                ),
+
+                const SizedBox(height: 32),
               ],
             ),
-
-            const SizedBox(height: 32),
-          ],
+          ),
         ),
       ),
     );

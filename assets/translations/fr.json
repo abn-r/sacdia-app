@@ -184,6 +184,8 @@
     "login_error": "Erreur lors de la connexion",
     "cooldown_message": "Trop de tentatives. Réessayez dans {seconds}s.",
     "login_subtitle": "Connectez-vous pour continuer",
+    "keyboard_send": "Envoyer",
+    "keyboard_hide": "Masquer",
     "password_hint_login": "Votre mot de passe",
     "no_account": "Vous n'avez pas de compte ? ",
     "register_link": "Inscrivez-vous",

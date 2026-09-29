@@ -56,43 +56,49 @@ class MemberProfileView extends ConsumerWidget {
     );
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: title ?? 'members.profile_view.title'.tr(),
-        centerTitle: true,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedLockKey,
-                  color: c.textTertiary,
-                  size: 14,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  'members.profile_view.read_only'.tr(),
-                  style: TextStyle(
-                    fontSize: 12,
+          title: title ?? 'members.profile_view.title'.tr(),
+          centerTitle: true,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedLockKey,
                     color: c.textTertiary,
+                    size: 14,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 4),
+                  Text(
+                    'members.profile_view.read_only'.tr(),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: c.textTertiary,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: detailAsync.when(
-          skipLoadingOnReload: true,
-          loading: () => const Center(child: SacLoading()),
-          error: (error, _) => _ErrorState(message: error.toString()),
-          data: (fullDetail) => _ProfileScrollBody(
-            detail: fullDetail,
-            hPad: hPad,
-            canViewMedical: canViewMedical,
+          ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            top: false,
+            child: detailAsync.when(
+              skipLoadingOnReload: true,
+              loading: () => const Center(child: SacLoading()),
+              error: (error, _) => _ErrorState(message: error.toString()),
+              data: (fullDetail) => _ProfileScrollBody(
+                detail: fullDetail,
+                hPad: hPad,
+                canViewMedical: canViewMedical,
+              ),
+            ),
           ),
         ),
       ),
@@ -116,7 +122,8 @@ class _ProfileScrollBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: hPad),
+      padding: SacTopBar.paddingBelowBar(
+          context, EdgeInsets.symmetric(horizontal: hPad)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

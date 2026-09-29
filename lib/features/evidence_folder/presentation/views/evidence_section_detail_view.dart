@@ -94,15 +94,16 @@ class _EvidenceSectionDetailViewState
         }
       },
       child: Scaffold(
+        extendBodyBehindAppBar: true,
         backgroundColor: c.background,
         appBar: SacTopBar(
-          title: 'evidence_folder.section_title'.tr(),
-          backgroundColor: c.background,
-          actions: [
-            SectionStatusBadge(status: widget.section.status),
-            const SizedBox(width: 16),
-          ],
-        ),
+            title: 'evidence_folder.section_title'.tr(),
+            backgroundColor: c.background,
+            actions: [
+              SectionStatusBadge(status: widget.section.status),
+              const SizedBox(width: 16),
+            ],
+            frosted: true),
         bottomNavigationBar: canModify
             ? EvidenceStagingActionBar(
                 onPickImages: () {
@@ -120,211 +121,226 @@ class _EvidenceSectionDetailViewState
                         false),
               )
             : null,
-        body: Stack(
-          children: [
-            SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Bloque de título — igual al patrón de clases
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'evidence_folder.section_detail_label'.tr(),
+        body: SacFrostedVeil(
+          child: Builder(
+            builder: (context) => Stack(
+              children: [
+                SingleChildScrollView(
+                  padding:
+                      EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Bloque de título — igual al patrón de clases
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'evidence_folder.section_detail_label'.tr(),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelSmall
+                                  ?.copyWith(
+                                    color: c.textSecondary,
+                                    letterSpacing: 0.8,
+                                  ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              widget.section.name,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: c.text,
+                                    height: 1.25,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Descripción + métricas
+                      _SectionMetaCard(section: widget.section),
+
+                      const SizedBox(height: 16),
+
+                      // Estado actual del sección (chip visual, solo lectura)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                        child: Text(
+                          'evidence_folder.section_status_label'.tr(),
                           style:
                               Theme.of(context).textTheme.labelSmall?.copyWith(
                                     color: c.textSecondary,
                                     letterSpacing: 0.8,
                                   ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          widget.section.name,
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: c.text,
-                                    height: 1.25,
-                                  ),
+                      ),
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: _EvidenceStatusChip(
+                          status: widget.section.status,
+                          onTap: () => showEvidenceStatusHistorySheet(
+                            context,
+                            section: widget.section,
+                          ),
+                        ),
+                      ),
+
+                      // Resultado de evaluación (solo lectura, si existe)
+                      if (widget.section.status ==
+                              EvidenceSectionStatus.validated ||
+                          widget.section.lfApproverName != null ||
+                          widget.section.unionApproverName != null) ...[
+                        const SizedBox(height: 24),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                          child: Text(
+                            'evidence_folder.evaluation_result_title'.tr(),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: c.text,
+                                ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: _EvaluationResultCard(section: widget.section),
                         ),
                       ],
-                    ),
-                  ),
 
-                  const SizedBox(height: 16),
+                      const SizedBox(height: 24),
 
-                  // Descripción + métricas
-                  _SectionMetaCard(section: widget.section),
-
-                  const SizedBox(height: 16),
-
-                  // Estado actual del sección (chip visual, solo lectura)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                    child: Text(
-                      'evidence_folder.section_status_label'.tr(),
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: c.textSecondary,
-                            letterSpacing: 0.8,
-                          ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: _EvidenceStatusChip(
-                      status: widget.section.status,
-                      onTap: () => showEvidenceStatusHistorySheet(
-                        context,
-                        section: widget.section,
+                      // Archivos de evidencia header
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                        child: Text(
+                          'evidence_folder.evidence_files_title'.tr(),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: c.text,
+                                  ),
+                        ),
                       ),
-                    ),
-                  ),
 
-                  // Resultado de evaluación (solo lectura, si existe)
-                  if (widget.section.status ==
-                          EvidenceSectionStatus.validated ||
-                      widget.section.lfApproverName != null ||
-                      widget.section.unionApproverName != null) ...[
-                    const SizedBox(height: 24),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                      child: Text(
-                        'evidence_folder.evaluation_result_title'.tr(),
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: c.text,
+                      // Notas del revisor por archivo — solo si existen
+                      _ReviewerNotesBlock(files: widget.section.files),
+
+                      // EvidenceStagingManager en modo embebido — crece con su
+                      // contenido sin reclamar su propia área de scroll.
+                      EvidenceStagingManager(
+                        key: _stagingManagerKey,
+                        embeddedMode: true,
+                        showActionBar: false,
+                        existingFiles: widget.section.files
+                            .map(StagedFile.fromEvidenceFile)
+                            .toList(),
+                        maxFiles: widget.section.maxFiles,
+                        isLoading: isLoading,
+                        canModify: canModify,
+                        onLocalFilesChanged: (hasLocal) {
+                          setState(() => _hasUnsavedFiles = hasLocal);
+                        },
+                        onActionStateChanged: () {
+                          if (mounted) setState(() {});
+                        },
+                        // C-1: Pass onProgress to the notifier so Dio
+                        // reports progress.
+                        // C-2: skipInvalidation prevents per-file provider
+                        // refresh mid-batch.
+                        // I-6: Throw on false so the staging manager
+                        // catches the error.
+                        onUpload: (xFile, mimeType, onProgress) async {
+                          final success = await ref
+                              .read(
+                                evidenceSectionNotifierProvider(
+                                  widget.clubSectionId,
+                                ).notifier,
+                              )
+                              .uploadFile(
+                                sectionId: widget.section.id,
+                                pickedFile: xFile,
+                                mimeType: mimeType,
+                                onProgress: onProgress,
+                                skipInvalidation: true,
+                              );
+                          if (!success) {
+                            throw Exception(
+                              tr('evidence_folder.errors.upload_failed'),
+                            );
+                          }
+                        },
+                        onDeleteRemote: (fileId) async {
+                          await ref
+                              .read(
+                                evidenceSectionNotifierProvider(
+                                  widget.clubSectionId,
+                                ).notifier,
+                              )
+                              .deleteFile(fileId: fileId);
+                        },
+                        onSubmit: () async {
+                          final success = await ref
+                              .read(
+                                evidenceSectionNotifierProvider(
+                                  widget.clubSectionId,
+                                ).notifier,
+                              )
+                              .submitSection(widget.section.id);
+                          if (!success) return;
+                          if (!context.mounted) return;
+                          SacSnackBar.show(
+                            context,
+                            'evidence_folder.submit_success'.tr(
+                              namedArgs: {
+                                'sectionName': widget.section.name,
+                              },
                             ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: _EvaluationResultCard(section: widget.section),
-                    ),
-                  ],
-
-                  const SizedBox(height: 24),
-
-                  // Archivos de evidencia header
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                    child: Text(
-                      'evidence_folder.evidence_files_title'.tr(),
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: c.text,
-                          ),
-                    ),
-                  ),
-
-                  // Notas del revisor por archivo — solo si existen
-                  _ReviewerNotesBlock(files: widget.section.files),
-
-                  // EvidenceStagingManager en modo embebido — crece con su
-                  // contenido sin reclamar su propia área de scroll.
-                  EvidenceStagingManager(
-                    key: _stagingManagerKey,
-                    embeddedMode: true,
-                    showActionBar: false,
-                    existingFiles: widget.section.files
-                        .map(StagedFile.fromEvidenceFile)
-                        .toList(),
-                    maxFiles: widget.section.maxFiles,
-                    isLoading: isLoading,
-                    canModify: canModify,
-                    onLocalFilesChanged: (hasLocal) {
-                      setState(() => _hasUnsavedFiles = hasLocal);
-                    },
-                    onActionStateChanged: () {
-                      if (mounted) setState(() {});
-                    },
-                    // C-1: Pass onProgress to the notifier so Dio
-                    // reports progress.
-                    // C-2: skipInvalidation prevents per-file provider
-                    // refresh mid-batch.
-                    // I-6: Throw on false so the staging manager
-                    // catches the error.
-                    onUpload: (xFile, mimeType, onProgress) async {
-                      final success = await ref
-                          .read(
-                            evidenceSectionNotifierProvider(
-                              widget.clubSectionId,
-                            ).notifier,
-                          )
-                          .uploadFile(
-                            sectionId: widget.section.id,
-                            pickedFile: xFile,
-                            mimeType: mimeType,
-                            onProgress: onProgress,
-                            skipInvalidation: true,
+                            backgroundColor: AppColors.secondary,
+                            leading: const HugeIcon(
+                              icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+                              color: Colors.white,
+                              size: 18,
+                            ),
                           );
-                      if (!success) {
-                        throw Exception(
-                          tr('evidence_folder.errors.upload_failed'),
-                        );
-                      }
-                    },
-                    onDeleteRemote: (fileId) async {
-                      await ref
-                          .read(
-                            evidenceSectionNotifierProvider(
-                              widget.clubSectionId,
-                            ).notifier,
-                          )
-                          .deleteFile(fileId: fileId);
-                    },
-                    onSubmit: () async {
-                      final success = await ref
-                          .read(
-                            evidenceSectionNotifierProvider(
-                              widget.clubSectionId,
-                            ).notifier,
-                          )
-                          .submitSection(widget.section.id);
-                      if (!success) return;
-                      if (!context.mounted) return;
-                      SacSnackBar.show(
-                        context,
-                        'evidence_folder.submit_success'.tr(
-                          namedArgs: {
-                            'sectionName': widget.section.name,
-                          },
-                        ),
-                        backgroundColor: AppColors.secondary,
-                        leading: const HugeIcon(
-                          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                          color: Colors.white,
-                          size: 18,
-                        ),
-                      );
-                      Navigator.pop(context);
-                    },
-                    fileNameBuilder: (originalName, index) {
-                      final ext = originalName.contains('.')
-                          ? originalName.split('.').last.toLowerCase()
-                          : 'bin';
-                      final displayIndex = index.toString().padLeft(2, '0');
-                      return 'Evidencia $displayIndex.$ext';
-                    },
+                          Navigator.pop(context);
+                        },
+                        fileNameBuilder: (originalName, index) {
+                          final ext = originalName.contains('.')
+                              ? originalName.split('.').last.toLowerCase()
+                              : 'bin';
+                          final displayIndex = index.toString().padLeft(2, '0');
+                          return 'Evidencia $displayIndex.$ext';
+                        },
+                      ),
+
+                      SizedBox(height: widget.section.files.isEmpty ? 8 : 16),
+                    ],
                   ),
+                ),
 
-                  SizedBox(height: widget.section.files.isEmpty ? 8 : 16),
-                ],
-              ),
+                // Loading overlay
+                if (isLoading)
+                  Container(
+                    color: Colors.black.withValues(alpha: 0.35),
+                    child: const Center(child: SacLoading()),
+                  ),
+              ],
             ),
-
-            // Loading overlay
-            if (isLoading)
-              Container(
-                color: Colors.black.withValues(alpha: 0.35),
-                child: const Center(child: SacLoading()),
-              ),
-          ],
+          ),
         ),
       ),
     );

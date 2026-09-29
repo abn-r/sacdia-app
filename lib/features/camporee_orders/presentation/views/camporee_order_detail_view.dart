@@ -43,53 +43,59 @@ class CamporeeOrderDetailView extends ConsumerWidget {
     });
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'camporee_orders.detail.title'.tr(),
-        backgroundColor: c.surface,
-        foregroundColor: c.text,
-      ),
-      body: SafeArea(
-        child: orderAsync.when(
-          loading: () => const Center(child: SacLoading()),
-          error: (error, _) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedAlert02,
-                    size: 42,
-                    color: AppColors.error,
+          title: 'camporee_orders.detail.title'.tr(),
+          backgroundColor: c.surface,
+          foregroundColor: c.text,
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            top: false,
+            child: orderAsync.when(
+              loading: () => const Center(child: SacLoading()),
+              error: (error, _) => Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedAlert02,
+                        size: 42,
+                        color: AppColors.error,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        camporeeOrdersErrorMessage(error),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 13, color: c.textSecondary),
+                      ),
+                      const SizedBox(height: 14),
+                      SacButton.outline(
+                        text: 'common.retry'.tr(),
+                        onPressed: () => ref
+                            .invalidate(camporeeOrderDetailProvider(orderId)),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    camporeeOrdersErrorMessage(error),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 13, color: c.textSecondary),
-                  ),
-                  const SizedBox(height: 14),
-                  SacButton.outline(
-                    text: 'common.retry'.tr(),
-                    onPressed: () =>
-                        ref.invalidate(camporeeOrderDetailProvider(orderId)),
-                  ),
-                ],
+                ),
+              ),
+              data: (order) => _OrderDetailBody(
+                order: order,
+                isWorking: actionsState.isWorking,
+                canDistribute: canDistributeAsync.valueOrNull == true &&
+                    order.canDistribute,
+                onViewPdf: () => _viewPdf(context, ref, order),
+                onUploadProof: () => _pickAndUploadProof(context, ref),
+                onCancel: () => _confirmCancel(context, ref),
+                onDeliver: (lineId) => ref
+                    .read(camporeeOrderActionsProvider.notifier)
+                    .deliverLineToMember(orderId: orderId, lineId: lineId),
               ),
             ),
-          ),
-          data: (order) => _OrderDetailBody(
-            order: order,
-            isWorking: actionsState.isWorking,
-            canDistribute:
-                canDistributeAsync.valueOrNull == true && order.canDistribute,
-            onViewPdf: () => _viewPdf(context, ref, order),
-            onUploadProof: () => _pickAndUploadProof(context, ref),
-            onCancel: () => _confirmCancel(context, ref),
-            onDeliver: (lineId) => ref
-                .read(camporeeOrderActionsProvider.notifier)
-                .deliverLineToMember(orderId: orderId, lineId: lineId),
           ),
         ),
       ),
@@ -224,7 +230,7 @@ class _OrderDetailBody extends StatelessWidget {
     final dateFormat = DateFormat.yMMMd(context.locale.toString());
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(20)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

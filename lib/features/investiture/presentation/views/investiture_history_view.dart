@@ -29,35 +29,41 @@ class InvestitureHistoryView extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.canvas,
       appBar: SacTopBar(
-        title: 'investiture.history.title'.tr(),
-        backgroundColor: c.canvas,
-        actions: [
-          SacPressable(
-            listenOnly: true,
-            child: IconButton(
-              enableFeedback: false,
-              onPressed: () =>
-                  ref.invalidate(investitureHistoryProvider(enrollmentId)),
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedRefresh,
-                size: 22,
-                color: c.ink900,
+          title: 'investiture.history.title'.tr(),
+          backgroundColor: c.canvas,
+          actions: [
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                onPressed: () =>
+                    ref.invalidate(investitureHistoryProvider(enrollmentId)),
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedRefresh,
+                  size: 22,
+                  color: c.ink900,
+                ),
+                tooltip: 'investiture.history.tooltip_refresh'.tr(),
               ),
-              tooltip: 'investiture.history.tooltip_refresh'.tr(),
             ),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: historyAsync.when(
-          data: (history) => _HistoryContent(history: history),
-          loading: () => const Center(child: SacLoading()),
-          error: (error, _) => _HistoryError(
-            error: error,
-            onRetry: () =>
-                ref.invalidate(investitureHistoryProvider(enrollmentId)),
+          ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            top: false,
+            child: historyAsync.when(
+              data: (history) => _HistoryContent(history: history),
+              loading: () => const Center(child: SacLoading()),
+              error: (error, _) => _HistoryError(
+                error: error,
+                onRetry: () =>
+                    ref.invalidate(investitureHistoryProvider(enrollmentId)),
+              ),
+            ),
           ),
         ),
       ),
@@ -81,6 +87,8 @@ class _HistoryContent extends StatelessWidget {
         parent: AlwaysScrollableScrollPhysics(),
       ),
       slivers: [
+        SliverToBoxAdapter(
+            child: SizedBox(height: SacTopBar.frostedInset(context))),
         SliverPadding(
           padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 24),
           sliver: SliverList(

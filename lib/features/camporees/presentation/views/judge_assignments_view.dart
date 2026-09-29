@@ -29,64 +29,72 @@ class JudgeAssignmentsView extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
-      backgroundColor: c.surfaceVariant,
+      extendBodyBehindAppBar: true,
+      backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'camporees.judge.assignments_title'.tr(),
-      ),
-      body: SafeArea(
-        child: RefreshIndicator(
-          color: Theme.of(context).colorScheme.primary,
-          onRefresh: () async {
-            ref.invalidate(camporeeJudgeAssignmentsProvider);
-          },
-          child: assignmentsAsync.when(
-            data: (assignments) {
-              final primaryAssignments = assignments
-                  .where((assignment) => assignment.canCaptureOfficialScore)
-                  .toList();
+          title: 'camporees.judge.assignments_title'.tr(), frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            top: false,
+            child: RefreshIndicator(
+              color: Theme.of(context).colorScheme.primary,
+              onRefresh: () async {
+                ref.invalidate(camporeeJudgeAssignmentsProvider);
+              },
+              child: assignmentsAsync.when(
+                data: (assignments) {
+                  final primaryAssignments = assignments
+                      .where((assignment) => assignment.canCaptureOfficialScore)
+                      .toList();
 
-              if (primaryAssignments.isEmpty) {
-                return _EmptyAssignments(onRetry: () {
-                  ref.invalidate(camporeeJudgeAssignmentsProvider);
-                });
-              }
-
-              final groups = _groupJudgeAssignmentsByEvent(primaryAssignments);
-
-              return ListView.builder(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-                itemCount: groups.length + 1,
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 14),
-                      child: _InboxSummary(
-                        clubCount: primaryAssignments.length,
-                        eventCount: groups.length,
-                      ),
-                    );
+                  if (primaryAssignments.isEmpty) {
+                    return _EmptyAssignments(onRetry: () {
+                      ref.invalidate(camporeeJudgeAssignmentsProvider);
+                    });
                   }
 
-                  final groupIndex = index - 1;
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      bottom: groupIndex == groups.length - 1 ? 0 : 14,
-                    ),
-                    child: StaggeredListItem(
-                      index: groupIndex,
-                      child: _EventAssignmentCard(
-                        assignments: groups[groupIndex],
-                      ),
-                    ),
+                  final groups =
+                      _groupJudgeAssignmentsByEvent(primaryAssignments);
+
+                  return ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: SacTopBar.paddingBelowBar(
+                        context, const EdgeInsets.fromLTRB(16, 8, 16, 32)),
+                    itemCount: groups.length + 1,
+                    itemBuilder: (context, index) {
+                      if (index == 0) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 14),
+                          child: _InboxSummary(
+                            clubCount: primaryAssignments.length,
+                            eventCount: groups.length,
+                          ),
+                        );
+                      }
+
+                      final groupIndex = index - 1;
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          bottom: groupIndex == groups.length - 1 ? 0 : 14,
+                        ),
+                        child: StaggeredListItem(
+                          index: groupIndex,
+                          child: _EventAssignmentCard(
+                            assignments: groups[groupIndex],
+                          ),
+                        ),
+                      );
+                    },
                   );
                 },
-              );
-            },
-            loading: () => const Center(child: SacLoading()),
-            error: (error, _) => _ErrorAssignments(
-              message: error.toString().replaceFirst('Exception: ', ''),
-              onRetry: () => ref.invalidate(camporeeJudgeAssignmentsProvider),
+                loading: () => const Center(child: SacLoading()),
+                error: (error, _) => _ErrorAssignments(
+                  message: error.toString().replaceFirst('Exception: ', ''),
+                  onRetry: () =>
+                      ref.invalidate(camporeeJudgeAssignmentsProvider),
+                ),
+              ),
             ),
           ),
         ),
@@ -365,7 +373,7 @@ class _EmptyAssignments extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(24),
+      padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(24)),
       children: [
         const SizedBox(height: 96),
         HugeIcon(
@@ -409,7 +417,7 @@ class _ErrorAssignments extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(24),
+      padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(24)),
       children: [
         const SizedBox(height: 96),
         HugeIcon(

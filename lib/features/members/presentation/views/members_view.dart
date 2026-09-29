@@ -87,106 +87,110 @@ class _MembersViewState extends ConsumerState<MembersView> {
         : membersAsync.isLoading;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'members.view.title'.tr(),
-        onBack: () => Navigator.of(context).maybePop(),
-        titleIcon: HugeIcon(
-          icon: HugeIcons.strokeRoundedUserList,
-          size: 22,
-          color: SacAccent.of(context).color,
-        ),
-        actions: [
-          SacPressable(
-            listenOnly: true,
-            child: IconButton(
-              enableFeedback: false,
-              onPressed: refreshing
-                  ? null
-                  : () {
-                      if (onContinuations) {
-                        ref.invalidate(annualContinuationsNotifierProvider);
-                      } else {
-                        ref.read(membersNotifierProvider.notifier).refresh();
-                      }
-                    },
-              icon: refreshing
-                  ? SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: c.textTertiary,
-                      ),
-                    )
-                  : HugeIcon(
-                      icon: HugeIcons.strokeRoundedRefresh,
-                      color: c.textTertiary,
-                      size: 18,
-                    ),
-            ),
+          title: 'members.view.title'.tr(),
+          onBack: () => Navigator.of(context).maybePop(),
+          titleIcon: HugeIcon(
+            icon: HugeIcons.strokeRoundedUserList,
+            size: 22,
+            color: SacAccent.of(context).color,
           ),
-        ],
-      ),
-      body: SafeArea(
-        top: false,
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: hPad, vertical: 8),
-              child: MembersModeSwitcher(
-                index: mode,
-                onChanged: (next) => setState(() => _mode = next),
-                showContinuations: canContinue,
-                pendingRequests: pendingCount,
-                pendingContinuations: pendingContinuations,
-              ),
-            ),
-            Expanded(
-              child: clubCtxAsync.when(
-                data: (ctx) {
-                  if (ctx == null) {
-                    return _NoClubState();
-                  }
-                  final pages = <Widget>[
-                    _MembersTab(
-                      clubContext: ctx,
-                      isDirector: isDirector,
-                      membersAsync: membersAsync,
-                    ),
-                    _JoinRequestsTab(
-                      clubContext: ctx,
-                      isDirector: isDirector,
-                      membersAsync: membersAsync,
-                    ),
-                    if (canContinue) const AnnualContinuationsBody(),
-                  ];
-                  return Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      for (var i = 0; i < pages.length; i++)
-                        IgnorePointer(
-                          ignoring: mode != i,
-                          child: AnimatedOpacity(
-                            opacity: mode == i ? 1 : 0,
-                            duration: fadeDuration,
-                            curve: SacMotion.easeOut,
-                            child: pages[i],
-                          ),
+          actions: [
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                onPressed: refreshing
+                    ? null
+                    : () {
+                        if (onContinuations) {
+                          ref.invalidate(annualContinuationsNotifierProvider);
+                        } else {
+                          ref.read(membersNotifierProvider.notifier).refresh();
+                        }
+                      },
+                icon: refreshing
+                    ? SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: c.textTertiary,
                         ),
-                    ],
-                  );
-                },
-                loading: () => const Center(child: SacLoading()),
-                error: (error, _) => Center(
-                  child: Text(
-                    'members.view.club_context_error'.tr(),
-                    style: TextStyle(color: context.sac.textSecondary),
-                  ),
-                ),
+                      )
+                    : HugeIcon(
+                        icon: HugeIcons.strokeRoundedRefresh,
+                        color: c.textTertiary,
+                        size: 18,
+                      ),
               ),
             ),
           ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: hPad, vertical: 8),
+                  child: MembersModeSwitcher(
+                    index: mode,
+                    onChanged: (next) => setState(() => _mode = next),
+                    showContinuations: canContinue,
+                    pendingRequests: pendingCount,
+                    pendingContinuations: pendingContinuations,
+                  ),
+                ),
+                Expanded(
+                  child: clubCtxAsync.when(
+                    data: (ctx) {
+                      if (ctx == null) {
+                        return _NoClubState();
+                      }
+                      final pages = <Widget>[
+                        _MembersTab(
+                          clubContext: ctx,
+                          isDirector: isDirector,
+                          membersAsync: membersAsync,
+                        ),
+                        _JoinRequestsTab(
+                          clubContext: ctx,
+                          isDirector: isDirector,
+                          membersAsync: membersAsync,
+                        ),
+                        if (canContinue) const AnnualContinuationsBody(),
+                      ];
+                      return Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          for (var i = 0; i < pages.length; i++)
+                            IgnorePointer(
+                              ignoring: mode != i,
+                              child: AnimatedOpacity(
+                                opacity: mode == i ? 1 : 0,
+                                duration: fadeDuration,
+                                curve: SacMotion.easeOut,
+                                child: pages[i],
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                    loading: () => const Center(child: SacLoading()),
+                    error: (error, _) => Center(
+                      child: Text(
+                        'members.view.club_context_error'.tr(),
+                        style: TextStyle(color: context.sac.textSecondary),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

@@ -166,34 +166,40 @@ class CamporeeOrderCatalogView extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'camporee_orders.catalog.title'.tr(),
-        backgroundColor: c.surface,
-        foregroundColor: c.text,
-      ),
-      body: SafeArea(
-        child: RefreshIndicator(
-          color: SacAccent.of(context).color,
-          onRefresh: () async {
-            ref.invalidate(camporeeOrderOfferingsProvider(scope));
-            ref.invalidate(camporeeOrdersListProvider(scope));
-          },
-          child: offeringsAsync.when(
-            loading: () => const Center(child: SacLoading()),
-            error: (error, _) => _MessageState(
-              icon: HugeIcons.strokeRoundedAlert02,
-              iconColor: AppColors.error,
-              message: camporeeOrdersErrorMessage(error),
-              onRetry: () =>
-                  ref.invalidate(camporeeOrderOfferingsProvider(scope)),
-            ),
-            data: (catalog) => _CatalogBody(
-              scope: scope,
-              catalog: catalog,
-              ordersAsync: ordersAsync,
-              onRetryOrders: () =>
-                  ref.invalidate(camporeeOrdersListProvider(scope)),
+          title: 'camporee_orders.catalog.title'.tr(),
+          backgroundColor: c.surface,
+          foregroundColor: c.text,
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            top: false,
+            child: RefreshIndicator(
+              color: SacAccent.of(context).color,
+              onRefresh: () async {
+                ref.invalidate(camporeeOrderOfferingsProvider(scope));
+                ref.invalidate(camporeeOrdersListProvider(scope));
+              },
+              child: offeringsAsync.when(
+                loading: () => const Center(child: SacLoading()),
+                error: (error, _) => _MessageState(
+                  icon: HugeIcons.strokeRoundedAlert02,
+                  iconColor: AppColors.error,
+                  message: camporeeOrdersErrorMessage(error),
+                  onRetry: () =>
+                      ref.invalidate(camporeeOrderOfferingsProvider(scope)),
+                ),
+                data: (catalog) => _CatalogBody(
+                  scope: scope,
+                  catalog: catalog,
+                  ordersAsync: ordersAsync,
+                  onRetryOrders: () =>
+                      ref.invalidate(camporeeOrdersListProvider(scope)),
+                ),
+              ),
             ),
           ),
         ),
@@ -230,7 +236,8 @@ class _CatalogBody extends ConsumerWidget {
     }
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+      padding: SacTopBar.paddingBelowBar(
+          context, const EdgeInsets.fromLTRB(20, 16, 20, 40)),
       children: [
         if (window == CamporeeOrdersWindow.notOpen)
           _Banner(
@@ -446,7 +453,7 @@ class _MessageState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(24),
+      padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(24)),
       children: [
         const SizedBox(height: 60),
         HugeIcon(icon: icon, size: 42, color: iconColor),

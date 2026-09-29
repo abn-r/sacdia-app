@@ -41,97 +41,106 @@ class CamporeeMemberOrderView extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'camporee_orders.capture.title'.tr(),
-        backgroundColor: c.surface,
-        foregroundColor: c.text,
-      ),
-      body: SafeArea(
-        child: rosterAsync.when(
-          loading: () => const Center(child: SacLoading()),
-          error: (error, _) => _CaptureError(
-            message: camporeeOrdersErrorMessage(error),
-            onRetry: () =>
-                ref.invalidate(camporeeOrderRosterProvider(camporeeId)),
-          ),
-          data: (roster) {
-            if (roster.isEmpty) {
-              return _CaptureError(
-                message: 'camporee_orders.capture.empty_roster'.tr(),
-                onRetry: () =>
-                    ref.invalidate(camporeeOrderRosterProvider(camporeeId)),
-              );
-            }
-            return offeringsAsync.when(
+          title: 'camporee_orders.capture.title'.tr(),
+          backgroundColor: c.surface,
+          foregroundColor: c.text,
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            top: false,
+            child: rosterAsync.when(
               loading: () => const Center(child: SacLoading()),
               error: (error, _) => _CaptureError(
                 message: camporeeOrdersErrorMessage(error),
                 onRetry: () =>
-                    ref.invalidate(camporeeOrderOfferingsProvider(scope)),
+                    ref.invalidate(camporeeOrderRosterProvider(camporeeId)),
               ),
-              data: (catalog) {
-                final window = evaluateCamporeeOrdersWindow(catalog.settings);
-                if (window != CamporeeOrdersWindow.open) {
+              data: (roster) {
+                if (roster.isEmpty) {
                   return _CaptureError(
-                    message: window == CamporeeOrdersWindow.notOpen
-                        ? 'camporee_orders.catalog.not_open'.tr()
-                        : 'camporee_orders.catalog.closed'.tr(),
+                    message: 'camporee_orders.capture.empty_roster'.tr(),
+                    onRetry: () =>
+                        ref.invalidate(camporeeOrderRosterProvider(camporeeId)),
                   );
                 }
-                final offerings = catalog.items
-                    .where((item) => item.active)
-                    .toList()
-                  ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-                if (offerings.isEmpty) {
-                  return _CaptureError(
-                    message: 'camporee_orders.catalog.offerings_empty'.tr(),
-                  );
-                }
-                return Column(
-                  children: [
-                    Expanded(
-                      child: ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
-                        itemCount: roster.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 10),
-                        itemBuilder: (context, index) {
-                          final member = roster[index];
-                          return _MemberCaptureCard(
-                            member: member,
-                            offerings: offerings,
-                            lines: draft.lines
-                                .where(
-                                  (line) =>
-                                      line.camporeeMemberId ==
-                                      member.camporeeMemberId,
-                                )
-                                .toList(),
-                            onChanged: (line) => ref
-                                .read(
-                                    camporeeOrderDraftProvider(scope).notifier)
-                                .upsertLine(line),
-                          );
-                        },
-                      ),
-                    ),
-                    _CaptureFooter(
-                      lineCount: draft.lines.length,
-                      totalCentavos: draft.totalCentavos,
-                      onContinue: draft.lines.isEmpty
-                          ? null
-                          : () => context.push(
-                                RouteNames.camporeeOrdersReviewPath(
-                                  camporeeId,
-                                  type: scope.typeQuery,
-                                ),
-                              ),
-                    ),
-                  ],
+                return offeringsAsync.when(
+                  loading: () => const Center(child: SacLoading()),
+                  error: (error, _) => _CaptureError(
+                    message: camporeeOrdersErrorMessage(error),
+                    onRetry: () =>
+                        ref.invalidate(camporeeOrderOfferingsProvider(scope)),
+                  ),
+                  data: (catalog) {
+                    final window =
+                        evaluateCamporeeOrdersWindow(catalog.settings);
+                    if (window != CamporeeOrdersWindow.open) {
+                      return _CaptureError(
+                        message: window == CamporeeOrdersWindow.notOpen
+                            ? 'camporee_orders.catalog.not_open'.tr()
+                            : 'camporee_orders.catalog.closed'.tr(),
+                      );
+                    }
+                    final offerings = catalog.items
+                        .where((item) => item.active)
+                        .toList()
+                      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+                    if (offerings.isEmpty) {
+                      return _CaptureError(
+                        message: 'camporee_orders.catalog.offerings_empty'.tr(),
+                      );
+                    }
+                    return Column(
+                      children: [
+                        Expanded(
+                          child: ListView.separated(
+                            padding: SacTopBar.paddingBelowBar(context,
+                                const EdgeInsets.fromLTRB(16, 12, 16, 20)),
+                            itemCount: roster.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 10),
+                            itemBuilder: (context, index) {
+                              final member = roster[index];
+                              return _MemberCaptureCard(
+                                member: member,
+                                offerings: offerings,
+                                lines: draft.lines
+                                    .where(
+                                      (line) =>
+                                          line.camporeeMemberId ==
+                                          member.camporeeMemberId,
+                                    )
+                                    .toList(),
+                                onChanged: (line) => ref
+                                    .read(camporeeOrderDraftProvider(scope)
+                                        .notifier)
+                                    .upsertLine(line),
+                              );
+                            },
+                          ),
+                        ),
+                        _CaptureFooter(
+                          lineCount: draft.lines.length,
+                          totalCentavos: draft.totalCentavos,
+                          onContinue: draft.lines.isEmpty
+                              ? null
+                              : () => context.push(
+                                    RouteNames.camporeeOrdersReviewPath(
+                                      camporeeId,
+                                      type: scope.typeQuery,
+                                    ),
+                                  ),
+                        ),
+                      ],
+                    );
+                  },
                 );
               },
-            );
-          },
+            ),
+          ),
         ),
       ),
     );

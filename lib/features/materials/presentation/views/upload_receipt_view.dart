@@ -162,23 +162,26 @@ class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
     });
 
     return Scaffold(
-      appBar: SacTopBar(
-        title: 'materials.receipt.title'.tr(),
+      extendBodyBehindAppBar: true,
+      appBar: SacTopBar(title: 'materials.receipt.title'.tr(), frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => uploadState.isLoading
+              ? _UploadProgress(progress: uploadState.progress)
+              : _FormBody(
+                  formKey: _formKey,
+                  selectedFileName: _selectedFileName,
+                  selectedFileSizeBytes: _selectedFileSizeBytes,
+                  fileError: _fileError,
+                  fechaPago: _fechaPago,
+                  refController: _refController,
+                  onPickFile: _pickFile,
+                  onPickDate: _pickDate,
+                  onMontoChanged: (c) => _montoCentavos = c,
+                  onSubmit: _submit,
+                ),
+        ),
       ),
-      body: uploadState.isLoading
-          ? _UploadProgress(progress: uploadState.progress)
-          : _FormBody(
-              formKey: _formKey,
-              selectedFileName: _selectedFileName,
-              selectedFileSizeBytes: _selectedFileSizeBytes,
-              fileError: _fileError,
-              fechaPago: _fechaPago,
-              refController: _refController,
-              onPickFile: _pickFile,
-              onPickDate: _pickDate,
-              onMontoChanged: (c) => _montoCentavos = c,
-              onSubmit: _submit,
-            ),
     );
   }
 }
@@ -276,7 +279,8 @@ class _FormBody extends StatelessWidget {
     return Form(
       key: formKey,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        padding: SacTopBar.paddingBelowBar(
+            context, const EdgeInsets.fromLTRB(16, 16, 16, 32)),
         children: [
           // ── File picker area ─────────────────────────────────────────────────
           _SectionLabel(label: 'materials.receipt.file_section'.tr()),
@@ -285,8 +289,9 @@ class _FormBody extends StatelessWidget {
             SacButton.outline(
               text: 'materials.receipt.pick_file'.tr(),
               icon: HugeIcons.strokeRoundedAttachment01,
-              borderColor:
-                  fileError != null ? AppColors.error : SacAccent.of(context).color,
+              borderColor: fileError != null
+                  ? AppColors.error
+                  : SacAccent.of(context).color,
               labelMaxLines: 2,
               onPressed: onPickFile,
             )
@@ -402,7 +407,8 @@ class _FilePreview extends StatelessWidget {
       decoration: BoxDecoration(
         color: SacAccent.of(context).surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SacAccent.of(context).color.withValues(alpha: 0.3)),
+        border: Border.all(
+            color: SacAccent.of(context).color.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [

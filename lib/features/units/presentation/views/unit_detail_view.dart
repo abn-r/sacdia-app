@@ -53,105 +53,110 @@ class UnitDetailView extends ConsumerWidget {
         canRegisterPoints && state.categories.isNotEmpty && !state.isSavedToday;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: unit.name,
-        centerTitle: true,
-        onBack: () => Navigator.of(context).pop(),
-        actions: [
-          if (showBulk)
-            SacPressable(
-              listenOnly: true,
-              child: TextButton(
-                onPressed: () => _openBulkSheet(
-                  context,
-                  categories: state.categories,
-                  onSetForAll: (category, value) {
-                    HapticFeedback.selectionClick();
-                    notifier.setCategoryPointsForAllMembers(
-                      category.scoringCategoryId,
-                      value,
-                    );
-                  },
-                ),
-                style: (TextButton.styleFrom(
-                  foregroundColor: SacAccent.of(context).color,
-                  splashFactory: NoSplash.splashFactory,
-                  overlayColor: Colors.transparent,
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                )).copyWith(enableFeedback: false),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedUserMultiple,
-                      size: 18,
-                      color: SacAccent.of(context).color,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'units.detail.bulk_action_button'.tr(),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-        ],
-      ),
-      body: Column(
-        children: [
-          _WeekActivitiesBanner(unit: unit),
-          if (state.isSavedToday) const _SavedStatusStrip(),
-          Expanded(
-            child: members.isEmpty
-                ? const SizedBox.shrink()
-                : _MemberScoreList(
-                    members: members,
+          title: unit.name,
+          centerTitle: true,
+          onBack: () => Navigator.of(context).pop(),
+          actions: [
+            if (showBulk)
+              SacPressable(
+                listenOnly: true,
+                child: TextButton(
+                  onPressed: () => _openBulkSheet(
+                    context,
                     categories: state.categories,
-                    pendingScores: state.pendingScores,
-                    totalFor: state.totalPendingForMember,
-                    isDisabled: state.isSavedToday || !canRegisterPoints,
-                    isReadOnly: !canRegisterPoints,
-                    topPadding: state.isSavedToday ? 8 : 12,
-                    bottomPadding: canRegisterPoints ? 16 : 28,
-                    onAdjust: (memberId, categoryId, delta) {
+                    onSetForAll: (category, value) {
                       HapticFeedback.selectionClick();
-                      notifier.adjustCategoryPoints(
-                        memberId,
-                        categoryId,
-                        delta,
-                      );
-                    },
-                    onSetValue: (memberId, categoryId, value) {
-                      HapticFeedback.selectionClick();
-                      notifier.setCategoryPoints(
-                        memberId,
-                        categoryId,
+                      notifier.setCategoryPointsForAllMembers(
+                        category.scoringCategoryId,
                         value,
                       );
                     },
-                    onSetAll: (memberId) {
-                      HapticFeedback.lightImpact();
-                      notifier.setAllCategoryPointsForMember(memberId);
-                    },
-                    onClear: (memberId) {
-                      HapticFeedback.lightImpact();
-                      notifier.clearCategoryPointsForMember(memberId);
-                    },
                   ),
+                  style: (TextButton.styleFrom(
+                    foregroundColor: SacAccent.of(context).color,
+                    splashFactory: NoSplash.splashFactory,
+                    overlayColor: Colors.transparent,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                  )).copyWith(enableFeedback: false),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedUserMultiple,
+                        size: 18,
+                        color: SacAccent.of(context).color,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'units.detail.bulk_action_button'.tr(),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => Column(
+            children: [
+              _WeekActivitiesBanner(unit: unit),
+              if (state.isSavedToday) const _SavedStatusStrip(),
+              Expanded(
+                child: members.isEmpty
+                    ? const SizedBox.shrink()
+                    : _MemberScoreList(
+                        members: members,
+                        categories: state.categories,
+                        pendingScores: state.pendingScores,
+                        totalFor: state.totalPendingForMember,
+                        isDisabled: state.isSavedToday || !canRegisterPoints,
+                        isReadOnly: !canRegisterPoints,
+                        topPadding: state.isSavedToday ? 8 : 12,
+                        bottomPadding: canRegisterPoints ? 16 : 28,
+                        onAdjust: (memberId, categoryId, delta) {
+                          HapticFeedback.selectionClick();
+                          notifier.adjustCategoryPoints(
+                            memberId,
+                            categoryId,
+                            delta,
+                          );
+                        },
+                        onSetValue: (memberId, categoryId, value) {
+                          HapticFeedback.selectionClick();
+                          notifier.setCategoryPoints(
+                            memberId,
+                            categoryId,
+                            value,
+                          );
+                        },
+                        onSetAll: (memberId) {
+                          HapticFeedback.lightImpact();
+                          notifier.setAllCategoryPointsForMember(memberId);
+                        },
+                        onClear: (memberId) {
+                          HapticFeedback.lightImpact();
+                          notifier.clearCategoryPointsForMember(memberId);
+                        },
+                      ),
+              ),
+              if (canRegisterPoints)
+                _SaveFooter(
+                  isSavedToday: state.isSavedToday,
+                  isSaving: state.isSaving,
+                  onSave: () => _handleSave(context, notifier),
+                  onReset: () => notifier.resetSession(),
+                ),
+            ],
           ),
-          if (canRegisterPoints)
-            _SaveFooter(
-              isSavedToday: state.isSavedToday,
-              isSaving: state.isSaving,
-              onSave: () => _handleSave(context, notifier),
-              onReset: () => notifier.resetSession(),
-            ),
-        ],
+        ),
       ),
     );
   }
@@ -478,8 +483,8 @@ class _MemberScoreListState extends State<_MemberScoreList> {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      padding:
-          EdgeInsets.fromLTRB(16, widget.topPadding, 16, widget.bottomPadding),
+      padding: SacTopBar.paddingBelowBar(context,
+          EdgeInsets.fromLTRB(16, widget.topPadding, 16, widget.bottomPadding)),
       itemCount: widget.members.length,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
@@ -584,7 +589,9 @@ class _MemberCard extends StatelessWidget {
                   Text(
                     '$total',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: hasPoints ? SacAccent.of(context).color : c.textTertiary,
+                      color: hasPoints
+                          ? SacAccent.of(context).color
+                          : c.textTertiary,
                       fontWeight: FontWeight.w700,
                       fontFeatures: const [FontFeature.tabularFigures()],
                     ),
@@ -1011,7 +1018,8 @@ class _SheetChip extends StatelessWidget {
         child: Text(
           label,
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: emphasized ? SacAccent.of(context).dark : c.textSecondary,
+                color:
+                    emphasized ? SacAccent.of(context).dark : c.textSecondary,
                 fontWeight: FontWeight.w600,
               ),
         ),

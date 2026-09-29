@@ -91,9 +91,11 @@ class ClassesListView extends ConsumerWidget {
         null;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
         title: 'classes.list.title'.tr(),
+        frosted: true,
         automaticallyImplyLeading: false,
         actions: [
           if (hasActiveClub)
@@ -112,7 +114,9 @@ class ClassesListView extends ConsumerWidget {
             ),
         ],
       ),
-      body: const ClassesListViewBody(),
+      body: const SacFrostedVeil(
+        child: ClassesListViewBody(frostedBar: true),
+      ),
     );
   }
 }
@@ -120,7 +124,9 @@ class ClassesListView extends ConsumerWidget {
 /// Body de la lista de clases, sin Scaffold ni AppBar propios.
 /// Usar este widget cuando se embebe dentro de otro Scaffold.
 class ClassesListViewBody extends ConsumerWidget {
-  const ClassesListViewBody({super.key});
+  const ClassesListViewBody({super.key, this.frostedBar = false});
+
+  final bool frostedBar;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -133,12 +139,14 @@ class ClassesListViewBody extends ConsumerWidget {
       authNotifierProvider.select((v) => v.valueOrNull),
     );
     final hasActiveClub = user?.authorization?.activeGrant?.sectionId != null;
+    final listTop = (frostedBar ? SacTopBar.frostedInset(context) : 0.0) + 12;
 
     return classesAsync.when(
       data: (classes) {
         if (classes.isEmpty) {
           return _EmptyBody(
             hPad: hPad,
+            listTop: listTop,
             hasActiveClub: hasActiveClub,
             onEnroll: () => _openEnrollSheet(context),
             c: c,
@@ -155,7 +163,7 @@ class ClassesListViewBody extends ConsumerWidget {
             ref.invalidate(userClassesProvider);
           },
           child: ListView(
-            padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 32),
+            padding: EdgeInsets.fromLTRB(hPad, listTop, hPad, 32),
             children: [
               // ── Roadmap entry chip ─────────────────────────────────────────
               _RoadmapChip(hPad: hPad),
@@ -470,12 +478,14 @@ class _EnrollButton extends StatelessWidget {
 
 class _EmptyBody extends StatelessWidget {
   final double hPad;
+  final double listTop;
   final bool hasActiveClub;
   final VoidCallback onEnroll;
   final SacColors c;
 
   const _EmptyBody({
     required this.hPad,
+    required this.listTop,
     required this.hasActiveClub,
     required this.onEnroll,
     required this.c,
@@ -484,7 +494,7 @@ class _EmptyBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 32),
+      padding: EdgeInsets.fromLTRB(hPad, listTop, hPad, 32),
       children: [
         _RoadmapChip(hPad: hPad),
         const SizedBox(height: 40),

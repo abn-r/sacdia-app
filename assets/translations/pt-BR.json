@@ -184,6 +184,8 @@
     "login_error": "Erro ao entrar",
     "cooldown_message": "Muitas tentativas. Tente novamente em {seconds}s.",
     "login_subtitle": "Entre para continuar",
+    "keyboard_send": "Enviar",
+    "keyboard_hide": "Ocultar",
     "password_hint_login": "Sua senha",
     "no_account": "Não tem conta? ",
     "register_link": "Cadastre-se",

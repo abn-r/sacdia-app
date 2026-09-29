@@ -55,91 +55,96 @@ class CertificationCloseoutView extends ConsumerWidget {
     });
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'certifications.closeout.title'.tr(),
-        backgroundColor: c.background,
-      ),
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (certificationName != null) ...[
-                    Text(
-                      certificationName!,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: c.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                  ],
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: c.surfaceVariant,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        HugeIcon(
-                          icon: HugeIcons.strokeRoundedInformationCircle,
-                          size: 18,
-                          color: SacAccent.of(context).color,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            'certifications.closeout.description'.tr(),
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              color: c.textSecondary,
-                              height: 1.45,
-                            ),
+          title: 'certifications.closeout.title'.tr(),
+          backgroundColor: c.background,
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (certificationName != null) ...[
+                        Text(
+                          certificationName!,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: c.textSecondary,
                           ),
                         ),
+                        const SizedBox(height: 6),
                       ],
-                    ),
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: c.surfaceVariant,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            HugeIcon(
+                              icon: HugeIcons.strokeRoundedInformationCircle,
+                              size: 18,
+                              color: SacAccent.of(context).color,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'certifications.closeout.description'.tr(),
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  color: c.textSecondary,
+                                  height: 1.45,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                Expanded(
+                  child: EvidenceStagingManager(
+                    existingFiles: const [],
+                    maxFiles: 1,
+                    canModify: !state.submitSuccess,
+                    isLoading: state.isUploading || state.isSubmitting,
+                    fileNameBuilder: (originalName, index) => originalName,
+                    onUpload: (xFile, mimeType, onProgress) async {
+                      final size = await xFile.length();
+                      final success = await notifier.uploadCloseoutEvidence(
+                        filePath: xFile.path,
+                        fileName: xFile.name,
+                        mimeType: mimeType,
+                        fileSize: size,
+                        onProgress: onProgress,
+                      );
+                      if (!success) {
+                        throw Exception(
+                          'certifications.closeout.upload_failed'.tr(),
+                        );
+                      }
+                    },
+                    onDeleteRemote: (_) async {},
+                    onSubmit: () async {
+                      await notifier.submitFinal();
+                    },
+                  ),
+                ),
+              ],
             ),
-            Expanded(
-              child: EvidenceStagingManager(
-                existingFiles: const [],
-                maxFiles: 1,
-                canModify: !state.submitSuccess,
-                isLoading: state.isUploading || state.isSubmitting,
-                fileNameBuilder: (originalName, index) => originalName,
-                onUpload: (xFile, mimeType, onProgress) async {
-                  final size = await xFile.length();
-                  final success = await notifier.uploadCloseoutEvidence(
-                    filePath: xFile.path,
-                    fileName: xFile.name,
-                    mimeType: mimeType,
-                    fileSize: size,
-                    onProgress: onProgress,
-                  );
-                  if (!success) {
-                    throw Exception(
-                      'certifications.closeout.upload_failed'.tr(),
-                    );
-                  }
-                },
-                onDeleteRemote: (_) async {},
-                onSubmit: () async {
-                  await notifier.submitFinal();
-                },
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

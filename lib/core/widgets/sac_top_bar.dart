@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:haze/haze.dart';
 
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../theme/sac_colors.dart';
@@ -9,7 +10,7 @@ import 'sac_back_button.dart';
 /// iOS-inspired SACDIA top navigation primitives.
 ///
 /// These widgets intentionally keep Flutter's navigation semantics while
-/// centralizing the app's visual language: clean surfaces, subtle borders,
+/// centralizing the app's visual language: clean surfaces,
 /// 48dp touch targets, SF Pro/system typography, and SACDIA coral accents.
 class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -22,8 +23,14 @@ class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
   final bool centerTitle;
   final Color? backgroundColor;
   final Color? foregroundColor;
-  final Color? borderColor;
   final PreferredSizeWidget? bottom;
+
+  /// Desenfoca lo que se desliza detrás de la barra.
+  ///
+  /// El [Scaffold] debe usar `extendBodyBehindAppBar: true` y el scroll
+  /// debe reservar [frostedInset] arriba para que el primer contenido
+  /// arranque debajo de la barra.
+  final bool frosted;
 
   const SacTopBar({
     super.key,
@@ -37,21 +44,34 @@ class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
     this.centerTitle = false,
     this.backgroundColor,
     this.foregroundColor,
-    this.borderColor,
     this.bottom,
+    this.frosted = false,
   });
 
   static const double compactHeight = 56;
   static const double subtitleHeight = 64;
   static const double touchTarget = 48;
-  static const double borderHeight = 1;
+
+  /// Alto de la barra, incluido el status bar, para el padding del scroll.
+  static double frostedInset(BuildContext context) {
+    final height = Scaffold.maybeOf(context)?.appBarMaxHeight;
+    if (height != null && height > 0) return height;
+    return MediaQuery.paddingOf(context).top + compactHeight;
+  }
+
+  /// Suma el alto de la barra al padding superior de un scroll.
+  ///
+  /// [context] tiene que estar debajo del [Scaffold] de la barra.
+  static EdgeInsets paddingBelowBar(BuildContext context, EdgeInsets padding) {
+    return padding.copyWith(top: padding.top + frostedInset(context));
+  }
 
   double get _toolbarHeight =>
       subtitle == null ? compactHeight : subtitleHeight;
 
   @override
   Size get preferredSize => Size.fromHeight(
-        _toolbarHeight + borderHeight + (bottom?.preferredSize.height ?? 0),
+        _toolbarHeight + (bottom?.preferredSize.height ?? 0),
       );
 
   @override
@@ -59,6 +79,7 @@ class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
     final c = context.sac;
     final canPop = Navigator.of(context).canPop();
     final resolvedForeground = foregroundColor ?? c.text;
+    final barColor = backgroundColor ?? c.background;
     final showBack = leading == null &&
         automaticallyImplyLeading &&
         (onBack != null || canPop);
@@ -66,7 +87,8 @@ class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       toolbarHeight: _toolbarHeight,
       automaticallyImplyLeading: false,
-      backgroundColor: backgroundColor ?? c.background,
+      backgroundColor: frosted ? Colors.transparent : barColor,
+      forceMaterialTransparency: frosted,
       foregroundColor: resolvedForeground,
       surfaceTintColor: Colors.transparent,
       shadowColor: Colors.transparent,
@@ -90,21 +112,52 @@ class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
         foregroundColor: resolvedForeground,
       ),
       actions: actions,
-      bottom: PreferredSize(
-        preferredSize: Size.fromHeight(
-          borderHeight + (bottom?.preferredSize.height ?? 0),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              height: borderHeight,
-              color: borderColor ?? c.border.withValues(alpha: 0.7),
+      bottom: bottom,
+    );
+  }
+}
+
+/// Desenfoque progresivo detrás de una [SacTopBar] con [SacTopBar.frosted].
+///
+/// El blur es máximo arriba y se disuelve hacia abajo, unos
+/// [fadeExtension] px por debajo de la barra. El título queda nítido
+/// porque la barra no pinta fondo.
+class SacFrostedVeil extends StatelessWidget {
+  const SacFrostedVeil({super.key, required this.child, this.tint});
+
+  final Widget child;
+
+  /// Color del velo. Su alfa es la opacidad máxima, arriba del todo.
+  final Color? tint;
+
+  /// Cuánto sigue el blur por debajo de la barra, en px lógicos.
+  static const double fadeExtension = 64;
+
+  @override
+  Widget build(BuildContext context) {
+    final top = SacTopBar.frostedInset(context);
+    final dark = Theme.brightnessOf(context) == Brightness.dark;
+    final wash =
+        tint ?? (dark ? const Color(0xB3000000) : const Color(0xB3FFFFFF));
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        child,
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          height: top + fadeExtension,
+          child: IgnorePointer(
+            child: Haze(
+              edge: HazeEdge.top,
+              sigma: 12,
+              tint: wash,
             ),
-            if (bottom != null) bottom!,
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }

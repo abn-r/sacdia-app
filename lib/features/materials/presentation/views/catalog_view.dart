@@ -81,184 +81,199 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
     });
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'materials.catalog.title'.tr(),
-        actions: [
-          SacPressable(
-            listenOnly: true,
-            child: IconButton(
-              enableFeedback: false,
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedInvoice03,
-                color: c.text,
-                size: 22,
-              ),
-              tooltip: 'materials.history.title'.tr(),
-              onPressed: () => context.push(RouteNames.materialsHistory),
-            ),
-          ),
-          Stack(
-            alignment: Alignment.topRight,
-            children: [
-              SacPressable(
-                listenOnly: true,
-                child: IconButton(
-                  enableFeedback: false,
-                  icon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedShoppingCart01,
-                    color: c.text,
-                    size: 22,
-                  ),
-                  tooltip: 'materials.catalog.cart'.tr(),
-                  onPressed: () => context.push(RouteNames.materialsCart),
+          title: 'materials.catalog.title'.tr(),
+          actions: [
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedInvoice03,
+                  color: c.text,
+                  size: 22,
                 ),
+                tooltip: 'materials.history.title'.tr(),
+                onPressed: () => context.push(RouteNames.materialsHistory),
               ),
-              if (cartState.itemCount > 0)
-                Positioned(
-                  right: 6,
-                  top: 6,
-                  child: Container(
-                    width: 16,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      color: SacAccent.of(context).color,
-                      shape: BoxShape.circle,
+            ),
+            Stack(
+              alignment: Alignment.topRight,
+              children: [
+                SacPressable(
+                  listenOnly: true,
+                  child: IconButton(
+                    enableFeedback: false,
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedShoppingCart01,
+                      color: c.text,
+                      size: 22,
                     ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      '${cartState.itemCount > 9 ? '9+' : cartState.itemCount}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
+                    tooltip: 'materials.catalog.cart'.tr(),
+                    onPressed: () => context.push(RouteNames.materialsCart),
+                  ),
+                ),
+                if (cartState.itemCount > 0)
+                  Positioned(
+                    right: 6,
+                    top: 6,
+                    child: Container(
+                      width: 16,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: SacAccent.of(context).color,
+                        shape: BoxShape.circle,
                       ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 44),
-              child: TextField(
-                controller: _searchController,
-                onChanged: _onSearchChanged,
-                style: TextStyle(color: c.text, fontSize: 15, height: 1.2),
-                decoration: InputDecoration(
-                  isDense: true,
-                  hintText: 'materials.catalog.search_hint'.tr(),
-                  hintStyle: TextStyle(
-                    color: c.textSecondary,
-                    fontSize: 15,
-                    height: 1.2,
-                  ),
-                  filled: true,
-                  fillColor: c.surface,
-                  prefixIconConstraints:
-                      const BoxConstraints.tightFor(width: 44, height: 44),
-                  prefixIcon: FixedInputIconSlot(
-                    icon: HugeIcons.strokeRoundedSearch01,
-                    color: c.textSecondary,
-                    iconSize: 20,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: c.border),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: c.border),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: SacAccent.of(context).color),
-                  ),
-                  contentPadding: const EdgeInsets.fromLTRB(4, 10, 14, 10),
-                ),
-              ),
-            ),
-          ),
-          programasAsync.when(
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
-            data: (programas) {
-              if (programas.isEmpty) return const SizedBox.shrink();
-              return MaterialsProgramField(
-                programs: programas,
-                selectedId: _selectedProgramaId,
-                onSelected: (id) => setState(() => _selectedProgramaId = id),
-              );
-            },
-          ),
-          categoriasAsync.when(
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
-            data: (cats) {
-              if (cats.isEmpty) return const SizedBox.shrink();
-              return Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-                      child: Semantics(
-                        header: true,
-                        child: Text(
-                          'materials.catalog.filter_category_label'.tr(),
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: c.textSecondary,
-                          ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '${cartState.itemCount > 9 ? '9+' : cartState.itemCount}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                    SizedBox(
-                      height: SacFilterChip.barHeight,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.fromLTRB(16, 0, 28, 0),
+                  ),
+              ],
+            ),
+          ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => Padding(
+            padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+            child: Column(
+              children: [
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 44),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: _onSearchChanged,
+                      style:
+                          TextStyle(color: c.text, fontSize: 15, height: 1.2),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        hintText: 'materials.catalog.search_hint'.tr(),
+                        hintStyle: TextStyle(
+                          color: c.textSecondary,
+                          fontSize: 15,
+                          height: 1.2,
+                        ),
+                        filled: true,
+                        fillColor: c.surface,
+                        prefixIconConstraints: const BoxConstraints.tightFor(
+                            width: 44, height: 44),
+                        prefixIcon: FixedInputIconSlot(
+                          icon: HugeIcons.strokeRoundedSearch01,
+                          color: c.textSecondary,
+                          iconSize: 20,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: c.border),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: c.border),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide:
+                              BorderSide(color: SacAccent.of(context).color),
+                        ),
+                        contentPadding:
+                            const EdgeInsets.fromLTRB(4, 10, 14, 10),
+                      ),
+                    ),
+                  ),
+                ),
+                programasAsync.when(
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                  data: (programas) {
+                    if (programas.isEmpty) return const SizedBox.shrink();
+                    return MaterialsProgramField(
+                      programs: programas,
+                      selectedId: _selectedProgramaId,
+                      onSelected: (id) =>
+                          setState(() => _selectedProgramaId = id),
+                    );
+                  },
+                ),
+                categoriasAsync.when(
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                  data: (cats) {
+                    if (cats.isEmpty) return const SizedBox.shrink();
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: SacFilterChip(
-                              label: 'materials.catalog.filter_all_categories'
-                                  .tr(),
-                              variant: SacFilterChipVariant.quiet,
-                              selected: _selectedCat == null,
-                              onTap: () => setState(() => _selectedCat = null),
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+                            child: Semantics(
+                              header: true,
+                              child: Text(
+                                'materials.catalog.filter_category_label'.tr(),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: c.textSecondary,
+                                ),
+                              ),
                             ),
                           ),
-                          ...cats.map(
-                            (cat) => Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: SacFilterChip(
-                                label: cat.label,
-                                variant: SacFilterChipVariant.quiet,
-                                selected: _selectedCat == cat.id,
-                                onTap: () =>
-                                    setState(() => _selectedCat = cat.id),
-                              ),
+                          SizedBox(
+                            height: SacFilterChip.barHeight,
+                            child: ListView(
+                              scrollDirection: Axis.horizontal,
+                              padding: const EdgeInsets.fromLTRB(16, 0, 28, 0),
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: SacFilterChip(
+                                    label:
+                                        'materials.catalog.filter_all_categories'
+                                            .tr(),
+                                    variant: SacFilterChipVariant.quiet,
+                                    selected: _selectedCat == null,
+                                    onTap: () =>
+                                        setState(() => _selectedCat = null),
+                                  ),
+                                ),
+                                ...cats.map(
+                                  (cat) => Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: SacFilterChip(
+                                      label: cat.label,
+                                      variant: SacFilterChipVariant.quiet,
+                                      selected: _selectedCat == cat.id,
+                                      onTap: () =>
+                                          setState(() => _selectedCat = cat.id),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
-              );
-            },
+                const SizedBox(height: 10),
+                Expanded(child: _buildCatalogResults(catalogAsync)),
+              ],
+            ),
           ),
-          const SizedBox(height: 10),
-          Expanded(child: _buildCatalogResults(catalogAsync)),
-        ],
+        ),
       ),
     );
   }
@@ -297,7 +312,8 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
       },
       child: GridView.builder(
         key: ValueKey(displayed.items.map((item) => item.id).join(',')),
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+        padding: SacTopBar.paddingBelowBar(
+            context, const EdgeInsets.fromLTRB(16, 0, 16, 100)),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           mainAxisSpacing: 12,
@@ -334,7 +350,8 @@ class _CatalogSkeleton extends StatelessWidget {
     final c = context.sac;
     return GridView.builder(
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+      padding: SacTopBar.paddingBelowBar(
+          context, const EdgeInsets.fromLTRB(16, 0, 16, 24)),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         mainAxisSpacing: 12,

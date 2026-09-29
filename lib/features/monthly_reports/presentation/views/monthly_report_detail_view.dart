@@ -30,17 +30,22 @@ class MonthlyReportDetailView extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
-      appBar: SacTopBar(
-        title: 'monthly_reports.detail.title'.tr(),
-      ),
-      body: reportAsync.when(
-        loading: () => const MonthlyReportDetailSkeleton(),
-        error: (e, _) => _ErrorBody(
-          message: e.toString().replaceFirst('Exception: ', ''),
-          onRetry: () => ref.invalidate(monthlyReportDetailProvider(reportId)),
+      appBar:
+          SacTopBar(title: 'monthly_reports.detail.title'.tr(), frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => reportAsync.when(
+            loading: () => const MonthlyReportDetailSkeleton(),
+            error: (e, _) => _ErrorBody(
+              message: e.toString().replaceFirst('Exception: ', ''),
+              onRetry: () =>
+                  ref.invalidate(monthlyReportDetailProvider(reportId)),
+            ),
+            data: (report) => _ReportDetail(report: report),
+          ),
         ),
-        data: (report) => _ReportDetail(report: report),
       ),
     );
   }
@@ -65,7 +70,8 @@ class _ReportDetail extends ConsumerWidget {
             onRefresh: () async =>
                 ref.invalidate(monthlyReportDetailProvider(report.id)),
             child: ListView(
-              padding: EdgeInsets.fromLTRB(20, 8, 20, showSticky ? 24 : 36),
+              padding: SacTopBar.paddingBelowBar(context,
+                  EdgeInsets.fromLTRB(20, 8, 20, showSticky ? 24 : 36)),
               children: [
                 MonthlyReportEntrance(child: _ReportHeaderCard(report: report)),
                 const SizedBox(height: 18),
@@ -667,7 +673,8 @@ class _ExpandableSection extends StatelessWidget {
           initiallyExpanded: initiallyExpanded,
           tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
           childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-          leading: HugeIcon(icon: icon, color: SacAccent.of(context).color, size: 18),
+          leading: HugeIcon(
+              icon: icon, color: SacAccent.of(context).color, size: 18),
           title: Text(
             title,
             style: TextStyle(

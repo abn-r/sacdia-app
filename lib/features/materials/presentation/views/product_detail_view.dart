@@ -37,242 +37,254 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
     final c = context.sac;
 
     return Scaffold(
-      appBar: SacTopBar(
-        title: 'materials.product.title'.tr(),
-      ),
-      body: itemAsync.when(
-        loading: () => Center(
-          child: CircularProgressIndicator(color: SacAccent.of(context).color),
-        ),
-        error: (e, _) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const HugeIcon(
-                  icon: HugeIcons.strokeRoundedAlert02,
-                  size: 48,
-                  color: AppColors.error),
-              const SizedBox(height: 12),
-              Text(
-                e.toString(),
-                textAlign: TextAlign.center,
-                style: TextStyle(color: c.textSecondary),
-              ),
-              const SizedBox(height: 16),
-              SacButton(
-                text: 'common.retry'.tr(),
-                variant: SacButtonVariant.primary,
-                fullWidth: false,
-                onPressed: () =>
-                    ref.invalidate(productDetailProvider(widget.productId)),
-              ),
-            ],
-          ),
-        ),
-        data: (item) {
-          // Determine stock limit for the stepper
-          final maxQty = _selectedVariant?.stock ?? item.stock;
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── Hero area ──
-                Container(
-                  width: double.infinity,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    color: SacAccent.of(context).surface,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    item.title.isNotEmpty ? item.title[0].toUpperCase() : '?',
-                    style: TextStyle(
-                      fontSize: 72,
-                      fontWeight: FontWeight.bold,
-                      color: SacAccent.of(context).color,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // ── Title & SKU ──
-                Text(
-                  item.title,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: c.text,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'materials.product.sku'.tr(namedArgs: {'sku': item.sku}),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: c.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-
-                // ── Badges ──
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: [
-                    _Badge(label: item.category.label, color: AppColors.info),
-                    _Badge(
-                        label: item.programa.label, color: AppColors.secondary),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // ── Description ──
-                if (item.description != null &&
-                    item.description!.isNotEmpty) ...[
+      extendBodyBehindAppBar: true,
+      appBar: SacTopBar(title: 'materials.product.title'.tr(), frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => itemAsync.when(
+            loading: () => Center(
+              child:
+                  CircularProgressIndicator(color: SacAccent.of(context).color),
+            ),
+            error: (e, _) => Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const HugeIcon(
+                      icon: HugeIcons.strokeRoundedAlert02,
+                      size: 48,
+                      color: AppColors.error),
+                  const SizedBox(height: 12),
                   Text(
-                    item.description!,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: c.textSecondary,
-                      height: 1.5,
-                    ),
+                    e.toString(),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: c.textSecondary),
                   ),
                   const SizedBox(height: 16),
+                  SacButton(
+                    text: 'common.retry'.tr(),
+                    variant: SacButtonVariant.primary,
+                    fullWidth: false,
+                    onPressed: () =>
+                        ref.invalidate(productDetailProvider(widget.productId)),
+                  ),
                 ],
+              ),
+            ),
+            data: (item) {
+              // Determine stock limit for the stepper
+              final maxQty = _selectedVariant?.stock ?? item.stock;
 
-                // ── Price ──
-                Text(
-                  formatMxn(item.priceCentavos),
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    color: SacAccent.of(context).color,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 20),
+              return SingleChildScrollView(
+                padding: SacTopBar.paddingBelowBar(
+                    context, const EdgeInsets.all(20)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── Hero area ──
+                    Container(
+                      width: double.infinity,
+                      height: 200,
+                      decoration: BoxDecoration(
+                        color: SacAccent.of(context).surface,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        item.title.isNotEmpty
+                            ? item.title[0].toUpperCase()
+                            : '?',
+                        style: TextStyle(
+                          fontSize: 72,
+                          fontWeight: FontWeight.bold,
+                          color: SacAccent.of(context).color,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
 
-                // ── Variant selector ──
-                if (item.hasVariants && item.variant != null) ...[
-                  Text(
-                    'materials.product.select_variant'.tr(
-                      namedArgs: {'name': item.variant!.type.name},
+                    // ── Title & SKU ──
+                    Text(
+                      item.title,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: c.text,
+                      ),
                     ),
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
+                    const SizedBox(height: 4),
+                    Text(
+                      'materials.product.sku'.tr(namedArgs: {'sku': item.sku}),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: c.textSecondary,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: item.variant!.options.map((option) {
-                      final selected = _selectedVariant?.id == option.id;
-                      final outOfStock = option.stock == 0;
-                      return GestureDetector(
-                        onTap: outOfStock
-                            ? null
-                            : () {
-                                setState(() {
-                                  _selectedVariant = option;
-                                  // Reset qty if new variant has less stock
-                                  if (_qty > option.stock) {
-                                    _qty = option.stock.clamp(1, option.stock);
-                                  }
-                                });
-                              },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 150),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: selected
-                                ? SacAccent.of(context).color
-                                : outOfStock
-                                    ? c.borderLight
-                                    : c.surface,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: selected ? SacAccent.of(context).color : c.border,
-                            ),
-                          ),
-                          child: Column(
-                            children: [
-                              Text(
-                                option.label,
-                                style: TextStyle(
+                    const SizedBox(height: 8),
+
+                    // ── Badges ──
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        _Badge(
+                            label: item.category.label, color: AppColors.info),
+                        _Badge(
+                            label: item.programa.label,
+                            color: AppColors.secondary),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // ── Description ──
+                    if (item.description != null &&
+                        item.description!.isNotEmpty) ...[
+                      Text(
+                        item.description!,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: c.textSecondary,
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // ── Price ──
+                    Text(
+                      formatMxn(item.priceCentavos),
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: SacAccent.of(context).color,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // ── Variant selector ──
+                    if (item.hasVariants && item.variant != null) ...[
+                      Text(
+                        'materials.product.select_variant'.tr(
+                          namedArgs: {'name': item.variant!.type.name},
+                        ),
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: item.variant!.options.map((option) {
+                          final selected = _selectedVariant?.id == option.id;
+                          final outOfStock = option.stock == 0;
+                          return GestureDetector(
+                            onTap: outOfStock
+                                ? null
+                                : () {
+                                    setState(() {
+                                      _selectedVariant = option;
+                                      // Reset qty if new variant has less stock
+                                      if (_qty > option.stock) {
+                                        _qty =
+                                            option.stock.clamp(1, option.stock);
+                                      }
+                                    });
+                                  },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 150),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: selected
+                                    ? SacAccent.of(context).color
+                                    : outOfStock
+                                        ? c.borderLight
+                                        : c.surface,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
                                   color: selected
-                                      ? Colors.white
-                                      : outOfStock
-                                          ? c.textTertiary
-                                          : c.text,
-                                  fontWeight: FontWeight.w500,
-                                  decoration: outOfStock
-                                      ? TextDecoration.lineThrough
-                                      : null,
+                                      ? SacAccent.of(context).color
+                                      : c.border,
                                 ),
                               ),
-                              if (!outOfStock)
-                                Text(
-                                  '${option.stock} disp.',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: selected
-                                        ? Colors.white70
-                                        : c.textTertiary,
+                              child: Column(
+                                children: [
+                                  Text(
+                                    option.label,
+                                    style: TextStyle(
+                                      color: selected
+                                          ? Colors.white
+                                          : outOfStock
+                                              ? c.textTertiary
+                                              : c.text,
+                                      fontWeight: FontWeight.w500,
+                                      decoration: outOfStock
+                                          ? TextDecoration.lineThrough
+                                          : null,
+                                    ),
                                   ),
-                                ),
-                            ],
+                                  if (!outOfStock)
+                                    Text(
+                                      '${option.stock} disp.',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: selected
+                                            ? Colors.white70
+                                            : c.textTertiary,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+
+                    // ── Qty stepper ──
+                    Row(
+                      children: [
+                        Text(
+                          'materials.product.qty'.tr(),
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 20),
-                ],
+                        const SizedBox(width: 16),
+                        QtyStepper(
+                          value: _qty,
+                          min: 1,
+                          max: maxQty.clamp(1, 100),
+                          onChanged: (v) => setState(() => _qty = v),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
 
-                // ── Qty stepper ──
-                Row(
-                  children: [
-                    Text(
-                      'materials.product.qty'.tr(),
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
+                    // ── Add to cart CTA ──
+                    SacButton.primary(
+                      text: 'materials.product.add_to_cart'.tr(),
+                      icon: HugeIcons.strokeRoundedShoppingCartAdd01,
+                      onPressed:
+                          maxQty > 0 ? () => _addToCart(item, context) : null,
+                    ),
+
+                    if (maxQty == 0) ...[
+                      const SizedBox(height: 8),
+                      Center(
+                        child: Text(
+                          'materials.product.out_of_stock'.tr(),
+                          style: TextStyle(
+                            color: AppColors.error,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    QtyStepper(
-                      value: _qty,
-                      min: 1,
-                      max: maxQty.clamp(1, 100),
-                      onChanged: (v) => setState(() => _qty = v),
-                    ),
+                    ],
                   ],
                 ),
-                const SizedBox(height: 32),
-
-                // ── Add to cart CTA ──
-                SacButton.primary(
-                  text: 'materials.product.add_to_cart'.tr(),
-                  icon: HugeIcons.strokeRoundedShoppingCartAdd01,
-                  onPressed:
-                      maxQty > 0 ? () => _addToCart(item, context) : null,
-                ),
-
-                if (maxQty == 0) ...[
-                  const SizedBox(height: 8),
-                  Center(
-                    child: Text(
-                      'materials.product.out_of_stock'.tr(),
-                      style: TextStyle(
-                        color: AppColors.error,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          );
-        },
+              );
+            },
+          ),
+        ),
       ),
     );
   }

@@ -79,141 +79,150 @@ class EmergencyContactsView extends ConsumerWidget {
     );
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: SacTopBar(
-        title: 'post_registration.emergency_contacts.title'.tr(),
-        actions: [
-          SacPressable(
-            listenOnly: true,
-            child: IconButton(
-              enableFeedback: false,
-              icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 24),
-              onPressed: () {
-                ref.read(emergencyContactsProvider.notifier).refresh();
-              },
-              tooltip:
-                  'post_registration.emergency_contacts.refresh_tooltip'.tr(),
-            ),
-          ),
-          if (canAddMore)
+          title: 'post_registration.emergency_contacts.title'.tr(),
+          actions: [
             SacPressable(
               listenOnly: true,
               child: IconButton(
                 enableFeedback: false,
-                tooltip: 'post_registration.emergency_contacts.add_button'.tr(),
-                onPressed: () => _navigateToAddEdit(context),
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedAdd01,
-                  size: 22,
-                  color: SacAccent.of(context).color,
-                ),
-              ),
-            ),
-        ],
-      ),
-      body: contactsAsync.when(
-        loading: () => const Center(child: SacLoading()),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              HugeIcon(
-                  icon: HugeIcons.strokeRoundedAlert02,
-                  size: 48,
-                  color: AppColors.error),
-              const SizedBox(height: 16),
-              Text(
-                'post_registration.emergency_contacts.error_loading'
-                    .tr(namedArgs: {'error': error.toString()}),
-              ),
-              const SizedBox(height: 16),
-              SacButton(
-                text: 'common.retry'.tr(),
-                icon: HugeIcons.strokeRoundedRefresh,
+                icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 24),
                 onPressed: () {
                   ref.read(emergencyContactsProvider.notifier).refresh();
                 },
+                tooltip:
+                    'post_registration.emergency_contacts.refresh_tooltip'.tr(),
               ),
-            ],
-          ),
-        ),
-        data: (contacts) {
-          if (contacts.isEmpty) {
-            return SacEmptyState(
-              icon: HugeIcons.strokeRoundedContactBook,
-              title: 'post_registration.emergency_contacts.empty_title'.tr(),
-              body: 'post_registration.emergency_contacts.empty_subtitle'.tr(),
-              actionLabel:
-                  'post_registration.emergency_contacts.add_button'.tr(),
-              onAction: () => _navigateToAddEdit(context),
-            );
-          }
+            ),
+            if (canAddMore)
+              SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  tooltip:
+                      'post_registration.emergency_contacts.add_button'.tr(),
+                  onPressed: () => _navigateToAddEdit(context),
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedAdd01,
+                    size: 22,
+                    color: SacAccent.of(context).color,
+                  ),
+                ),
+              ),
+          ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => contactsAsync.when(
+            loading: () => const Center(child: SacLoading()),
+            error: (error, stack) => Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  HugeIcon(
+                      icon: HugeIcons.strokeRoundedAlert02,
+                      size: 48,
+                      color: AppColors.error),
+                  const SizedBox(height: 16),
+                  Text(
+                    'post_registration.emergency_contacts.error_loading'
+                        .tr(namedArgs: {'error': error.toString()}),
+                  ),
+                  const SizedBox(height: 16),
+                  SacButton(
+                    text: 'common.retry'.tr(),
+                    icon: HugeIcons.strokeRoundedRefresh,
+                    onPressed: () {
+                      ref.read(emergencyContactsProvider.notifier).refresh();
+                    },
+                  ),
+                ],
+              ),
+            ),
+            data: (contacts) {
+              if (contacts.isEmpty) {
+                return SacEmptyState(
+                  icon: HugeIcons.strokeRoundedContactBook,
+                  title:
+                      'post_registration.emergency_contacts.empty_title'.tr(),
+                  body: 'post_registration.emergency_contacts.empty_subtitle'
+                      .tr(),
+                  actionLabel:
+                      'post_registration.emergency_contacts.add_button'.tr(),
+                  onAction: () => _navigateToAddEdit(context),
+                );
+              }
 
-          return Column(
-            children: [
-              // Información sobre límite
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                color: contacts.length >= 5
-                    ? AppColors.accentLight
-                    : SacAccent.of(context).light,
-                child: Row(
-                  children: [
-                    HugeIcon(
-                      icon: contacts.length >= 5
-                          ? HugeIcons.strokeRoundedAlertCircle
-                          : HugeIcons.strokeRoundedInformationCircle,
-                      color: contacts.length >= 5
-                          ? AppColors.accentDark
-                          : SacAccent.of(context).dark,
-                      size: 24,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        contacts.length >= 5
-                            ? 'post_registration.emergency_contacts.limit_reached'
-                                .tr()
-                            : 'post_registration.emergency_contacts.limit_progress'
-                                .tr(namedArgs: {
-                                'current': contacts.length.toString()
-                              }),
-                        style: TextStyle(
-                          fontSize: 14,
+              return Column(
+                children: [
+                  // Información sobre límite
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    color: contacts.length >= 5
+                        ? AppColors.accentLight
+                        : SacAccent.of(context).light,
+                    child: Row(
+                      children: [
+                        HugeIcon(
+                          icon: contacts.length >= 5
+                              ? HugeIcons.strokeRoundedAlertCircle
+                              : HugeIcons.strokeRoundedInformationCircle,
                           color: contacts.length >= 5
                               ? AppColors.accentDark
                               : SacAccent.of(context).dark,
+                          size: 24,
                         ),
-                      ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            contacts.length >= 5
+                                ? 'post_registration.emergency_contacts.limit_reached'
+                                    .tr()
+                                : 'post_registration.emergency_contacts.limit_progress'
+                                    .tr(namedArgs: {
+                                    'current': contacts.length.toString()
+                                  }),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: contacts.length >= 5
+                                  ? AppColors.accentDark
+                                  : SacAccent.of(context).dark,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
+                  ),
 
-              // Lista de contactos
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: contacts.length,
-                  itemBuilder: (context, index) {
-                    final contact = contacts[index];
-                    return ContactCard(
-                      contact: contact,
-                      onEdit: () =>
-                          _navigateToAddEdit(context, contact: contact),
-                      onDelete: () => _showDeleteConfirmation(
-                        context,
-                        ref,
-                        contact.id!,
-                        contact.name,
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          );
-        },
+                  // Lista de contactos
+                  Expanded(
+                    child: ListView.builder(
+                      padding: SacTopBar.paddingBelowBar(
+                          context, const EdgeInsets.all(16)),
+                      itemCount: contacts.length,
+                      itemBuilder: (context, index) {
+                        final contact = contacts[index];
+                        return ContactCard(
+                          contact: contact,
+                          onEdit: () =>
+                              _navigateToAddEdit(context, contact: contact),
+                          onDelete: () => _showDeleteConfirmation(
+                            context,
+                            ref,
+                            contact.id!,
+                            contact.name,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
       ),
     );
   }

@@ -153,112 +153,122 @@ class _CertificateImportUploadViewState
   Widget build(BuildContext context) {
     final c = context.sac;
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'certificate_import.upload.title'.tr(),
-        leading: const CertificateImportBackButton(
-          fallbackLocation: RouteNames.homeProfile,
-        ),
-      ),
-      body: Stack(
-        children: [
-          ListView(
-            padding: const EdgeInsets.fromLTRB(18, 8, 18, 190),
+          title: 'certificate_import.upload.title'.tr(),
+          leading: const CertificateImportBackButton(
+            fallbackLocation: RouteNames.homeProfile,
+          ),
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => Stack(
             children: [
-              _UploadHero(),
-              const SizedBox(height: 14),
-              SacCard(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    HugeIcon(
-                        icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                        color: c.success),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'certificate_import.upload.hint'.tr(),
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: c.textSecondary,
-                            ),
-                      ),
+              ListView(
+                padding: SacTopBar.paddingBelowBar(
+                    context, const EdgeInsets.fromLTRB(18, 8, 18, 190)),
+                children: [
+                  _UploadHero(),
+                  const SizedBox(height: 14),
+                  SacCard(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        HugeIcon(
+                            icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+                            color: c.success),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'certificate_import.upload.hint'.tr(),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: c.textSecondary,
+                                ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (_error != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      _error!,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: c.error,
+                            fontWeight: FontWeight.w600,
+                          ),
                     ),
                   ],
-                ),
+                  if (_hasFilesToAnalyze) ...[
+                    const SizedBox(height: 12),
+                    _SelectedProofCard(proof: _selectedProof!),
+                  ],
+                ],
               ),
-              if (_error != null) ...[
-                const SizedBox(height: 12),
-                Text(
-                  _error!,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: c.error,
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-              ],
-              if (_hasFilesToAnalyze) ...[
-                const SizedBox(height: 12),
-                _SelectedProofCard(proof: _selectedProof!),
-              ],
-            ],
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: c.background,
-                border: Border(top: BorderSide(color: c.border)),
-              ),
-              child: SafeArea(
-                top: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SacButton.primary(
-                        text: 'certificate_import.upload.submit'.tr(),
-                        icon: HugeIcons.strokeRoundedFileUpload,
-                        isLoading: _loading,
-                        isEnabled: _hasFilesToAnalyze,
-                        onPressed:
-                            _loading || !_hasFilesToAnalyze ? null : _submit,
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: c.background,
+                    border: Border(top: BorderSide(color: c.border)),
+                  ),
+                  child: SafeArea(
+                    top: false,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Expanded(
-                            child: SacButton.outline(
-                              text: 'certificate_import.upload.camera'.tr(),
-                              icon: HugeIcons.strokeRoundedCamera01,
-                              isLoading: _picking,
-                              onPressed: _picking
-                                  ? null
-                                  : () => _pickProof(widget.onPickCamera),
-                            ),
+                          SacButton.primary(
+                            text: 'certificate_import.upload.submit'.tr(),
+                            icon: HugeIcons.strokeRoundedFileUpload,
+                            isLoading: _loading,
+                            isEnabled: _hasFilesToAnalyze,
+                            onPressed: _loading || !_hasFilesToAnalyze
+                                ? null
+                                : _submit,
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: SacButton.outline(
-                              text: 'certificate_import.upload.file'.tr(),
-                              icon: HugeIcons.strokeRoundedFolder01,
-                              isLoading: _picking,
-                              onPressed: _picking
-                                  ? null
-                                  : () => _pickProof(widget.onPickFile),
-                            ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: SacButton.outline(
+                                  text: 'certificate_import.upload.camera'.tr(),
+                                  icon: HugeIcons.strokeRoundedCamera01,
+                                  isLoading: _picking,
+                                  onPressed: _picking
+                                      ? null
+                                      : () => _pickProof(widget.onPickCamera),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: SacButton.outline(
+                                  text: 'certificate_import.upload.file'.tr(),
+                                  icon: HugeIcons.strokeRoundedFolder01,
+                                  isLoading: _picking,
+                                  onPressed: _picking
+                                      ? null
+                                      : () => _pickProof(widget.onPickFile),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

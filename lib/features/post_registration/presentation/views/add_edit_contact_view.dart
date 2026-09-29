@@ -120,224 +120,239 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
     final relationshipTypesAsync = ref.watch(relationshipTypesProvider);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: SacTopBar(
-        title: _isEditing
-            ? 'post_registration.contact_form.edit_title'.tr()
-            : 'post_registration.contact_form.add_title'.tr(),
-        actions: [
-          if (_isLoading)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: SacLoadingSmall(),
-                ),
-              ),
-            )
-          else
-            SacPressable(
-              listenOnly: true,
-              child: IconButton(
-                enableFeedback: false,
-                icon: HugeIcon(icon: HugeIcons.strokeRoundedTick02, size: 24),
-                onPressed: _handleSave,
-                tooltip: 'post_registration.contact_form.save_tooltip'.tr(),
-              ),
-            ),
-        ],
-      ),
-      body: relationshipTypesAsync.when(
-        loading: () => const Center(child: SacLoading()),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              HugeIcon(
-                  icon: HugeIcons.strokeRoundedAlert02,
-                  size: 48,
-                  color: AppColors.error),
-              const SizedBox(height: 16),
-              Text(
-                'post_registration.contact_form.error_loading'
-                    .tr(namedArgs: {'error': error.toString()}),
-              ),
-              const SizedBox(height: 16),
-              SacButton(
-                text: 'common.retry'.tr(),
-                icon: HugeIcons.strokeRoundedRefresh,
-                onPressed: () => ref.refresh(relationshipTypesProvider),
-              ),
-            ],
-          ),
-        ),
-        data: (relationshipTypes) => Form(
-          key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              // Nombre
-              SacTextField(
-                controller: _nameController,
-                label: 'post_registration.contact_form.name_label'.tr(),
-                hint: 'post_registration.contact_form.name_hint'.tr(),
-                prefixIcon: HugeIcons.strokeRoundedUser,
-                textCapitalization: TextCapitalization.words,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'post_registration.contact_form.name_required'.tr();
-                  }
-                  if (value.trim().length < 3) {
-                    return 'post_registration.contact_form.name_min_length'
-                        .tr();
-                  }
-                  return null;
-                },
-                enabled: !_isLoading,
-              ),
-              const SizedBox(height: 16),
-
-              // Tipo de relación
-              _RelationshipPickerField(
-                selectedId: _selectedRelationshipTypeId,
-                relationshipTypes: relationshipTypes,
-                enabled: !_isLoading,
-                hasError: _relationshipError,
-                onSelected: (id) {
-                  setState(() {
-                    _selectedRelationshipTypeId = id;
-                    _relationshipError = false;
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Contacto primario
-              Container(
-                decoration: BoxDecoration(
-                  color:
-                      _isPrimary ? SacAccent.of(context).light : context.sac.surface,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: context.sac.shadow,
-                      offset: const Offset(0, 3),
-                      blurRadius: 20,
-                    ),
-                  ],
-                  border: _isPrimary
-                      ? Border.all(
-                          color: SacAccent.of(context).color.withValues(alpha: 0.4),
-                          width: 1.5,
-                        )
-                      : null,
-                ),
-                child: SacPressable(
-                  listenOnly: true,
-                  child: SwitchListTile(
-                    enableFeedback: false,
-                    value: _isPrimary,
-                    onChanged: _isLoading
-                        ? null
-                        : (value) => setState(() => _isPrimary = value),
-                    title: Text(
-                      'post_registration.contact_form.primary_title'.tr(),
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Text(
-                      'post_registration.contact_form.primary_subtitle'.tr(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: context.sac.textSecondary,
-                      ),
-                    ),
-                    secondary: HugeIcon(
-                      icon: _isPrimary
-                          ? HugeIcons.strokeRoundedStar
-                          : HugeIcons.strokeRoundedStar,
-                      size: 24,
-                      color: _isPrimary
-                          ? SacAccent.of(context).color
-                          : context.sac.textSecondary,
-                    ),
-                    activeThumbColor: Colors.white,
-                    activeTrackColor: SacAccent.of(context).color,
-                    inactiveThumbColor: Colors.white,
-                    inactiveTrackColor:
-                        context.sac.textTertiary.withValues(alpha: 0.4),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+          title: _isEditing
+              ? 'post_registration.contact_form.edit_title'.tr()
+              : 'post_registration.contact_form.add_title'.tr(),
+          actions: [
+            if (_isLoading)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: SacLoadingSmall(),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-
-              // Teléfono
-              SacTextField(
-                controller: _phoneController,
-                label: 'post_registration.contact_form.phone_label'.tr(),
-                hint: 'post_registration.contact_form.phone_hint'.tr(),
-                prefixIcon: HugeIcons.strokeRoundedCall,
-                keyboardType: TextInputType.phone,
-                maxLength: 10,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'post_registration.contact_form.phone_required'.tr();
-                  }
-                  final phoneRegex = RegExp(r'^\d{10}$');
-                  if (!phoneRegex.hasMatch(value.trim())) {
-                    return 'post_registration.contact_form.phone_invalid'.tr();
-                  }
-                  return null;
-                },
-                enabled: !_isLoading,
-              ),
-              const SizedBox(height: 24),
-
-              // Botón de guardar
-              SacButton.primary(
-                text: _isEditing
-                    ? 'post_registration.contact_form.update_button'.tr()
-                    : 'post_registration.contact_form.save_button'.tr(),
-                icon: HugeIcons.strokeRoundedFloppyDisk,
-                isLoading: _isLoading,
-                onPressed: _isLoading ? null : _handleSave,
-              ),
-
-              const SizedBox(height: 16),
-
-              // Nota informativa
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: SacAccent.of(context).light,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                      color: SacAccent.of(context).color.withValues(alpha: 0.3)),
+              )
+            else
+              SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  icon: HugeIcon(icon: HugeIcons.strokeRoundedTick02, size: 24),
+                  onPressed: _handleSave,
+                  tooltip: 'post_registration.contact_form.save_tooltip'.tr(),
                 ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    HugeIcon(
-                        icon: HugeIcons.strokeRoundedInformationCircle,
-                        color: SacAccent.of(context).dark,
-                        size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'post_registration.contact_form.info_note'.tr(),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: SacAccent.of(context).dark,
+              ),
+          ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => relationshipTypesAsync.when(
+            loading: () => const Center(child: SacLoading()),
+            error: (error, stack) => Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  HugeIcon(
+                      icon: HugeIcons.strokeRoundedAlert02,
+                      size: 48,
+                      color: AppColors.error),
+                  const SizedBox(height: 16),
+                  Text(
+                    'post_registration.contact_form.error_loading'
+                        .tr(namedArgs: {'error': error.toString()}),
+                  ),
+                  const SizedBox(height: 16),
+                  SacButton(
+                    text: 'common.retry'.tr(),
+                    icon: HugeIcons.strokeRoundedRefresh,
+                    onPressed: () => ref.refresh(relationshipTypesProvider),
+                  ),
+                ],
+              ),
+            ),
+            data: (relationshipTypes) => Form(
+              key: _formKey,
+              child: ListView(
+                padding: SacTopBar.paddingBelowBar(
+                    context, const EdgeInsets.all(16)),
+                children: [
+                  // Nombre
+                  SacTextField(
+                    controller: _nameController,
+                    label: 'post_registration.contact_form.name_label'.tr(),
+                    hint: 'post_registration.contact_form.name_hint'.tr(),
+                    prefixIcon: HugeIcons.strokeRoundedUser,
+                    textCapitalization: TextCapitalization.words,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'post_registration.contact_form.name_required'
+                            .tr();
+                      }
+                      if (value.trim().length < 3) {
+                        return 'post_registration.contact_form.name_min_length'
+                            .tr();
+                      }
+                      return null;
+                    },
+                    enabled: !_isLoading,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Tipo de relación
+                  _RelationshipPickerField(
+                    selectedId: _selectedRelationshipTypeId,
+                    relationshipTypes: relationshipTypes,
+                    enabled: !_isLoading,
+                    hasError: _relationshipError,
+                    onSelected: (id) {
+                      setState(() {
+                        _selectedRelationshipTypeId = id;
+                        _relationshipError = false;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Contacto primario
+                  Container(
+                    decoration: BoxDecoration(
+                      color: _isPrimary
+                          ? SacAccent.of(context).light
+                          : context.sac.surface,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: context.sac.shadow,
+                          offset: const Offset(0, 3),
+                          blurRadius: 20,
+                        ),
+                      ],
+                      border: _isPrimary
+                          ? Border.all(
+                              color: SacAccent.of(context)
+                                  .color
+                                  .withValues(alpha: 0.4),
+                              width: 1.5,
+                            )
+                          : null,
+                    ),
+                    child: SacPressable(
+                      listenOnly: true,
+                      child: SwitchListTile(
+                        enableFeedback: false,
+                        value: _isPrimary,
+                        onChanged: _isLoading
+                            ? null
+                            : (value) => setState(() => _isPrimary = value),
+                        title: Text(
+                          'post_registration.contact_form.primary_title'.tr(),
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: Text(
+                          'post_registration.contact_form.primary_subtitle'
+                              .tr(),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: context.sac.textSecondary,
+                          ),
+                        ),
+                        secondary: HugeIcon(
+                          icon: _isPrimary
+                              ? HugeIcons.strokeRoundedStar
+                              : HugeIcons.strokeRoundedStar,
+                          size: 24,
+                          color: _isPrimary
+                              ? SacAccent.of(context).color
+                              : context.sac.textSecondary,
+                        ),
+                        activeThumbColor: Colors.white,
+                        activeTrackColor: SacAccent.of(context).color,
+                        inactiveThumbColor: Colors.white,
+                        inactiveTrackColor:
+                            context.sac.textTertiary.withValues(alpha: 0.4),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Teléfono
+                  SacTextField(
+                    controller: _phoneController,
+                    label: 'post_registration.contact_form.phone_label'.tr(),
+                    hint: 'post_registration.contact_form.phone_hint'.tr(),
+                    prefixIcon: HugeIcons.strokeRoundedCall,
+                    keyboardType: TextInputType.phone,
+                    maxLength: 10,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'post_registration.contact_form.phone_required'
+                            .tr();
+                      }
+                      final phoneRegex = RegExp(r'^\d{10}$');
+                      if (!phoneRegex.hasMatch(value.trim())) {
+                        return 'post_registration.contact_form.phone_invalid'
+                            .tr();
+                      }
+                      return null;
+                    },
+                    enabled: !_isLoading,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Botón de guardar
+                  SacButton.primary(
+                    text: _isEditing
+                        ? 'post_registration.contact_form.update_button'.tr()
+                        : 'post_registration.contact_form.save_button'.tr(),
+                    icon: HugeIcons.strokeRoundedFloppyDisk,
+                    isLoading: _isLoading,
+                    onPressed: _isLoading ? null : _handleSave,
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Nota informativa
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: SacAccent.of(context).light,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                          color: SacAccent.of(context)
+                              .color
+                              .withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        HugeIcon(
+                            icon: HugeIcons.strokeRoundedInformationCircle,
+                            color: SacAccent.of(context).dark,
+                            size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'post_registration.contact_form.info_note'.tr(),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: SacAccent.of(context).dark,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -624,7 +639,8 @@ class _RelationshipTypePickerSheetState
                     ),
                   )
                 : ListView.builder(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    padding: SacTopBar.paddingBelowBar(
+                        context, const EdgeInsets.symmetric(vertical: 4)),
                     // shrinkWrap removed: parent Flexible provides a bounded
                     // height constraint — ListView can scroll normally.
                     itemCount: _filtered.length,

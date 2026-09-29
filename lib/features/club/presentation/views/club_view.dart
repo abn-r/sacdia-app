@@ -19,6 +19,7 @@ import '../../../../core/widgets/sac_dialog.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_network_image.dart';
 import '../../../../core/widgets/sac_text_field.dart';
+import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../activities/presentation/views/location_picker_view.dart';
 import '../../domain/entities/club_info.dart';
 import '../providers/club_providers.dart';
@@ -252,45 +253,51 @@ class _ClubViewState extends ConsumerState<ClubView> {
         }
       },
       child: Scaffold(
-        backgroundColor: c.surfaceVariant,
+        extendBodyBehindAppBar: true,
+        backgroundColor: c.background,
         appBar:
             _buildAppBar(context, c, canEditAsync, sectionAsync, isUpdating),
-        body: sectionAsync.when(
-          loading: () => const Center(child: SacLoading()),
-          error: (error, _) => _ErrorBody(
-            message: error.toString(),
-            onRetry: () => ref.invalidate(currentClubSectionProvider),
-          ),
-          data: (section) {
-            if (section == null) {
-              return _EmptyBody(c: c);
-            }
-
-            final clubName = section.mainClubId.isEmpty
-                ? null
-                : ref
-                    .watch(clubInfoProvider(section.mainClubId))
-                    .valueOrNull
-                    ?.name;
-            final resolvedName =
-                (clubName != null && clubName.trim().isNotEmpty)
-                    ? clubName
-                    : '';
-
-            if (_loadedSection == null || _loadedSection!.id != section.id) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) {
-                  _populateFields(section, clubName: resolvedName);
+        body: SacFrostedVeil(
+          child: Builder(
+            builder: (context) => sectionAsync.when(
+              loading: () => const Center(child: SacLoading()),
+              error: (error, _) => _ErrorBody(
+                message: error.toString(),
+                onRetry: () => ref.invalidate(currentClubSectionProvider),
+              ),
+              data: (section) {
+                if (section == null) {
+                  return _EmptyBody(c: c);
                 }
-              });
-            } else if (resolvedName.isNotEmpty) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) _syncClubName(resolvedName);
-              });
-            }
 
-            return _buildBody(context, c, section, isUpdating);
-          },
+                final clubName = section.mainClubId.isEmpty
+                    ? null
+                    : ref
+                        .watch(clubInfoProvider(section.mainClubId))
+                        .valueOrNull
+                        ?.name;
+                final resolvedName =
+                    (clubName != null && clubName.trim().isNotEmpty)
+                        ? clubName
+                        : '';
+
+                if (_loadedSection == null ||
+                    _loadedSection!.id != section.id) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) {
+                      _populateFields(section, clubName: resolvedName);
+                    }
+                  });
+                } else if (resolvedName.isNotEmpty) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) _syncClubName(resolvedName);
+                  });
+                }
+
+                return _buildBody(context, c, section, isUpdating);
+              },
+            ),
+          ),
         ),
       ),
     );
@@ -315,10 +322,12 @@ class _ClubViewState extends ConsumerState<ClubView> {
     }
 
     return AppBar(
-      backgroundColor: c.surfaceVariant,
+      backgroundColor: Colors.transparent,
+      forceMaterialTransparency: true,
       foregroundColor: c.text,
       elevation: 0,
       scrolledUnderElevation: 0,
+      shadowColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
       centerTitle: true,
       leading: SacPressable(
@@ -417,7 +426,10 @@ class _ClubViewState extends ConsumerState<ClubView> {
       child: Stack(
         children: [
           ListView(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, _isEditing ? 112 : 32),
+            padding: SacTopBar.paddingBelowBar(
+              context,
+              EdgeInsets.fromLTRB(20, 8, 20, _isEditing ? 112 : 32),
+            ),
             children: [
               _stagger(
                 index: 0,
@@ -647,7 +659,8 @@ class _SectionHeader extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
           ),
           child: Center(
-            child: HugeIcon(icon: icon, size: 16, color: SacAccent.of(context).color),
+            child: HugeIcon(
+                icon: icon, size: 16, color: SacAccent.of(context).color),
           ),
         ),
         const SizedBox(width: 10),

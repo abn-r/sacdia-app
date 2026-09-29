@@ -468,7 +468,6 @@ class _StagedFileCell extends StatelessWidget {
               title: file.name,
               backgroundColor: Colors.transparent,
               foregroundColor: Colors.white,
-              borderColor: Colors.transparent,
             ),
             body: Center(
               child: InteractiveViewer(

@@ -60,13 +60,13 @@ class _RequirementState {
 
 SacTopBar _requirementsTopBar(BuildContext context, String honorName) {
   return SacTopBar(
-    title: honorName,
-    subtitle: 'honors.requirements.header_subtitle'.tr(),
-    onBack: () {
-      HapticFeedback.lightImpact();
-      Navigator.of(context).maybePop();
-    },
-  );
+      title: honorName,
+      subtitle: 'honors.requirements.header_subtitle'.tr(),
+      onBack: () {
+        HapticFeedback.lightImpact();
+        Navigator.of(context).maybePop();
+      },
+      frosted: true);
 }
 
 // ── View ──────────────────────────────────────────────────────────────────────
@@ -478,9 +478,14 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
 
     if (userHonorsAsync.isLoading) {
       return Scaffold(
+        extendBodyBehindAppBar: true,
         backgroundColor: context.sac.background,
         appBar: _requirementsTopBar(context, widget.honorName),
-        body: const _LoadingBody(),
+        body: SacFrostedVeil(
+          child: Builder(
+            builder: (context) => const _LoadingBody(),
+          ),
+        ),
       );
     }
 
@@ -521,93 +526,102 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
         }
       },
       child: Scaffold(
+        extendBodyBehindAppBar: true,
         backgroundColor: context.sac.background,
         appBar: _requirementsTopBar(context, widget.honorName),
-        body: Column(
-          children: [
-            Expanded(
-              child: requirementsAsync.when(
-                loading: () => const _LoadingBody(),
-                error: (err, _) => _ErrorBody(
-                  message: err.toString().replaceAll('Exception: ', ''),
-                  onRetry: () {
-                    ref.invalidate(honorRequirementsProvider(widget.honorId));
-                    ref.invalidate(userHonorProgressProvider(widget.honorId));
-                  },
-                ),
-                data: (requirements) {
-                  return progressAsync.when(
+        body: SacFrostedVeil(
+          child: Builder(
+            builder: (context) => Column(
+              children: [
+                Expanded(
+                  child: requirementsAsync.when(
                     loading: () => const _LoadingBody(),
                     error: (err, _) => _ErrorBody(
                       message: err.toString().replaceAll('Exception: ', ''),
                       onRetry: () {
                         ref.invalidate(
+                            honorRequirementsProvider(widget.honorId));
+                        ref.invalidate(
                             userHonorProgressProvider(widget.honorId));
                       },
                     ),
-                    data: (progressList) {
-                      _initLocalState(requirements, progressList);
-                      final progressByRequirementId = {
-                        for (final progress in progressList)
-                          progress.requirementId: progress,
-                      };
+                    data: (requirements) {
+                      return progressAsync.when(
+                        loading: () => const _LoadingBody(),
+                        error: (err, _) => _ErrorBody(
+                          message: err.toString().replaceAll('Exception: ', ''),
+                          onRetry: () {
+                            ref.invalidate(
+                                userHonorProgressProvider(widget.honorId));
+                          },
+                        ),
+                        data: (progressList) {
+                          _initLocalState(requirements, progressList);
+                          final progressByRequirementId = {
+                            for (final progress in progressList)
+                              progress.requirementId: progress,
+                          };
 
-                      final totalAll = _localState.isNotEmpty
-                          ? _countTotal(requirements)
-                          : progressList.length;
-                      final completedAll = _localState.isNotEmpty
-                          ? _countCompletedAll(requirements)
-                          : progressList.where((p) => p.completed).length;
+                          final totalAll = _localState.isNotEmpty
+                              ? _countTotal(requirements)
+                              : progressList.length;
+                          final completedAll = _localState.isNotEmpty
+                              ? _countCompletedAll(requirements)
+                              : progressList.where((p) => p.completed).length;
 
-                      return Column(
-                        children: [
-                          // Progress bar
-                          _ProgressSection(
-                            completed: completedAll,
-                            total: totalAll,
-                            categoryColor: categoryColor,
-                          ),
-
-                          // Hierarchical requirements list
-                          Expanded(
-                            child: ListView.separated(
-                              padding:
-                                  const EdgeInsets.fromLTRB(16, 8, 16, 120),
-                              itemCount: requirements.length,
-                              separatorBuilder: (_, __) => Divider(
-                                height: 1,
-                                thickness: 1,
-                                color: context.sac.divider,
+                          return Column(
+                            children: [
+                              // Progress bar
+                              _ProgressSection(
+                                completed: completedAll,
+                                total: totalAll,
+                                categoryColor: categoryColor,
                               ),
-                              itemBuilder: (context, index) {
-                                return _buildRequirementBlock(
-                                  context,
-                                  requirements[index],
-                                  depth: 0,
-                                  categoryColor: categoryColor,
-                                  progressByRequirementId:
-                                      progressByRequirementId,
-                                  enabled: userHonor.canSubmit,
-                                );
-                              },
-                            ),
-                          ),
 
-                          _SaveBar(
-                            hasChanges:
-                                userHonor.canSubmit && _hasUnsavedChanges,
-                            saving: _saving,
-                            categoryColor: categoryColor,
-                            onSave: () => _saveChanges(requirements),
-                          ),
-                        ],
+                              // Hierarchical requirements list
+                              Expanded(
+                                child: ListView.separated(
+                                  padding: SacTopBar.paddingBelowBar(
+                                      context,
+                                      const EdgeInsets.fromLTRB(
+                                          16, 8, 16, 120)),
+                                  itemCount: requirements.length,
+                                  separatorBuilder: (_, __) => Divider(
+                                    height: 1,
+                                    thickness: 1,
+                                    color: context.sac.divider,
+                                  ),
+                                  itemBuilder: (context, index) {
+                                    return _buildRequirementBlock(
+                                      context,
+                                      requirements[index],
+                                      depth: 0,
+                                      categoryColor: categoryColor,
+                                      progressByRequirementId:
+                                          progressByRequirementId,
+                                      enabled: userHonor.canSubmit,
+                                    );
+                                  },
+                                ),
+                              ),
+
+                              _SaveBar(
+                                hasChanges:
+                                    userHonor.canSubmit && _hasUnsavedChanges,
+                                saving: _saving,
+                                categoryColor: categoryColor,
+                                onSave: () => _saveChanges(requirements),
+                              ),
+                            ],
+                          );
+                        },
                       );
                     },
-                  );
-                },
-              ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -770,49 +784,57 @@ class _ModeGuardScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: context.sac.background,
       appBar: SacTopBar(
-        title: honorName,
-        onBack: () => Navigator.of(context).maybePop(),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedRoute01,
-              size: 48,
-              color: categoryColor,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: context.sac.text,
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
+          title: honorName,
+          onBack: () => Navigator.of(context).maybePop(),
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => Padding(
+            padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedRoute01,
+                    size: 48,
+                    color: categoryColor,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: context.sac.text,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: context.sac.textSecondary,
+                      fontSize: 14,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  SacButton.outline(
+                    text: 'honors.requirements.mode_guard_back'.tr(),
+                    textColor: categoryColor,
+                    borderColor: categoryColor,
+                    onPressed: () => Navigator.of(context).maybePop(),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: context.sac.textSecondary,
-                fontSize: 14,
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 20),
-            SacButton.outline(
-              text: 'honors.requirements.mode_guard_back'.tr(),
-              textColor: categoryColor,
-              borderColor: categoryColor,
-              onPressed: () => Navigator.of(context).maybePop(),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -1025,7 +1047,8 @@ class _LoadingBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+      padding: SacTopBar.paddingBelowBar(
+          context, const EdgeInsets.fromLTRB(16, 16, 16, 32)),
       itemCount: 6,
       separatorBuilder: (_, __) => Divider(
         height: 1,

@@ -27,6 +27,8 @@ class SacTextField extends StatefulWidget {
   final Widget? suffix;
   final void Function(String)? onChanged;
   final void Function(String)? onSubmitted;
+  final VoidCallback? onEditingComplete;
+  final TapRegionCallback? onTapOutside;
   final bool enabled;
   final bool readOnly;
   final int? maxLength;
@@ -54,6 +56,8 @@ class SacTextField extends StatefulWidget {
     this.suffix,
     this.onChanged,
     this.onSubmitted,
+    this.onEditingComplete,
+    this.onTapOutside,
     this.enabled = true,
     this.readOnly = false,
     this.maxLength,
@@ -144,6 +148,8 @@ class _SacTextFieldState extends State<SacTextField> {
                 obscureText: _obscureText,
                 keyboardType: widget.keyboardType,
                 onFieldSubmitted: widget.onSubmitted,
+                onEditingComplete: widget.onEditingComplete,
+                onTapOutside: widget.onTapOutside,
                 enabled: widget.enabled,
                 readOnly: widget.readOnly,
                 maxLength: widget.maxLength,

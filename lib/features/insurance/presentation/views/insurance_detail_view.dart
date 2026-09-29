@@ -29,134 +29,140 @@ class InsuranceDetailView extends ConsumerWidget {
     final canManage = canManageAsync.valueOrNull ?? false;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: context.sac.background,
       appBar: SacTopBar(
-        title: 'insurance.detail.title'.tr(),
-        backgroundColor: context.sac.background,
-        actions: [
-          if (canManage)
-            SacPressable(
-              listenOnly: true,
-              child: IconButton(
-                enableFeedback: false,
-                onPressed: () => _openEdit(context),
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedEdit02,
-                  size: 22,
-                  color: context.sac.textSecondary,
+          title: 'insurance.detail.title'.tr(),
+          backgroundColor: context.sac.background,
+          actions: [
+            if (canManage)
+              SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  onPressed: () => _openEdit(context),
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedEdit02,
+                    size: 22,
+                    color: context.sac.textSecondary,
+                  ),
                 ),
               ),
-            ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Member header card
-            _MemberHeaderCard(insurance: insurance),
-
-            const SizedBox(height: 16),
-
-            // Insurance status (big badge)
-            _StatusSection(insurance: insurance),
-
-            const SizedBox(height: 16),
-
-            // Policy details
-            if (insurance.insuranceId != null) ...[
-              _InfoCard(
-                title: 'insurance.detail.section_data'.tr(),
-                icon: HugeIcons.strokeRoundedFiles01,
-                children: [
-                  if (insurance.insuranceType != null)
-                    _InfoRow(
-                      icon: HugeIcons.strokeRoundedTag01,
-                      label: 'insurance.detail.label_type'.tr(),
-                      value: insurance.insuranceType!.label,
-                    ),
-                  if (insurance.policyNumber != null &&
-                      insurance.policyNumber!.isNotEmpty)
-                    _InfoRow(
-                      icon: HugeIcons.strokeRoundedId,
-                      label: 'insurance.detail.label_policy'.tr(),
-                      value: insurance.policyNumber!,
-                    ),
-                  if (insurance.providerName != null &&
-                      insurance.providerName!.isNotEmpty)
-                    _InfoRow(
-                      icon: HugeIcons.strokeRoundedBuilding01,
-                      label: 'insurance.detail.label_provider'.tr(),
-                      value: insurance.providerName!,
-                    ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              // Coverage period
-              _InfoCard(
-                title: 'insurance.detail.section_period'.tr(),
-                icon: HugeIcons.strokeRoundedCalendar01,
-                children: [
-                  if (insurance.startDate != null)
-                    _InfoRow(
-                      icon: HugeIcons.strokeRoundedCalendarAdd01,
-                      label: 'insurance.detail.label_start_date'.tr(),
-                      value: DateFormat('dd \'de\' MMMM \'de\' yyyy', 'es')
-                          .format(insurance.startDate!.toLocal()),
-                    ),
-                  if (insurance.endDate != null)
-                    _InfoRow(
-                      icon: HugeIcons.strokeRoundedCalendarRemove01,
-                      label: 'insurance.detail.label_end_date'.tr(),
-                      value: DateFormat('dd \'de\' MMMM \'de\' yyyy', 'es')
-                          .format(insurance.endDate!.toLocal()),
-                    ),
-                  if (insurance.coverageAmount != null)
-                    _InfoRow(
-                      icon: HugeIcons.strokeRoundedMoney01,
-                      label: 'insurance.detail.label_amount'.tr(),
-                      value:
-                          '\$${insurance.coverageAmount!.toStringAsFixed(2)}',
-                      valueColor: AppColors.secondary,
-                    ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              // Evidence file
-              _EvidenceSection(insurance: insurance),
-
-              const SizedBox(height: 12),
-
-              // Audit trail
-              _InfoCard(
-                title: 'insurance.detail.section_audit'.tr(),
-                icon: HugeIcons.strokeRoundedUserCheck01,
-                children: [
-                  if (insurance.registeredByName != null)
-                    _InfoRow(
-                      icon: HugeIcons.strokeRoundedUser,
-                      label: 'insurance.detail.label_registered_by'.tr(),
-                      value: insurance.registeredAt != null
-                          ? '${insurance.registeredByName!} · ${DateFormat('dd/MM/yyyy').format(insurance.registeredAt!.toLocal())}'
-                          : insurance.registeredByName!,
-                    ),
-                  if (insurance.modifiedByName != null)
-                    _InfoRow(
-                      icon: HugeIcons.strokeRoundedEdit02,
-                      label: 'insurance.detail.label_modified_by'.tr(),
-                      value: insurance.modifiedAt != null
-                          ? '${insurance.modifiedByName!} · ${DateFormat('dd/MM/yyyy').format(insurance.modifiedAt!.toLocal())}'
-                          : insurance.modifiedByName!,
-                    ),
-                ],
-              ),
-            ],
           ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SingleChildScrollView(
+            padding: SacTopBar.paddingBelowBar(
+                context, const EdgeInsets.fromLTRB(16, 8, 16, 32)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Member header card
+                _MemberHeaderCard(insurance: insurance),
+
+                const SizedBox(height: 16),
+
+                // Insurance status (big badge)
+                _StatusSection(insurance: insurance),
+
+                const SizedBox(height: 16),
+
+                // Policy details
+                if (insurance.insuranceId != null) ...[
+                  _InfoCard(
+                    title: 'insurance.detail.section_data'.tr(),
+                    icon: HugeIcons.strokeRoundedFiles01,
+                    children: [
+                      if (insurance.insuranceType != null)
+                        _InfoRow(
+                          icon: HugeIcons.strokeRoundedTag01,
+                          label: 'insurance.detail.label_type'.tr(),
+                          value: insurance.insuranceType!.label,
+                        ),
+                      if (insurance.policyNumber != null &&
+                          insurance.policyNumber!.isNotEmpty)
+                        _InfoRow(
+                          icon: HugeIcons.strokeRoundedId,
+                          label: 'insurance.detail.label_policy'.tr(),
+                          value: insurance.policyNumber!,
+                        ),
+                      if (insurance.providerName != null &&
+                          insurance.providerName!.isNotEmpty)
+                        _InfoRow(
+                          icon: HugeIcons.strokeRoundedBuilding01,
+                          label: 'insurance.detail.label_provider'.tr(),
+                          value: insurance.providerName!,
+                        ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Coverage period
+                  _InfoCard(
+                    title: 'insurance.detail.section_period'.tr(),
+                    icon: HugeIcons.strokeRoundedCalendar01,
+                    children: [
+                      if (insurance.startDate != null)
+                        _InfoRow(
+                          icon: HugeIcons.strokeRoundedCalendarAdd01,
+                          label: 'insurance.detail.label_start_date'.tr(),
+                          value: DateFormat('dd \'de\' MMMM \'de\' yyyy', 'es')
+                              .format(insurance.startDate!.toLocal()),
+                        ),
+                      if (insurance.endDate != null)
+                        _InfoRow(
+                          icon: HugeIcons.strokeRoundedCalendarRemove01,
+                          label: 'insurance.detail.label_end_date'.tr(),
+                          value: DateFormat('dd \'de\' MMMM \'de\' yyyy', 'es')
+                              .format(insurance.endDate!.toLocal()),
+                        ),
+                      if (insurance.coverageAmount != null)
+                        _InfoRow(
+                          icon: HugeIcons.strokeRoundedMoney01,
+                          label: 'insurance.detail.label_amount'.tr(),
+                          value:
+                              '\$${insurance.coverageAmount!.toStringAsFixed(2)}',
+                          valueColor: AppColors.secondary,
+                        ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Evidence file
+                  _EvidenceSection(insurance: insurance),
+
+                  const SizedBox(height: 12),
+
+                  // Audit trail
+                  _InfoCard(
+                    title: 'insurance.detail.section_audit'.tr(),
+                    icon: HugeIcons.strokeRoundedUserCheck01,
+                    children: [
+                      if (insurance.registeredByName != null)
+                        _InfoRow(
+                          icon: HugeIcons.strokeRoundedUser,
+                          label: 'insurance.detail.label_registered_by'.tr(),
+                          value: insurance.registeredAt != null
+                              ? '${insurance.registeredByName!} · ${DateFormat('dd/MM/yyyy').format(insurance.registeredAt!.toLocal())}'
+                              : insurance.registeredByName!,
+                        ),
+                      if (insurance.modifiedByName != null)
+                        _InfoRow(
+                          icon: HugeIcons.strokeRoundedEdit02,
+                          label: 'insurance.detail.label_modified_by'.tr(),
+                          value: insurance.modifiedAt != null
+                              ? '${insurance.modifiedByName!} · ${DateFormat('dd/MM/yyyy').format(insurance.modifiedAt!.toLocal())}'
+                              : insurance.modifiedByName!,
+                        ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -524,7 +530,8 @@ class _PdfTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: SacAccent.of(context).surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: SacAccent.of(context).color.withValues(alpha: 0.2)),
+          border: Border.all(
+              color: SacAccent.of(context).color.withValues(alpha: 0.2)),
         ),
         child: Row(
           children: [

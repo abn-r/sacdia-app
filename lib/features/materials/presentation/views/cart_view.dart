@@ -31,46 +31,52 @@ class CartView extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: SacTopBar(
-        title: 'materials.cart.title'.tr(),
-        actions: [
-          if (cart.lines.isNotEmpty)
-            SacPressable(
-              listenOnly: true,
-              child: IconButton(
-                enableFeedback: false,
-                tooltip: 'materials.cart.clear'.tr(),
-                onPressed: () => _confirmClear(context, ref),
-                icon: const HugeIcon(
-                  icon: HugeIcons.strokeRoundedDelete02,
-                  size: 22,
-                  color: AppColors.error,
+          title: 'materials.cart.title'.tr(),
+          actions: [
+            if (cart.lines.isNotEmpty)
+              SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  tooltip: 'materials.cart.clear'.tr(),
+                  onPressed: () => _confirmClear(context, ref),
+                  icon: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedDelete02,
+                    size: 22,
+                    color: AppColors.error,
+                  ),
                 ),
               ),
-            ),
-        ],
+          ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => cart.lines.isEmpty
+              ? _EmptyCart(
+                  onBackToCatalog: () => context.pop(),
+                )
+              : ListView.separated(
+                  padding: SacTopBar.paddingBelowBar(
+                      context, const EdgeInsets.fromLTRB(16, 16, 16, 120)),
+                  itemCount: cart.lines.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final line = cart.lines[index];
+                    return _CartLineItem(
+                      line: line,
+                      onQtyChanged: (qty) => ref
+                          .read(cartProvider.notifier)
+                          .updateQty(line.productId, line.variantOptionId, qty),
+                      onRemove: () => ref
+                          .read(cartProvider.notifier)
+                          .removeLine(line.productId, line.variantOptionId),
+                    );
+                  },
+                ),
+        ),
       ),
-      body: cart.lines.isEmpty
-          ? _EmptyCart(
-              onBackToCatalog: () => context.pop(),
-            )
-          : ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
-              itemCount: cart.lines.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
-              itemBuilder: (context, index) {
-                final line = cart.lines[index];
-                return _CartLineItem(
-                  line: line,
-                  onQtyChanged: (qty) => ref
-                      .read(cartProvider.notifier)
-                      .updateQty(line.productId, line.variantOptionId, qty),
-                  onRemove: () => ref
-                      .read(cartProvider.notifier)
-                      .removeLine(line.productId, line.variantOptionId),
-                );
-              },
-            ),
       bottomSheet: cart.lines.isEmpty
           ? null
           : Container(

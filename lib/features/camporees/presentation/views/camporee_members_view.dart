@@ -51,41 +51,47 @@ class CamporeeMembersView extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'camporees.members.title'.tr(),
-        backgroundColor: c.surface,
-        foregroundColor: c.text,
-        actions: canRegisterParticipants
-            ? [
-                SacPressable(
-                  listenOnly: true,
-                  child: IconButton(
-                    enableFeedback: false,
-                    onPressed: () => _openRegisterMember(context, ref),
-                    icon: HugeIcon(
-                      icon: HugeIcons.strokeRoundedUserAdd01,
-                      size: 22,
-                      color: SacAccent.of(context).color,
+          title: 'camporees.members.title'.tr(),
+          backgroundColor: c.surface,
+          foregroundColor: c.text,
+          actions: canRegisterParticipants
+              ? [
+                  SacPressable(
+                    listenOnly: true,
+                    child: IconButton(
+                      enableFeedback: false,
+                      onPressed: () => _openRegisterMember(context, ref),
+                      icon: HugeIcon(
+                        icon: HugeIcons.strokeRoundedUserAdd01,
+                        size: 22,
+                        color: SacAccent.of(context).color,
+                      ),
+                      tooltip: 'camporees.members.enroll_member_tooltip'.tr(),
                     ),
-                    tooltip: 'camporees.members.enroll_member_tooltip'.tr(),
                   ),
-                ),
-              ]
-            : const [],
-      ),
-      body: SafeArea(
-        child: CamporeeParticipantAccessGate(
-          registrationAsync: sectionRegistrationAsync,
-          onRetry: () => ref.invalidate(
-            camporeeSectionRegistrationProvider(camporeeId),
-          ),
-          child: _EligibleMembersBody(
-            camporeeId: camporeeId,
-            canRegisterParticipants: canRegisterParticipants,
-            canRemoveParticipants: canRemoveParticipants,
-            onEnroll: () => _openRegisterMember(context, ref),
-            onRemove: (member) => _confirmRemove(context, ref, member),
+                ]
+              : const [],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            top: false,
+            child: CamporeeParticipantAccessGate(
+              registrationAsync: sectionRegistrationAsync,
+              onRetry: () => ref.invalidate(
+                camporeeSectionRegistrationProvider(camporeeId),
+              ),
+              child: _EligibleMembersBody(
+                camporeeId: camporeeId,
+                canRegisterParticipants: canRegisterParticipants,
+                canRemoveParticipants: canRemoveParticipants,
+                onEnroll: () => _openRegisterMember(context, ref),
+                onRemove: (member) => _confirmRemove(context, ref, member),
+              ),
+            ),
           ),
         ),
       ),
@@ -213,6 +219,8 @@ class _EligibleMembersBody extends ConsumerWidget {
               ref.invalidate(camporeeMembersProvider(camporeeId)),
           child: CustomScrollView(
             slivers: [
+              SliverToBoxAdapter(
+                  child: SizedBox(height: SacTopBar.frostedInset(context))),
               // Stats summary
               SliverToBoxAdapter(
                 child: Padding(

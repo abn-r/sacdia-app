@@ -24,28 +24,34 @@ class MasterHonorsView extends ConsumerWidget {
     final roadmapAsync = ref.watch(userMasterHonorRoadmapProvider);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: SacTopBar(
-        title: 'master_honors.title'.tr(),
-        centerTitle: true,
-      ),
-      body: roadmapAsync.when(
-        loading: () => const Center(child: SacLoading()),
-        error: (_, __) => _ErrorState(
-          onRetry: () => ref.invalidate(userMasterHonorRoadmapProvider),
-        ),
-        data: (items) {
-          if (items.isEmpty) return const _EmptyState();
+          title: 'master_honors.title'.tr(), centerTitle: true, frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => Padding(
+            padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+            child: roadmapAsync.when(
+              loading: () => const Center(child: SacLoading()),
+              error: (_, __) => _ErrorState(
+                onRetry: () => ref.invalidate(userMasterHonorRoadmapProvider),
+              ),
+              data: (items) {
+                if (items.isEmpty) return const _EmptyState();
 
-          return RefreshIndicator(
-            color: SacAccent.of(context).color,
-            backgroundColor: context.sac.surface,
-            onRefresh: () async {
-              ref.invalidate(userMasterHonorRoadmapProvider);
-              await ref.read(userMasterHonorRoadmapProvider.future);
-            },
-            child: MasterHonorRoadmapGrid(items: items),
-          );
-        },
+                return RefreshIndicator(
+                  color: SacAccent.of(context).color,
+                  backgroundColor: context.sac.surface,
+                  onRefresh: () async {
+                    ref.invalidate(userMasterHonorRoadmapProvider);
+                    await ref.read(userMasterHonorRoadmapProvider.future);
+                  },
+                  child: MasterHonorRoadmapGrid(items: items),
+                );
+              },
+            ),
+          ),
+        ),
       ),
     );
   }

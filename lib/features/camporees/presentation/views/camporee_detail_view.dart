@@ -89,21 +89,26 @@ class _CamporeeScaffold extends StatelessWidget {
     final c = context.sac;
 
     return Scaffold(
-      backgroundColor: c.surfaceVariant,
+      extendBodyBehindAppBar: true,
+      backgroundColor: c.background,
       appBar: SacTopBar(
-        title: title ?? 'camporees.list.title'.tr(),
-        backgroundColor: c.surfaceVariant,
-        centerTitle: true,
-        onBack: () {
-          final navigator = Navigator.of(context);
-          if (navigator.canPop()) {
-            navigator.pop();
-          } else {
-            context.go(RouteNames.homeDashboard);
-          }
-        },
+          title: title ?? 'camporees.list.title'.tr(),
+          backgroundColor: c.background,
+          centerTitle: true,
+          onBack: () {
+            final navigator = Navigator.of(context);
+            if (navigator.canPop()) {
+              navigator.pop();
+            } else {
+              context.go(RouteNames.homeDashboard);
+            }
+          },
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(top: false, child: body),
+        ),
       ),
-      body: SafeArea(top: false, child: body),
     );
   }
 }
@@ -199,7 +204,8 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
             },
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 48),
+              padding: SacTopBar.paddingBelowBar(
+                  context, EdgeInsets.fromLTRB(hPad, 16, hPad, 48)),
               children: _tabChildren(
                 tab: tab,
                 registrationAsync: registrationAsync,
@@ -1218,38 +1224,45 @@ class _CamporeeEventDetailPage extends StatelessWidget {
             event.supportingDisplayNames.isNotEmpty);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'camporees.detail.event_detail_title'.tr(),
-        centerTitle: true,
-      ),
-      body: SafeArea(
-        top: false,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
-          children: [
-            _EventDetailHeader(event: event),
-            const SizedBox(height: 18),
-            _EventFactsPanel(event: event),
-            if (description != null && description.isNotEmpty) ...[
-              const SizedBox(height: 24),
-              _DescriptionSection(description: description),
-            ],
-            if (event.honors.isNotEmpty) ...[
-              const SizedBox(height: 24),
-              _EventHonorsSection(honors: event.honors),
-            ],
-            if (hasStaffSummary) ...[
-              const SizedBox(height: 24),
-              _EventStaffDetail(event: event),
-            ],
-            if (hasSchedules) ...[
-              const SizedBox(height: 24),
-              _SectionHeader(label: 'camporees.detail.event_schedules'.tr()),
-              const SizedBox(height: 10),
-              _ScheduleBlocksPreview(blocks: event.scheduleBlocks),
-            ],
-          ],
+          title: 'camporees.detail.event_detail_title'.tr(),
+          centerTitle: true,
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            top: false,
+            child: ListView(
+              padding: SacTopBar.paddingBelowBar(
+                  context, const EdgeInsets.fromLTRB(16, 20, 16, 40)),
+              children: [
+                _EventDetailHeader(event: event),
+                const SizedBox(height: 18),
+                _EventFactsPanel(event: event),
+                if (description != null && description.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  _DescriptionSection(description: description),
+                ],
+                if (event.honors.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  _EventHonorsSection(honors: event.honors),
+                ],
+                if (hasStaffSummary) ...[
+                  const SizedBox(height: 24),
+                  _EventStaffDetail(event: event),
+                ],
+                if (hasSchedules) ...[
+                  const SizedBox(height: 24),
+                  _SectionHeader(
+                      label: 'camporees.detail.event_schedules'.tr()),
+                  const SizedBox(height: 10),
+                  _ScheduleBlocksPreview(blocks: event.scheduleBlocks),
+                ],
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -1975,7 +1988,8 @@ class _FactRow extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 2),
-            child: HugeIcon(icon: icon, size: 20, color: SacAccent.of(context).color),
+            child: HugeIcon(
+                icon: icon, size: 20, color: SacAccent.of(context).color),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -2226,12 +2240,14 @@ class _DetailSkeleton extends StatelessWidget {
     final c = context.sac;
 
     return ListView(
-      padding: EdgeInsets.fromLTRB(
-        Responsive.horizontalPadding(context),
-        24,
-        Responsive.horizontalPadding(context),
-        48,
-      ),
+      padding: SacTopBar.paddingBelowBar(
+          context,
+          EdgeInsets.fromLTRB(
+            Responsive.horizontalPadding(context),
+            24,
+            Responsive.horizontalPadding(context),
+            48,
+          )),
       children: [
         Container(
           height: 88,

@@ -64,134 +64,138 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
     final total = cart.subtotalCentavos + envioCentavos;
 
     return Scaffold(
-      appBar: SacTopBar(
-        title: 'materials.summary.title'.tr(),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
-        children: [
-          // ── Subtitle ─────────────────────────────────────────────────────
-          Text(
-            'materials.summary.intro'.tr(),
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: c.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 24),
+      extendBodyBehindAppBar: true,
+      appBar: SacTopBar(title: 'materials.summary.title'.tr(), frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => ListView(
+            padding: SacTopBar.paddingBelowBar(
+                context, const EdgeInsets.fromLTRB(16, 16, 16, 140)),
+            children: [
+              // ── Subtitle ─────────────────────────────────────────────────────
+              Text(
+                'materials.summary.intro'.tr(),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: c.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 24),
 
-          // ── Datos de entrega ──────────────────────────────────────────────
-          _SectionHeader(title: 'materials.summary.delivery_section'.tr()),
-          const SizedBox(height: 12),
-          Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: c.border),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'materials.summary.mode'.tr(),
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: c.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: c.border),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: SacPressable(
-                      listenOnly: true,
-                      child: DropdownButton<MaterialDelivery>(
-                        enableFeedback: false,
-                        value: _entrega,
-                        isExpanded: true,
-                        underline: const SizedBox.shrink(),
-                        items: [
-                          DropdownMenuItem(
-                            value: MaterialDelivery.recoger,
-                            child: Text('materials.summary.pickup'.tr()),
-                          ),
-                          DropdownMenuItem(
-                            value: MaterialDelivery.envio,
-                            child: Text('materials.summary.ship'.tr()),
-                          ),
-                        ],
-                        onChanged: (v) {
-                          if (v != null) setState(() => _entrega = v);
-                        },
+              // ── Datos de entrega ──────────────────────────────────────────────
+              _SectionHeader(title: 'materials.summary.delivery_section'.tr()),
+              const SizedBox(height: 12),
+              Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(color: c.border),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'materials.summary.mode'.tr(),
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: c.textSecondary,
+                        ),
                       ),
-                    ),
-                  ),
-                  if (_entrega == MaterialDelivery.envio) ...[
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.accentLight,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          const HugeIcon(
-                            icon: HugeIcons.strokeRoundedInformationCircle,
-                            size: 16,
-                            color: AppColors.accentDark,
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: c.border),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: SacPressable(
+                          listenOnly: true,
+                          child: DropdownButton<MaterialDelivery>(
+                            enableFeedback: false,
+                            value: _entrega,
+                            isExpanded: true,
+                            underline: const SizedBox.shrink(),
+                            items: [
+                              DropdownMenuItem(
+                                value: MaterialDelivery.recoger,
+                                child: Text('materials.summary.pickup'.tr()),
+                              ),
+                              DropdownMenuItem(
+                                value: MaterialDelivery.envio,
+                                child: Text('materials.summary.ship'.tr()),
+                              ),
+                            ],
+                            onChanged: (v) {
+                              if (v != null) setState(() => _entrega = v);
+                            },
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'materials.summary.ship_hint'.tr(),
-                              style: theme.textTheme.bodySmall?.copyWith(
+                        ),
+                      ),
+                      if (_entrega == MaterialDelivery.envio) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.accentLight,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              const HugeIcon(
+                                icon: HugeIcons.strokeRoundedInformationCircle,
+                                size: 16,
                                 color: AppColors.accentDark,
                               ),
-                            ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'materials.summary.ship_hint'.tr(),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: AppColors.accentDark,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
-          const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-          // ── Resumen del pedido ────────────────────────────────────────────
-          _SectionHeader(title: 'materials.summary.order_section'.tr()),
-          const SizedBox(height: 12),
-          Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: c.border),
-            ),
-            child: Column(
-              children: [
-                for (int i = 0; i < cart.lines.length; i++) ...[
-                  if (i > 0)
-                    const Divider(height: 1, indent: 16, endIndent: 16),
-                  _ResumenLineItem(line: cart.lines[i]),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
+              // ── Resumen del pedido ────────────────────────────────────────────
+              _SectionHeader(title: 'materials.summary.order_section'.tr()),
+              const SizedBox(height: 12),
+              Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(color: c.border),
+                ),
+                child: Column(
+                  children: [
+                    for (int i = 0; i < cart.lines.length; i++) ...[
+                      if (i > 0)
+                        const Divider(height: 1, indent: 16, endIndent: 16),
+                      _ResumenLineItem(line: cart.lines[i]),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
 
-          // ── Notas opcionales ──────────────────────────────────────────────
-          SacTextField(
-            controller: _notasController,
-            label: 'materials.summary.notes_label'.tr(),
-            hint: 'materials.summary.notes_hint'.tr(),
-            maxLines: 3,
+              // ── Notas opcionales ──────────────────────────────────────────────
+              SacTextField(
+                controller: _notasController,
+                label: 'materials.summary.notes_label'.tr(),
+                hint: 'materials.summary.notes_hint'.tr(),
+                maxLines: 3,
+              ),
+            ],
           ),
-        ],
+        ),
       ),
 
       // ── Footer fijo con totales + CTA ─────────────────────────────────────

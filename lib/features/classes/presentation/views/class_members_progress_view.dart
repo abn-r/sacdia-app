@@ -42,21 +42,25 @@ class ClassMembersProgressView extends ConsumerWidget {
     final membersAsync = ref.watch(classMembersProgressProvider(query));
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: context.sac.canvas,
-      appBar: SacTopBar(
-        title: className,
-      ),
-      body: membersAsync.when(
-        loading: () => const Center(child: SacLoading()),
-        error: (error, _) => _ErrorState(
-          message: error.toString().replaceFirst('Exception: ', ''),
-          onRetry: () => ref.invalidate(classMembersProgressProvider(query)),
-        ),
-        data: (result) => _MembersBody(
-          result: result,
-          className: className,
-          onRefresh: () async =>
-              ref.invalidate(classMembersProgressProvider(query)),
+      appBar: SacTopBar(title: className, frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => membersAsync.when(
+            loading: () => const Center(child: SacLoading()),
+            error: (error, _) => _ErrorState(
+              message: error.toString().replaceFirst('Exception: ', ''),
+              onRetry: () =>
+                  ref.invalidate(classMembersProgressProvider(query)),
+            ),
+            data: (result) => _MembersBody(
+              result: result,
+              className: className,
+              onRefresh: () async =>
+                  ref.invalidate(classMembersProgressProvider(query)),
+            ),
+          ),
         ),
       ),
     );
@@ -83,7 +87,7 @@ class _MembersBody extends StatelessWidget {
         color: classColor,
         onRefresh: onRefresh,
         child: ListView(
-          padding: const EdgeInsets.all(24),
+          padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(24)),
           children: [
             const SizedBox(height: 120),
             _MessageState(
@@ -100,7 +104,8 @@ class _MembersBody extends StatelessWidget {
       color: classColor,
       onRefresh: onRefresh,
       child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        padding: SacTopBar.paddingBelowBar(
+            context, const EdgeInsets.fromLTRB(16, 16, 16, 32)),
         itemCount: result.members.length + 1,
         separatorBuilder: (_, index) =>
             index == 0 ? const SizedBox(height: 12) : const SizedBox(height: 8),

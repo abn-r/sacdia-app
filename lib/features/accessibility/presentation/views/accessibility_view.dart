@@ -23,51 +23,57 @@ class AccessibilityView extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
-      backgroundColor: c.surfaceVariant,
+      extendBodyBehindAppBar: true,
+      backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'accessibility.title'.tr(),
-        backgroundColor: c.surfaceVariant,
-        foregroundColor: c.text,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        children: [
-          _GroupContainer(
+          title: 'accessibility.title'.tr(),
+          backgroundColor: c.background,
+          foregroundColor: c.text,
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => ListView(
+            padding: SacTopBar.paddingBelowBar(context,
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
             children: [
-              SettingTile(
-                icon: HugeIcons.strokeRoundedTextFont,
-                title: 'accessibility.text_size_label'.tr(),
-                subtitle: _labelForTextSize(settings.textSize),
-                iconColor: SacAccent.of(context).color,
-                onTap: () => _showTextSizePicker(context, ref),
+              _GroupContainer(
+                children: [
+                  SettingTile(
+                    icon: HugeIcons.strokeRoundedTextFont,
+                    title: 'accessibility.text_size_label'.tr(),
+                    subtitle: _labelForTextSize(settings.textSize),
+                    iconColor: SacAccent.of(context).color,
+                    onTap: () => _showTextSizePicker(context, ref),
+                  ),
+                  _divider(context),
+                  _SwitchTile(
+                    icon: HugeIcons.strokeRoundedMoonEclipse,
+                    title: 'accessibility.high_contrast_tile'.tr(),
+                    iconColor: SacAccent.of(context).color,
+                    value: settings.highContrast,
+                    onChanged: notifier.setHighContrast,
+                  ),
+                  _divider(context),
+                  _SwitchTile(
+                    icon: HugeIcons.strokeRoundedPause,
+                    title: 'accessibility.reduce_motion_tile'.tr(),
+                    iconColor: SacAccent.of(context).color,
+                    value: settings.reduceMotion,
+                    onChanged: notifier.setReduceMotion,
+                  ),
+                ],
               ),
-              _divider(context),
-              _SwitchTile(
-                icon: HugeIcons.strokeRoundedMoonEclipse,
-                title: 'accessibility.high_contrast_tile'.tr(),
-                iconColor: SacAccent.of(context).color,
-                value: settings.highContrast,
-                onChanged: notifier.setHighContrast,
-              ),
-              _divider(context),
-              _SwitchTile(
-                icon: HugeIcons.strokeRoundedPause,
-                title: 'accessibility.reduce_motion_tile'.tr(),
-                iconColor: SacAccent.of(context).color,
-                value: settings.reduceMotion,
-                onChanged: notifier.setReduceMotion,
-              ),
+              const SizedBox(height: 24),
+
+              // Live preview — aplica la configuración actual dentro de un
+              // MediaQuery local para que el usuario vea el efecto sin salir
+              // de la pantalla. El override global a nivel de app sigue vigente;
+              // este MediaQuery anidado solamente refuerza que el preview
+              // refleje el estado incluso antes de que la rebuild raíz propague.
+              _PreviewCard(settings: settings),
             ],
           ),
-          const SizedBox(height: 24),
-
-          // Live preview — aplica la configuración actual dentro de un
-          // MediaQuery local para que el usuario vea el efecto sin salir
-          // de la pantalla. El override global a nivel de app sigue vigente;
-          // este MediaQuery anidado solamente refuerza que el preview
-          // refleje el estado incluso antes de que la rebuild raíz propague.
-          _PreviewCard(settings: settings),
-        ],
+        ),
       ),
     );
   }
@@ -297,7 +303,8 @@ class _SwitchTile extends StatelessWidget {
               value: value,
               onChanged: onChanged,
               activeThumbColor: SacAccent.of(context).color,
-              activeTrackColor: SacAccent.of(context).color.withValues(alpha: 0.4),
+              activeTrackColor:
+                  SacAccent.of(context).color.withValues(alpha: 0.4),
             ),
           ),
         ],

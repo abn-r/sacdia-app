@@ -29,46 +29,54 @@ class MonthlyReportsVisibleListView extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'monthly_reports.visible.title'.tr(),
-        onBack: () => context.go(RouteNames.homeDashboard),
-      ),
-      body: reportsAsync.when(
-        loading: () => const MonthlyReportSkeletonList(),
-        error: (e, _) => _ErrorBody(
-          message: e.toString().replaceFirst('Exception: ', ''),
-          onRetry: () => ref.invalidate(visibleMonthlyReportsProvider),
-        ),
-        data: (page) => RefreshIndicator(
-          color: SacAccent.of(context).color,
-          onRefresh: () async => ref.invalidate(visibleMonthlyReportsProvider),
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
-            children: [
-              MonthlyReportEntrance(child: _NextActionBar(reports: page.items)),
-              const SizedBox(height: 22),
-              MonthlyReportEntrance(
-                index: 1,
-                child: Text(
-                  'monthly_reports.visible.history_title'.tr(),
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.2,
-                    color: c.textTertiary,
+          title: 'monthly_reports.visible.title'.tr(),
+          onBack: () => context.go(RouteNames.homeDashboard),
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => reportsAsync.when(
+            loading: () => const MonthlyReportSkeletonList(),
+            error: (e, _) => _ErrorBody(
+              message: e.toString().replaceFirst('Exception: ', ''),
+              onRetry: () => ref.invalidate(visibleMonthlyReportsProvider),
+            ),
+            data: (page) => RefreshIndicator(
+              color: SacAccent.of(context).color,
+              onRefresh: () async =>
+                  ref.invalidate(visibleMonthlyReportsProvider),
+              child: ListView(
+                padding: SacTopBar.paddingBelowBar(
+                    context, const EdgeInsets.fromLTRB(20, 8, 20, 28)),
+                children: [
+                  MonthlyReportEntrance(
+                      child: _NextActionBar(reports: page.items)),
+                  const SizedBox(height: 22),
+                  MonthlyReportEntrance(
+                    index: 1,
+                    child: Text(
+                      'monthly_reports.visible.history_title'.tr(),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.2,
+                        color: c.textTertiary,
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 10),
+                  if (page.items.isEmpty)
+                    MonthlyReportEntrance(index: 2, child: _EmptyHistory(c: c))
+                  else
+                    MonthlyReportEntrance(
+                      index: 2,
+                      child: _GroupedHistoryList(reports: page.items),
+                    ),
+                ],
               ),
-              const SizedBox(height: 10),
-              if (page.items.isEmpty)
-                MonthlyReportEntrance(index: 2, child: _EmptyHistory(c: c))
-              else
-                MonthlyReportEntrance(
-                  index: 2,
-                  child: _GroupedHistoryList(reports: page.items),
-                ),
-            ],
+            ),
           ),
         ),
       ),

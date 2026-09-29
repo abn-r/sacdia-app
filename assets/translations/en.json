@@ -184,6 +184,8 @@
     "login_error": "Error signing in",
     "cooldown_message": "Too many attempts. Try again in {seconds}s.",
     "login_subtitle": "Sign in to continue",
+    "keyboard_send": "Send",
+    "keyboard_hide": "Hide",
     "password_hint_login": "Your password",
     "no_account": "Don't have an account? ",
     "register_link": "Sign up",

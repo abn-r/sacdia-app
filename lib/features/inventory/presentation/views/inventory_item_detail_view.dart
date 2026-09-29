@@ -43,11 +43,12 @@ class InventoryItemDetailView extends ConsumerWidget {
     final clubTypeName = _clubTypeNameForItem(detailItem, clubContext);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: context.sac.background,
       appBar: SacTopBar(
-        title: 'inventory.detail.title'.tr(),
-        backgroundColor: context.sac.background,
-      ),
+          title: 'inventory.detail.title'.tr(),
+          backgroundColor: context.sac.background,
+          frosted: true),
 
       // Action bar at bottom — thumb zone
       bottomNavigationBar: canManage
@@ -58,219 +59,228 @@ class InventoryItemDetailView extends ConsumerWidget {
             )
           : null,
 
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Photo hero — tag matches thumbnail tag in item card
-            Hero(
-              tag: 'inv-photo-${detailItem.id}',
-              child: _PhotoSection(
-                photoUrl: detailItem.photoUrl,
-                imageUrls: detailItem.evidences.map((e) => e.url).toList(),
-                title: detailItem.name,
-              ),
-            ),
-
-            if (detailItem.evidences.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              _EvidenceCard(
-                itemName: detailItem.name,
-                evidences: detailItem.evidences,
-              ),
-            ],
-
-            const SizedBox(height: 20),
-
-            // Title + condition badge
-            Row(
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SingleChildScrollView(
+            padding: SacTopBar.paddingBelowBar(
+                context, const EdgeInsets.fromLTRB(16, 8, 16, 32)),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
+                // Photo hero — tag matches thumbnail tag in item card
+                Hero(
+                  tag: 'inv-photo-${detailItem.id}',
+                  child: _PhotoSection(
+                    photoUrl: detailItem.photoUrl,
+                    imageUrls: detailItem.evidences.map((e) => e.url).toList(),
+                    title: detailItem.name,
+                  ),
+                ),
+
+                if (detailItem.evidences.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  _EvidenceCard(
+                    itemName: detailItem.name,
+                    evidences: detailItem.evidences,
+                  ),
+                ],
+
+                const SizedBox(height: 20),
+
+                // Title + condition badge
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        detailItem.name,
+                        style:
+                            Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  color: context.sac.text,
+                                ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    ConditionBadge(condition: detailItem.condition),
+                  ],
+                ),
+
+                const SizedBox(height: 8),
+
+                // Category tag
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: SacAccent.of(context).surface,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                   child: Text(
-                    detailItem.name,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: context.sac.text,
+                    detailItem.category.name,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: SacAccent.of(context).dark,
+                          fontWeight: FontWeight.w700,
                         ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                ConditionBadge(condition: detailItem.condition),
-              ],
-            ),
 
-            const SizedBox(height: 8),
-
-            // Category tag
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: SacAccent.of(context).surface,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                detailItem.category.name,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: SacAccent.of(context).dark,
-                      fontWeight: FontWeight.w700,
-                    ),
-              ),
-            ),
-
-            if (detailItem.description != null &&
-                detailItem.description!.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Text(
-                detailItem.description!,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: context.sac.textSecondary,
-                      height: 1.5,
-                    ),
-              ),
-            ],
-
-            const SizedBox(height: 20),
-
-            // Primary info card
-            _InfoCard(
-              children: [
-                _InfoRow(
-                  icon: HugeIcons.strokeRoundedPackage,
-                  label: 'inventory.detail.quantity'.tr(),
-                  value: detailItem.quantity.toString(),
-                ),
-                _InfoRow(
-                  icon: HugeIcons.strokeRoundedTag01,
-                  label: 'inventory.detail.category'.tr(),
-                  value: detailItem.category.name,
-                ),
-                _InfoRow(
-                  icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                  label: 'inventory.detail.condition'.tr(),
-                  value: detailItem.condition.label,
-                  valueColor: _conditionColor(detailItem.condition),
-                ),
-                _InfoRow(
-                  icon: HugeIcons.strokeRoundedImage01,
-                  label: 'inventory.detail.evidences'.tr(),
-                  value: 'inventory.detail.evidence_count_value'.tr(
-                    namedArgs: {
-                      'count': detailItem.evidences.length.toString(),
-                    },
+                if (detailItem.description != null &&
+                    detailItem.description!.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    detailItem.description!,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: context.sac.textSecondary,
+                          height: 1.5,
+                        ),
                   ),
-                ),
-                if (clubTypeName != null)
-                  _InfoRow(
-                    icon: HugeIcons.strokeRoundedHome01,
-                    label: 'inventory.detail.club_type'.tr(),
-                    value: clubTypeName,
-                  ),
-                _InfoRow(
-                  icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                  label: 'inventory.detail.record_status'.tr(),
-                  value: detailItem.isActive
-                      ? 'inventory.detail.active_status'.tr()
-                      : 'inventory.detail.inactive_status'.tr(),
-                  valueColor: detailItem.isActive
-                      ? AppColors.secondary
-                      : AppColors.error,
-                ),
-                if (detailItem.serialNumber != null &&
-                    detailItem.serialNumber!.isNotEmpty)
-                  _InfoRow(
-                    icon: HugeIcons.strokeRoundedTag01,
-                    label: 'inventory.detail.serial_number'.tr(),
-                    value: detailItem.serialNumber!,
-                  ),
-                if (detailItem.purchaseDate != null)
-                  _InfoRow(
-                    icon: HugeIcons.strokeRoundedCalendar01,
-                    label: 'inventory.detail.purchase_date'.tr(),
-                    value: DateFormat('dd/MM/yyyy')
-                        .format(detailItem.purchaseDate!.toLocal()),
-                  ),
-                if (detailItem.estimatedValue != null)
-                  _InfoRow(
-                    icon: HugeIcons.strokeRoundedMoney01,
-                    label: 'inventory.detail.estimated_value'.tr(),
-                    value: '\$${detailItem.estimatedValue!.toStringAsFixed(2)}',
-                    valueColor: AppColors.secondary,
-                  ),
-              ],
-            ),
+                ],
 
-            if (detailItem.location != null ||
-                detailItem.assignedTo != null) ...[
-              const SizedBox(height: 12),
-              _InfoCard(
-                children: [
-                  if (detailItem.location != null &&
-                      detailItem.location!.isNotEmpty)
+                const SizedBox(height: 20),
+
+                // Primary info card
+                _InfoCard(
+                  children: [
                     _InfoRow(
-                      icon: HugeIcons.strokeRoundedLocation01,
-                      label: 'inventory.detail.location'.tr(),
-                      value: detailItem.location!,
+                      icon: HugeIcons.strokeRoundedPackage,
+                      label: 'inventory.detail.quantity'.tr(),
+                      value: detailItem.quantity.toString(),
                     ),
-                  if (detailItem.assignedTo != null &&
-                      detailItem.assignedTo!.isNotEmpty)
+                    _InfoRow(
+                      icon: HugeIcons.strokeRoundedTag01,
+                      label: 'inventory.detail.category'.tr(),
+                      value: detailItem.category.name,
+                    ),
+                    _InfoRow(
+                      icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                      label: 'inventory.detail.condition'.tr(),
+                      value: detailItem.condition.label,
+                      valueColor: _conditionColor(detailItem.condition),
+                    ),
+                    _InfoRow(
+                      icon: HugeIcons.strokeRoundedImage01,
+                      label: 'inventory.detail.evidences'.tr(),
+                      value: 'inventory.detail.evidence_count_value'.tr(
+                        namedArgs: {
+                          'count': detailItem.evidences.length.toString(),
+                        },
+                      ),
+                    ),
+                    if (clubTypeName != null)
+                      _InfoRow(
+                        icon: HugeIcons.strokeRoundedHome01,
+                        label: 'inventory.detail.club_type'.tr(),
+                        value: clubTypeName,
+                      ),
+                    _InfoRow(
+                      icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+                      label: 'inventory.detail.record_status'.tr(),
+                      value: detailItem.isActive
+                          ? 'inventory.detail.active_status'.tr()
+                          : 'inventory.detail.inactive_status'.tr(),
+                      valueColor: detailItem.isActive
+                          ? AppColors.secondary
+                          : AppColors.error,
+                    ),
+                    if (detailItem.serialNumber != null &&
+                        detailItem.serialNumber!.isNotEmpty)
+                      _InfoRow(
+                        icon: HugeIcons.strokeRoundedTag01,
+                        label: 'inventory.detail.serial_number'.tr(),
+                        value: detailItem.serialNumber!,
+                      ),
+                    if (detailItem.purchaseDate != null)
+                      _InfoRow(
+                        icon: HugeIcons.strokeRoundedCalendar01,
+                        label: 'inventory.detail.purchase_date'.tr(),
+                        value: DateFormat('dd/MM/yyyy')
+                            .format(detailItem.purchaseDate!.toLocal()),
+                      ),
+                    if (detailItem.estimatedValue != null)
+                      _InfoRow(
+                        icon: HugeIcons.strokeRoundedMoney01,
+                        label: 'inventory.detail.estimated_value'.tr(),
+                        value:
+                            '\$${detailItem.estimatedValue!.toStringAsFixed(2)}',
+                        valueColor: AppColors.secondary,
+                      ),
+                  ],
+                ),
+
+                if (detailItem.location != null ||
+                    detailItem.assignedTo != null) ...[
+                  const SizedBox(height: 12),
+                  _InfoCard(
+                    children: [
+                      if (detailItem.location != null &&
+                          detailItem.location!.isNotEmpty)
+                        _InfoRow(
+                          icon: HugeIcons.strokeRoundedLocation01,
+                          label: 'inventory.detail.location'.tr(),
+                          value: detailItem.location!,
+                        ),
+                      if (detailItem.assignedTo != null &&
+                          detailItem.assignedTo!.isNotEmpty)
+                        _InfoRow(
+                          icon: HugeIcons.strokeRoundedUser,
+                          label: 'inventory.detail.assigned_to'.tr(),
+                          value: detailItem.assignedTo!,
+                        ),
+                    ],
+                  ),
+                ],
+
+                if (detailItem.notes != null &&
+                    detailItem.notes!.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  _InfoCard(
+                    children: [
+                      _InfoRow(
+                        icon: HugeIcons.strokeRoundedNote01,
+                        label: 'inventory.detail.notes'.tr(),
+                        value: detailItem.notes!,
+                        isMultiline: true,
+                      ),
+                    ],
+                  ),
+                ],
+
+                const SizedBox(height: 12),
+
+                // Audit trail
+                _InfoCard(
+                  children: [
                     _InfoRow(
                       icon: HugeIcons.strokeRoundedUser,
-                      label: 'inventory.detail.assigned_to'.tr(),
-                      value: detailItem.assignedTo!,
+                      leading: _ActorAvatar(
+                        imageUrl: detailItem.registeredByAvatarUrl,
+                      ),
+                      label: 'inventory.detail.registered_by'.tr(),
+                      value: detailItem.registeredByName,
                     ),
-                ],
-              ),
-            ],
-
-            if (detailItem.notes != null && detailItem.notes!.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              _InfoCard(
-                children: [
-                  _InfoRow(
-                    icon: HugeIcons.strokeRoundedNote01,
-                    label: 'inventory.detail.notes'.tr(),
-                    value: detailItem.notes!,
-                    isMultiline: true,
-                  ),
-                ],
-              ),
-            ],
-
-            const SizedBox(height: 12),
-
-            // Audit trail
-            _InfoCard(
-              children: [
-                _InfoRow(
-                  icon: HugeIcons.strokeRoundedUser,
-                  leading: _ActorAvatar(
-                    imageUrl: detailItem.registeredByAvatarUrl,
-                  ),
-                  label: 'inventory.detail.registered_by'.tr(),
-                  value: detailItem.registeredByName,
+                    _InfoRow(
+                      icon: HugeIcons.strokeRoundedCalendar01,
+                      label: 'inventory.detail.registered_at'.tr(),
+                      value: _formatDateTime(detailItem.registeredAt),
+                    ),
+                    if (detailItem.modifiedAt != null ||
+                        detailItem.modifiedByName != null)
+                      _InfoRow(
+                        icon: HugeIcons.strokeRoundedEdit02,
+                        label: 'inventory.detail.last_modified'.tr(),
+                        value: _joinNonEmpty([
+                          detailItem.modifiedByName,
+                          detailItem.modifiedAt != null
+                              ? _formatDateTime(detailItem.modifiedAt!)
+                              : null,
+                        ]),
+                      ),
+                  ],
                 ),
-                _InfoRow(
-                  icon: HugeIcons.strokeRoundedCalendar01,
-                  label: 'inventory.detail.registered_at'.tr(),
-                  value: _formatDateTime(detailItem.registeredAt),
-                ),
-                if (detailItem.modifiedAt != null ||
-                    detailItem.modifiedByName != null)
-                  _InfoRow(
-                    icon: HugeIcons.strokeRoundedEdit02,
-                    label: 'inventory.detail.last_modified'.tr(),
-                    value: _joinNonEmpty([
-                      detailItem.modifiedByName,
-                      detailItem.modifiedAt != null
-                          ? _formatDateTime(detailItem.modifiedAt!)
-                          : null,
-                    ]),
-                  ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );

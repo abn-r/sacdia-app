@@ -52,35 +52,41 @@ class IssuePaymentOrderView extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: purpose == PaymentOrderPurpose.insurance
-            ? 'payment_orders.issue.title_insurance'.tr()
-            : 'payment_orders.issue.title_camporee'.tr(),
-        backgroundColor: c.surface,
-        foregroundColor: c.text,
-      ),
-      body: SafeArea(
-        child: contextAsync.when(
-          loading: () => const Center(child: SacLoading()),
-          error: (_, __) => _UnavailableState(c: c),
-          data: (ordersContext) {
-            if (ordersContext == null || !ordersContext.enabled) {
-              return _UnavailableState(c: c);
-            }
-            if (purpose == PaymentOrderPurpose.insurance &&
-                ordersContext.insuranceCycles.isEmpty) {
-              return _NoCycleState(c: c);
-            }
-            return _IssueOrderForm(
-              purpose: purpose,
-              camporeeId: camporeeId,
-              camporeeType: camporeeType,
-              cycle: purpose == PaymentOrderPurpose.insurance
-                  ? ordersContext.insuranceCycles.first
-                  : null,
-            );
-          },
+          title: purpose == PaymentOrderPurpose.insurance
+              ? 'payment_orders.issue.title_insurance'.tr()
+              : 'payment_orders.issue.title_camporee'.tr(),
+          backgroundColor: c.surface,
+          foregroundColor: c.text,
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            top: false,
+            child: contextAsync.when(
+              loading: () => const Center(child: SacLoading()),
+              error: (_, __) => _UnavailableState(c: c),
+              data: (ordersContext) {
+                if (ordersContext == null || !ordersContext.enabled) {
+                  return _UnavailableState(c: c);
+                }
+                if (purpose == PaymentOrderPurpose.insurance &&
+                    ordersContext.insuranceCycles.isEmpty) {
+                  return _NoCycleState(c: c);
+                }
+                return _IssueOrderForm(
+                  purpose: purpose,
+                  camporeeId: camporeeId,
+                  camporeeType: camporeeType,
+                  cycle: purpose == PaymentOrderPurpose.insurance
+                      ? ordersContext.insuranceCycles.first
+                      : null,
+                );
+              },
+            ),
+          ),
         ),
       ),
     );
@@ -148,7 +154,8 @@ class _IssueOrderForm extends ConsumerWidget {
       children: [
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.all(20),
+            padding:
+                SacTopBar.paddingBelowBar(context, const EdgeInsets.all(20)),
             children: [
               if (cycle != null) ...[
                 _CycleSummaryCard(cycle: cycle!),
@@ -307,7 +314,8 @@ class _CycleSummaryCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: SacAccent.of(context).color.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: SacAccent.of(context).color.withValues(alpha: 0.25)),
+        border: Border.all(
+            color: SacAccent.of(context).color.withValues(alpha: 0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -358,7 +366,9 @@ class _EligibleMemberTile extends StatelessWidget {
     final c = context.sac;
 
     return Material(
-      color: selected ? SacAccent.of(context).color.withValues(alpha: 0.07) : c.surface,
+      color: selected
+          ? SacAccent.of(context).color.withValues(alpha: 0.07)
+          : c.surface,
       borderRadius: BorderRadius.circular(14),
       child: SacInkWell(
         onTap: onTap,

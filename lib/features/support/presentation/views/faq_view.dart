@@ -69,115 +69,120 @@ class _FaqViewState extends ConsumerState<FaqView> {
     final padding = Responsive.horizontalPadding(context);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'support.faq_title'.tr(),
-        centerTitle: true,
-      ),
-      body: filteredAsync.when(
-        loading: () => const Center(child: SacLoading()),
-        error: (e, _) => FaqErrorState(
-          message: e.toString(),
-          onRetry: () => ref.invalidate(faqItemsProvider),
-        ),
-        data: (items) {
-          final categories = _categoriesFrom(items);
-          final visibleItems = _selectedCategory == 'all'
-              ? items
-              : items
-                  .where((item) => item.category == _selectedCategory)
-                  .toList(growable: false);
-
-          if (!_entranceDone) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) _entranceDone = true;
-            });
-          }
-
-          return ListView(
-            padding: EdgeInsets.fromLTRB(
-              padding,
-              8,
-              padding,
-              28 + MediaQuery.paddingOf(context).bottom,
+          title: 'support.faq_title'.tr(), centerTitle: true, frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => filteredAsync.when(
+            loading: () => const Center(child: SacLoading()),
+            error: (e, _) => FaqErrorState(
+              message: e.toString(),
+              onRetry: () => ref.invalidate(faqItemsProvider),
             ),
-            children: [
-              Semantics(
-                textField: true,
-                label: 'support.faq_search_hint'.tr(),
-                child: SacTextField(
-                  controller: _searchCtrl,
-                  hint: 'support.faq_search_hint'.tr(),
-                  prefixIcon: HugeIcons.strokeRoundedSearch01,
-                  textInputAction: TextInputAction.search,
-                  onChanged: _onSearchChanged,
-                  suffix: _searchCtrl.text.isEmpty
-                      ? null
-                      : SacPressable(
-                          listenOnly: true,
-                          child: IconButton(
-                            enableFeedback: false,
-                            tooltip: 'common.clear'.tr(),
-                            onPressed: _clearSearch,
-                            icon: HugeIcon(
-                              icon: HugeIcons.strokeRoundedCancelCircle,
-                              size: 20,
-                              color: c.textTertiary,
+            data: (items) {
+              final categories = _categoriesFrom(items);
+              final visibleItems = _selectedCategory == 'all'
+                  ? items
+                  : items
+                      .where((item) => item.category == _selectedCategory)
+                      .toList(growable: false);
+
+              if (!_entranceDone) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) _entranceDone = true;
+                });
+              }
+
+              return ListView(
+                padding: SacTopBar.paddingBelowBar(
+                    context,
+                    EdgeInsets.fromLTRB(
+                      padding,
+                      8,
+                      padding,
+                      28 + MediaQuery.paddingOf(context).bottom,
+                    )),
+                children: [
+                  Semantics(
+                    textField: true,
+                    label: 'support.faq_search_hint'.tr(),
+                    child: SacTextField(
+                      controller: _searchCtrl,
+                      hint: 'support.faq_search_hint'.tr(),
+                      prefixIcon: HugeIcons.strokeRoundedSearch01,
+                      textInputAction: TextInputAction.search,
+                      onChanged: _onSearchChanged,
+                      suffix: _searchCtrl.text.isEmpty
+                          ? null
+                          : SacPressable(
+                              listenOnly: true,
+                              child: IconButton(
+                                enableFeedback: false,
+                                tooltip: 'common.clear'.tr(),
+                                onPressed: _clearSearch,
+                                icon: HugeIcon(
+                                  icon: HugeIcons.strokeRoundedCancelCircle,
+                                  size: 20,
+                                  color: c.textTertiary,
+                                ),
+                              ),
                             ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  FaqCategoryStrip(
+                    categories: categories,
+                    selected: _selectedCategory,
+                    onSelected: (category) {
+                      setState(() {
+                        _selectedCategory = category;
+                        _expandedId = null;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'support.faq_count'.tr(args: ['${visibleItems.length}']),
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          color: c.textTertiary,
+                        ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (visibleItems.isEmpty)
+                    FaqEmptyState(query: _searchCtrl.text)
+                  else
+                    ...visibleItems.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final item = entry.value;
+                      final isExpanded = _expandedId == item.id;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: StaggeredListItem(
+                          index: index,
+                          staggerDelay: SacMotion.stagger,
+                          duration: SacMotion.standard,
+                          slideOffset: 8,
+                          animate: !_entranceDone && index < 6,
+                          child: FaqItemCard(
+                            key: ValueKey(item.id),
+                            item: item,
+                            expanded: isExpanded,
+                            onTap: () {
+                              setState(() {
+                                _expandedId = isExpanded ? null : item.id;
+                              });
+                            },
                           ),
                         ),
-                ),
-              ),
-              const SizedBox(height: 14),
-              FaqCategoryStrip(
-                categories: categories,
-                selected: _selectedCategory,
-                onSelected: (category) {
-                  setState(() {
-                    _selectedCategory = category;
-                    _expandedId = null;
-                  });
-                },
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'support.faq_count'.tr(args: ['${visibleItems.length}']),
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: c.textTertiary,
-                    ),
-              ),
-              const SizedBox(height: 12),
-              if (visibleItems.isEmpty)
-                FaqEmptyState(query: _searchCtrl.text)
-              else
-                ...visibleItems.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final item = entry.value;
-                  final isExpanded = _expandedId == item.id;
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: StaggeredListItem(
-                      index: index,
-                      staggerDelay: SacMotion.stagger,
-                      duration: SacMotion.standard,
-                      slideOffset: 8,
-                      animate: !_entranceDone && index < 6,
-                      child: FaqItemCard(
-                        key: ValueKey(item.id),
-                        item: item,
-                        expanded: isExpanded,
-                        onTap: () {
-                          setState(() {
-                            _expandedId = isExpanded ? null : item.id;
-                          });
-                        },
-                      ),
-                    ),
-                  );
-                }),
-            ],
-          );
-        },
+                      );
+                    }),
+                ],
+              );
+            },
+          ),
+        ),
       ),
     );
   }

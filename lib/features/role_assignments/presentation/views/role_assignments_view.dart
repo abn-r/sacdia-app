@@ -27,85 +27,91 @@ class RoleAssignmentsView extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'role_assignments.view.title'.tr(),
-        actions: [
-          SacPressable(
-            listenOnly: true,
-            child: IconButton(
-              enableFeedback: false,
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedRefresh,
-                color: c.textSecondary,
-                size: 20,
+          title: 'role_assignments.view.title'.tr(),
+          actions: [
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedRefresh,
+                  color: c.textSecondary,
+                  size: 20,
+                ),
+                onPressed: () => ref.invalidate(roleAssignmentsProvider),
               ),
-              onPressed: () => ref.invalidate(roleAssignmentsProvider),
             ),
-          ),
-        ],
-      ),
-      body: assignmentsAsync.when(
-        loading: () => const Center(child: SacLoading()),
-        error: (e, _) => _ErrorBody(
-          message: e.toString().replaceFirst('Exception: ', ''),
-          onRetry: () => ref.invalidate(roleAssignmentsProvider),
-        ),
-        data: (assignments) {
-          if (assignments.isEmpty) {
-            return const _EmptyBody();
-          }
+          ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => assignmentsAsync.when(
+            loading: () => const Center(child: SacLoading()),
+            error: (e, _) => _ErrorBody(
+              message: e.toString().replaceFirst('Exception: ', ''),
+              onRetry: () => ref.invalidate(roleAssignmentsProvider),
+            ),
+            data: (assignments) {
+              if (assignments.isEmpty) {
+                return const _EmptyBody();
+              }
 
-          return RefreshIndicator(
-            color: SacAccent.of(context).color,
-            onRefresh: () async => ref.invalidate(roleAssignmentsProvider),
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                // Info banner
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.accentLight,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color: AppColors.accent.withValues(alpha: 0.4)),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedInformationCircle,
-                        size: 16,
-                        color: AppColors.accentDark,
+              return RefreshIndicator(
+                color: SacAccent.of(context).color,
+                onRefresh: () async => ref.invalidate(roleAssignmentsProvider),
+                child: ListView(
+                  padding: SacTopBar.paddingBelowBar(
+                      context, const EdgeInsets.all(20)),
+                  children: [
+                    // Info banner
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: AppColors.accentLight,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: AppColors.accent.withValues(alpha: 0.4)),
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'role_assignments.view.admin_note'.tr(),
-                          style: TextStyle(
-                            fontSize: 12,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          HugeIcon(
+                            icon: HugeIcons.strokeRoundedInformationCircle,
+                            size: 16,
                             color: AppColors.accentDark,
-                            height: 1.4,
                           ),
-                        ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'role_assignments.view.admin_note'.tr(),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.accentDark,
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
+                    ),
+                    const SizedBox(height: 16),
 
-                ...assignments.map(
-                  (a) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _AssignmentCard(assignment: a),
-                  ),
+                    ...assignments.map(
+                      (a) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _AssignmentCard(assignment: a),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          );
-        },
+              );
+            },
+          ),
+        ),
       ),
     );
   }

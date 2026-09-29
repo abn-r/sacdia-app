@@ -361,15 +361,23 @@ class _LoadingScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: context.sac.background,
       appBar: SacTopBar(
-        title: 'honors.catalog.title'.tr(),
-        onBack: () {
-          HapticFeedback.lightImpact();
-          Navigator.of(context).maybePop();
-        },
+          title: 'honors.catalog.title'.tr(),
+          onBack: () {
+            HapticFeedback.lightImpact();
+            Navigator.of(context).maybePop();
+          },
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => Padding(
+            padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+            child: const Center(child: SacLoading()),
+          ),
+        ),
       ),
-      body: const Center(child: SacLoading()),
     );
   }
 }
@@ -384,41 +392,50 @@ class _ErrorScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: context.sac.background,
       appBar: SacTopBar(
-        title: 'honors.catalog.title'.tr(),
-        onBack: () {
-          HapticFeedback.lightImpact();
-          Navigator.of(context).maybePop();
-        },
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 48,
-              color: context.sac.textTertiary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'honors.detail.error_load'.tr(),
-              style: TextStyle(fontSize: 15, color: context.sac.textSecondary),
-            ),
-            const SizedBox(height: 20),
-            SacPressable(
-              listenOnly: true,
-              child: TextButton(
-                style: const ButtonStyle(enableFeedback: false),
-                onPressed: onRetry,
-                child: Text(
-                  'honors.catalog.retry'.tr(),
-                  style: TextStyle(color: context.sac.text, fontSize: 14),
-                ),
+          title: 'honors.catalog.title'.tr(),
+          onBack: () {
+            HapticFeedback.lightImpact();
+            Navigator.of(context).maybePop();
+          },
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => Padding(
+            padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedAlert02,
+                    size: 48,
+                    color: context.sac.textTertiary,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'honors.detail.error_load'.tr(),
+                    style: TextStyle(
+                        fontSize: 15, color: context.sac.textSecondary),
+                  ),
+                  const SizedBox(height: 20),
+                  SacPressable(
+                    listenOnly: true,
+                    child: TextButton(
+                      style: const ButtonStyle(enableFeedback: false),
+                      onPressed: onRetry,
+                      child: Text(
+                        'honors.catalog.retry'.tr(),
+                        style: TextStyle(color: context.sac.text, fontSize: 14),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -533,60 +550,68 @@ class _HonorDetailContent extends ConsumerWidget {
         _trimmedOrNull(honor.categoryName ?? categoryName) ?? honor.name;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: context.sac.background,
       appBar: SacTopBar(
-        title: barTitle,
-        onBack: () {
-          HapticFeedback.lightImpact();
-          context.pop();
-        },
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
-              ),
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 8),
-                    child: Column(
-                      children: [
-                        _WorkModeHonorIdentity(
-                          honor: honor,
-                          userHonor: userHonor,
-                          caption: _completionModeLabel(
-                            userHonor.completionMode,
-                          ),
-                        ),
-                        _StaggeredCards(
-                          honor: honor,
-                          honorId: honorId,
-                          categoryColor: categoryPaintColor,
-                          userHonor: userHonor,
-                          modeActionState: modeActionState,
-                          onSelectCompletionMode: (mode) =>
-                              _selectCompletionMode(context, ref, mode),
-                        ),
-                      ],
-                    ),
+          title: barTitle,
+          onBack: () {
+            HapticFeedback.lightImpact();
+            context.pop();
+          },
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => Column(
+            children: [
+              Expanded(
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
                   ),
+                  slivers: [
+                    SliverToBoxAdapter(
+                        child:
+                            SizedBox(height: SacTopBar.frostedInset(context))),
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 8),
+                        child: Column(
+                          children: [
+                            _WorkModeHonorIdentity(
+                              honor: honor,
+                              userHonor: userHonor,
+                              caption: _completionModeLabel(
+                                userHonor.completionMode,
+                              ),
+                            ),
+                            _StaggeredCards(
+                              honor: honor,
+                              honorId: honorId,
+                              categoryColor: categoryPaintColor,
+                              userHonor: userHonor,
+                              modeActionState: modeActionState,
+                              onSelectCompletionMode: (mode) =>
+                                  _selectCompletionMode(context, ref, mode),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              _BottomCtaBar(
+                honor: honor,
+                honorId: honorId,
+                userHonor: userHonor,
+                isEnrolled: true,
+                categoryColor: categoryPaintColor,
+                userHonorsLoading: userHonorsLoading,
+                enrollAsync: enrollAsync,
+              ),
+            ],
           ),
-          _BottomCtaBar(
-            honor: honor,
-            honorId: honorId,
-            userHonor: userHonor,
-            isEnrolled: true,
-            categoryColor: categoryPaintColor,
-            userHonorsLoading: userHonorsLoading,
-            enrollAsync: enrollAsync,
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -708,69 +733,77 @@ class _CatalogHonorDetail extends StatelessWidget {
     }
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: barTitle,
-        onBack: () {
-          HapticFeedback.lightImpact();
-          context.pop();
-        },
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
-              ),
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _CatalogHonorIdentity(
-                          honor: honor,
-                          categoryPaintColor: categoryPaintColor,
-                        ),
-                        const SizedBox(height: 24),
-                        _JourneyPreviewCard(
-                          honor: honor,
-                          honorId: honorId,
-                          categoryColor: categoryPaintColor,
-                          animationDelay: nextDelay(),
-                        ),
-                        if (honor.description != null &&
-                            honor.description!.isNotEmpty) ...[
-                          const SizedBox(height: 12),
-                          _DescriptionSection(
-                            description: honor.description,
-                            animationDelay: nextDelay(),
-                          ),
-                        ],
-                        const SizedBox(height: 12),
-                        _HowItWorksCard(
-                          categoryPaintColor: categoryPaintColor,
-                          animationDelay: nextDelay(),
-                        ),
-                      ],
-                    ),
+          title: barTitle,
+          onBack: () {
+            HapticFeedback.lightImpact();
+            context.pop();
+          },
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => Column(
+            children: [
+              Expanded(
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
                   ),
+                  slivers: [
+                    SliverToBoxAdapter(
+                        child:
+                            SizedBox(height: SacTopBar.frostedInset(context))),
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _CatalogHonorIdentity(
+                              honor: honor,
+                              categoryPaintColor: categoryPaintColor,
+                            ),
+                            const SizedBox(height: 24),
+                            _JourneyPreviewCard(
+                              honor: honor,
+                              honorId: honorId,
+                              categoryColor: categoryPaintColor,
+                              animationDelay: nextDelay(),
+                            ),
+                            if (honor.description != null &&
+                                honor.description!.isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              _DescriptionSection(
+                                description: honor.description,
+                                animationDelay: nextDelay(),
+                              ),
+                            ],
+                            const SizedBox(height: 12),
+                            _HowItWorksCard(
+                              categoryPaintColor: categoryPaintColor,
+                              animationDelay: nextDelay(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              _BottomCtaBar(
+                honor: honor,
+                honorId: honorId,
+                userHonor: null,
+                isEnrolled: false,
+                categoryColor: categoryPaintColor,
+                userHonorsLoading: userHonorsLoading,
+                enrollAsync: enrollAsync,
+              ),
+            ],
           ),
-          _BottomCtaBar(
-            honor: honor,
-            honorId: honorId,
-            userHonor: null,
-            isEnrolled: false,
-            categoryColor: categoryPaintColor,
-            userHonorsLoading: userHonorsLoading,
-            enrollAsync: enrollAsync,
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -907,37 +940,45 @@ class _CompletedHonorDetail extends StatelessWidget {
     final bottomPad = MediaQuery.paddingOf(context).bottom + 24;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: barTitle,
-        onBack: () {
-          HapticFeedback.lightImpact();
-          context.pop();
-        },
-      ),
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(hPad, 12, hPad, bottomPad),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _CompletedHonorIdentity(honor: honor, userHonor: userHonor),
-                  const SizedBox(height: 24),
-                  _CompletedHonorHistorySection(
-                    honorId: honorId,
-                    userHonor: userHonor,
-                    categoryColor: categoryPaintColor,
-                  ),
-                ],
-              ),
+          title: barTitle,
+          onBack: () {
+            HapticFeedback.lightImpact();
+            context.pop();
+          },
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => CustomScrollView(
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
             ),
+            slivers: [
+              SliverToBoxAdapter(
+                  child: SizedBox(height: SacTopBar.frostedInset(context))),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(hPad, 12, hPad, bottomPad),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _CompletedHonorIdentity(
+                          honor: honor, userHonor: userHonor),
+                      const SizedBox(height: 24),
+                      _CompletedHonorHistorySection(
+                        honorId: honorId,
+                        userHonor: userHonor,
+                        categoryColor: categoryPaintColor,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -1053,90 +1094,98 @@ class _UndecidedWorkModeDetailState extends State<_UndecidedWorkModeDetail> {
     final hasSelection = _selectedMode != null;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: barTitle,
-        subtitle: 'honors.detail.mode_undecided'.tr(),
-        onBack: () {
-          HapticFeedback.lightImpact();
-          context.pop();
-        },
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
-              ),
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _WorkModeHonorIdentity(
-                          honor: widget.honor,
-                          userHonor: widget.userHonor,
-                        ),
-                        const SizedBox(height: 28),
-                        if (!canChoose)
-                          _LockedWorkModeCard(
-                            userHonor: widget.userHonor,
-                            categoryColor: widget.categoryPaintColor,
-                          )
-                        else ...[
-                          Text(
-                            'honors.work_mode.title'.tr(),
-                            style: TextStyle(
-                              color: c.text,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
-                              height: 1.2,
-                              letterSpacing: -0.3,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'honors.work_mode.subtitle'.tr(),
-                            style: TextStyle(
-                              color: c.textSecondary,
-                              fontSize: 14,
-                              height: 1.45,
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-                          HonorWorkModeSelector(
-                            categoryColor: widget.categoryPaintColor,
-                            isLoading: widget.isLoading,
-                            showIntro: false,
-                            selectedMode: _selectedMode,
-                            onSelected: (mode) {
-                              setState(() => _selectedMode = mode);
-                            },
-                          ),
-                        ],
-                      ],
-                    ),
+          title: barTitle,
+          subtitle: 'honors.detail.mode_undecided'.tr(),
+          onBack: () {
+            HapticFeedback.lightImpact();
+            context.pop();
+          },
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => Column(
+            children: [
+              Expanded(
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
                   ),
+                  slivers: [
+                    SliverToBoxAdapter(
+                        child:
+                            SizedBox(height: SacTopBar.frostedInset(context))),
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _WorkModeHonorIdentity(
+                              honor: widget.honor,
+                              userHonor: widget.userHonor,
+                            ),
+                            const SizedBox(height: 28),
+                            if (!canChoose)
+                              _LockedWorkModeCard(
+                                userHonor: widget.userHonor,
+                                categoryColor: widget.categoryPaintColor,
+                              )
+                            else ...[
+                              Text(
+                                'honors.work_mode.title'.tr(),
+                                style: TextStyle(
+                                  color: c.text,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w800,
+                                  height: 1.2,
+                                  letterSpacing: -0.3,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'honors.work_mode.subtitle'.tr(),
+                                style: TextStyle(
+                                  color: c.textSecondary,
+                                  fontSize: 14,
+                                  height: 1.45,
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+                              HonorWorkModeSelector(
+                                categoryColor: widget.categoryPaintColor,
+                                isLoading: widget.isLoading,
+                                showIntro: false,
+                                selectedMode: _selectedMode,
+                                onSelected: (mode) {
+                                  setState(() => _selectedMode = mode);
+                                },
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              if (canChoose)
+                _WorkModeContinueBar(
+                  hasSelection: hasSelection,
+                  isLoading: widget.isLoading,
+                  categoryColor: widget.categoryColor,
+                  categoryPaintColor: widget.categoryPaintColor,
+                  onContinue: () {
+                    final mode = _selectedMode;
+                    if (mode == null) return;
+                    widget.onSelectCompletionMode(mode);
+                  },
+                ),
+            ],
           ),
-          if (canChoose)
-            _WorkModeContinueBar(
-              hasSelection: hasSelection,
-              isLoading: widget.isLoading,
-              categoryColor: widget.categoryColor,
-              categoryPaintColor: widget.categoryPaintColor,
-              onContinue: () {
-                final mode = _selectedMode;
-                if (mode == null) return;
-                widget.onSelectCompletionMode(mode);
-              },
-            ),
-        ],
+        ),
       ),
     );
   }
@@ -1199,77 +1248,85 @@ class _ExternalWorkModeDetail extends StatelessWidget {
     }
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: barTitle,
-        onBack: () {
-          HapticFeedback.lightImpact();
-          context.pop();
-        },
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
-              ),
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _WorkModeHonorIdentity(
-                          honor: honor,
-                          userHonor: userHonor,
-                          caption: _completionModeLabel(
-                            HonorCompletionMode.external,
-                          ),
-                        ),
-                        const SizedBox(height: 28),
-                        _ExternalWorkflowInfoCard(
-                          categoryColor: categoryPaintColor,
-                          animationDelay: nextDelay(),
-                        ),
-                        if (canChangeCompletionMode) ...[
-                          const SizedBox(height: 12),
-                          _ChangeWorkModeButton(
-                            categoryColor: categoryPaintColor,
-                            isLoading: isLoading,
-                            onPressed: () => _changeWorkMode(context),
-                          ),
-                        ],
-                        if (hasMaterial) ...[
-                          const SizedBox(height: 16),
-                          _MaterialDownloadCard(
-                            materialUrl: honor.materialUrl!,
-                            honorName: honor.name,
-                            categoryColor: categoryPaintColor,
-                            animationDelay: nextDelay(),
-                          ),
-                        ],
-                        const SizedBox(height: 16),
-                        _EvidenceSection(
-                          userHonor: userHonor,
-                          categoryColor: categoryPaintColor,
-                          animationDelay: nextDelay(),
-                        ),
-                      ],
-                    ),
+          title: barTitle,
+          onBack: () {
+            HapticFeedback.lightImpact();
+            context.pop();
+          },
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => Column(
+            children: [
+              Expanded(
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
                   ),
+                  slivers: [
+                    SliverToBoxAdapter(
+                        child:
+                            SizedBox(height: SacTopBar.frostedInset(context))),
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _WorkModeHonorIdentity(
+                              honor: honor,
+                              userHonor: userHonor,
+                              caption: _completionModeLabel(
+                                HonorCompletionMode.external,
+                              ),
+                            ),
+                            const SizedBox(height: 28),
+                            _ExternalWorkflowInfoCard(
+                              categoryColor: categoryPaintColor,
+                              animationDelay: nextDelay(),
+                            ),
+                            if (canChangeCompletionMode) ...[
+                              const SizedBox(height: 12),
+                              _ChangeWorkModeButton(
+                                categoryColor: categoryPaintColor,
+                                isLoading: isLoading,
+                                onPressed: () => _changeWorkMode(context),
+                              ),
+                            ],
+                            if (hasMaterial) ...[
+                              const SizedBox(height: 16),
+                              _MaterialDownloadCard(
+                                materialUrl: honor.materialUrl!,
+                                honorName: honor.name,
+                                categoryColor: categoryPaintColor,
+                                animationDelay: nextDelay(),
+                              ),
+                            ],
+                            const SizedBox(height: 16),
+                            _EvidenceSection(
+                              userHonor: userHonor,
+                              categoryColor: categoryPaintColor,
+                              animationDelay: nextDelay(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              _ExternalWorkModeCtaBar(
+                isUnderReview: userHonor.isUnderReview,
+                categoryColor: categoryColor,
+                categoryPaintColor: categoryPaintColor,
+                onOpenEvidence: () => _openEvidence(context),
+              ),
+            ],
           ),
-          _ExternalWorkModeCtaBar(
-            isUnderReview: userHonor.isUnderReview,
-            categoryColor: categoryColor,
-            categoryPaintColor: categoryPaintColor,
-            onOpenEvidence: () => _openEvidence(context),
-          ),
-        ],
+        ),
       ),
     );
   }

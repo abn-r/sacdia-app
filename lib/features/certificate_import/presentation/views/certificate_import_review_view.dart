@@ -35,16 +35,24 @@ class CertificateImportReviewRouteView extends ConsumerWidget {
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (error, _) => Scaffold(
+        extendBodyBehindAppBar: true,
         appBar: SacTopBar(
-          title: 'certificate_import.review.title'.tr(),
-          leading: const CertificateImportBackButton(
-            fallbackLocation: RouteNames.certificateImportUpload,
-          ),
-        ),
-        body: Center(
-          child: Text(
-            'certificate_import.review.load_error'.tr(
-              namedArgs: {'error': '$error'},
+            title: 'certificate_import.review.title'.tr(),
+            leading: const CertificateImportBackButton(
+              fallbackLocation: RouteNames.certificateImportUpload,
+            ),
+            frosted: true),
+        body: SacFrostedVeil(
+          child: Builder(
+            builder: (context) => Padding(
+              padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+              child: Center(
+                child: Text(
+                  'certificate_import.review.load_error'.tr(
+                    namedArgs: {'error': '$error'},
+                  ),
+                ),
+              ),
             ),
           ),
         ),
@@ -183,195 +191,225 @@ class _CertificateImportReviewViewState
         _items.any((item) => item.isPendingAdministrativePeriod);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'certificate_import.review.title'.tr(),
-        leading: const CertificateImportBackButton(
-          fallbackLocation: RouteNames.certificateImportUpload,
-        ),
-      ),
-      body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('certificate_import.review.found'.tr(),
-                          style: TextStyle(color: c.textSecondary)),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${(_honorCount == 1 ? 'certificate_import.review.honor_one' : 'certificate_import.review.honor_other').tr(namedArgs: {
-                              'count': '$_honorCount'
-                            })} ${'certificate_import.review.and'.tr()} ${(_classCount == 1 ? 'certificate_import.review.class_one' : 'certificate_import.review.class_other').tr(namedArgs: {
-                              'count': '$_classCount'
-                            })}',
-                        style:
-                            Theme.of(context).textTheme.displaySmall?.copyWith(
+          title: 'certificate_import.review.title'.tr(),
+          leading: const CertificateImportBackButton(
+            fallbackLocation: RouteNames.certificateImportUpload,
+          ),
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => Stack(
+            children: [
+              CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                      child: SizedBox(height: SacTopBar.frostedInset(context))),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('certificate_import.review.found'.tr(),
+                              style: TextStyle(color: c.textSecondary)),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${(_honorCount == 1 ? 'certificate_import.review.honor_one' : 'certificate_import.review.honor_other').tr(namedArgs: {
+                                  'count': '$_honorCount'
+                                })} ${'certificate_import.review.and'.tr()} ${(_classCount == 1 ? 'certificate_import.review.class_one' : 'certificate_import.review.class_other').tr(namedArgs: {
+                                  'count': '$_classCount'
+                                })}',
+                            style: Theme.of(context)
+                                .textTheme
+                                .displaySmall
+                                ?.copyWith(
                                   color: c.text,
                                   fontWeight: FontWeight.w700,
                                 ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'certificate_import.review.independent_hint'.tr(),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: c.textSecondary,
-                            ),
-                      ),
-                      if (widget.initialBatch.files.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: SacPressable(
-                            listenOnly: true,
-                            child: TextButton(
-                              style: const ButtonStyle(enableFeedback: false),
-                              onPressed: () {
-                                final file = widget.initialBatch.files.first;
-                                context.push(
-                                  RouteNames.certificateImportProof,
-                                  extra: CertificateImportProofArgs(
-                                    item: _items.isEmpty ? null : _items.first,
-                                    batchId: widget.initialBatch.id,
-                                    fileId: file.id,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'certificate_import.review.independent_hint'.tr(),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: c.textSecondary,
+                                    ),
+                          ),
+                          if (widget.initialBatch.files.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: SacPressable(
+                                listenOnly: true,
+                                child: TextButton(
+                                  style:
+                                      const ButtonStyle(enableFeedback: false),
+                                  onPressed: () {
+                                    final file =
+                                        widget.initialBatch.files.first;
+                                    context.push(
+                                      RouteNames.certificateImportProof,
+                                      extra: CertificateImportProofArgs(
+                                        item: _items.isEmpty
+                                            ? null
+                                            : _items.first,
+                                        batchId: widget.initialBatch.id,
+                                        fileId: file.id,
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    'certificate_import.review.view_proof'.tr(),
                                   ),
-                                );
-                              },
-                              child: Text(
-                                'certificate_import.review.view_proof'.tr(),
+                                ),
                               ),
                             ),
+                          ],
+                          if (showGmNotice) ...[
+                            const SizedBox(height: 10),
+                            _InfoNotice(
+                              text:
+                                  'certificate_import.review.gm01_replace'.tr(),
+                            ),
+                          ],
+                          if (showInstitutionalNotice) ...[
+                            const SizedBox(height: 10),
+                            _InfoNotice(
+                              text: 'certificate_import.review.institutional'
+                                  .tr(),
+                            ),
+                          ],
+                          if (showPeriodNotice) ...[
+                            const SizedBox(height: 10),
+                            _InfoNotice(
+                              text: 'certificate_import.review.period_pending'
+                                  .tr(),
+                            ),
+                          ],
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              _FilterButton(
+                                label: 'certificate_import.review.filter_all'
+                                    .tr(namedArgs: {
+                                  'count': '${_items.length}'
+                                }),
+                                selected: _filter == 'all',
+                                onPressed: () =>
+                                    setState(() => _filter = 'all'),
+                              ),
+                              _FilterButton(
+                                label: 'certificate_import.review.filter_ready'
+                                    .tr(namedArgs: {'count': '$_readyCount'}),
+                                selected: _filter == 'ready',
+                                onPressed: () =>
+                                    setState(() => _filter = 'ready'),
+                              ),
+                              _FilterButton(
+                                label:
+                                    'certificate_import.review.filter_missing'
+                                        .tr(namedArgs: {
+                                  'count': '$_missingCount'
+                                }),
+                                selected: _filter == 'missing',
+                                onPressed: () =>
+                                    setState(() => _filter = 'missing'),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                      if (showGmNotice) ...[
-                        const SizedBox(height: 10),
-                        _InfoNotice(
-                          text: 'certificate_import.review.gm01_replace'.tr(),
-                        ),
-                      ],
-                      if (showInstitutionalNotice) ...[
-                        const SizedBox(height: 10),
-                        _InfoNotice(
-                          text: 'certificate_import.review.institutional'.tr(),
-                        ),
-                      ],
-                      if (showPeriodNotice) ...[
-                        const SizedBox(height: 10),
-                        _InfoNotice(
-                          text: 'certificate_import.review.period_pending'.tr(),
-                        ),
-                      ],
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          _FilterButton(
-                            label: 'certificate_import.review.filter_all'
-                                .tr(namedArgs: {'count': '${_items.length}'}),
-                            selected: _filter == 'all',
-                            onPressed: () => setState(() => _filter = 'all'),
-                          ),
-                          _FilterButton(
-                            label: 'certificate_import.review.filter_ready'
-                                .tr(namedArgs: {'count': '$_readyCount'}),
-                            selected: _filter == 'ready',
-                            onPressed: () => setState(() => _filter = 'ready'),
-                          ),
-                          _FilterButton(
-                            label: 'certificate_import.review.filter_missing'
-                                .tr(namedArgs: {'count': '$_missingCount'}),
-                            selected: _filter == 'missing',
-                            onPressed: () =>
-                                setState(() => _filter = 'missing'),
+                          const SizedBox(height: 10),
+                          SacButton.outline(
+                            text: 'certificate_import.review.add_row'.tr(),
+                            onPressed: _openAddEditor,
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
-                      SacButton.outline(
-                        text: 'certificate_import.review.add_row'.tr(),
-                        onPressed: _openAddEditor,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              if (visibleItems.isEmpty)
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: SacCard(
-                      child: Text('certificate_import.review.empty_filter'.tr(),
-                          style: TextStyle(color: c.textSecondary)),
                     ),
                   ),
-                )
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 150),
-                  sliver: SliverList.separated(
-                    itemCount: visibleItems.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final item = visibleItems[index];
-                      return CertificateImportItemCard(
-                        item: item,
-                        onEdit: () => _openEditor(item),
-                        onRemove: widget.onRemoveItem == null
-                            ? null
-                            : () => _removeItem(item),
-                      );
-                    },
-                  ),
-                ),
-            ],
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: c.background,
-                border: Border(top: BorderSide(color: c.border)),
+                  if (visibleItems.isEmpty)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: SacCard(
+                          child: Text(
+                              'certificate_import.review.empty_filter'.tr(),
+                              style: TextStyle(color: c.textSecondary)),
+                        ),
+                      ),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 150),
+                      sliver: SliverList.separated(
+                        itemCount: visibleItems.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final item = visibleItems[index];
+                          return CertificateImportItemCard(
+                            item: item,
+                            onEdit: () => _openEditor(item),
+                            onRemove: widget.onRemoveItem == null
+                                ? null
+                                : () => _removeItem(item),
+                          );
+                        },
+                      ),
+                    ),
+                ],
               ),
-              child: SafeArea(
-                top: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: c.background,
+                    border: Border(top: BorderSide(color: c.border)),
+                  ),
+                  child: SafeArea(
+                    top: false,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          SacBadge.success(
-                              label: 'certificate_import.review.ready_dock'
-                                  .tr(namedArgs: {'count': '$_readyCount'})),
-                          const SizedBox(width: 8),
-                          SacBadge.warning(
-                              label: 'certificate_import.review.missing_dock'
-                                  .tr(namedArgs: {'count': '$_missingCount'})),
+                          Row(
+                            children: [
+                              SacBadge.success(
+                                  label: 'certificate_import.review.ready_dock'
+                                      .tr(namedArgs: {
+                                'count': '$_readyCount'
+                              })),
+                              const SizedBox(width: 8),
+                              SacBadge.warning(
+                                  label:
+                                      'certificate_import.review.missing_dock'
+                                          .tr(namedArgs: {
+                                'count': '$_missingCount'
+                              })),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          SacButton.primary(
+                            text: 'certificate_import.review.submit'.tr(),
+                            isEnabled: _canSubmit,
+                            isLoading: _submitting,
+                            onPressed: _canSubmit ? _submit : null,
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 10),
-                      SacButton.primary(
-                        text: 'certificate_import.review.submit'.tr(),
-                        isEnabled: _canSubmit,
-                        isLoading: _submitting,
-                        onPressed: _canSubmit ? _submit : null,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

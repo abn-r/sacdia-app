@@ -23,43 +23,47 @@ class OrderHistoryView extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
-      appBar: SacTopBar(
-        title: 'materials.history.title'.tr(),
-      ),
-      body: historialAsync.when(
-        loading: () => const _HistorySkeleton(),
-        error: (e, _) => _ErrorBody(
-          message: e.toString(),
-          onRetry: () => ref.invalidate(historyProvider),
-        ),
-        data: (ordenes) {
-          if (ordenes.isEmpty) {
-            return _EmptyHistorial(
-              onGoCatalog: () => context.go(RouteNames.homeMaterials),
-            );
-          }
-
-          return RefreshIndicator(
-            color: SacAccent.of(context).color,
-            onRefresh: () async => ref.invalidate(historyProvider),
-            child: ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: ordenes.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
-              itemBuilder: (context, index) {
-                final order = ordenes[index];
-                return OrderCard(
-                  order: order,
-                  onTap: () {
-                    final key = order.folioReferencia ?? order.id;
-                    context.push(RouteNames.materialsOrderDetail(key));
-                  },
-                );
-              },
+      appBar: SacTopBar(title: 'materials.history.title'.tr(), frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => historialAsync.when(
+            loading: () => const _HistorySkeleton(),
+            error: (e, _) => _ErrorBody(
+              message: e.toString(),
+              onRetry: () => ref.invalidate(historyProvider),
             ),
-          );
-        },
+            data: (ordenes) {
+              if (ordenes.isEmpty) {
+                return _EmptyHistorial(
+                  onGoCatalog: () => context.go(RouteNames.homeMaterials),
+                );
+              }
+
+              return RefreshIndicator(
+                color: SacAccent.of(context).color,
+                onRefresh: () async => ref.invalidate(historyProvider),
+                child: ListView.separated(
+                  padding: SacTopBar.paddingBelowBar(
+                      context, const EdgeInsets.all(16)),
+                  itemCount: ordenes.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  itemBuilder: (context, index) {
+                    final order = ordenes[index];
+                    return OrderCard(
+                      order: order,
+                      onTap: () {
+                        final key = order.folioReferencia ?? order.id;
+                        context.push(RouteNames.materialsOrderDetail(key));
+                      },
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }
@@ -73,7 +77,7 @@ class _HistorySkeleton extends StatelessWidget {
     final c = context.sac;
     return ListView.separated(
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16),
+      padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(16)),
       itemCount: 5,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (_, __) => Container(

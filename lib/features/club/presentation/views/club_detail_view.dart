@@ -29,22 +29,27 @@ class ClubDetailView extends ConsumerWidget {
     final clubAsync = ref.watch(clubInfoProvider(clubId));
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'club.detail_title'.tr(),
-        titleIcon: HugeIcon(
-          icon: HugeIcons.strokeRoundedBackpack03,
-          size: 22,
-          color: SacAccent.of(context).color,
+          title: 'club.detail_title'.tr(),
+          titleIcon: HugeIcon(
+            icon: HugeIcons.strokeRoundedBackpack03,
+            size: 22,
+            color: SacAccent.of(context).color,
+          ),
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => clubAsync.when(
+            loading: () => const Center(child: SacLoading()),
+            error: (error, _) => _ErrorBody(
+              message: error.toString().replaceFirst('Exception: ', ''),
+              onRetry: () => ref.invalidate(clubInfoProvider(clubId)),
+            ),
+            data: (club) => _ClubDetailBody(club: club),
+          ),
         ),
-      ),
-      body: clubAsync.when(
-        loading: () => const Center(child: SacLoading()),
-        error: (error, _) => _ErrorBody(
-          message: error.toString().replaceFirst('Exception: ', ''),
-          onRetry: () => ref.invalidate(clubInfoProvider(clubId)),
-        ),
-        data: (club) => _ClubDetailBody(club: club),
       ),
     );
   }
@@ -64,7 +69,7 @@ class _ClubDetailBody extends StatelessWidget {
     final c = context.sac;
 
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: SacTopBar.paddingBelowBar(context, const EdgeInsets.all(20)),
       children: [
         // ── Sección: Información general ──────────────────────────────────
         _SectionHeader(
@@ -156,7 +161,8 @@ class _SectionHeader extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
           ),
           child: Center(
-            child: HugeIcon(icon: icon, size: 16, color: SacAccent.of(context).color),
+            child: HugeIcon(
+                icon: icon, size: 16, color: SacAccent.of(context).color),
           ),
         ),
         const SizedBox(width: 10),

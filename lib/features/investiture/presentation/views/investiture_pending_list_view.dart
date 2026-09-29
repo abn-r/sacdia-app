@@ -35,29 +35,34 @@ class InvestiturePendingListView extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'investiture.pending.title'.tr(),
-        actions: [
-          SacPressable(
-            listenOnly: true,
-            child: IconButton(
-              enableFeedback: false,
-              onPressed: () => ref.invalidate(pendingInvestituresProvider),
-              icon: const HugeIcon(
-                icon: HugeIcons.strokeRoundedRefresh,
-                size: 22,
+          title: 'investiture.pending.title'.tr(),
+          actions: [
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                onPressed: () => ref.invalidate(pendingInvestituresProvider),
+                icon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedRefresh,
+                  size: 22,
+                ),
+                tooltip: 'investiture.pending.tooltip_refresh'.tr(),
               ),
-              tooltip: 'investiture.pending.tooltip_refresh'.tr(),
+            ),
+          ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            child: pendingAsync.when(
+              data: (list) => _buildList(context, ref, list, hPad, c),
+              loading: () => const Center(child: SacLoading()),
+              error: (error, _) => _buildError(context, ref, error),
             ),
           ),
-        ],
-      ),
-      body: SafeArea(
-        child: pendingAsync.when(
-          data: (list) => _buildList(context, ref, list, hPad, c),
-          loading: () => const Center(child: SacLoading()),
-          error: (error, _) => _buildError(context, ref, error),
         ),
       ),
     );
@@ -99,7 +104,8 @@ class InvestiturePendingListView extends ConsumerWidget {
       color: SacAccent.of(context).color,
       onRefresh: () async => ref.invalidate(pendingInvestituresProvider),
       child: ListView.builder(
-        padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 24),
+        padding: SacTopBar.paddingBelowBar(
+            context, EdgeInsets.fromLTRB(hPad, 12, hPad, 24)),
         itemCount: list.length + 1,
         itemBuilder: (context, index) {
           if (index == 0) {

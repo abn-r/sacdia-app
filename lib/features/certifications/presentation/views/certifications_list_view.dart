@@ -36,151 +36,161 @@ class CertificationsListView extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'certifications.list.title'.tr(),
-        onBack: () => Navigator.of(context).maybePop(),
-        titleIcon: HugeIcon(
-          icon: HugeIcons.strokeRoundedCertificate01,
-          size: 22,
-          color: SacAccent.of(context).color,
-        ),
-      ),
-      body: SafeArea(
-        top: false,
-        child: certificationsAsync.when(
-          data: (certifications) {
-            if (certifications.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedCertificate01,
-                      size: 56,
-                      color: c.textTertiary,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'certifications.list.no_certifications'.tr(),
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: c.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            return RefreshIndicator(
-              color: SacAccent.of(context).color,
-              onRefresh: () async {
-                ref.invalidate(certificationsProvider);
-                ref.invalidate(userCertificationsProvider);
-              },
-              child: ListView.builder(
-                padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 24),
-                itemCount: certifications.length,
-                itemBuilder: (context, index) {
-                  final certification = certifications[index];
-
-                  return userCertificationsAsync.when(
-                    data: (userCertifications) {
-                      final isEnrolled = userCertifications.any(
-                        (uc) =>
-                            uc.certificationId == certification.certificationId,
-                      );
-                      return StaggeredListItem(
-                        index: index,
-                        staggerDelay: SacMotion.stagger,
-                        child: _CertificationCard(
-                          certification: certification,
-                          isEnrolled: isEnrolled,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              SacSharedAxisRoute(
-                                builder: (context) => CertificationDetailView(
-                                  certificationId:
-                                      certification.certificationId,
-                                ),
-                              ),
-                            );
-                          },
-                          onEnroll: isEnrolled
-                              ? null
-                              : () => _enroll(context, ref, certification),
+          title: 'certifications.list.title'.tr(),
+          onBack: () => Navigator.of(context).maybePop(),
+          titleIcon: HugeIcon(
+            icon: HugeIcons.strokeRoundedCertificate01,
+            size: 22,
+            color: SacAccent.of(context).color,
+          ),
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            top: false,
+            child: certificationsAsync.when(
+              data: (certifications) {
+                if (certifications.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        HugeIcon(
+                          icon: HugeIcons.strokeRoundedCertificate01,
+                          size: 56,
+                          color: c.textTertiary,
                         ),
-                      );
-                    },
-                    loading: () => StaggeredListItem(
-                      index: index,
-                      child: _CertificationCard(
-                        certification: certification,
-                        isEnrolled: false,
-                        onTap: () {},
-                        onEnroll: null,
-                      ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'certifications.list.no_certifications'.tr(),
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: c.textSecondary,
+                          ),
+                        ),
+                      ],
                     ),
-                    error: (_, __) => StaggeredListItem(
-                      index: index,
-                      child: _CertificationCard(
-                        certification: certification,
-                        isEnrolled: false,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            SacSharedAxisRoute(
-                              builder: (context) => CertificationDetailView(
-                                certificationId: certification.certificationId,
-                              ),
+                  );
+                }
+
+                return RefreshIndicator(
+                  color: SacAccent.of(context).color,
+                  onRefresh: () async {
+                    ref.invalidate(certificationsProvider);
+                    ref.invalidate(userCertificationsProvider);
+                  },
+                  child: ListView.builder(
+                    padding: SacTopBar.paddingBelowBar(
+                        context, EdgeInsets.fromLTRB(hPad, 16, hPad, 24)),
+                    itemCount: certifications.length,
+                    itemBuilder: (context, index) {
+                      final certification = certifications[index];
+
+                      return userCertificationsAsync.when(
+                        data: (userCertifications) {
+                          final isEnrolled = userCertifications.any(
+                            (uc) =>
+                                uc.certificationId ==
+                                certification.certificationId,
+                          );
+                          return StaggeredListItem(
+                            index: index,
+                            staggerDelay: SacMotion.stagger,
+                            child: _CertificationCard(
+                              certification: certification,
+                              isEnrolled: isEnrolled,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  SacSharedAxisRoute(
+                                    builder: (context) =>
+                                        CertificationDetailView(
+                                      certificationId:
+                                          certification.certificationId,
+                                    ),
+                                  ),
+                                );
+                              },
+                              onEnroll: isEnrolled
+                                  ? null
+                                  : () => _enroll(context, ref, certification),
                             ),
                           );
                         },
-                        onEnroll: () => _enroll(context, ref, certification),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            );
-          },
-          loading: () => const Center(child: SacLoading()),
-          error: (error, stack) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedAlert02,
-                    size: 56,
-                    color: AppColors.error,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'certifications.list.load_error'.tr(),
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    error.toString().replaceFirst('Exception: ', ''),
-                    style: TextStyle(fontSize: 14, color: c.textSecondary),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  SacButton.primary(
-                    text: 'common.retry'.tr(),
-                    icon: HugeIcons.strokeRoundedRefresh,
-                    onPressed: () {
-                      ref.invalidate(certificationsProvider);
+                        loading: () => StaggeredListItem(
+                          index: index,
+                          child: _CertificationCard(
+                            certification: certification,
+                            isEnrolled: false,
+                            onTap: () {},
+                            onEnroll: null,
+                          ),
+                        ),
+                        error: (_, __) => StaggeredListItem(
+                          index: index,
+                          child: _CertificationCard(
+                            certification: certification,
+                            isEnrolled: false,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                SacSharedAxisRoute(
+                                  builder: (context) => CertificationDetailView(
+                                    certificationId:
+                                        certification.certificationId,
+                                  ),
+                                ),
+                              );
+                            },
+                            onEnroll: () =>
+                                _enroll(context, ref, certification),
+                          ),
+                        ),
+                      );
                     },
                   ),
-                ],
+                );
+              },
+              loading: () => const Center(child: SacLoading()),
+              error: (error, stack) => Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedAlert02,
+                        size: 56,
+                        color: AppColors.error,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'certifications.list.load_error'.tr(),
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        error.toString().replaceFirst('Exception: ', ''),
+                        style: TextStyle(fontSize: 14, color: c.textSecondary),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      SacButton.primary(
+                        text: 'common.retry'.tr(),
+                        icon: HugeIcons.strokeRoundedRefresh,
+                        onPressed: () {
+                          ref.invalidate(certificationsProvider);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),

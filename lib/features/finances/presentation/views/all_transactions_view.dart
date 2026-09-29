@@ -134,74 +134,78 @@ class _AllTransactionsViewState extends ConsumerState<AllTransactionsView> {
     final rangeLabel = ref.watch(allTransactionsRangeLabelProvider);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: context.sac.background,
       appBar: SacTopBar(
-        title: 'finances.all_transactions.title'.tr(),
-        subtitle: rangeLabel,
-        actions: [
-          SacPressable(
-            listenOnly: true,
-            child: IconButton(
-              enableFeedback: false,
-              onPressed: _openSortSheet,
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedSortByDown02,
-                size: 22,
-                color: context.sac.textSecondary,
+          title: 'finances.all_transactions.title'.tr(),
+          subtitle: rangeLabel,
+          actions: [
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                onPressed: _openSortSheet,
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedSortByDown02,
+                  size: 22,
+                  color: context.sac.textSecondary,
+                ),
               ),
             ),
-          ),
-          SacPressable(
-            listenOnly: true,
-            child: IconButton(
-              enableFeedback: false,
-              onPressed: _openRangeSheet,
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedCalendar03,
-                size: 22,
-                color: context.sac.textSecondary,
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        top: false,
-        child: Column(
-          children: [
-            // ── Search field (always visible) ─────────────────────────
-            TransactionSearchField(
-              initialValue: txState.filter.search ?? '',
-              onSearch: (value) => ref
-                  .read(allTransactionsFilterNotifierProvider.notifier)
-                  .updateSearch(value),
-            ),
-
-            // ── Segmented tabs ────────────────────────────────────────
-            TransactionTypeTabs(
-              selected: txState.filter.type,
-              onChanged: (type) => ref
-                  .read(allTransactionsFilterNotifierProvider.notifier)
-                  .updateType(type),
-            ),
-
-            // ── Transaction list ──────────────────────────────────────
-            Expanded(
-              child: RefreshIndicator(
-                color: SacAccent.of(context).color,
-                onRefresh: () async {
-                  ref
-                      .read(allTransactionsFilterNotifierProvider.notifier)
-                      .reset();
-                },
-                child: _TransactionListBody(
-                  txState: txState,
-                  scrollController: _scrollController,
-                  onTransactionTap: _openDetail,
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                onPressed: _openRangeSheet,
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedCalendar03,
+                  size: 22,
+                  color: context.sac.textSecondary,
                 ),
               ),
             ),
           ],
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            child: Column(
+              children: [
+                // ── Search field (always visible) ─────────────────────────
+                TransactionSearchField(
+                  initialValue: txState.filter.search ?? '',
+                  onSearch: (value) => ref
+                      .read(allTransactionsFilterNotifierProvider.notifier)
+                      .updateSearch(value),
+                ),
+
+                // ── Segmented tabs ────────────────────────────────────────
+                TransactionTypeTabs(
+                  selected: txState.filter.type,
+                  onChanged: (type) => ref
+                      .read(allTransactionsFilterNotifierProvider.notifier)
+                      .updateType(type),
+                ),
+
+                // ── Transaction list ──────────────────────────────────────
+                Expanded(
+                  child: RefreshIndicator(
+                    color: SacAccent.of(context).color,
+                    onRefresh: () async {
+                      ref
+                          .read(allTransactionsFilterNotifierProvider.notifier)
+                          .reset();
+                    },
+                    child: _TransactionListBody(
+                      txState: txState,
+                      scrollController: _scrollController,
+                      onTransactionTap: _openDetail,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

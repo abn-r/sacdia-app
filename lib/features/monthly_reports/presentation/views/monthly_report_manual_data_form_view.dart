@@ -272,224 +272,248 @@ class _MonthlyReportManualDataFormViewState
         if (discard && mounted) navigator.pop(false);
       },
       child: Scaffold(
+        extendBodyBehindAppBar: true,
         backgroundColor: c.background,
         appBar: SacTopBar(
-          title: 'monthly_reports.form.sheet_title'.tr(
-            namedArgs: {
-              'month': widget.report.monthName,
-              'year': '${widget.report.year}',
-            },
-          ),
-          leading: SacPressable(
-            listenOnly: true,
-            child: IconButton(
-              enableFeedback: false,
-              icon: HugeIcon(
-                icon: isSheet
-                    ? HugeIcons.strokeRoundedCancel01
-                    : HugeIcons.strokeRoundedArrowLeft01,
-                color: c.text,
-                size: 22,
-              ),
-              onPressed: () async {
-                final navigator = Navigator.of(context);
-                if (await _confirmDiscard() && mounted) {
-                  navigator.pop(false);
-                }
+            title: 'monthly_reports.form.sheet_title'.tr(
+              namedArgs: {
+                'month': widget.report.monthName,
+                'year': '${widget.report.year}',
               },
             ),
+            leading: SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                icon: HugeIcon(
+                  icon: isSheet
+                      ? HugeIcons.strokeRoundedCancel01
+                      : HugeIcons.strokeRoundedArrowLeft01,
+                  color: c.text,
+                  size: 22,
+                ),
+                onPressed: () async {
+                  final navigator = Navigator.of(context);
+                  if (await _confirmDiscard() && mounted) {
+                    navigator.pop(false);
+                  }
+                },
+              ),
+            ),
+            frosted: true),
+        body: SacFrostedVeil(
+          child: Builder(
+            builder: (context) => Column(
+              children: [
+                Expanded(
+                  child: Form(
+                    key: _formKey,
+                    child: ListView(
+                      padding: SacTopBar.paddingBelowBar(
+                          context, const EdgeInsets.fromLTRB(20, 4, 20, 24)),
+                      children: [
+                        MonthlyReportEntrance(
+                          child: _FormIntroCard(report: widget.report),
+                        ),
+                        const SizedBox(height: 18),
+                        MonthlyReportEntrance(
+                          index: 1,
+                          child: _FormSection(
+                            title: 'monthly_reports.form.meetings_title'.tr(),
+                            eyebrow:
+                                'monthly_reports.form.meetings_eyebrow'.tr(),
+                            description:
+                                'monthly_reports.form.meetings_description'
+                                    .tr(),
+                            icon: HugeIcons.strokeRoundedCalendar01,
+                            children: [
+                              _NumberField(
+                                controller: _planning,
+                                label: 'monthly_reports.form.planning_meetings'
+                                    .tr(),
+                              ),
+                              _NumberField(
+                                controller: _parents,
+                                label:
+                                    'monthly_reports.form.parent_meetings'.tr(),
+                              ),
+                              _NumberField(
+                                controller: _youth,
+                                label:
+                                    'monthly_reports.form.youth_council_attendance'
+                                        .tr(),
+                              ),
+                              _NumberField(
+                                controller: _church,
+                                label:
+                                    'monthly_reports.form.church_board_attendance'
+                                        .tr(),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        MonthlyReportEntrance(
+                          index: 2,
+                          child: _FormSection(
+                            title: 'monthly_reports.form.mission_title'.tr(),
+                            eyebrow:
+                                'monthly_reports.form.mission_eyebrow'.tr(),
+                            description:
+                                'monthly_reports.form.mission_description'.tr(),
+                            icon: HugeIcons.strokeRoundedUserMultiple,
+                            children: [
+                              _NumberField(
+                                controller: _soulTarget,
+                                label: 'monthly_reports.form.soul_target'.tr(),
+                              ),
+                              _NumberField(
+                                controller: _unbaptized,
+                                label: 'monthly_reports.form.unbaptized_members'
+                                    .tr(),
+                              ),
+                              _NumberField(
+                                controller: _studies,
+                                label:
+                                    'monthly_reports.form.bible_studies_receiving'
+                                        .tr(),
+                              ),
+                              _ReportSwitch(
+                                title: 'monthly_reports.form.weekly_instruction'
+                                    .tr(),
+                                subtitle:
+                                    'monthly_reports.form.weekly_instruction_helper'
+                                        .tr(),
+                                value: _weeklyInstruction,
+                                onChanged: (v) =>
+                                    _setBool(() => _weeklyInstruction = v),
+                              ),
+                              _ReportSwitch(
+                                title:
+                                    'monthly_reports.form.studies_given'.tr(),
+                                subtitle:
+                                    'monthly_reports.form.studies_given_helper'
+                                        .tr(),
+                                value: _studiesGiven,
+                                onChanged: (v) =>
+                                    _setBool(() => _studiesGiven = v),
+                              ),
+                              _ReportSwitch(
+                                title: 'monthly_reports.form.literature'.tr(),
+                                subtitle:
+                                    'monthly_reports.form.literature_helper'
+                                        .tr(),
+                                value: _literature,
+                                onChanged: (v) =>
+                                    _setBool(() => _literature = v),
+                              ),
+                              _NumberField(
+                                controller: _baptizedMonth,
+                                label:
+                                    'monthly_reports.form.baptized_this_month'
+                                        .tr(),
+                              ),
+                              _NumberField(
+                                controller: _baptizedTotal,
+                                label:
+                                    'monthly_reports.form.total_baptized'.tr(),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        MonthlyReportEntrance(
+                          index: 3,
+                          child: _FormSection(
+                            title: 'monthly_reports.form.service_title'.tr(),
+                            eyebrow:
+                                'monthly_reports.form.service_eyebrow'.tr(),
+                            description:
+                                'monthly_reports.form.service_description'.tr(),
+                            icon: HugeIcons.strokeRoundedNoteEdit,
+                            children: [
+                              _LongTextField(
+                                controller: _participation,
+                                label: 'monthly_reports.form.club_participation'
+                                    .tr(),
+                                hint:
+                                    'monthly_reports.form.club_participation_hint'
+                                        .tr(),
+                              ),
+                              _LongTextField(
+                                controller: _service,
+                                label: 'monthly_reports.form.community_service'
+                                    .tr(),
+                                hint:
+                                    'monthly_reports.form.community_service_hint'
+                                        .tr(),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        MonthlyReportEntrance(
+                          index: 4,
+                          child: _FormSection(
+                            title: 'monthly_reports.form.materials_title'.tr(),
+                            eyebrow:
+                                'monthly_reports.form.materials_eyebrow'.tr(),
+                            description:
+                                'monthly_reports.form.materials_description'
+                                    .tr(),
+                            icon: HugeIcons.strokeRoundedNoteEdit,
+                            children: [
+                              _ReportSwitch(
+                                title: 'monthly_reports.form.certificates'.tr(),
+                                subtitle:
+                                    'monthly_reports.form.certificates_helper'
+                                        .tr(),
+                                value: _certificates,
+                                onChanged: (v) =>
+                                    _setBool(() => _certificates = v),
+                              ),
+                              _ReportSwitch(
+                                title: 'monthly_reports.form.booklets'.tr(),
+                                subtitle:
+                                    'monthly_reports.form.booklets_helper'.tr(),
+                                value: _booklets,
+                                onChanged: (v) => _setBool(() => _booklets = v),
+                              ),
+                              _ReportSwitch(
+                                title:
+                                    'monthly_reports.form.booklets_signed'.tr(),
+                                subtitle:
+                                    'monthly_reports.form.booklets_signed_helper'
+                                        .tr(),
+                                value: _bookletsSigned,
+                                onChanged: (v) =>
+                                    _setBool(() => _bookletsSigned = v),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                MonthlyReportFrostBar(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 160),
+                    child: SacButton.primary(
+                      key: ValueKey('${state.isLoading}-$_dirty'),
+                      text: state.isLoading
+                          ? 'common.saving'.tr()
+                          : (!_dirty
+                              ? 'monthly_reports.form.save_disabled_hint'.tr()
+                              : 'monthly_reports.form.save'.tr()),
+                      icon: HugeIcons.strokeRoundedNoteEdit,
+                      onPressed: state.isLoading || !_dirty ? null : _save,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        body: Column(
-          children: [
-            Expanded(
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-                  children: [
-                    MonthlyReportEntrance(
-                      child: _FormIntroCard(report: widget.report),
-                    ),
-                    const SizedBox(height: 18),
-                    MonthlyReportEntrance(
-                      index: 1,
-                      child: _FormSection(
-                        title: 'monthly_reports.form.meetings_title'.tr(),
-                        eyebrow: 'monthly_reports.form.meetings_eyebrow'.tr(),
-                        description:
-                            'monthly_reports.form.meetings_description'.tr(),
-                        icon: HugeIcons.strokeRoundedCalendar01,
-                        children: [
-                          _NumberField(
-                            controller: _planning,
-                            label:
-                                'monthly_reports.form.planning_meetings'.tr(),
-                          ),
-                          _NumberField(
-                            controller: _parents,
-                            label: 'monthly_reports.form.parent_meetings'.tr(),
-                          ),
-                          _NumberField(
-                            controller: _youth,
-                            label:
-                                'monthly_reports.form.youth_council_attendance'
-                                    .tr(),
-                          ),
-                          _NumberField(
-                            controller: _church,
-                            label:
-                                'monthly_reports.form.church_board_attendance'
-                                    .tr(),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    MonthlyReportEntrance(
-                      index: 2,
-                      child: _FormSection(
-                        title: 'monthly_reports.form.mission_title'.tr(),
-                        eyebrow: 'monthly_reports.form.mission_eyebrow'.tr(),
-                        description:
-                            'monthly_reports.form.mission_description'.tr(),
-                        icon: HugeIcons.strokeRoundedUserMultiple,
-                        children: [
-                          _NumberField(
-                            controller: _soulTarget,
-                            label: 'monthly_reports.form.soul_target'.tr(),
-                          ),
-                          _NumberField(
-                            controller: _unbaptized,
-                            label:
-                                'monthly_reports.form.unbaptized_members'.tr(),
-                          ),
-                          _NumberField(
-                            controller: _studies,
-                            label:
-                                'monthly_reports.form.bible_studies_receiving'
-                                    .tr(),
-                          ),
-                          _ReportSwitch(
-                            title:
-                                'monthly_reports.form.weekly_instruction'.tr(),
-                            subtitle:
-                                'monthly_reports.form.weekly_instruction_helper'
-                                    .tr(),
-                            value: _weeklyInstruction,
-                            onChanged: (v) =>
-                                _setBool(() => _weeklyInstruction = v),
-                          ),
-                          _ReportSwitch(
-                            title: 'monthly_reports.form.studies_given'.tr(),
-                            subtitle:
-                                'monthly_reports.form.studies_given_helper'
-                                    .tr(),
-                            value: _studiesGiven,
-                            onChanged: (v) => _setBool(() => _studiesGiven = v),
-                          ),
-                          _ReportSwitch(
-                            title: 'monthly_reports.form.literature'.tr(),
-                            subtitle:
-                                'monthly_reports.form.literature_helper'.tr(),
-                            value: _literature,
-                            onChanged: (v) => _setBool(() => _literature = v),
-                          ),
-                          _NumberField(
-                            controller: _baptizedMonth,
-                            label:
-                                'monthly_reports.form.baptized_this_month'.tr(),
-                          ),
-                          _NumberField(
-                            controller: _baptizedTotal,
-                            label: 'monthly_reports.form.total_baptized'.tr(),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    MonthlyReportEntrance(
-                      index: 3,
-                      child: _FormSection(
-                        title: 'monthly_reports.form.service_title'.tr(),
-                        eyebrow: 'monthly_reports.form.service_eyebrow'.tr(),
-                        description:
-                            'monthly_reports.form.service_description'.tr(),
-                        icon: HugeIcons.strokeRoundedNoteEdit,
-                        children: [
-                          _LongTextField(
-                            controller: _participation,
-                            label:
-                                'monthly_reports.form.club_participation'.tr(),
-                            hint: 'monthly_reports.form.club_participation_hint'
-                                .tr(),
-                          ),
-                          _LongTextField(
-                            controller: _service,
-                            label:
-                                'monthly_reports.form.community_service'.tr(),
-                            hint: 'monthly_reports.form.community_service_hint'
-                                .tr(),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    MonthlyReportEntrance(
-                      index: 4,
-                      child: _FormSection(
-                        title: 'monthly_reports.form.materials_title'.tr(),
-                        eyebrow: 'monthly_reports.form.materials_eyebrow'.tr(),
-                        description:
-                            'monthly_reports.form.materials_description'.tr(),
-                        icon: HugeIcons.strokeRoundedNoteEdit,
-                        children: [
-                          _ReportSwitch(
-                            title: 'monthly_reports.form.certificates'.tr(),
-                            subtitle:
-                                'monthly_reports.form.certificates_helper'.tr(),
-                            value: _certificates,
-                            onChanged: (v) => _setBool(() => _certificates = v),
-                          ),
-                          _ReportSwitch(
-                            title: 'monthly_reports.form.booklets'.tr(),
-                            subtitle:
-                                'monthly_reports.form.booklets_helper'.tr(),
-                            value: _booklets,
-                            onChanged: (v) => _setBool(() => _booklets = v),
-                          ),
-                          _ReportSwitch(
-                            title: 'monthly_reports.form.booklets_signed'.tr(),
-                            subtitle:
-                                'monthly_reports.form.booklets_signed_helper'
-                                    .tr(),
-                            value: _bookletsSigned,
-                            onChanged: (v) =>
-                                _setBool(() => _bookletsSigned = v),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            MonthlyReportFrostBar(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 160),
-                child: SacButton.primary(
-                  key: ValueKey('${state.isLoading}-$_dirty'),
-                  text: state.isLoading
-                      ? 'common.saving'.tr()
-                      : (!_dirty
-                          ? 'monthly_reports.form.save_disabled_hint'.tr()
-                          : 'monthly_reports.form.save'.tr()),
-                  icon: HugeIcons.strokeRoundedNoteEdit,
-                  onPressed: state.isLoading || !_dirty ? null : _save,
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );
@@ -567,7 +591,8 @@ class _FormSection extends StatelessWidget {
                   color: SacAccent.of(context).color.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: HugeIcon(icon: icon, color: SacAccent.of(context).color, size: 18),
+                child: HugeIcon(
+                    icon: icon, color: SacAccent.of(context).color, size: 18),
               ),
               const SizedBox(width: 10),
               Expanded(

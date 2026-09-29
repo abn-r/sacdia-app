@@ -104,134 +104,143 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
 
     return SecureScreen(
       child: Scaffold(
+        extendBodyBehindAppBar: true,
         appBar: SacTopBar(
-          title: 'virtual_card.title'.tr(),
-          actions: [
-            SacPressable(
-              listenOnly: true,
-              child: IconButton(
-                enableFeedback: false,
-                tooltip: 'virtual_card.refresh'.tr(),
-                onPressed: _refresh,
-                icon: const HugeIcon(
-                  icon: HugeIcons.strokeRoundedRefresh,
-                  size: 22,
-                ),
-              ),
-            ),
-          ],
-        ),
-        body: SafeArea(
-          child: RefreshIndicator(
-            onRefresh: _refresh,
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 24),
-              children: [
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 220),
-                  child: state.when(
-                    loading: () => const AspectRatio(
-                      key: ValueKey('virtual-card-loading'),
-                      aspectRatio: 5 / 8,
-                      child: VirtualCardSkeleton(),
-                    ),
-                    error: (error, _) => _ErrorState(
-                      key: const ValueKey('virtual-card-error'),
-                      messageKey: virtualCardErrorMessageKey(error),
-                      onRetry: _refresh,
-                    ),
-                    data: (card) {
-                      final vm = CredencialViewModel.fromVirtualCard(card);
-                      final heroTag = 'virtual-card-qr-${card.userId}';
-                      return Column(
-                        key: ValueKey('virtual-card-${card.userId}'),
-                        children: [
-                          CredentialParallax(
-                            enabled: !_sharingCredential,
-                            child: RepaintBoundary(
-                              key: _cardBoundaryKey,
-                              child: Stack(
-                                children: [
-                                  CredencialCard(
-                                    vm: vm,
-                                    onQrTap: card.canShowQr
-                                        ? () => Navigator.of(context).push(
-                                              SacFadeThroughRoute(
-                                                builder: (_) =>
-                                                    CredencialQrFullscreen(
-                                                  vm: vm,
-                                                  heroTag: heroTag,
-                                                ),
-                                              ),
-                                            )
-                                        : _refresh,
-                                  ),
-                                  if (card.isOffline)
-                                    Positioned(
-                                      top: 14,
-                                      left: 14,
-                                      right: 14,
-                                      child: _StatusBanner(
-                                        key: const Key(
-                                          'virtual-card-offline-banner',
-                                        ),
-                                        icon: HugeIcons.strokeRoundedWifiOff01,
-                                        text:
-                                            'virtual_card.offline_banner'.tr(),
-                                      ),
-                                    ),
-                                  if (card.isInactive)
-                                    Positioned.fill(
-                                      child: Container(
-                                        key: const Key(
-                                          'virtual-card-inactive-overlay',
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0x33C53D3D),
-                                          borderRadius: BorderRadius.circular(
-                                            CredencialTokens.rImmersive,
-                                          ),
-                                        ),
-                                        alignment: Alignment.center,
-                                        padding: const EdgeInsets.all(24),
-                                        child: Text(
-                                          'virtual_card.inactive_message'.tr(),
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          SizedBox(
-                            key: _shareButtonKey,
-                            width: double.infinity,
-                            child: ActionPill(
-                              label: _sharingCredential
-                                  ? 'virtual_card.share_preparing'.tr()
-                                  : 'virtual_card.share_card'.tr(),
-                              icon: ActionIcon.share,
-                              primary: true,
-                              onTap: _sharingCredential
-                                  ? null
-                                  : () => _shareCredential(vm),
-                            ),
-                          ),
-                          const MasterHonorBadgeStrip(),
-                        ],
-                      );
-                    },
+            title: 'virtual_card.title'.tr(),
+            actions: [
+              SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  tooltip: 'virtual_card.refresh'.tr(),
+                  onPressed: _refresh,
+                  icon: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedRefresh,
+                    size: 22,
                   ),
                 ),
-              ],
+              ),
+            ],
+            frosted: true),
+        body: SacFrostedVeil(
+          child: Builder(
+            builder: (context) => SafeArea(
+              child: RefreshIndicator(
+                onRefresh: _refresh,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: SacTopBar.paddingBelowBar(
+                      context, const EdgeInsets.fromLTRB(14, 12, 14, 24)),
+                  children: [
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 220),
+                      child: state.when(
+                        loading: () => const AspectRatio(
+                          key: ValueKey('virtual-card-loading'),
+                          aspectRatio: 5 / 8,
+                          child: VirtualCardSkeleton(),
+                        ),
+                        error: (error, _) => _ErrorState(
+                          key: const ValueKey('virtual-card-error'),
+                          messageKey: virtualCardErrorMessageKey(error),
+                          onRetry: _refresh,
+                        ),
+                        data: (card) {
+                          final vm = CredencialViewModel.fromVirtualCard(card);
+                          final heroTag = 'virtual-card-qr-${card.userId}';
+                          return Column(
+                            key: ValueKey('virtual-card-${card.userId}'),
+                            children: [
+                              CredentialParallax(
+                                enabled: !_sharingCredential,
+                                child: RepaintBoundary(
+                                  key: _cardBoundaryKey,
+                                  child: Stack(
+                                    children: [
+                                      CredencialCard(
+                                        vm: vm,
+                                        onQrTap: card.canShowQr
+                                            ? () => Navigator.of(context).push(
+                                                  SacFadeThroughRoute(
+                                                    builder: (_) =>
+                                                        CredencialQrFullscreen(
+                                                      vm: vm,
+                                                      heroTag: heroTag,
+                                                    ),
+                                                  ),
+                                                )
+                                            : _refresh,
+                                      ),
+                                      if (card.isOffline)
+                                        Positioned(
+                                          top: 14,
+                                          left: 14,
+                                          right: 14,
+                                          child: _StatusBanner(
+                                            key: const Key(
+                                              'virtual-card-offline-banner',
+                                            ),
+                                            icon: HugeIcons
+                                                .strokeRoundedWifiOff01,
+                                            text: 'virtual_card.offline_banner'
+                                                .tr(),
+                                          ),
+                                        ),
+                                      if (card.isInactive)
+                                        Positioned.fill(
+                                          child: Container(
+                                            key: const Key(
+                                              'virtual-card-inactive-overlay',
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0x33C53D3D),
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                CredencialTokens.rImmersive,
+                                              ),
+                                            ),
+                                            alignment: Alignment.center,
+                                            padding: const EdgeInsets.all(24),
+                                            child: Text(
+                                              'virtual_card.inactive_message'
+                                                  .tr(),
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                key: _shareButtonKey,
+                                width: double.infinity,
+                                child: ActionPill(
+                                  label: _sharingCredential
+                                      ? 'virtual_card.share_preparing'.tr()
+                                      : 'virtual_card.share_card'.tr(),
+                                  icon: ActionIcon.share,
+                                  primary: true,
+                                  onTap: _sharingCredential
+                                      ? null
+                                      : () => _shareCredential(vm),
+                                ),
+                              ),
+                              const MasterHonorBadgeStrip(),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),

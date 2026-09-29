@@ -33,9 +33,7 @@ void main() {
       final bar = tester.widget<SacTopBar>(find.byType(SacTopBar));
       expect(
         bar.preferredSize.height,
-        SacTopBar.compactHeight +
-            SacTopBar.borderHeight +
-            tabs.preferredSize.height,
+        SacTopBar.compactHeight + tabs.preferredSize.height,
       );
       expect(find.text('Local'), findsOneWidget);
       expect(find.text('Unión'), findsOneWidget);

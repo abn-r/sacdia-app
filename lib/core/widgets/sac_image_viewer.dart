@@ -106,7 +106,6 @@ class _SacImageViewerState extends State<SacImageViewer> {
           title: _titleLabel(),
           backgroundColor: Colors.transparent,
           foregroundColor: Colors.white,
-          borderColor: Colors.transparent,
           leading: SacPressable(
             listenOnly: true,
             child: IconButton(

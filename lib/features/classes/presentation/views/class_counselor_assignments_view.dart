@@ -164,51 +164,56 @@ class ClassCounselorAssignmentsView extends ConsumerWidget {
     final canRevoke = hasAnyPermission(user, const {'club_roles:revoke'});
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: context.sac.canvas,
       appBar: SacTopBar(
-        title: 'classes.class_assignments.title'.tr(),
-      ),
-      body: assignmentsAsync.when(
-        loading: () => const Center(child: SacLoading()),
-        error: (error, _) => _AssignmentsErrorState(
-          message: error.toString().replaceFirst('Exception: ', ''),
-          onRetry: () =>
-              ref.invalidate(classCounselorAssignmentsProvider(query)),
-        ),
-        data: (assignments) => _AssignmentsBody(
-          assignments: assignments,
-          canAssign: canAssign,
-          canRevoke: canRevoke,
-          isActionLoading: actionState.isLoading,
-          onRefresh: () async {
-            ref.invalidate(classCounselorAssignmentsProvider(query));
-            ref.invalidate(membersNotifierProvider);
-            if (clubTypeId != null) {
-              ref.invalidate(classesByClubTypeProvider(clubTypeId!));
-            }
-          },
-          onAdd: canAssign
-              ? () => _openAssignmentSheet(
-                    context,
-                    ref,
-                    query,
-                    classesAsync: classesAsync,
-                    membersAsync: membersAsync,
-                  )
-              : null,
-          onEdit: canAssign
-              ? (assignment) => _openAssignmentSheet(
-                    context,
-                    ref,
-                    query,
-                    classesAsync: classesAsync,
-                    membersAsync: membersAsync,
-                    initialAssignment: assignment,
-                  )
-              : null,
-          onRevoke: canRevoke
-              ? (assignment) => _confirmRevoke(context, ref, query, assignment)
-              : null,
+          title: 'classes.class_assignments.title'.tr(), frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => assignmentsAsync.when(
+            loading: () => const Center(child: SacLoading()),
+            error: (error, _) => _AssignmentsErrorState(
+              message: error.toString().replaceFirst('Exception: ', ''),
+              onRetry: () =>
+                  ref.invalidate(classCounselorAssignmentsProvider(query)),
+            ),
+            data: (assignments) => _AssignmentsBody(
+              assignments: assignments,
+              canAssign: canAssign,
+              canRevoke: canRevoke,
+              isActionLoading: actionState.isLoading,
+              onRefresh: () async {
+                ref.invalidate(classCounselorAssignmentsProvider(query));
+                ref.invalidate(membersNotifierProvider);
+                if (clubTypeId != null) {
+                  ref.invalidate(classesByClubTypeProvider(clubTypeId!));
+                }
+              },
+              onAdd: canAssign
+                  ? () => _openAssignmentSheet(
+                        context,
+                        ref,
+                        query,
+                        classesAsync: classesAsync,
+                        membersAsync: membersAsync,
+                      )
+                  : null,
+              onEdit: canAssign
+                  ? (assignment) => _openAssignmentSheet(
+                        context,
+                        ref,
+                        query,
+                        classesAsync: classesAsync,
+                        membersAsync: membersAsync,
+                        initialAssignment: assignment,
+                      )
+                  : null,
+              onRevoke: canRevoke
+                  ? (assignment) =>
+                      _confirmRevoke(context, ref, query, assignment)
+                  : null,
+            ),
+          ),
         ),
       ),
     );
@@ -409,7 +414,8 @@ class _AssignmentsBody extends StatelessWidget {
       color: SacAccent.of(context).color,
       onRefresh: onRefresh,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+        padding: SacTopBar.paddingBelowBar(
+            context, const EdgeInsets.fromLTRB(16, 12, 16, 32)),
         children: children,
       ),
     );
@@ -532,8 +538,9 @@ class _AssignmentAddActionState extends State<_AssignmentAddAction> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
             decoration: BoxDecoration(
-              color:
-                  enabled ? SacAccent.of(context).color.withValues(alpha: 0.10) : c.ink50,
+              color: enabled
+                  ? SacAccent.of(context).color.withValues(alpha: 0.10)
+                  : c.ink50,
               borderRadius: BorderRadius.circular(999),
             ),
             child: Row(
@@ -1130,7 +1137,8 @@ class _ClassCounselorAssignmentSheetState
     return Padding(
       padding: EdgeInsets.only(bottom: bottomInset),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+        padding: SacTopBar.paddingBelowBar(
+            context, const EdgeInsets.fromLTRB(20, 16, 20, 24)),
         child: Form(
           key: _formKey,
           child: Column(

@@ -44,15 +44,18 @@ class MemberBreakdownScreen extends ConsumerWidget {
     final breakdownAsync = ref.watch(memberBreakdownProvider(params));
 
     return Scaffold(
-      appBar: SacTopBar(
-        title: tr('rankings.breakdown.title'),
-      ),
-      body: breakdownAsync.when(
-        data: (breakdown) => _BreakdownBody(breakdown: breakdown),
-        loading: () => RankingSkeleton.myRanking(),
-        error: (_, __) => RankingEmptyState(
-          reason: RankingEmptyReason.networkError,
-          onRetry: () => ref.invalidate(memberBreakdownProvider(params)),
+      extendBodyBehindAppBar: true,
+      appBar: SacTopBar(title: tr('rankings.breakdown.title'), frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => breakdownAsync.when(
+            data: (breakdown) => _BreakdownBody(breakdown: breakdown),
+            loading: () => RankingSkeleton.myRanking(),
+            error: (_, __) => RankingEmptyState(
+              reason: RankingEmptyReason.networkError,
+              onRetry: () => ref.invalidate(memberBreakdownProvider(params)),
+            ),
+          ),
         ),
       ),
     );
@@ -76,6 +79,8 @@ class _BreakdownBody extends StatelessWidget {
     return CustomScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
+        SliverToBoxAdapter(
+            child: SizedBox(height: SacTopBar.frostedInset(context))),
         // ── Hero ──────────────────────���─────────────────────��─────────────────
         SliverToBoxAdapter(
           child: _BreakdownHero(breakdown: breakdown),
@@ -477,7 +482,8 @@ class _SignalDetailCard extends StatelessWidget {
                 HugeIcon(
                   icon: icon,
                   size: 20,
-                  color: hasScore ? SacAccent.of(context).color : c.textTertiary,
+                  color:
+                      hasScore ? SacAccent.of(context).color : c.textTertiary,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -496,15 +502,14 @@ class _SignalDetailCard extends StatelessWidget {
                   children: [
                     Text(
                       scoreLabel,
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall
-                          ?.copyWith(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color:
-                                hasScore ? SacAccent.of(context).color : c.textTertiary,
-                          ),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: hasScore
+                                    ? SacAccent.of(context).color
+                                    : c.textTertiary,
+                              ),
                     ),
                     Text(
                       tr('rankings.breakdown.weight_pct',

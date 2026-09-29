@@ -98,87 +98,95 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
     final horizontalPadding = Responsive.horizontalPadding(context);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'resources.title'.tr(),
-        centerTitle: true,
-        onBack: () => context.go(RouteNames.homeDashboard),
-      ),
-      body: RefreshIndicator(
-        color: SacAccent.of(context).color,
-        onRefresh: _onRefresh,
-        child: CustomScrollView(
-          controller: _scrollController,
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(
-                  horizontalPadding,
-                  12,
-                  horizontalPadding,
-                  0,
+          title: 'resources.title'.tr(),
+          centerTitle: true,
+          onBack: () => context.go(RouteNames.homeDashboard),
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => RefreshIndicator(
+            color: SacAccent.of(context).color,
+            onRefresh: _onRefresh,
+            child: CustomScrollView(
+              controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                    child: SizedBox(height: SacTopBar.frostedInset(context))),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      horizontalPadding,
+                      12,
+                      horizontalPadding,
+                      0,
+                    ),
+                    child: _buildSearchBar(context, c),
+                  ),
                 ),
-                child: _buildSearchBar(context, c),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(horizontalPadding, 14, 0, 0),
-                child: ResourceFilterBar(
-                  activeType: activeType,
-                  onTypeChanged: (type) {
-                    ref.read(selectedResourceTypeProvider.notifier).state =
-                        type;
-                  },
-                ),
-              ),
-            ),
-            if (_searchController.text.trim().isNotEmpty) ...[
-              const SliverToBoxAdapter(child: SizedBox(height: 14)),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                  child: Text(
-                    'resources.list_label.search'.tr(),
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: c.textTertiary,
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(horizontalPadding, 14, 0, 0),
+                    child: ResourceFilterBar(
+                      activeType: activeType,
+                      onTypeChanged: (type) {
+                        ref.read(selectedResourceTypeProvider.notifier).state =
+                            type;
+                      },
                     ),
                   ),
                 ),
-              ),
-            ],
-            const SliverToBoxAdapter(child: SizedBox(height: 12)),
-            _buildResourceList(context, listState),
-            if (listState.isLoadingMore)
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Center(child: SacLoading()),
-                ),
-              ),
-            if (!listState.isLoading &&
-                !listState.isLoadingMore &&
-                !listState.hasMore &&
-                listState.items.isNotEmpty)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: Center(
-                    child: Text(
-                      'resources.no_more'.tr(),
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: c.textTertiary,
+                if (_searchController.text.trim().isNotEmpty) ...[
+                  const SliverToBoxAdapter(child: SizedBox(height: 14)),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: horizontalPadding),
+                      child: Text(
+                        'resources.list_label.search'.tr(),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: c.textTertiary,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
-          ],
+                ],
+                const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                _buildResourceList(context, listState),
+                if (listState.isLoadingMore)
+                  const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Center(child: SacLoading()),
+                    ),
+                  ),
+                if (!listState.isLoading &&
+                    !listState.isLoadingMore &&
+                    !listState.hasMore &&
+                    listState.items.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Center(
+                        child: Text(
+                          'resources.no_more'.tr(),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: c.textTertiary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
+              ],
+            ),
+          ),
         ),
       ),
     );

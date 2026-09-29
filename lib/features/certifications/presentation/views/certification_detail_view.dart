@@ -41,21 +41,26 @@ class CertificationDetailView extends ConsumerWidget {
     final detailAsync = ref.watch(certificationDetailProvider(certificationId));
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: context.sac.background,
       appBar: SacTopBar(
-        title: 'certifications.list.title'.tr(),
-        onBack: () => Navigator.of(context).maybePop(),
-      ),
-      body: detailAsync.when(
-        loading: () => const Center(child: SacLoading()),
-        error: (error, _) => _ErrorBody(
-          message: error.toString().replaceFirst('Exception: ', ''),
-          onRetry: () =>
-              ref.invalidate(certificationDetailProvider(certificationId)),
-        ),
-        data: (detail) => _DetailBody(
-          detail: detail,
-          certificationId: certificationId,
+          title: 'certifications.list.title'.tr(),
+          onBack: () => Navigator.of(context).maybePop(),
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => detailAsync.when(
+            loading: () => const Center(child: SacLoading()),
+            error: (error, _) => _ErrorBody(
+              message: error.toString().replaceFirst('Exception: ', ''),
+              onRetry: () =>
+                  ref.invalidate(certificationDetailProvider(certificationId)),
+            ),
+            data: (detail) => _DetailBody(
+              detail: detail,
+              certificationId: certificationId,
+            ),
+          ),
         ),
       ),
     );
@@ -89,6 +94,8 @@ class _DetailBody extends ConsumerWidget {
         parent: AlwaysScrollableScrollPhysics(),
       ),
       slivers: [
+        SliverToBoxAdapter(
+            child: SizedBox(height: SacTopBar.frostedInset(context))),
         SliverToBoxAdapter(
           child: Padding(
             padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 0),
@@ -460,7 +467,9 @@ class _ModuleRowState extends State<_ModuleRow>
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: _expanded ? Colors.white : SacAccent.of(context).color,
+                          color: _expanded
+                              ? Colors.white
+                              : SacAccent.of(context).color,
                         ),
                         child: Text('${widget.index}'),
                       ),
@@ -502,7 +511,9 @@ class _ModuleRowState extends State<_ModuleRow>
                     child: HugeIcon(
                       icon: HugeIcons.strokeRoundedArrowDown01,
                       size: 16,
-                      color: _expanded ? SacAccent.of(context).color : c.textTertiary,
+                      color: _expanded
+                          ? SacAccent.of(context).color
+                          : c.textTertiary,
                     ),
                   ),
                 ],

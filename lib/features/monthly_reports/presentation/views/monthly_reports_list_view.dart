@@ -60,54 +60,59 @@ class MonthlyReportsListView extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
-      appBar: SacTopBar(
-        title: 'monthly_reports.list.title'.tr(),
-      ),
-      body: reportsAsync.when(
-        loading: () => const Center(child: SacLoading()),
-        error: (e, _) => _ErrorBody(
-          message: e.toString().replaceFirst('Exception: ', ''),
-          onRetry: () =>
-              ref.invalidate(monthlyReportsByEnrollmentProvider(enrollmentId)),
-        ),
-        data: (groups) {
-          if (groups.isEmpty) {
-            return _EmptyBody();
-          }
+      appBar:
+          SacTopBar(title: 'monthly_reports.list.title'.tr(), frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => reportsAsync.when(
+            loading: () => const Center(child: SacLoading()),
+            error: (e, _) => _ErrorBody(
+              message: e.toString().replaceFirst('Exception: ', ''),
+              onRetry: () => ref
+                  .invalidate(monthlyReportsByEnrollmentProvider(enrollmentId)),
+            ),
+            data: (groups) {
+              if (groups.isEmpty) {
+                return _EmptyBody();
+              }
 
-          return RefreshIndicator(
-            color: SacAccent.of(context).color,
-            onRefresh: () async => ref
-                .invalidate(monthlyReportsByEnrollmentProvider(enrollmentId)),
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                for (final group in groups) ...[
-                  _YearHeader(year: group.year),
-                  const SizedBox(height: 8),
-                  ...group.reports.map(
-                    (report) => Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: _ReportCard(
-                        report: report,
-                        onTap: () => Navigator.push(
-                          context,
-                          SacSharedAxisRoute(
-                            builder: (_) => MonthlyReportDetailView(
-                              reportId: report.id,
+              return RefreshIndicator(
+                color: SacAccent.of(context).color,
+                onRefresh: () async => ref.invalidate(
+                    monthlyReportsByEnrollmentProvider(enrollmentId)),
+                child: ListView(
+                  padding: SacTopBar.paddingBelowBar(
+                      context, const EdgeInsets.all(20)),
+                  children: [
+                    for (final group in groups) ...[
+                      _YearHeader(year: group.year),
+                      const SizedBox(height: 8),
+                      ...group.reports.map(
+                        (report) => Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: _ReportCard(
+                            report: report,
+                            onTap: () => Navigator.push(
+                              context,
+                              SacSharedAxisRoute(
+                                builder: (_) => MonthlyReportDetailView(
+                                  reportId: report.id,
+                                ),
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                ],
-              ],
-            ),
-          );
-        },
+                      const SizedBox(height: 8),
+                    ],
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }

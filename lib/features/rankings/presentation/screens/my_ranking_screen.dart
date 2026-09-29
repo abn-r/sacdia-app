@@ -43,11 +43,19 @@ class MyRankingScreen extends ConsumerWidget {
     );
     if (!canViewMyRanking(user)) {
       return Scaffold(
-        appBar: SacTopBar(
-          title: tr('rankings.my_ranking.title'),
-        ),
-        body: const Center(
-          child: RankingEmptyState(reason: RankingEmptyReason.unauthorized),
+        extendBodyBehindAppBar: true,
+        appBar:
+            SacTopBar(title: tr('rankings.my_ranking.title'), frosted: true),
+        body: SacFrostedVeil(
+          child: Builder(
+            builder: (context) => Padding(
+              padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+              child: const Center(
+                child:
+                    RankingEmptyState(reason: RankingEmptyReason.unauthorized),
+              ),
+            ),
+          ),
         ),
       );
     }
@@ -55,23 +63,27 @@ class MyRankingScreen extends ConsumerWidget {
     final yearAsync = ref.watch(currentEcclesiasticalYearProvider);
 
     return Scaffold(
-      appBar: SacTopBar(
-        title: tr('rankings.my_ranking.title'),
-      ),
-      body: yearAsync.when(
-        data: (year) {
-          if (year == null) {
-            return const RankingEmptyState(reason: RankingEmptyReason.noData);
-          }
-          return _RankingBody(
-            yearId: year.ecclesiasticalYearId,
-            yearLabel: year.name,
-          );
-        },
-        loading: () => RankingSkeleton.myRanking(),
-        error: (_, __) => RankingEmptyState(
-          reason: RankingEmptyReason.networkError,
-          onRetry: () => ref.invalidate(currentEcclesiasticalYearProvider),
+      extendBodyBehindAppBar: true,
+      appBar: SacTopBar(title: tr('rankings.my_ranking.title'), frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => yearAsync.when(
+            data: (year) {
+              if (year == null) {
+                return const RankingEmptyState(
+                    reason: RankingEmptyReason.noData);
+              }
+              return _RankingBody(
+                yearId: year.ecclesiasticalYearId,
+                yearLabel: year.name,
+              );
+            },
+            loading: () => RankingSkeleton.myRanking(),
+            error: (_, __) => RankingEmptyState(
+              reason: RankingEmptyReason.networkError,
+              onRetry: () => ref.invalidate(currentEcclesiasticalYearProvider),
+            ),
+          ),
         ),
       ),
     );
@@ -95,7 +107,8 @@ class _RankingBody extends ConsumerWidget {
         data: (view) {
           // null = visibility=hidden → silenciar con mensaje calmo.
           if (view == null) {
-            return const SingleChildScrollView(
+            return SingleChildScrollView(
+              padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
               // ScrollView necesario para que RefreshIndicator funcione.
               physics: AlwaysScrollableScrollPhysics(),
               child: SizedBox(
@@ -107,7 +120,8 @@ class _RankingBody extends ConsumerWidget {
 
           // Sin datos de member (score aún no calculado).
           if (view.member == null) {
-            return const SingleChildScrollView(
+            return SingleChildScrollView(
+              padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
               physics: AlwaysScrollableScrollPhysics(),
               child: SizedBox(
                 height: 500,
@@ -121,6 +135,8 @@ class _RankingBody extends ConsumerWidget {
           return CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
+              SliverToBoxAdapter(
+                  child: SizedBox(height: SacTopBar.frostedInset(context))),
               // Hero card con puntaje compuesto.
               // Tapping navigates to the full breakdown drill-down.
               SliverToBoxAdapter(

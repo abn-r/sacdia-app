@@ -65,76 +65,85 @@ class _CertificateImportProcessingViewState
     final c = context.sac;
     final ocrUnavailable = widget.onStartOcr == null;
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: 'certificate_import.processing.title'.tr(),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-        children: [
-          SacCard(
-            child: Column(
-              children: [
-                HugeIcon(
-                    icon: HugeIcons.strokeRoundedDocumentValidation,
-                    size: 72,
-                    color: c.info),
-                const SizedBox(height: 16),
-                Text(
-                  ocrUnavailable
-                      ? 'certificate_import.processing.manual_title'.tr()
-                      : _error == null
-                          ? 'certificate_import.processing.running_title'.tr()
-                          : 'certificate_import.processing.error_title'.tr(),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: c.text,
-                        fontWeight: FontWeight.w700,
-                      ),
+          title: 'certificate_import.processing.title'.tr(), frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => ListView(
+            padding: SacTopBar.paddingBelowBar(
+                context, const EdgeInsets.fromLTRB(20, 16, 20, 28)),
+            children: [
+              SacCard(
+                child: Column(
+                  children: [
+                    HugeIcon(
+                        icon: HugeIcons.strokeRoundedDocumentValidation,
+                        size: 72,
+                        color: c.info),
+                    const SizedBox(height: 16),
+                    Text(
+                      ocrUnavailable
+                          ? 'certificate_import.processing.manual_title'.tr()
+                          : _error == null
+                              ? 'certificate_import.processing.running_title'
+                                  .tr()
+                              : 'certificate_import.processing.error_title'
+                                  .tr(),
+                      textAlign: TextAlign.center,
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: c.text,
+                                fontWeight: FontWeight.w700,
+                              ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      ocrUnavailable
+                          ? 'certificate_import.processing.manual_body'.tr()
+                          : _error == null
+                              ? 'certificate_import.processing.running_body'
+                                  .tr()
+                              : 'certificate_import.processing.error_body'.tr(),
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: c.textSecondary,
+                          ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  ocrUnavailable
-                      ? 'certificate_import.processing.manual_body'.tr()
-                      : _error == null
-                          ? 'certificate_import.processing.running_body'.tr()
-                          : 'certificate_import.processing.error_body'.tr(),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: c.textSecondary,
-                      ),
+              ),
+              const SizedBox(height: 16),
+              _Step(
+                  label: 'certificate_import.processing.step_upload'.tr(),
+                  done: true),
+              _Step(
+                  label: 'certificate_import.processing.step_ocr'.tr(),
+                  active: _running && _error == null && !ocrUnavailable),
+              _Step(
+                  label: 'certificate_import.processing.step_results'.tr(),
+                  active: _running && _error == null && !ocrUnavailable),
+              if (_error != null) ...[
+                const SizedBox(height: 12),
+                Text(_error!, style: TextStyle(color: c.error)),
+              ],
+              const SizedBox(height: 22),
+              SacButton.outline(
+                text: 'certificate_import.processing.manual'.tr(),
+                icon: HugeIcons.strokeRoundedNoteEdit,
+                onPressed: widget.onManualFallback,
+              ),
+              if (!ocrUnavailable) ...[
+                const SizedBox(height: 10),
+                SacButton.ghost(
+                  text: 'certificate_import.processing.retry'.tr(),
+                  onPressed: _running ? null : _start,
                 ),
               ],
-            ),
+            ],
           ),
-          const SizedBox(height: 16),
-          _Step(
-              label: 'certificate_import.processing.step_upload'.tr(),
-              done: true),
-          _Step(
-              label: 'certificate_import.processing.step_ocr'.tr(),
-              active: _running && _error == null && !ocrUnavailable),
-          _Step(
-              label: 'certificate_import.processing.step_results'.tr(),
-              active: _running && _error == null && !ocrUnavailable),
-          if (_error != null) ...[
-            const SizedBox(height: 12),
-            Text(_error!, style: TextStyle(color: c.error)),
-          ],
-          const SizedBox(height: 22),
-          SacButton.outline(
-            text: 'certificate_import.processing.manual'.tr(),
-            icon: HugeIcons.strokeRoundedNoteEdit,
-            onPressed: widget.onManualFallback,
-          ),
-          if (!ocrUnavailable) ...[
-            const SizedBox(height: 10),
-            SacButton.ghost(
-              text: 'certificate_import.processing.retry'.tr(),
-              onPressed: _running ? null : _start,
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }

@@ -51,36 +51,42 @@ class SectionRankingScreen extends ConsumerWidget {
     );
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: SacTopBar(
-        title: tr('rankings.section_ranking.title'),
-        subtitle: subtitle,
-      ),
-      body: yearAsync.when(
-        data: (year) {
-          if (year == null) {
-            return const RankingEmptyState(reason: RankingEmptyReason.noData);
-          }
+          title: tr('rankings.section_ranking.title'),
+          subtitle: subtitle,
+          frosted: true),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => yearAsync.when(
+            data: (year) {
+              if (year == null) {
+                return const RankingEmptyState(
+                    reason: RankingEmptyReason.noData);
+              }
 
-          final ctx = ctxAsync.valueOrNull;
-          final user = authView.user;
-          if (ctx == null || !canViewSectionRankings(user)) {
-            if (ctxAsync.isLoading || authView.isLoading) {
-              return RankingSkeleton.sectionList();
-            }
-            return const RankingEmptyState(
-                reason: RankingEmptyReason.unauthorized);
-          }
+              final ctx = ctxAsync.valueOrNull;
+              final user = authView.user;
+              if (ctx == null || !canViewSectionRankings(user)) {
+                if (ctxAsync.isLoading || authView.isLoading) {
+                  return RankingSkeleton.sectionList();
+                }
+                return const RankingEmptyState(
+                    reason: RankingEmptyReason.unauthorized);
+              }
 
-          return _SectionMembersList(
-            sectionId: sectionId,
-            yearId: year.ecclesiasticalYearId,
-            yearName: year.name,
-          );
-        },
-        loading: () => RankingSkeleton.sectionList(),
-        error: (_, __) => RankingEmptyState(
-          reason: RankingEmptyReason.networkError,
-          onRetry: () => ref.invalidate(currentEcclesiasticalYearProvider),
+              return _SectionMembersList(
+                sectionId: sectionId,
+                yearId: year.ecclesiasticalYearId,
+                yearName: year.name,
+              );
+            },
+            loading: () => RankingSkeleton.sectionList(),
+            error: (_, __) => RankingEmptyState(
+              reason: RankingEmptyReason.networkError,
+              onRetry: () => ref.invalidate(currentEcclesiasticalYearProvider),
+            ),
+          ),
         ),
       ),
     );
@@ -108,7 +114,8 @@ class _SectionMembersList extends ConsumerWidget {
       child: membersAsync.when(
         data: (members) {
           if (members.isEmpty) {
-            return const SingleChildScrollView(
+            return SingleChildScrollView(
+              padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
               physics: AlwaysScrollableScrollPhysics(),
               child: SizedBox(
                 height: 500,
@@ -120,7 +127,8 @@ class _SectionMembersList extends ConsumerWidget {
 
           return ListView.builder(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.only(bottom: 20),
+            padding: SacTopBar.paddingBelowBar(
+                context, const EdgeInsets.only(bottom: 20)),
             itemCount: members.length + 1,
             itemBuilder: (_, index) {
               if (index == 0) {
