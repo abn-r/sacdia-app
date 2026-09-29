@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/fixed_input_icon_slot.dart';
@@ -149,15 +150,19 @@ class _SearchableSelectionListState extends State<SearchableSelectionList> {
                 color: context.sac.textTertiary,
               ),
               suffixIcon: _searchQuery.isNotEmpty
-                  ? IconButton(
-                      icon: HugeIcon(
-                          icon: HugeIcons.strokeRoundedCancel01, size: 22),
-                      onPressed: () {
-                        setState(() {
-                          _searchController.clear();
-                          _searchQuery = '';
-                        });
-                      },
+                  ? SacPressable(
+                      listenOnly: true,
+                      child: IconButton(
+                        enableFeedback: false,
+                        icon: HugeIcon(
+                            icon: HugeIcons.strokeRoundedCancel01, size: 22),
+                        onPressed: () {
+                          setState(() {
+                            _searchController.clear();
+                            _searchQuery = '';
+                          });
+                        },
+                      ),
                     )
                   : null,
               border: OutlineInputBorder(
@@ -203,20 +208,24 @@ class _SearchableSelectionListState extends State<SearchableSelectionList> {
                     final item = filteredItems[index];
                     final isNoneOption = item.id == _noneOptionId;
 
-                    return ListTile(
-                      title: Text(
-                        item.name,
-                        style: TextStyle(
-                          fontWeight: isNoneOption
-                              ? FontWeight.bold
-                              : FontWeight.normal,
+                    return SacPressable(
+                      listenOnly: true,
+                      child: ListTile(
+                        enableFeedback: false,
+                        title: Text(
+                          item.name,
+                          style: TextStyle(
+                            fontWeight: isNoneOption
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                          ),
                         ),
+                        leading: Checkbox(
+                          value: item.isSelected,
+                          onChanged: (_) => _handleItemToggle(item),
+                        ),
+                        onTap: () => _handleItemToggle(item),
                       ),
-                      leading: Checkbox(
-                        value: item.isSelected,
-                        onChanged: (_) => _handleItemToggle(item),
-                      ),
-                      onTap: () => _handleItemToggle(item),
                     );
                   },
                 ),
@@ -243,18 +252,22 @@ class _SearchableSelectionListState extends State<SearchableSelectionList> {
                 ),
               ),
               if (_items.any((i) => i.isSelected && i.id != _noneOptionId))
-                TextButton.icon(
-                  icon:
-                      HugeIcon(icon: HugeIcons.strokeRoundedCancel02, size: 20),
-                  label: Text(tr('common.clear')),
-                  onPressed: () {
-                    setState(() {
-                      for (var item in _items) {
-                        item.isSelected = item.id == _noneOptionId;
-                      }
-                      widget.onSelectionChanged([]);
-                    });
-                  },
+                SacPressable(
+                  listenOnly: true,
+                  child: TextButton.icon(
+                    style: const ButtonStyle(enableFeedback: false),
+                    icon: HugeIcon(
+                        icon: HugeIcons.strokeRoundedCancel02, size: 20),
+                    label: Text(tr('common.clear')),
+                    onPressed: () {
+                      setState(() {
+                        for (var item in _items) {
+                          item.isSelected = item.id == _noneOptionId;
+                        }
+                        widget.onSelectionChanged([]);
+                      });
+                    },
+                  ),
                 ),
             ],
           ),

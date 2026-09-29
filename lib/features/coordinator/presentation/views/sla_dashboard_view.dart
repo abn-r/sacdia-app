@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
@@ -57,20 +59,24 @@ class _SLADashboardViewState extends ConsumerState<SLADashboardView> {
       appBar: SacTopBar(
         title: 'coordinator.sla.dashboard.title'.tr(),
         actions: [
-          IconButton(
-            onPressed: () => ref.invalidate(slaDashboardProvider),
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedRefresh,
-              size: 22,
+          SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              onPressed: () => ref.invalidate(slaDashboardProvider),
+              icon: const HugeIcon(
+                icon: HugeIcons.strokeRoundedRefresh,
+                size: 22,
+              ),
+              tooltip: 'coordinator.sla.dashboard.refresh_tooltip'.tr(),
             ),
-            tooltip: 'coordinator.sla.dashboard.refresh_tooltip'.tr(),
           ),
         ],
       ),
       body: SafeArea(
         child: slaAsync.when(
           data: (sla) => RefreshIndicator(
-            color: AppColors.primary,
+            color: SacAccent.of(context).color,
             onRefresh: () async => ref.invalidate(slaDashboardProvider),
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -92,7 +98,7 @@ class _SLADashboardViewState extends ConsumerState<SLADashboardView> {
                   SlaStatCard(
                     title: 'coordinator.summary.investitures'.tr(),
                     stat: sla.investiture,
-                    accentColor: AppColors.primary,
+                    accentColor: SacAccent.of(context).color,
                     icon: HugeIcons.strokeRoundedAward01,
                   ),
                   const SizedBox(height: 10),

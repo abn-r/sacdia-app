@@ -1,11 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../features/members/presentation/providers/members_providers.dart';
 import '../../domain/entities/material_delivery.dart';
@@ -104,23 +106,27 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
                       border: Border.all(color: c.border),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: DropdownButton<MaterialDelivery>(
-                      value: _entrega,
-                      isExpanded: true,
-                      underline: const SizedBox.shrink(),
-                      items: [
-                        DropdownMenuItem(
-                          value: MaterialDelivery.recoger,
-                          child: Text('materials.summary.pickup'.tr()),
-                        ),
-                        DropdownMenuItem(
-                          value: MaterialDelivery.envio,
-                          child: Text('materials.summary.ship'.tr()),
-                        ),
-                      ],
-                      onChanged: (v) {
-                        if (v != null) setState(() => _entrega = v);
-                      },
+                    child: SacPressable(
+                      listenOnly: true,
+                      child: DropdownButton<MaterialDelivery>(
+                        enableFeedback: false,
+                        value: _entrega,
+                        isExpanded: true,
+                        underline: const SizedBox.shrink(),
+                        items: [
+                          DropdownMenuItem(
+                            value: MaterialDelivery.recoger,
+                            child: Text('materials.summary.pickup'.tr()),
+                          ),
+                          DropdownMenuItem(
+                            value: MaterialDelivery.envio,
+                            child: Text('materials.summary.ship'.tr()),
+                          ),
+                        ],
+                        onChanged: (v) {
+                          if (v != null) setState(() => _entrega = v);
+                        },
+                      ),
                     ),
                   ),
                   if (_entrega == MaterialDelivery.envio) ...[
@@ -316,7 +322,7 @@ class _ResumenLineItem extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.primarySurface,
+              color: SacAccent.of(context).surface,
               borderRadius: BorderRadius.circular(6),
             ),
             alignment: Alignment.center,
@@ -324,10 +330,10 @@ class _ResumenLineItem extends StatelessWidget {
               line.productTitle.isNotEmpty
                   ? line.productTitle[0].toUpperCase()
                   : '?',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: AppColors.primary,
+                color: SacAccent.of(context).color,
               ),
             ),
           ),
@@ -410,7 +416,7 @@ class _TotalRow extends StatelessWidget {
           style: isTotal
               ? theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
+                  color: SacAccent.of(context).color,
                 )
               : theme.textTheme.bodyMedium?.copyWith(
                   color: c.textSecondary,

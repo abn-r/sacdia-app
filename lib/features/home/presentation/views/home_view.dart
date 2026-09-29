@@ -1,8 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -74,7 +76,7 @@ class HomeView extends ConsumerWidget {
             ),
           ),
           data: (dashboard) => RefreshIndicator(
-            color: AppColors.primary,
+            color: SacAccent.of(context).color,
             onRefresh: () async =>
                 ref.read(dashboardNotifierProvider.notifier).refresh(),
             child: SingleChildScrollView(
@@ -111,13 +113,17 @@ class HomeView extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      IconButton(
-                        icon: HugeIcon(
-                          icon: HugeIcons.strokeRoundedLogout01,
-                          color: c.textTertiary,
-                          size: 24,
+                      SacPressable(
+                        listenOnly: true,
+                        child: IconButton(
+                          enableFeedback: false,
+                          icon: HugeIcon(
+                            icon: HugeIcons.strokeRoundedLogout01,
+                            color: c.textTertiary,
+                            size: 24,
+                          ),
+                          onPressed: () => _handleLogout(context, ref),
                         ),
-                        onPressed: () => _handleLogout(context, ref),
                       ),
                     ],
                   ),
@@ -129,7 +135,7 @@ class HomeView extends ConsumerWidget {
                       title: tr('home.honors_completed_title'),
                       value: dashboard.honorsCompleted.toString(),
                       icon: HugeIcons.strokeRoundedTaskDone01,
-                      color: AppColors.primary,
+                      color: SacAccent.of(context).color,
                     ),
                     const SizedBox(height: 20),
                     Row(
@@ -137,7 +143,7 @@ class HomeView extends ConsumerWidget {
                         HugeIcon(
                           icon: HugeIcons.strokeRoundedClock05,
                           size: 20,
-                          color: AppColors.primary,
+                          color: SacAccent.of(context).color,
                         ),
                         const SizedBox(width: 8),
                         Text(

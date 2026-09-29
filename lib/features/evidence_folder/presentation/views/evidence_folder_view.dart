@@ -1,11 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_dialog.dart';
@@ -207,7 +209,7 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
     final filteredSections = _filteredSections;
 
     return RefreshIndicator(
-      color: AppColors.primary,
+      color: SacAccent.of(context).color,
       onRefresh: () async {
         final provider = evidenceFolderProvider(widget.clubSectionId);
         ref.invalidate(provider);
@@ -479,13 +481,17 @@ class _NoFolderBody extends ConsumerWidget {
           backgroundColor: c.background,
           surfaceTintColor: Colors.transparent,
           elevation: 0,
-          leading: IconButton(
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedArrowLeft01,
-              size: 22,
-              color: c.text,
+          leading: SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowLeft01,
+                size: 22,
+                color: c.text,
+              ),
+              onPressed: onBack,
             ),
-            onPressed: onBack,
           ),
           title: Text(
             'evidence_folder.title'.tr(),
@@ -607,13 +613,17 @@ class _ErrorBody extends StatelessWidget {
           backgroundColor: c.background,
           surfaceTintColor: Colors.transparent,
           elevation: 0,
-          leading: IconButton(
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedArrowLeft01,
-              size: 22,
-              color: c.text,
+          leading: SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowLeft01,
+                size: 22,
+                color: c.text,
+              ),
+              onPressed: onBack,
             ),
-            onPressed: onBack,
           ),
           title: Text(
             'evidence_folder.title'.tr(),

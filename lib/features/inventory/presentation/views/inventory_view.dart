@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -7,6 +8,7 @@ import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/inventory_item.dart';
@@ -56,7 +58,7 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
       backgroundColor: context.sac.background,
       body: SafeArea(
         child: RefreshIndicator(
-          color: AppColors.primary,
+          color: SacAccent.of(context).color,
           onRefresh: () async {
             ref.invalidate(inventoryItemsProvider);
           },
@@ -82,21 +84,29 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
                 centerTitle: false,
                 actions: [
                   if (canManage)
-                    IconButton(
-                      tooltip: 'inventory.view.add_button'.tr(),
-                      onPressed: () => _openAddSheet(context),
-                      icon: HugeIcon(
-                        icon: HugeIcons.strokeRoundedAdd01,
-                        size: 22,
-                        color: AppColors.primary,
+                    SacPressable(
+                      listenOnly: true,
+                      child: IconButton(
+                        enableFeedback: false,
+                        tooltip: 'inventory.view.add_button'.tr(),
+                        onPressed: () => _openAddSheet(context),
+                        icon: HugeIcon(
+                          icon: HugeIcons.strokeRoundedAdd01,
+                          size: 22,
+                          color: SacAccent.of(context).color,
+                        ),
                       ),
                     ),
-                  IconButton(
-                    onPressed: () => ref.invalidate(inventoryItemsProvider),
-                    icon: HugeIcon(
-                      icon: HugeIcons.strokeRoundedRefresh,
-                      size: 20,
-                      color: context.sac.textSecondary,
+                  SacPressable(
+                    listenOnly: true,
+                    child: IconButton(
+                      enableFeedback: false,
+                      onPressed: () => ref.invalidate(inventoryItemsProvider),
+                      icon: HugeIcon(
+                        icon: HugeIcons.strokeRoundedRefresh,
+                        size: 20,
+                        color: context.sac.textSecondary,
+                      ),
                     ),
                   ),
                 ],
@@ -307,21 +317,24 @@ class _FilterTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Chip(
-      label: Text(
-        label,
-        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+    return SacPressable(
+      listenOnly: true,
+      child: Chip(
+        label: Text(
+          label,
+          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+        ),
+        onDeleted: onRemove,
+        deleteIcon:
+            const HugeIcon(icon: HugeIcons.strokeRoundedCancel01, size: 14),
+        backgroundColor: SacAccent.of(context).surface,
+        deleteIconColor: SacAccent.of(context).dark,
+        labelStyle: TextStyle(color: SacAccent.of(context).dark),
+        side: BorderSide(color: SacAccent.of(context).color, width: 0.5),
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        padding: EdgeInsets.zero,
+        visualDensity: VisualDensity.compact,
       ),
-      onDeleted: onRemove,
-      deleteIcon:
-          const HugeIcon(icon: HugeIcons.strokeRoundedCancel01, size: 14),
-      backgroundColor: AppColors.primarySurface,
-      deleteIconColor: AppColors.primaryDark,
-      labelStyle: const TextStyle(color: AppColors.primaryDark),
-      side: const BorderSide(color: AppColors.primary, width: 0.5),
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      padding: EdgeInsets.zero,
-      visualDensity: VisualDensity.compact,
     );
   }
 }

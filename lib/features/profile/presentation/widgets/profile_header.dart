@@ -3,7 +3,7 @@ import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 
 /// Placeholder de iniciales cuando la foto 404 o no existe.
@@ -78,7 +78,7 @@ class ProfileHeader extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: AppColors.primary,
+                    color: SacAccent.of(context).color,
                     width: 2.5,
                   ),
                 ),

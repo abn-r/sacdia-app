@@ -37,6 +37,8 @@ class ActivityModel extends Equatable {
   /// Participating section instances for joint activities.
   final List<ActivityInstance>? instances;
   final int? activitySeriesId;
+  final String audience;
+  final List<ActivityAudienceClass> audienceClasses;
 
   const ActivityModel({
     required this.id,
@@ -66,6 +68,8 @@ class ActivityModel extends Equatable {
     this.isJoint = false,
     this.instances,
     this.activitySeriesId,
+    this.audience = 'all',
+    this.audienceClasses = const [],
   });
 
   static DateTime? _parseDateOnly(String? raw) {
@@ -140,6 +144,33 @@ class ActivityModel extends Equatable {
           .toList();
     }
 
+    List<ActivityAudienceClass> audienceClasses = const [];
+    final rawAudienceClasses = json['audience_classes'];
+    if (rawAudienceClasses is List) {
+      audienceClasses = rawAudienceClasses
+          .map((row) {
+            if (row is! Map) return null;
+            final classId = row['class_id'];
+            final parsedId =
+                classId is int ? classId : int.tryParse('$classId') ?? 0;
+            final name = (row['name'] as String?) ?? '';
+            if (parsedId <= 0 || name.isEmpty) return null;
+            return ActivityAudienceClass(
+              classId: parsedId,
+              name: name,
+              assetCode: row['asset_code'] as String?,
+              clubTypeId: (row['club_type_id'] as int?) ?? 0,
+            );
+          })
+          .whereType<ActivityAudienceClass>()
+          .toList();
+    }
+
+    final rawAudience = json['audience'] as String?;
+    final audience = rawAudience == 'board' || rawAudience == 'classes'
+        ? rawAudience!
+        : 'all';
+
     return ActivityModel(
       id: json['activity_id'] as int,
       name: json['name'] as String,
@@ -170,6 +201,8 @@ class ActivityModel extends Equatable {
       isJoint: (json['is_joint'] as bool?) ?? false,
       instances: instances,
       activitySeriesId: json['activity_series_id'] as int?,
+      audience: audience,
+      audienceClasses: audienceClasses,
     );
   }
 
@@ -231,6 +264,8 @@ class ActivityModel extends Equatable {
       isJoint: isJoint,
       instances: instances,
       activitySeriesId: activitySeriesId,
+      audience: audience,
+      audienceClasses: audienceClasses,
     );
   }
 
@@ -263,5 +298,7 @@ class ActivityModel extends Equatable {
         isJoint,
         instances,
         activitySeriesId,
+        audience,
+        audienceClasses,
       ];
 }

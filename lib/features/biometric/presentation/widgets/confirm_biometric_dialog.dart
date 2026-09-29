@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_dialog.dart';
 import '../providers/biometric_provider.dart';
@@ -84,8 +84,8 @@ class _ConfirmBiometricDialogState
       title: widget.title,
       content: widget.description,
       icon: HugeIcons.strokeRoundedFingerPrint,
-      iconColor: AppColors.primary,
-      iconBackgroundColor: AppColors.primary.withValues(alpha: 0.12),
+      iconColor: SacAccent.of(context).color,
+      iconBackgroundColor: SacAccent.of(context).color.withValues(alpha: 0.12),
       actions: [
         SacDialogAction(
           label: 'common.cancel'.tr(),

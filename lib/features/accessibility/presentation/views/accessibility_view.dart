@@ -1,9 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../profile/presentation/widgets/setting_tile.dart';
@@ -37,14 +38,14 @@ class AccessibilityView extends ConsumerWidget {
                 icon: HugeIcons.strokeRoundedTextFont,
                 title: 'accessibility.text_size_label'.tr(),
                 subtitle: _labelForTextSize(settings.textSize),
-                iconColor: AppColors.primary,
+                iconColor: SacAccent.of(context).color,
                 onTap: () => _showTextSizePicker(context, ref),
               ),
               _divider(context),
               _SwitchTile(
                 icon: HugeIcons.strokeRoundedMoonEclipse,
                 title: 'accessibility.high_contrast_tile'.tr(),
-                iconColor: AppColors.primary,
+                iconColor: SacAccent.of(context).color,
                 value: settings.highContrast,
                 onChanged: notifier.setHighContrast,
               ),
@@ -52,7 +53,7 @@ class AccessibilityView extends ConsumerWidget {
               _SwitchTile(
                 icon: HugeIcons.strokeRoundedPause,
                 title: 'accessibility.reduce_motion_tile'.tr(),
-                iconColor: AppColors.primary,
+                iconColor: SacAccent.of(context).color,
                 value: settings.reduceMotion,
                 onChanged: notifier.setReduceMotion,
               ),
@@ -198,14 +199,18 @@ class _TextSizePickerSheet extends StatelessWidget {
           ...options.map((entry) {
             final (option, label) = entry;
             final selected = option == current;
-            return ListTile(
-              title: Text(label),
-              trailing: selected
-                  ? const HugeIcon(
-                      icon: HugeIcons.strokeRoundedTick02,
-                      color: AppColors.primary)
-                  : null,
-              onTap: () => Navigator.of(context).pop(option),
+            return SacPressable(
+              listenOnly: true,
+              child: ListTile(
+                enableFeedback: false,
+                title: Text(label),
+                trailing: selected
+                    ? HugeIcon(
+                        icon: HugeIcons.strokeRoundedTick02,
+                        color: SacAccent.of(context).color)
+                    : null,
+                onTap: () => Navigator.of(context).pop(option),
+              ),
             );
           }),
         ],
@@ -286,11 +291,14 @@ class _SwitchTile extends StatelessWidget {
               ),
             ),
           ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: AppColors.primary,
-            activeTrackColor: AppColors.primary.withValues(alpha: 0.4),
+          SacPressable(
+            listenOnly: true,
+            child: Switch(
+              value: value,
+              onChanged: onChanged,
+              activeThumbColor: SacAccent.of(context).color,
+              activeTrackColor: SacAccent.of(context).color.withValues(alpha: 0.4),
+            ),
           ),
         ],
       ),

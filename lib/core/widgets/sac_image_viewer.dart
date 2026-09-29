@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_view/photo_view.dart';
@@ -106,31 +107,39 @@ class _SacImageViewerState extends State<SacImageViewer> {
           backgroundColor: Colors.transparent,
           foregroundColor: Colors.white,
           borderColor: Colors.transparent,
-          leading: IconButton(
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedCancel01,
-              color: Colors.white,
+          leading: SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              icon: const HugeIcon(
+                icon: HugeIcons.strokeRoundedCancel01,
+                color: Colors.white,
+              ),
+              onPressed: () => Navigator.pop(context),
             ),
-            onPressed: () => Navigator.pop(context),
           ),
           actions: [
-            IconButton(
-              key: _saveButtonKey,
-              tooltip: 'common.save'.tr(),
-              onPressed: _isSharing ? null : _shareCurrentImage,
-              icon: _isSharing
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                key: _saveButtonKey,
+                tooltip: 'common.save'.tr(),
+                onPressed: _isSharing ? null : _shareCurrentImage,
+                icon: _isSharing
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const HugeIcon(
+                        icon: HugeIcons.strokeRoundedDownload01,
                         color: Colors.white,
                       ),
-                    )
-                  : const HugeIcon(
-                      icon: HugeIcons.strokeRoundedDownload01,
-                      color: Colors.white,
-                    ),
+              ),
             ),
           ],
         ),

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -13,6 +14,7 @@ import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/member_insurance.dart';
 import '../providers/insurance_providers.dart';
@@ -109,12 +111,16 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                         fontWeight: FontWeight.w700,
                       ),
                 ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedCancel01,
-                    size: 20,
-                    color: context.sac.textSecondary,
+                SacPressable(
+                  listenOnly: true,
+                  child: IconButton(
+                    enableFeedback: false,
+                    onPressed: () => Navigator.pop(context),
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedCancel01,
+                      size: 20,
+                      color: context.sac.textSecondary,
+                    ),
                   ),
                 ),
               ],
@@ -364,11 +370,11 @@ class _InsuranceTypeSelector extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
                 color:
-                    isSelected ? AppColors.primarySurface : Colors.transparent,
+                    isSelected ? SacAccent.of(context).surface : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isSelected
-                      ? AppColors.primary
+                      ? SacAccent.of(context).color
                       : Theme.of(context).dividerColor,
                   width: isSelected ? 2 : 1,
                 ),
@@ -382,7 +388,7 @@ class _InsuranceTypeSelector extends StatelessWidget {
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: isSelected
-                            ? AppColors.primary
+                            ? SacAccent.of(context).color
                             : Theme.of(context).dividerColor,
                         width: isSelected ? 5 : 1.5,
                       ),
@@ -394,7 +400,7 @@ class _InsuranceTypeSelector extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontWeight:
                               isSelected ? FontWeight.w700 : FontWeight.w400,
-                          color: isSelected ? AppColors.primaryDark : null,
+                          color: isSelected ? SacAccent.of(context).dark : null,
                         ),
                   ),
                 ],
@@ -432,7 +438,7 @@ class _DatePickerField extends StatelessWidget {
         ? DateFormat('dd \'de\' MMMM \'de\' yyyy', 'es').format(selectedDate!)
         : placeholder;
 
-    return InkWell(
+    return SacInkWell(
       onTap: () => _pickDate(context),
       borderRadius: BorderRadius.circular(12),
       child: Container(
@@ -451,7 +457,7 @@ class _DatePickerField extends StatelessWidget {
             HugeIcon(
               icon: HugeIcons.strokeRoundedCalendar01,
               size: 18,
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -543,17 +549,17 @@ class _PickerButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return SacInkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          color: AppColors.primarySurface,
+          color: SacAccent.of(context).surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: AppColors.primary.withValues(alpha: 0.3),
+            color: SacAccent.of(context).color.withValues(alpha: 0.3),
             style: BorderStyle.solid,
           ),
         ),
@@ -562,13 +568,13 @@ class _PickerButton extends StatelessWidget {
             HugeIcon(
               icon: HugeIcons.strokeRoundedUpload01,
               size: 32,
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
             ),
             const SizedBox(height: 8),
             Text(
               'insurance.form.upload_receipt'.tr(),
               style: TextStyle(
-                color: AppColors.primary,
+                color: SacAccent.of(context).color,
                 fontWeight: FontWeight.w700,
                 fontSize: 14,
               ),
@@ -577,7 +583,7 @@ class _PickerButton extends StatelessWidget {
             Text(
               'insurance.form.upload_formats'.tr(),
               style: TextStyle(
-                color: AppColors.primary.withValues(alpha: 0.6),
+                color: SacAccent.of(context).color.withValues(alpha: 0.6),
                 fontSize: 12,
               ),
             ),
@@ -651,12 +657,16 @@ class _SelectedFileTile extends StatelessWidget {
               ],
             ),
           ),
-          IconButton(
-            onPressed: onRemove,
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedCancel01,
-              size: 18,
-              color: AppColors.secondaryDark,
+          SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              onPressed: onRemove,
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedCancel01,
+                size: 18,
+                color: AppColors.secondaryDark,
+              ),
             ),
           ),
         ],
@@ -694,16 +704,16 @@ class _ExistingFileTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.primarySurface,
+        color: SacAccent.of(context).surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+        border: Border.all(color: SacAccent.of(context).color.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
           HugeIcon(
             icon: HugeIcons.strokeRoundedAttachment,
             size: 24,
-            color: AppColors.primary,
+            color: SacAccent.of(context).color,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -712,10 +722,10 @@ class _ExistingFileTile extends StatelessWidget {
               children: [
                 Text(
                   fileName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 13,
-                    color: AppColors.primaryDark,
+                    color: SacAccent.of(context).dark,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -724,20 +734,24 @@ class _ExistingFileTile extends StatelessWidget {
                   'insurance.form.current_receipt_label'.tr(),
                   style: TextStyle(
                     fontSize: 11,
-                    color: AppColors.primary.withValues(alpha: 0.7),
+                    color: SacAccent.of(context).color.withValues(alpha: 0.7),
                   ),
                 ),
               ],
             ),
           ),
-          TextButton(
-            onPressed: onReplace,
-            child: Text(
-              'insurance.form.replace_button'.tr(),
-              style: TextStyle(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w700,
-                fontSize: 12,
+          SacPressable(
+            listenOnly: true,
+            child: TextButton(
+              style: const ButtonStyle(enableFeedback: false),
+              onPressed: onReplace,
+              child: Text(
+                'insurance.form.replace_button'.tr(),
+                style: TextStyle(
+                  color: SacAccent.of(context).color,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                ),
               ),
             ),
           ),
@@ -782,98 +796,111 @@ class _FilePickerSheet extends StatelessWidget {
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
           ),
-          ListTile(
-            leading: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.primarySurface,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Center(
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedCamera01,
-                  size: 22,
-                  color: AppColors.primary,
+          SacPressable(
+            listenOnly: true,
+            child: ListTile(
+              enableFeedback: false,
+              leading: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: SacAccent.of(context).surface,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedCamera01,
+                    size: 22,
+                    color: SacAccent.of(context).color,
+                  ),
                 ),
               ),
+              title: Text(
+                'insurance.form.picker_camera'.tr(),
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              subtitle: Text('insurance.form.picker_camera_subtitle'.tr()),
+              onTap: () async {
+                Navigator.pop(context);
+                final picker = ImagePicker();
+                final file = await picker.pickImage(
+                  source: ImageSource.camera,
+                  imageQuality: 85,
+                );
+                onSelected(file);
+              },
             ),
-            title: Text(
-              'insurance.form.picker_camera'.tr(),
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-            subtitle: Text('insurance.form.picker_camera_subtitle'.tr()),
-            onTap: () async {
-              Navigator.pop(context);
-              final picker = ImagePicker();
-              final file = await picker.pickImage(
-                source: ImageSource.camera,
-                imageQuality: 85,
-              );
-              onSelected(file);
-            },
           ),
-          ListTile(
-            leading: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.secondaryLight,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Center(
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedImage01,
-                  size: 22,
-                  color: AppColors.secondary,
+          SacPressable(
+            listenOnly: true,
+            child: ListTile(
+              enableFeedback: false,
+              leading: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.secondaryLight,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Center(
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedImage01,
+                    size: 22,
+                    color: AppColors.secondary,
+                  ),
                 ),
               ),
+              title: Text(
+                'insurance.form.picker_gallery'.tr(),
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              subtitle: Text('insurance.form.picker_gallery_subtitle'.tr()),
+              onTap: () async {
+                Navigator.pop(context);
+                final picker = ImagePicker();
+                final file = await picker.pickImage(
+                  source: ImageSource.gallery,
+                  imageQuality: 85,
+                );
+                onSelected(file);
+              },
             ),
-            title: Text(
-              'insurance.form.picker_gallery'.tr(),
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-            subtitle: Text('insurance.form.picker_gallery_subtitle'.tr()),
-            onTap: () async {
-              Navigator.pop(context);
-              final picker = ImagePicker();
-              final file = await picker.pickImage(
-                source: ImageSource.gallery,
-                imageQuality: 85,
-              );
-              onSelected(file);
-            },
           ),
-          ListTile(
-            leading: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF4E0),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedFiles01,
-                  size: 22,
-                  color: AppColors.accentDark,
+          SacPressable(
+            listenOnly: true,
+            child: ListTile(
+              enableFeedback: false,
+              leading: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF4E0),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedFiles01,
+                    size: 22,
+                    color: AppColors.accentDark,
+                  ),
                 ),
               ),
+              title: Text(
+                'insurance.form.picker_pdf'.tr(),
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              subtitle: Text('insurance.form.picker_pdf_subtitle'.tr()),
+              onTap: () async {
+                Navigator.pop(context);
+                final picker = ImagePicker();
+                // image_picker no soporta PDF directamente.
+                // En producción usar file_picker para PDFs.
+                // Por ahora se selecciona desde galería como fallback.
+                final file =
+                    await picker.pickImage(source: ImageSource.gallery);
+                onSelected(file);
+              },
             ),
-            title: Text(
-              'insurance.form.picker_pdf'.tr(),
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-            subtitle: Text('insurance.form.picker_pdf_subtitle'.tr()),
-            onTap: () async {
-              Navigator.pop(context);
-              final picker = ImagePicker();
-              // image_picker no soporta PDF directamente.
-              // En producción usar file_picker para PDFs.
-              // Por ahora se selecciona desde galería como fallback.
-              final file = await picker.pickImage(source: ImageSource.gallery);
-              onSelected(file);
-            },
           ),
           const SizedBox(height: 16),
         ],

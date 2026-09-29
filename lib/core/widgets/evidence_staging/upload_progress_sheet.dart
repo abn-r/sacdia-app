@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../animations/motion_tokens.dart';
 import '../../theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../theme/sac_colors.dart';
 import '../sac_dialog.dart';
 import '../sac_button.dart';
@@ -145,7 +146,7 @@ class _UploadProgressSheetContentState
                   ? AppColors.accent
                   : _allSuccess
                       ? AppColors.secondary
-                      : AppColors.primary,
+                      : SacAccent.of(context).color,
               backgroundColor: c.surfaceVariant,
             ),
             const SizedBox(height: 16),
@@ -314,7 +315,7 @@ class _FileProgressRow extends StatelessWidget {
                 ? HugeIcons.strokeRoundedImage01
                 : HugeIcons.strokeRoundedPdf01,
             size: 20,
-            color: file.isImage ? AppColors.primary : AppColors.error,
+            color: file.isImage ? SacAccent.of(context).color : AppColors.error,
           ),
           const SizedBox(width: 10),
 

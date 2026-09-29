@@ -8,6 +8,7 @@ import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/activity.dart';
 import '../../domain/entities/activity_club_section.dart';
+import '../../domain/entities/activity_rsvp.dart';
 import '../../domain/entities/attendance.dart';
 import '../../domain/repositories/activities_repository.dart';
 import '../datasources/activities_remote_data_source.dart';
@@ -293,6 +294,50 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
   Future<Either<Failure, int>> cancelFutureActivitySeries(int seriesId) async {
     try {
       return Right(await remoteDataSource.cancelFutureActivitySeries(seriesId));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, MyActivityRsvp>> getMyRsvp(int activityId) async {
+    try {
+      return Right(await remoteDataSource.getMyRsvp(activityId));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> setMyRsvp(
+    int activityId,
+    String status,
+  ) async {
+    try {
+      return Right(await remoteDataSource.setMyRsvp(activityId, status));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<AttendanceRosterMember>>> getAttendanceRoster(
+    int activityId,
+  ) async {
+    try {
+      return Right(await remoteDataSource.getAttendanceRoster(activityId));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
     } on AuthException catch (e) {

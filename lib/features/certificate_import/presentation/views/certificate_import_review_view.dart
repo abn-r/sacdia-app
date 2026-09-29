@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
@@ -13,10 +14,13 @@ import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import '../../domain/entities/certificate_import_payloads.dart';
 import '../../domain/entities/certificate_import_batch.dart';
 import '../../domain/entities/certificate_import_item.dart';
+import '../../domain/usecases/add_certificate_import_item.dart';
+import '../../domain/usecases/remove_certificate_import_item.dart';
 import '../../domain/usecases/update_certificate_import_item.dart';
 import '../providers/certificate_import_providers.dart';
 import '../widgets/certificate_import_back_button.dart';
 import '../widgets/certificate_import_item_card.dart';
+import '../widgets/certificate_import_proof_card.dart';
 import '../widgets/certificate_import_item_editor_sheet.dart';
 
 class CertificateImportReviewRouteView extends ConsumerWidget {
@@ -68,6 +72,38 @@ class CertificateImportReviewRouteView extends ConsumerWidget {
                   );
           result.fold((failure) => throw Exception(failure.message), (_) {});
         },
+        onAddItem: (item) async {
+          final payload = CertificateImportItemUpdatePayload(
+            itemType: item.type == CertificateImportItemType.honor
+                ? 'HONOR'
+                : 'CLASS',
+            honorId: item.honorId,
+            classId: item.classId,
+            detectedName: item.detectedName,
+            completedAt: _apiDate(item.completedAt),
+            markAsReady: item.status == CertificateImportItemStatus.ready,
+          );
+          final result = await ref.read(addCertificateImportItemProvider).call(
+                AddCertificateImportItemParams(
+                  batchId: batch.id,
+                  payload: payload,
+                ),
+              );
+          return result.fold(
+            (failure) => throw Exception(failure.message),
+            (created) => created,
+          );
+        },
+        onRemoveItem: (item) async {
+          final result =
+              await ref.read(removeCertificateImportItemProvider).call(
+                    RemoveCertificateImportItemParams(
+                      batchId: batch.id,
+                      itemId: item.id,
+                    ),
+                  );
+          result.fold((failure) => throw Exception(failure.message), (_) {});
+        },
         onSubmitBatch: () async {
           final result = await ref
               .read(submitCertificateImportBatchProvider)
@@ -92,11 +128,16 @@ class CertificateImportReviewView extends StatefulWidget {
     super.key,
     required this.initialBatch,
     this.onUpdateItem,
+    this.onAddItem,
+    this.onRemoveItem,
     this.onSubmitBatch,
   });
 
   final CertificateImportBatch initialBatch;
   final Future<void> Function(CertificateImportItem item)? onUpdateItem;
+  final Future<CertificateImportItem> Function(CertificateImportItem draft)?
+      onAddItem;
+  final Future<void> Function(CertificateImportItem item)? onRemoveItem;
   final Future<void> Function()? onSubmitBatch;
 
   @override
@@ -135,6 +176,11 @@ class _CertificateImportReviewViewState
       if (_filter == 'missing') return !_isComplete(item);
       return true;
     }).toList(growable: false);
+    final showGmNotice = _items.any((item) => item.isGuiaMayorBase);
+    final showInstitutionalNotice =
+        _items.any((item) => item.isInstitutionalClass);
+    final showPeriodNotice =
+        _items.any((item) => item.isPendingAdministrativePeriod);
 
     return Scaffold(
       backgroundColor: c.background,
@@ -169,6 +215,57 @@ class _CertificateImportReviewViewState
                                   fontWeight: FontWeight.w700,
                                 ),
                       ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'certificate_import.review.independent_hint'.tr(),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: c.textSecondary,
+                            ),
+                      ),
+                      if (widget.initialBatch.files.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: SacPressable(
+                            listenOnly: true,
+                            child: TextButton(
+                              style: const ButtonStyle(enableFeedback: false),
+                              onPressed: () {
+                                final file = widget.initialBatch.files.first;
+                                context.push(
+                                  RouteNames.certificateImportProof,
+                                  extra: CertificateImportProofArgs(
+                                    item: _items.isEmpty ? null : _items.first,
+                                    batchId: widget.initialBatch.id,
+                                    fileId: file.id,
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                'certificate_import.review.view_proof'.tr(),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                      if (showGmNotice) ...[
+                        const SizedBox(height: 10),
+                        _InfoNotice(
+                          text: 'certificate_import.review.gm01_replace'.tr(),
+                        ),
+                      ],
+                      if (showInstitutionalNotice) ...[
+                        const SizedBox(height: 10),
+                        _InfoNotice(
+                          text: 'certificate_import.review.institutional'.tr(),
+                        ),
+                      ],
+                      if (showPeriodNotice) ...[
+                        const SizedBox(height: 10),
+                        _InfoNotice(
+                          text: 'certificate_import.review.period_pending'.tr(),
+                        ),
+                      ],
                       const SizedBox(height: 12),
                       Wrap(
                         spacing: 8,
@@ -195,6 +292,11 @@ class _CertificateImportReviewViewState
                           ),
                         ],
                       ),
+                      const SizedBox(height: 10),
+                      SacButton.outline(
+                        text: 'certificate_import.review.add_row'.tr(),
+                        onPressed: _openAddEditor,
+                      ),
                     ],
                   ),
                 ),
@@ -220,6 +322,9 @@ class _CertificateImportReviewViewState
                       return CertificateImportItemCard(
                         item: item,
                         onEdit: () => _openEditor(item),
+                        onRemove: widget.onRemoveItem == null
+                            ? null
+                            : () => _removeItem(item),
                       );
                     },
                   ),
@@ -271,6 +376,29 @@ class _CertificateImportReviewViewState
     );
   }
 
+  Future<void> _openAddEditor() async {
+    final draft = CertificateImportItem(
+      id: 'new',
+      batchId: widget.initialBatch.id,
+      type: CertificateImportItemType.clazz,
+      status: CertificateImportItemStatus.needsReview,
+    );
+    await showSacSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => CertificateImportItemEditorSheet(
+        item: draft,
+        titleKey: 'certificate_import.editor.add_title',
+        onSave: (updated) async {
+          if (widget.onAddItem == null) return;
+          final created = await widget.onAddItem!(updated);
+          setState(() => _items = [..._items, created]);
+        },
+      ),
+    );
+  }
+
   Future<void> _openEditor(CertificateImportItem item) async {
     await showSacSheet<void>(
       context: context,
@@ -290,6 +418,13 @@ class _CertificateImportReviewViewState
     );
   }
 
+  Future<void> _removeItem(CertificateImportItem item) async {
+    await widget.onRemoveItem?.call(item);
+    setState(() {
+      _items = _items.where((current) => current.id != item.id).toList();
+    });
+  }
+
   Future<void> _submit() async {
     setState(() => _submitting = true);
     try {
@@ -307,6 +442,25 @@ class _CertificateImportReviewViewState
         (item.detectedName?.trim().isNotEmpty ?? false) &&
         item.completedAt != null &&
         hasCatalog;
+  }
+}
+
+class _InfoNotice extends StatelessWidget {
+  const _InfoNotice({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return SacCard(
+      child: Text(
+        text,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: c.textSecondary,
+            ),
+      ),
+    );
   }
 }
 

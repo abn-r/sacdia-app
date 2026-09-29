@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -361,13 +362,17 @@ class EvidenceSectionSearchField extends StatelessWidget {
                         ),
                         width: 48,
                         height: 48,
-                        child: IconButton(
-                          tooltip: 'common.clear'.tr(),
-                          onPressed: onClear,
-                          icon: HugeIcon(
-                            icon: HugeIcons.strokeRoundedCancel01,
-                            size: 19,
-                            color: c.textSecondary,
+                        child: SacPressable(
+                          listenOnly: true,
+                          child: IconButton(
+                            enableFeedback: false,
+                            tooltip: 'common.clear'.tr(),
+                            onPressed: onClear,
+                            icon: HugeIcon(
+                              icon: HugeIcons.strokeRoundedCancel01,
+                              size: 19,
+                              color: c.textSecondary,
+                            ),
                           ),
                         ),
                       ),

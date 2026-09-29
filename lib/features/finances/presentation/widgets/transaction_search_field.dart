@@ -2,9 +2,10 @@ import 'dart:async';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 
 /// Debounced search field for the All Transactions screen.
@@ -74,7 +75,7 @@ class _TransactionSearchFieldState extends State<TransactionSearchField> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF8FAFC);
     final borderColor = _focusNode.hasFocus
-        ? AppColors.primary
+        ? SacAccent.of(context).color
         : isDark
             ? const Color(0xFF252525)
             : const Color(0xFFE2E8F0);
@@ -103,7 +104,7 @@ class _TransactionSearchFieldState extends State<TransactionSearchField> {
             child: TextField(
               controller: _controller,
               focusNode: _focusNode,
-              cursorColor: AppColors.primary,
+              cursorColor: SacAccent.of(context).color,
               onChanged: _onChanged,
               style: TextStyle(
                 fontSize: 14,
@@ -129,13 +130,17 @@ class _TransactionSearchFieldState extends State<TransactionSearchField> {
             ),
           ),
           if (_controller.text.isNotEmpty)
-            IconButton(
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedCancel01,
-                size: 18,
-                color: context.sac.textTertiary,
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedCancel01,
+                  size: 18,
+                  color: context.sac.textTertiary,
+                ),
+                onPressed: _onClear,
               ),
-              onPressed: _onClear,
             ),
         ],
       ),

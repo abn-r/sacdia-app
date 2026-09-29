@@ -1,9 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
@@ -82,7 +84,7 @@ const _mockCategories = <ResourceCategory>[
   ResourceCategory(
     name: 'Formatos',
     fileCount: 12,
-    color: AppColors.primary,
+    color: AppColors.loginBrandBlue,
   ),
   ResourceCategory(
     name: 'Manuales',
@@ -146,14 +148,14 @@ class _ResourcesSectionState extends State<ResourcesSection> {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: AppColors.primarySurface,
+                      color: SacAccent.of(context).surface,
                       borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: HugeIcon(
                         icon: HugeIcons.strokeRoundedFolder02,
                         size: 20,
-                        color: AppColors.primary,
+                        color: SacAccent.of(context).color,
                       ),
                     ),
                   ),
@@ -166,33 +168,36 @@ class _ResourcesSectionState extends State<ResourcesSection> {
                           ),
                     ),
                   ),
-                  TextButton(
-                    onPressed: () {},
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          tr('home.resources.view_all'),
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primary,
+                  SacPressable(
+                    listenOnly: true,
+                    child: TextButton(
+                      onPressed: () {},
+                      style: (TextButton.styleFrom(
+                        foregroundColor: SacAccent.of(context).color,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      )).copyWith(enableFeedback: false),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            tr('home.resources.view_all'),
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: SacAccent.of(context).color,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 2),
-                        const HugeIcon(
-                          icon: HugeIcons.strokeRoundedArrowRight01,
-                          size: 14,
-                          color: AppColors.primary,
-                        ),
-                      ],
+                          const SizedBox(width: 2),
+                          HugeIcon(
+                            icon: HugeIcons.strokeRoundedArrowRight01,
+                            size: 14,
+                            color: SacAccent.of(context).color,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -333,10 +338,10 @@ class _FileCard extends StatelessWidget {
 
   const _FileCard({required this.file});
 
-  Color get _typeColor {
+  Color _typeColor(BuildContext context) {
     switch (file.type) {
       case ResourceType.pdf:
-        return AppColors.primary;
+        return SacAccent.of(context).color;
       case ResourceType.document:
         return AppColors.info;
       case ResourceType.image:
@@ -392,7 +397,7 @@ class _FileCard extends StatelessWidget {
       ),
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
+        child: SacInkWell(
           onTap: () {},
           borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           child: Padding(
@@ -405,7 +410,7 @@ class _FileCard extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: _typeColor.withValues(alpha: 0.10),
+                    color: _typeColor(context).withValues(alpha: 0.10),
                     borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   ),
                   child: Stack(
@@ -414,7 +419,7 @@ class _FileCard extends StatelessWidget {
                       HugeIcon(
                         icon: _typeIcon,
                         size: 22,
-                        color: _typeColor,
+                        color: _typeColor(context),
                       ),
                       Positioned(
                         right: 0,
@@ -423,7 +428,7 @@ class _FileCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 4, vertical: 1),
                           decoration: BoxDecoration(
-                            color: _typeColor,
+                            color: _typeColor(context),
                             borderRadius:
                                 BorderRadius.circular(AppTheme.radiusXS),
                           ),
@@ -500,7 +505,7 @@ class _CategoryCard extends StatelessWidget {
       ),
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
+        child: SacInkWell(
           onTap: () {},
           borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           child: Padding(

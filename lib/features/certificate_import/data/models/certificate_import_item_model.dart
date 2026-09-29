@@ -10,6 +10,7 @@ class CertificateImportItemModel extends Equatable {
   final CertificateImportItemType type;
   final int? honorId;
   final int? classId;
+  final String? classAssetCode;
   final String? detectedName;
   final DateTime? detectedDate;
   final DateTime? completedAt;
@@ -26,6 +27,7 @@ class CertificateImportItemModel extends Equatable {
     required this.type,
     this.honorId,
     this.classId,
+    this.classAssetCode,
     this.detectedName,
     this.detectedDate,
     this.completedAt,
@@ -39,12 +41,19 @@ class CertificateImportItemModel extends Equatable {
 
   factory CertificateImportItemModel.fromJson(Map<String, dynamic> json) {
     final rawFieldConfidence = json['field_confidence'];
+    final nestedClass = json['class'];
+    final nestedAssetCode = nestedClass is Map<String, dynamic>
+        ? nestedClass['asset_code']
+        : null;
     return CertificateImportItemModel(
       id: safeString(json['item_id'] ?? json['id']),
       batchId: safeStringOrNull(json['batch_id']),
       type: parseItemType(safeString(json['item_type'] ?? json['type'])),
       honorId: safeIntOrNull(json['honor_id']),
       classId: safeIntOrNull(json['class_id']),
+      classAssetCode: safeStringOrNull(
+        json['class_asset_code'] ?? nestedAssetCode,
+      ),
       detectedName: safeStringOrNull(json['detected_name']),
       detectedDate: _parseDate(json['detected_date']),
       completedAt: _parseDate(json['completed_at']),
@@ -101,6 +110,7 @@ class CertificateImportItemModel extends Equatable {
         },
         'honor_id': honorId,
         'class_id': classId,
+        'class_asset_code': classAssetCode,
         'detected_name': detectedName,
         'detected_date': _formatDate(detectedDate),
         'completed_at': _formatDate(completedAt),
@@ -126,6 +136,7 @@ class CertificateImportItemModel extends Equatable {
         type: type,
         honorId: honorId,
         classId: classId,
+        classAssetCode: classAssetCode,
         detectedName: detectedName,
         detectedDate: detectedDate,
         completedAt: completedAt,
@@ -151,6 +162,7 @@ class CertificateImportItemModel extends Equatable {
         type,
         honorId,
         classId,
+        classAssetCode,
         detectedName,
         detectedDate,
         completedAt,

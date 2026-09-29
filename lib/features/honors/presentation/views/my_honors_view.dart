@@ -8,9 +8,11 @@ import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
@@ -82,15 +84,15 @@ class MyHonorsView extends ConsumerWidget {
                         _StatMini(
                           value: stats['total'] ?? 0,
                           label: 'honors.my_honors.stat_total'.tr(),
-                          color: AppColors.primary,
-                          bgColor: AppColors.primaryLight,
+                          color: SacAccent.of(context).color,
+                          bgColor: SacAccent.of(context).light,
                         ),
                         const SizedBox(width: 10),
                         _StatMini(
                           value: stats['in_progress'] ?? 0,
                           label: 'honors.my_honors.stat_in_progress'.tr(),
-                          color: AppColors.primary,
-                          bgColor: AppColors.primaryLight,
+                          color: SacAccent.of(context).color,
+                          bgColor: SacAccent.of(context).light,
                         ),
                         const SizedBox(width: 10),
                         _StatMini(
@@ -128,6 +130,7 @@ class MyHonorsView extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: TabBar(
+                    enableFeedback: false,
                     indicator: BoxDecoration(
                       color: context.sac.surface,
                       borderRadius: BorderRadius.circular(10),
@@ -141,15 +144,15 @@ class MyHonorsView extends ConsumerWidget {
                     ),
                     indicatorSize: TabBarIndicatorSize.tab,
                     dividerHeight: 0,
-                    labelColor: AppColors.primary,
+                    labelColor: SacAccent.of(context).color,
                     unselectedLabelColor: context.sac.textSecondary,
                     labelStyle: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
                     tabs: [
-                      Tab(text: 'honors.my_honors.tab_in_progress'.tr()),
-                      Tab(text: 'honors.my_honors.tab_completed'.tr()),
+                      sacPressTab('honors.my_honors.tab_in_progress'.tr()),
+                      sacPressTab('honors.my_honors.tab_completed'.tr()),
                     ],
                   ),
                 ),
@@ -274,7 +277,7 @@ class MyHonorsView extends ConsumerWidget {
     }
 
     return RefreshIndicator(
-      color: AppColors.primary,
+      color: SacAccent.of(context).color,
       onRefresh: () async {
         ref.invalidate(userHonorsProvider);
         // userHonorStatsLocalProvider recomputes automatically when

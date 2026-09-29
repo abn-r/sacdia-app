@@ -435,8 +435,8 @@ class _PennantPainter extends CustomPainter {
 }
 
 abstract final class WelcomeEmblem {
-  static const aventureros = 'assets/img/logo_aventureros_color.png';
-  static const conquistadores = 'assets/img/logo_conquistadores_color.png';
+  static const aventureros = 'assets/img/logo_aventureros.png';
+  static const conquistadores = 'assets/img/logo_conquistadores.png';
   static const guiasMayores = 'assets/img/logo-guias-mayores.png';
   static const sash = 'assets/img/barra_ave.png';
 }

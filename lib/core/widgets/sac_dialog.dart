@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 
@@ -201,11 +202,11 @@ class SacDialog extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: iconBackgroundColor ??
-                                  AppColors.primaryLight
+                                  SacAccent.of(context).light
                                       .withValues(alpha: 0.65),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: (iconColor ?? AppColors.primary)
+                                color: (iconColor ?? SacAccent.of(context).color)
                                     .withValues(alpha: 0.12),
                               ),
                             ),
@@ -215,7 +216,7 @@ class SacDialog extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
-                                color: iconColor ?? AppColors.primary,
+                                color: iconColor ?? SacAccent.of(context).color,
                                 height: 1.3,
                               ),
                             ),

@@ -2,7 +2,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/sac_state_swap.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_card.dart';
@@ -46,7 +48,7 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
     return Scaffold(
       appBar: SacTopBar(
         title: 'classes.section_detail.title'.tr(),
-        backgroundColor: AppColors.primary,
+        backgroundColor: SacAccent.of(context).color,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -67,42 +69,65 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    HugeIcon(
-                      icon: _isCompleted
-                          ? HugeIcons.strokeRoundedCheckmarkCircle02
-                          : HugeIcons.strokeRoundedRadioButton,
-                      color: _isCompleted
-                          ? AppColors.success
-                          : context.sac.textSecondary,
-                      size: 32,
+                    SacStateSwap(
+                      child: HugeIcon(
+                        key: ValueKey(
+                          _isCompleted
+                              ? 'section-status-on'
+                              : 'section-status-off',
+                        ),
+                        icon: _isCompleted
+                            ? HugeIcons.strokeRoundedCheckmarkCircle02
+                            : HugeIcons.strokeRoundedRadioButton,
+                        color: _isCompleted
+                            ? AppColors.success
+                            : context.sac.textSecondary,
+                        size: 32,
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            _isCompleted
-                                ? 'classes.status.completed'.tr()
-                                : 'classes.status.pending'.tr(),
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: _isCompleted
-                                      ? AppColors.success
-                                      : context.sac.textSecondary,
-                                ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _isCompleted
-                                ? 'classes.section_detail.completed_subtitle'
-                                    .tr()
-                                : 'classes.section_detail.pending_subtitle'
-                                    .tr(),
-                            style: Theme.of(context).textTheme.bodySmall,
+                          SacStateSwap(
+                            child: SizedBox(
+                              key: ValueKey(
+                                _isCompleted
+                                    ? 'section-copy-on'
+                                    : 'section-copy-off',
+                              ),
+                              width: double.infinity,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _isCompleted
+                                        ? 'classes.status.completed'.tr()
+                                        : 'classes.status.pending'.tr(),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: _isCompleted
+                                              ? AppColors.success
+                                              : context.sac.textSecondary,
+                                        ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _isCompleted
+                                        ? 'classes.section_detail.completed_subtitle'
+                                            .tr()
+                                        : 'classes.section_detail.pending_subtitle'
+                                            .tr(),
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -113,48 +138,55 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
             ),
             const SizedBox(height: 24),
             // Botón para marcar como completado/pendiente
-            SacButton(
-              onPressed: () async {
-                if (userId == null) return;
+            SacStateSwap(
+              child: SacButton(
+                key: ValueKey(
+                  _isCompleted
+                      ? 'section-action-done'
+                      : 'section-action-pending',
+                ),
+                onPressed: () async {
+                  if (userId == null) return;
 
-                final newStatus = !_isCompleted;
-                final messenger = ScaffoldMessenger.of(context);
+                  final newStatus = !_isCompleted;
+                  final messenger = ScaffoldMessenger.of(context);
 
-                // Actualizar progreso
-                await ref
-                    .read(classProgressNotifierProvider.notifier)
-                    .updateProgress(
-                  userId,
-                  widget.classId,
-                  {
-                    'section_id': widget.section.id,
-                    'is_completed': newStatus,
-                  },
-                );
+                  // Actualizar progreso
+                  await ref
+                      .read(classProgressNotifierProvider.notifier)
+                      .updateProgress(
+                    userId,
+                    widget.classId,
+                    {
+                      'section_id': widget.section.id,
+                      'is_completed': newStatus,
+                    },
+                  );
 
-                if (!mounted) return;
+                  if (!mounted) return;
 
-                setState(() {
-                  _isCompleted = newStatus;
-                });
+                  setState(() {
+                    _isCompleted = newStatus;
+                  });
 
-                SacSnackBar.showMessenger(
-                    messenger,
-                    newStatus
-                        ? 'classes.section_detail.mark_completed_snack'.tr()
-                        : 'classes.section_detail.mark_pending_snack'.tr(),
-                    backgroundColor:
-                        newStatus ? AppColors.success : AppColors.warning);
-              },
-              text: _isCompleted
-                  ? 'classes.section_detail.button_completed'.tr()
-                  : 'classes.section_detail.button_pending'.tr(),
-              icon: _isCompleted
-                  ? HugeIcons.strokeRoundedCancel01
-                  : HugeIcons.strokeRoundedTick02,
-              fullWidth: true,
-              backgroundColor:
-                  _isCompleted ? AppColors.warning : AppColors.primary,
+                  SacSnackBar.showMessenger(
+                      messenger,
+                      newStatus
+                          ? 'classes.section_detail.mark_completed_snack'.tr()
+                          : 'classes.section_detail.mark_pending_snack'.tr(),
+                      backgroundColor:
+                          newStatus ? AppColors.success : AppColors.warning);
+                },
+                text: _isCompleted
+                    ? 'classes.section_detail.button_completed'.tr()
+                    : 'classes.section_detail.button_pending'.tr(),
+                icon: _isCompleted
+                    ? HugeIcons.strokeRoundedCancel01
+                    : HugeIcons.strokeRoundedTick02,
+                fullWidth: true,
+                backgroundColor:
+                    _isCompleted ? AppColors.warning : SacAccent.of(context).color,
+              ),
             ),
           ],
         ),

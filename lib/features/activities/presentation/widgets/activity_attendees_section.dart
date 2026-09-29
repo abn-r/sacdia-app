@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 /// Attendees section — read-only display of activity participants.
@@ -10,8 +10,13 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 /// auto-enrolled when the activity is created (no opt-in needed).
 class ActivityAttendeesSection extends StatelessWidget {
   final List<String> attendees;
+  final String? emptyMessage;
 
-  const ActivityAttendeesSection({super.key, required this.attendees});
+  const ActivityAttendeesSection({
+    super.key,
+    required this.attendees,
+    this.emptyMessage,
+  });
 
   static const int _maxVisible = 5;
 
@@ -52,8 +57,8 @@ class ActivityAttendeesSection extends StatelessWidget {
             Container(
               width: 6,
               height: 6,
-              decoration: const BoxDecoration(
-                color: AppColors.primary,
+              decoration: BoxDecoration(
+                color: SacAccent.of(context).color,
                 shape: BoxShape.circle,
               ),
             ),
@@ -69,15 +74,15 @@ class ActivityAttendeesSection extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: AppColors.primaryLight,
+                color: SacAccent.of(context).light,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 '$count',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.primaryDark,
+                  color: SacAccent.of(context).dark,
                 ),
               ),
             ),
@@ -87,7 +92,7 @@ class ActivityAttendeesSection extends StatelessWidget {
 
         if (count == 0)
           Text(
-            'activities.widgets.attendees_all'.tr(),
+            emptyMessage ?? 'activities.widgets.attendees_all'.tr(),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: sac.textSecondary,
                 ),

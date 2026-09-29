@@ -6,13 +6,16 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 
 /// Barra de acciones de aprobación/rechazo para evidencias y camporees.
 ///
 /// Muestra un estado de carga mientras la operación está en curso.
 /// [onApprove] y [onReject] son callbacks que se llaman con la confirmación
 /// del usuario ya obtenida.
-class ApprovalActionBar extends StatelessWidget {
+enum _ApprovalPending { approve, reject }
+
+class ApprovalActionBar extends StatefulWidget {
   final bool isLoading;
   final VoidCallback onApprove;
   final VoidCallback onReject;
@@ -29,14 +32,37 @@ class ApprovalActionBar extends StatelessWidget {
   });
 
   @override
+  State<ApprovalActionBar> createState() => _ApprovalActionBarState();
+}
+
+class _ApprovalActionBarState extends State<ApprovalActionBar> {
+  _ApprovalPending? _pending;
+
+  @override
+  void didUpdateWidget(covariant ApprovalActionBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isLoading && !widget.isLoading) {
+      _pending = null;
+    }
+  }
+
+  void _begin(_ApprovalPending which, VoidCallback action) {
+    _pending = which;
+    action();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final effectiveApproveLabel =
-        approveLabel ?? 'coordinator.actions.approve'.tr();
+        widget.approveLabel ?? 'coordinator.actions.approve'.tr();
     final effectiveRejectLabel =
-        rejectLabel ?? 'coordinator.actions.reject'.tr();
+        widget.rejectLabel ?? 'coordinator.actions.reject'.tr();
+    final loading = widget.isLoading;
+    final approveLoading = loading && _pending == _ApprovalPending.approve;
+    final rejectLoading = loading && _pending == _ApprovalPending.reject;
 
-    if (isLoading) {
-      return const SizedBox(
+    if (loading && _pending == null) {
+      return SizedBox(
         height: 48,
         child: Center(
           child: SizedBox(
@@ -44,7 +70,7 @@ class ApprovalActionBar extends StatelessWidget {
             height: 28,
             child: CircularProgressIndicator(
               strokeWidth: 2.5,
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
             ),
           ),
         ),
@@ -61,7 +87,11 @@ class ApprovalActionBar extends StatelessWidget {
             fullWidth: true,
             textColor: AppColors.error,
             borderColor: AppColors.error.withValues(alpha: 0.5),
-            onPressed: onReject,
+            isLoading: rejectLoading,
+            isEnabled: !loading,
+            onPressed: loading
+                ? null
+                : () => _begin(_ApprovalPending.reject, widget.onReject),
           ),
         ),
         const SizedBox(width: 10),
@@ -69,7 +99,11 @@ class ApprovalActionBar extends StatelessWidget {
           child: SacButton.success(
             text: effectiveApproveLabel,
             icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-            onPressed: onApprove,
+            isLoading: approveLoading,
+            isEnabled: !loading,
+            onPressed: loading
+                ? null
+                : () => _begin(_ApprovalPending.approve, widget.onApprove),
           ),
         ),
       ],

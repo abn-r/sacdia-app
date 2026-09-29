@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -56,13 +57,17 @@ class SacSheetHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final close = showClose
-        ? IconButton(
-            tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-            onPressed: () => Navigator.of(context).maybePop(),
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedCancel01,
-              size: 22,
-              color: c.textTertiary,
+        ? SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+              onPressed: () => Navigator.of(context).maybePop(),
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedCancel01,
+                size: 22,
+                color: c.textTertiary,
+              ),
             ),
           )
         : null;

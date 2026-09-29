@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/sac_colors.dart';
@@ -98,7 +99,7 @@ class _InfoItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return SacInkWell(
       onTap: item.onTap,
       borderRadius: BorderRadius.vertical(
         top: isFirst ? const Radius.circular(14) : Radius.zero,

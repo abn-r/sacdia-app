@@ -1,9 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -406,7 +408,7 @@ class _SelectedMembersCard extends StatelessWidget {
                     HugeIcon(
                       icon: HugeIcons.strokeRoundedUserMultiple02,
                       size: 18,
-                      color: AppColors.primary,
+                      color: SacAccent.of(context).color,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -426,7 +428,7 @@ class _SelectedMembersCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
+                        color: SacAccent.of(context).color,
                       ),
                     ),
                   ],
@@ -478,14 +480,14 @@ class _EmptySelection extends StatelessWidget {
           width: 46,
           height: 46,
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.08),
+            color: SacAccent.of(context).color.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(14),
           ),
           child: Center(
             child: HugeIcon(
               icon: HugeIcons.strokeRoundedUserGroup,
               size: 23,
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
             ),
           ),
         ),
@@ -550,14 +552,18 @@ class _SelectedMemberTile extends StatelessWidget {
             ],
           ),
         ),
-        IconButton(
-          onPressed: onRemove,
-          icon: HugeIcon(
-            icon: HugeIcons.strokeRoundedCancel01,
-            size: 17,
-            color: c.textTertiary,
+        SacPressable(
+          listenOnly: true,
+          child: IconButton(
+            enableFeedback: false,
+            onPressed: onRemove,
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedCancel01,
+              size: 17,
+              color: c.textTertiary,
+            ),
+            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
           ),
-          constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
         ),
       ],
     );
@@ -676,8 +682,8 @@ class _MemberPickerSheetState extends ConsumerState<_MemberPickerSheet> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(
-                              color: AppColors.primary,
+                            borderSide: BorderSide(
+                              color: SacAccent.of(context).color,
                               width: 1.5,
                             ),
                           ),
@@ -806,10 +812,10 @@ class _MemberPickerTile extends StatelessWidget {
       opacity: alreadyRegistered ? 0.72 : 1,
       child: Material(
         color: selected && !alreadyRegistered
-            ? AppColors.primary.withValues(alpha: 0.07)
+            ? SacAccent.of(context).color.withValues(alpha: 0.07)
             : c.surface,
         borderRadius: BorderRadius.circular(16),
-        child: InkWell(
+        child: SacInkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(16),
           child: Container(
@@ -818,7 +824,7 @@ class _MemberPickerTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: selected && !alreadyRegistered
-                    ? AppColors.primary.withValues(alpha: 0.45)
+                    ? SacAccent.of(context).color.withValues(alpha: 0.45)
                     : c.border,
                 width: selected && !alreadyRegistered ? 1.3 : 1,
               ),
@@ -887,7 +893,7 @@ class _MemberPickerTile extends StatelessWidget {
                           else if (selected)
                             _MiniBadge(
                               label: 'camporees.register_member.selected'.tr(),
-                              color: AppColors.primary,
+                              color: SacAccent.of(context).color,
                             ),
                         ],
                       ),
@@ -920,7 +926,7 @@ class _SelectionIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final active = selected || alreadyRegistered;
-    final color = alreadyRegistered ? AppColors.secondary : AppColors.primary;
+    final color = alreadyRegistered ? AppColors.secondary : SacAccent.of(context).color;
 
     return Container(
       width: 32,
@@ -991,7 +997,7 @@ class _MemberAvatar extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: AppColors.primaryLight, width: 2),
+        border: Border.all(color: SacAccent.of(context).light, width: 2),
       ),
       child: ClipOval(
         child: imageUrl != null && imageUrl!.isNotEmpty
@@ -1018,14 +1024,14 @@ class _AvatarInitials extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.primary.withValues(alpha: 0.10),
+      color: SacAccent.of(context).color.withValues(alpha: 0.10),
       alignment: Alignment.center,
       child: Text(
         initials,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w800,
-          color: AppColors.primaryDark,
+          color: SacAccent.of(context).dark,
         ),
       ),
     );
@@ -1239,7 +1245,7 @@ class _PaymentOrderRedirectBody extends StatelessWidget {
             child: SacButton.ghost(
               key: const Key('camporee-register-view-orders'),
               text: 'payment_orders.camporee_redirect.view_orders'.tr(),
-              textColor: AppColors.primary,
+              textColor: SacAccent.of(context).color,
               onPressed: () => context.push(
                 '${RouteNames.paymentOrders}?purpose=CAMPOREE&camporee_id=$camporeeId',
               ),
@@ -1270,14 +1276,14 @@ class _EnrollHowToStep extends StatelessWidget {
           width: 24,
           height: 24,
           alignment: Alignment.center,
-          decoration: const BoxDecoration(
-            color: AppColors.primarySurface,
+          decoration: BoxDecoration(
+            color: SacAccent.of(context).surface,
             shape: BoxShape.circle,
           ),
           child: Text(
             '$index',
-            style: const TextStyle(
-              color: AppColors.primary,
+            style: TextStyle(
+              color: SacAccent.of(context).color,
               fontSize: 12,
               fontWeight: FontWeight.w800,
               height: 1,

@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -79,7 +80,7 @@ class MyCertificationsView extends ConsumerWidget {
                 .toList();
 
             return RefreshIndicator(
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
               onRefresh: () async {
                 ref.invalidate(userCertificationsProvider);
               },
@@ -94,7 +95,7 @@ class MyCertificationsView extends ConsumerWidget {
                           HugeIcon(
                             icon: HugeIcons.strokeRoundedCertificate01,
                             size: 24,
-                            color: AppColors.primary,
+                            color: SacAccent.of(context).color,
                           ),
                           const SizedBox(width: 10),
                           Text(
@@ -118,7 +119,7 @@ class MyCertificationsView extends ConsumerWidget {
                           _StatMini(
                             value: userCertifications.length,
                             label: 'certifications.my.stat_total'.tr(),
-                            color: AppColors.primary,
+                            color: SacAccent.of(context).color,
                           ),
                           const SizedBox(width: 10),
                           _StatMini(
@@ -368,7 +369,7 @@ class _UserCertificationCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isComplete
                         ? AppColors.secondaryLight
-                        : AppColors.primaryLight,
+                        : SacAccent.of(context).light,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Center(
@@ -378,7 +379,7 @@ class _UserCertificationCard extends StatelessWidget {
                           : HugeIcons.strokeRoundedCertificate01,
                       size: 22,
                       color:
-                          isComplete ? AppColors.secondary : AppColors.primary,
+                          isComplete ? AppColors.secondary : SacAccent.of(context).color,
                     ),
                   ),
                 ),
@@ -468,7 +469,7 @@ class _UserCertificationCard extends StatelessWidget {
             SacProgressBar(
               progress: progressRatio,
               height: 7,
-              color: isComplete ? AppColors.secondary : AppColors.primary,
+              color: isComplete ? AppColors.secondary : SacAccent.of(context).color,
               showShimmer: false,
             ),
 

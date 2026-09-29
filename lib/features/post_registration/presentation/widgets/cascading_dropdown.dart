@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
@@ -56,40 +57,45 @@ class CascadingDropdown<T> extends StatelessWidget {
             ),
           )
         else
-          DropdownButtonFormField<dynamic>(
-            initialValue:
-                selectedValue != null ? getItemValue(selectedValue as T) : null,
-            decoration: InputDecoration(
-              hintText: hintText ??
-                  'post_registration.dropdown.select_label'
-                      .tr(namedArgs: {'label': label}),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+          SacPressable(
+            listenOnly: true,
+            child: DropdownButtonFormField<dynamic>(
+              enableFeedback: false,
+              initialValue: selectedValue != null
+                  ? getItemValue(selectedValue as T)
+                  : null,
+              decoration: InputDecoration(
+                hintText: hintText ??
+                    'post_registration.dropdown.select_label'
+                        .tr(namedArgs: {'label': label}),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
               ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-            ),
-            items: items.isEmpty
-                ? null
-                : items.map((item) {
-                    return DropdownMenuItem<dynamic>(
-                      value: getItemValue(item),
-                      child: Text(getItemLabel(item)),
-                    );
-                  }).toList(),
-            onChanged: isEnabled
-                ? (value) {
-                    if (value != null && onChanged != null) {
-                      final selectedItem = items.firstWhere(
-                        (item) => getItemValue(item) == value,
+              items: items.isEmpty
+                  ? null
+                  : items.map((item) {
+                      return DropdownMenuItem<dynamic>(
+                        value: getItemValue(item),
+                        child: Text(getItemLabel(item)),
                       );
-                      onChanged!(selectedItem);
+                    }).toList(),
+              onChanged: isEnabled
+                  ? (value) {
+                      if (value != null && onChanged != null) {
+                        final selectedItem = items.firstWhere(
+                          (item) => getItemValue(item) == value,
+                        );
+                        onChanged!(selectedItem);
+                      }
                     }
-                  }
-                : null,
-            isExpanded: true,
+                  : null,
+              isExpanded: true,
+            ),
           ),
       ],
     );

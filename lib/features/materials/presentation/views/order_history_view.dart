@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
@@ -41,7 +41,7 @@ class OrderHistoryView extends ConsumerWidget {
           }
 
           return RefreshIndicator(
-            color: AppColors.primary,
+            color: SacAccent.of(context).color,
             onRefresh: () async => ref.invalidate(historyProvider),
             child: ListView.separated(
               padding: const EdgeInsets.all(16),

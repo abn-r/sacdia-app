@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +10,7 @@ import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/auth/club_role_names.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/date_formatter.dart';
@@ -183,7 +185,7 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
         ),
         Expanded(
           child: RefreshIndicator(
-            color: AppColors.primary,
+            color: SacAccent.of(context).color,
             onRefresh: () async {
               ref.invalidate(camporeeDetailProvider(_camporeeId));
               ref.invalidate(camporeeSectionRegistrationProvider(_camporeeId));
@@ -382,7 +384,7 @@ class _DetailTabBar extends StatelessWidget {
                         height: 44,
                         child: DecoratedBox(
                           decoration: BoxDecoration(
-                            color: AppColors.primary,
+                            color: SacAccent.of(context).color,
                             borderRadius: BorderRadius.circular(9),
                           ),
                         ),
@@ -535,7 +537,7 @@ class _TitleSection extends StatelessWidget {
       children: [
         _IconTile(
           icon: HugeIcons.strokeRoundedCampfire,
-          color: AppColors.primary,
+          color: SacAccent.of(context).color,
           size: 56,
         ),
         const SizedBox(width: 16),
@@ -751,7 +753,7 @@ class _EventHonorCard extends StatelessWidget {
                     child: Text(
                       'camporees.detail.event_honor_open_pdf'.tr(),
                       style: TextStyle(
-                        color: AppColors.primary,
+                        color: SacAccent.of(context).color,
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
                       ),
@@ -1065,7 +1067,7 @@ class _AgendaRow extends StatelessWidget {
       ),
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
+        child: SacInkWell(
           borderRadius: BorderRadius.circular(14),
           onTap: () => _openCamporeeEvent(context, event),
           child: Padding(
@@ -1156,7 +1158,7 @@ class _EventTile extends StatelessWidget {
       ),
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
+        child: SacInkWell(
           borderRadius: BorderRadius.circular(14),
           onTap: () => _openCamporeeEvent(context, event),
           child: Padding(
@@ -1447,7 +1449,7 @@ Color _eventCategoryColor(BuildContext context, String category) {
     case 'espiritual':
       return AppColors.secondary;
     case 'competencia':
-      return AppColors.primary;
+      return SacAccent.of(context).color;
     case 'taller':
       return context.sac.info;
     case 'ceremonial':
@@ -1637,7 +1639,7 @@ class _MembersSection extends StatelessWidget {
                   ),
                 );
               },
-              backgroundColor: AppColors.primary,
+              backgroundColor: SacAccent.of(context).color,
               textColor: AppColors.inkOnBrand,
               labelMaxLines: 2,
               labelOverflow: TextOverflow.visible,
@@ -1883,9 +1885,13 @@ class _InlineRetryState extends StatelessWidget {
               ),
             ),
           ),
-          TextButton(
-            onPressed: onRetry,
-            child: Text('common.retry'.tr()),
+          SacPressable(
+            listenOnly: true,
+            child: TextButton(
+              style: const ButtonStyle(enableFeedback: false),
+              onPressed: onRetry,
+              child: Text('common.retry'.tr()),
+            ),
           ),
         ],
       ),
@@ -1969,7 +1975,7 @@ class _FactRow extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 2),
-            child: HugeIcon(icon: icon, size: 20, color: AppColors.primary),
+            child: HugeIcon(icon: icon, size: 20, color: SacAccent.of(context).color),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -2025,7 +2031,7 @@ class _MemberAvatar extends StatelessWidget {
       child: Container(
         width: 44,
         height: 44,
-        color: AppColors.primary.withValues(alpha: 0.10),
+        color: SacAccent.of(context).color.withValues(alpha: 0.10),
         child: imageUrl != null && imageUrl.isNotEmpty
             ? Image.network(
                 imageUrl,
@@ -2047,7 +2053,7 @@ class _AvatarFallback extends StatelessWidget {
       child: HugeIcon(
         icon: HugeIcons.strokeRoundedUser,
         size: 20,
-        color: AppColors.primary,
+        color: SacAccent.of(context).color,
       ),
     );
   }
@@ -2100,7 +2106,7 @@ class _ClubTypeBadges extends StatelessWidget {
       if (camporee.includesPathfinders)
         _Badge(
           label: 'camporees.common.pathfinders'.tr(),
-          color: AppColors.primary,
+          color: SacAccent.of(context).color,
         ),
       if (camporee.includesMasterGuides)
         _Badge(

@@ -1,10 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
@@ -33,16 +35,21 @@ class EvidenceReviewListView extends StatelessWidget {
         title: 'coordinator.evidence_review.list.title'.tr(),
         actions: [
           Consumer(
-            builder: (_, ref, __) => IconButton(
-              onPressed: () {
-                final filter = ref.read(evidenceTypeFilterProvider);
-                ref.invalidate(pendingEvidenceProvider(filter));
-              },
-              icon: const HugeIcon(
-                icon: HugeIcons.strokeRoundedRefresh,
-                size: 22,
+            builder: (_, ref, __) => SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                onPressed: () {
+                  final filter = ref.read(evidenceTypeFilterProvider);
+                  ref.invalidate(pendingEvidenceProvider(filter));
+                },
+                icon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedRefresh,
+                  size: 22,
+                ),
+                tooltip:
+                    'coordinator.evidence_review.list.refresh_tooltip'.tr(),
               ),
-              tooltip: 'coordinator.evidence_review.list.refresh_tooltip'.tr(),
             ),
           ),
         ],
@@ -119,7 +126,7 @@ class _EvidenceList extends ConsumerWidget {
     }
 
     return RefreshIndicator(
-      color: AppColors.primary,
+      color: SacAccent.of(context).color,
       onRefresh: () async =>
           ref.invalidate(pendingEvidenceProvider(activeFilter)),
       child: ListView.builder(
@@ -250,7 +257,7 @@ class _FilterChips extends ConsumerWidget {
     ];
 
     return SizedBox(
-      height: 48,
+      height: SacFilterChip.barHeight,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: filters.length,

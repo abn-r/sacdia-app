@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
@@ -33,7 +35,7 @@ class ActivityLocationRow extends StatelessWidget {
 
     return Material(
       color: Colors.transparent,
-      child: InkWell(
+      child: SacInkWell(
         onTap: () => showActivityMapOptions(context, activity),
         onLongPress: () => _copyAddress(context),
         borderRadius: BorderRadius.circular(14),
@@ -94,17 +96,17 @@ class ActivityLocationRow extends StatelessWidget {
                       children: [
                         Text(
                           'activities.widgets.open_action'.tr(),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.primary,
+                            color: SacAccent.of(context).color,
                           ),
                         ),
                         const SizedBox(width: 4),
-                        const HugeIcon(
+                        HugeIcon(
                           icon: HugeIcons.strokeRoundedArrowRight01,
                           size: 12,
-                          color: AppColors.primary,
+                          color: SacAccent.of(context).color,
                         ),
                       ],
                     ),

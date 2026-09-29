@@ -2,8 +2,10 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -93,7 +95,7 @@ class ProfilePhotoPicker extends StatelessWidget {
                       width: 50,
                       height: 50,
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
+                        color: SacAccent.of(context).color,
                         shape: BoxShape.circle,
                         border:
                             Border.all(color: context.sac.surface, width: 3),
@@ -121,27 +123,30 @@ class ProfilePhotoPicker extends StatelessWidget {
 
           // Remove button
           if (onRemove != null && !isUploading)
-            TextButton.icon(
-              onPressed: onRemove,
-              style: TextButton.styleFrom(
-                backgroundColor: AppColors.errorLight,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              icon: const HugeIcon(
-                icon: HugeIcons.strokeRoundedDelete02,
-                size: 18,
-                color: AppColors.error,
-              ),
-              label: Text(
-                'post_registration.photo.remove'.tr(),
-                style: const TextStyle(
+            SacPressable(
+              listenOnly: true,
+              child: TextButton.icon(
+                onPressed: onRemove,
+                style: (TextButton.styleFrom(
+                  backgroundColor: AppColors.errorLight,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                )).copyWith(enableFeedback: false),
+                icon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedDelete02,
+                  size: 18,
                   color: AppColors.error,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                ),
+                label: Text(
+                  'post_registration.photo.remove'.tr(),
+                  style: const TextStyle(
+                    color: AppColors.error,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
@@ -152,28 +157,28 @@ class ProfilePhotoPicker extends StatelessWidget {
             // RepaintBoundary evita que Impeller propague opacidad heredada al CustomPaint
             child: RepaintBoundary(
               child: CustomPaint(
-                painter: _DashedCirclePainter(color: AppColors.primary),
+                painter: _DashedCirclePainter(color: SacAccent.of(context).color),
                 child: Container(
                   width: 200,
                   height: 200,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppColors.primaryLight,
+                    color: SacAccent.of(context).light,
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const HugeIcon(
+                      HugeIcon(
                         icon: HugeIcons.strokeRoundedCamera01,
                         size: 40,
-                        color: AppColors.primary,
+                        color: SacAccent.of(context).color,
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'post_registration.photo.add'.tr(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.primary,
+                          color: SacAccent.of(context).color,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -199,7 +204,7 @@ class ProfilePhotoPicker extends StatelessWidget {
                       HugeIcon(
                         icon: HugeIcons.strokeRoundedCamera01,
                         size: 28,
-                        color: AppColors.primary,
+                        color: SacAccent.of(context).color,
                       ),
                       SizedBox(height: 8),
                       Text(
@@ -224,7 +229,7 @@ class ProfilePhotoPicker extends StatelessWidget {
                       HugeIcon(
                         icon: HugeIcons.strokeRoundedCamera02,
                         size: 28,
-                        color: AppColors.primary,
+                        color: SacAccent.of(context).color,
                       ),
                       SizedBox(height: 8),
                       Text(

@@ -21,19 +21,27 @@ void main() {
     ) as Map<String, dynamic>;
   });
 
-  ClubMember buildMember({String? currentClass}) {
+  ClubMember buildMember({
+    String? currentClass,
+    bool isEnrolled = true,
+    String? clubRole,
+  }) {
     return ClubMember(
       userId: 'member-1',
       name: 'Mateo',
       paternalSurname: 'Hernández',
       maternalSurname: 'Flores',
       currentClass: currentClass,
+      isEnrolled: isEnrolled,
+      clubRole: clubRole,
     );
   }
 
   Future<void> pumpMemberCard(
     WidgetTester tester, {
     String? currentClass,
+    bool isEnrolled = true,
+    String? clubRole,
   }) async {
     await tester.pumpWidget(
       EasyLocalization(
@@ -48,7 +56,11 @@ void main() {
             supportedLocales: context.supportedLocales,
             home: Scaffold(
               body: MemberCard(
-                member: buildMember(currentClass: currentClass),
+                member: buildMember(
+                  currentClass: currentClass,
+                  isEnrolled: isEnrolled,
+                  clubRole: clubRole,
+                ),
               ),
             ),
           ),
@@ -58,10 +70,11 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('shows the mapped class logo in the member card', (tester) async {
+  testWidgets('shows the mapped class logo without repeating the class name',
+      (tester) async {
     await pumpMemberCard(tester, currentClass: 'Amigo');
 
-    expect(find.text('Amigo'), findsOneWidget);
+    expect(find.text('Amigo'), findsNothing);
     expect(
       find.byKey(const ValueKey('member-card-class-logo-Amigo')),
       findsOneWidget,
@@ -96,6 +109,35 @@ void main() {
     expect(find.byKey(const ValueKey('member-card-class-fallback-icon')),
         findsNothing);
     expect(find.byType(Image), findsNothing);
+  });
+
+  testWidgets('hides the enrolled badge on enrolled members', (tester) async {
+    await pumpMemberCard(tester, currentClass: 'Amigo');
+
+    expect(find.text('Inscrito'), findsNothing);
+  });
+
+  testWidgets('shows not-enrolled status only when the member is not enrolled',
+      (tester) async {
+    await pumpMemberCard(
+      tester,
+      currentClass: 'Amigo',
+      isEnrolled: false,
+    );
+
+    expect(find.text('No inscrito'), findsOneWidget);
+    expect(find.text('Inscrito'), findsNothing);
+  });
+
+  testWidgets('stays on a two-line compact row', (tester) async {
+    await pumpMemberCard(
+      tester,
+      currentClass: 'Amigo',
+      clubRole: 'member',
+    );
+
+    expect(
+        tester.getSize(find.byType(MemberCard)).height, lessThanOrEqualTo(64));
   });
 }
 

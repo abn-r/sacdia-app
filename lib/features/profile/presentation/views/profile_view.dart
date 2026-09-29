@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,7 @@ import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/app_logger.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
@@ -67,6 +69,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 
       if (photo == null) return;
 
+      final toolbarColor = SacAccent.of(context).color;
       final croppedFile = await ImageCropper().cropImage(
         sourcePath: photo.path,
         aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
@@ -74,7 +77,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         uiSettings: [
           AndroidUiSettings(
             toolbarTitle: 'profile.view.crop_photo_title'.tr(),
-            toolbarColor: AppColors.primary,
+            toolbarColor: toolbarColor,
             toolbarWidgetColor: Colors.white,
             lockAspectRatio: true,
             hideBottomControls: false,
@@ -306,7 +309,7 @@ class _ProfileScrollBody extends StatelessWidget {
     final c = context.sac;
 
     return RefreshIndicator(
-      color: AppColors.primary,
+      color: SacAccent.of(context).color,
       onRefresh: onRefresh,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -323,14 +326,18 @@ class _ProfileScrollBody extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  IconButton(
-                    icon: HugeIcon(
-                      icon: HugeIcons.strokeRoundedQrCode,
-                      color: c.text,
-                      size: 24,
+                  SacPressable(
+                    listenOnly: true,
+                    child: IconButton(
+                      enableFeedback: false,
+                      icon: HugeIcon(
+                        icon: HugeIcons.strokeRoundedQrCode,
+                        color: c.text,
+                        size: 24,
+                      ),
+                      onPressed: onQr,
+                      tooltip: 'profile.view.qr_tooltip'.tr(),
                     ),
-                    onPressed: onQr,
-                    tooltip: 'profile.view.qr_tooltip'.tr(),
                   ),
                   Expanded(
                     child: Center(
@@ -360,14 +367,18 @@ class _ProfileScrollBody extends StatelessWidget {
                       ),
                     ),
                   ),
-                  IconButton(
-                    icon: HugeIcon(
-                      icon: HugeIcons.strokeRoundedSettings01,
-                      color: c.text,
-                      size: 24,
+                  SacPressable(
+                    listenOnly: true,
+                    child: IconButton(
+                      enableFeedback: false,
+                      icon: HugeIcon(
+                        icon: HugeIcons.strokeRoundedSettings01,
+                        color: c.text,
+                        size: 24,
+                      ),
+                      onPressed: onSettings,
+                      tooltip: 'profile.view.settings_tooltip'.tr(),
                     ),
-                    onPressed: onSettings,
-                    tooltip: 'profile.view.settings_tooltip'.tr(),
                   ),
                 ],
               ),
@@ -841,7 +852,7 @@ class _ProfileHeaderCard extends StatelessWidget {
                     Semantics(
                       label: 'profile.view.crop_photo_title'.tr(),
                       button: true,
-                      child: InkWell(
+                      child: SacInkWell(
                         customBorder: const CircleBorder(),
                         onTap: onEditPhoto,
                         child: Stack(
@@ -851,12 +862,12 @@ class _ProfileHeaderCard extends StatelessWidget {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: AppColors.primaryLight,
+                                  color: SacAccent.of(context).light,
                                   width: 3,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.primary
+                                    color: SacAccent.of(context).color
                                         .withValues(alpha: 0.15),
                                     blurRadius: 16,
                                     offset: const Offset(0, 4),
@@ -1044,7 +1055,7 @@ class _SectionHeaderActions extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               side: BorderSide(color: c.border),
             ),
-            child: InkWell(
+            child: SacInkWell(
               borderRadius: BorderRadius.circular(8),
               onTap: onRefresh,
               child: Semantics(

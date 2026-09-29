@@ -1,11 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../providers/cart_provider.dart';
 import '../utils/money_format.dart';
@@ -33,13 +35,17 @@ class CartView extends ConsumerWidget {
         title: 'materials.cart.title'.tr(),
         actions: [
           if (cart.lines.isNotEmpty)
-            IconButton(
-              tooltip: 'materials.cart.clear'.tr(),
-              onPressed: () => _confirmClear(context, ref),
-              icon: const HugeIcon(
-                icon: HugeIcons.strokeRoundedDelete02,
-                size: 22,
-                color: AppColors.error,
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                tooltip: 'materials.cart.clear'.tr(),
+                onPressed: () => _confirmClear(context, ref),
+                icon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedDelete02,
+                  size: 22,
+                  color: AppColors.error,
+                ),
               ),
             ),
         ],
@@ -99,7 +105,7 @@ class CartView extends ConsumerWidget {
                         formatMxn(cart.subtotalCentavos),
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                          color: SacAccent.of(context).color,
                         ),
                       ),
                     ],
@@ -158,7 +164,7 @@ class _CartLineItem extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: AppColors.primarySurface,
+              color: SacAccent.of(context).surface,
               borderRadius: BorderRadius.circular(8),
             ),
             alignment: Alignment.center,
@@ -166,10 +172,10 @@ class _CartLineItem extends StatelessWidget {
               line.productTitle.isNotEmpty
                   ? line.productTitle[0].toUpperCase()
                   : '?',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: AppColors.primary,
+                color: SacAccent.of(context).color,
               ),
             ),
           ),
@@ -201,7 +207,7 @@ class _CartLineItem extends StatelessWidget {
                 Text(
                   formatMxn(line.priceSnapshotCentavos),
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.primary,
+                    color: SacAccent.of(context).color,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -229,13 +235,17 @@ class _CartLineItem extends StatelessWidget {
           ),
 
           // Remove button
-          IconButton(
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedCancel01,
-              size: 20,
-              color: c.textTertiary,
+          SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedCancel01,
+                size: 20,
+                color: c.textTertiary,
+              ),
+              onPressed: onRemove,
             ),
-            onPressed: onRemove,
           ),
         ],
       ),

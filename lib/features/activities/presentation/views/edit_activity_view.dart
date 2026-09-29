@@ -2,12 +2,14 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -369,7 +371,7 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
         titleIcon: HugeIcon(
           icon: HugeIcons.strokeRoundedEdit02,
           size: 22,
-          color: AppColors.primary,
+          color: SacAccent.of(context).color,
         ),
       ),
       body: Form(
@@ -550,13 +552,17 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
               readOnly: true,
               enabled: !isLoading,
               onTap: isLoading ? null : _pickTime,
-              suffix: IconButton(
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedClock01,
-                  size: 18,
-                  color: AppColors.primary,
+              suffix: SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedClock01,
+                    size: 18,
+                    color: SacAccent.of(context).color,
+                  ),
+                  onPressed: isLoading ? null : _pickTime,
                 ),
-                onPressed: isLoading ? null : _pickTime,
               ),
             ),
             const SizedBox(height: 16),
@@ -675,7 +681,7 @@ class _JointActivityToggle extends StatelessWidget {
         color: c.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: value ? AppColors.primary.withValues(alpha: 0.4) : c.border,
+          color: value ? SacAccent.of(context).color.withValues(alpha: 0.4) : c.border,
           width: value ? 1.5 : 1.0,
         ),
         boxShadow: [
@@ -686,35 +692,40 @@ class _JointActivityToggle extends StatelessWidget {
           ),
         ],
       ),
-      child: SwitchListTile(
-        value: value,
-        onChanged: enabled ? onChanged : null,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        title: Text(
-          'activities.form.joint_toggle_title'.tr(),
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: c.text,
+      child: SacPressable(
+        listenOnly: true,
+        child: SwitchListTile(
+          enableFeedback: false,
+          value: value,
+          onChanged: enabled ? onChanged : null,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          title: Text(
+            'activities.form.joint_toggle_title'.tr(),
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: c.text,
+            ),
           ),
-        ),
-        subtitle: Text(
-          'activities.form.joint_toggle_subtitle'.tr(),
-          style: TextStyle(
-            fontSize: 12,
-            color: c.textSecondary,
+          subtitle: Text(
+            'activities.form.joint_toggle_subtitle'.tr(),
+            style: TextStyle(
+              fontSize: 12,
+              color: c.textSecondary,
+            ),
           ),
-        ),
-        secondary: Container(
-          padding: const EdgeInsets.all(7),
-          decoration: BoxDecoration(
-            color: value ? AppColors.primaryLight : c.surfaceVariant,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: HugeIcon(
-            icon: HugeIcons.strokeRoundedUserGroup,
-            size: 18,
-            color: value ? AppColors.primary : c.textTertiary,
+          secondary: Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: value ? SacAccent.of(context).light : c.surfaceVariant,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: HugeIcon(
+              icon: HugeIcons.strokeRoundedUserGroup,
+              size: 18,
+              color: value ? SacAccent.of(context).color : c.textTertiary,
+            ),
           ),
         ),
       ),
@@ -856,10 +867,10 @@ class _JointActivityReadOnlyBadge extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: AppColors.primaryLight,
+        color: SacAccent.of(context).light,
         borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.3),
+          color: SacAccent.of(context).color.withValues(alpha: 0.3),
         ),
       ),
       child: Row(
@@ -868,13 +879,13 @@ class _JointActivityReadOnlyBadge extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.15),
+              color: SacAccent.of(context).color.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8),
             ),
             child: HugeIcon(
               icon: HugeIcons.strokeRoundedUserGroup,
               size: 18,
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
             ),
           ),
           const SizedBox(width: 12),
@@ -886,7 +897,7 @@ class _JointActivityReadOnlyBadge extends StatelessWidget {
                   'activities.edit.joint_badge_title'.tr(),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: AppColors.primaryDark,
+                    color: SacAccent.of(context).dark,
                   ),
                 ),
                 if (sectionNames.isNotEmpty) ...[
@@ -905,7 +916,7 @@ class _JointActivityReadOnlyBadge extends StatelessWidget {
                               color: c.surface,
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: AppColors.primary.withValues(alpha: 0.4),
+                                color: SacAccent.of(context).color.withValues(alpha: 0.4),
                               ),
                             ),
                             child: Text(
@@ -913,7 +924,7 @@ class _JointActivityReadOnlyBadge extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
-                                color: AppColors.primaryDark,
+                                color: SacAccent.of(context).dark,
                               ),
                             ),
                           ),

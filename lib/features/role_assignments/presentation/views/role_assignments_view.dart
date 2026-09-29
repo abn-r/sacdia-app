@@ -1,8 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -29,13 +31,17 @@ class RoleAssignmentsView extends ConsumerWidget {
       appBar: SacTopBar(
         title: 'role_assignments.view.title'.tr(),
         actions: [
-          IconButton(
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedRefresh,
-              color: c.textSecondary,
-              size: 20,
+          SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedRefresh,
+                color: c.textSecondary,
+                size: 20,
+              ),
+              onPressed: () => ref.invalidate(roleAssignmentsProvider),
             ),
-            onPressed: () => ref.invalidate(roleAssignmentsProvider),
           ),
         ],
       ),
@@ -51,7 +57,7 @@ class RoleAssignmentsView extends ConsumerWidget {
           }
 
           return RefreshIndicator(
-            color: AppColors.primary,
+            color: SacAccent.of(context).color,
             onRefresh: () async => ref.invalidate(roleAssignmentsProvider),
             child: ListView(
               padding: const EdgeInsets.all(20),
@@ -125,7 +131,7 @@ class _AssignmentCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: assignment.assignmentStatus == AssignmentStatus.active
-              ? AppColors.primary.withValues(alpha: 0.3)
+              ? SacAccent.of(context).color.withValues(alpha: 0.3)
               : c.border,
         ),
         boxShadow: [

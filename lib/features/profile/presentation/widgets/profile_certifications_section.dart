@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/features/certifications/domain/entities/user_certification.dart';
 import 'package:sacdia_app/features/certifications/presentation/providers/certifications_providers.dart';
@@ -115,7 +116,7 @@ class _CertificationGridItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final uc = userCertification;
     final isComplete = uc.completionStatus.toLowerCase() == 'completed';
-    final color = isComplete ? AppColors.secondary : AppColors.primary;
+    final color = isComplete ? AppColors.secondary : SacAccent.of(context).color;
     final progress = uc.progressPercentage.round();
 
     return Column(

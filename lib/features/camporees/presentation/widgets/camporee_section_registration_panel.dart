@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
@@ -132,7 +133,7 @@ class _RegistrationContent extends StatelessWidget {
             text: 'camporees.section_registration.enroll_action'.tr(),
             icon: HugeIcons.strokeRoundedEdit02,
             onPressed: onEnroll,
-            backgroundColor: AppColors.primary,
+            backgroundColor: SacAccent.of(context).color,
             textColor: AppColors.inkOnBrand,
             labelMaxLines: 2,
             labelOverflow: TextOverflow.visible,
@@ -144,7 +145,7 @@ class _RegistrationContent extends StatelessWidget {
             text: 'camporees.section_registration.participants_action'.tr(),
             icon: HugeIcons.strokeRoundedUserAdd01,
             onPressed: onManageParticipants,
-            backgroundColor: AppColors.primary,
+            backgroundColor: SacAccent.of(context).color,
             textColor: AppColors.inkOnBrand,
             labelMaxLines: 2,
             labelOverflow: TextOverflow.visible,

@@ -8,6 +8,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/utils/icon_helper.dart';
@@ -49,11 +50,15 @@ HugeIconData _iconForStatus(DataExportStatus status) {
 }
 
 /// Color del ícono según status.
-Color _colorForStatus(DataExportStatus status, SacColors c) {
+Color _colorForStatus(
+  DataExportStatus status,
+  SacColors c,
+  BuildContext context,
+) {
   switch (status) {
     case DataExportStatus.pending:
     case DataExportStatus.processing:
-      return AppColors.primary;
+      return SacAccent.of(context).color;
     case DataExportStatus.ready:
       return AppColors.success;
     case DataExportStatus.failed:
@@ -296,10 +301,10 @@ class _InfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.08),
+        color: SacAccent.of(context).color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.18),
+          color: SacAccent.of(context).color.withValues(alpha: 0.18),
           width: 1,
         ),
       ),
@@ -311,7 +316,7 @@ class _InfoCard extends StatelessWidget {
               HugeIcon(
                 icon: HugeIcons.strokeRoundedInformationCircle,
                 size: 18,
-                color: AppColors.primary,
+                color: SacAccent.of(context).color,
               ),
               const SizedBox(width: 8),
               Text(
@@ -319,7 +324,7 @@ class _InfoCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.primary,
+                  color: SacAccent.of(context).color,
                 ),
               ),
             ],
@@ -610,7 +615,7 @@ class _ExportCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = _colorForStatus(export.status, c);
+    final statusColor = _colorForStatus(export.status, c, context);
     final iconBg = statusColor.withValues(alpha: 0.12);
 
     return Padding(
@@ -738,12 +743,12 @@ class _DownloadButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isDownloading) {
-      return const SizedBox(
+      return SizedBox(
         width: 20,
         height: 20,
         child: CircularProgressIndicator(
           strokeWidth: 2,
-          color: AppColors.primary,
+          color: SacAccent.of(context).color,
         ),
       );
     }
@@ -754,14 +759,14 @@ class _DownloadButton extends StatelessWidget {
         width: 36,
         height: 36,
         decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.10),
+          color: SacAccent.of(context).color.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Center(
           child: HugeIcon(
             icon: HugeIcons.strokeRoundedDownload02,
             size: 18,
-            color: AppColors.primary,
+            color: SacAccent.of(context).color,
           ),
         ),
       ),

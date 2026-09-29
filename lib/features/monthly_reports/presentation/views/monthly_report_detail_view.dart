@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/app_logger.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_expansion_tile.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
@@ -59,7 +61,7 @@ class _ReportDetail extends ConsumerWidget {
       children: [
         Expanded(
           child: RefreshIndicator(
-            color: AppColors.primary,
+            color: SacAccent.of(context).color,
             onRefresh: () async =>
                 ref.invalidate(monthlyReportDetailProvider(report.id)),
             child: ListView(
@@ -200,7 +202,7 @@ class _ReportDetail extends ConsumerWidget {
                       _InfoRow(
                         label: 'monthly_reports.detail.club_total_balance'.tr(),
                         value: _money(snapshot?.finances.totalBalance),
-                        valueColor: AppColors.primary,
+                        valueColor: SacAccent.of(context).color,
                       ),
                       _InfoRow(
                         label: 'monthly_reports.detail.transactions'.tr(),
@@ -487,13 +489,13 @@ class _PeriodPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.10),
+        color: SacAccent.of(context).color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
         label,
-        style: const TextStyle(
-          color: AppColors.primary,
+        style: TextStyle(
+          color: SacAccent.of(context).color,
           fontWeight: FontWeight.w800,
           fontSize: 12,
           letterSpacing: 0.1,
@@ -609,7 +611,7 @@ class _KpiCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          HugeIcon(icon: icon, color: AppColors.primary, size: 18),
+          HugeIcon(icon: icon, color: SacAccent.of(context).color, size: 18),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -661,11 +663,11 @@ class _ExpandableSection extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
+        child: SacExpansionTile(
           initiallyExpanded: initiallyExpanded,
           tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
           childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-          leading: HugeIcon(icon: icon, color: AppColors.primary, size: 18),
+          leading: HugeIcon(icon: icon, color: SacAccent.of(context).color, size: 18),
           title: Text(
             title,
             style: TextStyle(

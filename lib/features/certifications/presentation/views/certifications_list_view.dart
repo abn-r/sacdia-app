@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -42,7 +43,7 @@ class CertificationsListView extends ConsumerWidget {
         titleIcon: HugeIcon(
           icon: HugeIcons.strokeRoundedCertificate01,
           size: 22,
-          color: AppColors.primary,
+          color: SacAccent.of(context).color,
         ),
       ),
       body: SafeArea(
@@ -73,7 +74,7 @@ class CertificationsListView extends ConsumerWidget {
             }
 
             return RefreshIndicator(
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
               onRefresh: () async {
                 ref.invalidate(certificationsProvider);
                 ref.invalidate(userCertificationsProvider);
@@ -276,14 +277,14 @@ class _CertificationCard extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
+                    color: SacAccent.of(context).light,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Center(
                     child: HugeIcon(
                       icon: HugeIcons.strokeRoundedCertificate01,
                       size: 22,
-                      color: AppColors.primary,
+                      color: SacAccent.of(context).color,
                     ),
                   ),
                 ),
@@ -373,7 +374,7 @@ class _CertificationCard extends StatelessWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
+                        color: SacAccent.of(context).color,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -395,14 +396,14 @@ class _CertificationCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
+                          color: SacAccent.of(context).color,
                         ),
                       ),
                       const SizedBox(width: 4),
                       HugeIcon(
                         icon: HugeIcons.strokeRoundedArrowRight01,
                         size: 14,
-                        color: AppColors.primary,
+                        color: SacAccent.of(context).color,
                       ),
                     ],
                   ),

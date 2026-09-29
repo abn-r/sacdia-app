@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../utils/award_tier_presentation_extensions.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
@@ -360,7 +361,7 @@ class _BreakdownExplainerCard extends StatelessWidget {
     return SacCard(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       padding: const EdgeInsets.all(16),
-      borderColor: AppColors.primary.withValues(alpha: 0.18),
+      borderColor: SacAccent.of(context).color.withValues(alpha: 0.18),
       backgroundColor: c.surface,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -369,12 +370,12 @@ class _BreakdownExplainerCard extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.primarySurface,
+              color: SacAccent.of(context).surface,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const HugeIcon(
+            child: HugeIcon(
               icon: HugeIcons.strokeRoundedAnalytics01,
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
               size: 22,
             ),
           ),
@@ -476,7 +477,7 @@ class _SignalDetailCard extends StatelessWidget {
                 HugeIcon(
                   icon: icon,
                   size: 20,
-                  color: hasScore ? AppColors.primary : c.textTertiary,
+                  color: hasScore ? SacAccent.of(context).color : c.textTertiary,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -502,7 +503,7 @@ class _SignalDetailCard extends StatelessWidget {
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                             color:
-                                hasScore ? AppColors.primary : c.textTertiary,
+                                hasScore ? SacAccent.of(context).color : c.textTertiary,
                           ),
                     ),
                     Text(
@@ -525,7 +526,7 @@ class _SignalDetailCard extends StatelessWidget {
                 minHeight: 8,
                 backgroundColor: c.borderLight,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  hasScore ? AppColors.primary : c.textTertiary,
+                  hasScore ? SacAccent.of(context).color : c.textTertiary,
                 ),
               ),
             ),

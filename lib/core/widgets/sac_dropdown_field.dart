@@ -4,6 +4,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 
 class SacDropdownField<T> extends StatefulWidget {
   final T? value;
@@ -89,66 +90,71 @@ class _SacDropdownFieldState<T> extends State<SacDropdownField<T>> {
                   : null,
             ),
             clipBehavior: Clip.antiAlias,
-            child: DropdownButtonFormField<T>(
-              // Solo pasar el initialValue si existe exactamente un item con ese valor
-              initialValue: widget.value != null &&
-                      widget.items
-                              .where((item) => item.value == widget.value)
-                              .length ==
-                          1
-                  ? widget.value
-                  : null,
-              items: widget.items,
-              onChanged: widget.enabled
-                  ? (value) {
-                      _updateError(value);
-                      widget.onChanged?.call(value);
-                    }
-                  : null,
-              validator: widget.validator != null
-                  ? (value) {
-                      _updateError(value);
-                      return _errorMessage;
-                    }
-                  : null,
-              autovalidateMode: widget.autovalidateMode,
-              style: theme.textTheme.bodyMedium,
-              icon: Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedArrowDown01,
-                  color: context.sac.textSecondary,
-                  size: 22,
+            child: SacPressable(
+              listenOnly: true,
+              enabled: widget.enabled,
+              child: DropdownButtonFormField<T>(
+                enableFeedback: false,
+                // Solo pasar el initialValue si existe exactamente un item con ese valor
+                initialValue: widget.value != null &&
+                        widget.items
+                                .where((item) => item.value == widget.value)
+                                .length ==
+                            1
+                    ? widget.value
+                    : null,
+                items: widget.items,
+                onChanged: widget.enabled
+                    ? (value) {
+                        _updateError(value);
+                        widget.onChanged?.call(value);
+                      }
+                    : null,
+                validator: widget.validator != null
+                    ? (value) {
+                        _updateError(value);
+                        return _errorMessage;
+                      }
+                    : null,
+                autovalidateMode: widget.autovalidateMode,
+                style: theme.textTheme.bodyMedium,
+                icon: Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowDown01,
+                    color: context.sac.textSecondary,
+                    size: 22,
+                  ),
                 ),
-              ),
-              isExpanded: true,
-              dropdownColor: context.sac.surface,
-              decoration: InputDecoration(
-                hintText: widget.hint,
-                helperText: widget.helperText,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-                  borderSide: BorderSide.none,
+                isExpanded: true,
+                dropdownColor: context.sac.surface,
+                decoration: InputDecoration(
+                  hintText: widget.hint,
+                  helperText: widget.helperText,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                  hintStyle: TextStyle(color: context.sac.textTertiary),
+                  filled: true,
+                  fillColor: widget.enabled
+                      ? context.sac.surface
+                      : context.sac.surfaceVariant,
+                  prefixIcon: _buildPrefixIcon(),
+                  prefixIconConstraints: FixedInputIconSlot.constraints,
+                  // Ocultar error interno — se muestra debajo del contenedor
+                  errorStyle: const TextStyle(height: 0, fontSize: 0),
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-                hintStyle: TextStyle(color: context.sac.textTertiary),
-                filled: true,
-                fillColor: widget.enabled
-                    ? context.sac.surface
-                    : context.sac.surfaceVariant,
-                prefixIcon: _buildPrefixIcon(),
-                prefixIconConstraints: FixedInputIconSlot.constraints,
-                // Ocultar error interno — se muestra debajo del contenedor
-                errorStyle: const TextStyle(height: 0, fontSize: 0),
               ),
             ),
           ),

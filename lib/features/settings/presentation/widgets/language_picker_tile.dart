@@ -1,10 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../../profile/presentation/widgets/setting_tile.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 
 class LanguagePickerTile extends StatelessWidget {
@@ -72,7 +74,7 @@ class LanguagePickerTile extends StatelessWidget {
           ],
         ),
       ),
-      iconColor: AppColors.primary,
+      iconColor: SacAccent.of(context).color,
       onTap: () => _showPicker(context),
     );
   }
@@ -219,18 +221,22 @@ class _LocalePickerSheet extends StatelessWidget {
           ...LanguagePickerTile._locales.map((o) {
             final isCurrent = o.locale.languageCode == current.languageCode &&
                 (o.locale.countryCode ?? '') == (current.countryCode ?? '');
-            return ListTile(
-              leading: _LanguageFlagBadge(option: o),
-              title: Text(
-                o.label,
-                style: TextStyle(color: c.text),
+            return SacPressable(
+              listenOnly: true,
+              child: ListTile(
+                enableFeedback: false,
+                leading: _LanguageFlagBadge(option: o),
+                title: Text(
+                  o.label,
+                  style: TextStyle(color: c.text),
+                ),
+                trailing: isCurrent
+                    ? const HugeIcon(
+                        icon: HugeIcons.strokeRoundedTick02,
+                        color: AppColors.secondary)
+                    : null,
+                onTap: () => Navigator.of(context).pop(o.locale),
               ),
-              trailing: isCurrent
-                  ? const HugeIcon(
-                      icon: HugeIcons.strokeRoundedTick02,
-                      color: AppColors.secondary)
-                  : null,
-              onTap: () => Navigator.of(context).pop(o.locale),
             );
           }),
         ],

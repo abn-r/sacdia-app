@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/utils/icon_helper.dart';
 
 /// Stepper de cantidad − / qty / + con límites [min] y [max].
@@ -67,7 +68,7 @@ class _StepButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = enabled ? AppColors.primary : AppColors.lightTextTertiary;
+    final color = enabled ? SacAccent.of(context).color : AppColors.lightTextTertiary;
 
     return GestureDetector(
       onTap: onTap,
@@ -75,7 +76,7 @@ class _StepButton extends StatelessWidget {
         width: 32,
         height: 32,
         decoration: BoxDecoration(
-          color: enabled ? AppColors.primaryLight : AppColors.lightBorder,
+          color: enabled ? SacAccent.of(context).light : AppColors.lightBorder,
           borderRadius: BorderRadius.circular(8),
         ),
         alignment: Alignment.center,

@@ -1,9 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -59,18 +61,22 @@ class InventoryFilterSheet extends ConsumerWidget {
                           color: c.text,
                         ),
                   ),
-                  TextButton(
-                    onPressed: () {
-                      // Only clear condition and sort — category managed by chips
-                      ref.read(inventoryFiltersProvider.notifier).state =
-                          filters.copyWith(
-                        clearCondition: true,
-                        sortOrder: InventorySortOrder.nameAsc,
-                      );
-                    },
-                    child: Text(
-                      'inventory.filter_sheet.clear'.tr(),
-                      style: const TextStyle(color: AppColors.primary),
+                  SacPressable(
+                    listenOnly: true,
+                    child: TextButton(
+                      style: const ButtonStyle(enableFeedback: false),
+                      onPressed: () {
+                        // Only clear condition and sort — category managed by chips
+                        ref.read(inventoryFiltersProvider.notifier).state =
+                            filters.copyWith(
+                          clearCondition: true,
+                          sortOrder: InventorySortOrder.nameAsc,
+                        );
+                      },
+                      child: Text(
+                        'inventory.filter_sheet.clear'.tr(),
+                        style: TextStyle(color: SacAccent.of(context).color),
+                      ),
                     ),
                   ),
                 ],
@@ -113,7 +119,7 @@ class InventoryFilterSheet extends ConsumerWidget {
                         _ConditionChip(
                           label: 'inventory.filter_sheet.condition_all'.tr(),
                           isSelected: filters.condition == null,
-                          color: AppColors.primary,
+                          color: SacAccent.of(context).color,
                           onTap: () {
                             ref.read(inventoryFiltersProvider.notifier).state =
                                 filters.copyWith(clearCondition: true);
@@ -187,11 +193,11 @@ class _SortChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primary.withValues(alpha: 0.12)
+              ? SacAccent.of(context).color.withValues(alpha: 0.12)
               : context.sac.surfaceVariant,
           borderRadius: BorderRadius.circular(AppTheme.radiusFull),
           border: Border.all(
-            color: isSelected ? AppColors.primary : context.sac.border,
+            color: isSelected ? SacAccent.of(context).color : context.sac.border,
             width: isSelected ? 1.5 : 1,
           ),
         ),
@@ -199,10 +205,10 @@ class _SortChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (isSelected) ...[
-              const HugeIcon(
+              HugeIcon(
                 icon: HugeIcons.strokeRoundedCheckmarkCircle01,
                 size: 13,
-                color: AppColors.primary,
+                color: SacAccent.of(context).color,
               ),
               const SizedBox(width: 5),
             ],
@@ -212,7 +218,7 @@ class _SortChip extends StatelessWidget {
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color:
-                    isSelected ? AppColors.primary : context.sac.textSecondary,
+                    isSelected ? SacAccent.of(context).color : context.sac.textSecondary,
               ),
             ),
           ],

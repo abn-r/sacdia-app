@@ -18,6 +18,7 @@ class CertificateImportItem extends Equatable {
   final CertificateImportItemType type;
   final int? honorId;
   final int? classId;
+  final String? classAssetCode;
   final String? detectedName;
   final DateTime? detectedDate;
   final DateTime? completedAt;
@@ -34,6 +35,7 @@ class CertificateImportItem extends Equatable {
     required this.type,
     this.honorId,
     this.classId,
+    this.classAssetCode,
     this.detectedName,
     this.detectedDate,
     this.completedAt,
@@ -55,6 +57,31 @@ class CertificateImportItem extends Equatable {
 
   bool get isRejected => status == CertificateImportItemStatus.rejected;
 
+  /// GM-01: approved certificate replaces the current enrollment — not two.
+  bool get isGuiaMayorBase {
+    final code = (classAssetCode ?? '').toUpperCase();
+    if (code == 'GM-01') return true;
+    final name = (detectedName ?? '').toLowerCase();
+    return name.contains('guía mayor') &&
+        !name.contains('avanzado') &&
+        !name.contains('instructor');
+  }
+
+  /// GM-02 / GM-03 go to institutional review; approval ≠ enrollment.
+  bool get isInstitutionalClass {
+    final code = (classAssetCode ?? '').toUpperCase();
+    if (code == 'GM-02' || code == 'GM-03') return true;
+    final name = (detectedName ?? '').toLowerCase();
+    return name.contains('avanzado') || name.contains('instructor');
+  }
+
+  bool get isPendingAdministrativePeriod {
+    final reason = (rejectionReason ?? '').toUpperCase();
+    return reason.contains('PERIOD') ||
+        reason.contains('PERIODO') ||
+        reason.contains('ECCLESIASTICAL_YEAR');
+  }
+
   @override
   List<Object?> get props => [
         id,
@@ -62,6 +89,7 @@ class CertificateImportItem extends Equatable {
         type,
         honorId,
         classId,
+        classAssetCode,
         detectedName,
         detectedDate,
         completedAt,

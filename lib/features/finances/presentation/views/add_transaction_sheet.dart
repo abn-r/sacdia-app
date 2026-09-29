@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -14,6 +15,7 @@ import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/evidence_staging/image_source_dialog.dart';
 import '../../domain/entities/finance_category.dart';
@@ -111,12 +113,16 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                         fontWeight: FontWeight.w700,
                       ),
                 ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedCancel01,
-                    size: 20,
-                    color: context.sac.textSecondary,
+                SacPressable(
+                  listenOnly: true,
+                  child: IconButton(
+                    enableFeedback: false,
+                    onPressed: () => Navigator.pop(context),
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedCancel01,
+                      size: 20,
+                      color: context.sac.textSecondary,
+                    ),
                   ),
                 ),
               ],
@@ -184,10 +190,14 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                       error: (_, __) => Row(
                         children: [
                           Text('finances.add_transaction.category_error'.tr()),
-                          TextButton(
-                            onPressed: () =>
-                                ref.invalidate(financeCategoriesProvider),
-                            child: Text('common.retry'.tr()),
+                          SacPressable(
+                            listenOnly: true,
+                            child: TextButton(
+                              style: const ButtonStyle(enableFeedback: false),
+                              onPressed: () =>
+                                  ref.invalidate(financeCategoriesProvider),
+                              child: Text('common.retry'.tr()),
+                            ),
                           ),
                         ],
                       ),
@@ -533,7 +543,7 @@ class _EvidenceAddTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
-      child: InkWell(
+      child: SacInkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Ink(
@@ -545,14 +555,14 @@ class _EvidenceAddTile extends StatelessWidget {
             ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.35),
+              color: SacAccent.of(context).color.withValues(alpha: 0.35),
             ),
           ),
           child: Center(
             child: HugeIcon(
               icon: HugeIcons.strokeRoundedAdd01,
               size: 28,
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
             ),
           ),
         ),
@@ -652,7 +662,7 @@ class _CategoryPickerField extends StatelessWidget {
           label: hasValue ? value!.name : hint,
           child: Material(
             color: Colors.transparent,
-            child: InkWell(
+            child: SacInkWell(
               onTap: onTap,
               borderRadius: BorderRadius.circular(14),
               child: Ink(
@@ -676,13 +686,13 @@ class _CategoryPickerField extends StatelessWidget {
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: AppColors.primarySurface,
+                        color: SacAccent.of(context).surface,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: HugeIcon(
                         icon: HugeIcons.strokeRoundedTag01,
                         size: 20,
-                        color: AppColors.primary,
+                        color: SacAccent.of(context).color,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -781,13 +791,13 @@ class _CategoryPickerSheet extends StatelessWidget {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: AppColors.primarySurface,
+                      color: SacAccent.of(context).surface,
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: HugeIcon(
                       icon: HugeIcons.strokeRoundedTag01,
                       size: 22,
-                      color: AppColors.primary,
+                      color: SacAccent.of(context).color,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -844,9 +854,9 @@ class _CategoryPickerOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final foreground = isSelected ? AppColors.primary : context.sac.text;
+    final foreground = isSelected ? SacAccent.of(context).color : context.sac.text;
     final background = isSelected
-        ? AppColors.primary.withValues(alpha: 0.08)
+        ? SacAccent.of(context).color.withValues(alpha: 0.08)
         : Colors.transparent;
 
     return Semantics(
@@ -855,7 +865,7 @@ class _CategoryPickerOption extends StatelessWidget {
       label: category.name,
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
+        child: SacInkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(16),
           child: Ink(
@@ -865,7 +875,7 @@ class _CategoryPickerOption extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isSelected
-                    ? AppColors.primary.withValues(alpha: 0.24)
+                    ? SacAccent.of(context).color.withValues(alpha: 0.24)
                     : context.sac.borderLight,
               ),
             ),
@@ -876,7 +886,7 @@ class _CategoryPickerOption extends StatelessWidget {
                   height: 40,
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? AppColors.primarySurface
+                        ? SacAccent.of(context).surface
                         : context.sac.surfaceVariant,
                     borderRadius: BorderRadius.circular(14),
                   ),
@@ -884,7 +894,7 @@ class _CategoryPickerOption extends StatelessWidget {
                     icon: HugeIcons.strokeRoundedTag01,
                     size: 20,
                     color: isSelected
-                        ? AppColors.primary
+                        ? SacAccent.of(context).color
                         : context.sac.textSecondary,
                   ),
                 ),
@@ -903,7 +913,7 @@ class _CategoryPickerOption extends StatelessWidget {
                   HugeIcon(
                     icon: HugeIcons.strokeRoundedTick02,
                     size: 20,
-                    color: AppColors.primary,
+                    color: SacAccent.of(context).color,
                   ),
               ],
             ),
@@ -1027,7 +1037,7 @@ class _DatePickerField extends StatelessWidget {
       'es',
     ).format(selectedDate);
 
-    return InkWell(
+    return SacInkWell(
       onTap: () => _pickDate(context),
       borderRadius: BorderRadius.circular(12),
       child: Container(
@@ -1046,7 +1056,7 @@ class _DatePickerField extends StatelessWidget {
             HugeIcon(
               icon: HugeIcons.strokeRoundedCalendar01,
               size: 18,
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
             ),
             const SizedBox(width: 10),
             Text(

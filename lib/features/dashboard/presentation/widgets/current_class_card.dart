@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_network_image.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_progress_ring.dart';
@@ -87,7 +88,7 @@ class CurrentClassCard extends ConsumerWidget {
         : HugeIcon(
             icon: HugeIcons.strokeRoundedSchool,
             size: 20,
-            color: AppColors.primary,
+            color: SacAccent.of(context).color,
           );
 
     final int progressPercentage = (progress * 100).toInt();

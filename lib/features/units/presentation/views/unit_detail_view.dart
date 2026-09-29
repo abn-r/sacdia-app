@@ -2,12 +2,14 @@ import 'dart:ui';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -58,41 +60,44 @@ class UnitDetailView extends ConsumerWidget {
         onBack: () => Navigator.of(context).pop(),
         actions: [
           if (showBulk)
-            TextButton(
-              onPressed: () => _openBulkSheet(
-                context,
-                categories: state.categories,
-                onSetForAll: (category, value) {
-                  HapticFeedback.selectionClick();
-                  notifier.setCategoryPointsForAllMembers(
-                    category.scoringCategoryId,
-                    value,
-                  );
-                },
-              ),
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                splashFactory: NoSplash.splashFactory,
-                overlayColor: Colors.transparent,
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedUserMultiple,
-                    size: 18,
-                    color: AppColors.primary,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'units.detail.bulk_action_button'.tr(),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
+            SacPressable(
+              listenOnly: true,
+              child: TextButton(
+                onPressed: () => _openBulkSheet(
+                  context,
+                  categories: state.categories,
+                  onSetForAll: (category, value) {
+                    HapticFeedback.selectionClick();
+                    notifier.setCategoryPointsForAllMembers(
+                      category.scoringCategoryId,
+                      value,
+                    );
+                  },
+                ),
+                style: (TextButton.styleFrom(
+                  foregroundColor: SacAccent.of(context).color,
+                  splashFactory: NoSplash.splashFactory,
+                  overlayColor: Colors.transparent,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                )).copyWith(enableFeedback: false),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedUserMultiple,
+                      size: 18,
+                      color: SacAccent.of(context).color,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 6),
+                    Text(
+                      'units.detail.bulk_action_button'.tr(),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
         ],
@@ -371,7 +376,7 @@ class _WeekActivityRow extends StatelessWidget {
           child: HugeIcon(
             icon: HugeIcons.strokeRoundedCalendar03,
             size: 16,
-            color: AppColors.primary,
+            color: SacAccent.of(context).color,
           ),
         ),
         const SizedBox(width: 8),
@@ -579,7 +584,7 @@ class _MemberCard extends StatelessWidget {
                   Text(
                     '$total',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: hasPoints ? AppColors.primary : c.textTertiary,
+                      color: hasPoints ? SacAccent.of(context).color : c.textTertiary,
                       fontWeight: FontWeight.w700,
                       fontFeatures: const [FontFeature.tabularFigures()],
                     ),
@@ -651,23 +656,31 @@ class _MemberCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              ListTile(
-                leading: const HugeIcon(
-                  icon: HugeIcons.strokeRoundedTick02,
-                  size: 22,
-                  color: AppColors.primary,
+              SacPressable(
+                listenOnly: true,
+                child: ListTile(
+                  enableFeedback: false,
+                  leading: HugeIcon(
+                    icon: HugeIcons.strokeRoundedTick02,
+                    size: 22,
+                    color: SacAccent.of(context).color,
+                  ),
+                  title: Text('units.detail.assign_all_button'.tr()),
+                  onTap: () => Navigator.of(sheetContext).pop('all'),
                 ),
-                title: Text('units.detail.assign_all_button'.tr()),
-                onTap: () => Navigator.of(sheetContext).pop('all'),
               ),
-              ListTile(
-                leading: HugeIcon(
-                  icon: HugeIcons.strokeRoundedEraser01,
-                  size: 22,
-                  color: context.sac.textSecondary,
+              SacPressable(
+                listenOnly: true,
+                child: ListTile(
+                  enableFeedback: false,
+                  leading: HugeIcon(
+                    icon: HugeIcons.strokeRoundedEraser01,
+                    size: 22,
+                    color: context.sac.textSecondary,
+                  ),
+                  title: Text('units.detail.clear_button'.tr()),
+                  onTap: () => Navigator.of(sheetContext).pop('clear'),
                 ),
-                title: Text('units.detail.clear_button'.tr()),
-                onTap: () => Navigator.of(sheetContext).pop('clear'),
               ),
               const SizedBox(height: 8),
             ],
@@ -719,11 +732,14 @@ class _CategoryRow extends StatelessWidget {
                     ),
               ),
             ),
-            Switch.adaptive(
-              value: value == category.maxPoints,
-              onChanged: canEdit
-                  ? (checked) => onSetValue(checked ? category.maxPoints : 0)
-                  : null,
+            SacPressable(
+              listenOnly: true,
+              child: Switch.adaptive(
+                value: value == category.maxPoints,
+                onChanged: canEdit
+                    ? (checked) => onSetValue(checked ? category.maxPoints : 0)
+                    : null,
+              ),
             ),
           ],
         ),
@@ -897,12 +913,12 @@ class _StepButton extends StatelessWidget {
     final bg = !enabled
         ? c.surfaceVariant.withValues(alpha: 0.4)
         : filled
-            ? AppColors.primaryLight
+            ? SacAccent.of(context).light
             : c.surfaceVariant;
     final fg = !enabled
         ? c.textTertiary
         : filled
-            ? AppColors.primaryDark
+            ? SacAccent.of(context).dark
             : c.textSecondary;
 
     return _TapScale(
@@ -988,14 +1004,14 @@ class _SheetChip extends StatelessWidget {
         constraints: const BoxConstraints(minWidth: 48, minHeight: 36),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: emphasized ? AppColors.primaryLight : c.surfaceVariant,
+          color: emphasized ? SacAccent.of(context).light : c.surfaceVariant,
           borderRadius: BorderRadius.circular(AppTheme.radiusFull),
         ),
         alignment: Alignment.center,
         child: Text(
           label,
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: emphasized ? AppColors.primaryDark : c.textSecondary,
+                color: emphasized ? SacAccent.of(context).dark : c.textSecondary,
                 fontWeight: FontWeight.w600,
               ),
         ),

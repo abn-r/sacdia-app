@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -324,16 +326,20 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
                     iconSize: 20,
                   ),
                   suffixIcon: _searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: HugeIcon(
-                            icon: HugeIcons.strokeRoundedCancel01,
-                            color: context.sac.textSecondary,
-                            size: 18,
+                      ? SacPressable(
+                          listenOnly: true,
+                          child: IconButton(
+                            enableFeedback: false,
+                            icon: HugeIcon(
+                              icon: HugeIcons.strokeRoundedCancel01,
+                              color: context.sac.textSecondary,
+                              size: 18,
+                            ),
+                            onPressed: () {
+                              _searchController.clear();
+                              ref.read(searchQueryProvider.notifier).state = '';
+                            },
                           ),
-                          onPressed: () {
-                            _searchController.clear();
-                            ref.read(searchQueryProvider.notifier).state = '';
-                          },
                         )
                       : null,
                   contentPadding: const EdgeInsets.symmetric(
@@ -433,7 +439,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
     }
 
     return RefreshIndicator(
-      color: AppColors.primary,
+      color: SacAccent.of(context).color,
       onRefresh: () async {
         ref.invalidate(honorsGroupedByCategoryProvider);
         ref.invalidate(allHonorsProvider);

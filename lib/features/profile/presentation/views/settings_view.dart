@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -16,6 +17,8 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/in_app_browser.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/theme/accent_provider.dart';
+import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/widgets/zarza_roja_credit.dart';
 import '../../../../core/utils/icon_helper.dart';
@@ -24,6 +27,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/notification_preferences_providers.dart';
+import '../widgets/accent_picker_sheet.dart';
 import '../widgets/setting_tile.dart';
 import '../../../qr/presentation/views/qr_scanner_view.dart';
 import '../../../accessibility/presentation/widgets/accessibility_settings_section.dart';
@@ -167,9 +171,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const HugeIcon(
+                            HugeIcon(
                               icon: HugeIcons.strokeRoundedLockPassword,
-                              color: AppColors.primary,
+                              color: SacAccent.of(context).color,
                               size: 18,
                             ),
                             const SizedBox(width: 8),
@@ -240,9 +244,13 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                       onPressed: submit,
                     ),
                     const SizedBox(height: 8),
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx, false),
-                      child: Text('common.cancel'.tr()),
+                    SacPressable(
+                      listenOnly: true,
+                      child: TextButton(
+                        style: const ButtonStyle(enableFeedback: false),
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: Text('common.cancel'.tr()),
+                      ),
                     ),
                   ],
                 ),
@@ -410,6 +418,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
   @override
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeNotifierProvider);
+    final accent = ref.watch(accentNotifierProvider);
     final user = ref.watch(
       authNotifierProvider.select((v) => v.valueOrNull),
     );
@@ -444,8 +453,16 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 icon: HugeIcons.strokeRoundedPaintBrush01,
                 title: 'profile.settings.theme_title'.tr(),
                 subtitle: _getThemeName(themeMode),
-                iconColor: AppColors.primary,
+                iconColor: SacAccent.of(context).color,
                 onTap: _showThemeDialog,
+              ),
+              _groupDivider(),
+              SettingTile(
+                icon: HugeIcons.strokeRoundedColors,
+                title: 'profile.settings.accent_title'.tr(),
+                subtitle: accent.labelKey.tr(),
+                iconColor: SacAccent.of(context).color,
+                onTap: () => showAccentPicker(context, ref),
               ),
               _groupDivider(),
               const AccessibilitySettingsSection(),
@@ -460,7 +477,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               _SwitchTile(
                 icon: HugeIcons.strokeRoundedNotification01,
                 title: 'profile.settings.notif_push'.tr(),
-                iconColor: AppColors.primary,
+                iconColor: SacAccent.of(context).color,
                 value: master,
                 onChanged: notifPrefs == null
                     ? null
@@ -541,7 +558,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               SettingTile(
                 icon: HugeIcons.strokeRoundedQrCode,
                 title: 'settings.member_qr'.tr(),
-                iconColor: AppColors.primary,
+                iconColor: SacAccent.of(context).color,
                 onTap: () => Navigator.push(
                   context,
                   SacSharedAxisRoute(
@@ -554,7 +571,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 icon: HugeIcons.strokeRoundedExchange01,
                 title: 'profile.settings.change_club_tile'.tr(),
                 subtitle: 'profile.settings.change_club_subtitle'.tr(),
-                iconColor: AppColors.primary,
+                iconColor: SacAccent.of(context).color,
                 onTap: () => Navigator.push(
                   context,
                   SacSharedAxisRoute(
@@ -568,7 +585,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 SettingTile(
                   icon: HugeIcons.strokeRoundedQrCode01,
                   title: 'settings.scan_qr'.tr(),
-                  iconColor: AppColors.primary,
+                  iconColor: SacAccent.of(context).color,
                   onTap: () => Navigator.push(
                     context,
                     SacSharedAxisRoute(
@@ -581,7 +598,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               SettingTile(
                 icon: HugeIcons.strokeRoundedDeviceAccess,
                 title: 'settings.active_sessions'.tr(),
-                iconColor: AppColors.primary,
+                iconColor: SacAccent.of(context).color,
                 onTap: () => Navigator.push(
                   context,
                   SacSharedAxisRoute(
@@ -593,7 +610,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               SettingTile(
                 icon: HugeIcons.strokeRoundedDownload02,
                 title: 'settings.download_my_data'.tr(),
-                iconColor: AppColors.primary,
+                iconColor: SacAccent.of(context).color,
                 onTap: () => Navigator.push(
                   context,
                   SacSharedAxisRoute(
@@ -605,7 +622,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               SettingTile(
                 icon: HugeIcons.strokeRoundedLockPassword,
                 title: 'settings.change_password'.tr(),
-                iconColor: AppColors.primary,
+                iconColor: SacAccent.of(context).color,
                 onTap: _showChangePasswordDialog,
               ),
               _groupDivider(),
@@ -717,7 +734,7 @@ class _AccountHeaderTile extends StatelessWidget {
               height: 52,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primaryLight,
+                color: SacAccent.of(context).light,
               ),
               clipBehavior: Clip.antiAlias,
               child: avatar != null && avatar.isNotEmpty
@@ -786,10 +803,10 @@ class _AvatarFallback extends StatelessWidget {
     return Center(
       child: Text(
         initials,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w700,
-          color: AppColors.primary,
+          color: SacAccent.of(context).color,
         ),
       ),
     );
@@ -860,11 +877,14 @@ class _SwitchTile extends StatelessWidget {
               ),
             ),
           ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: AppColors.primary,
-            activeTrackColor: AppColors.primary.withValues(alpha: 0.4),
+          SacPressable(
+            listenOnly: true,
+            child: Switch(
+              value: value,
+              onChanged: onChanged,
+              activeThumbColor: SacAccent.of(context).color,
+              activeTrackColor: SacAccent.of(context).color.withValues(alpha: 0.4),
+            ),
           ),
         ],
       ),
@@ -976,7 +996,7 @@ class _ThemePickerDialog extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
+                    color: SacAccent.of(context).color,
                   ),
                 ),
               ),
@@ -987,7 +1007,7 @@ class _ThemePickerDialog extends StatelessWidget {
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    InkWell(
+                    SacInkWell(
                       onTap: () => onModeSelected(mode),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
@@ -998,7 +1018,7 @@ class _ThemePickerDialog extends StatelessWidget {
                               icon: icon,
                               size: 20,
                               color: isSelected
-                                  ? AppColors.primary
+                                  ? SacAccent.of(context).color
                                   : c.textSecondary,
                             ),
                             const SizedBox(width: 12),
@@ -1011,7 +1031,7 @@ class _ThemePickerDialog extends StatelessWidget {
                                       ? FontWeight.w600
                                       : FontWeight.w400,
                                   color: isSelected
-                                      ? AppColors.primary
+                                      ? SacAccent.of(context).color
                                       : c.textSecondary,
                                 ),
                               ),
@@ -1020,7 +1040,7 @@ class _ThemePickerDialog extends StatelessWidget {
                               HugeIcon(
                                 icon: HugeIcons.strokeRoundedTick02,
                                 size: 18,
-                                color: AppColors.primary,
+                                color: SacAccent.of(context).color,
                               ),
                           ],
                         ),
@@ -1036,20 +1056,23 @@ class _ThemePickerDialog extends StatelessWidget {
                 );
               }),
               Container(height: 0.5, color: c.border),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                style: TextButton.styleFrom(
-                  foregroundColor: c.textSecondary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  minimumSize: const Size(double.infinity, 0),
-                  shape: const RoundedRectangleBorder(),
-                ),
-                child: Text(
-                  'common.cancel'.tr(),
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w400,
-                    color: c.textSecondary,
+              SacPressable(
+                listenOnly: true,
+                child: TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: (TextButton.styleFrom(
+                    foregroundColor: c.textSecondary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    minimumSize: const Size(double.infinity, 0),
+                    shape: const RoundedRectangleBorder(),
+                  )).copyWith(enableFeedback: false),
+                  child: Text(
+                    'common.cancel'.tr(),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                      color: c.textSecondary,
+                    ),
                   ),
                 ),
               ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -49,17 +50,17 @@ class ClassDetailView extends ConsumerWidget {
                 leading: sacAutoBackButton(context),
                 expandedHeight: 260,
                 pinned: true,
-                backgroundColor: AppColors.primary,
+                backgroundColor: SacAccent.of(context).color,
                 foregroundColor: Colors.white,
                 flexibleSpace: FlexibleSpaceBar(
                   background: Container(
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          AppColors.primary,
-                          AppColors.primaryDark,
+                          SacAccent.of(context).color,
+                          SacAccent.of(context).dark,
                         ],
                       ),
                     ),
@@ -129,7 +130,7 @@ class ClassDetailView extends ConsumerWidget {
                             HugeIcon(
                                 icon: HugeIcons.strokeRoundedInformationCircle,
                                 size: 20,
-                                color: AppColors.primary),
+                                color: SacAccent.of(context).color),
                             const SizedBox(width: 8),
                             Text(
                               'classes.detail.description_header'.tr(),

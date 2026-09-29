@@ -1,11 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -168,15 +170,19 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
         title: 'units.list.title'.tr(),
         actions: [
           if (canCreate)
-            IconButton(
-              tooltip: 'units.list.empty_action'.tr(),
-              onPressed: () {
-                showUnitFormSheet(context: context, ref: ref);
-              },
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedAdd01,
-                size: 22,
-                color: AppColors.primary,
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                tooltip: 'units.list.empty_action'.tr(),
+                onPressed: () {
+                  showUnitFormSheet(context: context, ref: ref);
+                },
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedAdd01,
+                  size: 22,
+                  color: SacAccent.of(context).color,
+                ),
               ),
             ),
         ],
@@ -355,7 +361,7 @@ class _UnitsOverviewHeader extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: Color.alphaBlend(
-          AppColors.primary.withValues(alpha: 0.06),
+          SacAccent.of(context).color.withValues(alpha: 0.06),
           c.surface,
         ),
         borderRadius: BorderRadius.circular(AppTheme.radiusXL),
@@ -367,12 +373,12 @@ class _UnitsOverviewHeader extends StatelessWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.12),
+              color: SacAccent.of(context).color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppTheme.radiusMD),
             ),
-            child: const HugeIcon(
+            child: HugeIcon(
               icon: HugeIcons.strokeRoundedUserGroup,
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
               size: 21,
             ),
           ),
@@ -762,7 +768,7 @@ class _UnitCard extends StatelessWidget {
               ),
               child: Material(
                 color: Colors.transparent,
-                child: InkWell(
+                child: SacInkWell(
                   onTap: onActions,
                   borderRadius: BorderRadius.circular(AppTheme.radiusLG),
                   child: Ink(
@@ -1138,7 +1144,7 @@ class _ActionSheetTile extends StatelessWidget {
       label: title,
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
+        child: SacInkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppTheme.radiusLG),
           child: Ink(

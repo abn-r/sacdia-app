@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/material_item.dart';
 import '../../domain/entities/material_variant_option.dart';
@@ -40,8 +41,8 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
         title: 'materials.product.title'.tr(),
       ),
       body: itemAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
+        loading: () => Center(
+          child: CircularProgressIndicator(color: SacAccent.of(context).color),
         ),
         error: (e, _) => Center(
           child: Column(
@@ -82,16 +83,16 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                   width: double.infinity,
                   height: 200,
                   decoration: BoxDecoration(
-                    color: AppColors.primarySurface,
+                    color: SacAccent.of(context).surface,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   alignment: Alignment.center,
                   child: Text(
                     item.title.isNotEmpty ? item.title[0].toUpperCase() : '?',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 72,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
+                      color: SacAccent.of(context).color,
                     ),
                   ),
                 ),
@@ -143,7 +144,7 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                 Text(
                   formatMxn(item.priceCentavos),
                   style: theme.textTheme.headlineSmall?.copyWith(
-                    color: AppColors.primary,
+                    color: SacAccent.of(context).color,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -184,13 +185,13 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                               horizontal: 16, vertical: 10),
                           decoration: BoxDecoration(
                             color: selected
-                                ? AppColors.primary
+                                ? SacAccent.of(context).color
                                 : outOfStock
                                     ? c.borderLight
                                     : c.surface,
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: selected ? AppColors.primary : c.border,
+                              color: selected ? SacAccent.of(context).color : c.border,
                             ),
                           ),
                           child: Column(

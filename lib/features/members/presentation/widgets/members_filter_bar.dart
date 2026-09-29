@@ -1,8 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
@@ -275,9 +277,9 @@ class _FilterChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final bgColor =
-        isActive ? AppColors.primary.withValues(alpha: 0.12) : c.surfaceVariant;
-    final fgColor = isActive ? AppColors.primary : c.textSecondary;
-    final borderColor = isActive ? AppColors.primaryLight : c.border;
+        isActive ? SacAccent.of(context).color.withValues(alpha: 0.12) : c.surfaceVariant;
+    final fgColor = isActive ? SacAccent.of(context).color : c.textSecondary;
+    final borderColor = isActive ? SacAccent.of(context).light : c.border;
 
     return GestureDetector(
       onTap: onTap,
@@ -387,24 +389,28 @@ class _PickerSheet extends StatelessWidget {
                   ...options.map((option) {
                     final label = labelBuilder?.call(option) ?? option;
                     final isSelected = option == selected;
-                    return ListTile(
-                      title: Text(
-                        label,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight:
-                              isSelected ? FontWeight.w600 : FontWeight.w400,
-                          color: isSelected ? AppColors.primary : c.text,
+                    return SacPressable(
+                      listenOnly: true,
+                      child: ListTile(
+                        enableFeedback: false,
+                        title: Text(
+                          label,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight:
+                                isSelected ? FontWeight.w600 : FontWeight.w400,
+                            color: isSelected ? SacAccent.of(context).color : c.text,
+                          ),
                         ),
+                        trailing: isSelected
+                            ? HugeIcon(
+                                icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                                color: SacAccent.of(context).color,
+                                size: 20,
+                              )
+                            : null,
+                        onTap: () => Navigator.pop(context, option),
                       ),
-                      trailing: isSelected
-                          ? const HugeIcon(
-                              icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                              color: AppColors.primary,
-                              size: 20,
-                            )
-                          : null,
-                      onTap: () => Navigator.pop(context, option),
                     );
                   }),
                   SizedBox(height: 16 + bottomInset),
@@ -460,42 +466,51 @@ class _EnrollmentPickerSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          ListTile(
-            title: Text(
-              'members.common.enrolled'.tr(),
-              style: TextStyle(
-                fontSize: 15,
-                color: current == true ? AppColors.primary : c.text,
-                fontWeight: current == true ? FontWeight.w600 : FontWeight.w400,
+          SacPressable(
+            listenOnly: true,
+            child: ListTile(
+              enableFeedback: false,
+              title: Text(
+                'members.common.enrolled'.tr(),
+                style: TextStyle(
+                  fontSize: 15,
+                  color: current == true ? SacAccent.of(context).color : c.text,
+                  fontWeight:
+                      current == true ? FontWeight.w600 : FontWeight.w400,
+                ),
               ),
+              trailing: current == true
+                  ? HugeIcon(
+                      icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                      color: SacAccent.of(context).color,
+                      size: 20,
+                    )
+                  : null,
+              onTap: () => Navigator.pop(context, true),
             ),
-            trailing: current == true
-                ? const HugeIcon(
-                    icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                    color: AppColors.primary,
-                    size: 20,
-                  )
-                : null,
-            onTap: () => Navigator.pop(context, true),
           ),
-          ListTile(
-            title: Text(
-              'members.common.not_enrolled'.tr(),
-              style: TextStyle(
-                fontSize: 15,
-                color: current == false ? AppColors.primary : c.text,
-                fontWeight:
-                    current == false ? FontWeight.w600 : FontWeight.w400,
+          SacPressable(
+            listenOnly: true,
+            child: ListTile(
+              enableFeedback: false,
+              title: Text(
+                'members.common.not_enrolled'.tr(),
+                style: TextStyle(
+                  fontSize: 15,
+                  color: current == false ? SacAccent.of(context).color : c.text,
+                  fontWeight:
+                      current == false ? FontWeight.w600 : FontWeight.w400,
+                ),
               ),
+              trailing: current == false
+                  ? HugeIcon(
+                      icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                      color: SacAccent.of(context).color,
+                      size: 20,
+                    )
+                  : null,
+              onTap: () => Navigator.pop(context, false),
             ),
-            trailing: current == false
-                ? const HugeIcon(
-                    icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                    color: AppColors.primary,
-                    size: 20,
-                  )
-                : null,
-            onTap: () => Navigator.pop(context, false),
           ),
           SizedBox(height: 16 + MediaQuery.of(context).padding.bottom),
         ],

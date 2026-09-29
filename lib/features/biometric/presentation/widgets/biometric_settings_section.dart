@@ -1,10 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../profile/presentation/widgets/setting_tile.dart';
 import '../providers/biometric_provider.dart';
 
@@ -74,10 +75,13 @@ class BiometricSettingsSection extends ConsumerWidget {
       icon: HugeIcons.strokeRoundedFingerPrint,
       title: 'biometric.tile_title'.tr(),
       subtitle: subtitle,
-      iconColor: AppColors.primary,
-      trailing: Switch.adaptive(
-        value: state.enabled,
-        onChanged: switchEnabled ? (v) => _onToggle(context, ref, v) : null,
+      iconColor: SacAccent.of(context).color,
+      trailing: SacPressable(
+        listenOnly: true,
+        child: Switch.adaptive(
+          value: state.enabled,
+          onChanged: switchEnabled ? (v) => _onToggle(context, ref, v) : null,
+        ),
       ),
     );
   }

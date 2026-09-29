@@ -1,7 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/features/activities/domain/entities/activity_series.dart';
 import 'package:sacdia_app/features/activities/presentation/widgets/activity_form_widgets.dart';
@@ -63,9 +65,8 @@ class ActivitySeriesFormSection extends StatelessWidget {
             color: c.surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: repeat
-                  ? AppColors.secondary.withValues(alpha: 0.45)
-                  : c.border,
+              color:
+                  repeat ? SacAccent.of(context).color.withValues(alpha: 0.45) : c.border,
               width: repeat ? 1.5 : 1,
             ),
             boxShadow: [
@@ -76,33 +77,37 @@ class ActivitySeriesFormSection extends StatelessWidget {
               ),
             ],
           ),
-          child: SwitchListTile(
-            value: repeat,
-            onChanged: enabled ? onRepeatChanged : null,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            title: Text(
-              'activities.series.toggle_title'.tr(),
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: c.text,
+          child: SacPressable(
+            listenOnly: true,
+            child: SwitchListTile(
+              enableFeedback: false,
+              value: repeat,
+              onChanged: enabled ? onRepeatChanged : null,
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              title: Text(
+                'activities.series.toggle_title'.tr(),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: c.text,
+                ),
               ),
-            ),
-            subtitle: Text(
-              'activities.series.toggle_subtitle'.tr(),
-              style: TextStyle(fontSize: 12, color: c.textSecondary),
-            ),
-            secondary: Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                color: repeat ? AppColors.secondaryLight : c.surfaceVariant,
-                borderRadius: BorderRadius.circular(8),
+              subtitle: Text(
+                'activities.series.toggle_subtitle'.tr(),
+                style: TextStyle(fontSize: 12, color: c.textSecondary),
               ),
-              child: HugeIcon(
-                icon: HugeIcons.strokeRoundedRefresh,
-                size: 18,
-                color: repeat ? AppColors.secondaryDark : c.textTertiary,
+              secondary: Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: repeat ? SacAccent.of(context).light : c.surfaceVariant,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedRefresh,
+                  size: 18,
+                  color: repeat ? SacAccent.of(context).color : c.textTertiary,
+                ),
               ),
             ),
           ),
@@ -128,7 +133,7 @@ class ActivitySeriesFormSection extends StatelessWidget {
           if (kind == 'weekly')
             Row(
               children: [
-                for (final day in [1, 2, 3, 4, 5, 6, 7]) ...[
+                for (final day in [7, 1, 2, 3, 4, 5, 6]) ...[
                   if (day > 1) const SizedBox(width: 4),
                   Expanded(
                     child: _WeekdayChip(
@@ -165,19 +170,23 @@ class ActivitySeriesFormSection extends StatelessWidget {
                       SizedBox(
                         width: 44,
                         height: 44,
-                        child: IconButton(
-                          style: IconButton.styleFrom(
-                            minimumSize: const Size(44, 44),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            padding: EdgeInsets.zero,
-                          ),
-                          onPressed: enabled && intervalDays > 1
-                              ? () => onIntervalDaysChanged(intervalDays - 1)
-                              : null,
-                          icon: HugeIcon(
-                            icon: HugeIcons.strokeRoundedRemove01,
-                            size: 18,
-                            color: c.text,
+                        child: SacPressable(
+                          listenOnly: true,
+                          child: IconButton(
+                            enableFeedback: false,
+                            style: IconButton.styleFrom(
+                              minimumSize: const Size(44, 44),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              padding: EdgeInsets.zero,
+                            ),
+                            onPressed: enabled && intervalDays > 1
+                                ? () => onIntervalDaysChanged(intervalDays - 1)
+                                : null,
+                            icon: HugeIcon(
+                              icon: HugeIcons.strokeRoundedRemove01,
+                              size: 18,
+                              color: c.text,
+                            ),
                           ),
                         ),
                       ),
@@ -196,19 +205,23 @@ class ActivitySeriesFormSection extends StatelessWidget {
                       SizedBox(
                         width: 44,
                         height: 44,
-                        child: IconButton(
-                          style: IconButton.styleFrom(
-                            minimumSize: const Size(44, 44),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            padding: EdgeInsets.zero,
-                          ),
-                          onPressed: enabled && intervalDays < 365
-                              ? () => onIntervalDaysChanged(intervalDays + 1)
-                              : null,
-                          icon: HugeIcon(
-                            icon: HugeIcons.strokeRoundedAdd01,
-                            size: 18,
-                            color: c.text,
+                        child: SacPressable(
+                          listenOnly: true,
+                          child: IconButton(
+                            enableFeedback: false,
+                            style: IconButton.styleFrom(
+                              minimumSize: const Size(44, 44),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              padding: EdgeInsets.zero,
+                            ),
+                            onPressed: enabled && intervalDays < 365
+                                ? () => onIntervalDaysChanged(intervalDays + 1)
+                                : null,
+                            icon: HugeIcon(
+                              icon: HugeIcons.strokeRoundedAdd01,
+                              size: 18,
+                              color: c.text,
+                            ),
                           ),
                         ),
                       ),
@@ -261,9 +274,9 @@ class _WeekdayChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     return Material(
-      color: selected ? AppColors.secondaryLight : c.surface,
+      color: selected ? SacAccent.of(context).light : c.surface,
       borderRadius: BorderRadius.circular(10),
-      child: InkWell(
+      child: SacInkWell(
         onTap: enabled ? onTap : null,
         borderRadius: BorderRadius.circular(10),
         child: Container(
@@ -273,7 +286,7 @@ class _WeekdayChip extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: selected
-                  ? AppColors.secondary.withValues(alpha: 0.55)
+                  ? SacAccent.of(context).color.withValues(alpha: 0.55)
                   : c.border,
               width: selected ? 1.5 : 1,
             ),
@@ -283,7 +296,7 @@ class _WeekdayChip extends StatelessWidget {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: selected ? AppColors.secondaryDark : c.textSecondary,
+              color: selected ? SacAccent.of(context).dark : c.textSecondary,
             ),
           ),
         ),
@@ -355,7 +368,7 @@ class _DateChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color: emphasis ? AppColors.secondaryLight : c.surfaceVariant,
+        color: emphasis ? SacAccent.of(context).light : c.surfaceVariant,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
@@ -364,7 +377,7 @@ class _DateChip extends StatelessWidget {
           fontSize: 11,
           fontFamily: 'monospace',
           fontWeight: emphasis ? FontWeight.w600 : FontWeight.w400,
-          color: emphasis ? AppColors.secondaryDark : c.textSecondary,
+          color: emphasis ? SacAccent.of(context).dark : c.textSecondary,
         ),
       ),
     );

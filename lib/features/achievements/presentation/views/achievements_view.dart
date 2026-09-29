@@ -2,11 +2,13 @@ import 'dart:ui';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
@@ -82,7 +84,7 @@ class _AchievementsViewState extends ConsumerState<AchievementsView> {
           }
 
           return RefreshIndicator(
-            color: AppColors.primary,
+            color: SacAccent.of(context).color,
             backgroundColor: c.surface,
             edgeOffset: MediaQuery.paddingOf(context).top + 56,
             onRefresh: () async {
@@ -181,13 +183,17 @@ class _AchievementsViewState extends ConsumerState<AchievementsView> {
           letterSpacing: -0.2,
         ),
       ),
-      leading: IconButton(
-        icon: HugeIcon(
-          icon: HugeIcons.strokeRoundedArrowLeft01,
-          color: c.text,
-          size: 22,
+      leading: SacPressable(
+        listenOnly: true,
+        child: IconButton(
+          enableFeedback: false,
+          icon: HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowLeft01,
+            color: c.text,
+            size: 22,
+          ),
+          onPressed: () => Navigator.of(context).pop(),
         ),
-        onPressed: () => Navigator.of(context).pop(),
       ),
       flexibleSpace: ClipRect(
         child: BackdropFilter(
@@ -353,7 +359,7 @@ class _SummaryHeader extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
+                      color: SacAccent.of(context).color,
                     ),
                   ),
                 ),
@@ -371,7 +377,7 @@ class _SummaryHeader extends StatelessWidget {
                     widthFactor: progress,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
+                        color: SacAccent.of(context).color,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -402,7 +408,7 @@ class _FilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 56,
+      height: SacFilterChip.barHeight,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),

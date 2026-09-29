@@ -13,11 +13,13 @@ class CertificateImportItemCard extends StatelessWidget {
     required this.item,
     this.onEdit,
     this.onResubmit,
+    this.onRemove,
   });
 
   final CertificateImportItem item;
   final VoidCallback? onEdit;
   final VoidCallback? onResubmit;
+  final VoidCallback? onRemove;
 
   bool get _isComplete {
     final hasCatalog = item.type == CertificateImportItemType.honor
@@ -93,10 +95,30 @@ class CertificateImportItemCard extends StatelessWidget {
           if (item.rejectionReason != null) ...[
             const SizedBox(height: 10),
             Text(
-              item.rejectionReason!,
+              item.isPendingAdministrativePeriod
+                  ? 'certificate_import.item.period_pending'.tr()
+                  : item.rejectionReason!,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: c.error,
                     fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ],
+          if (item.isGuiaMayorBase) ...[
+            const SizedBox(height: 8),
+            Text(
+              'certificate_import.item.gm01_replace'.tr(),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: c.textSecondary,
+                  ),
+            ),
+          ],
+          if (item.isInstitutionalClass) ...[
+            const SizedBox(height: 8),
+            Text(
+              'certificate_import.item.institutional'.tr(),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: c.textSecondary,
                   ),
             ),
           ],
@@ -107,12 +129,19 @@ class CertificateImportItemCard extends StatelessWidget {
               onPressed: onResubmit,
             )
           else
-            Align(
-              alignment: Alignment.centerRight,
-              child: SacButton.ghost(
-                text: 'certificate_import.item.fix'.tr(),
-                onPressed: onEdit,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (onRemove != null)
+                  SacButton.ghost(
+                    text: 'certificate_import.item.remove'.tr(),
+                    onPressed: onRemove,
+                  ),
+                SacButton.ghost(
+                  text: 'certificate_import.item.fix'.tr(),
+                  onPressed: onEdit,
+                ),
+              ],
             ),
         ],
       ),

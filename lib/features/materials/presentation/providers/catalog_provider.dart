@@ -7,6 +7,7 @@ import 'materials_providers.dart';
 
 /// Parámetros de consulta del catálogo.
 class CatalogQuery extends Equatable {
+  /// UUID de `material_categories.id`. El backend rechaza slugs con 400.
   final String? cat;
   final int? programaId;
   final String? q;

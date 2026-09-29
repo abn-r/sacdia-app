@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -37,7 +38,7 @@ class ClassModulesView extends ConsumerWidget {
       backgroundColor: context.sac.background,
       appBar: SacTopBar(
         title: 'classes.modules.title'.tr(),
-        backgroundColor: AppColors.primary,
+        backgroundColor: SacAccent.of(context).color,
         foregroundColor: Colors.white,
       ),
       body: modulesAsync.when(
@@ -65,7 +66,7 @@ class ClassModulesView extends ConsumerWidget {
           }
 
           return RefreshIndicator(
-            color: AppColors.primary,
+            color: SacAccent.of(context).color,
             onRefresh: () async {
               ref.invalidate(classModulesProvider(classId));
             },

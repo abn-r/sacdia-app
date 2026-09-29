@@ -33,9 +33,9 @@ extension ClubColorX on ClubType {
   String get logoAsset {
     switch (this) {
       case ClubType.conquistadores:
-        return 'assets/img/logo_conquistadores_color.png';
+        return 'assets/img/logo_conquistadores.png';
       case ClubType.aventureros:
-        return 'assets/img/logo_aventureros_color.png';
+        return 'assets/img/logo_aventureros.png';
       case ClubType.guiasMayores:
         return 'assets/img/logo-guias-mayores.png';
     }

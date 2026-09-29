@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -8,6 +9,7 @@ import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/widgets/sac_button.dart';
@@ -773,7 +775,7 @@ class _SectionHeader extends StatelessWidget {
     final c = context.sac;
     return Row(
       children: [
-        HugeIcon(icon: icon, color: AppColors.primary, size: 18),
+        HugeIcon(icon: icon, color: SacAccent.of(context).color, size: 18),
         const SizedBox(width: 8),
         Text(
           label,
@@ -815,15 +817,15 @@ class _FieldLabel extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.12),
+              color: SacAccent.of(context).color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
               badge!,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
-                color: AppColors.primary,
+                color: SacAccent.of(context).color,
               ),
             ),
           ),
@@ -863,7 +865,7 @@ class _LocationPickerField extends StatelessWidget {
             color: hasError
                 ? AppColors.error
                 : hasResult
-                    ? AppColors.primary
+                    ? SacAccent.of(context).color
                     : c.border,
             width: hasResult || hasError ? 1.5 : 1,
           ),
@@ -875,7 +877,7 @@ class _LocationPickerField extends StatelessWidget {
               color: hasError
                   ? AppColors.error
                   : hasResult
-                      ? AppColors.primary
+                      ? SacAccent.of(context).color
                       : c.textTertiary,
               size: 20,
             ),
@@ -916,7 +918,7 @@ class _LocationPickerField extends StatelessWidget {
               icon: hasResult
                   ? HugeIcons.strokeRoundedCheckmarkCircle02
                   : HugeIcons.strokeRoundedArrowRight01,
-              color: hasResult ? AppColors.primary : c.textTertiary,
+              color: hasResult ? SacAccent.of(context).color : c.textTertiary,
               size: 18,
             ),
           ],
@@ -977,9 +979,9 @@ class _DayScheduleChip extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
       decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.08),
+        color: SacAccent.of(context).color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary, width: 1.5),
+        border: Border.all(color: SacAccent.of(context).color, width: 1.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -992,18 +994,18 @@ class _DayScheduleChip extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const HugeIcon(
+                  HugeIcon(
                     icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                    color: AppColors.primary,
+                    color: SacAccent.of(context).color,
                     size: 14,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     day,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.primary,
+                      color: SacAccent.of(context).color,
                     ),
                   ),
                 ],
@@ -1014,7 +1016,7 @@ class _DayScheduleChip extends StatelessWidget {
           Container(
             width: 1,
             height: 24,
-            color: AppColors.primary.withValues(alpha: 0.3),
+            color: SacAccent.of(context).color.withValues(alpha: 0.3),
           ),
           // Horario (tappable para cambiar la hora)
           GestureDetector(
@@ -1026,7 +1028,7 @@ class _DayScheduleChip extends StatelessWidget {
                 children: [
                   HugeIcon(
                     icon: HugeIcons.strokeRoundedClock01,
-                    color: AppColors.primary.withValues(alpha: 0.7),
+                    color: SacAccent.of(context).color.withValues(alpha: 0.7),
                     size: 13,
                   ),
                   const SizedBox(width: 4),
@@ -1035,7 +1037,7 @@ class _DayScheduleChip extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.primary.withValues(alpha: 0.85),
+                      color: SacAccent.of(context).color.withValues(alpha: 0.85),
                     ),
                   ),
                 ],
@@ -1080,7 +1082,7 @@ class _ToggleRow extends StatelessWidget {
         children: [
           HugeIcon(
             icon: icon,
-            color: value ? AppColors.primary : c.textTertiary,
+            color: value ? SacAccent.of(context).color : c.textTertiary,
             size: 20,
           ),
           const SizedBox(width: 12),
@@ -1104,11 +1106,14 @@ class _ToggleRow extends StatelessWidget {
               ],
             ),
           ),
-          Switch.adaptive(
-            value: value,
-            onChanged: enabled ? onChanged : null,
-            activeThumbColor: AppColors.primary,
-            activeTrackColor: AppColors.primary.withValues(alpha: 0.5),
+          SacPressable(
+            listenOnly: true,
+            child: Switch.adaptive(
+              value: value,
+              onChanged: enabled ? onChanged : null,
+              activeThumbColor: SacAccent.of(context).color,
+              activeTrackColor: SacAccent.of(context).color.withValues(alpha: 0.5),
+            ),
           ),
         ],
       ),
@@ -1170,15 +1175,15 @@ class _ReadOnlyMemberField extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: SacAccent.of(context).color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 'enrollment.form.badge_automatic'.tr(),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
+                  color: SacAccent.of(context).color,
                 ),
               ),
             ),
@@ -1227,7 +1232,7 @@ class _SingleMemberSelector extends StatelessWidget {
           color: c.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selected != null ? AppColors.primary : c.border,
+            color: selected != null ? SacAccent.of(context).color : c.border,
             width: selected != null ? 1.5 : 1,
           ),
         ),
@@ -1237,7 +1242,7 @@ class _SingleMemberSelector extends StatelessWidget {
               icon: selected != null
                   ? HugeIcons.strokeRoundedUserCheck01
                   : HugeIcons.strokeRoundedUserAdd01,
-              color: selected != null ? AppColors.primary : c.textTertiary,
+              color: selected != null ? SacAccent.of(context).color : c.textTertiary,
               size: 20,
             ),
             const SizedBox(width: 12),
@@ -1344,7 +1349,7 @@ class _MultiMemberSelector extends StatelessWidget {
           color: c.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selectedMembers.isNotEmpty ? AppColors.primary : c.border,
+            color: selectedMembers.isNotEmpty ? SacAccent.of(context).color : c.border,
             width: selectedMembers.isNotEmpty ? 1.5 : 1,
           ),
         ),
@@ -1380,7 +1385,7 @@ class _MultiMemberSelector extends StatelessWidget {
                         children: [
                           HugeIcon(
                             icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                            color: AppColors.primary,
+                            color: SacAccent.of(context).color,
                             size: 16,
                           ),
                           const SizedBox(width: 8),
@@ -1403,7 +1408,7 @@ class _MultiMemberSelector extends StatelessWidget {
                     'enrollment.form.tap_to_edit'.tr(),
                     style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.primary,
+                      color: SacAccent.of(context).color,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -1552,16 +1557,19 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                       ),
                   ],
                 ),
-                TextButton(
-                  onPressed: _confirm,
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    textStyle: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15,
-                    ),
+                SacPressable(
+                  listenOnly: true,
+                  child: TextButton(
+                    onPressed: _confirm,
+                    style: (TextButton.styleFrom(
+                      foregroundColor: SacAccent.of(context).color,
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                      ),
+                    )).copyWith(enableFeedback: false),
+                    child: Text('enrollment.picker.done'.tr()),
                   ),
-                  child: Text('enrollment.picker.done'.tr()),
                 ),
               ],
             ),
@@ -1593,8 +1601,8 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(
-                    color: AppColors.primary,
+                  borderSide: BorderSide(
+                    color: SacAccent.of(context).color,
                     width: 1.5,
                   ),
                 ),
@@ -1626,63 +1634,68 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                           !widget.multiSelect ||
                           _selected.length < widget.maxSelect;
 
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: AppColors.primary.withValues(
-                            alpha: 0.15,
-                          ),
-                          radius: 18,
-                          child: Text(
-                            member.initials,
-                            style: const TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 13,
+                      return SacPressable(
+                        listenOnly: true,
+                        child: ListTile(
+                          enableFeedback: false,
+                          leading: CircleAvatar(
+                            backgroundColor: SacAccent.of(context).color.withValues(
+                              alpha: 0.15,
+                            ),
+                            radius: 18,
+                            child: Text(
+                              member.initials,
+                              style: TextStyle(
+                                color: SacAccent.of(context).color,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
+                              ),
                             ),
                           ),
-                        ),
-                        title: Text(
-                          member.fullName,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: c.text,
+                          title: Text(
+                            member.fullName,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: c.text,
+                            ),
                           ),
-                        ),
-                        subtitle: member.clubRole != null
-                            ? Text(
-                                member.clubRole!,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: c.textSecondary,
-                                ),
-                              )
-                            : null,
-                        trailing: isSelected
-                            ? const HugeIcon(
-                                icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                                color: AppColors.primary,
-                                size: 22,
-                              )
-                            : null,
-                        enabled: canSelect,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        onTap: () {
-                          setState(() {
-                            if (widget.multiSelect) {
-                              if (isSelected) {
-                                _selected.remove(member.userId);
-                              } else if (canSelect) {
-                                _selected.add(member.userId);
+                          subtitle: member.clubRole != null
+                              ? Text(
+                                  member.clubRole!,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: c.textSecondary,
+                                  ),
+                                )
+                              : null,
+                          trailing: isSelected
+                              ? HugeIcon(
+                                  icon:
+                                      HugeIcons.strokeRoundedCheckmarkCircle02,
+                                  color: SacAccent.of(context).color,
+                                  size: 22,
+                                )
+                              : null,
+                          enabled: canSelect,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          onTap: () {
+                            setState(() {
+                              if (widget.multiSelect) {
+                                if (isSelected) {
+                                  _selected.remove(member.userId);
+                                } else if (canSelect) {
+                                  _selected.add(member.userId);
+                                }
+                              } else {
+                                _selected = {member.userId};
+                                // Para single select, confirmar de inmediato
+                                Future.microtask(_confirm);
                               }
-                            } else {
-                              _selected = {member.userId};
-                              // Para single select, confirmar de inmediato
-                              Future.microtask(_confirm);
-                            }
-                          });
-                        },
+                            });
+                          },
+                        ),
                       );
                     },
                   ),

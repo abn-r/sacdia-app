@@ -1,9 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -83,13 +84,13 @@ class _AppLockViewState extends ConsumerState<AppLockView> {
                 width: 96,
                 height: 96,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.12),
+                  color: SacAccent.of(context).color.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
                   child: HugeIcon(
                     icon: HugeIcons.strokeRoundedFingerPrintScan,
-                    color: AppColors.primary,
+                    color: SacAccent.of(context).color,
                     size: 44,
                   ),
                 ),
@@ -122,9 +123,13 @@ class _AppLockViewState extends ConsumerState<AppLockView> {
                 const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
-                  child: TextButton(
-                    onPressed: _signOutAndGoToLogin,
-                    child: Text('biometric.fallback_password'.tr()),
+                  child: SacPressable(
+                    listenOnly: true,
+                    child: TextButton(
+                      style: const ButtonStyle(enableFeedback: false),
+                      onPressed: _signOutAndGoToLogin,
+                      child: Text('biometric.fallback_password'.tr()),
+                    ),
                   ),
                 ),
               ],

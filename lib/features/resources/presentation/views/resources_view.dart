@@ -2,13 +2,14 @@ import 'dart:async';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
@@ -104,7 +105,7 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
         onBack: () => context.go(RouteNames.homeDashboard),
       ),
       body: RefreshIndicator(
-        color: AppColors.primary,
+        color: SacAccent.of(context).color,
         onRefresh: _onRefresh,
         child: CustomScrollView(
           controller: _scrollController,
@@ -195,13 +196,17 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
         textInputAction: TextInputAction.search,
         suffix: _searchController.text.isEmpty
             ? null
-            : IconButton(
-                tooltip: 'common.clear'.tr(),
-                onPressed: _clearSearch,
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedCancelCircle,
-                  size: 20,
-                  color: c.textTertiary,
+            : SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  tooltip: 'common.clear'.tr(),
+                  onPressed: _clearSearch,
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedCancelCircle,
+                    size: 20,
+                    color: c.textTertiary,
+                  ),
                 ),
               ),
       ),
@@ -331,14 +336,14 @@ class _ResourcesEmptyState extends StatelessWidget {
           width: 88,
           height: 88,
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.10),
+            color: SacAccent.of(context).color.withValues(alpha: 0.10),
             borderRadius: BorderRadius.circular(AppTheme.radiusXL),
           ),
-          child: const Center(
+          child: Center(
             child: HugeIcon(
               icon: HugeIcons.strokeRoundedFolder02,
               size: 48,
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
             ),
           ),
         ),

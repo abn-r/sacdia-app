@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -126,11 +127,15 @@ class _ErrorScaffold extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            TextButton(
-              onPressed: () => context.pop(),
-              child: Text(
-                'honors.completion.back'.tr(),
-                style: const TextStyle(color: AppColors.info, fontSize: 14),
+            SacPressable(
+              listenOnly: true,
+              child: TextButton(
+                style: const ButtonStyle(enableFeedback: false),
+                onPressed: () => context.pop(),
+                child: Text(
+                  'honors.completion.back'.tr(),
+                  style: const TextStyle(color: AppColors.info, fontSize: 14),
+                ),
               ),
             ),
           ],

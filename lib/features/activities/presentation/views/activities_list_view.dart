@@ -1,10 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
@@ -222,7 +224,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
           colorScheme: Theme.of(ctx).colorScheme.copyWith(
-                primary: AppColors.primary,
+                primary: SacAccent.of(context).color,
               ),
         ),
         child: child!,
@@ -364,12 +366,8 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                     final derivation = _deriveActivities(
                       activities: activities,
                       selectedFilter: selectedFilter,
-                      selectedDate:
-                          ref.read(activitySeriesFilterProvider) == null
-                              ? selectedDate
-                              : null,
-                      isChronologicalView: isChronologicalView ||
-                          ref.read(activitySeriesFilterProvider) != null,
+                      selectedDate: selectedDate,
+                      isChronologicalView: isChronologicalView,
                     );
                     final filtered = derivation.filtered;
 
@@ -427,7 +425,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
 
                       content = RefreshIndicator(
                         key: const ValueKey('chrono'),
-                        color: AppColors.primary,
+                        color: SacAccent.of(context).color,
                         onRefresh: () async {
                           ref.invalidate(clubActivitiesProvider);
                         },
@@ -469,7 +467,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                     } else {
                       content = RefreshIndicator(
                         key: const ValueKey('card'),
-                        color: AppColors.primary,
+                        color: SacAccent.of(context).color,
                         onRefresh: () async {
                           ref.invalidate(clubActivitiesProvider);
                         },
@@ -555,12 +553,10 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
     final resolvedSectionId =
         widget.clubSectionId ?? clubCtxAsync.valueOrNull?.sectionId;
 
-    final seriesFilter = ref.watch(activitySeriesFilterProvider);
     final activitiesAsync = resolvedClubId != null
         ? ref.watch(clubActivitiesProvider(ClubActivitiesParams(
             clubId: resolvedClubId,
             clubTypeId: widget.clubTypeId,
-            seriesId: seriesFilter,
           )))
         : const AsyncValue<List<Activity>>.loading();
     final activityTypesAsync = ref.watch(activityTypesProvider);
@@ -581,13 +577,13 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                   Container(
                     padding: const EdgeInsets.all(9),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryLight,
+                      color: SacAccent.of(context).light,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: HugeIcon(
                       icon: HugeIcons.strokeRoundedCalendar01,
                       size: 22,
-                      color: AppColors.primary,
+                      color: SacAccent.of(context).color,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -627,7 +623,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                           borderRadius: BorderRadius.circular(12),
                           side: BorderSide(color: c.border),
                         ),
-                        child: InkWell(
+                        child: SacInkWell(
                           borderRadius: BorderRadius.circular(12),
                           onTap: () {
                             Navigator.push(
@@ -670,18 +666,18 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                         duration: const Duration(milliseconds: 200),
                         decoration: BoxDecoration(
                           color: isChronologicalView
-                              ? AppColors.primary
+                              ? SacAccent.of(context).color
                               : c.surface,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: isChronologicalView
-                                ? AppColors.primary
+                                ? SacAccent.of(context).color
                                 : c.border,
                           ),
                           boxShadow: isChronologicalView
                               ? [
                                   BoxShadow(
-                                    color: AppColors.primary
+                                    color: SacAccent.of(context).color
                                         .withValues(alpha: 0.3),
                                     blurRadius: 8,
                                     offset: const Offset(0, 3),
@@ -691,7 +687,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                         ),
                         child: Material(
                           color: Colors.transparent,
-                          child: InkWell(
+                          child: SacInkWell(
                             borderRadius: BorderRadius.circular(12),
                             splashColor: isChronologicalView
                                 ? Colors.white.withValues(alpha: 0.2)
@@ -722,61 +718,6 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
               ),
             ),
             const SizedBox(height: 20),
-            if (seriesFilter != null)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.secondaryLight,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: AppColors.secondary.withValues(alpha: 0.35),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedRefresh,
-                        size: 18,
-                        color: AppColors.secondaryDark,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'activities.series.viewing_banner'.tr(),
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.secondaryDark,
-                          ),
-                        ),
-                      ),
-                      Tooltip(
-                        message: 'activities.series.clear_filter'.tr(),
-                        child: GestureDetector(
-                          onTap: () => ref
-                              .read(activitySeriesFilterProvider.notifier)
-                              .state = null,
-                          behavior: HitTestBehavior.opaque,
-                          child: SizedBox(
-                            width: 44,
-                            height: 44,
-                            child: Center(
-                              child: HugeIcon(
-                                icon: HugeIcons.strokeRoundedCancel01,
-                                size: 18,
-                                color: AppColors.secondaryDark,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
 
             // Date strip (solo en vista de tarjetas)
             ValueListenableBuilder<bool>(
@@ -849,7 +790,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                                     ),
                                                     decoration: BoxDecoration(
                                                       color: isSelected
-                                                          ? AppColors.primary
+                                                          ? SacAccent.of(context).color
                                                           : isToday
                                                               ? AppColors
                                                                   .primaryLight
@@ -861,7 +802,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                                       border: Border.all(
                                                         color: isToday &&
                                                                 !isSelected
-                                                            ? AppColors.primary
+                                                            ? SacAccent.of(context).color
                                                                 .withValues(
                                                                 alpha: 0.35,
                                                               )
@@ -889,7 +830,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                                     ),
                                                     child: Material(
                                                       color: Colors.transparent,
-                                                      child: InkWell(
+                                                      child: SacInkWell(
                                                         borderRadius:
                                                             BorderRadius
                                                                 .circular(16),
@@ -947,7 +888,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                                                 color: isSelected
                                                                     ? Colors.white
                                                                     : isToday
-                                                                        ? AppColors.primary
+                                                                        ? SacAccent.of(context).color
                                                                         : c.text,
                                                               ),
                                                             ),
@@ -973,28 +914,28 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                               width: 44,
                                               height: 44,
                                               child: Material(
-                                                color: AppColors.primaryLight,
+                                                color: SacAccent.of(context).light,
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
                                                       BorderRadius.circular(12),
                                                   side: BorderSide(
-                                                    color: AppColors.primary
+                                                    color: SacAccent.of(context).color
                                                         .withValues(
                                                       alpha: 0.25,
                                                     ),
                                                   ),
                                                 ),
-                                                child: InkWell(
+                                                child: SacInkWell(
                                                   borderRadius:
                                                       BorderRadius.circular(12),
                                                   onTap: () =>
                                                       _openDatePicker(context),
-                                                  child: const Center(
+                                                  child: Center(
                                                     child: HugeIcon(
                                                       icon: HugeIcons
                                                           .strokeRoundedCalendar02,
                                                       size: 20,
-                                                      color: AppColors.primary,
+                                                      color: SacAccent.of(context).color,
                                                     ),
                                                   ),
                                                 ),
@@ -1016,12 +957,12 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                                     width: 60,
                                                     height: 44,
                                                     child: Material(
-                                                      color: AppColors.primary,
+                                                      color: SacAccent.of(context).color,
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                         22,
                                                       ),
-                                                      child: InkWell(
+                                                      child: SacInkWell(
                                                         borderRadius:
                                                             BorderRadius
                                                                 .circular(22),
@@ -1088,7 +1029,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
 
             // Filter chips - cargados dinámicamente desde el catálogo
             SizedBox(
-              height: 48,
+              height: SacFilterChip.barHeight,
               child: ValueListenableBuilder<int?>(
                 valueListenable: _selectedFilter,
                 builder: (_, selectedFilter, __) {
@@ -1168,13 +1109,16 @@ class _FilterChipSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 72,
-      height: 36,
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: c.border),
+    return Align(
+      alignment: Alignment.center,
+      child: Container(
+        width: 72,
+        height: SacFilterChip.minHeight,
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: c.border),
+        ),
       ),
     );
   }
@@ -1199,7 +1143,7 @@ class _DayHeaderItem extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.primary,
+                color: SacAccent.of(context).color,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(

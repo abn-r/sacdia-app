@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -28,7 +29,7 @@ class RequirementCard extends StatelessWidget {
     final meta = StatusMeta.of(requirement.status);
     final c = context.sac;
 
-    return InkWell(
+    return SacInkWell(
       onTap: onTap,
       splashColor: AppColors.coral200.withValues(alpha: 0.4),
       highlightColor: AppColors.coral50.withValues(alpha: 0.5),

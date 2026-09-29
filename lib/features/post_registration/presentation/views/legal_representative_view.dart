@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -134,11 +135,15 @@ class _LegalRepresentativeViewState
               ),
             )
           else
-            IconButton(
-              icon: HugeIcon(icon: HugeIcons.strokeRoundedTick02, size: 24),
-              onPressed: _handleSave,
-              tooltip:
-                  'post_registration.legal_representative.save_tooltip'.tr(),
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                icon: HugeIcon(icon: HugeIcons.strokeRoundedTick02, size: 24),
+                onPressed: _handleSave,
+                tooltip:
+                    'post_registration.legal_representative.save_tooltip'.tr(),
+              ),
             ),
         ],
       ),
@@ -205,42 +210,47 @@ class _LegalRepresentativeViewState
                         }
                       });
                     }
-                    return DropdownButtonFormField<String>(
-                      initialValue: types.any((t) => t.id == _selectedTypeId)
-                          ? _selectedTypeId
-                          : null,
-                      decoration: InputDecoration(
-                        labelText:
-                            'post_registration.legal_representative.type_label'
-                                .tr(),
-                        prefixIconConstraints: FixedInputIconSlot.constraints,
-                        prefixIcon: FixedInputIconSlot(
-                          icon: HugeIcons.strokeRoundedUserGroup,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          iconSize: 22,
+                    return SacPressable(
+                      listenOnly: true,
+                      child: DropdownButtonFormField<String>(
+                        enableFeedback: false,
+                        initialValue: types.any((t) => t.id == _selectedTypeId)
+                            ? _selectedTypeId
+                            : null,
+                        decoration: InputDecoration(
+                          labelText:
+                              'post_registration.legal_representative.type_label'
+                                  .tr(),
+                          prefixIconConstraints: FixedInputIconSlot.constraints,
+                          prefixIcon: FixedInputIconSlot(
+                            icon: HugeIcons.strokeRoundedUserGroup,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                            iconSize: 22,
+                          ),
+                          border: const OutlineInputBorder(),
                         ),
-                        border: const OutlineInputBorder(),
+                        items: types.map((type) {
+                          return DropdownMenuItem(
+                            value: type.id,
+                            child: Text(type.name),
+                          );
+                        }).toList(),
+                        onChanged: _isLoading
+                            ? null
+                            : (value) {
+                                if (value != null) {
+                                  setState(() => _selectedTypeId = value);
+                                }
+                              },
+                        validator: (value) {
+                          if (value == null) {
+                            return 'post_registration.legal_representative.type_required'
+                                .tr();
+                          }
+                          return null;
+                        },
                       ),
-                      items: types.map((type) {
-                        return DropdownMenuItem(
-                          value: type.id,
-                          child: Text(type.name),
-                        );
-                      }).toList(),
-                      onChanged: _isLoading
-                          ? null
-                          : (value) {
-                              if (value != null) {
-                                setState(() => _selectedTypeId = value);
-                              }
-                            },
-                      validator: (value) {
-                        if (value == null) {
-                          return 'post_registration.legal_representative.type_required'
-                              .tr();
-                        }
-                        return null;
-                      },
                     );
                   },
                 );

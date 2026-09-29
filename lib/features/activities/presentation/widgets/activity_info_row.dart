@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 /// Fila de información de actividad - Estilo "Scout Vibrante"
@@ -29,10 +29,10 @@ class ActivityInfoRow extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: AppColors.primaryLight,
+              color: SacAccent.of(context).light,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: buildIcon(icon, size: 18, color: AppColors.primary),
+            child: buildIcon(icon, size: 18, color: SacAccent.of(context).color),
           ),
           const SizedBox(width: 12),
           Expanded(

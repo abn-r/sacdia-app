@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/evidence_review_item.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
@@ -128,7 +129,7 @@ class _ImageThumbnail extends StatelessWidget {
                             loadingProgress.expectedTotalBytes!
                         : null,
                     strokeWidth: 2,
-                    color: AppColors.primary,
+                    color: SacAccent.of(context).color,
                   ),
                 ),
               );

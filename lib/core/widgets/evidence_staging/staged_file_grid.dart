@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../theme/sac_colors.dart';
 import '../sac_image_viewer.dart';
 import '../sac_pdf_viewer.dart';
@@ -184,7 +185,7 @@ class _StagedFileCell extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Thumbnail / icon
-                Expanded(child: _buildThumbnail()),
+                Expanded(child: _buildThumbnail(context)),
 
                 // Metadata footer
                 Container(
@@ -363,7 +364,7 @@ class _StagedFileCell extends StatelessWidget {
     );
   }
 
-  Widget _buildThumbnail() {
+  Widget _buildThumbnail(BuildContext context) {
     if (file.isPdf) {
       return Container(
         color: AppColors.errorLight,
@@ -396,15 +397,15 @@ class _StagedFileCell extends StatelessWidget {
         fit: BoxFit.cover,
         memCacheWidth: 360,
         memCacheHeight: 360,
-        errorWidget: (_, __, ___) => _fallbackIcon(),
+        errorWidget: (_, __, ___) => _fallbackIcon(context),
         progressIndicatorBuilder: (context, url, downloadProgress) {
           return Container(
-            color: AppColors.primaryLight,
+            color: SacAccent.of(context).light,
             child: Center(
               child: CircularProgressIndicator(
                 strokeWidth: 2,
                 value: downloadProgress.progress,
-                color: AppColors.primary,
+                color: SacAccent.of(context).color,
               ),
             ),
           );
@@ -419,21 +420,21 @@ class _StagedFileCell extends StatelessWidget {
         fit: BoxFit.cover,
         cacheWidth: 360,
         cacheHeight: 360,
-        errorBuilder: (_, __, ___) => _fallbackIcon(),
+        errorBuilder: (_, __, ___) => _fallbackIcon(context),
       );
     }
 
-    return _fallbackIcon();
+    return _fallbackIcon(context);
   }
 
-  Widget _fallbackIcon() {
+  Widget _fallbackIcon(BuildContext context) {
     return Container(
-      color: AppColors.primaryLight,
+      color: SacAccent.of(context).light,
       child: Center(
         child: HugeIcon(
           icon: HugeIcons.strokeRoundedImage01,
           size: 28,
-          color: AppColors.primary,
+          color: SacAccent.of(context).color,
         ),
       ),
     );

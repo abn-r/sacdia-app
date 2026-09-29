@@ -2,7 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 
 import '../providers/club_selection_providers.dart';
 import '../utils/club_selection_age_rules.dart';
@@ -33,15 +33,15 @@ class ClassRecommendation extends ConsumerWidget {
           padding: const EdgeInsets.all(12),
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            color: AppColors.primaryLight,
+            color: SacAccent.of(context).light,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+            border: Border.all(color: SacAccent.of(context).color.withValues(alpha: 0.3)),
           ),
           child: Row(
             children: [
               HugeIcon(
                 icon: HugeIcons.strokeRoundedSchool,
-                color: AppColors.primary,
+                color: SacAccent.of(context).color,
                 size: 20,
               ),
               const SizedBox(width: 12),
@@ -54,7 +54,7 @@ class ClassRecommendation extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.primaryDark,
+                        color: SacAccent.of(context).dark,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -65,7 +65,7 @@ class ClassRecommendation extends ConsumerWidget {
                       }),
                       style: TextStyle(
                         fontSize: 13,
-                        color: AppColors.primaryDark,
+                        color: SacAccent.of(context).dark,
                       ),
                     ),
                     if (recommendedClass.maxAge != null)
@@ -79,7 +79,7 @@ class ClassRecommendation extends ConsumerWidget {
                           }),
                           style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.primary,
+                            color: SacAccent.of(context).color,
                             fontStyle: FontStyle.italic,
                           ),
                         ),

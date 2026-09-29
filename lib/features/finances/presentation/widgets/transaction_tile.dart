@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
@@ -73,7 +74,7 @@ class TransactionTile extends StatelessWidget {
     final sign = isIncome ? '+' : '-';
     final timeStr = _timeFormatter.format(transaction.registeredAt.toLocal());
 
-    return InkWell(
+    return SacInkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(

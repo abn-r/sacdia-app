@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
@@ -12,6 +12,7 @@ import 'package:sacdia_app/core/widgets/sac_card.dart';
 // activityTime es la hora real que ingresó el usuario, no tiene problema de timezone.
 
 import '../../domain/entities/activity.dart';
+import 'activity_audience_line.dart';
 
 /// Card de actividad - Estilo moderno inspirado en task management
 ///
@@ -112,14 +113,14 @@ class ActivityCard extends StatelessWidget {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
+                  color: SacAccent.of(context).light,
                   shape: BoxShape.circle,
                 ),
                 child: Center(
                   child: HugeIcon(
                     icon: HugeIcons.strokeRoundedArrowRight01,
                     size: 16,
-                    color: AppColors.primary,
+                    color: SacAccent.of(context).color,
                   ),
                 ),
               ),
@@ -163,6 +164,11 @@ class ActivityCard extends StatelessWidget {
                   label: activity.activityPlace,
                   c: c,
                 ),
+              _MetaItem(
+                icon: HugeIcons.strokeRoundedUserGroup,
+                label: activityAudienceText(activity),
+                c: c,
+              ),
             ],
           ),
         ],

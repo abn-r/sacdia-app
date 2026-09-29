@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:path_provider/path_provider.dart';
@@ -106,12 +107,16 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
         appBar: SacTopBar(
           title: 'virtual_card.title'.tr(),
           actions: [
-            IconButton(
-              tooltip: 'virtual_card.refresh'.tr(),
-              onPressed: _refresh,
-              icon: const HugeIcon(
-                icon: HugeIcons.strokeRoundedRefresh,
-                size: 22,
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                tooltip: 'virtual_card.refresh'.tr(),
+                onPressed: _refresh,
+                icon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedRefresh,
+                  size: 22,
+                ),
               ),
             ),
           ],

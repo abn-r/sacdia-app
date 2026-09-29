@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +8,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/material_status.dart';
 import '../providers/order_detail_provider.dart';
@@ -322,15 +324,21 @@ class _CopyCard extends StatelessWidget {
                 ],
               ),
             ),
-            IconButton(
-              icon: const HugeIcon(icon: HugeIcons.strokeRoundedCopy01),
-              tooltip: 'materials.payment.copy'.tr(),
-              color: AppColors.primary,
-              onPressed: () {
-                Clipboard.setData(ClipboardData(text: value));
-                SacSnackBar.show(context,
-                    'materials.payment.copied'.tr(namedArgs: {'label': label}));
-              },
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                icon: const HugeIcon(icon: HugeIcons.strokeRoundedCopy01),
+                tooltip: 'materials.payment.copy'.tr(),
+                color: SacAccent.of(context).color,
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: value));
+                  SacSnackBar.show(
+                      context,
+                      'materials.payment.copied'
+                          .tr(namedArgs: {'label': label}));
+                },
+              ),
             ),
           ],
         ),
@@ -380,7 +388,7 @@ class _DataRow extends StatelessWidget {
                 fontFamily: mono ? 'monospace' : null,
                 fontSize: 14,
                 fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-                color: bold ? AppColors.primary : c.text,
+                color: bold ? SacAccent.of(context).color : c.text,
                 letterSpacing: mono ? 0.8 : null,
               ),
             ),
@@ -392,12 +400,12 @@ class _DataRow extends StatelessWidget {
                 SacSnackBar.show(context,
                     'materials.payment.copied'.tr(namedArgs: {'label': label}));
               },
-              child: const Padding(
+              child: Padding(
                 padding: EdgeInsets.only(left: 4),
                 child: HugeIcon(
                     icon: HugeIcons.strokeRoundedCopy01,
                     size: 16,
-                    color: AppColors.primary),
+                    color: SacAccent.of(context).color),
               ),
             ),
         ],

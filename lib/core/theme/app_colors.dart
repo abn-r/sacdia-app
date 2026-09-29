@@ -11,7 +11,8 @@ class AppColors {
   // COLORES PRINCIPALES
   // ═══════════════════════════════════════════════════════════
 
-  /// SACDIA Red - Botones principales, AppBar, enlaces, navegación
+  /// Coral fijo. El acento vivo del sistema es [SacAccent] (azul del icono
+  /// por defecto). Este valor sigue siendo el rojo de Conquistadores.
   static const Color primary = Color(0xFFF06151);
 
   /// Red 100 - Badges, chips, fondos de selección, hover

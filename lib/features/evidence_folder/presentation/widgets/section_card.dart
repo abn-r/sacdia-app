@@ -1,6 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/sac_state_swap.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -39,7 +41,7 @@ class SectionCard extends StatelessWidget {
     return Material(
       key: ValueKey('evidence-section-${section.id}'),
       color: Colors.transparent,
-      child: InkWell(
+      child: SacInkWell(
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -334,7 +336,7 @@ class _SubmitSectionButton extends StatelessWidget {
         child: Material(
           color: AppColors.info.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
-          child: InkWell(
+          child: SacInkWell(
             // Keep the nested action in the gesture arena while loading so a
             // tap never falls through to the parent row navigation.
             onTap: isSubmitting ? () {} : onSubmit,
@@ -348,35 +350,45 @@ class _SubmitSectionButton extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  if (isSubmitting)
-                    SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(AppColors.info),
-                      ),
-                    )
-                  else
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedSent,
-                      size: 16,
-                      color: AppColors.info,
-                    ),
+                  SacStateSwap(
+                    child: isSubmitting
+                        ? const SizedBox(
+                            key: ValueKey('evidence-submit-loading'),
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(AppColors.info),
+                            ),
+                          )
+                        : const HugeIcon(
+                            key: ValueKey('evidence-submit-idle'),
+                            icon: HugeIcons.strokeRoundedSent,
+                            size: 16,
+                            color: AppColors.info,
+                          ),
+                  ),
                   const SizedBox(width: 8),
                   Flexible(
-                    child: Text(
-                      isSubmitting
-                          ? 'evidence_folder.sending'.tr()
-                          : 'evidence_folder.send_to_validation'.tr(),
-                      textAlign: TextAlign.center,
-                      softWrap: true,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.info,
-                        height: 1.2,
+                    child: SacStateSwap(
+                      child: Text(
+                        isSubmitting
+                            ? 'evidence_folder.sending'.tr()
+                            : 'evidence_folder.send_to_validation'.tr(),
+                        key: ValueKey(
+                          isSubmitting
+                              ? 'evidence-submit-label-on'
+                              : 'evidence-submit-label-off',
+                        ),
+                        textAlign: TextAlign.center,
+                        softWrap: true,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.info,
+                          height: 1.2,
+                        ),
                       ),
                     ),
                   ),

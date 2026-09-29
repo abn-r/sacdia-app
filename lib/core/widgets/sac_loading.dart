@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 
 const double _loadingSize = 30;
 
 /// SACDIA loading indicator — animated dots normally and a static three-dot
-/// mark under Reduced Motion, styled with [AppColors.primary] by default.
+/// mark under Reduced Motion, styled with the system accent by default.
 class SacLoading extends StatelessWidget {
   final Color? color;
 
@@ -14,7 +14,7 @@ class SacLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _loadingIndicator(context, color ?? AppColors.primary);
+    return _loadingIndicator(context, color ?? SacAccent.of(context).color);
   }
 }
 
@@ -26,7 +26,7 @@ class SacLoadingSmall extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _loadingIndicator(context, color ?? AppColors.primary);
+    return _loadingIndicator(context, color ?? SacAccent.of(context).color);
   }
 }
 

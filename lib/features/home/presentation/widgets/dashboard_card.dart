@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
@@ -10,7 +10,7 @@ class DashboardCard extends StatelessWidget {
   final String title;
   final String value;
   final dynamic icon;
-  final Color color;
+  final Color? color;
   final VoidCallback? onTap;
 
   const DashboardCard({
@@ -18,12 +18,13 @@ class DashboardCard extends StatelessWidget {
     required this.title,
     required this.value,
     required this.icon,
-    this.color = AppColors.primary,
+    this.color,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final tint = color ?? SacAccent.of(context).color;
     return SacCard(
       onTap: onTap,
       child: Row(
@@ -32,10 +33,10 @@ class DashboardCard extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: tint.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: buildIcon(icon, color: color, size: 24),
+            child: buildIcon(icon, color: tint, size: 24),
           ),
           const SizedBox(width: 14),
           Expanded(

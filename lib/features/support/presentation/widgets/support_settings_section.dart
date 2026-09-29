@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../profile/presentation/widgets/setting_tile.dart';
 import '../views/support_view.dart';
@@ -46,7 +46,7 @@ class SupportSettingsSection extends StatelessWidget {
             icon: HugeIcons.strokeRoundedHelpCircle,
             title: 'support.settings_entry_title'.tr(),
             subtitle: 'support.settings_entry_subtitle'.tr(),
-            iconColor: AppColors.primary,
+            iconColor: SacAccent.of(context).color,
             onTap: () => context.push(SupportView.routeName),
           ),
         ),

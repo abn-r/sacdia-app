@@ -1,11 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -172,7 +174,7 @@ class CamporeeOrderCatalogView extends ConsumerWidget {
       ),
       body: SafeArea(
         child: RefreshIndicator(
-          color: AppColors.primary,
+          color: SacAccent.of(context).color,
           onRefresh: () async {
             ref.invalidate(camporeeOrderOfferingsProvider(scope));
             ref.invalidate(camporeeOrdersListProvider(scope));
@@ -320,7 +322,7 @@ class _OrderHistoryCard extends StatelessWidget {
     return Material(
       color: c.surface,
       borderRadius: BorderRadius.circular(16),
-      child: InkWell(
+      child: SacInkWell(
         key: Key('camporee-order-folio-${order.folioReference}'),
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
@@ -466,12 +468,15 @@ class _MessageState extends StatelessWidget {
   }
 }
 
-Color camporeeOrderStatusColor(CamporeeOrderStatus status) {
+Color camporeeOrderStatusColor(
+  CamporeeOrderStatus status,
+  BuildContext context,
+) {
   switch (status) {
     case CamporeeOrderStatus.issued:
       return AppColors.accent;
     case CamporeeOrderStatus.proofSubmitted:
-      return AppColors.primary;
+      return SacAccent.of(context).color;
     case CamporeeOrderStatus.paid:
     case CamporeeOrderStatus.delivered:
       return AppColors.secondary;
@@ -520,7 +525,7 @@ class CamporeeOrderStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = camporeeOrderStatusColor(status);
+    final color = camporeeOrderStatusColor(status, context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(

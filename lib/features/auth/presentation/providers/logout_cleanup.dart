@@ -8,6 +8,7 @@ import '../../../../core/utils/app_logger.dart';
 import '../../../../providers/json_file_cache_provider.dart';
 import '../../../../providers/storage_provider.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
+import '../../../home_widgets/next_activity_widget_sync.dart';
 
 /// Invalida providers con estado de usuario al cerrar sesión.
 ///
@@ -42,6 +43,7 @@ void clearUserStateOnLogout(Ref ref) {
   }
   ref.invalidate(appBootstrapProvider);
   _clearScopedDashboardCache(ref);
+  unawaited(clearNextActivityWidget());
   unawaited(
     ref.read(jsonFileCacheProvider).deleteByPrefix(kUserClassesCacheKeyPrefix),
   );

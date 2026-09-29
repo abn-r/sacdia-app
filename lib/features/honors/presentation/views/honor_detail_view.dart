@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
@@ -276,14 +278,14 @@ Future<void> _openExternalHistoryUrl(BuildContext context, String url) async {
   if (uri == null || !['http', 'https'].contains(uri.scheme)) {
     if (!context.mounted) return;
     SacSnackBar.show(context, 'honors.detail.open_file_error'.tr(),
-        backgroundColor: AppColors.primary);
+        backgroundColor: SacAccent.of(context).color);
     return;
   }
 
   final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
   if (!launched && context.mounted) {
     SacSnackBar.show(context, 'honors.detail.open_file_error'.tr(),
-        backgroundColor: AppColors.primary);
+        backgroundColor: SacAccent.of(context).color);
   }
 }
 
@@ -405,11 +407,15 @@ class _ErrorScaffold extends StatelessWidget {
               style: TextStyle(fontSize: 15, color: context.sac.textSecondary),
             ),
             const SizedBox(height: 20),
-            TextButton(
-              onPressed: onRetry,
-              child: Text(
-                'honors.catalog.retry'.tr(),
-                style: TextStyle(color: context.sac.text, fontSize: 14),
+            SacPressable(
+              listenOnly: true,
+              child: TextButton(
+                style: const ButtonStyle(enableFeedback: false),
+                onPressed: onRetry,
+                child: Text(
+                  'honors.catalog.retry'.tr(),
+                  style: TextStyle(color: context.sac.text, fontSize: 14),
+                ),
               ),
             ),
           ],

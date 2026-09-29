@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
@@ -471,7 +472,7 @@ class _OptionCard extends StatelessWidget {
       card = Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-        child: InkWell(
+        child: SacInkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppTheme.radiusMD),
           child: card,

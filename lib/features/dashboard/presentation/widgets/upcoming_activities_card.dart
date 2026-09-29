@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
@@ -33,7 +33,7 @@ class UpcomingActivitiesCard extends StatelessWidget {
               HugeIcon(
                   icon: HugeIcons.strokeRoundedCalendar01,
                   size: 20,
-                  color: AppColors.primary),
+                  color: SacAccent.of(context).color),
               const SizedBox(width: 8),
               Text(
                 tr('dashboard.activities.title'),
@@ -50,7 +50,7 @@ class UpcomingActivitiesCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
+                      color: SacAccent.of(context).color,
                     ),
                   ),
                 ),
@@ -133,7 +133,7 @@ class _ActivityRow extends StatelessWidget {
                 width: 48,
                 padding: const EdgeInsets.symmetric(vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
+                  color: SacAccent.of(context).light,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Column(
@@ -143,7 +143,7 @@ class _ActivityRow extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
+                        color: SacAccent.of(context).color,
                         height: 1,
                       ),
                     ),
@@ -154,7 +154,7 @@ class _ActivityRow extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.primary,
+                        color: SacAccent.of(context).color,
                       ),
                     ),
                   ],

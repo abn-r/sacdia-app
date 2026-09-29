@@ -1,10 +1,10 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
-import '../theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../theme/sac_colors.dart';
+import 'sac_back_button.dart';
 
 /// iOS-inspired SACDIA top navigation primitives.
 ///
@@ -76,14 +76,9 @@ class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
       leadingWidth: showBack || leading != null ? 56 : 0,
       leading: leading ??
           (showBack
-              ? IconButton(
-                  tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+              ? SacBackButton(
+                  color: resolvedForeground,
                   onPressed: onBack ?? () => Navigator.of(context).maybePop(),
-                  icon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedArrowLeft01,
-                    size: 22,
-                    color: resolvedForeground,
-                  ),
                 )
               : null),
       titleSpacing: showBack || leading != null ? 0 : 20,
@@ -162,15 +157,9 @@ class SacSliverTopBar extends StatelessWidget {
         leadingWidth: showBack || leading != null ? 56 : 0,
         leading: leading ??
             (showBack
-                ? IconButton(
-                    tooltip:
-                        MaterialLocalizations.of(context).backButtonTooltip,
+                ? SacBackButton(
+                    color: resolvedForeground,
                     onPressed: onBack ?? () => Navigator.of(context).maybePop(),
-                    icon: HugeIcon(
-                      icon: HugeIcons.strokeRoundedArrowLeft01,
-                      size: 22,
-                      color: resolvedForeground,
-                    ),
                   )
                 : null),
         title: _SacTopBarTitle(
@@ -195,14 +184,9 @@ class SacSliverTopBar extends StatelessWidget {
       leadingWidth: showBack || leading != null ? 56 : 0,
       leading: leading ??
           (showBack
-              ? IconButton(
-                  tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+              ? SacBackButton(
+                  color: resolvedForeground,
                   onPressed: onBack ?? () => Navigator.of(context).maybePop(),
-                  icon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedArrowLeft01,
-                    size: 22,
-                    color: resolvedForeground,
-                  ),
                 )
               : null),
       actions: actions,
@@ -274,16 +258,10 @@ class SacFloatingTopBar extends StatelessWidget {
               child: Row(
                 children: [
                   leading ??
-                      IconButton(
-                        tooltip:
-                            MaterialLocalizations.of(context).backButtonTooltip,
+                      SacBackButton(
+                        color: resolvedForeground,
                         onPressed:
                             onBack ?? () => Navigator.of(context).maybePop(),
-                        icon: HugeIcon(
-                          icon: HugeIcons.strokeRoundedArrowLeft01,
-                          size: 22,
-                          color: resolvedForeground,
-                        ),
                       ),
                   if (title != null)
                     Expanded(
@@ -436,11 +414,11 @@ class _IconBadge extends StatelessWidget {
       height: 40,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: AppColors.primaryLight,
+        color: SacAccent.of(context).light,
         borderRadius: BorderRadius.circular(12),
       ),
       child: IconTheme(
-        data: const IconThemeData(color: AppColors.primary, size: 22),
+        data: IconThemeData(color: SacAccent.of(context).color, size: 22),
         child: child,
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
@@ -112,13 +113,17 @@ class _FaqViewState extends ConsumerState<FaqView> {
                   onChanged: _onSearchChanged,
                   suffix: _searchCtrl.text.isEmpty
                       ? null
-                      : IconButton(
-                          tooltip: 'common.clear'.tr(),
-                          onPressed: _clearSearch,
-                          icon: HugeIcon(
-                            icon: HugeIcons.strokeRoundedCancelCircle,
-                            size: 20,
-                            color: c.textTertiary,
+                      : SacPressable(
+                          listenOnly: true,
+                          child: IconButton(
+                            enableFeedback: false,
+                            tooltip: 'common.clear'.tr(),
+                            onPressed: _clearSearch,
+                            icon: HugeIcon(
+                              icon: HugeIcons.strokeRoundedCancelCircle,
+                              size: 20,
+                              color: c.textTertiary,
+                            ),
                           ),
                         ),
                 ),

@@ -47,6 +47,69 @@ void main() {
         1,
       );
     });
+
+    testWidgets('listenOnly releases the scale once the pointer drags',
+        (tester) async {
+      await tester.pumpWidget(
+        _MotionHarness(
+          reduceMotion: false,
+          child: const SacPressable(
+            listenOnly: true,
+            child: Text('press'),
+          ),
+        ),
+      );
+
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.text('press')),
+      );
+      await tester.pump();
+
+      expect(
+        tester.widget<AnimatedScale>(find.byType(AnimatedScale)).scale,
+        SacMotion.pressScale,
+      );
+
+      await gesture.moveBy(const Offset(0, 40));
+      await tester.pump();
+
+      expect(
+        tester.widget<AnimatedScale>(find.byType(AnimatedScale)).scale,
+        1,
+      );
+
+      await gesture.up();
+    });
+
+    testWidgets('SacInkWell scales and ignores splash arguments',
+        (tester) async {
+      var taps = 0;
+      await tester.pumpWidget(
+        _MotionHarness(
+          reduceMotion: false,
+          child: SacInkWell(
+            onTap: () => taps++,
+            splashColor: const Color(0xFFFF0000),
+            highlightColor: const Color(0xFF00FF00),
+            borderRadius: BorderRadius.circular(12),
+            child: const Text('row'),
+          ),
+        ),
+      );
+
+      final gesture = await tester.press(find.text('row'));
+      await tester.pump();
+
+      expect(
+        tester.widget<AnimatedScale>(find.byType(AnimatedScale)).scale,
+        SacMotion.pressScale,
+      );
+      expect(find.byType(InkWell), findsNothing);
+
+      await gesture.up();
+      await tester.pump();
+      expect(taps, 1);
+    });
   });
 }
 

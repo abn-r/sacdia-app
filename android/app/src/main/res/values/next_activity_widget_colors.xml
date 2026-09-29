@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="next_activity_widget_background">#FFF6F3</color>
+    <color name="next_activity_widget_title">#1C1C1E</color>
+    <color name="next_activity_widget_muted">#6B635F</color>
+    <color name="next_activity_widget_accent">#F06151</color>
+    <color name="next_activity_widget_on_accent">#FFFFFF</color>
+    <color name="next_activity_widget_on_accent_muted">#EBFFFFFF</color>
+</resources>

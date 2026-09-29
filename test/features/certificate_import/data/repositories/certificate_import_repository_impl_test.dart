@@ -3,9 +3,14 @@ import 'package:sacdia_app/features/certificate_import/data/datasources/certific
 import 'package:sacdia_app/core/errors/exceptions.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/network/network_info.dart';
+import 'package:dio/dio.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_payloads.dart';
+import 'package:sacdia_app/features/certificate_import/data/models/certificate_import_batch_list_model.dart';
 import 'package:sacdia_app/features/certificate_import/data/models/certificate_import_batch_model.dart';
+import 'package:sacdia_app/features/certificate_import/data/models/certificate_import_file_model.dart';
+import 'package:sacdia_app/features/certificate_import/data/models/certificate_import_institutional_request_model.dart';
 import 'package:sacdia_app/features/certificate_import/data/models/certificate_import_item_model.dart';
+import 'package:sacdia_app/features/certificate_import/data/models/certificate_import_presign_ticket_model.dart';
 import 'package:sacdia_app/features/certificate_import/data/repositories/certificate_import_repository_impl.dart';
 
 class _NetworkInfo implements NetworkInfo {
@@ -18,19 +23,104 @@ class _RemoteDataSource implements CertificateImportRemoteDataSource {
 
   @override
   Future<CertificateImportBatchModel> createBatch({
-    required List<CertificateImportFilePayload> files,
+    List<CertificateImportFilePayload> files = const [],
   }) async {
     if (error != null) throw error!;
     return const CertificateImportBatchModel(id: 'batch-1', status: 'DRAFT');
   }
 
   @override
+  Future<CertificateImportBatchModel> uploadLocalProof(
+    CertificateImportLocalProof proof, {
+    void Function(double progress)? onProgress,
+    CancelToken? cancelToken,
+  }) async {
+    if (error != null) throw error!;
+    return const CertificateImportBatchModel(id: 'batch-1', status: 'DRAFT');
+  }
+
+  @override
+  Future<CertificateImportPresignTicketModel> presignFile({
+    required String batchId,
+    required String fileName,
+    required String mimeType,
+    required int fileSize,
+  }) async =>
+      const CertificateImportPresignTicketModel(
+        fileId: 'file-1',
+        uploadUrl: 'https://r2.example/upload',
+        expiresIn: 900,
+      );
+
+  @override
+  Future<void> uploadToSignedUrl({
+    required String uploadUrl,
+    required String localPath,
+    required String mimeType,
+    Map<String, String> requiredHeaders = const {},
+    void Function(double progress)? onProgress,
+    CancelToken? cancelToken,
+  }) async {}
+
+  @override
+  Future<CertificateImportFileModel> confirmFile({
+    required String batchId,
+    required String fileId,
+  }) async =>
+      const CertificateImportFileModel(
+        id: 'file-1',
+        url: 'sealed/key',
+        name: 'cert.jpg',
+        type: 'image/jpeg',
+      );
+
+  @override
+  Future<CertificateImportBatchListModel> listBatches({
+    int page = 1,
+    int limit = 20,
+  }) async =>
+      const CertificateImportBatchListModel(
+        items: [],
+        total: 0,
+        page: 1,
+        limit: 20,
+      );
+
+  @override
   Future<CertificateImportBatchModel> getBatch(String batchId) async =>
       const CertificateImportBatchModel(id: 'batch-1', status: 'DRAFT');
 
   @override
-  Future<CertificateImportBatchModel> processOcr(String batchId) async =>
-      const CertificateImportBatchModel(id: 'batch-1', status: 'DRAFT');
+  Future<String> signedDownloadUrl({
+    required String batchId,
+    required String fileId,
+  }) async =>
+      'https://files.example/sealed';
+
+  @override
+  Future<CertificateImportBatchModel> processOcr(String batchId) async {
+    throw ServerException(
+      message: 'OCR no disponible. Completa el expediente manualmente.',
+      code: 503,
+    );
+  }
+
+  @override
+  Future<CertificateImportItemModel> addItem({
+    required String batchId,
+    required CertificateImportItemUpdatePayload payload,
+  }) async =>
+      const CertificateImportItemModel(
+        id: 'item-new',
+        type: CertificateImportItemType.clazz,
+        status: CertificateImportItemStatus.needsReview,
+      );
+
+  @override
+  Future<void> removeItem({
+    required String batchId,
+    required String itemId,
+  }) async {}
 
   @override
   Future<CertificateImportItemModel> resubmitItem({
@@ -59,6 +149,19 @@ class _RemoteDataSource implements CertificateImportRemoteDataSource {
         type: CertificateImportItemType.honor,
         status: CertificateImportItemStatus.ready,
       );
+
+  @override
+  Future<CertificateImportInstitutionalRequestListModel>
+      listInstitutionalRequests({
+    int page = 1,
+    int limit = 20,
+  }) async =>
+      const CertificateImportInstitutionalRequestListModel(
+        items: [],
+        total: 0,
+        page: 1,
+        limit: 20,
+      );
 }
 
 void main() {
@@ -68,15 +171,7 @@ void main() {
       networkInfo: _NetworkInfo(),
     );
 
-    final result = await repository.createBatch(
-      files: const [
-        CertificateImportFilePayload(
-          url: 'https://cdn.sacdia.app/cert.jpg',
-          name: 'cert.jpg',
-          type: 'image/jpeg',
-        ),
-      ],
-    );
+    final result = await repository.createBatch(files: const []);
 
     expect(result.isRight(), isTrue);
     result.fold(

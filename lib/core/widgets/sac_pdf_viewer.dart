@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:path_provider/path_provider.dart';
@@ -192,23 +193,32 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
       appBar: SacTopBar(
         title: (title != null && title.isNotEmpty) ? title : (pageLabel ?? ''),
         subtitle: (title != null && title.isNotEmpty) ? pageLabel : null,
-        leading: IconButton(
-          icon: const HugeIcon(icon: HugeIcons.strokeRoundedCancel01),
-          onPressed: () => Navigator.pop(context),
+        leading: SacPressable(
+          listenOnly: true,
+          child: IconButton(
+            enableFeedback: false,
+            icon: const HugeIcon(icon: HugeIcons.strokeRoundedCancel01),
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
         actions: [
-          IconButton(
-            key: _saveButtonKey,
-            tooltip: 'common.save'.tr(),
-            onPressed:
-                _localPath == null || _loading || _isSharing ? null : _sharePdf,
-            icon: _isSharing
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const HugeIcon(icon: HugeIcons.strokeRoundedDownload01),
+          SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              key: _saveButtonKey,
+              tooltip: 'common.save'.tr(),
+              onPressed: _localPath == null || _loading || _isSharing
+                  ? null
+                  : _sharePdf,
+              icon: _isSharing
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const HugeIcon(icon: HugeIcons.strokeRoundedDownload01),
+            ),
           ),
         ],
       ),
@@ -242,19 +252,23 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
             const SizedBox(height: 8),
             Text(_error!),
             const SizedBox(height: 16),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  _loading = true;
-                  _error = null;
-                });
-                if (_isLocalPath) {
-                  _useLocalFile();
-                } else {
-                  _downloadPdf();
-                }
-              },
-              child: Text(tr('core.pdf_viewer.retry')),
+            SacPressable(
+              listenOnly: true,
+              child: TextButton(
+                style: const ButtonStyle(enableFeedback: false),
+                onPressed: () {
+                  setState(() {
+                    _loading = true;
+                    _error = null;
+                  });
+                  if (_isLocalPath) {
+                    _useLocalFile();
+                  } else {
+                    _downloadPdf();
+                  }
+                },
+                child: Text(tr('core.pdf_viewer.retry')),
+              ),
             ),
           ],
         ),

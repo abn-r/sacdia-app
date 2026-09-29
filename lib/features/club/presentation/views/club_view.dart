@@ -10,6 +10,7 @@ import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
@@ -320,24 +321,28 @@ class _ClubViewState extends ConsumerState<ClubView> {
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.transparent,
       centerTitle: true,
-      leading: IconButton(
-        icon: HugeIcon(
-          icon: HugeIcons.strokeRoundedArrowLeft01,
-          color: c.text,
-          size: 22,
+      leading: SacPressable(
+        listenOnly: true,
+        child: IconButton(
+          enableFeedback: false,
+          icon: HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowLeft01,
+            color: c.text,
+            size: 22,
+          ),
+          onPressed: isUpdating
+              ? null
+              : () async {
+                  final nav = Navigator.of(context);
+                  if (_hasUnsavedChanges) {
+                    final discard = await _confirmDiscard();
+                    if (discard && mounted) nav.maybePop();
+                  } else {
+                    nav.maybePop();
+                  }
+                },
+          tooltip: 'common.back'.tr(),
         ),
-        onPressed: isUpdating
-            ? null
-            : () async {
-                final nav = Navigator.of(context);
-                if (_hasUnsavedChanges) {
-                  final discard = await _confirmDiscard();
-                  if (discard && mounted) nav.maybePop();
-                } else {
-                  nav.maybePop();
-                }
-              },
-        tooltip: 'common.back'.tr(),
       ),
       title: Column(
         mainAxisSize: MainAxisSize.min,
@@ -367,24 +372,32 @@ class _ClubViewState extends ConsumerState<ClubView> {
       ),
       actions: [
         if (canEdit && !_isEditing)
-          IconButton(
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedPencilEdit01,
-              color: AppColors.primary,
-              size: 22,
+          SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedPencilEdit01,
+                color: SacAccent.of(context).color,
+                size: 22,
+              ),
+              onPressed: isUpdating ? null : _enterEdit,
+              tooltip: 'common.edit'.tr(),
             ),
-            onPressed: isUpdating ? null : _enterEdit,
-            tooltip: 'common.edit'.tr(),
           ),
         if (_isEditing)
-          IconButton(
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedCancel01,
-              color: c.textSecondary,
-              size: 22,
+          SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedCancel01,
+                color: c.textSecondary,
+                size: 22,
+              ),
+              onPressed: isUpdating ? null : _cancelEdit,
+              tooltip: 'common.cancel'.tr(),
             ),
-            onPressed: isUpdating ? null : _cancelEdit,
-            tooltip: 'common.cancel'.tr(),
           ),
       ],
     );
@@ -455,13 +468,18 @@ class _ClubViewState extends ConsumerState<ClubView> {
                       helperText: _coordsHelper(),
                       onTap: editable ? _openLocationPicker : null,
                       suffix: _isEditing
-                          ? IconButton(
-                              icon: HugeIcon(
-                                icon: HugeIcons.strokeRoundedArrowRight01,
-                                size: 18,
-                                color: c.textSecondary,
+                          ? SacPressable(
+                              listenOnly: true,
+                              child: IconButton(
+                                enableFeedback: false,
+                                icon: HugeIcon(
+                                  icon: HugeIcons.strokeRoundedArrowRight01,
+                                  size: 18,
+                                  color: c.textSecondary,
+                                ),
+                                onPressed:
+                                    editable ? _openLocationPicker : null,
                               ),
-                              onPressed: editable ? _openLocationPicker : null,
                             )
                           : null,
                     ),
@@ -625,11 +643,11 @@ class _SectionHeader extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(7),
           decoration: BoxDecoration(
-            color: AppColors.primaryLight,
+            color: SacAccent.of(context).light,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Center(
-            child: HugeIcon(icon: icon, size: 16, color: AppColors.primary),
+            child: HugeIcon(icon: icon, size: 16, color: SacAccent.of(context).color),
           ),
         ),
         const SizedBox(width: 10),
@@ -811,14 +829,14 @@ class _EmptyBody extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: AppColors.primaryLight,
+                color: SacAccent.of(context).light,
                 shape: BoxShape.circle,
               ),
               child: Center(
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedBackpack03,
                   size: 40,
-                  color: AppColors.primary,
+                  color: SacAccent.of(context).color,
                 ),
               ),
             ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
@@ -43,19 +44,23 @@ class _AuthTextFieldState extends State<AuthTextField> {
         ),
         prefixIconConstraints: FixedInputIconSlot.constraints,
         suffixIcon: widget.obscureText
-            ? IconButton(
-                icon: HugeIcon(
-                  icon: _showPassword
-                      ? HugeIcons.strokeRoundedViewOff
-                      : HugeIcons.strokeRoundedViewOffSlash,
-                  color: context.sac.textTertiary,
-                  size: 20,
+            ? SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  icon: HugeIcon(
+                    icon: _showPassword
+                        ? HugeIcons.strokeRoundedViewOff
+                        : HugeIcons.strokeRoundedViewOffSlash,
+                    color: context.sac.textTertiary,
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _showPassword = !_showPassword;
+                    });
+                  },
                 ),
-                onPressed: () {
-                  setState(() {
-                    _showPassword = !_showPassword;
-                  });
-                },
               )
             : null,
         border: OutlineInputBorder(

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="next_activity_widget_label">Próxima actividad</string>
+    <string name="next_activity_widget_description">La siguiente actividad de tu club</string>
+    <string name="next_activity_widget_eyebrow">SACDIA</string>
+    <string name="next_activity_widget_empty">Sin actividades programadas</string>
+</resources>

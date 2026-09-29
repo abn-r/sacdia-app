@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
@@ -52,7 +53,7 @@ class CamporeesListView extends ConsumerWidget {
             }
 
             return RefreshIndicator(
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
               onRefresh: () async => ref.invalidate(camporeesProvider),
               child: ListView.builder(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -376,7 +377,7 @@ class _ClubTypeBadges extends StatelessWidget {
       if (camporee.includesPathfinders)
         _Badge(
           label: 'camporees.common.pathfinders'.tr(),
-          color: AppColors.primary,
+          color: SacAccent.of(context).color,
         ),
       if (camporee.includesMasterGuides)
         _Badge(

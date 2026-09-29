@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/animations/sac_state_swap.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -63,6 +64,27 @@ void main() {
     expect(decoration.color, background);
     expect(label.style?.color, foreground);
     expect((decoration.border! as Border).top.color, border);
+  });
+
+  testWidgets('loading conserva el ancho del label', (tester) async {
+    const label = 'Confirmar asistencia';
+    await _pumpButton(
+      tester,
+      SacButton(text: label, onPressed: () {}),
+      width: 480,
+    );
+    final idleWidth = tester.getSize(find.byType(SacButton)).width;
+
+    await _pumpButton(
+      tester,
+      const SacButton(text: label, isLoading: true),
+      width: 480,
+    );
+    final loadingWidth = tester.getSize(find.byType(SacButton)).width;
+
+    expect(loadingWidth, closeTo(idleWidth, 1));
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(SacStateSwap), findsOneWidget);
   });
 
   testWidgets('loading anuncia estado traducido como live region',

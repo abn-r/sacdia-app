@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/utils/blood_type.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
@@ -89,7 +90,7 @@ class _BloodChip extends StatelessWidget {
     return Material(
       color: selected ? scheme.primary : scheme.surfaceContainerHigh,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
+      child: SacInkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Center(

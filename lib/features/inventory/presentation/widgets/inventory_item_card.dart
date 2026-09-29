@@ -1,9 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
@@ -83,7 +85,7 @@ class _CardContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
 
-    return InkWell(
+    return SacInkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppTheme.radiusMD),
       child: Container(
@@ -137,14 +139,14 @@ class _CardContent extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
-                          color: AppColors.primarySurface,
+                          color: SacAccent.of(context).surface,
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           item.category.name,
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: AppColors.primaryDark,
+                                    color: SacAccent.of(context).dark,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 10,
                                   ),
@@ -277,14 +279,14 @@ class _Placeholder extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: AppColors.primarySurface,
+        color: SacAccent.of(context).surface,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Center(
         child: HugeIcon(
           icon: HugeIcons.strokeRoundedBoxingBag,
           size: 28,
-          color: AppColors.primary.withValues(alpha: 0.5),
+          color: SacAccent.of(context).color.withValues(alpha: 0.5),
         ),
       ),
     );

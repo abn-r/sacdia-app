@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -8,6 +9,7 @@ import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_text_field.dart';
@@ -135,10 +137,14 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
               ),
             )
           else
-            IconButton(
-              icon: HugeIcon(icon: HugeIcons.strokeRoundedTick02, size: 24),
-              onPressed: _handleSave,
-              tooltip: 'post_registration.contact_form.save_tooltip'.tr(),
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                icon: HugeIcon(icon: HugeIcons.strokeRoundedTick02, size: 24),
+                onPressed: _handleSave,
+                tooltip: 'post_registration.contact_form.save_tooltip'.tr(),
+              ),
             ),
         ],
       ),
@@ -211,7 +217,7 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
               Container(
                 decoration: BoxDecoration(
                   color:
-                      _isPrimary ? AppColors.primaryLight : context.sac.surface,
+                      _isPrimary ? SacAccent.of(context).light : context.sac.surface,
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
@@ -222,43 +228,47 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
                   ],
                   border: _isPrimary
                       ? Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.4),
+                          color: SacAccent.of(context).color.withValues(alpha: 0.4),
                           width: 1.5,
                         )
                       : null,
                 ),
-                child: SwitchListTile(
-                  value: _isPrimary,
-                  onChanged: _isLoading
-                      ? null
-                      : (value) => setState(() => _isPrimary = value),
-                  title: Text(
-                    'post_registration.contact_form.primary_title'.tr(),
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  subtitle: Text(
-                    'post_registration.contact_form.primary_subtitle'.tr(),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: context.sac.textSecondary,
+                child: SacPressable(
+                  listenOnly: true,
+                  child: SwitchListTile(
+                    enableFeedback: false,
+                    value: _isPrimary,
+                    onChanged: _isLoading
+                        ? null
+                        : (value) => setState(() => _isPrimary = value),
+                    title: Text(
+                      'post_registration.contact_form.primary_title'.tr(),
+                      style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
-                  ),
-                  secondary: HugeIcon(
-                    icon: _isPrimary
-                        ? HugeIcons.strokeRoundedStar
-                        : HugeIcons.strokeRoundedStar,
-                    size: 24,
-                    color: _isPrimary
-                        ? AppColors.primary
-                        : context.sac.textSecondary,
-                  ),
-                  activeThumbColor: Colors.white,
-                  activeTrackColor: AppColors.primary,
-                  inactiveThumbColor: Colors.white,
-                  inactiveTrackColor:
-                      context.sac.textTertiary.withValues(alpha: 0.4),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    subtitle: Text(
+                      'post_registration.contact_form.primary_subtitle'.tr(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.sac.textSecondary,
+                      ),
+                    ),
+                    secondary: HugeIcon(
+                      icon: _isPrimary
+                          ? HugeIcons.strokeRoundedStar
+                          : HugeIcons.strokeRoundedStar,
+                      size: 24,
+                      color: _isPrimary
+                          ? SacAccent.of(context).color
+                          : context.sac.textSecondary,
+                    ),
+                    activeThumbColor: Colors.white,
+                    activeTrackColor: SacAccent.of(context).color,
+                    inactiveThumbColor: Colors.white,
+                    inactiveTrackColor:
+                        context.sac.textTertiary.withValues(alpha: 0.4),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
               ),
@@ -302,17 +312,17 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
+                  color: SacAccent.of(context).light,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.3)),
+                      color: SacAccent.of(context).color.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     HugeIcon(
                         icon: HugeIcons.strokeRoundedInformationCircle,
-                        color: AppColors.primaryDark,
+                        color: SacAccent.of(context).dark,
                         size: 20),
                     const SizedBox(width: 8),
                     Expanded(
@@ -320,7 +330,7 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
                         'post_registration.contact_form.info_note'.tr(),
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.primaryDark,
+                          color: SacAccent.of(context).dark,
                         ),
                       ),
                     ),
@@ -581,7 +591,7 @@ class _RelationshipTypePickerSheetState
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   borderSide:
-                      const BorderSide(color: AppColors.primary, width: 2),
+                      BorderSide(color: SacAccent.of(context).color, width: 2),
                 ),
                 filled: true,
                 fillColor: context.sac.surfaceVariant,
@@ -622,33 +632,38 @@ class _RelationshipTypePickerSheetState
                       final type = _filtered[index];
                       final isSelected = type.id == widget.selectedId;
 
-                      return ListTile(
-                        minTileHeight: 48,
-                        leading: HugeIcon(
-                          icon: HugeIcons.strokeRoundedUserGroup,
-                          size: 22,
-                          color: isSelected
-                              ? AppColors.primary
-                              : context.sac.textSecondary,
-                        ),
-                        title: Text(
-                          type.name,
-                          style: theme.textTheme.bodyMedium?.copyWith(
+                      return SacPressable(
+                        listenOnly: true,
+                        child: ListTile(
+                          enableFeedback: false,
+                          minTileHeight: 48,
+                          leading: HugeIcon(
+                            icon: HugeIcons.strokeRoundedUserGroup,
+                            size: 22,
                             color: isSelected
-                                ? AppColors.primary
-                                : context.sac.text,
-                            fontWeight:
-                                isSelected ? FontWeight.w600 : FontWeight.w400,
+                                ? SacAccent.of(context).color
+                                : context.sac.textSecondary,
                           ),
+                          title: Text(
+                            type.name,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: isSelected
+                                  ? SacAccent.of(context).color
+                                  : context.sac.text,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.w400,
+                            ),
+                          ),
+                          trailing: isSelected
+                              ? HugeIcon(
+                                  icon: HugeIcons.strokeRoundedTick02,
+                                  color: SacAccent.of(context).color,
+                                  size: 20,
+                                )
+                              : null,
+                          onTap: () => widget.onSelected(type.id),
                         ),
-                        trailing: isSelected
-                            ? const HugeIcon(
-                                icon: HugeIcons.strokeRoundedTick02,
-                                color: AppColors.primary,
-                                size: 20,
-                              )
-                            : null,
-                        onTap: () => widget.onSelected(type.id),
                       );
                     },
                   ),

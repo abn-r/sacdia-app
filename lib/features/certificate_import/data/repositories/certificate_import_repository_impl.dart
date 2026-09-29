@@ -5,6 +5,8 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/usecases/cancellation_token.dart';
 import '../../domain/entities/certificate_import_batch.dart';
+import '../../domain/entities/certificate_import_batch_list.dart';
+import '../../domain/entities/certificate_import_institutional_request.dart';
 import '../../domain/entities/certificate_import_item.dart';
 import '../../domain/entities/certificate_import_payloads.dart';
 import '../../domain/repositories/certificate_import_repository.dart';
@@ -21,9 +23,36 @@ class CertificateImportRepositoryImpl implements CertificateImportRepository {
 
   @override
   Future<Either<Failure, CertificateImportBatch>> createBatch({
-    required List<CertificateImportFilePayload> files,
+    List<CertificateImportFilePayload> files = const [],
   }) async {
     return _batch(() => remoteDataSource.createBatch(files: files));
+  }
+
+  @override
+  Future<Either<Failure, CertificateImportBatch>> uploadLocalProof(
+    CertificateImportLocalProof proof, {
+    void Function(double progress)? onProgress,
+    CancelToken? cancelToken,
+  }) {
+    return _batch(
+      () => remoteDataSource.uploadLocalProof(
+        proof,
+        onProgress: onProgress,
+        cancelToken: cancelToken,
+      ),
+    );
+  }
+
+  @override
+  Future<Either<Failure, CertificateImportBatchList>> listBatches({
+    int page = 1,
+    int limit = 20,
+  }) {
+    return _guard(() async {
+      final model =
+          await remoteDataSource.listBatches(page: page, limit: limit);
+      return model.toEntity();
+    });
   }
 
   @override
@@ -37,6 +66,39 @@ class CertificateImportRepositoryImpl implements CertificateImportRepository {
     RequestCancelToken? cancelToken,
   }) {
     return _batch(() => remoteDataSource.getBatch(batchId));
+  }
+
+  @override
+  Future<Either<Failure, String>> signedDownloadUrl({
+    required String batchId,
+    required String fileId,
+  }) {
+    return _guard(
+      () => remoteDataSource.signedDownloadUrl(
+        batchId: batchId,
+        fileId: fileId,
+      ),
+    );
+  }
+
+  @override
+  Future<Either<Failure, CertificateImportItem>> addItem({
+    required String batchId,
+    required CertificateImportItemUpdatePayload payload,
+  }) {
+    return _item(
+      () => remoteDataSource.addItem(batchId: batchId, payload: payload),
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> removeItem({
+    required String batchId,
+    required String itemId,
+  }) {
+    return _guard(() async {
+      await remoteDataSource.removeItem(batchId: batchId, itemId: itemId);
+    });
   }
 
   @override
@@ -74,6 +136,21 @@ class CertificateImportRepositoryImpl implements CertificateImportRepository {
     );
   }
 
+  @override
+  Future<Either<Failure, CertificateImportInstitutionalRequestList>>
+      listInstitutionalRequests({
+    int page = 1,
+    int limit = 20,
+  }) {
+    return _guard(() async {
+      final model = await remoteDataSource.listInstitutionalRequests(
+        page: page,
+        limit: limit,
+      );
+      return model.toEntity();
+    });
+  }
+
   Future<Either<Failure, CertificateImportBatch>> _batch(
     Future<dynamic> Function() action,
   ) async {
@@ -101,6 +178,24 @@ class CertificateImportRepositoryImpl implements CertificateImportRepository {
     try {
       final model = await action();
       return Right(model.toEntity() as CertificateImportItem);
+    } on ServerException catch (error) {
+      return Left(ServerFailure(message: error.message, code: error.code));
+    } on AuthException catch (error) {
+      return Left(AuthFailure(message: error.message, code: error.code));
+    } on DioException catch (error) {
+      return Left(
+        ServerFailure(
+            message: error.message ?? 'Error de red',
+            code: error.response?.statusCode),
+      );
+    } catch (error) {
+      return Left(UnexpectedFailure(message: error.toString()));
+    }
+  }
+
+  Future<Either<Failure, T>> _guard<T>(Future<T> Function() action) async {
+    try {
+      return Right(await action());
     } on ServerException catch (error) {
       return Left(ServerFailure(message: error.message, code: error.code));
     } on AuthException catch (error) {

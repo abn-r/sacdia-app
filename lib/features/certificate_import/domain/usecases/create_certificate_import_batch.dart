@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
-import '../entities/certificate_import_payloads.dart';
 import '../entities/certificate_import_batch.dart';
+import '../entities/certificate_import_payloads.dart';
 import '../repositories/certificate_import_repository.dart';
 
 class CreateCertificateImportBatch {
@@ -19,5 +19,5 @@ class CreateCertificateImportBatch {
 class CreateCertificateImportBatchParams {
   final List<CertificateImportFilePayload> files;
 
-  const CreateCertificateImportBatchParams({required this.files});
+  const CreateCertificateImportBatchParams({this.files = const []});
 }

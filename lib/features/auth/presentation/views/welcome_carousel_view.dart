@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -212,18 +213,22 @@ class _WelcomeCarouselViewState extends ConsumerState<WelcomeCarouselView> {
                       const SizedBox(width: 48),
                     const Spacer(),
                     _FloatingChip(
-                      child: TextButton(
-                        key: const Key('welcome-skip'),
-                        onPressed:
-                            _finishing ? null : () => _finish(RouteNames.login),
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppColors.loginBrandBlueDark,
-                          visualDensity: VisualDensity.compact,
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                        ),
-                        child: Text(
-                          'welcome_carousel.skip'.tr(),
-                          style: const TextStyle(fontWeight: FontWeight.w600),
+                      child: SacPressable(
+                        listenOnly: true,
+                        child: TextButton(
+                          key: const Key('welcome-skip'),
+                          onPressed: _finishing
+                              ? null
+                              : () => _finish(RouteNames.login),
+                          style: (TextButton.styleFrom(
+                            foregroundColor: AppColors.loginBrandBlueDark,
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                          )).copyWith(enableFeedback: false),
+                          child: Text(
+                            'welcome_carousel.skip'.tr(),
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
                         ),
                       ),
                     ),

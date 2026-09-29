@@ -1,11 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
@@ -148,7 +150,7 @@ class ClassesListViewBody extends ConsumerWidget {
         final otherClasses = derivation.otherClasses;
 
         return RefreshIndicator(
-          color: AppColors.primary,
+          color: SacAccent.of(context).color,
           onRefresh: () async {
             ref.invalidate(userClassesProvider);
           },
@@ -317,7 +319,7 @@ class _RoadmapChip extends StatelessWidget {
       color: colorScheme.surfaceContainerLow,
       borderRadius: BorderRadius.circular(16),
       clipBehavior: Clip.antiAlias,
-      child: InkWell(
+      child: SacInkWell(
         onTap: () => context.push(RouteNames.homeClassesRoadmap),
         borderRadius: BorderRadius.circular(16),
         child: Padding(
@@ -328,14 +330,14 @@ class _RoadmapChip extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
+                  color: SacAccent.of(context).light,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Center(
+                child: Center(
                   child: HugeIcon(
                     icon: HugeIcons.strokeRoundedRoute01,
                     size: 22,
-                    color: AppColors.primary,
+                    color: SacAccent.of(context).color,
                   ),
                 ),
               ),
@@ -390,7 +392,7 @@ class _CertificationsChip extends StatelessWidget {
       color: colorScheme.surfaceContainerLow,
       borderRadius: BorderRadius.circular(16),
       clipBehavior: Clip.antiAlias,
-      child: InkWell(
+      child: SacInkWell(
         onTap: () => context.push(RouteNames.homeCertifications),
         borderRadius: BorderRadius.circular(16),
         child: Padding(

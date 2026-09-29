@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/animations/sac_state_swap.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -116,8 +117,7 @@ class _RequirementTreeItemState extends State<RequirementTreeItem> {
     }
   }
 
-  String get _responseText =>
-      widget.responseController?.text.trim() ?? '';
+  String get _responseText => widget.responseController?.text.trim() ?? '';
 
   void _onCheck() {
     if (!widget.enabled) return;
@@ -355,27 +355,33 @@ class _CircleCheckState extends State<_CircleCheck> {
             scale: (!reduce && _pressed) ? SacMotion.pressScale : 1,
             duration: duration,
             curve: SacMotion.easeOut,
-            child: SizedBox(
+            child: AnimatedContainer(
+              duration: reduce ? SacMotion.reducedFade : SacMotion.press,
+              curve: SacMotion.easeOut,
               width: 24,
               height: 24,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: widget.checked ? widget.color : Colors.transparent,
-                  border: Border.all(
-                    color: widget.checked ? widget.color : c.border,
-                    width: 1.5,
-                  ),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: widget.checked ? widget.color : Colors.transparent,
+                border: Border.all(
+                  color: widget.checked ? widget.color : c.border,
+                  width: 1.5,
                 ),
+              ),
+              child: SacStateSwap(
+                duration: SacMotion.press,
                 child: widget.checked
                     ? const Center(
+                        key: ValueKey('honor-check-on'),
                         child: HugeIcon(
                           icon: HugeIcons.strokeRoundedTick02,
                           size: 13,
                           color: Colors.white,
                         ),
                       )
-                    : null,
+                    : const SizedBox.shrink(
+                        key: ValueKey('honor-check-off'),
+                      ),
               ),
             ),
           ),

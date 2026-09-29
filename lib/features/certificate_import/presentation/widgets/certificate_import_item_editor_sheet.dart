@@ -11,10 +11,12 @@ class CertificateImportItemEditorSheet extends StatefulWidget {
     super.key,
     required this.item,
     required this.onSave,
+    this.titleKey = 'certificate_import.editor.title',
   });
 
   final CertificateImportItem item;
   final Future<void> Function(CertificateImportItem item) onSave;
+  final String titleKey;
 
   @override
   State<CertificateImportItemEditorSheet> createState() =>
@@ -73,7 +75,7 @@ class _CertificateImportItemEditorSheetState
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'certificate_import.editor.title'.tr(),
+                widget.titleKey.tr(),
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       color: c.text,
                       fontWeight: FontWeight.w700,
@@ -147,6 +149,7 @@ class _CertificateImportItemEditorSheetState
       type: _type,
       honorId: _type == CertificateImportItemType.honor ? catalogId : null,
       classId: _type == CertificateImportItemType.clazz ? catalogId : null,
+      classAssetCode: widget.item.classAssetCode,
       detectedName: _nameController.text.trim(),
       detectedDate: widget.item.detectedDate,
       completedAt: completedAt,

@@ -10,6 +10,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_card.dart';
 import '../../../../core/widgets/sac_network_image.dart';
@@ -167,7 +168,7 @@ class AnnualRankingProgressContent extends StatelessWidget {
 
     return RefreshIndicator(
       onRefresh: onRefresh,
-      color: AppColors.primary,
+      color: SacAccent.of(context).color,
       child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
@@ -207,7 +208,11 @@ class _ProgressHeroCard extends StatelessWidget {
         (progress.progressPercentage / 100).clamp(0.0, 1.0).toDouble();
     final percentLabel =
         '${progress.progressPercentage.clamp(0, 100).toStringAsFixed(0)}%';
-    final fillColor = _progressColorFor(percent, c);
+    final fillColor = _progressColorFor(
+      percent,
+      c,
+      activeColor: SacAccent.of(context).color,
+    );
     final pointsToReach = next?.pointsToReach;
 
     final clubLine = tr(
@@ -751,7 +756,7 @@ class _ComponentsCard extends StatelessWidget {
           for (var index = 0; index < components.length; index++) ...[
             _ComponentRow(
               component: components[index],
-              accent: AppColors.primary,
+              accent: SacAccent.of(context).color,
             ),
             if (index != components.length - 1) const SizedBox(height: 10),
           ],
@@ -1406,7 +1411,7 @@ Color _trackColorOf(SacColors colors) =>
 Color _progressColorFor(
   double percent,
   SacColors colors, {
-  Color activeColor = AppColors.primary,
+  required Color activeColor,
 }) {
   if (percent >= 1.0) return AppColors.secondary;
   if (percent <= 0.0) return colors.textTertiary;

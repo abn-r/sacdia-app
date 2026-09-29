@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -198,14 +199,19 @@ class _LoginViewState extends ConsumerState<LoginView> {
                               const SizedBox(height: 4),
                               Align(
                                 alignment: Alignment.centerRight,
-                                child: TextButton(
-                                  onPressed: () =>
-                                      context.push(RouteNames.forgotPassword),
-                                  child: Text(
-                                    'auth.forgot_password'.tr(),
-                                    style: const TextStyle(
-                                      color: AppColors.loginBrandBlueDark,
-                                      fontWeight: FontWeight.w600,
+                                child: SacPressable(
+                                  listenOnly: true,
+                                  child: TextButton(
+                                    style: const ButtonStyle(
+                                        enableFeedback: false),
+                                    onPressed: () =>
+                                        context.push(RouteNames.forgotPassword),
+                                    child: Text(
+                                      'auth.forgot_password'.tr(),
+                                      style: const TextStyle(
+                                        color: AppColors.loginBrandBlueDark,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   ),
                                 ),

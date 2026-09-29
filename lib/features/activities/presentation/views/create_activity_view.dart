@@ -3,12 +3,14 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
@@ -22,6 +24,7 @@ import '../../domain/entities/activity_series.dart';
 import '../../domain/entities/recurrence_rule.dart';
 import '../providers/activities_providers.dart';
 import '../widgets/activity_form_widgets.dart';
+import '../widgets/activity_audience_section.dart';
 import '../widgets/activity_series_form_section.dart';
 import 'location_picker_view.dart';
 import '../../../members/presentation/providers/members_providers.dart';
@@ -86,6 +89,8 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
   // Joint activity state
   bool _isJoint = false;
   Set<int> _selectedSectionIds = {};
+  String _audience = 'all';
+  Set<int> _selectedClassIds = {};
 
   bool _repeat = false;
   String _repeatKind = 'weekly';
@@ -235,8 +240,10 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
           : _linkMeetController.text.trim(),
       clubSectionId: widget.clubSectionId,
       activityDate: _activityDate,
-      activityEndDate: _activityEndDate,
+      activityEndDate: _repeat ? null : _activityEndDate,
       clubSectionIds: _isJoint ? _selectedSectionIds.toList() : null,
+      audience: _audience,
+      classes: _audience == 'classes' ? _selectedClassIds.toList() : null,
       recurrence: withRecurrence && _repeat ? _recurrence() : null,
     );
   }
@@ -316,6 +323,11 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
       return;
     }
 
+    if (_audience == 'classes' && _selectedClassIds.isEmpty) {
+      _showError('activities.form.audience_classes_required'.tr());
+      return;
+    }
+
     if (_repeat && _activityDate == null) {
       _showError('activities.series.date_required'.tr());
       return;
@@ -341,8 +353,10 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
           : _linkMeetController.text.trim(),
       clubSectionId: widget.clubSectionId,
       activityDate: _activityDate,
-      activityEndDate: _activityEndDate,
+      activityEndDate: _repeat ? null : _activityEndDate,
       clubSectionIds: clubSectionIds,
+      audience: _audience,
+      classes: _audience == 'classes' ? _selectedClassIds.toList() : null,
       recurrence: _repeat ? _recurrence() : null,
     );
 
@@ -436,6 +450,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
     final seriesState = ref.watch(createActivitySeriesNotifierProvider);
     final activityTypesAsync = ref.watch(activityTypesProvider);
     final clubCtxAsync = ref.watch(clubContextProvider);
+    final sectionsAsync = ref.watch(clubSectionsForActivityProvider);
     final c = context.sac;
     final isLoading =
         createState.isLoading || seriesState.isLoading || _isUploadingImage;
@@ -478,7 +493,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
         titleIcon: HugeIcon(
           icon: HugeIcons.strokeRoundedCalendarAdd01,
           size: 22,
-          color: AppColors.primary,
+          color: SacAccent.of(context).color,
         ),
       ),
       body: Form(
@@ -607,6 +622,18 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
               const SizedBox(height: 16),
             ],
 
+            ActivityAudienceSection(
+              sections: sectionsAsync.valueOrNull ?? const [],
+              ownSectionId: widget.clubSectionId,
+              isJoint: _isJoint,
+              selectedSectionIds: _selectedSectionIds,
+              audience: _audience,
+              selectedClassIds: _selectedClassIds,
+              onAudience: (value) => setState(() => _audience = value),
+              onClasses: (ids) => setState(() => _selectedClassIds = ids),
+            ),
+            const SizedBox(height: 24),
+
             // ── Sección: Lugar y tiempo ───────────────────────────────
             ActivitySectionHeader(
               icon: HugeIcons.strokeRoundedLocation01,
@@ -649,30 +676,48 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
               readOnly: true,
               enabled: !isLoading,
               onTap: isLoading ? null : _pickTime,
-              suffix: IconButton(
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedClock01,
-                  size: 18,
-                  color: AppColors.primary,
+              suffix: SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedClock01,
+                    size: 18,
+                    color: SacAccent.of(context).color,
+                  ),
+                  onPressed: isLoading ? null : _pickTime,
                 ),
-                onPressed: isLoading ? null : _pickTime,
               ),
             ),
             const SizedBox(height: 16),
 
-            // Fecha de fin (opcional)
-            ActivityDatePickerField(
-              label: 'activities.form.end_date_label'.tr(),
-              value: _activityEndDate,
-              enabled: !isLoading && _activityDate != null,
-              onTap: (isLoading || _activityDate == null)
-                  ? null
-                  : _pickActivityEndDate,
-              onClear: _activityEndDate == null
-                  ? null
-                  : () => setState(() => _activityEndDate = null),
+            // Fecha de fin solo en una actividad suelta. En serie, el límite
+            // es «Repetir hasta».
+            AnimatedSize(
+              duration: SacMotion.reduceMotionOf(context)
+                  ? Duration.zero
+                  : SacMotion.standard,
+              curve: SacMotion.easeInOut,
+              alignment: Alignment.topCenter,
+              child: _repeat
+                  ? const SizedBox(width: double.infinity)
+                  : Column(
+                      children: [
+                        ActivityDatePickerField(
+                          label: 'activities.form.end_date_label'.tr(),
+                          value: _activityEndDate,
+                          enabled: !isLoading && _activityDate != null,
+                          onTap: (isLoading || _activityDate == null)
+                              ? null
+                              : _pickActivityEndDate,
+                          onClear: _activityEndDate == null
+                              ? null
+                              : () => setState(() => _activityEndDate = null),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
             ),
-            const SizedBox(height: 24),
 
             ActivitySectionHeader(
               icon: HugeIcons.strokeRoundedRefresh,
@@ -686,6 +731,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
                 setState(() {
                   _repeat = value;
                   _until ??= _yearEnd();
+                  if (value) _activityEndDate = null;
                 });
                 _schedulePreview();
               },
@@ -825,7 +871,7 @@ class _JointActivityToggle extends StatelessWidget {
         color: c.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: value ? AppColors.primary.withValues(alpha: 0.4) : c.border,
+          color: value ? SacAccent.of(context).color.withValues(alpha: 0.4) : c.border,
           width: value ? 1.5 : 1.0,
         ),
         boxShadow: [
@@ -836,35 +882,40 @@ class _JointActivityToggle extends StatelessWidget {
           ),
         ],
       ),
-      child: SwitchListTile(
-        value: value,
-        onChanged: enabled ? onChanged : null,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        title: Text(
-          'activities.form.joint_toggle_title'.tr(),
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: c.text,
+      child: SacPressable(
+        listenOnly: true,
+        child: SwitchListTile(
+          enableFeedback: false,
+          value: value,
+          onChanged: enabled ? onChanged : null,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          title: Text(
+            'activities.form.joint_toggle_title'.tr(),
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: c.text,
+            ),
           ),
-        ),
-        subtitle: Text(
-          'activities.form.joint_toggle_subtitle'.tr(),
-          style: TextStyle(
-            fontSize: 12,
-            color: c.textSecondary,
+          subtitle: Text(
+            'activities.form.joint_toggle_subtitle'.tr(),
+            style: TextStyle(
+              fontSize: 12,
+              color: c.textSecondary,
+            ),
           ),
-        ),
-        secondary: Container(
-          padding: const EdgeInsets.all(7),
-          decoration: BoxDecoration(
-            color: value ? AppColors.primaryLight : c.surfaceVariant,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: HugeIcon(
-            icon: HugeIcons.strokeRoundedUserGroup,
-            size: 18,
-            color: value ? AppColors.primary : c.textTertiary,
+          secondary: Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: value ? SacAccent.of(context).light : c.surfaceVariant,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: HugeIcon(
+              icon: HugeIcons.strokeRoundedUserGroup,
+              size: 18,
+              color: value ? SacAccent.of(context).color : c.textTertiary,
+            ),
           ),
         ),
       ),

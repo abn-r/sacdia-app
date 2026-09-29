@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 /// Animated progress ring — Apple Health / Fitness style.
@@ -28,7 +29,7 @@ class SacProgressRing extends StatefulWidget {
   /// Widget opcional en el centro (por defecto muestra el porcentaje)
   final Widget? child;
 
-  /// Color del progreso (inicio del gradiente). Default: AppColors.primary
+  /// Color del progreso (inicio del gradiente). Null usa el acento del sistema.
   final Color? color;
 
   /// Color del track de fondo. Default: AppColors.lightBorderLight
@@ -158,7 +159,8 @@ class _SacProgressRingState extends State<SacProgressRing>
                   painter: _ProgressRingPainter(
                     progress: animatedProgress,
                     strokeWidth: widget.strokeWidth,
-                    progressColor: widget.color ?? AppColors.primary,
+                    progressColor:
+                        widget.color ?? SacAccent.of(context).color,
                     trackColor: widget.trackColor ?? context.sac.borderLight,
                   ),
                 ),

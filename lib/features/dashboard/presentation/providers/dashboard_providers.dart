@@ -10,6 +10,7 @@ import '../../../../core/usecases/usecase.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../../providers/storage_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../home_widgets/next_activity_widget_sync.dart';
 import '../../data/datasources/dashboard_remote_data_source.dart';
 import '../../data/models/dashboard_summary_model.dart';
 import '../../data/repositories/dashboard_repository_impl.dart';
@@ -211,6 +212,7 @@ class DashboardNotifier extends AsyncNotifier<DashboardSummary?> {
       cacheKey: cacheKey,
     );
     if (cached != null) {
+      unawaited(publishNextActivityWidget(cached));
       _scheduleBackgroundRefresh(
         cacheKey: cacheKey,
         userId: userId,
@@ -246,6 +248,9 @@ class DashboardNotifier extends AsyncNotifier<DashboardSummary?> {
         cacheKey: cacheKey,
         summary: summary,
       );
+      if (!_isDisposed) {
+        unawaited(publishNextActivityWidget(summary));
+      }
     }
 
     return summary;
@@ -289,6 +294,7 @@ class DashboardNotifier extends AsyncNotifier<DashboardSummary?> {
         return;
       }
 
+      unawaited(publishNextActivityWidget(summary));
       state = AsyncValue.data(summary);
     } catch (_) {
       // Ignore background refresh failures so valid cached data stays visible.
@@ -369,6 +375,7 @@ class DashboardNotifier extends AsyncNotifier<DashboardSummary?> {
       cacheKey: cacheKey,
       summary: summary,
     );
+    unawaited(publishNextActivityWidget(summary));
     state = AsyncValue.data(summary);
   }
 }

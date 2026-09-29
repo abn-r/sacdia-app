@@ -1,10 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/widgets/secure_screen.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/finance_month.dart';
@@ -47,7 +49,7 @@ class FinancesView extends ConsumerWidget {
         backgroundColor: context.sac.background,
         body: SafeArea(
           child: RefreshIndicator(
-            color: AppColors.primary,
+            color: SacAccent.of(context).color,
             onRefresh: () async {
               ref.invalidate(financeMonthProvider);
               ref.invalidate(financeSummaryProvider);
@@ -75,13 +77,17 @@ class FinancesView extends ConsumerWidget {
                   centerTitle: false,
                   actions: [
                     if (showAddButton)
-                      IconButton(
-                        tooltip: 'finances.add_transaction.new_title'.tr(),
-                        onPressed: () => _openAddSheet(context, ref),
-                        icon: HugeIcon(
-                          icon: HugeIcons.strokeRoundedAdd01,
-                          size: 22,
-                          color: AppColors.primary,
+                      SacPressable(
+                        listenOnly: true,
+                        child: IconButton(
+                          enableFeedback: false,
+                          tooltip: 'finances.add_transaction.new_title'.tr(),
+                          onPressed: () => _openAddSheet(context, ref),
+                          icon: HugeIcon(
+                            icon: HugeIcons.strokeRoundedAdd01,
+                            size: 22,
+                            color: SacAccent.of(context).color,
+                          ),
                         ),
                       ),
                     if (financeMonthAsync.isLoading)
@@ -94,15 +100,19 @@ class FinancesView extends ConsumerWidget {
                         ),
                       )
                     else
-                      IconButton(
-                        onPressed: () {
-                          ref.invalidate(financeMonthProvider);
-                          ref.invalidate(financeSummaryProvider);
-                        },
-                        icon: HugeIcon(
-                          icon: HugeIcons.strokeRoundedRefresh,
-                          size: 20,
-                          color: context.sac.textSecondary,
+                      SacPressable(
+                        listenOnly: true,
+                        child: IconButton(
+                          enableFeedback: false,
+                          onPressed: () {
+                            ref.invalidate(financeMonthProvider);
+                            ref.invalidate(financeSummaryProvider);
+                          },
+                          icon: HugeIcon(
+                            icon: HugeIcons.strokeRoundedRefresh,
+                            size: 20,
+                            color: context.sac.textSecondary,
+                          ),
                         ),
                       ),
                   ],

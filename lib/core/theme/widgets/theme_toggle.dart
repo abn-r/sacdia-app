@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -27,7 +28,7 @@ class ThemeToggle extends ConsumerWidget {
     ref.watch(themeNotifierProvider);
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    return InkWell(
+    return SacInkWell(
       borderRadius: BorderRadius.circular(AppConstants.paddingS),
       onTap: () => ref.read(themeNotifierProvider.notifier).toggleTheme(),
       child: Padding(

@@ -1,7 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/animations/sac_state_swap.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 /// Indicador de progreso visual para los pasos del post-registro.
@@ -42,7 +45,10 @@ class StepIndicator extends StatelessWidget {
             final isCompleted = stepBefore < currentStep;
             return Expanded(
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
+                duration: SacMotion.reduceMotionOf(context)
+                    ? SacMotion.reducedFade
+                    : SacMotion.standard,
+                curve: SacMotion.easeOut,
                 height: 2,
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
@@ -62,12 +68,16 @@ class StepIndicator extends StatelessWidget {
               ? resolvedLabels[stepNumber - 1]
               : '';
 
+          final reduce = SacMotion.reduceMotionOf(context);
+          final stepDuration =
+              reduce ? SacMotion.reducedFade : SacMotion.standard;
+
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Circle
               AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
+                duration: stepDuration,
+                curve: SacMotion.easeOut,
                 width: 26,
                 height: 26,
                 decoration: BoxDecoration(
@@ -75,39 +85,47 @@ class StepIndicator extends StatelessWidget {
                   color: isCompleted
                       ? AppColors.secondary
                       : isActive
-                          ? AppColors.primary
+                          ? SacAccent.of(context).color
                           : context.sac.surface,
                   border: Border.all(
                     color: isCompleted
                         ? AppColors.secondary
                         : isActive
-                            ? AppColors.primary
+                            ? SacAccent.of(context).color
                             : context.sac.border,
                     width: 2,
                   ),
                 ),
                 child: Center(
-                  child: isCompleted
-                      ? HugeIcon(
-                          icon: HugeIcons.strokeRoundedTick02,
-                          color: Colors.white,
-                          size: 14)
-                      : Text(
-                          '$stepNumber',
-                          style: TextStyle(
-                            color: isActive
-                                ? Colors.white
-                                : context.sac.textTertiary,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 11,
+                  child: SacStateSwap(
+                    duration: SacMotion.standard,
+                    child: isCompleted
+                        ? const HugeIcon(
+                            key: ValueKey('step-done'),
+                            icon: HugeIcons.strokeRoundedTick02,
+                            color: Colors.white,
+                            size: 14,
+                          )
+                        : AnimatedDefaultTextStyle(
+                            key: const ValueKey('step-num'),
+                            duration: stepDuration,
+                            curve: SacMotion.easeOut,
+                            style: TextStyle(
+                              color: isActive
+                                  ? Colors.white
+                                  : context.sac.textTertiary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 11,
+                            ),
+                            child: Text('$stepNumber'),
                           ),
-                        ),
+                  ),
                 ),
               ),
               const SizedBox(height: 4),
-              // Label
-              Text(
-                label,
+              AnimatedDefaultTextStyle(
+                duration: stepDuration,
+                curve: SacMotion.easeOut,
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: isActive || isCompleted
@@ -116,9 +134,10 @@ class StepIndicator extends StatelessWidget {
                   color: isCompleted
                       ? AppColors.secondary
                       : isActive
-                          ? AppColors.primary
+                          ? SacAccent.of(context).color
                           : context.sac.textTertiary,
                 ),
+                child: Text(label),
               ),
             ],
           );

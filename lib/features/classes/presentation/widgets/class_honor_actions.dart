@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
@@ -46,39 +47,52 @@ class ClassHonorActionsRow extends StatelessWidget {
             ),
           ),
           if (honor.hasMaterial)
-            IconButton(
-              tooltip: 'classes.honors.open_pdf'.tr(),
-              onPressed: () => SacPdfViewer.show(
-                context,
-                pdfSource: honor.materialUrl!,
-                title: honor.honorName,
-              ),
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedPdf01,
-                size: 18,
-                color: c.ink600,
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                tooltip: 'classes.honors.open_pdf'.tr(),
+                onPressed: () => SacPdfViewer.show(
+                  context,
+                  pdfSource: honor.materialUrl!,
+                  title: honor.honorName,
+                ),
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedPdf01,
+                  size: 18,
+                  color: c.ink600,
+                ),
               ),
             )
           else
             Tooltip(
               message: 'classes.honors.no_pdf'.tr(),
-              child: IconButton(
-                onPressed: null,
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedPdf01,
-                  size: 18,
-                  color: c.ink300,
+              child: SacPressable(
+                listenOnly: true,
+                enabled: false,
+                child: IconButton(
+                  enableFeedback: false,
+                  onPressed: null,
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedPdf01,
+                    size: 18,
+                    color: c.ink300,
+                  ),
                 ),
               ),
             ),
-          TextButton(
-            onPressed: () => context.push(
-              RouteNames.honorDetailPath(honor.honorId.toString()),
-            ),
-            child: Text(
-              honor.isEnrolled
-                  ? 'classes.honors.continue_honor'.tr()
-                  : 'classes.honors.enroll'.tr(),
+          SacPressable(
+            listenOnly: true,
+            child: TextButton(
+              style: const ButtonStyle(enableFeedback: false),
+              onPressed: () => context.push(
+                RouteNames.honorDetailPath(honor.honorId.toString()),
+              ),
+              child: Text(
+                honor.isEnrolled
+                    ? 'classes.honors.continue_honor'.tr()
+                    : 'classes.honors.enroll'.tr(),
+              ),
             ),
           ),
         ],

@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
@@ -40,7 +41,7 @@ class MonthlyReportsVisibleListView extends ConsumerWidget {
           onRetry: () => ref.invalidate(visibleMonthlyReportsProvider),
         ),
         data: (page) => RefreshIndicator(
-          color: AppColors.primary,
+          color: SacAccent.of(context).color,
           onRefresh: () async => ref.invalidate(visibleMonthlyReportsProvider),
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
@@ -214,7 +215,7 @@ class _NextActionBar extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: kind == _NextActionKind.allSet
                       ? const Color(0xFFDCFCE7)
-                      : AppColors.primary.withValues(alpha: 0.12),
+                      : SacAccent.of(context).color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: HugeIcon(
@@ -223,7 +224,7 @@ class _NextActionBar extends ConsumerWidget {
                       : HugeIcons.strokeRoundedNoteEdit,
                   color: kind == _NextActionKind.allSet
                       ? const Color(0xFF15803D)
-                      : AppColors.primary,
+                      : SacAccent.of(context).color,
                   size: 20,
                 ),
               ),
@@ -260,15 +261,19 @@ class _NextActionBar extends ConsumerWidget {
               ),
               if (ctaLabel == null) ...[
                 const SizedBox(width: 8),
-                IconButton(
-                  tooltip: 'monthly_reports.visible.view_period'.tr(),
-                  onPressed: period == null
-                      ? null
-                      : () => _prepareOrOpen(context, ref, existing: period),
-                  icon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedArrowRight01,
-                    color: c.textSecondary,
-                    size: 20,
+                SacPressable(
+                  listenOnly: true,
+                  child: IconButton(
+                    enableFeedback: false,
+                    tooltip: 'monthly_reports.visible.view_period'.tr(),
+                    onPressed: period == null
+                        ? null
+                        : () => _prepareOrOpen(context, ref, existing: period),
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowRight01,
+                      color: c.textSecondary,
+                      size: 20,
+                    ),
                   ),
                 ),
               ],
@@ -564,7 +569,13 @@ class _ErrorBody extends StatelessWidget {
               style: TextStyle(color: c.textSecondary),
             ),
             const SizedBox(height: 16),
-            TextButton(onPressed: onRetry, child: Text('common.retry'.tr())),
+            SacPressable(
+              listenOnly: true,
+              child: TextButton(
+                  style: const ButtonStyle(enableFeedback: false),
+                  onPressed: onRetry,
+                  child: Text('common.retry'.tr())),
+            ),
           ],
         ),
       ),

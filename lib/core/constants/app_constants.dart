@@ -56,6 +56,7 @@ class AppConstants {
   static const String tokenTypeKey = 'auth_token_type';
   static const String userKey = 'user_data';
   static const String themeKey = 'app_theme';
+  static const String accentKey = 'app_accent';
   static const String localeKey = 'app_locale';
 
   // Accessibility (MVP: SharedPreferences only)

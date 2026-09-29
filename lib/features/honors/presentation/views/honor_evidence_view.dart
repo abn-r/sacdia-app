@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +12,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
@@ -193,27 +195,35 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
               ),
             ),
             const SizedBox(height: 16),
-            ListTile(
-              leading: const HugeIcon(
-                icon: HugeIcons.strokeRoundedCamera01,
-                color: AppColors.info,
+            SacPressable(
+              listenOnly: true,
+              child: ListTile(
+                enableFeedback: false,
+                leading: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedCamera01,
+                  color: AppColors.info,
+                ),
+                title: Text('honors.evidence.pick_camera'.tr()),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickFromCamera();
+                },
               ),
-              title: Text('honors.evidence.pick_camera'.tr()),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickFromCamera();
-              },
             ),
-            ListTile(
-              leading: const HugeIcon(
-                icon: HugeIcons.strokeRoundedImage01,
-                color: AppColors.success,
+            SacPressable(
+              listenOnly: true,
+              child: ListTile(
+                enableFeedback: false,
+                leading: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedImage01,
+                  color: AppColors.success,
+                ),
+                title: Text('honors.evidence.pick_gallery'.tr()),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickFromGallery();
+                },
               ),
-              title: Text('honors.evidence.pick_gallery'.tr()),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickFromGallery();
-              },
             ),
             const SizedBox(height: 8),
           ],
@@ -581,10 +591,10 @@ class _ModeGuardScaffold extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const HugeIcon(
+            HugeIcon(
               icon: HugeIcons.strokeRoundedRoute01,
               size: 48,
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
             ),
             const SizedBox(height: 16),
             Text(

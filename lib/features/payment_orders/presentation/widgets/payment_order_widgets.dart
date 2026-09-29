@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 import '../../domain/entities/payment_order.dart';
@@ -12,12 +13,15 @@ String formatCentavos(int centavos, [String currency = 'MXN']) {
 }
 
 /// Color semántico por estado de la orden.
-Color paymentOrderStatusColor(PaymentOrderStatus status) {
+Color paymentOrderStatusColor(
+  PaymentOrderStatus status,
+  BuildContext context,
+) {
   switch (status) {
     case PaymentOrderStatus.issued:
       return AppColors.accent;
     case PaymentOrderStatus.proofSubmitted:
-      return AppColors.primary;
+      return SacAccent.of(context).color;
     case PaymentOrderStatus.approved:
       return AppColors.secondary;
     case PaymentOrderStatus.proofRejected:
@@ -54,7 +58,7 @@ class PaymentOrderStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = paymentOrderStatusColor(status);
+    final color = paymentOrderStatusColor(status, context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
@@ -83,7 +87,7 @@ class PaymentOrderTimeline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final steps = _steps();
+    final steps = _steps(context);
 
     return Column(
       children: [
@@ -97,7 +101,7 @@ class PaymentOrderTimeline extends StatelessWidget {
     );
   }
 
-  List<_TimelineStep> _steps() {
+  List<_TimelineStep> _steps(BuildContext context) {
     final status = order.status;
 
     if (status == PaymentOrderStatus.cancelled) {
@@ -141,7 +145,7 @@ class PaymentOrderTimeline extends StatelessWidget {
             ? 'payment_orders.status.proof_rejected'.tr()
             : 'payment_orders.timeline.proof_submitted'.tr(),
         done: status != PaymentOrderStatus.issued,
-        color: proofRejected ? AppColors.error : AppColors.primary,
+        color: proofRejected ? AppColors.error : SacAccent.of(context).color,
       ),
       _TimelineStep(
         label: 'payment_orders.timeline.approved'.tr(),

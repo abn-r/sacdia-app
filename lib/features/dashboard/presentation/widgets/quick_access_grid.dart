@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/authorization/access_subject.dart';
 import 'package:sacdia_app/core/authorization/screen_catalog.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
@@ -34,7 +35,7 @@ class _QuickAccessItemConfig {
   });
 }
 
-const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
+List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.coordination',
     icon: HugeIcons.strokeRoundedAnalytics01,
@@ -45,7 +46,6 @@ const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.members',
     icon: HugeIcons.strokeRoundedUserGroup,
-    color: AppColors.primary,
     route: RouteNames.homeMembers,
     screenId: 'app-members',
   ),
@@ -87,7 +87,6 @@ const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.grouped_class',
     icon: HugeIcons.strokeRoundedBookOpen01,
-    color: AppColors.primary,
     route: RouteNames.homeGroupedClass,
     screenId: 'app-grouped-class',
   ),
@@ -128,7 +127,6 @@ const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.club_rankings',
     icon: HugeIcons.strokeRoundedMedal05,
-    color: AppColors.primary,
     route: RouteNames.homeClubRankings,
     screenId: 'annual-folders-rankings',
   ),
@@ -311,7 +309,7 @@ class _QuickAccessTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final effectiveColor = item.color ?? c.text;
+    final effectiveColor = item.color ?? SacAccent.of(context).color;
 
     return SizedBox.expand(
       child: SacCard(

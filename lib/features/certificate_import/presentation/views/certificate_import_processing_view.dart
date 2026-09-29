@@ -9,8 +9,8 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
-import '../providers/certificate_import_providers.dart';
-
+/// OCR real no está autorizado en este cliente: no se invoca process-ocr.
+/// El usuario completa el expediente a mano.
 class CertificateImportProcessingRouteView extends ConsumerWidget {
   const CertificateImportProcessingRouteView(
       {super.key, required this.batchId});
@@ -21,14 +21,7 @@ class CertificateImportProcessingRouteView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return CertificateImportProcessingView(
       batchId: batchId,
-      onStartOcr: () async {
-        final result =
-            await ref.read(processCertificateImportOcrProvider).call(batchId);
-        result.fold(
-          (failure) => throw Exception(failure.message),
-          (_) => context.go(RouteNames.certificateImportReviewPath(batchId)),
-        );
-      },
+      autoStart: false,
       onManualFallback: () =>
           context.go(RouteNames.certificateImportReviewPath(batchId)),
     );
@@ -62,7 +55,7 @@ class _CertificateImportProcessingViewState
   @override
   void initState() {
     super.initState();
-    if (widget.autoStart) {
+    if (widget.autoStart && widget.onStartOcr != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _start());
     }
   }
@@ -70,6 +63,7 @@ class _CertificateImportProcessingViewState
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    final ocrUnavailable = widget.onStartOcr == null;
     return Scaffold(
       backgroundColor: c.background,
       appBar: SacTopBar(
@@ -87,9 +81,11 @@ class _CertificateImportProcessingViewState
                     color: c.info),
                 const SizedBox(height: 16),
                 Text(
-                  _error == null
-                      ? 'certificate_import.processing.running_title'.tr()
-                      : 'certificate_import.processing.error_title'.tr(),
+                  ocrUnavailable
+                      ? 'certificate_import.processing.manual_title'.tr()
+                      : _error == null
+                          ? 'certificate_import.processing.running_title'.tr()
+                          : 'certificate_import.processing.error_title'.tr(),
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         color: c.text,
@@ -98,9 +94,11 @@ class _CertificateImportProcessingViewState
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  _error == null
-                      ? 'certificate_import.processing.running_body'.tr()
-                      : 'certificate_import.processing.error_body'.tr(),
+                  ocrUnavailable
+                      ? 'certificate_import.processing.manual_body'.tr()
+                      : _error == null
+                          ? 'certificate_import.processing.running_body'.tr()
+                          : 'certificate_import.processing.error_body'.tr(),
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: c.textSecondary,
@@ -115,10 +113,10 @@ class _CertificateImportProcessingViewState
               done: true),
           _Step(
               label: 'certificate_import.processing.step_ocr'.tr(),
-              active: _running && _error == null),
+              active: _running && _error == null && !ocrUnavailable),
           _Step(
               label: 'certificate_import.processing.step_results'.tr(),
-              active: _running && _error == null),
+              active: _running && _error == null && !ocrUnavailable),
           if (_error != null) ...[
             const SizedBox(height: 12),
             Text(_error!, style: TextStyle(color: c.error)),
@@ -129,11 +127,13 @@ class _CertificateImportProcessingViewState
             icon: HugeIcons.strokeRoundedNoteEdit,
             onPressed: widget.onManualFallback,
           ),
-          const SizedBox(height: 10),
-          SacButton.ghost(
-            text: 'certificate_import.processing.retry'.tr(),
-            onPressed: _running ? null : _start,
-          ),
+          if (!ocrUnavailable) ...[
+            const SizedBox(height: 10),
+            SacButton.ghost(
+              text: 'certificate_import.processing.retry'.tr(),
+              onPressed: _running ? null : _start,
+            ),
+          ],
         ],
       ),
     );

@@ -1,8 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 
@@ -83,14 +85,18 @@ class WelcomeHeader extends StatelessWidget {
             Semantics(
               button: true,
               label: 'nav.more'.tr(),
-              child: IconButton(
-                onPressed: onMoreTap,
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedMoreHorizontal,
-                  size: 24,
-                  color: AppColors.lightText,
+              child: SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  onPressed: onMoreTap,
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedMoreHorizontal,
+                    size: 24,
+                    color: AppColors.lightText,
+                  ),
+                  tooltip: 'nav.more'.tr(),
                 ),
-                tooltip: 'nav.more'.tr(),
               ),
             ),
           ],
@@ -100,14 +106,18 @@ class WelcomeHeader extends StatelessWidget {
             Stack(
               clipBehavior: Clip.none,
               children: [
-                IconButton(
-                  onPressed: onNotificationsTap,
-                  icon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedNotification01,
-                    size: 24,
-                    color: context.sac.text,
+                SacPressable(
+                  listenOnly: true,
+                  child: IconButton(
+                    enableFeedback: false,
+                    onPressed: onNotificationsTap,
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedNotification01,
+                      size: 24,
+                      color: context.sac.text,
+                    ),
+                    tooltip: tr('dashboard.notifications_tooltip'),
                   ),
-                  tooltip: tr('dashboard.notifications_tooltip'),
                 ),
                 if (unreadNotificationsCount > 0)
                   Positioned(
@@ -148,7 +158,7 @@ class WelcomeHeader extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: AppColors.primaryLight,
+                  color: SacAccent.of(context).light,
                   width: 2,
                 ),
               ),
@@ -189,14 +199,14 @@ class _AvatarFallback extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.primaryLight,
+      color: SacAccent.of(context).light,
       alignment: Alignment.center,
       child: Text(
         initial.isNotEmpty ? initial[0].toUpperCase() : 'U',
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w700,
-          color: AppColors.primary,
+          color: SacAccent.of(context).color,
         ),
       ),
     );

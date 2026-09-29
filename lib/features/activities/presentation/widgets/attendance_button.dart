@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/animations/sac_state_swap.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
@@ -23,34 +25,38 @@ class AttendanceButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (isAttending) {
-      return SacCard(
-        backgroundColor: AppColors.secondaryLight,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-                icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                size: 20,
-                color: AppColors.secondaryDark),
-            const SizedBox(width: 8),
-            Text(
-              'activities.widgets.attendance_confirmed'.tr(),
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: AppColors.secondaryDark,
+    return SacStateSwap(
+      duration: SacMotion.standard,
+      child: isAttending
+          ? SacCard(
+              key: const ValueKey('attendance-confirmed'),
+              backgroundColor: AppColors.secondaryLight,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const HugeIcon(
+                    icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+                    size: 20,
+                    color: AppColors.secondaryDark,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'activities.widgets.attendance_confirmed'.tr(),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondaryDark,
+                    ),
+                  ),
+                ],
               ),
+            )
+          : SacButton.primary(
+              key: const ValueKey('attendance-pending'),
+              text: 'activities.widgets.confirm_attendance'.tr(),
+              icon: HugeIcons.strokeRoundedUserCheck01,
+              isLoading: isLoading,
+              onPressed: onPressed,
             ),
-          ],
-        ),
-      );
-    }
-
-    return SacButton.primary(
-      text: 'activities.widgets.confirm_attendance'.tr(),
-      icon: HugeIcons.strokeRoundedUserCheck01,
-      isLoading: isLoading,
-      onPressed: onPressed,
     );
   }
 }

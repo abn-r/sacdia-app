@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 import '../../domain/entities/achievement.dart';
@@ -195,8 +196,8 @@ class _AchievementDetailSheetState extends State<AchievementDetailSheet>
                                         _MetaChip(
                                           icon: HugeIcons.strokeRoundedFlash,
                                           label: '${achievement.points} pts',
-                                          foreground: AppColors.primary,
-                                          background: AppColors.primary
+                                          foreground: SacAccent.of(context).color,
+                                          background: SacAccent.of(context).color
                                               .withValues(alpha: 0.12),
                                         ),
                                         if (achievement.repeatable)
@@ -413,8 +414,8 @@ class _StatusChip extends StatelessWidget {
         ),
       AchievementVisualState.inProgress => (
           'achievements.views.filter_in_progress'.tr(),
-          AppColors.primaryDark,
-          AppColors.primaryLight,
+          SacAccent.of(context).dark,
+          SacAccent.of(context).light,
           HugeIcons.strokeRoundedLoading03,
         ),
       AchievementVisualState.locked => (
@@ -789,7 +790,7 @@ class _PrerequisiteCard extends StatelessWidget {
           HugeIcon(
             icon: HugeIcons.strokeRoundedLink01,
             size: 16,
-            color: AppColors.primary,
+            color: SacAccent.of(context).color,
           ),
           const SizedBox(width: 10),
           Expanded(

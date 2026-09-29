@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
@@ -7,6 +8,7 @@ import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../../../core/realtime/realtime_ref.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/byte_formatter.dart';
 import '../../../../core/utils/relative_time.dart';
@@ -48,7 +50,7 @@ class SyncCacheSection extends ConsumerWidget {
               icon: HugeIcons.strokeRoundedDatabase01,
               title: 'settings.clear_cache_tile'.tr(),
               subtitle: '${'settings.cache_size_label'.tr()}: $sizeLabel',
-              iconColor: AppColors.primary,
+              iconColor: SacAccent.of(context).color,
               trailing: clearState.inProgress
                   ? const SizedBox(
                       width: 18,
@@ -68,7 +70,7 @@ class SyncCacheSection extends ConsumerWidget {
               subtitle: syncState.inProgress
                   ? 'settings.force_sync_in_progress'.tr()
                   : null,
-              iconColor: AppColors.primary,
+              iconColor: SacAccent.of(context).color,
               trailing: syncState.inProgress
                   ? const SizedBox(
                       width: 18,
@@ -124,24 +126,32 @@ class SyncCacheSection extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 12),
-            ListTile(
-              leading: const HugeIcon(
-                icon: HugeIcons.strokeRoundedImage01,
-                color: AppColors.primary,
+            SacPressable(
+              listenOnly: true,
+              child: ListTile(
+                enableFeedback: false,
+                leading: HugeIcon(
+                  icon: HugeIcons.strokeRoundedImage01,
+                  color: SacAccent.of(context).color,
+                ),
+                title: Text('settings.clear_cache_images_only'.tr()),
+                onTap: () => Navigator.pop(sheetCtx, ClearCacheMode.imagesOnly),
               ),
-              title: Text('settings.clear_cache_images_only'.tr()),
-              onTap: () => Navigator.pop(sheetCtx, ClearCacheMode.imagesOnly),
             ),
-            ListTile(
-              leading: const HugeIcon(
-                icon: HugeIcons.strokeRoundedDelete02,
-                color: AppColors.error,
+            SacPressable(
+              listenOnly: true,
+              child: ListTile(
+                enableFeedback: false,
+                leading: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedDelete02,
+                  color: AppColors.error,
+                ),
+                title: Text(
+                  'settings.clear_cache_all_data'.tr(),
+                  style: const TextStyle(color: AppColors.error),
+                ),
+                onTap: () => Navigator.pop(sheetCtx, ClearCacheMode.allData),
               ),
-              title: Text(
-                'settings.clear_cache_all_data'.tr(),
-                style: const TextStyle(color: AppColors.error),
-              ),
-              onTap: () => Navigator.pop(sheetCtx, ClearCacheMode.allData),
             ),
           ],
         ),

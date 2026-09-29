@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -1004,6 +1005,7 @@ class _ForegroundNotificationBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final visual = notificationVisualConfig(
+      context: context,
       source: source,
       targetType: NotificationTargetType.unknown,
     );
@@ -1014,7 +1016,7 @@ class _ForegroundNotificationBanner extends StatelessWidget {
       child: Material(
         color: c.surface,
         borderRadius: BorderRadius.circular(18),
-        child: InkWell(
+        child: SacInkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(18),
           child: Container(
@@ -1081,20 +1083,23 @@ class _ForegroundNotificationBanner extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                TextButton(
-                  onPressed: onTap,
-                  style: TextButton.styleFrom(
-                    foregroundColor: visual.iconColor,
-                    minimumSize: const Size(48, 48),
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                SacPressable(
+                  listenOnly: true,
+                  child: TextButton(
+                    onPressed: onTap,
+                    style: (TextButton.styleFrom(
+                      foregroundColor: visual.iconColor,
+                      minimumSize: const Size(48, 48),
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      backgroundColor: visual.iconColor.withValues(alpha: 0.08),
+                    )).copyWith(enableFeedback: false),
+                    child: const Text(
+                      'Ver',
+                      style: TextStyle(fontWeight: FontWeight.w800),
                     ),
-                    backgroundColor: visual.iconColor.withValues(alpha: 0.08),
-                  ),
-                  child: const Text(
-                    'Ver',
-                    style: TextStyle(fontWeight: FontWeight.w800),
                   ),
                 ),
               ],

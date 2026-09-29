@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_card.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
@@ -179,7 +180,7 @@ class _SectionRankingHeader extends StatelessWidget {
       child: SacCard(
         margin: const EdgeInsets.fromLTRB(16, 14, 16, 8),
         padding: const EdgeInsets.all(18),
-        borderColor: AppColors.primary.withValues(alpha: 0.18),
+        borderColor: SacAccent.of(context).color.withValues(alpha: 0.18),
         backgroundColor: c.surface,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,12 +192,12 @@ class _SectionRankingHeader extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: AppColors.primarySurface,
+                    color: SacAccent.of(context).surface,
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const HugeIcon(
+                  child: HugeIcon(
                     icon: HugeIcons.strokeRoundedAnalytics01,
-                    color: AppColors.primary,
+                    color: SacAccent.of(context).color,
                     size: 24,
                   ),
                 ),
@@ -233,7 +234,7 @@ class _SectionRankingHeader extends StatelessWidget {
                   child: _HeaderMetric(
                     label: tr('rankings.section_ranking.classified'),
                     value: members.length.toString(),
-                    color: AppColors.primary,
+                    color: SacAccent.of(context).color,
                   ),
                 ),
                 const SizedBox(width: 10),

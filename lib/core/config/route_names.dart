@@ -17,6 +17,7 @@ class RouteNames {
   static const String clubDetail = '/club/:clubId';
   static const String classDetail = '/class/:classId';
   static const String honorDetail = '/honor/:honorId';
+  static const String activityDetail = '/activity/:activityId';
 
   // Paths completos para tabs del home
   static const String homeDashboard = '/home/dashboard';
@@ -108,6 +109,7 @@ class RouteNames {
   }
 
   static String honorDetailPath(String honorId) => '/honor/$honorId';
+  static String activityDetailPath(int activityId) => '/activity/$activityId';
   static String certificationDetailPath(String certificationId) =>
       '/certification/$certificationId';
   static String certificationProgressPath(

@@ -1,10 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -303,9 +305,9 @@ class _CycleSummaryCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.06),
+        color: SacAccent.of(context).color.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
+        border: Border.all(color: SacAccent.of(context).color.withValues(alpha: 0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -356,9 +358,9 @@ class _EligibleMemberTile extends StatelessWidget {
     final c = context.sac;
 
     return Material(
-      color: selected ? AppColors.primary.withValues(alpha: 0.07) : c.surface,
+      color: selected ? SacAccent.of(context).color.withValues(alpha: 0.07) : c.surface,
       borderRadius: BorderRadius.circular(14),
-      child: InkWell(
+      child: SacInkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
         child: Container(
@@ -367,7 +369,7 @@ class _EligibleMemberTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: selected
-                  ? AppColors.primary.withValues(alpha: 0.45)
+                  ? SacAccent.of(context).color.withValues(alpha: 0.45)
                   : c.border,
               width: selected ? 1.3 : 1,
             ),
@@ -400,19 +402,19 @@ class _EligibleMemberTile extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: selected
-                      ? AppColors.primary.withValues(alpha: 0.12)
+                      ? SacAccent.of(context).color.withValues(alpha: 0.12)
                       : Colors.transparent,
                   border: Border.all(
-                    color: selected ? AppColors.primary : c.border,
+                    color: selected ? SacAccent.of(context).color : c.border,
                     width: 1.4,
                   ),
                 ),
                 child: selected
-                    ? const Center(
+                    ? Center(
                         child: HugeIcon(
                           icon: HugeIcons.strokeRoundedTick02,
                           size: 17,
-                          color: AppColors.primary,
+                          color: SacAccent.of(context).color,
                         ),
                       )
                     : null,

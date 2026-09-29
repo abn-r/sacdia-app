@@ -1,8 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
@@ -57,23 +59,29 @@ class _CamporeeApprovalsViewState extends ConsumerState<CamporeeApprovalsView>
             ? 'coordinator.camporee_approvals.title'.tr()
             : selected.name,
         leading: selected != null
-            ? IconButton(
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedArrowLeft01,
-                  size: 22,
-                  color: c.text,
+            ? SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowLeft01,
+                    size: 22,
+                    color: c.text,
+                  ),
+                  onPressed: () =>
+                      ref.read(selectedCamporeeProvider.notifier).state = null,
                 ),
-                onPressed: () =>
-                    ref.read(selectedCamporeeProvider.notifier).state = null,
               )
             : null,
         automaticallyImplyLeading: selected == null,
         bottom: selected == null
             ? TabBar(
                 controller: _scopeTabController,
-                tabs: _scopeTabs.map((s) => Tab(text: s.displayLabel)).toList(),
-                indicatorColor: AppColors.primary,
-                labelColor: AppColors.primary,
+                enableFeedback: false,
+                tabs:
+                    _scopeTabs.map((s) => sacPressTab(s.displayLabel)).toList(),
+                indicatorColor: SacAccent.of(context).color,
+                labelColor: SacAccent.of(context).color,
                 unselectedLabelColor: c.textSecondary,
                 labelStyle: const TextStyle(
                   fontSize: 13,
@@ -117,7 +125,7 @@ class _CamporeePickerTab extends ConsumerWidget {
           return _buildEmpty(context, ref, c, scope);
         }
         return RefreshIndicator(
-          color: AppColors.primary,
+          color: SacAccent.of(context).color,
           onRefresh: () async {
             if (scope == CamporeeScope.local) {
               ref.invalidate(localCamporeeListProvider);
@@ -262,7 +270,7 @@ class _CamporeePickerCard extends StatelessWidget {
     return Material(
       color: c.surface,
       borderRadius: BorderRadius.circular(16),
-      child: InkWell(
+      child: SacInkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: onTap,
         child: Container(
@@ -377,9 +385,10 @@ class _CamporeeApprovalDetailState
           color: c.surface,
           child: TabBar(
             controller: _tabController,
-            tabs: _tabs.map((t) => Tab(text: t.displayLabel)).toList(),
-            indicatorColor: AppColors.primary,
-            labelColor: AppColors.primary,
+            enableFeedback: false,
+            tabs: _tabs.map((t) => sacPressTab(t.displayLabel)).toList(),
+            indicatorColor: SacAccent.of(context).color,
+            labelColor: SacAccent.of(context).color,
             unselectedLabelColor: c.textSecondary,
             labelStyle: const TextStyle(
               fontSize: 13,
@@ -488,7 +497,7 @@ class _ClubsTab extends ConsumerWidget {
     final c = context.sac;
 
     return RefreshIndicator(
-      color: AppColors.primary,
+      color: SacAccent.of(context).color,
       onRefresh: () async =>
           ref.invalidate(camporeePendingProvider(pendingKey)),
       child: ListView.builder(
@@ -555,7 +564,7 @@ class _MembersTab extends ConsumerWidget {
     final c = context.sac;
 
     return RefreshIndicator(
-      color: AppColors.primary,
+      color: SacAccent.of(context).color,
       onRefresh: () async =>
           ref.invalidate(camporeePendingProvider(pendingKey)),
       child: ListView.builder(
@@ -622,7 +631,7 @@ class _PaymentsTab extends ConsumerWidget {
     final c = context.sac;
 
     return RefreshIndicator(
-      color: AppColors.primary,
+      color: SacAccent.of(context).color,
       onRefresh: () async =>
           ref.invalidate(camporeePendingProvider(pendingKey)),
       child: ListView.builder(
@@ -691,7 +700,7 @@ class _ClubEnrollmentCard extends ConsumerWidget {
 
     return _ApprovalCard(
       icon: HugeIcons.strokeRoundedBuilding01,
-      iconColor: AppColors.primary,
+      iconColor: SacAccent.of(context).color,
       title: item.displayName,
       subtitle: item.registeredByName != null
           ? 'coordinator.camporee_approvals.requested_by'

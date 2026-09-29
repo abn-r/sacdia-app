@@ -1,10 +1,15 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/animations/sac_state_swap.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_expansion_tile.dart';
+import 'package:sacdia_app/core/widgets/sac_tweened_bar.dart';
 
 import '../../domain/entities/class_honor.dart';
 import '../../domain/entities/class_module.dart';
@@ -45,31 +50,40 @@ class ModuleExpansionTile extends StatelessWidget {
       padding: EdgeInsets.zero,
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
+        child: SacExpansionTile(
           tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           childrenPadding:
               const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-          leading: Container(
+          leading: AnimatedContainer(
+            duration: SacMotion.reduceMotionOf(context)
+                ? SacMotion.reducedFade
+                : SacMotion.standard,
+            curve: SacMotion.easeOut,
             width: 40,
             height: 40,
+            alignment: Alignment.center,
             decoration: BoxDecoration(
               color: isComplete
                   ? AppColors.secondaryLight
-                  : AppColors.primaryLight,
+                  : SacAccent.of(context).light,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Center(
+            child: SacStateSwap(
+              duration: SacMotion.standard,
               child: isComplete
-                  ? HugeIcon(
+                  ? const HugeIcon(
+                      key: ValueKey('module-badge-done'),
                       icon: HugeIcons.strokeRoundedTick02,
                       size: 20,
-                      color: AppColors.secondaryDark)
+                      color: AppColors.secondaryDark,
+                    )
                   : Text(
                       '$completedCount/$totalCount',
+                      key: ValueKey('module-badge-$completedCount-$totalCount'),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
+                        color: SacAccent.of(context).color,
                       ),
                     ),
             ),
@@ -82,14 +96,11 @@ class ModuleExpansionTile extends StatelessWidget {
           ),
           subtitle: Padding(
             padding: const EdgeInsets.only(top: 6),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: progress,
-                minHeight: 4,
-                backgroundColor: context.sac.borderLight,
-                color: isComplete ? AppColors.secondary : AppColors.primary,
-              ),
+            child: SacTweenedBar(
+              value: progress,
+              minHeight: 4,
+              backgroundColor: context.sac.borderLight,
+              color: isComplete ? AppColors.secondary : SacAccent.of(context).color,
             ),
           ),
           children: [
@@ -316,7 +327,7 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
       mainAxisSize: MainAxisSize.min,
       children: [
         // Module header row
-        InkWell(
+        SacInkWell(
           onTap: _toggle,
           splashColor: AppColors.coral200.withValues(alpha: 0.3),
           child: Padding(

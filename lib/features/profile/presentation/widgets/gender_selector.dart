@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
@@ -130,10 +130,10 @@ class _GenderChip extends StatelessWidget {
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
-              color: selected ? AppColors.primaryLight : context.sac.surface,
+              color: selected ? SacAccent.of(context).light : context.sac.surface,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: selected ? AppColors.primary : context.sac.border,
+                color: selected ? SacAccent.of(context).color : context.sac.border,
                 width: selected ? 2 : 1,
               ),
             ),
@@ -144,7 +144,7 @@ class _GenderChip extends StatelessWidget {
                   icon: gender.icon,
                   size: 28,
                   color:
-                      selected ? AppColors.primary : context.sac.textSecondary,
+                      selected ? SacAccent.of(context).color : context.sac.textSecondary,
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -153,7 +153,7 @@ class _GenderChip extends StatelessWidget {
                     fontSize: 14,
                     fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
                     color: selected
-                        ? AppColors.primary
+                        ? SacAccent.of(context).color
                         : context.sac.textSecondary,
                   ),
                 ),

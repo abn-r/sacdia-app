@@ -7,6 +7,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
@@ -94,17 +95,17 @@ class CamporeeLocationCard extends StatelessWidget {
                         children: [
                           Text(
                             'camporees.detail.open_in_maps'.tr(),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.primary,
+                              color: SacAccent.of(context).color,
                             ),
                           ),
                           const SizedBox(width: 4),
-                          const HugeIcon(
+                          HugeIcon(
                             icon: HugeIcons.strokeRoundedArrowRight01,
                             size: 14,
-                            color: AppColors.primary,
+                            color: SacAccent.of(context).color,
                           ),
                         ],
                       ),

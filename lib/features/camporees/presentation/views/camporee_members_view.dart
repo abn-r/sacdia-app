@@ -1,10 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
@@ -56,14 +58,18 @@ class CamporeeMembersView extends ConsumerWidget {
         foregroundColor: c.text,
         actions: canRegisterParticipants
             ? [
-                IconButton(
-                  onPressed: () => _openRegisterMember(context, ref),
-                  icon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedUserAdd01,
-                    size: 22,
-                    color: AppColors.primary,
+                SacPressable(
+                  listenOnly: true,
+                  child: IconButton(
+                    enableFeedback: false,
+                    onPressed: () => _openRegisterMember(context, ref),
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedUserAdd01,
+                      size: 22,
+                      color: SacAccent.of(context).color,
+                    ),
+                    tooltip: 'camporees.members.enroll_member_tooltip'.tr(),
                   ),
-                  tooltip: 'camporees.members.enroll_member_tooltip'.tr(),
                 ),
               ]
             : const [],
@@ -202,7 +208,7 @@ class _EligibleMembersBody extends ConsumerWidget {
         final unverified = members.length - verified;
 
         return RefreshIndicator(
-          color: AppColors.primary,
+          color: SacAccent.of(context).color,
           onRefresh: () async =>
               ref.invalidate(camporeeMembersProvider(camporeeId)),
           child: CustomScrollView(
@@ -308,7 +314,7 @@ class _StatsSummary extends StatelessWidget {
             child: _StatChip(
               label: 'camporees.members.total'.tr(),
               value: '$total',
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
             ),
           ),
           Container(
@@ -414,14 +420,14 @@ class _MemberTile extends StatelessWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: AppColors.primaryLight,
+              color: SacAccent.of(context).light,
               shape: BoxShape.circle,
             ),
             child: Center(
               child: HugeIcon(
                 icon: HugeIcons.strokeRoundedUser,
                 size: 20,
-                color: AppColors.primary,
+                color: SacAccent.of(context).color,
               ),
             ),
           ),
@@ -465,17 +471,21 @@ class _MemberTile extends StatelessWidget {
           ),
 
           if (onRemove != null)
-            IconButton(
-              onPressed: onRemove,
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedDelete02,
-                size: 20,
-                color: AppColors.error,
-              ),
-              tooltip: 'camporees.members.remove_tooltip'.tr(),
-              style: IconButton.styleFrom(
-                backgroundColor: AppColors.error.withValues(alpha: 0.08),
-                minimumSize: const Size(36, 36),
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                onPressed: onRemove,
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedDelete02,
+                  size: 20,
+                  color: AppColors.error,
+                ),
+                tooltip: 'camporees.members.remove_tooltip'.tr(),
+                style: IconButton.styleFrom(
+                  backgroundColor: AppColors.error.withValues(alpha: 0.08),
+                  minimumSize: const Size(36, 36),
+                ),
               ),
             ),
         ],

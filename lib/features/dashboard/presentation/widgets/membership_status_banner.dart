@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_dialog.dart';
@@ -64,11 +65,11 @@ class _GhostBanner extends StatelessWidget {
     final c = context.sac;
 
     return _BannerContainer(
-      backgroundColor: AppColors.primaryLight.withValues(alpha: 0.15),
-      borderColor: AppColors.primary.withValues(alpha: 0.3),
-      iconBackgroundColor: AppColors.primary.withValues(alpha: 0.12),
+      backgroundColor: SacAccent.of(context).light.withValues(alpha: 0.15),
+      borderColor: SacAccent.of(context).color.withValues(alpha: 0.3),
+      iconBackgroundColor: SacAccent.of(context).color.withValues(alpha: 0.12),
       icon: HugeIcons.strokeRoundedUserAdd01,
-      iconColor: AppColors.primary,
+      iconColor: SacAccent.of(context).color,
       title: tr('membership.not_enrolled_this_year'),
       titleColor: c.text,
     );

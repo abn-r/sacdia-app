@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -237,15 +238,19 @@ class _SacTextFieldState extends State<SacTextField> {
     if (widget.suffix != null) return widget.suffix;
 
     if (widget.obscureText) {
-      return IconButton(
-        icon: HugeIcon(
-          icon: _obscureText
-              ? HugeIcons.strokeRoundedViewOffSlash
-              : HugeIcons.strokeRoundedViewOff,
-          size: 20,
-          color: context.sac.textSecondary,
+      return SacPressable(
+        listenOnly: true,
+        child: IconButton(
+          enableFeedback: false,
+          icon: HugeIcon(
+            icon: _obscureText
+                ? HugeIcons.strokeRoundedViewOffSlash
+                : HugeIcons.strokeRoundedViewOff,
+            size: 20,
+            color: context.sac.textSecondary,
+          ),
+          onPressed: () => setState(() => _obscureText = !_obscureText),
         ),
-        onPressed: () => setState(() => _obscureText = !_obscureText),
       );
     }
 

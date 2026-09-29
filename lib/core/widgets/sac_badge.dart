@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 
@@ -48,7 +49,7 @@ class SacBadge extends StatelessWidget {
 
     switch (variant) {
       case SacBadgeVariant.primary:
-        return AppColors.primaryLight;
+        return SacAccent.of(context).light;
       case SacBadgeVariant.secondary:
         return AppColors.secondaryLight;
       case SacBadgeVariant.accent:
@@ -65,7 +66,7 @@ class SacBadge extends StatelessWidget {
 
     switch (variant) {
       case SacBadgeVariant.primary:
-        return AppColors.primaryDark;
+        return SacAccent.of(context).dark;
       case SacBadgeVariant.secondary:
         return AppColors.secondaryDark;
       case SacBadgeVariant.accent:

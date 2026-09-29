@@ -1,12 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
@@ -302,14 +303,18 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    IconButton(
-                      onPressed: _showLogoutDialog,
-                      icon:
-                          const HugeIcon(icon: HugeIcons.strokeRoundedLogout01),
-                      color: context.sac.text,
-                      tooltip: tr('post_registration.shell.logout_tooltip'),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
+                    SacPressable(
+                      listenOnly: true,
+                      child: IconButton(
+                        enableFeedback: false,
+                        onPressed: _showLogoutDialog,
+                        icon: const HugeIcon(
+                            icon: HugeIcons.strokeRoundedLogout01),
+                        color: context.sac.text,
+                        tooltip: tr('post_registration.shell.logout_tooltip'),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
                     ),
                     const SizedBox(width: 8),
                     // Step counter badge — animates value change implicitly
@@ -322,7 +327,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: AppColors.primaryLight,
+                          color: SacAccent.of(context).light,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -331,10 +336,10 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
                                 'current': '$currentStep',
                                 'total': '3'
                               }),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.primary,
+                            color: SacAccent.of(context).color,
                           ),
                         ),
                       ),

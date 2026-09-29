@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -236,7 +237,7 @@ class _AttestationField extends StatelessWidget {
     final c = context.sac;
     return _ComponentCard(
       component: component,
-      child: InkWell(
+      child: SacInkWell(
         onTap: canEdit ? () => onChanged?.call(!confirmed) : null,
         borderRadius: BorderRadius.circular(10),
         child: Padding(

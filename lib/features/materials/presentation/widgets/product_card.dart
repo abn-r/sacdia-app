@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 
@@ -42,12 +43,12 @@ class ProductCard extends StatelessWidget {
               Expanded(
                 child: Container(
                   width: double.infinity,
-                  color: AppColors.primary.withValues(alpha: 0.08),
+                  color: SacAccent.of(context).color.withValues(alpha: 0.08),
                   alignment: Alignment.center,
                   child: HugeIcon(
                     icon: _categoryIcon(item.category.slug),
                     size: 36,
-                    color: AppColors.primary,
+                    color: SacAccent.of(context).color,
                   ),
                 ),
               ),
@@ -71,10 +72,10 @@ class ProductCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       formatMxn(item.priceCentavos),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
-                        color: AppColors.primary,
+                        color: SacAccent.of(context).color,
                         letterSpacing: -0.2,
                       ),
                     ),

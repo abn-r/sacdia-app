@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -33,15 +34,19 @@ class InvestitureHistoryView extends ConsumerWidget {
         title: 'investiture.history.title'.tr(),
         backgroundColor: c.canvas,
         actions: [
-          IconButton(
-            onPressed: () =>
-                ref.invalidate(investitureHistoryProvider(enrollmentId)),
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedRefresh,
-              size: 22,
-              color: c.ink900,
+          SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              onPressed: () =>
+                  ref.invalidate(investitureHistoryProvider(enrollmentId)),
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedRefresh,
+                size: 22,
+                color: c.ink900,
+              ),
+              tooltip: 'investiture.history.tooltip_refresh'.tr(),
             ),
-            tooltip: 'investiture.history.tooltip_refresh'.tr(),
           ),
         ],
       ),

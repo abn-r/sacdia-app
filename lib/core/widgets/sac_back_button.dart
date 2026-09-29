@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 
 /// SACDIA back button rendered with HugeIcons.
 ///
@@ -29,15 +30,19 @@ class SacBackButton extends StatelessWidget {
         IconTheme.of(context).color ??
         Theme.of(context).colorScheme.onSurface;
 
-    return IconButton(
-      tooltip: tooltip ?? MaterialLocalizations.of(context).backButtonTooltip,
-      onPressed: onPressed ?? () => Navigator.of(context).maybePop(),
-      icon: HugeIcon(
-        icon: direction == TextDirection.rtl
-            ? HugeIcons.strokeRoundedArrowRight01
-            : HugeIcons.strokeRoundedArrowLeft01,
-        size: size,
-        color: resolvedColor,
+    return SacPressable(
+      listenOnly: true,
+      child: IconButton(
+        tooltip: tooltip ?? MaterialLocalizations.of(context).backButtonTooltip,
+        enableFeedback: false,
+        onPressed: onPressed ?? () => Navigator.of(context).maybePop(),
+        icon: HugeIcon(
+          icon: direction == TextDirection.rtl
+              ? HugeIcons.strokeRoundedArrowRight01
+              : HugeIcons.strokeRoundedArrowLeft01,
+          size: size,
+          color: resolvedColor,
+        ),
       ),
     );
   }

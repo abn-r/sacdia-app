@@ -140,6 +140,34 @@ class CertificateImportStatusView extends StatelessWidget {
                         color: c.textSecondary,
                       ),
                 ),
+                if (batch.items.any((item) => item.isGuiaMayorBase)) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    'certificate_import.status.gm01_replace'.tr(),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: c.textSecondary,
+                        ),
+                  ),
+                ],
+                if (batch.items.any((item) => item.isInstitutionalClass)) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    'certificate_import.status.institutional'.tr(),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: c.textSecondary,
+                        ),
+                  ),
+                ],
+                if (batch.items
+                    .any((item) => item.isPendingAdministrativePeriod)) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    'certificate_import.status.period_pending'.tr(),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: c.textSecondary,
+                        ),
+                  ),
+                ],
               ],
             ),
           ),

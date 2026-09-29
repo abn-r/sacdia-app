@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -42,13 +43,18 @@ class EvidenceReviewDetailView extends ConsumerWidget {
       appBar: SacTopBar(
         title: type.displayLabel,
         actions: [
-          IconButton(
-            onPressed: () => ref.invalidate(evidenceDetailProvider(key)),
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedRefresh,
-              size: 22,
+          SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              onPressed: () => ref.invalidate(evidenceDetailProvider(key)),
+              icon: const HugeIcon(
+                icon: HugeIcons.strokeRoundedRefresh,
+                size: 22,
+              ),
+              tooltip:
+                  'coordinator.evidence_review.detail.refresh_tooltip'.tr(),
             ),
-            tooltip: 'coordinator.evidence_review.detail.refresh_tooltip'.tr(),
           ),
         ],
       ),

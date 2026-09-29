@@ -56,7 +56,7 @@ Map<String, dynamic> _batchJson() => {
 void main() {
   const baseUrl = 'http://localhost:3000/api/v1';
 
-  test('creates a certificate import batch with uploaded file metadata',
+  test('creates a certificate import draft without local path file_url',
       () async {
     final (:dio, :adapter) = _dioWith({
       'status': 'success',
@@ -67,20 +67,13 @@ void main() {
       baseUrl: baseUrl,
     );
 
-    final result = await dataSource.createBatch(
-      files: const [
-        CertificateImportFilePayload(
-          url: 'https://cdn.sacdia.app/cert.jpg',
-          name: 'cert.jpg',
-          type: 'image/jpeg',
-        ),
-      ],
-    );
+    final result = await dataSource.createBatch(files: const []);
 
     expect(result.id, 'batch-1');
     expect(adapter.lastOptions!.method, 'POST');
     expect(adapter.lastOptions!.path, '$baseUrl/certificate-bulk-imports');
-    expect(adapter.lastBody, contains('cert.jpg'));
+    expect(adapter.lastBody, contains('"files":[]'));
+    expect(adapter.lastBody, isNot(contains('file_url')));
   });
 
   test('updates an item using the backend snake_case contract', () async {

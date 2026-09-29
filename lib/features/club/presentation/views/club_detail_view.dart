@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -34,7 +35,7 @@ class ClubDetailView extends ConsumerWidget {
         titleIcon: HugeIcon(
           icon: HugeIcons.strokeRoundedBackpack03,
           size: 22,
-          color: AppColors.primary,
+          color: SacAccent.of(context).color,
         ),
       ),
       body: clubAsync.when(
@@ -101,7 +102,7 @@ class _ClubDetailBody extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: AppColors.primaryLight,
+            color: SacAccent.of(context).light,
             borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           ),
           child: Row(
@@ -110,7 +111,7 @@ class _ClubDetailBody extends StatelessWidget {
               HugeIcon(
                 icon: HugeIcons.strokeRoundedInformationCircle,
                 size: 18,
-                color: AppColors.primary,
+                color: SacAccent.of(context).color,
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -151,11 +152,11 @@ class _SectionHeader extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(7),
           decoration: BoxDecoration(
-            color: AppColors.primaryLight,
+            color: SacAccent.of(context).light,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Center(
-            child: HugeIcon(icon: icon, size: 16, color: AppColors.primary),
+            child: HugeIcon(icon: icon, size: 16, color: SacAccent.of(context).color),
           ),
         ),
         const SizedBox(width: 10),

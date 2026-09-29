@@ -1,10 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -34,7 +36,7 @@ class CoordinatorHubView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: c.background,
       body: RefreshIndicator(
-        color: AppColors.primary,
+        color: SacAccent.of(context).color,
         onRefresh: () async {
           ref.invalidate(slaDashboardProvider);
           ref.invalidate(coordinatorScopeProvider);
@@ -50,15 +52,15 @@ class CoordinatorHubView extends ConsumerWidget {
               expandedHeight: 140,
               floating: true,
               snap: true,
-              backgroundColor: AppColors.primary,
+              backgroundColor: SacAccent.of(context).color,
               foregroundColor: Colors.white,
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [AppColors.primary, AppColors.primaryDark],
+                      colors: [SacAccent.of(context).color, SacAccent.of(context).dark],
                     ),
                   ),
                   child: SafeArea(
@@ -133,7 +135,7 @@ class CoordinatorHubView extends ConsumerWidget {
 
                   _NavCard(
                     icon: HugeIcons.strokeRoundedAward01,
-                    color: AppColors.primary,
+                    color: SacAccent.of(context).color,
                     title: 'coordinator.nav.investitures_title'.tr(),
                     subtitle: 'coordinator.nav.investitures_subtitle'.tr(),
                     onTap: () =>
@@ -257,7 +259,7 @@ class _SummaryRow extends StatelessWidget {
                 child: _SummaryTile(
                   label: 'coordinator.summary.investitures'.tr(),
                   count: sla.investiture.pending,
-                  color: AppColors.primary,
+                  color: SacAccent.of(context).color,
                   icon: HugeIcons.strokeRoundedAward01,
                 ),
               ),
@@ -445,7 +447,7 @@ class _NavCard extends StatelessWidget {
     return Material(
       color: c.surface,
       borderRadius: _kRadius,
-      child: InkWell(
+      child: SacInkWell(
         borderRadius: _kRadius,
         onTap: onTap,
         child: Container(

@@ -1,12 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/member_insurance.dart';
 import '../providers/insurance_providers.dart';
@@ -33,12 +35,16 @@ class InsuranceDetailView extends ConsumerWidget {
         backgroundColor: context.sac.background,
         actions: [
           if (canManage)
-            IconButton(
-              onPressed: () => _openEdit(context),
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedEdit02,
-                size: 22,
-                color: context.sac.textSecondary,
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                onPressed: () => _openEdit(context),
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedEdit02,
+                  size: 22,
+                  color: context.sac.textSecondary,
+                ),
               ),
             ),
         ],
@@ -240,13 +246,13 @@ class _MemberHeaderCard extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: AppColors.primarySurface,
+                      color: SacAccent.of(context).surface,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
                       insurance.memberClass!,
-                      style: const TextStyle(
-                        color: AppColors.primaryDark,
+                      style: TextStyle(
+                        color: SacAccent.of(context).dark,
                         fontWeight: FontWeight.w700,
                         fontSize: 11,
                       ),
@@ -478,11 +484,11 @@ class _EvidencePreview extends StatelessWidget {
                 const Center(child: CircularProgressIndicator.adaptive()),
             errorWidget: (context, url, error) => Container(
               height: 100,
-              color: AppColors.primarySurface,
+              color: SacAccent.of(context).surface,
               child: Center(
                 child: Text(
                   'insurance.detail.image_load_error'.tr(),
-                  style: TextStyle(color: AppColors.primaryDark),
+                  style: TextStyle(color: SacAccent.of(context).dark),
                 ),
               ),
             ),
@@ -510,22 +516,22 @@ class _PdfTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return SacInkWell(
       onTap: () => _openUrl(fileUrl),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: AppColors.primarySurface,
+          color: SacAccent.of(context).surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+          border: Border.all(color: SacAccent.of(context).color.withValues(alpha: 0.2)),
         ),
         child: Row(
           children: [
             HugeIcon(
               icon: HugeIcons.strokeRoundedFiles01,
               size: 32,
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -534,10 +540,10 @@ class _PdfTile extends StatelessWidget {
                 children: [
                   Text(
                     fileName,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 13,
-                      color: AppColors.primaryDark,
+                      color: SacAccent.of(context).dark,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -547,7 +553,7 @@ class _PdfTile extends StatelessWidget {
                     'insurance.detail.tap_to_open'.tr(),
                     style: TextStyle(
                       fontSize: 11,
-                      color: AppColors.primary,
+                      color: SacAccent.of(context).color,
                     ),
                   ),
                 ],
@@ -556,7 +562,7 @@ class _PdfTile extends StatelessWidget {
             HugeIcon(
               icon: HugeIcons.strokeRoundedDownload01,
               size: 18,
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
             ),
           ],
         ),

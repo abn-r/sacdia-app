@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -89,16 +90,21 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
                   alignment: Alignment.centerLeft,
                   child: Padding(
                     padding: const EdgeInsets.only(left: 8, top: 4),
-                    child: IconButton(
-                      onPressed: () => context.pop(),
-                      icon: HugeIcon(
-                        icon: HugeIcons.strokeRoundedArrowLeft01,
-                        color: context.sac.text,
-                      ),
-                      style: IconButton.styleFrom(
-                        backgroundColor:
-                            context.sac.surface.withValues(alpha: 0.86),
-                        minimumSize: const Size(44, 44),
+                    child: SacPressable(
+                      listenOnly: true,
+                      child: IconButton(
+                        enableFeedback: false,
+                        onPressed: () => context.pop(),
+                        icon: const HugeIcon(
+                          icon: HugeIcons.strokeRoundedArrowLeft01,
+                          size: 22,
+                          color: AppColors.loginBrandBlueDark,
+                        ),
+                        style: IconButton.styleFrom(
+                          backgroundColor:
+                              context.sac.surface.withValues(alpha: 0.86),
+                          minimumSize: const Size(44, 44),
+                        ),
                       ),
                     ),
                   ),
@@ -118,18 +124,17 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
                             children: [
                               Center(
                                 child: Container(
-                                  width: 82,
-                                  height: 82,
+                                  width: 64,
+                                  height: 64,
                                   decoration: BoxDecoration(
-                                    color: AppColors.loginBrandBlue
-                                        .withValues(alpha: 0.14),
-                                    borderRadius: BorderRadius.circular(20),
+                                    color: context.sac.surface,
+                                    borderRadius: BorderRadius.circular(16),
                                   ),
                                   child: const Center(
                                     child: HugeIcon(
-                                      icon: HugeIcons.strokeRoundedLockPassword,
-                                      size: 40,
-                                      color: AppColors.loginBrandBlue,
+                                      icon: HugeIcons.strokeRoundedSquareLock02,
+                                      size: 28,
+                                      color: AppColors.loginBrandBlueDark,
                                     ),
                                   ),
                                 ),
@@ -165,10 +170,10 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
                                   padding: const EdgeInsets.all(16),
                                   child: Column(
                                     children: [
-                                      HugeIcon(
+                                      const HugeIcon(
                                         icon: HugeIcons.strokeRoundedMailOpen01,
-                                        size: 48,
-                                        color: AppColors.secondary,
+                                        size: 32,
+                                        color: AppColors.loginBrandBlueDark,
                                       ),
                                       const SizedBox(height: 12),
                                       Text(

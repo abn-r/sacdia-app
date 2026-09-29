@@ -23,6 +23,7 @@ class CreateActivityRequest {
   final String? linkMeet;
   final String? additionalData;
   final List<int>? classes;
+  final String audience;
   final int clubSectionId;
   final DateTime? activityDate;
   final DateTime? activityEndDate;
@@ -48,6 +49,7 @@ class CreateActivityRequest {
     this.linkMeet,
     this.additionalData,
     this.classes,
+    this.audience = 'all',
     required this.clubSectionId,
     this.activityDate,
     this.activityEndDate,
@@ -77,6 +79,7 @@ class CreateActivityRequest {
     if (linkMeet != null) json['link_meet'] = linkMeet;
     if (additionalData != null) json['additional_data'] = additionalData;
     if (classes != null && classes!.isNotEmpty) json['classes'] = classes;
+    json['audience'] = audience;
     if (activityDate != null) {
       json['activity_date'] = formatDateOnly(activityDate!);
     }

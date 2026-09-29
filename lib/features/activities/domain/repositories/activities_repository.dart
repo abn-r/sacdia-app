@@ -7,6 +7,7 @@ import '../entities/activity_club_section.dart';
 import '../entities/create_activity_request.dart';
 import '../entities/activity.dart';
 import '../entities/activity_series.dart';
+import '../entities/activity_rsvp.dart';
 import '../entities/attendance.dart';
 
 /// Repositorio de actividades (interfaz del dominio)
@@ -70,6 +71,14 @@ abstract class ActivitiesRepository {
   Future<Either<Failure, int>> registerAttendance(
     int activityId,
     List<String> userIds,
+  );
+
+  Future<Either<Failure, MyActivityRsvp>> getMyRsvp(int activityId);
+
+  Future<Either<Failure, String>> setMyRsvp(int activityId, String status);
+
+  Future<Either<Failure, List<AttendanceRosterMember>>> getAttendanceRoster(
+    int activityId,
   );
 
   /// Sube una imagen para la actividad y devuelve la URL firmada resultante.

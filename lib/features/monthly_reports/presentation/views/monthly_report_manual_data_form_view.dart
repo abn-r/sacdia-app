@@ -1,9 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
@@ -279,20 +280,24 @@ class _MonthlyReportManualDataFormViewState
               'year': '${widget.report.year}',
             },
           ),
-          leading: IconButton(
-            icon: HugeIcon(
-              icon: isSheet
-                  ? HugeIcons.strokeRoundedCancel01
-                  : HugeIcons.strokeRoundedArrowLeft01,
-              color: c.text,
-              size: 22,
+          leading: SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              icon: HugeIcon(
+                icon: isSheet
+                    ? HugeIcons.strokeRoundedCancel01
+                    : HugeIcons.strokeRoundedArrowLeft01,
+                color: c.text,
+                size: 22,
+              ),
+              onPressed: () async {
+                final navigator = Navigator.of(context);
+                if (await _confirmDiscard() && mounted) {
+                  navigator.pop(false);
+                }
+              },
             ),
-            onPressed: () async {
-              final navigator = Navigator.of(context);
-              if (await _confirmDiscard() && mounted) {
-                navigator.pop(false);
-              }
-            },
           ),
         ),
         body: Column(
@@ -559,10 +564,10 @@ class _FormSection extends StatelessWidget {
                 width: 34,
                 height: 34,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.10),
+                  color: SacAccent.of(context).color.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: HugeIcon(icon: icon, color: AppColors.primary, size: 18),
+                child: HugeIcon(icon: icon, color: SacAccent.of(context).color, size: 18),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -725,10 +730,13 @@ class _ReportSwitch extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            Switch.adaptive(
-              value: value,
-              activeThumbColor: AppColors.primary,
-              onChanged: onChanged,
+            SacPressable(
+              listenOnly: true,
+              child: Switch.adaptive(
+                value: value,
+                activeThumbColor: SacAccent.of(context).color,
+                onChanged: onChanged,
+              ),
             ),
           ],
         ),

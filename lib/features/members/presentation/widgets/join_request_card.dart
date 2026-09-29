@@ -1,15 +1,15 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 
 import '../../domain/entities/join_request.dart';
 
-/// Tarjeta de solicitud de ingreso al club
+/// Compact join-request row. Approve/reject sit as trailing icon hits, not a second button row.
 class JoinRequestCard extends StatelessWidget {
   final JoinRequest request;
   final VoidCallback? onTap;
@@ -28,107 +28,79 @@ class JoinRequestCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final isPending = request.status == JoinRequestStatus.pending;
+    final canAct = isPending && (onApprove != null || onReject != null);
+    final dateLabel = request.requestedAt == null
+        ? null
+        : DateFormat('dd MMM yyyy').format(request.requestedAt!.toLocal());
 
-    return Material(
-      color: c.surface,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: c.border),
-          ),
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Header row ────────────────────────────────────────
-              Row(
+    return SacPressable(
+      onTap: onTap,
+      enabled: onTap != null,
+      child: Container(
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: c.border),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          children: [
+            _RequestAvatar(request: request),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Avatar
-                  _RequestAvatar(request: request),
-
-                  const SizedBox(width: 12),
-
-                  // Name + date
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          request.fullName,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: c.text,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (request.requestedAt != null) ...[
-                          const SizedBox(height: 2),
-                          Row(
-                            children: [
-                              HugeIcon(
-                                icon: HugeIcons.strokeRoundedCalendar01,
-                                color: c.textTertiary,
-                                size: 12,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                DateFormat('dd MMM yyyy')
-                                    .format(request.requestedAt!.toLocal()),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: c.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ],
+                  Text(
+                    request.fullName,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: c.text,
+                      height: 1.2,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-
-                  // Status badge
-                  _StatusBadge(status: request.status),
+                  if (dateLabel != null) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      dateLabel,
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.2,
+                        color: c.textSecondary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ],
               ),
-
-              // ── Actions (only for pending) ────────────────────────
-              if (isPending && (onApprove != null || onReject != null)) ...[
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    if (onReject != null)
-                      Expanded(
-                        child: _ActionButton(
-                          label: 'members.join_request.reject'.tr(),
-                          icon: HugeIcons.strokeRoundedCancel01,
-                          color: AppColors.error,
-                          onTap: onReject!,
-                          outlined: true,
-                        ),
-                      ),
-                    if (onApprove != null && onReject != null)
-                      const SizedBox(width: 8),
-                    if (onApprove != null)
-                      Expanded(
-                        child: _ActionButton(
-                          label: 'members.join_request.approve'.tr(),
-                          icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                          color: AppColors.secondary,
-                          onTap: onApprove!,
-                          outlined: false,
-                        ),
-                      ),
-                  ],
+            ),
+            if (canAct) ...[
+              if (onReject != null)
+                _IconAction(
+                  semanticLabel: 'members.join_request.reject'.tr(),
+                  icon: HugeIcons.strokeRoundedCancel01,
+                  color: AppColors.error,
+                  background: AppColors.error.withValues(alpha: 0.10),
+                  onTap: onReject!,
                 ),
-              ],
+              if (onApprove != null)
+                _IconAction(
+                  semanticLabel: 'members.join_request.approve'.tr(),
+                  icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                  color: AppColors.secondary,
+                  background: AppColors.secondary.withValues(alpha: 0.12),
+                  onTap: onApprove!,
+                ),
+            ] else ...[
+              const SizedBox(width: 8),
+              _StatusBadge(status: request.status),
             ],
-          ),
+          ],
         ),
       ),
     );
@@ -147,25 +119,51 @@ class _RequestAvatar extends StatelessWidget {
         shape: BoxShape.circle,
         border: Border.all(
           color: AppColors.accentLight,
-          width: 2,
+          width: 1.5,
         ),
       ),
-      child: CircleAvatar(
-        radius: 22,
-        backgroundColor: AppColors.accentLight,
-        backgroundImage: request.avatar != null
-            ? CachedNetworkImageProvider(request.avatar!)
-            : null,
-        child: request.avatar == null
-            ? Text(
-                request.initials,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.accentDark,
-                ),
-              )
-            : null,
+      child: ClipOval(
+        child: SizedBox(
+          width: 36,
+          height: 36,
+          child: request.avatar != null
+              ? SacProfileImage(
+                  imageUrl: request.avatar!,
+                  fit: BoxFit.cover,
+                  memCacheWidth: 72,
+                  memCacheHeight: 72,
+                  placeholder: (_, __) => _AvatarInitials(
+                    initials: request.initials,
+                  ),
+                  errorWidget: (_, __, ___) => _AvatarInitials(
+                    initials: request.initials,
+                  ),
+                )
+              : _AvatarInitials(initials: request.initials),
+        ),
+      ),
+    );
+  }
+}
+
+class _AvatarInitials extends StatelessWidget {
+  final String initials;
+
+  const _AvatarInitials({required this.initials});
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: AppColors.accentLight,
+      child: Center(
+        child: Text(
+          initials,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.accentDark,
+          ),
+        ),
       ),
     );
   }
@@ -189,48 +187,47 @@ class _StatusBadge extends StatelessWidget {
   }
 }
 
-class _ActionButton extends StatelessWidget {
-  final String label;
+class _IconAction extends StatelessWidget {
+  final String semanticLabel;
   final List<List<dynamic>> icon;
   final Color color;
+  final Color background;
   final VoidCallback onTap;
-  final bool outlined;
 
-  const _ActionButton({
-    required this.label,
+  const _IconAction({
+    required this.semanticLabel,
     required this.icon,
     required this.color,
+    required this.background,
     required this.onTap,
-    required this.outlined,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (outlined) {
-      return SacButton(
-        text: label,
-        icon: icon,
-        onPressed: onTap,
-        variant: SacButtonVariant.outline,
-        fullWidth: false,
-        size: SacButtonSize.small,
-        textColor: color,
-        borderColor: color,
-        iconSize: 16,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        borderRadius: 10,
-      );
-    }
-    return SacButton(
-      text: label,
-      icon: icon,
-      onPressed: onTap,
-      fullWidth: false,
-      size: SacButtonSize.small,
-      backgroundColor: color,
-      iconSize: 16,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      borderRadius: 10,
+    return SacPressable(
+      onTap: onTap,
+      semanticLabel: semanticLabel,
+      child: SizedBox(
+        width: 40,
+        height: 40,
+        child: Center(
+          child: Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: background,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Center(
+              child: HugeIcon(
+                icon: icon,
+                color: color,
+                size: 16,
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

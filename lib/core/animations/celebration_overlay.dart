@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 
 /// Confetti / particle celebration overlay — Duolingo streak-complete style.
 ///
@@ -69,8 +70,8 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
   bool _completed = false;
 
   // SACDIA Scout Vibrante palette + festive extras
-  static const List<Color> _palette = [
-    AppColors.primary,
+  List<Color> get _palette => [
+    SacAccent.of(context).color,
     AppColors.secondary,
     AppColors.accent,
     Color(0xFFF43F5E), // rose

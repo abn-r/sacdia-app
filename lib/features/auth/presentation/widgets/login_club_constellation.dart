@@ -13,8 +13,8 @@ import 'package:sacdia_app/core/utils/responsive.dart';
 class LoginClubConstellation extends StatefulWidget {
   const LoginClubConstellation({super.key});
 
-  static const aventureros = 'assets/img/logo_aventureros_color.png';
-  static const conquistadores = 'assets/img/logo_conquistadores_color.png';
+  static const aventureros = 'assets/img/logo_aventureros.png';
+  static const conquistadores = 'assets/img/logo_conquistadores.png';
   static const guiasMayores = 'assets/img/logo-guias-mayores.png';
   static const jovenesAdventistas = 'assets/img/logo-ja.png';
 

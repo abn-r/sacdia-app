@@ -101,9 +101,9 @@ class ClubActivitiesParams {
 }
 
 /// Provider para las actividades de un club.
-/// Fetches ALL activities for the club once and caches the result. Filter chips
-/// apply locally inside ActivitiesListView using _selectedFilter state, so
-/// tapping a chip never triggers an additional network request.
+/// Loads every page (the API returns 20 by default) and caches the result.
+/// Filter chips apply locally inside ActivitiesListView using _selectedFilter,
+/// so tapping a chip never triggers an additional network request.
 final clubActivitiesProvider = FutureProvider.autoDispose
     .family<List<Activity>, ClubActivitiesParams>((ref, params) async {
   final user = await ref.watch(authNotifierProvider.future);
@@ -469,8 +469,6 @@ final clubSectionsForActivityProvider =
     (sections) => sections,
   );
 });
-
-final activitySeriesFilterProvider = StateProvider<int?>((ref) => null);
 
 final activitySeriesProvider = FutureProvider.autoDispose
     .family<ActivitySeriesSummary, int>((ref, seriesId) async {

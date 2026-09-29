@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -147,16 +148,20 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                             alignment: Alignment.centerLeft,
                             child: Row(
                               children: [
-                                IconButton(
-                                  onPressed: () => context.pop(),
-                                  icon: HugeIcon(
-                                    icon: HugeIcons.strokeRoundedArrowLeft01,
-                                    color: context.sac.text,
-                                  ),
-                                  style: IconButton.styleFrom(
-                                    backgroundColor: context.sac.surface
-                                        .withValues(alpha: 0.86),
-                                    minimumSize: const Size(44, 44),
+                                SacPressable(
+                                  listenOnly: true,
+                                  child: IconButton(
+                                    enableFeedback: false,
+                                    onPressed: () => context.pop(),
+                                    icon: HugeIcon(
+                                      icon: HugeIcons.strokeRoundedArrowLeft01,
+                                      color: context.sac.text,
+                                    ),
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: context.sac.surface
+                                          .withValues(alpha: 0.86),
+                                      minimumSize: const Size(44, 44),
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 16),

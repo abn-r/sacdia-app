@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
@@ -84,7 +85,7 @@ class DashboardView extends ConsumerWidget {
             final hPad = Responsive.horizontalPadding(context);
 
             return RefreshIndicator(
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
               onRefresh: () async {
                 await ref.read(dashboardNotifierProvider.notifier).refresh();
               },
@@ -238,14 +239,14 @@ class _PendingMembershipDashboardState extends StatelessWidget {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.12),
+                color: SacAccent.of(context).color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Center(
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedClock01,
                   size: 36,
-                  color: AppColors.primary,
+                  color: SacAccent.of(context).color,
                 ),
               ),
             ),

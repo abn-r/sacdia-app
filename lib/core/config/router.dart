@@ -5,9 +5,10 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/utils/app_logger.dart';
 import 'package:sacdia_app/features/activities/presentation/views/activities_list_view.dart';
+import 'package:sacdia_app/features/activities/presentation/views/activity_detail_view.dart';
 import 'package:sacdia_app/features/certifications/presentation/views/certifications_list_view.dart';
 import 'package:sacdia_app/features/certifications/presentation/views/certification_detail_view.dart';
 import 'package:sacdia_app/features/certifications/presentation/views/certification_progress_view.dart';
@@ -114,6 +115,7 @@ import 'package:sacdia_app/core/authorization/access_subject.dart';
 import 'package:sacdia_app/core/authorization/screen_catalog.dart';
 import 'route_names.dart';
 import 'package:sacdia_app/core/widgets/sac_nav_icon.dart';
+import 'package:sacdia_app/core/widgets/sac_shell_nav.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 /// Shared-axis slide for standard forward/back navigation.
@@ -531,6 +533,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
+      // Detalle de actividad. El widget de inicio navega aquí al tocarlo.
+      GoRoute(
+        path: RouteNames.activityDetail,
+        pageBuilder: (context, state) {
+          final activityId =
+              int.tryParse(state.pathParameters['activityId'] ?? '') ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            ActivityDetailView(activityId: activityId),
+          );
+        },
+      ),
+
       // Detalle de clase
       GoRoute(
         path: RouteNames.classDetail,
@@ -776,9 +792,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.certificateImportProof,
         pageBuilder: (context, state) {
-          final item = state.extra is CertificateImportItem
-              ? state.extra as CertificateImportItem
-              : null;
+          final extra = state.extra;
+          final args = extra is CertificateImportProofArgs ? extra : null;
+          final item = extra is CertificateImportItem ? extra : args?.item;
           return _sharedAxisBuild(
             context,
             state,
@@ -790,7 +806,17 @@ final routerProvider = Provider<GoRouter>((ref) {
                 padding: const EdgeInsets.all(16),
                 child: item == null
                     ? Text('certificate_import.proof.missing'.tr())
-                    : CertificateImportProofCard(item: item),
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CertificateImportProofCard(item: item),
+                          if (args?.batchId != null && args?.fileId != null)
+                            CertificateImportSignedProof(
+                              batchId: args!.batchId!,
+                              fileId: args.fileId!,
+                            ),
+                        ],
+                      ),
               ),
             ),
           );
@@ -1494,33 +1520,33 @@ class _MainShell extends ConsumerWidget {
     }();
 
     final useRail = Responsive.isTablet(context);
+    final scheme = Theme.of(context).colorScheme;
+    final destinations = [
+      for (final item in filteredItems)
+        SacShellDestination(
+          icon: SacNavIcon(
+            icon: item.icon,
+            color: useRail ? scheme.onSurfaceVariant : null,
+          ),
+          selectedIcon: SacNavIcon(
+            icon: item.icon,
+            selected: true,
+            color: useRail ? scheme.primary : null,
+          ),
+          label: item.label,
+        ),
+    ];
+    void select(int uiIndex) =>
+        navigationShell.goBranch(filteredItems[uiIndex].branchIndex);
 
     if (useRail) {
       return Scaffold(
         body: Row(
           children: [
-            NavigationRail(
+            SacShellNavRail(
               selectedIndex: selectedIndex,
-              onDestinationSelected: (uiIndex) =>
-                  navigationShell.goBranch(filteredItems[uiIndex].branchIndex),
-              labelType: NavigationRailLabelType.all,
-              useIndicator: true,
-              destinations: filteredItems
-                  .map(
-                    (item) => NavigationRailDestination(
-                      icon: SacNavIcon(
-                        icon: item.icon,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                      selectedIcon: SacNavIcon(
-                        icon: item.icon,
-                        selected: true,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      label: Text(item.label),
-                    ),
-                  )
-                  .toList(),
+              onSelected: select,
+              destinations: destinations,
             ),
             const VerticalDivider(width: 1, thickness: 1),
             Expanded(child: navigationShell),
@@ -1531,19 +1557,10 @@ class _MainShell extends ConsumerWidget {
 
     return Scaffold(
       body: navigationShell,
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: SacShellNavBar(
         selectedIndex: selectedIndex,
-        onDestinationSelected: (uiIndex) =>
-            navigationShell.goBranch(filteredItems[uiIndex].branchIndex),
-        destinations: filteredItems
-            .map(
-              (item) => NavigationDestination(
-                icon: SacNavIcon(icon: item.icon),
-                selectedIcon: SacNavIcon(icon: item.icon, selected: true),
-                label: item.label,
-              ),
-            )
-            .toList(),
+        onSelected: select,
+        destinations: destinations,
       ),
     );
   }
@@ -1564,7 +1581,7 @@ class _EvidenceFolderShell extends ConsumerWidget {
       loading: () => Scaffold(
         body: Center(
           child: LoadingAnimationWidget.waveDots(
-            color: AppColors.primary,
+            color: SacAccent.of(context).color,
             size: 30,
           ),
         ),
@@ -1686,7 +1703,7 @@ class _OAuthCallbackScreenState extends ConsumerState<_OAuthCallbackScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            LoadingAnimationWidget.waveDots(color: AppColors.primary, size: 30),
+            LoadingAnimationWidget.waveDots(color: SacAccent.of(context).color, size: 30),
             const SizedBox(height: 24),
             Text(
               tr('router.oauth_callback.completing_signin'),

@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -229,22 +230,16 @@ class _MemberSubmitCard extends ConsumerWidget {
           ),
           const SizedBox(width: 8),
           // Botón enviar
-          submitState.isLoading
-              ? const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: AppColors.primary,
-                  ),
-                )
-              : SacButton(
-                  text: 'investiture.submit.btn_send'.tr(),
-                  variant: SacButtonVariant.primary,
-                  size: SacButtonSize.small,
-                  fullWidth: false,
-                  onPressed: () => _showSubmitDialog(context, ref),
-                ),
+          SacButton(
+            text: 'investiture.submit.btn_send'.tr(),
+            variant: SacButtonVariant.primary,
+            size: SacButtonSize.small,
+            fullWidth: false,
+            isLoading: submitState.isLoading,
+            onPressed: submitState.isLoading
+                ? null
+                : () => _showSubmitDialog(context, ref),
+          ),
         ],
       ),
     );
@@ -353,23 +348,27 @@ class _MemberStatusCard extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           // Ver historial
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                SacSharedAxisRoute(
-                  builder: (_) => InvestitureHistoryView(
-                    enrollmentId: member.enrollmentId,
+          SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  SacSharedAxisRoute(
+                    builder: (_) => InvestitureHistoryView(
+                      enrollmentId: member.enrollmentId,
+                    ),
                   ),
-                ),
-              );
-            },
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedClock01,
-              size: 20,
-              color: c.textSecondary,
+                );
+              },
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedClock01,
+                size: 20,
+                color: c.textSecondary,
+              ),
+              tooltip: 'investiture.submit.tooltip_history'.tr(),
             ),
-            tooltip: 'investiture.submit.tooltip_history'.tr(),
           ),
         ],
       ),

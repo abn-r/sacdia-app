@@ -1,9 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
@@ -37,13 +39,17 @@ class InvestiturePendingListView extends ConsumerWidget {
       appBar: SacTopBar(
         title: 'investiture.pending.title'.tr(),
         actions: [
-          IconButton(
-            onPressed: () => ref.invalidate(pendingInvestituresProvider),
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedRefresh,
-              size: 22,
+          SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              onPressed: () => ref.invalidate(pendingInvestituresProvider),
+              icon: const HugeIcon(
+                icon: HugeIcons.strokeRoundedRefresh,
+                size: 22,
+              ),
+              tooltip: 'investiture.pending.tooltip_refresh'.tr(),
             ),
-            tooltip: 'investiture.pending.tooltip_refresh'.tr(),
           ),
         ],
       ),
@@ -90,7 +96,7 @@ class InvestiturePendingListView extends ConsumerWidget {
     }
 
     return RefreshIndicator(
-      color: AppColors.primary,
+      color: SacAccent.of(context).color,
       onRefresh: () async => ref.invalidate(pendingInvestituresProvider),
       child: ListView.builder(
         padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 24),
@@ -107,7 +113,7 @@ class InvestiturePendingListView extends ConsumerWidget {
                   HugeIcon(
                     icon: HugeIcons.strokeRoundedAward01,
                     size: 20,
-                    color: AppColors.primary,
+                    color: SacAccent.of(context).color,
                   ),
                   const SizedBox(width: 8),
                   Text(
@@ -300,13 +306,13 @@ class _PendingCard extends ConsumerWidget {
 
           // ── Acciones ──────────────────────────────────────────────────────
           if (isLoading)
-            const Center(
+            Center(
               child: SizedBox(
                 height: 32,
                 width: 32,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.5,
-                  color: AppColors.primary,
+                  color: SacAccent.of(context).color,
                 ),
               ),
             )
@@ -508,13 +514,13 @@ class _Avatar extends StatelessWidget {
         : '?';
     return CircleAvatar(
       radius: 22,
-      backgroundColor: AppColors.primaryLight,
+      backgroundColor: SacAccent.of(context).light,
       child: Text(
         initials,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w700,
-          color: AppColors.primary,
+          color: SacAccent.of(context).color,
         ),
       ),
     );

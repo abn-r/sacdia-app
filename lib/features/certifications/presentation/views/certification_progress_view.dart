@@ -1,18 +1,23 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/animations/sac_state_swap.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_progress_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_tweened_bar.dart';
 import 'package:sacdia_app/features/certifications/domain/entities/certification_progress.dart';
 
 import '../providers/certifications_providers.dart';
@@ -84,7 +89,7 @@ class _ProgressBody extends ConsumerWidget {
     final c = context.sac;
 
     return RefreshIndicator(
-      color: AppColors.primary,
+      color: SacAccent.of(context).color,
       onRefresh: () async {
         ref.invalidate(certificationProgressProvider(certificationId));
       },
@@ -208,12 +213,12 @@ class _GlobalProgressCard extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: isComplete
               ? [AppColors.secondary, AppColors.secondaryDark]
-              : [AppColors.primary, AppColors.primaryDark],
+              : [SacAccent.of(context).color, SacAccent.of(context).dark],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: (isComplete ? AppColors.secondary : AppColors.primary)
+            color: (isComplete ? AppColors.secondary : SacAccent.of(context).color)
                 .withValues(alpha: 0.3),
             blurRadius: 16,
             offset: const Offset(0, 6),
@@ -336,6 +341,10 @@ class _ModuleProgressSectionState
         ? module.completedSections / module.totalSections
         : 0.0;
 
+    final colorDuration = SacMotion.reduceMotionOf(context)
+        ? SacMotion.reducedFade
+        : SacMotion.standard;
+
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 6, 16, 6),
       decoration: BoxDecoration(
@@ -346,10 +355,11 @@ class _ModuleProgressSectionState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header del módulo
           GestureDetector(
             onTap: () => setState(() => _expanded = !_expanded),
-            child: Container(
+            child: AnimatedContainer(
+              duration: colorDuration,
+              curve: SacMotion.easeOut,
               padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
               decoration: BoxDecoration(
                 color: isComplete ? AppColors.secondaryLight : c.surfaceVariant,
@@ -357,60 +367,64 @@ class _ModuleProgressSectionState
               ),
               child: Row(
                 children: [
-                  // Icono de estado del módulo
-                  Container(
+                  AnimatedContainer(
+                    duration: colorDuration,
+                    curve: SacMotion.easeOut,
                     width: 40,
                     height: 40,
+                    alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color:
-                          isComplete ? AppColors.secondary : AppColors.primary,
+                          isComplete ? AppColors.secondary : SacAccent.of(context).color,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: isComplete
-                        ? HugeIcon(
-                            icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                            size: 20,
-                            color: Colors.white,
-                          )
-                        : Center(
-                            child: Text(
+                    child: SacStateSwap(
+                      duration: SacMotion.standard,
+                      child: isComplete
+                          ? const HugeIcon(
+                              key: ValueKey('cert-module-done'),
+                              icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                              size: 20,
+                              color: Colors.white,
+                            )
+                          : Text(
                               '${module.completedSections}/${module.totalSections}',
+                              key: ValueKey(
+                                'cert-module-${module.completedSections}-${module.totalSections}',
+                              ),
                               style: const TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.white,
                               ),
                             ),
-                          ),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          module.moduleName,
-                          style:
-                              Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: isComplete
-                                        ? AppColors.secondaryDark
-                                        : c.text,
-                                  ),
+                        AnimatedDefaultTextStyle(
+                          duration: colorDuration,
+                          curve: SacMotion.easeOut,
+                          style: (Theme.of(context).textTheme.titleSmall ??
+                                  const TextStyle())
+                              .copyWith(
+                            fontWeight: FontWeight.w700,
+                            color:
+                                isComplete ? AppColors.secondaryDark : c.text,
+                          ),
+                          child: Text(module.moduleName),
                         ),
                         const SizedBox(height: 4),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: completionRatio,
-                            minHeight: 4,
-                            backgroundColor: c.borderLight,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              isComplete
-                                  ? AppColors.secondary
-                                  : AppColors.primary,
-                            ),
-                          ),
+                        SacTweenedBar(
+                          value: completionRatio,
+                          minHeight: 4,
+                          backgroundColor: c.borderLight,
+                          color: isComplete
+                              ? AppColors.secondary
+                              : SacAccent.of(context).color,
                         ),
                       ],
                     ),
@@ -481,6 +495,12 @@ class _SectionCheckTile extends ConsumerStatefulWidget {
 
 class _SectionCheckTileState extends ConsumerState<_SectionCheckTile> {
   bool _isLoading = false;
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() => _pressed = value);
+  }
 
   Future<void> _toggleSection() async {
     if (_isLoading) return;
@@ -511,99 +531,138 @@ class _SectionCheckTileState extends ConsumerState<_SectionCheckTile> {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    final reduce = SacMotion.reduceMotionOf(context);
     final isCompleted = widget.section.completed;
+    final labelColor = isCompleted ? AppColors.secondary : c.text;
 
-    return InkWell(
-      onTap: _toggleSection,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        child: Row(
-          children: [
-            // Checkbox visual
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 22,
-              height: 22,
-              decoration: BoxDecoration(
-                color: isCompleted ? AppColors.secondary : Colors.transparent,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: isCompleted ? AppColors.secondary : c.border,
-                  width: 2,
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _toggleSection,
+        onTapDown: (_) => _setPressed(true),
+        onTapUp: (_) => _setPressed(false),
+        onTapCancel: () => _setPressed(false),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: Row(
+            children: [
+              AnimatedScale(
+                scale: (!reduce && _pressed) ? SacMotion.pressScale : 1,
+                duration: SacMotion.press,
+                curve: SacMotion.easeOut,
+                child: AnimatedContainer(
+                  duration: reduce ? SacMotion.reducedFade : SacMotion.standard,
+                  curve: SacMotion.easeOut,
+                  width: 22,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    color:
+                        isCompleted ? AppColors.secondary : Colors.transparent,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: isCompleted ? AppColors.secondary : c.border,
+                      width: 2,
+                    ),
+                  ),
+                  child: SacStateSwap(
+                    duration: SacMotion.press,
+                    child: _sectionCheckFace(
+                      completed: isCompleted,
+                      loading: _isLoading,
+                      idleColor: c.textTertiary,
+                    ),
+                  ),
                 ),
               ),
-              child: isCompleted
-                  ? _isLoading
-                      ? const SizedBox(
-                          width: 14,
-                          height: 14,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const HugeIcon(
-                          icon: HugeIcons.strokeRoundedTick02,
-                          size: 14,
-                          color: Colors.white)
-                  : _isLoading
-                      ? SizedBox(
-                          width: 14,
-                          height: 14,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: c.textTertiary,
-                          ),
-                        )
-                      : null,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                widget.section.sectionName,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: isCompleted ? AppColors.secondary : c.text,
-                  fontWeight: isCompleted ? FontWeight.w600 : FontWeight.w400,
-                  decoration: isCompleted
-                      ? TextDecoration.lineThrough
-                      : TextDecoration.none,
-                  decorationColor: AppColors.secondary,
+              const SizedBox(width: 12),
+              Expanded(
+                child: AnimatedDefaultTextStyle(
+                  duration: reduce ? SacMotion.reducedFade : SacMotion.press,
+                  curve: SacMotion.easeOut,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: labelColor,
+                    fontWeight: isCompleted ? FontWeight.w600 : FontWeight.w400,
+                    decoration: isCompleted
+                        ? TextDecoration.lineThrough
+                        : TextDecoration.none,
+                    decorationColor: AppColors.secondary,
+                  ),
+                  child: Text(widget.section.sectionName),
                 ),
               ),
-            ),
-            if (isCompleted) ...[
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                size: 16,
-                color: AppColors.secondary,
+              SacStateSwap(
+                duration: SacMotion.press,
+                child: isCompleted
+                    ? const Padding(
+                        key: ValueKey('section-trail-on'),
+                        padding: EdgeInsets.only(right: 4),
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                          size: 16,
+                          color: AppColors.secondary,
+                        ),
+                      )
+                    : const SizedBox.shrink(key: ValueKey('section-trail-off')),
               ),
-              const SizedBox(width: 4),
+              SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  tooltip: 'certifications.progress.open_requirement'.tr(),
+                  onPressed: () => context.push(
+                    RouteNames.certificationRequirementDetailPath(
+                      widget.certificationId,
+                      widget.section.sectionId,
+                      enrollmentId: widget.enrollmentId,
+                    ),
+                  ),
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowRight01,
+                    size: 16,
+                    color: c.textTertiary,
+                  ),
+                ),
+              ),
             ],
-            IconButton(
-              visualDensity: VisualDensity.compact,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              tooltip: 'certifications.progress.open_requirement'.tr(),
-              onPressed: () => context.push(
-                RouteNames.certificationRequirementDetailPath(
-                  widget.certificationId,
-                  widget.section.sectionId,
-                  enrollmentId: widget.enrollmentId,
-                ),
-              ),
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedArrowRight01,
-                size: 16,
-                color: c.textTertiary,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
+}
+
+Widget _sectionCheckFace({
+  required bool completed,
+  required bool loading,
+  required Color idleColor,
+}) {
+  if (loading) {
+    return SizedBox(
+      key: ValueKey(
+        completed ? 'section-check-loading-on' : 'section-check-loading-off',
+      ),
+      width: 14,
+      height: 14,
+      child: CircularProgressIndicator(
+        strokeWidth: 2,
+        color: completed ? Colors.white : idleColor,
+      ),
+    );
+  }
+  if (completed) {
+    return const HugeIcon(
+      key: ValueKey('section-check-on'),
+      icon: HugeIcons.strokeRoundedTick02,
+      size: 14,
+      color: Colors.white,
+    );
+  }
+  return const SizedBox.shrink(key: ValueKey('section-check-off'));
 }
 
 // ── Error Body ────────────────────────────────────────────────────────────────

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
@@ -580,7 +582,7 @@ class _MedicalInfoSection extends ConsumerWidget {
         _MedicalCard(
           icon: HugeIcons.strokeRoundedContactBook,
           title: 'members.profile_view.emergency_contacts_title'.tr(),
-          iconColor: AppColors.primary,
+          iconColor: SacAccent.of(context).color,
           child: _EmergencyContactsBody(userId: userId),
         ),
       ],
@@ -778,13 +780,13 @@ class _EmergencyContactsBody extends ConsumerWidget {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: AppColors.primaryLight,
+                      color: SacAccent.of(context).light,
                       shape: BoxShape.circle,
                     ),
                     child: Material(
                       color: Colors.transparent,
                       shape: const CircleBorder(),
-                      child: InkWell(
+                      child: SacInkWell(
                         customBorder: const CircleBorder(),
                         onTap: () =>
                             _openEmergencyContactDialer(context, contact.phone),
@@ -794,7 +796,7 @@ class _EmergencyContactsBody extends ConsumerWidget {
                           child: Center(
                             child: HugeIcon(
                               icon: HugeIcons.strokeRoundedCall,
-                              color: AppColors.primaryDark,
+                              color: SacAccent.of(context).dark,
                               size: 16,
                             ),
                           ),
@@ -930,16 +932,19 @@ class _MedicalError extends StatelessWidget {
             style: TextStyle(fontSize: 13, color: AppColors.error),
           ),
         ),
-        TextButton(
-          onPressed: onRetry,
-          style: TextButton.styleFrom(
-            foregroundColor: AppColors.primary,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        SacPressable(
+          listenOnly: true,
+          child: TextButton(
+            onPressed: onRetry,
+            style: (TextButton.styleFrom(
+              foregroundColor: SacAccent.of(context).color,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            )).copyWith(enableFeedback: false),
+            child:
+                Text('common.retry'.tr(), style: const TextStyle(fontSize: 12)),
           ),
-          child:
-              Text('common.retry'.tr(), style: const TextStyle(fontSize: 12)),
         ),
       ],
     );
@@ -964,12 +969,12 @@ class _MemberProfileHeader extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(
-              color: AppColors.primaryLight,
+              color: SacAccent.of(context).light,
               width: 3,
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.15),
+                color: SacAccent.of(context).color.withValues(alpha: 0.15),
                 blurRadius: 16,
                 offset: const Offset(0, 4),
               ),

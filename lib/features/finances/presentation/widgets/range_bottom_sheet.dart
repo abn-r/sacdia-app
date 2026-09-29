@@ -2,9 +2,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/animations/motion_tokens.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import '../../domain/entities/transaction_filter.dart';
 
 export '../../domain/entities/transaction_filter.dart' show DateRangePreset;
@@ -147,22 +148,25 @@ class _RangeOption extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        children: [
-          Radio<DateRangePreset>(
-            value: preset,
-            activeColor: AppColors.primary,
-          ),
-          const SizedBox(width: 12),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: context.sac.text,
+      child: SacPressable(
+        listenOnly: true,
+        child: Row(
+          children: [
+            Radio<DateRangePreset>(
+              value: preset,
+              activeColor: SacAccent.of(context).color,
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: context.sac.text,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/animations/sac_state_swap.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
@@ -272,11 +274,12 @@ class _SacButtonState extends State<SacButton> {
 
   Color get _backgroundColor {
     if (widget.backgroundColor != null) return widget.backgroundColor!;
+    final accent = SacAccent.of(context);
     switch (widget.variant) {
       case SacButtonVariant.primary:
-        return AppColors.primary;
+        return accent.color;
       case SacButtonVariant.secondary:
-        return AppColors.primaryLight;
+        return accent.light;
       case SacButtonVariant.outline:
       case SacButtonVariant.ghost:
         return Colors.transparent;
@@ -289,16 +292,18 @@ class _SacButtonState extends State<SacButton> {
 
   Color get _foregroundColor {
     if (widget.textColor != null) return widget.textColor!;
+    final accent = SacAccent.of(context);
     switch (widget.variant) {
       case SacButtonVariant.primary:
+        return accent.onColor;
       case SacButtonVariant.destructive:
       case SacButtonVariant.success:
         return Colors.white;
       case SacButtonVariant.secondary:
-        return AppColors.primaryDark;
+        return accent.dark;
       case SacButtonVariant.outline:
       case SacButtonVariant.ghost:
-        return AppColors.primary;
+        return accent.color;
     }
   }
 
@@ -307,9 +312,39 @@ class _SacButtonState extends State<SacButton> {
       return BorderSide(color: widget.borderColor!, width: 1.5);
     }
     if (widget.variant == SacButtonVariant.outline) {
-      return const BorderSide(color: AppColors.primary, width: 1.5);
+      return BorderSide(color: SacAccent.of(context).color, width: 1.5);
     }
     return null;
+  }
+
+  Widget _labelRow(Color color, {Key? key}) {
+    final label = Text(
+      widget.text,
+      maxLines: widget.labelMaxLines,
+      overflow: widget.labelOverflow,
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        fontSize: _fontSize,
+        fontWeight: FontWeight.w600,
+        color: color,
+      ),
+    );
+    return Row(
+      key: key,
+      mainAxisSize: widget.fullWidth ? MainAxisSize.max : MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        if (widget.icon != null) ...[
+          buildIcon(widget.icon, size: _iconSize, color: color),
+          SizedBox(width: widget.spaceBetween),
+        ],
+        widget.fullWidth ? Flexible(child: label) : label,
+        if (widget.trailingIcon != null) ...[
+          SizedBox(width: widget.spaceBetween),
+          buildIcon(widget.trailingIcon, size: _iconSize, color: color),
+        ],
+      ],
+    );
   }
 
   @override
@@ -337,42 +372,33 @@ class _SacButtonState extends State<SacButton> {
         strokeWidth: 2.0,
       ),
     );
-    final label = Text(
-      widget.text,
-      maxLines: widget.labelMaxLines,
-      overflow: widget.labelOverflow,
-      textAlign: TextAlign.center,
-      style: TextStyle(
-        fontSize: _fontSize,
-        fontWeight: FontWeight.w600,
-        color: effectiveFg,
-      ),
-    );
-    final child = widget.isLoading
-        ? widget.loadingSemanticLabel == null
-            ? Center(child: loadingIndicator)
-            : Semantics(
-                label: widget.loadingSemanticLabel,
-                liveRegion: true,
-                child: Center(child: loadingIndicator),
-              )
-        : Row(
-            mainAxisSize:
-                widget.fullWidth ? MainAxisSize.max : MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (widget.icon != null) ...[
-                buildIcon(widget.icon, size: _iconSize, color: effectiveFg),
-                SizedBox(width: widget.spaceBetween),
-              ],
-              widget.fullWidth ? Flexible(child: label) : label,
-              if (widget.trailingIcon != null) ...[
-                SizedBox(width: widget.spaceBetween),
-                buildIcon(widget.trailingIcon,
-                    size: _iconSize, color: effectiveFg),
-              ],
-            ],
+    final loadingFace = widget.loadingSemanticLabel == null
+        ? loadingIndicator
+        : Semantics(
+            label: widget.loadingSemanticLabel,
+            liveRegion: true,
+            child: loadingIndicator,
           );
+    final shown = widget.isLoading
+        ? KeyedSubtree(
+            key: const ValueKey('sac-button-loading'),
+            child: loadingFace,
+          )
+        : _labelRow(effectiveFg, key: const ValueKey('sac-button-label'));
+    // Invisible label keeps the control from collapsing onto the spinner.
+    final child = Stack(
+      alignment: Alignment.center,
+      children: [
+        if (widget.isLoading)
+          ExcludeSemantics(
+            child: Opacity(
+              opacity: 0,
+              child: IgnorePointer(child: _labelRow(effectiveFg)),
+            ),
+          ),
+        SacStateSwap(child: shown),
+      ],
+    );
 
     final visual = ConstrainedBox(
       constraints: BoxConstraints(

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -10,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
@@ -327,38 +329,50 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
               ),
             ),
             const SizedBox(height: 16),
-            ListTile(
-              leading: const HugeIcon(
-                icon: HugeIcons.strokeRoundedCamera01,
-                color: AppColors.info,
+            SacPressable(
+              listenOnly: true,
+              child: ListTile(
+                enableFeedback: false,
+                leading: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedCamera01,
+                  color: AppColors.info,
+                ),
+                title: Text('honors.requirements.pick_camera'.tr()),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickRequirementCamera(requirement);
+                },
               ),
-              title: Text('honors.requirements.pick_camera'.tr()),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickRequirementCamera(requirement);
-              },
             ),
-            ListTile(
-              leading: const HugeIcon(
-                icon: HugeIcons.strokeRoundedImage01,
-                color: AppColors.success,
+            SacPressable(
+              listenOnly: true,
+              child: ListTile(
+                enableFeedback: false,
+                leading: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedImage01,
+                  color: AppColors.success,
+                ),
+                title: Text('honors.requirements.pick_gallery'.tr()),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickRequirementGallery(requirement);
+                },
               ),
-              title: Text('honors.requirements.pick_gallery'.tr()),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickRequirementGallery(requirement);
-              },
             ),
-            ListTile(
-              leading: const HugeIcon(
-                icon: HugeIcons.strokeRoundedPdf01,
-                color: AppColors.error,
+            SacPressable(
+              listenOnly: true,
+              child: ListTile(
+                enableFeedback: false,
+                leading: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedPdf01,
+                  color: AppColors.error,
+                ),
+                title: Text('honors.requirements.pick_pdf'.tr()),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickRequirementPdf(requirement);
+                },
               ),
-              title: Text('honors.requirements.pick_pdf'.tr()),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickRequirementPdf(requirement);
-              },
             ),
             const SizedBox(height: 8),
           ],
@@ -1078,10 +1092,10 @@ class _ErrorBody extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const HugeIcon(
+            HugeIcon(
               icon: HugeIcons.strokeRoundedAlert02,
               size: 48,
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
             ),
             const SizedBox(height: 16),
             Text(
@@ -1096,14 +1110,18 @@ class _ErrorBody extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            TextButton(
-              onPressed: onRetry,
-              child: Text(
-                'honors.requirements.retry'.tr(),
-                style: const TextStyle(
-                  color: AppColors.info,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+            SacPressable(
+              listenOnly: true,
+              child: TextButton(
+                style: const ButtonStyle(enableFeedback: false),
+                onPressed: onRetry,
+                child: Text(
+                  'honors.requirements.retry'.tr(),
+                  style: const TextStyle(
+                    color: AppColors.info,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),

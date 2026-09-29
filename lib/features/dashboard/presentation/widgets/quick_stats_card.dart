@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/animated_counter.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
@@ -52,7 +53,7 @@ class _MissionStatsCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBackground = isDark ? c.surfaceVariant : c.surface;
     final cardBorder =
-        isDark ? c.border : AppColors.primary.withValues(alpha: 0.12);
+        isDark ? c.border : SacAccent.of(context).color.withValues(alpha: 0.12);
     final iconBackground = isDark
         ? AppColors.accent.withValues(alpha: 0.16)
         : AppColors.accentLight;
@@ -133,7 +134,7 @@ class _MissionStatsCard extends StatelessWidget {
                   value: progressPercent,
                   suffix: '%',
                   label: 'clase',
-                  color: AppColors.primary,
+                  color: SacAccent.of(context).color,
                 ),
               ),
             ],

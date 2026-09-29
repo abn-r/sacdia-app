@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/member_ranking.dart';
 
@@ -113,7 +114,7 @@ class _TopNRow extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 2),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color: isCurrentUser ? AppColors.primarySurface : Colors.transparent,
+        color: isCurrentUser ? SacAccent.of(context).surface : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(

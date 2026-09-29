@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -13,13 +15,12 @@ import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../../domain/entities/certificate_import_payloads.dart';
-import '../../domain/usecases/create_certificate_import_batch.dart';
 import '../providers/certificate_import_providers.dart';
 import '../widgets/certificate_import_back_button.dart';
 
 typedef CertificateImportSubmit = Future<void> Function(
-    List<CertificateImportFilePayload> files);
-typedef CertificateImportProofPicker = Future<CertificateImportFilePayload?>
+    CertificateImportLocalProof proof);
+typedef CertificateImportProofPicker = Future<CertificateImportLocalProof?>
     Function();
 
 class CertificateImportUploadRouteView extends ConsumerWidget {
@@ -28,16 +29,34 @@ class CertificateImportUploadRouteView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CertificateImportUploadView(
-      onSubmitProofs: (files) async {
+      onSubmitProofs: (proof) async {
         final result =
-            await ref.read(createCertificateImportBatchProvider).call(
-                  CreateCertificateImportBatchParams(files: files),
+            await ref.read(uploadCertificateImportProofProvider).call(proof);
+        await result.fold(
+          (failure) async => throw Exception(failure.message),
+          (batch) async {
+            // A failed or empty reading still leaves the sealed file for manual entry.
+            final ocr = await ref
+                .read(processCertificateImportOcrProvider)
+                .call(batch.id);
+            await ocr.fold((_) async {}, (queued) async {
+              if (queued.items.isNotEmpty) return;
+              for (var attempt = 0; attempt < 6; attempt++) {
+                await Future<void>.delayed(const Duration(seconds: 2));
+                final detail = await ref
+                    .read(getCertificateImportBatchProvider)
+                    .call(batch.id);
+                final ready = detail.fold(
+                  (_) => true,
+                  (loaded) => loaded.items.isNotEmpty,
                 );
-        result.fold(
-          (failure) => throw Exception(failure.message),
-          (batch) => context.push(
-            RouteNames.certificateImportProcessingPath(batch.id),
-          ),
+                if (ready) return;
+              }
+            });
+            if (context.mounted) {
+              context.push(RouteNames.certificateImportReviewPath(batch.id));
+            }
+          },
         );
       },
       onPickCamera: _pickCameraProof,
@@ -45,7 +64,7 @@ class CertificateImportUploadRouteView extends ConsumerWidget {
     );
   }
 
-  static Future<CertificateImportFilePayload?> _pickCameraProof() async {
+  static Future<CertificateImportLocalProof?> _pickCameraProof() async {
     final image = await ImagePicker().pickImage(
       source: ImageSource.camera,
       maxWidth: 2048,
@@ -54,14 +73,17 @@ class CertificateImportUploadRouteView extends ConsumerWidget {
     );
     if (image == null) return null;
 
-    return CertificateImportFilePayload(
-      url: image.path,
-      name: image.name.isNotEmpty ? image.name : 'comprobante.jpg',
-      type: image.mimeType ?? lookupMimeType(image.path) ?? 'image/jpeg',
+    final path = image.path;
+    final size = await File(path).length();
+    return CertificateImportLocalProof(
+      localPath: path,
+      fileName: image.name.isNotEmpty ? image.name : 'comprobante.jpg',
+      mimeType: image.mimeType ?? lookupMimeType(path) ?? 'image/jpeg',
+      fileSize: size,
     );
   }
 
-  static Future<CertificateImportFilePayload?> _pickFileProof() async {
+  static Future<CertificateImportLocalProof?> _pickFileProof() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png', 'webp'],
@@ -74,12 +96,14 @@ class CertificateImportUploadRouteView extends ConsumerWidget {
     final path = file.path;
     if (path == null || path.trim().isEmpty) return null;
 
-    return CertificateImportFilePayload(
-      url: path,
-      name: file.name,
-      type: lookupMimeType(path) ??
+    final size = file.size > 0 ? file.size : await File(path).length();
+    return CertificateImportLocalProof(
+      localPath: path,
+      fileName: file.name,
+      mimeType: lookupMimeType(path) ??
           _mimeTypeFromExtension(file.extension) ??
           'application/octet-stream',
+      fileSize: size,
     );
   }
 
@@ -121,9 +145,9 @@ class _CertificateImportUploadViewState
   bool _loading = false;
   bool _picking = false;
   String? _error;
-  List<CertificateImportFilePayload> _selectedFiles = const [];
+  CertificateImportLocalProof? _selectedProof;
 
-  bool get _hasFilesToAnalyze => _selectedFiles.isNotEmpty;
+  bool get _hasFilesToAnalyze => _selectedProof != null;
 
   @override
   Widget build(BuildContext context) {
@@ -174,7 +198,7 @@ class _CertificateImportUploadViewState
               ],
               if (_hasFilesToAnalyze) ...[
                 const SizedBox(height: 12),
-                _SelectedProofCard(files: _selectedFiles),
+                _SelectedProofCard(proof: _selectedProof!),
               ],
             ],
           ),
@@ -255,7 +279,8 @@ class _CertificateImportUploadViewState
       if (!mounted) return;
 
       setState(() {
-        _selectedFiles = [file];
+        // Un documento por carga.
+        _selectedProof = file;
       });
     } catch (error) {
       setState(() => _error = error.toString());
@@ -265,7 +290,8 @@ class _CertificateImportUploadViewState
   }
 
   Future<void> _submit() async {
-    if (!_hasFilesToAnalyze) return;
+    final proof = _selectedProof;
+    if (proof == null) return;
     if (widget.onSubmitProofs == null) {
       setState(
         () => _error = 'certificate_import.upload.no_submit'.tr(),
@@ -278,7 +304,7 @@ class _CertificateImportUploadViewState
       _error = null;
     });
     try {
-      await widget.onSubmitProofs!(_selectedFiles);
+      await widget.onSubmitProofs!(proof);
     } catch (error) {
       setState(() => _error = error.toString());
     } finally {
@@ -347,15 +373,13 @@ class _UploadHero extends StatelessWidget {
 }
 
 class _SelectedProofCard extends StatelessWidget {
-  const _SelectedProofCard({required this.files});
+  const _SelectedProofCard({required this.proof});
 
-  final List<CertificateImportFilePayload> files;
+  final CertificateImportLocalProof proof;
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final fileCount = files.length;
-    final firstName = files.first.name;
 
     return SacCard(
       child: Row(
@@ -372,11 +396,7 @@ class _SelectedProofCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  fileCount == 1
-                      ? 'certificate_import.upload.selected_one'.tr()
-                      : 'certificate_import.upload.selected_other'.tr(
-                          namedArgs: {'count': '$fileCount'},
-                        ),
+                  'certificate_import.upload.selected_one'.tr(),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: c.text,
                         fontWeight: FontWeight.w700,
@@ -384,7 +404,7 @@ class _SelectedProofCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  firstName,
+                  proof.fileName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(

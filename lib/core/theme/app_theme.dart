@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 
 /// SACDIA Design System - ThemeData "Scout Vibrante"
 ///
@@ -20,18 +21,37 @@ class AppTheme {
   static const double elevationSM = 1.0;
   static const double elevationMD = 2.0;
 
+  /// Quita el ink de Material (splash y mancha al mantener presionado).
+  /// El feedback de presión vive en [SacPressable] / [SacInkWell] / [SacCard].
+  static const WidgetStateProperty<Color?> _noOverlay =
+      WidgetStatePropertyAll(Colors.transparent);
+
+  static ButtonStyle withoutInk(ButtonStyle style) {
+    return style.copyWith(
+      splashFactory: NoSplash.splashFactory,
+      overlayColor: _noOverlay,
+    );
+  }
+
   /// Tema claro - fondos blancos, acentos indigo/emerald/amber
-  static ThemeData get lightTheme {
+  static ThemeData get lightTheme => buildLight(SacAccent.logoBlue);
+
+  static ThemeData buildLight(SacAccent accent) {
     return ThemeData(
       brightness: Brightness.light,
+      extensions: <ThemeExtension<dynamic>>[accent],
       useMaterial3: true,
+      splashFactory: NoSplash.splashFactory,
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
+      hoverColor: Colors.transparent,
       // SF Pro Text is native on iOS; falls back gracefully to system font on Android.
       fontFamily: '.SF Pro Text',
-      colorScheme: const ColorScheme.light(
-        primary: AppColors.primary,
-        onPrimary: Colors.white,
-        primaryContainer: AppColors.primaryLight,
-        onPrimaryContainer: AppColors.primaryDark,
+      colorScheme: ColorScheme.light(
+        primary: accent.color,
+        onPrimary: accent.onColor,
+        primaryContainer: accent.light,
+        onPrimaryContainer: accent.dark,
         secondary: AppColors.secondary,
         onSecondary: Colors.white,
         secondaryContainer: AppColors.secondaryLight,
@@ -173,9 +193,9 @@ class AppTheme {
 
       // Botón primario elevado
       elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
+        style: withoutInk(ElevatedButton.styleFrom(
+          backgroundColor: accent.color,
+          foregroundColor: accent.onColor,
           elevation: elevationNone,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           minimumSize: const Size(0, 48),
@@ -186,14 +206,14 @@ class AppTheme {
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
-        ),
+        )),
       ),
 
       // Botón outlined
       outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.primary,
-          side: const BorderSide(color: AppColors.primary, width: 1.5),
+        style: withoutInk(OutlinedButton.styleFrom(
+          foregroundColor: accent.color,
+          side: BorderSide(color: accent.color, width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           minimumSize: const Size(0, 48),
           shape: RoundedRectangleBorder(
@@ -203,32 +223,46 @@ class AppTheme {
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
-        ),
+        )),
       ),
 
       // Botón texto / ghost
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: AppColors.primary,
+        style: withoutInk(TextButton.styleFrom(
+          foregroundColor: accent.color,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           textStyle: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
-        ),
+        )),
+      ),
+
+      iconButtonTheme: IconButtonThemeData(
+        style: withoutInk(const ButtonStyle()),
+      ),
+      tabBarTheme: const TabBarThemeData(
+        splashFactory: NoSplash.splashFactory,
+        overlayColor: _noOverlay,
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: withoutInk(const ButtonStyle()),
+      ),
+      menuButtonTheme: MenuButtonThemeData(
+        style: withoutInk(const ButtonStyle()),
       ),
 
       // Filled button (para variantes)
       filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
+        style: withoutInk(FilledButton.styleFrom(
+          backgroundColor: accent.color,
+          foregroundColor: accent.onColor,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           minimumSize: const Size(0, 48),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(radiusSM),
           ),
-        ),
+        )),
       ),
 
       // Campos de texto - radius 12, borde sutil
@@ -245,7 +279,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusSM),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+          borderSide: BorderSide(color: accent.color, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusSM),
@@ -265,8 +299,8 @@ class AppTheme {
           color: AppColors.lightTextSecondary,
           fontSize: 14,
         ),
-        floatingLabelStyle: const TextStyle(
-          color: AppColors.primary,
+        floatingLabelStyle: TextStyle(
+          color: accent.color,
           fontSize: 14,
           fontWeight: FontWeight.w500,
         ),
@@ -275,7 +309,7 @@ class AppTheme {
       // Chips
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.lightSurfaceVariant,
-        selectedColor: AppColors.primaryLight,
+        selectedColor: accent.light,
         labelStyle: const TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w500,
@@ -296,9 +330,9 @@ class AppTheme {
       ),
 
       // Bottom Navigation
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: AppColors.lightSurface,
-        selectedItemColor: AppColors.primary,
+        selectedItemColor: accent.color,
         unselectedItemColor: AppColors.lightTextTertiary,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
@@ -315,18 +349,19 @@ class AppTheme {
       // Navigation Bar (M3)
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.lightSurface,
-        indicatorColor: AppColors.primaryLight,
+        indicatorColor: accent.light,
         surfaceTintColor: Colors.transparent,
+        overlayColor: _noOverlay,
         elevation: 0,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const TextStyle(
+            return TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: AppColors.primary,
+              color: accent.color,
             );
           }
-          return const TextStyle(
+          return TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w400,
             color: AppColors.lightTextTertiary,
@@ -334,12 +369,12 @@ class AppTheme {
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const IconThemeData(
-              color: AppColors.primary,
+            return IconThemeData(
+              color: accent.color,
               size: 24,
             );
           }
-          return const IconThemeData(
+          return IconThemeData(
             color: AppColors.lightTextTertiary,
             size: 24,
           );
@@ -387,20 +422,22 @@ class AppTheme {
 
       // Switch
       switchTheme: SwitchThemeData(
+        overlayColor: _noOverlay,
         thumbColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) return Colors.white;
           return AppColors.lightTextTertiary;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return AppColors.primary;
+          if (states.contains(WidgetState.selected)) return accent.color;
           return AppColors.lightBorder;
         }),
       ),
 
       // Checkbox
       checkboxTheme: CheckboxThemeData(
+        overlayColor: _noOverlay,
         fillColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return AppColors.primary;
+          if (states.contains(WidgetState.selected)) return accent.color;
           return Colors.transparent;
         }),
         shape: RoundedRectangleBorder(
@@ -410,16 +447,16 @@ class AppTheme {
       ),
 
       // FloatingActionButton
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: accent.color,
+        foregroundColor: accent.onColor,
         elevation: 2,
         shape: CircleBorder(),
       ),
 
       // Progress indicators
-      progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: AppColors.primary,
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: accent.color,
         linearTrackColor: AppColors.lightBorderLight,
         circularTrackColor: AppColors.lightBorderLight,
       ),
@@ -427,17 +464,25 @@ class AppTheme {
   }
 
   /// Tema oscuro - Slate backgrounds, mismos acentos vibrantes
-  static ThemeData get darkTheme {
+  static ThemeData get darkTheme => buildDark(SacAccent.logoBlue);
+
+  static ThemeData buildDark(SacAccent accent) {
+    accent = accent.forBrightness(Brightness.dark);
     return ThemeData(
       brightness: Brightness.dark,
+      extensions: <ThemeExtension<dynamic>>[accent],
       useMaterial3: true,
+      splashFactory: NoSplash.splashFactory,
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
+      hoverColor: Colors.transparent,
       // SF Pro Text is native on iOS; falls back gracefully to system font on Android.
       fontFamily: '.SF Pro Text',
-      colorScheme: const ColorScheme.dark(
-        primary: AppColors.primary,
-        onPrimary: Colors.white,
-        primaryContainer: AppColors.primaryDark,
-        onPrimaryContainer: AppColors.primaryLight,
+      colorScheme: ColorScheme.dark(
+        primary: accent.color,
+        onPrimary: accent.onColor,
+        primaryContainer: accent.dark,
+        onPrimaryContainer: accent.light,
         secondary: AppColors.secondary,
         onSecondary: Colors.white,
         secondaryContainer: AppColors.secondaryDark,
@@ -570,9 +615,9 @@ class AppTheme {
 
       // Botones dark
       elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
+        style: withoutInk(ElevatedButton.styleFrom(
+          backgroundColor: accent.color,
+          foregroundColor: accent.onColor,
           elevation: elevationNone,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           minimumSize: const Size(0, 48),
@@ -583,13 +628,13 @@ class AppTheme {
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
-        ),
+        )),
       ),
 
       outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.primary,
-          side: const BorderSide(color: AppColors.primary, width: 1.5),
+        style: withoutInk(OutlinedButton.styleFrom(
+          foregroundColor: accent.color,
+          side: BorderSide(color: accent.color, width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           minimumSize: const Size(0, 48),
           shape: RoundedRectangleBorder(
@@ -599,18 +644,32 @@ class AppTheme {
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
-        ),
+        )),
       ),
 
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: AppColors.primary,
+        style: withoutInk(TextButton.styleFrom(
+          foregroundColor: accent.color,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           textStyle: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
-        ),
+        )),
+      ),
+
+      iconButtonTheme: IconButtonThemeData(
+        style: withoutInk(const ButtonStyle()),
+      ),
+      tabBarTheme: const TabBarThemeData(
+        splashFactory: NoSplash.splashFactory,
+        overlayColor: _noOverlay,
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: withoutInk(const ButtonStyle()),
+      ),
+      menuButtonTheme: MenuButtonThemeData(
+        style: withoutInk(const ButtonStyle()),
       ),
 
       // Input dark
@@ -627,7 +686,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusSM),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+          borderSide: BorderSide(color: accent.color, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusSM),
@@ -647,8 +706,8 @@ class AppTheme {
           color: AppColors.darkTextSecondary,
           fontSize: 14,
         ),
-        floatingLabelStyle: const TextStyle(
-          color: AppColors.primary,
+        floatingLabelStyle: TextStyle(
+          color: accent.color,
           fontSize: 14,
           fontWeight: FontWeight.w500,
         ),
@@ -657,7 +716,7 @@ class AppTheme {
       // Chips dark
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.darkSurfaceVariant,
-        selectedColor: AppColors.primaryDark,
+        selectedColor: accent.dark,
         labelStyle: const TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w500,
@@ -678,9 +737,9 @@ class AppTheme {
       ),
 
       // Bottom Navigation dark
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: AppColors.darkSurface,
-        selectedItemColor: AppColors.primary,
+        selectedItemColor: accent.color,
         unselectedItemColor: AppColors.darkTextSecondary,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
@@ -689,18 +748,19 @@ class AppTheme {
       // Navigation Bar dark
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.darkSurface,
-        indicatorColor: AppColors.primaryDark,
+        indicatorColor: accent.dark,
         surfaceTintColor: Colors.transparent,
+        overlayColor: _noOverlay,
         elevation: 0,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const TextStyle(
+            return TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: Colors.white,
             );
           }
-          return const TextStyle(
+          return TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w400,
             color: AppColors.darkTextSecondary,
@@ -708,9 +768,9 @@ class AppTheme {
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const IconThemeData(color: Colors.white, size: 24);
+            return IconThemeData(color: Colors.white, size: 24);
           }
-          return const IconThemeData(
+          return IconThemeData(
             color: AppColors.darkText,
             size: 24,
           );
@@ -761,20 +821,22 @@ class AppTheme {
 
       // Switch dark
       switchTheme: SwitchThemeData(
+        overlayColor: _noOverlay,
         thumbColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) return Colors.white;
           return AppColors.darkTextTertiary;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return AppColors.primary;
+          if (states.contains(WidgetState.selected)) return accent.color;
           return AppColors.darkBorder;
         }),
       ),
 
       // Checkbox dark
       checkboxTheme: CheckboxThemeData(
+        overlayColor: _noOverlay,
         fillColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return AppColors.primary;
+          if (states.contains(WidgetState.selected)) return accent.color;
           return Colors.transparent;
         }),
         shape: RoundedRectangleBorder(
@@ -784,16 +846,16 @@ class AppTheme {
       ),
 
       // FAB dark
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: accent.color,
+        foregroundColor: accent.onColor,
         elevation: 2,
         shape: CircleBorder(),
       ),
 
       // Progress indicators dark
-      progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: AppColors.primary,
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: accent.color,
         linearTrackColor: AppColors.darkSurfaceVariant,
         circularTrackColor: AppColors.darkSurfaceVariant,
       ),
@@ -810,22 +872,18 @@ class AppTheme {
   // se aplica mediante un [PageTransitionsTheme] con un builder que devuelve
   // el child sin animar.
 
-  /// Color primario reforzado para alto contraste.
-  ///
-  /// El `primary` original (#F06151) aprobado en light mode contra blanco
-  /// tiene ~3.5:1 contra blanco — insuficiente para AAA. Usamos el tono
-  /// `primaryDark` (#D94A3B) que alcanza mayor contraste. Para dark mode
-  /// se refuerza con un rojo más luminoso.
-  static const Color _hcPrimaryLight = AppColors.primaryDark; // #D94A3B
-  static const Color _hcPrimaryDark = Color(0xFFFF8577); // red-300ish
+  static ThemeData get lightHighContrastTheme =>
+      lightHighContrast(SacAccent.logoBlue);
 
   /// Tema claro alto contraste — superficie blanca pura, texto negro puro,
-  /// bordes gruesos (2.0), sin transparencias.
-  static ThemeData get lightHighContrastTheme {
-    final base = lightTheme;
+  /// bordes gruesos (2.0), sin transparencias. El acento se empuja hasta
+  /// 4.5:1 contra blanco, conservando el tono elegido.
+  static ThemeData lightHighContrast(SacAccent accent) {
+    final base = buildLight(accent);
+    final hc = accent.forHighContrast(Brightness.light);
     final hcScheme = base.colorScheme.copyWith(
-      primary: _hcPrimaryLight,
-      onPrimary: Colors.white,
+      primary: hc.color,
+      onPrimary: hc.onColor,
       secondary: AppColors.secondaryDark,
       onSecondary: Colors.white,
       error: AppColors.errorDark,
@@ -838,6 +896,7 @@ class AppTheme {
     );
 
     return base.copyWith(
+      extensions: <ThemeExtension<dynamic>>[hc],
       colorScheme: hcScheme,
       scaffoldBackgroundColor: Colors.white,
       cardTheme: base.cardTheme.copyWith(
@@ -853,8 +912,8 @@ class AppTheme {
         space: 2,
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: _hcPrimaryLight,
+        style: withoutInk(OutlinedButton.styleFrom(
+          foregroundColor: hc.color,
           side: const BorderSide(color: Colors.black, width: 2),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           minimumSize: const Size(0, 48),
@@ -865,7 +924,7 @@ class AppTheme {
             fontSize: 16,
             fontWeight: FontWeight.w700,
           ),
-        ),
+        )),
       ),
       inputDecorationTheme: base.inputDecorationTheme.copyWith(
         fillColor: Colors.white,
@@ -879,7 +938,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusSM),
-          borderSide: const BorderSide(color: _hcPrimaryLight, width: 3),
+          borderSide: BorderSide(color: hc.color, width: 3),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusSM),
@@ -894,7 +953,7 @@ class AppTheme {
       ),
       chipTheme: base.chipTheme.copyWith(
         backgroundColor: Colors.white,
-        selectedColor: _hcPrimaryLight,
+        selectedColor: hc.color,
         labelStyle: const TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w700,
@@ -917,11 +976,15 @@ class AppTheme {
 
   /// Tema oscuro alto contraste — negro puro, texto blanco puro,
   /// bordes gruesos (2.0), sin transparencias.
-  static ThemeData get darkHighContrastTheme {
-    final base = darkTheme;
+  static ThemeData get darkHighContrastTheme =>
+      darkHighContrast(SacAccent.logoBlue);
+
+  static ThemeData darkHighContrast(SacAccent accent) {
+    final base = buildDark(accent);
+    final hc = accent.forHighContrast(Brightness.dark);
     final hcScheme = base.colorScheme.copyWith(
-      primary: _hcPrimaryDark,
-      onPrimary: Colors.black,
+      primary: hc.color,
+      onPrimary: hc.onColor,
       secondary: AppColors.secondaryLight,
       onSecondary: Colors.black,
       error: AppColors.errorLight,
@@ -934,6 +997,7 @@ class AppTheme {
     );
 
     return base.copyWith(
+      extensions: <ThemeExtension<dynamic>>[hc],
       colorScheme: hcScheme,
       scaffoldBackgroundColor: Colors.black,
       cardTheme: base.cardTheme.copyWith(
@@ -949,8 +1013,8 @@ class AppTheme {
         space: 2,
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: _hcPrimaryDark,
+        style: withoutInk(OutlinedButton.styleFrom(
+          foregroundColor: hc.color,
           side: const BorderSide(color: Colors.white, width: 2),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           minimumSize: const Size(0, 48),
@@ -961,7 +1025,7 @@ class AppTheme {
             fontSize: 16,
             fontWeight: FontWeight.w700,
           ),
-        ),
+        )),
       ),
       inputDecorationTheme: base.inputDecorationTheme.copyWith(
         fillColor: Colors.black,
@@ -975,7 +1039,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusSM),
-          borderSide: const BorderSide(color: _hcPrimaryDark, width: 3),
+          borderSide: BorderSide(color: hc.color, width: 3),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusSM),
@@ -990,7 +1054,7 @@ class AppTheme {
       ),
       chipTheme: base.chipTheme.copyWith(
         backgroundColor: Colors.black,
-        selectedColor: _hcPrimaryDark,
+        selectedColor: hc.color,
         labelStyle: const TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w700,
@@ -1036,12 +1100,13 @@ class AppTheme {
     required Brightness brightness,
     required bool highContrast,
     required bool reduceMotion,
+    SacAccent accent = SacAccent.logoBlue,
   }) {
     final ThemeData base;
     if (brightness == Brightness.dark) {
-      base = highContrast ? darkHighContrastTheme : darkTheme;
+      base = highContrast ? darkHighContrast(accent) : buildDark(accent);
     } else {
-      base = highContrast ? lightHighContrastTheme : lightTheme;
+      base = highContrast ? lightHighContrast(accent) : buildLight(accent);
     }
     return _withMotionPreference(base, reduceMotion);
   }

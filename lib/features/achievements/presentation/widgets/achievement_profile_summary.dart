@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -189,18 +190,21 @@ class _AchievementProfileError extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 4),
-          TextButton(
-            onPressed: onRetry,
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: Text(
-              'Reintentar',
-              style: TextStyle(
-                fontSize: 13,
-                color: context.sac.info,
+          SacPressable(
+            listenOnly: true,
+            child: TextButton(
+              onPressed: onRetry,
+              style: (TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              )).copyWith(enableFeedback: false),
+              child: Text(
+                'Reintentar',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: context.sac.info,
+                ),
               ),
             ),
           ),

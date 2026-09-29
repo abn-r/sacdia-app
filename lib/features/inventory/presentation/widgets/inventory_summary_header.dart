@@ -2,10 +2,12 @@ import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
@@ -39,9 +41,9 @@ class InventoryStatsRow extends StatelessWidget {
             icon: HugeIcons.strokeRoundedPackage,
             value: summary.totalItems.toString(),
             label: 'artículos',
-            iconColor: AppColors.primary,
-            bgColor: AppColors.primarySurface,
-            borderColor: AppColors.primary.withValues(alpha: 0.25),
+            iconColor: SacAccent.of(context).color,
+            bgColor: SacAccent.of(context).surface,
+            borderColor: SacAccent.of(context).color.withValues(alpha: 0.25),
           ),
           const SizedBox(width: 8),
 
@@ -340,15 +342,19 @@ class InventoryFilterBar extends StatelessWidget {
                   color: context.sac.textTertiary,
                 ),
                 suffixIcon: searchController.text.isNotEmpty
-                    ? IconButton(
-                        onPressed: () {
-                          searchController.clear();
-                          onSearchChanged('');
-                        },
-                        icon: HugeIcon(
-                          icon: HugeIcons.strokeRoundedCancel01,
-                          size: 16,
-                          color: context.sac.textTertiary,
+                    ? SacPressable(
+                        listenOnly: true,
+                        child: IconButton(
+                          enableFeedback: false,
+                          onPressed: () {
+                            searchController.clear();
+                            onSearchChanged('');
+                          },
+                          icon: HugeIcon(
+                            icon: HugeIcons.strokeRoundedCancel01,
+                            size: 16,
+                            color: context.sac.textTertiary,
+                          ),
                         ),
                       )
                     : null,
@@ -366,7 +372,7 @@ class InventoryFilterBar extends StatelessWidget {
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide:
-                      const BorderSide(color: AppColors.primary, width: 2),
+                      BorderSide(color: SacAccent.of(context).color, width: 2),
                 ),
               ),
             ),
@@ -390,7 +396,7 @@ class _FilterButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return SacInkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
@@ -398,11 +404,11 @@ class _FilterButton extends StatelessWidget {
         height: 46,
         decoration: BoxDecoration(
           color: hasActiveFilters
-              ? AppColors.primarySurface
+              ? SacAccent.of(context).surface
               : context.sac.surfaceVariant,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: hasActiveFilters ? AppColors.primary : context.sac.border,
+            color: hasActiveFilters ? SacAccent.of(context).color : context.sac.border,
           ),
         ),
         child: Stack(
@@ -412,7 +418,7 @@ class _FilterButton extends StatelessWidget {
                 icon: HugeIcons.strokeRoundedFilter,
                 size: 20,
                 color: hasActiveFilters
-                    ? AppColors.primary
+                    ? SacAccent.of(context).color
                     : context.sac.textSecondary,
               ),
             ),
@@ -423,8 +429,8 @@ class _FilterButton extends StatelessWidget {
                 child: Container(
                   width: 8,
                   height: 8,
-                  decoration: const BoxDecoration(
-                    color: AppColors.primary,
+                  decoration: BoxDecoration(
+                    color: SacAccent.of(context).color,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -508,10 +514,10 @@ class _CategoryChip extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : context.sac.surfaceVariant,
+          color: isSelected ? SacAccent.of(context).color : context.sac.surfaceVariant,
           borderRadius: BorderRadius.circular(AppTheme.radiusFull),
           border: Border.all(
-            color: isSelected ? AppColors.primary : context.sac.border,
+            color: isSelected ? SacAccent.of(context).color : context.sac.border,
             width: isSelected ? 1.5 : 1,
           ),
         ),

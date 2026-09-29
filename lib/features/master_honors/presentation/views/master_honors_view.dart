@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
@@ -36,7 +37,7 @@ class MasterHonorsView extends ConsumerWidget {
           if (items.isEmpty) return const _EmptyState();
 
           return RefreshIndicator(
-            color: AppColors.primary,
+            color: SacAccent.of(context).color,
             backgroundColor: context.sac.surface,
             onRefresh: () async {
               ref.invalidate(userMasterHonorRoadmapProvider);

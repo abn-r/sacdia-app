@@ -1,11 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_image_viewer.dart';
@@ -105,13 +107,13 @@ class InventoryItemDetailView extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.primarySurface,
+                color: SacAccent.of(context).surface,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 detailItem.category.name,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.primaryDark,
+                      color: SacAccent.of(context).dark,
                       fontWeight: FontWeight.w700,
                     ),
               ),
@@ -419,7 +421,7 @@ class _PhotoSection extends StatelessWidget {
 
       return Material(
         color: Colors.transparent,
-        child: InkWell(
+        child: SacInkWell(
           onTap: () => SacImageViewer.show(
             context,
             imageUrl: photoUrl!,
@@ -477,7 +479,7 @@ class _EvidenceCard extends StatelessWidget {
               HugeIcon(
                 icon: HugeIcons.strokeRoundedImage01,
                 size: 18,
-                color: AppColors.primary,
+                color: SacAccent.of(context).color,
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -537,7 +539,7 @@ class _EvidenceThumb extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
-      child: InkWell(
+      child: SacInkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
         child: Ink(
@@ -578,7 +580,7 @@ class _PhotoPlaceholder extends StatelessWidget {
       width: double.infinity,
       height: 160,
       decoration: BoxDecoration(
-        color: AppColors.primarySurface,
+        color: SacAccent.of(context).surface,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -587,13 +589,13 @@ class _PhotoPlaceholder extends StatelessWidget {
           HugeIcon(
             icon: HugeIcons.strokeRoundedBoxingBag,
             size: 52,
-            color: AppColors.primary.withValues(alpha: 0.4),
+            color: SacAccent.of(context).color.withValues(alpha: 0.4),
           ),
           const SizedBox(height: 8),
           Text(
             'inventory.detail.no_photo'.tr(),
             style: TextStyle(
-              color: AppColors.primary.withValues(alpha: 0.5),
+              color: SacAccent.of(context).color.withValues(alpha: 0.5),
               fontSize: 13,
             ),
           ),

@@ -13,16 +13,20 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/config/cache_config.dart';
+import 'core/l10n/sunday_first_material_localizations.dart';
 import 'core/config/router.dart';
 import 'core/onboarding/sac_onboarding.dart';
 import 'core/realtime/feature_flags.dart';
 import 'core/realtime/realtime_invalidation_handler.dart';
 import 'core/realtime/realtime_ref.dart';
+import 'core/theme/accent_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/utils/app_logger.dart';
 import 'features/accessibility/presentation/providers/accessibility_provider.dart';
 import 'features/biometric/presentation/widgets/biometric_gate.dart';
+import 'features/home_widgets/data/next_activity_widget_bridge.dart';
+import 'features/home_widgets/presentation/next_activity_widget_launch.dart';
 import 'features/certifications/data/local/certification_draft_local_data_source.dart';
 import 'firebase_options.dart';
 import 'providers/storage_provider.dart';
@@ -177,6 +181,7 @@ Future<void> main() async {
       // `context.tr` una vez que el widget se monta. ensureInitialized debe
       // ejecutarse antes del primer runApp para tener el locale resuelto.
       await EasyLocalization.ensureInitialized();
+      await NextActivityWidgetBridge.configure();
 
       // Paralelizamos operaciones independientes: orientación, SharedPreferences y
       // Firebase.initializeApp() — este último DEBE ocurrir antes de runApp().
@@ -290,14 +295,18 @@ class MyApp extends ConsumerStatefulWidget {
 }
 
 class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
+  late final void Function() _unbindWidgetLaunches;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _unbindWidgetLaunches = bindNextActivityWidgetLaunches(ref);
   }
 
   @override
   void dispose() {
+    _unbindWidgetLaunches();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -315,6 +324,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeNotifierProvider);
+    final accent = ref.watch(accentNotifierProvider);
     final router = ref.watch(routerProvider);
     final accessibility = ref.watch(accessibilityProvider);
 
@@ -359,16 +369,21 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
               brightness: Brightness.light,
               highContrast: accessibility.highContrast,
               reduceMotion: accessibility.reduceMotion,
+              accent: accent,
             ),
             darkTheme: AppTheme.themeFor(
               brightness: Brightness.dark,
               highContrast: accessibility.highContrast,
               reduceMotion: accessibility.reduceMotion,
+              accent: accent,
             ),
             themeMode: themeMode,
             routerConfig: router,
             locale: context.locale,
-            localizationsDelegates: context.localizationDelegates,
+            localizationsDelegates: [
+              const SundayFirstMaterialLocalizationsDelegate(),
+              ...context.localizationDelegates,
+            ],
             supportedLocales: context.supportedLocales,
             // BiometricGate envuelve el árbol del router para que la pantalla
             // de AppLock se renderee por encima de TODAS las rutas cuando

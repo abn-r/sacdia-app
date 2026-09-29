@@ -2,7 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/widgets/sac_card.dart';
@@ -80,7 +80,7 @@ class _SignalScoreCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final hasScore = score != null;
-    final iconColor = hasScore ? AppColors.primary : c.textTertiary;
+    final iconColor = hasScore ? SacAccent.of(context).color : c.textTertiary;
 
     return SacCard(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),

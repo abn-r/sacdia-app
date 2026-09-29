@@ -1,9 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_network_image.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
@@ -94,12 +96,12 @@ class _EnrollPreviousClassSheetState
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: AppColors.primary.withAlpha(20),
+            color: SacAccent.of(context).color.withAlpha(20),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const HugeIcon(
+          child: HugeIcon(
             icon: HugeIcons.strokeRoundedSchool,
-            color: AppColors.primary,
+            color: SacAccent.of(context).color,
             size: 22,
           ),
         ),
@@ -126,12 +128,16 @@ class _EnrollPreviousClassSheetState
             ],
           ),
         ),
-        IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: HugeIcon(
-            icon: HugeIcons.strokeRoundedCancel01,
-            size: 22,
-            color: c.textTertiary,
+        SacPressable(
+          listenOnly: true,
+          child: IconButton(
+            enableFeedback: false,
+            onPressed: () => Navigator.pop(context),
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedCancel01,
+              size: 22,
+              color: c.textTertiary,
+            ),
           ),
         ),
       ],
@@ -324,7 +330,7 @@ class _EnrollPreviousClassSheetState
                   final classColor = AppColors.classColor(cls.name);
                   final logoAsset = AppColors.classLogoAsset(cls.name);
 
-                  return InkWell(
+                  return SacInkWell(
                     onTap: _isSubmitting
                         ? null
                         : () => setState(() => _selectedClass = cls),
@@ -335,11 +341,11 @@ class _EnrollPreviousClassSheetState
                           horizontal: 12, vertical: 10),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? AppColors.primary.withAlpha(18)
+                            ? SacAccent.of(context).color.withAlpha(18)
                             : c.surface,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: isSelected ? AppColors.primary : c.border,
+                          color: isSelected ? SacAccent.of(context).color : c.border,
                           width: isSelected ? 1.5 : 1,
                         ),
                       ),
@@ -350,7 +356,7 @@ class _EnrollPreviousClassSheetState
                                 ? HugeIcons.strokeRoundedCheckmarkCircle02
                                 : HugeIcons.strokeRoundedCircle,
                             color:
-                                isSelected ? AppColors.primary : c.textTertiary,
+                                isSelected ? SacAccent.of(context).color : c.textTertiary,
                             size: 20,
                           ),
                           const SizedBox(width: 10),
@@ -419,7 +425,7 @@ class _EnrollPreviousClassSheetState
                                 fontWeight: isSelected
                                     ? FontWeight.w600
                                     : FontWeight.normal,
-                                color: isSelected ? AppColors.primary : c.text,
+                                color: isSelected ? SacAccent.of(context).color : c.text,
                               ),
                             ),
                           ),

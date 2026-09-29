@@ -1,11 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/receipt.dart';
 import '../../domain/entities/material_receipt_status.dart';
@@ -45,11 +47,15 @@ class _OrderReviewViewState extends ConsumerState<OrderReviewView> {
       appBar: SacTopBar(
         title: 'materials.order.title'.tr(),
         actions: [
-          IconButton(
-            icon: const HugeIcon(icon: HugeIcons.strokeRoundedRefresh),
-            tooltip: 'materials.order.refresh'.tr(),
-            onPressed: () => ref.invalidate(
-              orderDetailProvider(widget.folioOrId),
+          SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              icon: const HugeIcon(icon: HugeIcons.strokeRoundedRefresh),
+              tooltip: 'materials.order.refresh'.tr(),
+              onPressed: () => ref.invalidate(
+                orderDetailProvider(widget.folioOrId),
+              ),
             ),
           ),
         ],
@@ -535,7 +541,7 @@ class _OrdenLineItem extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.primarySurface,
+              color: SacAccent.of(context).surface,
               borderRadius: BorderRadius.circular(6),
             ),
             alignment: Alignment.center,
@@ -543,10 +549,10 @@ class _OrdenLineItem extends StatelessWidget {
               line.product.title.isNotEmpty
                   ? line.product.title[0].toUpperCase()
                   : '?',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: AppColors.primary,
+                color: SacAccent.of(context).color,
               ),
             ),
           ),
@@ -623,7 +629,7 @@ class _TotalRow extends StatelessWidget {
           style: isTotal
               ? theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
+                  color: SacAccent.of(context).color,
                 )
               : theme.textTheme.bodyMedium?.copyWith(
                   color: c.textSecondary,

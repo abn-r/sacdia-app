@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
@@ -9,6 +10,7 @@ import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_image_viewer.dart';
 import '../../domain/entities/transaction.dart';
@@ -43,20 +45,28 @@ class TransactionDetailView extends ConsumerWidget {
         backgroundColor: context.sac.background,
         actions: [
           if (canEdit) ...[
-            IconButton(
-              onPressed: () => _confirmDelete(context, ref),
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedDelete02,
-                size: 20,
-                color: AppColors.error,
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                onPressed: () => _confirmDelete(context, ref),
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedDelete02,
+                  size: 20,
+                  color: AppColors.error,
+                ),
               ),
             ),
-            IconButton(
-              onPressed: () => _openEditSheet(context),
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedEdit02,
-                size: 20,
-                color: AppColors.primary,
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                onPressed: () => _openEditSheet(context),
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedEdit02,
+                  size: 20,
+                  color: SacAccent.of(context).color,
+                ),
               ),
             ),
           ],
@@ -310,7 +320,7 @@ class _EvidenceCard extends StatelessWidget {
               HugeIcon(
                 icon: HugeIcons.strokeRoundedImage01,
                 size: 18,
-                color: AppColors.primary,
+                color: SacAccent.of(context).color,
               ),
               const SizedBox(width: 8),
               Text(
@@ -355,7 +365,7 @@ class _EvidenceThumb extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
-      child: InkWell(
+      child: SacInkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
         child: Ink(

@@ -7,6 +7,7 @@ abstract final class SacMotion {
 
   static const Duration press = Duration(milliseconds: 140);
   static const Duration reducedFade = Duration(milliseconds: 160);
+  static const Duration switcher = Duration(milliseconds: 180);
   static const Duration standard = Duration(milliseconds: 200);
   static const Duration routeEnter = Duration(milliseconds: 240);
   static const Duration routeExit = Duration(milliseconds: 200);

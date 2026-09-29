@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -76,22 +77,30 @@ class _QrScannerViewState extends ConsumerState<QrScannerView> {
             ? 'qr.scan_attendance_title'.tr()
             : 'qr.scan_title'.tr(),
         actions: [
-          IconButton(
-            tooltip: 'qr.torch_tooltip'.tr(),
-            onPressed: () => _controller.toggleTorch(),
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedFlash,
-              color: Colors.white,
-              size: 22,
+          SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              tooltip: 'qr.torch_tooltip'.tr(),
+              onPressed: () => _controller.toggleTorch(),
+              icon: const HugeIcon(
+                icon: HugeIcons.strokeRoundedFlash,
+                color: Colors.white,
+                size: 22,
+              ),
             ),
           ),
-          IconButton(
-            tooltip: 'qr.switch_camera_tooltip'.tr(),
-            onPressed: () => _controller.switchCamera(),
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedCameraRotated02,
-              color: Colors.white,
-              size: 22,
+          SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              tooltip: 'qr.switch_camera_tooltip'.tr(),
+              onPressed: () => _controller.switchCamera(),
+              icon: const HugeIcon(
+                icon: HugeIcons.strokeRoundedCameraRotated02,
+                color: Colors.white,
+                size: 22,
+              ),
             ),
           ),
         ],

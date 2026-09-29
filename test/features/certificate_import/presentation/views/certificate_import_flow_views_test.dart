@@ -113,10 +113,11 @@ void main() {
         tester,
         CertificateImportUploadView(
           onSubmitProofs: (_) async => uploadCalls++,
-          onPickFile: () async => const CertificateImportFilePayload(
-            url: 'mock://proof.jpg',
-            name: 'comprobante.jpg',
-            type: 'image/jpeg',
+          onPickFile: () async => const CertificateImportLocalProof(
+            localPath: '/tmp/proof.jpg',
+            fileName: 'comprobante.jpg',
+            mimeType: 'image/jpeg',
+            fileSize: 128,
           ),
         ),
       );
@@ -303,6 +304,59 @@ void main() {
       expect(find.text('Registro importado'), findsOneWidget);
       expect(find.text('Primeros Auxilios'), findsOneWidget);
       expect(find.text('12/04/2026'), findsOneWidget);
+    });
+
+    testWidgets('shows institutional notice for GM-02 class item',
+        (tester) async {
+      await _pump(
+        tester,
+        Scaffold(
+          body: CertificateImportProofCard(
+            item: CertificateImportItem(
+              id: 'inst-1',
+              type: CertificateImportItemType.clazz,
+              classAssetCode: 'GM-02',
+              detectedName: 'Guía Mayor Avanzado',
+              completedAt: DateTime(2024, 6, 15),
+              status: CertificateImportItemStatus.approved,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Registro importado'), findsOneWidget);
+      expect(find.text('Guía Mayor Avanzado'), findsOneWidget);
+      expect(
+        find.text('Revisión institucional: aprobar no crea inscripción.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('shows GM replacement notice for GM-01 class item',
+        (tester) async {
+      await _pump(
+        tester,
+        Scaffold(
+          body: CertificateImportProofCard(
+            item: CertificateImportItem(
+              id: 'gm01-1',
+              type: CertificateImportItemType.clazz,
+              classAssetCode: 'GM-01',
+              detectedName: 'Guía Mayor',
+              completedAt: DateTime(2024, 6, 15),
+              status: CertificateImportItemStatus.approved,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Registro importado'), findsOneWidget);
+      expect(find.text('Guía Mayor'), findsOneWidget);
+      expect(
+        find.text(
+            'Esta aprobación ya sustituyó la inscripción de Guía Mayor. Queda un solo registro.'),
+        findsOneWidget,
+      );
     });
   });
 }

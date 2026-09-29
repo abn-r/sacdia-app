@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:showcaseview/showcaseview.dart';
 
-import '../theme/app_colors.dart';
+import '../theme/sac_accent.dart';
 
 const _sacOnboardingScopeName = 'sacdia_onboarding';
 
@@ -288,7 +288,7 @@ class SacOnboarding {
     VoidCallback? onAnchorTap,
     VoidCallback? onBackgroundTap,
     VoidCallback? onError,
-    Color backgroundColor = AppColors.primary,
+    Color? backgroundColor,
     SacOnboardingAlignment? alignment,
     SacOnboardingAnchorShape anchorShape = SacOnboardingAnchorShape.circle,
     bool isInModal = false,
@@ -314,7 +314,7 @@ class SacOnboarding {
         onAnchorTap: onAnchorTap,
         onBackgroundTap: onBackgroundTap,
         onError: onError,
-        backgroundColor: backgroundColor,
+        backgroundColor: backgroundColor ?? SacAccent.of(context).color,
         alignment: alignment,
         anchorShape: anchorShape,
         dismissOnBackgroundTap: dismissOnBackgroundTap,
@@ -349,7 +349,7 @@ class _SacOnboardingConfig {
       title: '',
       description: '',
       primaryActionLabel: MaterialLocalizations.of(context).okButtonLabel,
-      backgroundColor: AppColors.primary,
+      backgroundColor: SacAccent.of(context).color,
       anchorShape: SacOnboardingAnchorShape.circle,
       dismissOnBackgroundTap: false,
     );

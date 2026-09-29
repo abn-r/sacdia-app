@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
@@ -63,13 +63,13 @@ class SacStatusHistorySheet extends StatelessWidget {
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.08),
+                  color: SacAccent.of(context).color.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const HugeIcon(
+                child: HugeIcon(
                   icon: HugeIcons.strokeRoundedTime01,
                   size: 20,
-                  color: AppColors.primary,
+                  color: SacAccent.of(context).color,
                 ),
               ),
             ),

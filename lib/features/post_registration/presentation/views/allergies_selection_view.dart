@@ -1,8 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/animations/sac_state_swap.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -266,37 +268,46 @@ class _AllergiesSelectionViewState
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                ListTile(
-                  leading: HugeIcon(
-                    icon: HugeIcons.strokeRoundedEdit02,
-                    size: 22,
-                    color: m.iconStrong,
+                SacPressable(
+                  listenOnly: true,
+                  child: ListTile(
+                    enableFeedback: false,
+                    leading: HugeIcon(
+                      icon: HugeIcons.strokeRoundedEdit02,
+                      size: 22,
+                      color: m.iconStrong,
+                    ),
+                    title: Text(
+                      'post_registration.health.allergies.edit_chip_a11y'.tr(),
+                      style: TextStyle(color: m.textPrimary),
+                    ),
+                    onTap: () {
+                      Navigator.of(ctx).pop();
+                      setState(() {
+                        _expandedRegisteredId = id;
+                      });
+                    },
                   ),
-                  title: Text(
-                    'post_registration.health.allergies.edit_chip_a11y'.tr(),
-                    style: TextStyle(color: m.textPrimary),
-                  ),
-                  onTap: () {
-                    Navigator.of(ctx).pop();
-                    setState(() {
-                      _expandedRegisteredId = id;
-                    });
-                  },
                 ),
-                ListTile(
-                  leading: const HugeIcon(
-                    icon: HugeIcons.strokeRoundedDelete02,
-                    size: 22,
-                    color: MedicoTokens.coral600,
+                SacPressable(
+                  listenOnly: true,
+                  child: ListTile(
+                    enableFeedback: false,
+                    leading: const HugeIcon(
+                      icon: HugeIcons.strokeRoundedDelete02,
+                      size: 22,
+                      color: MedicoTokens.coral600,
+                    ),
+                    title: Text(
+                      'post_registration.health.allergies.remove_selection'
+                          .tr(),
+                      style: const TextStyle(color: MedicoTokens.coral600),
+                    ),
+                    onTap: () async {
+                      Navigator.of(ctx).pop();
+                      await _showDeleteConfirmation(context, id, name);
+                    },
                   ),
-                  title: Text(
-                    'post_registration.health.allergies.remove_selection'.tr(),
-                    style: const TextStyle(color: MedicoTokens.coral600),
-                  ),
-                  onTap: () async {
-                    Navigator.of(ctx).pop();
-                    await _showDeleteConfirmation(context, id, name);
-                  },
                 ),
               ],
             ),
@@ -616,17 +627,21 @@ class _AllergiesSelectionViewState
                                     color: m.textSecondary,
                                   ),
                                   suffixIcon: _searchQuery.isNotEmpty
-                                      ? IconButton(
-                                          icon: HugeIcon(
-                                            icon:
-                                                HugeIcons.strokeRoundedCancel01,
-                                            size: 20,
-                                            color: m.textSecondary,
+                                      ? SacPressable(
+                                          listenOnly: true,
+                                          child: IconButton(
+                                            enableFeedback: false,
+                                            icon: HugeIcon(
+                                              icon: HugeIcons
+                                                  .strokeRoundedCancel01,
+                                              size: 20,
+                                              color: m.textSecondary,
+                                            ),
+                                            onPressed: () => setState(() {
+                                              _searchController.clear();
+                                              _searchQuery = '';
+                                            }),
                                           ),
-                                          onPressed: () => setState(() {
-                                            _searchController.clear();
-                                            _searchQuery = '';
-                                          }),
                                         )
                                       : null,
                                   filled: true,
@@ -908,7 +923,7 @@ class _AvailableTile extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            InkWell(
+            SacInkWell(
               onTap: onTap,
               borderRadius: BorderRadius.circular(12),
               child: Padding(
@@ -927,12 +942,21 @@ class _AvailableTile extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (isSelected)
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedTick02,
-                        size: 20,
-                        color: toneData.dot,
-                      ),
+                    SacStateSwap(
+                      duration: SacMotion.press,
+                      child: isSelected
+                          ? HugeIcon(
+                              key: const ValueKey('med-tick-on'),
+                              icon: HugeIcons.strokeRoundedTick02,
+                              size: 20,
+                              color: toneData.dot,
+                            )
+                          : const SizedBox(
+                              key: ValueKey('med-tick-off'),
+                              width: 20,
+                              height: 20,
+                            ),
+                    ),
                   ],
                 ),
               ),
@@ -948,17 +972,21 @@ class _AvailableTile extends StatelessWidget {
                       onChanged: onSeverityChanged,
                     ),
                     const SizedBox(height: 8),
-                    TextButton(
-                      onPressed: onRemove,
-                      style: TextButton.styleFrom(
-                        foregroundColor: m.iconMuted,
-                        padding: EdgeInsets.zero,
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      child: Text(
-                        'post_registration.health.allergies.remove_selection'
-                            .tr(),
+                    SacPressable(
+                      listenOnly: true,
+                      child: TextButton(
+                        onPressed: onRemove,
+                        style: TextButton.styleFrom(
+                          enableFeedback: false,
+                          foregroundColor: m.iconMuted,
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: Text(
+                          'post_registration.health.allergies.remove_selection'
+                              .tr(),
+                        ),
                       ),
                     ),
                   ],
@@ -1139,13 +1167,16 @@ class _NoneToggleCard extends StatelessWidget {
                 ],
               ),
             ),
-            Switch(
-              value: isActive,
-              onChanged: (_) => onTap(),
-              activeThumbColor: m.paper,
-              activeTrackColor: m.mintInk,
-              inactiveThumbColor: m.paper,
-              inactiveTrackColor: m.iconMuted.withValues(alpha: 0.6),
+            SacPressable(
+              listenOnly: true,
+              child: Switch(
+                value: isActive,
+                onChanged: (_) => onTap(),
+                activeThumbColor: m.paper,
+                activeTrackColor: m.mintInk,
+                inactiveThumbColor: m.paper,
+                inactiveTrackColor: m.iconMuted.withValues(alpha: 0.6),
+              ),
             ),
           ],
         ),

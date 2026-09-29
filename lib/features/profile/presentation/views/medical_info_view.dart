@@ -1,9 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/secure_screen.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
@@ -487,7 +489,7 @@ class _MedicoAppBar extends StatelessWidget {
     return Material(
       color: color,
       borderRadius: BorderRadius.circular(12),
-      child: InkWell(
+      child: SacInkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: SizedBox(
@@ -524,17 +526,20 @@ class _SectionError extends StatelessWidget {
             style: const TextStyle(fontSize: 13, color: AppColors.error),
           ),
         ),
-        TextButton(
-          onPressed: onRetry,
-          style: TextButton.styleFrom(
-            foregroundColor: AppColors.primary,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          child: Text(
-            'common.retry'.tr(),
-            style: const TextStyle(fontSize: 12),
+        SacPressable(
+          listenOnly: true,
+          child: TextButton(
+            onPressed: onRetry,
+            style: (TextButton.styleFrom(
+              foregroundColor: SacAccent.of(context).color,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            )).copyWith(enableFeedback: false),
+            child: Text(
+              'common.retry'.tr(),
+              style: const TextStyle(fontSize: 12),
+            ),
           ),
         ),
       ],

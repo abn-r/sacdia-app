@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -9,6 +10,7 @@ import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../providers/personal_info_providers.dart';
 import '../widgets/contact_card.dart';
 import 'add_edit_contact_view.dart';
@@ -80,22 +82,30 @@ class EmergencyContactsView extends ConsumerWidget {
       appBar: SacTopBar(
         title: 'post_registration.emergency_contacts.title'.tr(),
         actions: [
-          IconButton(
-            icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 24),
-            onPressed: () {
-              ref.read(emergencyContactsProvider.notifier).refresh();
-            },
-            tooltip:
-                'post_registration.emergency_contacts.refresh_tooltip'.tr(),
+          SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 24),
+              onPressed: () {
+                ref.read(emergencyContactsProvider.notifier).refresh();
+              },
+              tooltip:
+                  'post_registration.emergency_contacts.refresh_tooltip'.tr(),
+            ),
           ),
           if (canAddMore)
-            IconButton(
-              tooltip: 'post_registration.emergency_contacts.add_button'.tr(),
-              onPressed: () => _navigateToAddEdit(context),
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedAdd01,
-                size: 22,
-                color: AppColors.primary,
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                tooltip: 'post_registration.emergency_contacts.add_button'.tr(),
+                onPressed: () => _navigateToAddEdit(context),
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedAdd01,
+                  size: 22,
+                  color: SacAccent.of(context).color,
+                ),
               ),
             ),
         ],
@@ -146,7 +156,7 @@ class EmergencyContactsView extends ConsumerWidget {
                 padding: const EdgeInsets.all(16),
                 color: contacts.length >= 5
                     ? AppColors.accentLight
-                    : AppColors.primaryLight,
+                    : SacAccent.of(context).light,
                 child: Row(
                   children: [
                     HugeIcon(
@@ -155,7 +165,7 @@ class EmergencyContactsView extends ConsumerWidget {
                           : HugeIcons.strokeRoundedInformationCircle,
                       color: contacts.length >= 5
                           ? AppColors.accentDark
-                          : AppColors.primaryDark,
+                          : SacAccent.of(context).dark,
                       size: 24,
                     ),
                     const SizedBox(width: 12),
@@ -172,7 +182,7 @@ class EmergencyContactsView extends ConsumerWidget {
                           fontSize: 14,
                           color: contacts.length >= 5
                               ? AppColors.accentDark
-                              : AppColors.primaryDark,
+                              : SacAccent.of(context).dark,
                         ),
                       ),
                     ),

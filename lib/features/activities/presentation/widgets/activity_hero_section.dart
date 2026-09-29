@@ -1,9 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -96,15 +98,18 @@ class ActivityHeroSection extends StatelessWidget {
           ),
         ],
         const SizedBox(height: 12),
-        TextButton.icon(
-          onPressed: () => showActivityMapOptions(context, activity),
-          icon: const HugeIcon(icon: HugeIcons.strokeRoundedMaps, size: 16),
-          label: Text('activities.widgets.open_in_maps'.tr()),
-          style: TextButton.styleFrom(
-            foregroundColor: AppColors.secondaryDark,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            textStyle:
-                const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+        SacPressable(
+          listenOnly: true,
+          child: TextButton.icon(
+            onPressed: () => showActivityMapOptions(context, activity),
+            icon: const HugeIcon(icon: HugeIcons.strokeRoundedMaps, size: 16),
+            label: Text('activities.widgets.open_in_maps'.tr()),
+            style: (TextButton.styleFrom(
+              foregroundColor: AppColors.secondaryDark,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              textStyle:
+                  const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            )).copyWith(enableFeedback: false),
           ),
         ),
       ],
@@ -143,10 +148,10 @@ class ActivityHeroSection extends StatelessWidget {
         memCacheHeight: 720,
         placeholder: (_, __) => Container(
           color: context.sac.surfaceVariant,
-          child: const Center(
+          child: Center(
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
             ),
           ),
         ),

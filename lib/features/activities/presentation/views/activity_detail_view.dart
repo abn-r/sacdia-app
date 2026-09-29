@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/auth/club_role_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/animations/sac_state_swap.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
@@ -13,7 +16,6 @@ import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:easy_localization/easy_localization.dart';
-import 'package:sacdia_app/providers/catalogs_provider.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../qr/presentation/views/qr_scanner_view.dart';
@@ -25,6 +27,7 @@ import '../widgets/activity_detail_skeleton.dart';
 import '../widgets/activity_hero_section.dart';
 import '../widgets/activity_info_strip.dart';
 import '../widgets/activity_location_row.dart';
+import '../widgets/activity_virtual_attendance.dart';
 import '../widgets/activity_virtual_banner.dart';
 import 'edit_activity_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
@@ -32,7 +35,7 @@ import 'package:sacdia_app/core/animations/page_transitions.dart';
 /// Activity detail screen — consolidated layout (revised 2026-04).
 ///
 /// Layout:
-///   A) Adaptive hero — 220px map (presencial), 140px gradient banner (virtual),
+///   A) Adaptive hero — 220px map (presencial), 300px gradient banner (virtual),
 ///      220px image hero (híbrido) — behind a transparent SliverAppBar.
 ///   B) Title + type chip (left) + platform badge (right).
 ///   C) ActivityInfoStrip — countdown pill + passive section pill + fecha/hora row.
@@ -73,8 +76,8 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
   // ── hero height (platform-aware) ───────────────────────────────────────────
 
   double _heroHeightFor(int platform) {
-    // 1 = Virtual → compact banner. 0/2 = Presencial/Híbrido → standard hero.
-    return platform == 1 ? 140.0 : 220.0;
+    // 1 = Virtual. 0/2 = Presencial/Híbrido.
+    return platform == 1 ? 150.0 : 220.0;
   }
 
   Widget _buildHeroContent(Activity activity) {
@@ -95,7 +98,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
       case 3:
         return AppColors.secondary;
       default:
-        return AppColors.primary;
+        return SacAccent.of(context).color;
     }
   }
 
@@ -302,8 +305,8 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
         Container(
           width: 6,
           height: 6,
-          decoration: const BoxDecoration(
-            color: AppColors.primary,
+          decoration: BoxDecoration(
+            color: SacAccent.of(context).color,
             shape: BoxShape.circle,
           ),
         ),
@@ -359,10 +362,10 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                 _descriptionExpanded
                     ? 'activities.detail.see_less'.tr()
                     : 'activities.detail.see_more'.tr(),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
+                  color: SacAccent.of(context).color,
                 ),
               ),
             ),
@@ -440,119 +443,6 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
           ? 'qr.scan_hint_attendance'.tr()
           : 'activities.widgets.show_my_qr_body'.tr(),
       onTap: canScanAttendance ? _openQrScanner : _openMyQr,
-    );
-  }
-
-  Future<void> _viewSeries(int seriesId) async {
-    ref.read(activitySeriesFilterProvider.notifier).state = seriesId;
-    if (mounted) Navigator.of(context).pop();
-  }
-
-  Future<void> _cancelFutureSeries(int seriesId) async {
-    final confirmed = await SacDialog.show(
-      context,
-      title: 'activities.series.cancel_title'.tr(),
-      content: 'activities.series.cancel_body'.tr(),
-      confirmLabel: 'activities.series.cancel_action'.tr(),
-      confirmIsDestructive: true,
-    );
-    if (confirmed != true || !mounted) return;
-    final count = await ref
-        .read(activitySeriesActionsProvider.notifier)
-        .cancelFuture(seriesId);
-    if (!mounted) return;
-    if (count == null) {
-      final err = ref.read(activitySeriesActionsProvider).error;
-      _snack(
-        err?.toString() ?? 'activities.detail.error_delete'.tr(),
-        error: true,
-      );
-      return;
-    }
-    _snack('activities.series.canceled'.tr(namedArgs: {'count': '$count'}));
-    ref.invalidate(activityDetailProvider(widget.activityId));
-  }
-
-  Future<void> _extendSeries(int seriesId) async {
-    final year = ref.read(currentEcclesiasticalYearProvider).valueOrNull;
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final last = year?.endDate.toLocal() ?? DateTime(now.year, 12, 31);
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: last.isBefore(today) ? today : last,
-      firstDate: today,
-      lastDate: last.isBefore(today) ? today : last,
-      locale: const Locale('es'),
-    );
-    if (picked == null || !mounted) return;
-    final until =
-        '${picked.year.toString().padLeft(4, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
-    final count = await ref
-        .read(activitySeriesActionsProvider.notifier)
-        .extend(seriesId: seriesId, until: until);
-    if (!mounted) return;
-    if (count == null) {
-      final err = ref.read(activitySeriesActionsProvider).error;
-      _snack(
-        err?.toString() ?? 'activities.detail.error_delete'.tr(),
-        error: true,
-      );
-      return;
-    }
-    _snack('activities.series.extended'.tr(namedArgs: {'count': '$count'}));
-    ref.invalidate(activityDetailProvider(widget.activityId));
-  }
-
-  void _snack(String message, {bool error = false}) {
-    SacSnackBar.show(context, message, isError: error);
-  }
-
-  Widget _buildSeriesActions(BuildContext context, Activity activity) {
-    final seriesId = activity.activitySeriesId!;
-    final seriesAsync = ref.watch(activitySeriesProvider(seriesId));
-    return Column(
-      children: [
-        seriesAsync.maybeWhen(
-          data: (series) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Text(
-              'activities.series.counts_line'.tr(namedArgs: {
-                'upcoming': '${series.counts?.upcoming ?? 0}',
-                'total': '${series.counts?.total ?? 0}',
-              }),
-              style: TextStyle(
-                fontSize: 13,
-                color: context.sac.textSecondary,
-              ),
-            ),
-          ),
-          orElse: () => const SizedBox.shrink(),
-        ),
-        _ActivityActionCard(
-          icon: HugeIcons.strokeRoundedRefresh,
-          title: 'activities.series.view'.tr(),
-          body: 'activities.series.view_body'.tr(),
-          tone: _ActionTone.series,
-          onTap: () => _viewSeries(seriesId),
-        ),
-        const SizedBox(height: 8),
-        _ActivityActionCard(
-          icon: HugeIcons.strokeRoundedCancel01,
-          title: 'activities.series.cancel_title'.tr(),
-          body: 'activities.series.cancel_body'.tr(),
-          tone: _ActionTone.danger,
-          onTap: () => _cancelFutureSeries(seriesId),
-        ),
-        const SizedBox(height: 8),
-        _ActivityActionCard(
-          icon: HugeIcons.strokeRoundedCalendarAdd01,
-          title: 'activities.series.extend'.tr(),
-          body: 'activities.series.extend_body'.tr(),
-          tone: _ActionTone.series,
-          onTap: () => _extendSeries(seriesId),
-        ),
-      ],
     );
   }
 
@@ -741,11 +631,6 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                             // C) Primary info strip (meta line + fecha/hora card)
                             ActivityInfoStrip(activity: activity),
 
-                            if (activity.activitySeriesId != null) ...[
-                              const SizedBox(height: 12),
-                              _buildSeriesActions(context, activity),
-                            ],
-
                             // D) Location row (presencial / híbrido)
                             if (hasLocation) ...[
                               const SizedBox(height: 10),
@@ -773,15 +658,25 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
 
                             // G) Attendance action
                             const SizedBox(height: 24),
-                            _buildAttendanceAction(
-                              context,
-                              canScanAttendance: canScanAttendance,
-                            ),
+                            if (activity.platform == 1)
+                              ActivityVirtualAttendance(
+                                activityId: activity.id,
+                                canConfirm: canScanAttendance,
+                              )
+                            else
+                              _buildAttendanceAction(
+                                context,
+                                canScanAttendance: canScanAttendance,
+                              ),
 
                             // H) Participants
                             const SizedBox(height: 24),
                             ActivityAttendeesSection(
                               attendees: activity.attendees ?? [],
+                              emptyMessage: activity.platform == 1
+                                  ? 'activities.widgets.rsvp_none_confirmed'
+                                      .tr()
+                                  : null,
                             ),
 
                             // I) Creator footer
@@ -829,20 +724,24 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                         context: context,
                         onPressed:
                             deleteState.isLoading ? null : _confirmDelete,
-                        child: deleteState.isLoading
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
+                        child: SacStateSwap(
+                          child: deleteState.isLoading
+                              ? const SizedBox(
+                                  key: ValueKey('activity-delete-loading'),
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const HugeIcon(
+                                  key: ValueKey('activity-delete-idle'),
+                                  icon: HugeIcons.strokeRoundedDelete02,
                                   color: Colors.white,
+                                  size: 18,
                                 ),
-                              )
-                            : const HugeIcon(
-                                icon: HugeIcons.strokeRoundedDelete02,
-                                color: Colors.white,
-                                size: 18,
-                              ),
+                        ),
                       ),
                     ],
                   ),
@@ -856,7 +755,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
   }
 }
 
-enum _ActionTone { primary, series, danger }
+enum _ActionTone { primary, danger }
 
 class _ActivityActionCard extends StatelessWidget {
   final List<List<dynamic>> icon;
@@ -880,23 +779,19 @@ class _ActivityActionCard extends StatelessWidget {
     final Color border;
     final Color iconBg;
     switch (tone) {
-      case _ActionTone.series:
-        fill = AppColors.secondaryLight;
-        border = AppColors.secondary.withValues(alpha: 0.28);
-        iconBg = AppColors.secondary;
       case _ActionTone.danger:
         fill = AppColors.errorLight;
         border = AppColors.error.withValues(alpha: 0.22);
         iconBg = AppColors.error;
       case _ActionTone.primary:
-        fill = AppColors.primaryLight.withValues(alpha: 0.55);
-        border = AppColors.primary.withValues(alpha: 0.16);
-        iconBg = AppColors.primary;
+        fill = SacAccent.of(context).light.withValues(alpha: 0.55);
+        border = SacAccent.of(context).color.withValues(alpha: 0.16);
+        iconBg = SacAccent.of(context).color;
     }
 
     return Material(
       color: Colors.transparent,
-      child: InkWell(
+      child: SacInkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
@@ -997,7 +892,7 @@ class _CreatorAvatar extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: AppColors.primaryLight,
+        color: SacAccent.of(context).light,
         shape: BoxShape.circle,
       ),
       child: Center(
@@ -1006,7 +901,7 @@ class _CreatorAvatar extends StatelessWidget {
           style: TextStyle(
             fontSize: size * 0.4,
             fontWeight: FontWeight.w700,
-            color: AppColors.primaryDark,
+            color: SacAccent.of(context).dark,
           ),
         ),
       ),

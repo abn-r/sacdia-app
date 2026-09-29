@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/utils/app_logger.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
@@ -78,7 +78,7 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
         uiSettings: [
           AndroidUiSettings(
             toolbarTitle: 'post_registration.photo.crop_title'.tr(),
-            toolbarColor: AppColors.primary,
+            toolbarColor: SacAccent.of(context).color,
             toolbarWidgetColor: Colors.white,
             lockAspectRatio: true,
             hideBottomControls: false,

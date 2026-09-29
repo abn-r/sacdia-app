@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 
@@ -70,10 +70,10 @@ class OrderCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     formatMxn(order.totalCentavos),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.primary,
+                      color: SacAccent.of(context).color,
                       letterSpacing: -0.2,
                     ),
                   ),

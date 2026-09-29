@@ -3,12 +3,14 @@ import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/animations/celebration_overlay.dart';
 import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/birthday_utils.dart';
 import '../../../../core/widgets/sac_button.dart';
@@ -121,7 +123,7 @@ class _BirthdayCelebrationBannerState extends State<BirthdayCelebrationBanner>
       label: tr('dashboard.birthday.banner_semantics'),
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
+        child: SacInkWell(
           borderRadius: BorderRadius.circular(22),
           onTap: widget.onTap,
           child: Container(
@@ -136,7 +138,7 @@ class _BirthdayCelebrationBannerState extends State<BirthdayCelebrationBanner>
               gradient: LinearGradient(
                 colors: [
                   AppColors.accent.withValues(alpha: 0.24),
-                  AppColors.primary.withValues(alpha: 0.12),
+                  SacAccent.of(context).color.withValues(alpha: 0.12),
                   c.surface,
                 ],
                 begin: Alignment.topLeft,
@@ -347,26 +349,29 @@ class _BirthdayCelebrationDialogState extends State<_BirthdayCelebrationDialog>
                       backgroundColor: AppColors.accentDark,
                     ),
                     const SizedBox(height: 6),
-                    TextButton.icon(
-                      onPressed: _dismissForToday,
-                      icon: const HugeIcon(
-                        icon: HugeIcons.strokeRoundedViewOff,
-                        size: 13,
-                        color: AppColors.accentDark,
-                      ),
-                      label: Text(
-                        tr('dashboard.birthday.dismiss_today'),
-                        style: const TextStyle(
+                    SacPressable(
+                      listenOnly: true,
+                      child: TextButton.icon(
+                        onPressed: _dismissForToday,
+                        icon: const HugeIcon(
+                          icon: HugeIcons.strokeRoundedViewOff,
+                          size: 13,
                           color: AppColors.accentDark,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          height: 1.1,
                         ),
-                      ),
-                      style: TextButton.styleFrom(
-                        minimumSize: const Size(44, 44),
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        label: Text(
+                          tr('dashboard.birthday.dismiss_today'),
+                          style: const TextStyle(
+                            color: AppColors.accentDark,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            height: 1.1,
+                          ),
+                        ),
+                        style: (TextButton.styleFrom(
+                          minimumSize: const Size(44, 44),
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        )).copyWith(enableFeedback: false),
                       ),
                     ),
                   ],
@@ -494,8 +499,8 @@ class _DecorativeConfettiField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const colors = [
-      AppColors.primary,
+    final colors = [
+      SacAccent.of(context).color,
       AppColors.secondary,
       AppColors.accent,
       Color(0xFF8B5CF6),

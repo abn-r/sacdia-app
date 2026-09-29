@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 import '../../domain/entities/activity.dart';
+import 'activity_audience_line.dart';
 
 /// Primary info strip for the activity detail screen.
 ///
@@ -157,6 +158,17 @@ class ActivityInfoStrip extends StatelessWidget {
             ),
           ),
         ),
+        const SizedBox(height: 12),
+        Text(
+          'activities.form.audience_label'.tr(),
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: sac.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        ActivityAudienceClasses(activity: activity),
       ],
     );
   }
@@ -174,7 +186,7 @@ class ActivityInfoStrip extends StatelessWidget {
             : HugeIcons.strokeRoundedClock01,
         text: countdown.text,
         // Urgent: primary color to keep attention. Otherwise muted.
-        color: countdown.isUrgent ? AppColors.primaryDark : sac.textSecondary,
+        color: countdown.isUrgent ? SacAccent.of(context).dark : sac.textSecondary,
         weight: countdown.isUrgent ? FontWeight.w700 : FontWeight.w600,
       ));
     }
@@ -274,7 +286,7 @@ class _InfoCell extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        HugeIcon(icon: icon, size: 18, color: AppColors.primary),
+        HugeIcon(icon: icon, size: 18, color: SacAccent.of(context).color),
         const SizedBox(width: 10),
         Flexible(
           child: Column(

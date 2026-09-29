@@ -6,7 +6,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 
 import '../../domain/entities/activity.dart';
 
-/// Compact 140px banner for virtual activities (platform == 1).
+/// Banner for virtual activities (platform == 1). Height comes from the detail view.
 ///
 /// Renders the activity image when available, else a gradient with a video
 /// icon. Includes the same "past activity" dimming + Finalizada badge used
@@ -21,7 +21,7 @@ class ActivityVirtualBanner extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        _buildContent(context),
+        _buildContent(),
         if (activity.isPast)
           Container(color: Colors.black.withValues(alpha: 0.35)),
         // "Finalizada" state is signaled via the countdown pill in
@@ -30,7 +30,7 @@ class ActivityVirtualBanner extends StatelessWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context) {
+  Widget _buildContent() {
     final hasImage = activity.image != null && activity.image!.isNotEmpty;
     if (hasImage) {
       return CachedNetworkImage(
@@ -39,7 +39,7 @@ class ActivityVirtualBanner extends StatelessWidget {
         width: double.infinity,
         height: double.infinity,
         memCacheWidth: 1080,
-        memCacheHeight: 420,
+        memCacheHeight: 210,
         placeholder: (_, __) => _gradient(),
         errorWidget: (_, __, ___) => _gradient(),
       );
@@ -59,38 +59,37 @@ class ActivityVirtualBanner extends StatelessWidget {
           ],
         ),
       ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.18),
-                shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedComputerVideoCall,
-                  size: 24,
-                  color: Colors.white,
-                ),
-              ),
+      alignment: Alignment.bottomCenter,
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.18),
+              shape: BoxShape.circle,
             ),
-            const SizedBox(height: 10),
-            Text(
-              'activities.widgets.virtual_fallback'.tr(),
-              style: const TextStyle(
+            child: const Center(
+              child: HugeIcon(
+                icon: HugeIcons.strokeRoundedComputerVideoCall,
+                size: 16,
                 color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.3,
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'activities.widgets.virtual_fallback'.tr(),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ],
       ),
     );
   }

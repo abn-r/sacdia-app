@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
@@ -91,7 +92,7 @@ class CertificationCloseoutView extends ConsumerWidget {
                         HugeIcon(
                           icon: HugeIcons.strokeRoundedInformationCircle,
                           size: 18,
-                          color: AppColors.primary,
+                          color: SacAccent.of(context).color,
                         ),
                         const SizedBox(width: 10),
                         Expanded(

@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +8,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/date_formatter.dart';
@@ -547,10 +549,10 @@ class _AddSupplyButtonState extends State<_AddSupplyButton> {
               constraints: const BoxConstraints(minHeight: 52),
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: AppColors.primarySurface,
+                  color: SacAccent.of(context).surface,
                   borderRadius: BorderRadius.circular(AppTheme.radiusMD),
                   border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.28),
+                    color: SacAccent.of(context).color.withValues(alpha: 0.28),
                   ),
                 ),
                 child: Padding(
@@ -561,8 +563,8 @@ class _AddSupplyButtonState extends State<_AddSupplyButton> {
                       Container(
                         width: 36,
                         height: 36,
-                        decoration: const BoxDecoration(
-                          color: AppColors.primary,
+                        decoration: BoxDecoration(
+                          color: SacAccent.of(context).color,
                           shape: BoxShape.circle,
                         ),
                         alignment: Alignment.center,
@@ -579,8 +581,8 @@ class _AddSupplyButtonState extends State<_AddSupplyButton> {
                           children: [
                             Text(
                               label,
-                              style: const TextStyle(
-                                color: AppColors.primary,
+                              style: TextStyle(
+                                color: SacAccent.of(context).color,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w800,
                                 height: 1.2,
@@ -1254,7 +1256,7 @@ Color _supplyProductColor(BuildContext context, String name, String uom) {
       folded.contains('bread')) {
     return context.sac.warning;
   }
-  return AppColors.primary;
+  return SacAccent.of(context).color;
 }
 
 Future<String?> _pickSupplyOption({
@@ -1323,24 +1325,29 @@ Future<String?> _pickSupplyOption({
                     itemBuilder: (context, index) {
                       final option = options[index];
                       final isSelected = option.$1 == selected;
-                      return ListTile(
-                        key: Key('camporee-supply-option-${option.$1}'),
-                        title: Text(
-                          option.$2,
-                          style: TextStyle(
-                            fontWeight:
-                                isSelected ? FontWeight.w700 : FontWeight.w500,
-                            color: c.text,
+                      return SacPressable(
+                        listenOnly: true,
+                        child: ListTile(
+                          enableFeedback: false,
+                          key: Key('camporee-supply-option-${option.$1}'),
+                          title: Text(
+                            option.$2,
+                            style: TextStyle(
+                              fontWeight: isSelected
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                              color: c.text,
+                            ),
                           ),
+                          trailing: isSelected
+                              ? HugeIcon(
+                                  icon: HugeIcons.strokeRoundedTick02,
+                                  size: 20,
+                                  color: theme.colorScheme.primary,
+                                )
+                              : null,
+                          onTap: () => Navigator.pop(sheetContext, option.$1),
                         ),
-                        trailing: isSelected
-                            ? HugeIcon(
-                                icon: HugeIcons.strokeRoundedTick02,
-                                size: 20,
-                                color: theme.colorScheme.primary,
-                              )
-                            : null,
-                        onTap: () => Navigator.pop(sheetContext, option.$1),
                       );
                     },
                   ),

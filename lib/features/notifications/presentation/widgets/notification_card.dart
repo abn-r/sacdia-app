@@ -2,10 +2,11 @@ import 'dart:async';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../domain/entities/notification_item.dart';
@@ -29,6 +30,7 @@ class NotificationCard extends ConsumerWidget {
   Future<void> _showDetailsSheet(BuildContext context) {
     final c = context.sac;
     final visual = notificationVisualConfig(
+      context: context,
       source: notification.source,
       targetType: notification.targetType,
     );
@@ -112,16 +114,20 @@ class NotificationCard extends ConsumerWidget {
                             SizedBox(
                               width: 48,
                               height: 48,
-                              child: IconButton(
-                                onPressed: () => Navigator.of(
-                                  sheetContext,
-                                ).pop(),
-                                tooltip:
-                                    'notifications.inbox.detail_accept'.tr(),
-                                icon: HugeIcon(
-                                  icon: HugeIcons.strokeRoundedCancel01,
-                                  size: 20,
-                                  color: sheetC.textSecondary,
+                              child: SacPressable(
+                                listenOnly: true,
+                                child: IconButton(
+                                  enableFeedback: false,
+                                  onPressed: () => Navigator.of(
+                                    sheetContext,
+                                  ).pop(),
+                                  tooltip:
+                                      'notifications.inbox.detail_accept'.tr(),
+                                  icon: HugeIcon(
+                                    icon: HugeIcons.strokeRoundedCancel01,
+                                    size: 20,
+                                    color: sheetC.textSecondary,
+                                  ),
                                 ),
                               ),
                             ),
@@ -189,6 +195,7 @@ class NotificationCard extends ConsumerWidget {
     final c = context.sac;
     final isUnread = !notification.isRead;
     final visual = notificationVisualConfig(
+      context: context,
       source: notification.source,
       targetType: notification.targetType,
     );
@@ -214,7 +221,7 @@ class NotificationCard extends ConsumerWidget {
               borderRadius: BorderRadius.circular(18),
               border: Border.all(color: borderColor),
             ),
-            child: InkWell(
+            child: SacInkWell(
               onTap: () => _handleTap(context, ref),
               borderRadius: BorderRadius.circular(18),
               child: Padding(
@@ -308,7 +315,7 @@ class NotificationCard extends ConsumerWidget {
                                   icon: HugeIcons.strokeRoundedCircle,
                                   text:
                                       'notifications.inbox.detail_unread'.tr(),
-                                  color: AppColors.primaryDark,
+                                  color: SacAccent.of(context).dark,
                                 ),
                               if (notification.senderName != null)
                                 _MetaLabel(

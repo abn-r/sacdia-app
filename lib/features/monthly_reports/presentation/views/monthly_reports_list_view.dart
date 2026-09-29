@@ -1,9 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -75,7 +77,7 @@ class MonthlyReportsListView extends ConsumerWidget {
           }
 
           return RefreshIndicator(
-            color: AppColors.primary,
+            color: SacAccent.of(context).color,
             onRefresh: () async => ref
                 .invalidate(monthlyReportsByEnrollmentProvider(enrollmentId)),
             child: ListView(
@@ -343,14 +345,18 @@ class _ErrorBody extends StatelessWidget {
               style: const TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 16),
-            TextButton.icon(
-              onPressed: onRetry,
-              icon: const HugeIcon(
-                icon: HugeIcons.strokeRoundedRefresh,
-                size: 16,
-                color: AppColors.primary,
+            SacPressable(
+              listenOnly: true,
+              child: TextButton.icon(
+                style: const ButtonStyle(enableFeedback: false),
+                onPressed: onRetry,
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedRefresh,
+                  size: 16,
+                  color: SacAccent.of(context).color,
+                ),
+                label: Text('common.retry'.tr()),
               ),
-              label: Text('common.retry'.tr()),
             ),
           ],
         ),

@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -176,10 +177,14 @@ class _CredencialQrFullscreenState extends State<CredencialQrFullscreen> {
                         ],
                       ),
                     ),
-                    IconButton(
-                      icon: const HugeIcon(
-                          icon: HugeIcons.strokeRoundedCancel01, size: 28),
-                      onPressed: () => Navigator.of(context).pop(),
+                    SacPressable(
+                      listenOnly: true,
+                      child: IconButton(
+                        enableFeedback: false,
+                        icon: const HugeIcon(
+                            icon: HugeIcons.strokeRoundedCancel01, size: 28),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
                     ),
                   ],
                 ),

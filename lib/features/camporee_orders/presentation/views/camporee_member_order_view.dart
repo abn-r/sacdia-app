@@ -1,11 +1,14 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_expansion_tile.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -163,7 +166,7 @@ class _MemberCaptureCard extends StatelessWidget {
       ),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
+        child: SacExpansionTile(
           tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
           childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
           title: Text(
@@ -334,13 +337,17 @@ class _QtyRow extends StatelessWidget {
               style: TextStyle(fontSize: 13, color: c.text),
             ),
           ),
-          IconButton(
-            visualDensity: VisualDensity.compact,
-            onPressed: qty <= 0 ? null : () => onQty(qty - 1),
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedMinusSign,
-              size: 16,
-              color: c.textSecondary,
+          SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              visualDensity: VisualDensity.compact,
+              onPressed: qty <= 0 ? null : () => onQty(qty - 1),
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedMinusSign,
+                size: 16,
+                color: c.textSecondary,
+              ),
             ),
           ),
           Text(
@@ -351,13 +358,17 @@ class _QtyRow extends StatelessWidget {
               color: c.text,
             ),
           ),
-          IconButton(
-            visualDensity: VisualDensity.compact,
-            onPressed: () => onQty(qty + 1),
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedAdd01,
-              size: 16,
-              color: AppColors.primary,
+          SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              visualDensity: VisualDensity.compact,
+              onPressed: () => onQty(qty + 1),
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedAdd01,
+                size: 16,
+                color: SacAccent.of(context).color,
+              ),
             ),
           ),
         ],

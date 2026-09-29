@@ -1,10 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
@@ -231,25 +233,29 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
             const SizedBox(height: 16),
             SacCard(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: SwitchListTile(
-                title: Text(
-                  tr('post_registration.personal_info.baptism.toggle_label'),
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
+              child: SacPressable(
+                listenOnly: true,
+                child: SwitchListTile(
+                  enableFeedback: false,
+                  title: Text(
+                    tr('post_registration.personal_info.baptism.toggle_label'),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
+                  value: formState.baptized,
+                  activeTrackColor: SacAccent.of(context).light,
+                  thumbColor: WidgetStatePropertyAll(SacAccent.of(context).color),
+                  contentPadding: EdgeInsets.zero,
+                  onChanged: (value) {
+                    ref.read(personalInfoFormProvider.notifier).state =
+                        formState.copyWith(
+                      baptized: value,
+                      baptismDate: value ? formState.baptismDate : null,
+                    );
+                  },
                 ),
-                value: formState.baptized,
-                activeTrackColor: AppColors.primaryLight,
-                thumbColor: WidgetStatePropertyAll(AppColors.primary),
-                contentPadding: EdgeInsets.zero,
-                onChanged: (value) {
-                  ref.read(personalInfoFormProvider.notifier).state =
-                      formState.copyWith(
-                    baptized: value,
-                    baptismDate: value ? formState.baptismDate : null,
-                  );
-                },
               ),
             ),
             if (formState.baptized) ...[
@@ -311,7 +317,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                       decoration: BoxDecoration(
                         color: contacts.isEmpty
                             ? context.sac.surfaceVariant
-                            : AppColors.primaryLight,
+                            : SacAccent.of(context).light,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Center(
@@ -320,7 +326,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                           size: 20,
                           color: contacts.isEmpty
                               ? context.sac.textTertiary
-                              : AppColors.primary,
+                              : SacAccent.of(context).color,
                         ),
                       ),
                     ),
@@ -421,7 +427,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                               height: 40,
                               decoration: BoxDecoration(
                                 color: rep != null
-                                    ? AppColors.primaryLight
+                                    ? SacAccent.of(context).light
                                     : context.sac.surfaceVariant,
                                 borderRadius: BorderRadius.circular(10),
                               ),
@@ -430,7 +436,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                                   icon: HugeIcons.strokeRoundedUserGroup,
                                   size: 20,
                                   color: rep != null
-                                      ? AppColors.primary
+                                      ? SacAccent.of(context).color
                                       : context.sac.textTertiary,
                                 ),
                               ),
@@ -757,7 +763,7 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        buildIcon(icon, size: 20, color: AppColors.primary),
+        buildIcon(icon, size: 20, color: SacAccent.of(context).color),
         const SizedBox(width: 8),
         Text(
           title,
@@ -820,10 +826,10 @@ class _GenderChip extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primaryLight : context.sac.surface,
+            color: isSelected ? SacAccent.of(context).light : context.sac.surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isSelected ? AppColors.primary : context.sac.border,
+              color: isSelected ? SacAccent.of(context).color : context.sac.border,
               width: isSelected ? 2 : 1,
             ),
           ),
@@ -834,7 +840,7 @@ class _GenderChip extends StatelessWidget {
                 icon,
                 size: 20,
                 color:
-                    isSelected ? AppColors.primary : context.sac.textSecondary,
+                    isSelected ? SacAccent.of(context).color : context.sac.textSecondary,
               ),
               const SizedBox(width: 8),
               Text(
@@ -843,7 +849,7 @@ class _GenderChip extends StatelessWidget {
                   fontSize: 14,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   color: isSelected
-                      ? AppColors.primary
+                      ? SacAccent.of(context).color
                       : context.sac.textSecondary,
                 ),
               ),
@@ -880,7 +886,7 @@ class _DatePickerCard extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               color: date != null
-                  ? AppColors.primaryLight
+                  ? SacAccent.of(context).light
                   : context.sac.surfaceVariant,
               borderRadius: BorderRadius.circular(10),
             ),
@@ -888,7 +894,7 @@ class _DatePickerCard extends StatelessWidget {
               icon,
               size: 20,
               color:
-                  date != null ? AppColors.primary : context.sac.textTertiary,
+                  date != null ? SacAccent.of(context).color : context.sac.textTertiary,
             ),
           ),
           const SizedBox(width: 12),

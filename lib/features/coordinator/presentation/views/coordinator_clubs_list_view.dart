@@ -1,11 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -113,7 +115,7 @@ class _ClubsHeader extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(10),
                 side: BorderSide(color: c.border),
               ),
-              child: InkWell(
+              child: SacInkWell(
                 borderRadius: BorderRadius.circular(10),
                 onTap: rawAsync.isLoading
                     ? null
@@ -197,16 +199,21 @@ class _ClubSearchBarState extends ConsumerState<_ClubSearchBar> {
             iconSize: 20,
           ),
           suffixIcon: _controller.text.isNotEmpty
-              ? IconButton(
-                  icon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedCancel01,
-                    color: c.textTertiary,
-                    size: 18,
+              ? SacPressable(
+                  listenOnly: true,
+                  child: IconButton(
+                    enableFeedback: false,
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedCancel01,
+                      color: c.textTertiary,
+                      size: 18,
+                    ),
+                    onPressed: () {
+                      _controller.clear();
+                      ref.read(coordinatorClubSearchProvider.notifier).state =
+                          '';
+                    },
                   ),
-                  onPressed: () {
-                    _controller.clear();
-                    ref.read(coordinatorClubSearchProvider.notifier).state = '';
-                  },
                 )
               : null,
           border: InputBorder.none,
@@ -234,7 +241,7 @@ class _ClubsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      color: AppColors.primary,
+      color: SacAccent.of(context).color,
       onRefresh: () async {
         onRefresh();
       },
@@ -267,7 +274,7 @@ class _ClubCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
 
-    final accentColor = AppColors.primary;
+    final accentColor = SacAccent.of(context).color;
     final locationParts = <String>[
       if (club.districtName != null && club.districtName!.isNotEmpty)
         club.districtName!,
@@ -286,7 +293,7 @@ class _ClubCard extends StatelessWidget {
       child: Material(
         color: c.surface,
         borderRadius: _kRadius,
-        child: InkWell(
+        child: SacInkWell(
           borderRadius: _kRadius,
           onTap: () => _openClubDetail(context, club),
           child: Container(

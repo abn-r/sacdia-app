@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -105,15 +106,19 @@ class _SupportViewState extends ConsumerState<SupportView> {
                 onSubmitted: (_) => _openFaq(),
                 suffix: _searchCtrl.text.isEmpty
                     ? null
-                    : IconButton(
-                        tooltip: 'common.clear'.tr(),
-                        onPressed: () {
-                          setState(_searchCtrl.clear);
-                        },
-                        icon: HugeIcon(
-                          icon: HugeIcons.strokeRoundedCancelCircle,
-                          size: 20,
-                          color: c.textTertiary,
+                    : SacPressable(
+                        listenOnly: true,
+                        child: IconButton(
+                          enableFeedback: false,
+                          tooltip: 'common.clear'.tr(),
+                          onPressed: () {
+                            setState(_searchCtrl.clear);
+                          },
+                          icon: HugeIcon(
+                            icon: HugeIcons.strokeRoundedCancelCircle,
+                            size: 20,
+                            color: c.textTertiary,
+                          ),
                         ),
                       ),
               ),

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -331,11 +332,15 @@ class _OrderDetailBody extends StatelessWidget {
           ],
           if (order.canCancel) ...[
             const SizedBox(height: 12),
-            TextButton(
-              onPressed: isWorking ? null : onCancel,
-              child: Text(
-                'camporee_orders.detail.cancel_order'.tr(),
-                style: const TextStyle(color: AppColors.error),
+            SacPressable(
+              listenOnly: true,
+              child: TextButton(
+                style: const ButtonStyle(enableFeedback: false),
+                onPressed: isWorking ? null : onCancel,
+                child: Text(
+                  'camporee_orders.detail.cancel_order'.tr(),
+                  style: const TextStyle(color: AppColors.error),
+                ),
               ),
             ),
           ],

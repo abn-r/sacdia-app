@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/features/post_registration/data/models/emergency_contact_model.dart';
 import 'medico_tokens.dart';
@@ -119,7 +120,7 @@ class ContactTile extends StatelessWidget {
     return Material(
       color: bg,
       borderRadius: BorderRadius.circular(MedicoTokens.rField),
-      child: InkWell(
+      child: SacInkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(MedicoTokens.rField),
         child: SizedBox(

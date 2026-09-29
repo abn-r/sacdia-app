@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -168,17 +169,21 @@ class CustomTextFieldState extends State<CustomTextField> {
                   prefixIcon: _buildPrefixIcon(),
                   prefixIconConstraints: FixedInputIconSlot.constraints,
                   suffixIcon: widget.obscureText
-                      ? IconButton(
-                          icon: _obscureText
-                              ? HugeIcon(
-                                  icon: HugeIcons.strokeRoundedViewOffSlash,
-                                  color: context.sac.textSecondary,
-                                  size: 20)
-                              : HugeIcon(
-                                  icon: HugeIcons.strokeRoundedViewOff,
-                                  color: context.sac.textSecondary,
-                                  size: 20),
-                          onPressed: _toggleObscureText,
+                      ? SacPressable(
+                          listenOnly: true,
+                          child: IconButton(
+                            enableFeedback: false,
+                            icon: _obscureText
+                                ? HugeIcon(
+                                    icon: HugeIcons.strokeRoundedViewOffSlash,
+                                    color: context.sac.textSecondary,
+                                    size: 20)
+                                : HugeIcon(
+                                    icon: HugeIcons.strokeRoundedViewOff,
+                                    color: context.sac.textSecondary,
+                                    size: 20),
+                            onPressed: _toggleObscureText,
+                          ),
                         )
                       : null,
                   // Show error styling like in AuthTextField

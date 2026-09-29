@@ -1,11 +1,14 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/animations/motion_tokens.dart';
+import '../../../../core/animations/sac_state_swap.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/role_utils.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
@@ -403,7 +406,7 @@ class _AssignmentsBody extends StatelessWidget {
     }
 
     return RefreshIndicator(
-      color: AppColors.primary,
+      color: SacAccent.of(context).color,
       onRefresh: onRefresh,
       child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
@@ -510,7 +513,7 @@ class _AssignmentAddActionState extends State<_AssignmentAddAction> {
   Widget build(BuildContext context) {
     final enabled = widget.onTap != null;
     final c = context.sac;
-    final color = enabled ? AppColors.primary : c.ink400;
+    final color = enabled ? SacAccent.of(context).color : c.ink400;
     final reduce = SacMotion.reduceMotionOf(context);
 
     return Semantics(
@@ -530,27 +533,30 @@ class _AssignmentAddActionState extends State<_AssignmentAddAction> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
             decoration: BoxDecoration(
               color:
-                  enabled ? AppColors.primary.withValues(alpha: 0.10) : c.ink50,
+                  enabled ? SacAccent.of(context).color.withValues(alpha: 0.10) : c.ink50,
               borderRadius: BorderRadius.circular(999),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (widget.isLoading)
-                  SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: color,
-                    ),
-                  )
-                else
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedAdd01,
-                    size: 16,
-                    color: color,
-                  ),
+                SacStateSwap(
+                  child: widget.isLoading
+                      ? SizedBox(
+                          key: const ValueKey('assignment-add-loading'),
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: color,
+                          ),
+                        )
+                      : HugeIcon(
+                          key: const ValueKey('assignment-add-idle'),
+                          icon: HugeIcons.strokeRoundedAdd01,
+                          size: 16,
+                          color: color,
+                        ),
+                ),
                 const SizedBox(width: 5),
                 Text(
                   'classes.class_assignments.add_button'.tr(),
@@ -686,7 +692,7 @@ class _AssignmentTile extends StatelessWidget {
               Semantics(
                 button: true,
                 label: 'nav.more_options'.tr(),
-                child: InkWell(
+                child: SacInkWell(
                   borderRadius: BorderRadius.circular(999),
                   onTap: () => _showActionsSheet(context, personName),
                   child: SizedBox(
@@ -804,7 +810,7 @@ class _AssignmentTile extends StatelessWidget {
                   child: _SheetAction(
                     icon: HugeIcons.strokeRoundedEdit02,
                     label: 'common.edit'.tr(),
-                    tint: AppColors.primary,
+                    tint: SacAccent.of(context).color,
                     labelColor: c.ink900,
                     onTap: () => Navigator.of(sheetContext).pop('edit'),
                   ),
@@ -839,7 +845,7 @@ class _AssignmentTile extends StatelessWidget {
                   borderRadius: BorderRadius.circular(18),
                 ),
                 clipBehavior: Clip.antiAlias,
-                child: InkWell(
+                child: SacInkWell(
                   onTap: () => Navigator.of(sheetContext).pop(),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -1174,94 +1180,110 @@ class _ClassCounselorAssignmentSheetState
                   ),
                 ),
               ] else ...[
-                DropdownButtonFormField<int>(
-                  initialValue: _selectedClassId,
-                  isExpanded: true,
-                  decoration: InputDecoration(
-                    labelText: 'classes.class_assignments.class_label'.tr(),
-                    border: const OutlineInputBorder(),
+                SacPressable(
+                  listenOnly: true,
+                  child: DropdownButtonFormField<int>(
+                    enableFeedback: false,
+                    initialValue: _selectedClassId,
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      labelText: 'classes.class_assignments.class_label'.tr(),
+                      border: const OutlineInputBorder(),
+                    ),
+                    items: widget.classes
+                        .map(
+                          (klass) => DropdownMenuItem<int>(
+                            value: klass.id,
+                            child: _ClassOptionLabel(className: klass.name),
+                          ),
+                        )
+                        .toList(),
+                    validator: (value) => value == null
+                        ? 'classes.class_assignments.class_required'.tr()
+                        : null,
+                    onChanged: actionState.isLoading
+                        ? null
+                        : (value) => setState(() => _selectedClassId = value),
                   ),
-                  items: widget.classes
-                      .map(
-                        (klass) => DropdownMenuItem<int>(
-                          value: klass.id,
-                          child: _ClassOptionLabel(className: klass.name),
-                        ),
-                      )
-                      .toList(),
-                  validator: (value) => value == null
-                      ? 'classes.class_assignments.class_required'.tr()
-                      : null,
-                  onChanged: actionState.isLoading
-                      ? null
-                      : (value) => setState(() => _selectedClassId = value),
                 ),
                 const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: _selectedUserId,
-                  isExpanded: true,
-                  decoration: InputDecoration(
-                    labelText:
-                        'classes.class_assignments.responsible_label'.tr(),
-                    border: const OutlineInputBorder(),
-                  ),
-                  items: widget.candidates
-                      .map(
-                        (member) => DropdownMenuItem<String>(
-                          value: member.userId,
-                          child: Text(
-                            '${member.fullName} · ${RoleUtils.translate(member.clubRole, gender: member.gender)}',
-                            overflow: TextOverflow.ellipsis,
+                SacPressable(
+                  listenOnly: true,
+                  child: DropdownButtonFormField<String>(
+                    enableFeedback: false,
+                    initialValue: _selectedUserId,
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      labelText:
+                          'classes.class_assignments.responsible_label'.tr(),
+                      border: const OutlineInputBorder(),
+                    ),
+                    items: widget.candidates
+                        .map(
+                          (member) => DropdownMenuItem<String>(
+                            value: member.userId,
+                            child: Text(
+                              '${member.fullName} · ${RoleUtils.translate(member.clubRole, gender: member.gender)}',
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                      )
-                      .toList(),
-                  validator: (value) => value == null
-                      ? 'classes.class_assignments.responsible_required'.tr()
-                      : null,
-                  onChanged: actionState.isLoading
-                      ? null
-                      : (value) => setState(() => _selectedUserId = value),
+                        )
+                        .toList(),
+                    validator: (value) => value == null
+                        ? 'classes.class_assignments.responsible_required'.tr()
+                        : null,
+                    onChanged: actionState.isLoading
+                        ? null
+                        : (value) => setState(() => _selectedUserId = value),
+                  ),
                 ),
               ],
               const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedResponsibilityType,
-                decoration: InputDecoration(
-                  labelText:
-                      'classes.class_assignments.responsibility_label'.tr(),
-                  border: const OutlineInputBorder(),
-                ),
-                items: _responsibilityTypes
-                    .map(
-                      (type) => DropdownMenuItem<String>(
-                        value: type,
-                        child: Text(_responsibilityLabel(type)),
-                      ),
-                    )
-                    .toList(),
-                onChanged: actionState.isLoading
-                    ? null
-                    : (value) => setState(
-                          () =>
-                              _selectedResponsibilityType = value ?? 'primary',
+              SacPressable(
+                listenOnly: true,
+                child: DropdownButtonFormField<String>(
+                  enableFeedback: false,
+                  initialValue: _selectedResponsibilityType,
+                  decoration: InputDecoration(
+                    labelText:
+                        'classes.class_assignments.responsibility_label'.tr(),
+                    border: const OutlineInputBorder(),
+                  ),
+                  items: _responsibilityTypes
+                      .map(
+                        (type) => DropdownMenuItem<String>(
+                          value: type,
+                          child: Text(_responsibilityLabel(type)),
                         ),
+                      )
+                      .toList(),
+                  onChanged: actionState.isLoading
+                      ? null
+                      : (value) => setState(
+                            () => _selectedResponsibilityType =
+                                value ?? 'primary',
+                          ),
+                ),
               ),
               const SizedBox(height: 12),
-              SwitchListTile.adaptive(
-                value: _exceptional,
-                contentPadding: EdgeInsets.zero,
-                activeThumbColor: AppColors.primary,
-                title: Text(
-                  'classes.class_assignments.exceptional_label'.tr(),
-                  style: const TextStyle(fontWeight: FontWeight.w700),
+              SacPressable(
+                listenOnly: true,
+                child: SwitchListTile.adaptive(
+                  enableFeedback: false,
+                  value: _exceptional,
+                  contentPadding: EdgeInsets.zero,
+                  activeThumbColor: SacAccent.of(context).color,
+                  title: Text(
+                    'classes.class_assignments.exceptional_label'.tr(),
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  subtitle: Text(
+                    'classes.class_assignments.exceptional_hint'.tr(),
+                  ),
+                  onChanged: actionState.isLoading
+                      ? null
+                      : (value) => setState(() => _exceptional = value),
                 ),
-                subtitle: Text(
-                  'classes.class_assignments.exceptional_hint'.tr(),
-                ),
-                onChanged: actionState.isLoading
-                    ? null
-                    : (value) => setState(() => _exceptional = value),
               ),
               if (_exceptional) ...[
                 const SizedBox(height: 8),

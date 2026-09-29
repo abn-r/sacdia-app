@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/role_utils.dart';
 import '../../../../core/widgets/sac_card.dart';
@@ -59,7 +60,7 @@ class ClubContextCard extends ConsumerWidget {
     } else if (activeGrant != null && activeGrant.isExpired) {
       accentColor = c.textTertiary;
     } else {
-      accentColor = AppColors.primary;
+      accentColor = SacAccent.of(context).color;
     }
 
     return SacCard(

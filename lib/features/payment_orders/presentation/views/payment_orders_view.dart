@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -167,7 +168,7 @@ class _ObligationCard extends StatelessWidget {
     return Material(
       color: c.surface,
       borderRadius: BorderRadius.circular(16),
-      child: InkWell(
+      child: SacInkWell(
         key: Key('pending-obligation-${obligation.sourceId}'),
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
@@ -246,7 +247,7 @@ class _OrderCard extends StatelessWidget {
     return Material(
       color: c.surface,
       borderRadius: BorderRadius.circular(16),
-      child: InkWell(
+      child: SacInkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(

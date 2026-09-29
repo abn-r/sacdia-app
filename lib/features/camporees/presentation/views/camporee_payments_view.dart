@@ -1,8 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
@@ -46,14 +48,18 @@ class CamporeePaymentsView extends ConsumerWidget {
             ? 'camporees.payments.title'.tr(namedArgs: {'name': memberName!})
             : 'camporees.payments.title_fallback'.tr(),
         actions: [
-          IconButton(
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedAdd01,
-              color: AppColors.primary,
-              size: 22,
+          SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedAdd01,
+                color: SacAccent.of(context).color,
+                size: 22,
+              ),
+              tooltip: 'camporees.payments.register_tooltip'.tr(),
+              onPressed: () => _openPaymentForm(context, ref),
             ),
-            tooltip: 'camporees.payments.register_tooltip'.tr(),
-            onPressed: () => _openPaymentForm(context, ref),
           ),
         ],
       ),
@@ -76,7 +82,7 @@ class CamporeePaymentsView extends ConsumerWidget {
           );
 
           return RefreshIndicator(
-            color: AppColors.primary,
+            color: SacAccent.of(context).color,
             onRefresh: () async =>
                 ref.invalidate(camporeeMemberPaymentsProvider(params)),
             child: ListView(
@@ -145,21 +151,21 @@ class _SummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.primaryLight,
+        color: SacAccent.of(context).light,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+        border: Border.all(color: SacAccent.of(context).color.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.12),
+              color: SacAccent.of(context).color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const HugeIcon(
+            child: HugeIcon(
               icon: HugeIcons.strokeRoundedMoney01,
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
               size: 22,
             ),
           ),
@@ -172,15 +178,15 @@ class _SummaryCard extends StatelessWidget {
                   'camporees.payments.total_paid'.tr(),
                   style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.primaryDark,
+                    color: SacAccent.of(context).dark,
                   ),
                 ),
                 Text(
                   currencyFmt.format(totalAmount),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.primary,
+                    color: SacAccent.of(context).color,
                   ),
                 ),
               ],
@@ -189,7 +195,7 @@ class _SummaryCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.12),
+              color: SacAccent.of(context).color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -198,10 +204,10 @@ class _SummaryCard extends StatelessWidget {
                       .tr(namedArgs: {'count': '$paymentCount'})
                   : 'camporees.payments.payment_count_other'
                       .tr(namedArgs: {'count': '$paymentCount'}),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: AppColors.primary,
+                color: SacAccent.of(context).color,
               ),
             ),
           ),
@@ -286,10 +292,10 @@ class _PaymentCard extends StatelessWidget {
               ),
               Text(
                 currencyFmt.format(payment.amount),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
+                  color: SacAccent.of(context).color,
                 ),
               ),
             ],
@@ -539,22 +545,26 @@ class _CamporeePaymentFormSheetState
                     color: c.surface,
                   ),
                   child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: _paymentType,
-                      isExpanded: true,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      borderRadius: BorderRadius.circular(12),
-                      items: _paymentTypes
-                          .map(
-                            (t) => DropdownMenuItem(
-                              value: t.$1,
-                              child: Text(t.$2),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (v) {
-                        if (v != null) setState(() => _paymentType = v);
-                      },
+                    child: SacPressable(
+                      listenOnly: true,
+                      child: DropdownButton<String>(
+                        enableFeedback: false,
+                        value: _paymentType,
+                        isExpanded: true,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        borderRadius: BorderRadius.circular(12),
+                        items: _paymentTypes
+                            .map(
+                              (t) => DropdownMenuItem(
+                                value: t.$1,
+                                child: Text(t.$2),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (v) {
+                          if (v != null) setState(() => _paymentType = v);
+                        },
+                      ),
                     ),
                   ),
                 ),

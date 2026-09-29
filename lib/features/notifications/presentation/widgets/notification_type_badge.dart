@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../domain/entities/notification_item.dart';
@@ -25,7 +26,11 @@ class NotificationTypeBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final config = notificationVisualConfig(source: source, targetType: type);
+    final config = notificationVisualConfig(
+      context: context,
+      source: source,
+      targetType: type,
+    );
     final iconSize = size * 0.46;
     final background = Color.alphaBlend(
       config.iconColor.withValues(
@@ -54,6 +59,7 @@ class NotificationTypeBadge extends StatelessWidget {
 }
 
 NotificationVisualConfig notificationVisualConfig({
+  required BuildContext context,
   String? source,
   required NotificationTargetType targetType,
 }) {
@@ -86,8 +92,8 @@ NotificationVisualConfig notificationVisualConfig({
     return NotificationVisualConfig(
       label: 'Revisión',
       icon: HugeIcons.strokeRoundedDocumentValidation,
-      iconColor: AppColors.primaryDark,
-      backgroundColor: AppColors.primary.withValues(alpha: 0.12),
+      iconColor: SacAccent.of(context).dark,
+      backgroundColor: SacAccent.of(context).color.withValues(alpha: 0.12),
     );
   }
 
@@ -122,8 +128,8 @@ NotificationVisualConfig notificationVisualConfig({
       return NotificationVisualConfig(
         label: 'Comunicado',
         icon: HugeIcons.strokeRoundedMegaphone01,
-        iconColor: AppColors.primaryDark,
-        backgroundColor: AppColors.primary.withValues(alpha: 0.12),
+        iconColor: SacAccent.of(context).dark,
+        backgroundColor: SacAccent.of(context).color.withValues(alpha: 0.12),
       );
     case NotificationTargetType.club:
       return NotificationVisualConfig(

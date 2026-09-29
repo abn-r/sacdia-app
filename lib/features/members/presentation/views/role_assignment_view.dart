@@ -1,8 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -105,17 +107,17 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
                 children: [
                   CircleAvatar(
                     radius: 28,
-                    backgroundColor: AppColors.primarySurface,
+                    backgroundColor: SacAccent.of(context).surface,
                     backgroundImage: widget.member.avatar != null
                         ? sacProfileImageProvider(widget.member.avatar!)
                         : null,
                     child: widget.member.avatar == null
                         ? Text(
                             widget.member.initials,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.primary,
+                              color: SacAccent.of(context).color,
                             ),
                           )
                         : null,
@@ -168,17 +170,17 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
 
                   return Material(
                     color: isSelected
-                        ? AppColors.primary.withValues(alpha: 0.08)
+                        ? SacAccent.of(context).color.withValues(alpha: 0.08)
                         : c.surface,
                     borderRadius: BorderRadius.circular(12),
-                    child: InkWell(
+                    child: SacInkWell(
                       onTap: () => setState(() => _selectedRole = role),
                       borderRadius: BorderRadius.circular(12),
                       child: Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: isSelected ? AppColors.primary : c.border,
+                            color: isSelected ? SacAccent.of(context).color : c.border,
                             width: isSelected ? 1.5 : 1,
                           ),
                         ),
@@ -198,14 +200,14 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
                                       ? FontWeight.w600
                                       : FontWeight.w400,
                                   color:
-                                      isSelected ? AppColors.primary : c.text,
+                                      isSelected ? SacAccent.of(context).color : c.text,
                                 ),
                               ),
                             ),
                             if (isSelected)
-                              const HugeIcon(
+                              HugeIcon(
                                 icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                                color: AppColors.primary,
+                                color: SacAccent.of(context).color,
                                 size: 20,
                               ),
                           ],

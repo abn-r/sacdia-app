@@ -1,15 +1,17 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 
 import '../../domain/entities/club_member.dart';
 
-/// Tarjeta de miembro del club que muestra foto, nombre, cargo y estado
+/// Compact roster row: name + one meta line. Class label lives on the group header.
 class MemberCard extends StatelessWidget {
   final ClubMember member;
   final VoidCallback? onTap;
@@ -28,61 +30,77 @@ class MemberCard extends StatelessWidget {
     final classLogoAsset = member.currentClass == null
         ? null
         : AppColors.classLogoAsset(member.currentClass!);
+    final roleLabel = member.clubRole == null
+        ? null
+        : RoleUtils.translate(member.clubRole, gender: member.gender);
+    final showNotEnrolled = !member.isEnrolled;
+    final hasClassMark = member.currentClass != null;
 
-    return Material(
-      color: c.surface,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: c.border),
-          ),
-          padding: const EdgeInsets.all(14),
-          child: Row(
-            children: [
-              // ── Avatar ────────────────────────────────────────────────
-              _MemberAvatar(member: member),
-
-              const SizedBox(width: 12),
-
-              // ── Info ──────────────────────────────────────────────────
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Name
-                    Text(
-                      member.fullName,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: c.text,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+    return SacPressable(
+      onTap: onTap,
+      enabled: onTap != null,
+      child: Container(
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: c.border),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          children: [
+            _MemberAvatar(member: member),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    member.fullName,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: c.text,
+                      height: 1.2,
                     ),
-
-                    const SizedBox(height: 4),
-
-                    // Role / Cargo
-                    if (member.clubRole != null) ...[
-                      Row(
-                        children: [
-                          HugeIcon(
-                            icon: HugeIcons.strokeRoundedLabel,
-                            color: c.textTertiary,
-                            size: 13,
-                          ),
-                          const SizedBox(width: 4),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (hasClassMark || roleLabel != null || showNotEnrolled) ...[
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        if (hasClassMark) ...[
+                          if (classLogoAsset != null)
+                            Image.asset(
+                              classLogoAsset,
+                              key: ValueKey(
+                                'member-card-class-logo-${member.currentClass}',
+                              ),
+                              width: 16,
+                              height: 16,
+                              fit: BoxFit.contain,
+                              excludeFromSemantics: true,
+                            )
+                          else
+                            HugeIcon(
+                              key: const ValueKey(
+                                'member-card-class-fallback-icon',
+                              ),
+                              icon: HugeIcons.strokeRoundedSchool,
+                              color: c.textTertiary,
+                              size: 13,
+                            ),
+                          if (roleLabel != null || showNotEnrolled)
+                            const SizedBox(width: 6),
+                        ],
+                        if (roleLabel != null)
                           Flexible(
                             child: Text(
-                              RoleUtils.translate(member.clubRole,
-                                  gender: member.gender),
+                              roleLabel,
                               style: TextStyle(
                                 fontSize: 12,
+                                height: 1.2,
                                 color: c.textSecondary,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -90,84 +108,45 @@ class MemberCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                    ],
-
-                    // Class + Enrollment status
-                    Row(
-                      children: [
-                        if (member.currentClass != null) ...[
-                          Flexible(
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (classLogoAsset != null)
-                                  Image.asset(
-                                    classLogoAsset,
-                                    key: ValueKey(
-                                      'member-card-class-logo-${member.currentClass}',
-                                    ),
-                                    width: 18,
-                                    height: 18,
-                                    fit: BoxFit.contain,
-                                    excludeFromSemantics: true,
-                                  )
-                                else
-                                  HugeIcon(
-                                    key: const ValueKey(
-                                      'member-card-class-fallback-icon',
-                                    ),
-                                    icon: HugeIcons.strokeRoundedSchool,
-                                    color: c.textTertiary,
-                                    size: 13,
-                                  ),
-                                const SizedBox(width: 4),
-                                Flexible(
-                                  child: Text(
-                                    member.currentClass!,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: c.textSecondary,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                        if (showNotEnrolled) ...[
+                          if (roleLabel != null)
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 6),
+                              child: Text(
+                                '·',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: c.textTertiary,
                                 ),
-                              ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
+                          _EnrollmentBadge(isEnrolled: member.isEnrolled),
                         ],
-                        _EnrollmentBadge(isEnrolled: member.isEnrolled),
                       ],
                     ),
                   ],
-                ),
+                ],
               ),
-
-              // ── Actions ───────────────────────────────────────────────
-              if (onAssignRole != null) ...[
-                const SizedBox(width: 8),
-                _AssignRoleButton(onTap: onAssignRole!),
-              ] else ...[
-                const SizedBox(width: 8),
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedArrowRight01,
-                  color: c.textTertiary,
-                  size: 18,
-                ),
-              ],
+            ),
+            if (onAssignRole != null) ...[
+              const SizedBox(width: 4),
+              _AssignRoleButton(onTap: onAssignRole!),
+            ] else ...[
+              const SizedBox(width: 4),
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
+                color: c.textTertiary,
+                size: 16,
+              ),
             ],
-          ),
+          ],
         ),
       ),
     );
   }
 }
 
-/// Avatar circular del miembro con fallback de iniciales
 class _MemberAvatar extends StatelessWidget {
   final ClubMember member;
 
@@ -179,20 +158,20 @@ class _MemberAvatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: AppColors.primaryLight,
-          width: 2,
+          color: SacAccent.of(context).light,
+          width: 1.5,
         ),
       ),
       child: ClipOval(
         child: SizedBox(
-          width: 48,
-          height: 48,
+          width: 36,
+          height: 36,
           child: member.avatar != null
-              ? CachedNetworkImage(
+              ? SacProfileImage(
                   imageUrl: member.avatar!,
                   fit: BoxFit.cover,
-                  memCacheWidth: 96,
-                  memCacheHeight: 96,
+                  memCacheWidth: 72,
+                  memCacheHeight: 72,
                   placeholder: (_, __) => _AvatarInitials(
                     initials: member.initials,
                   ),
@@ -207,7 +186,6 @@ class _MemberAvatar extends StatelessWidget {
   }
 }
 
-/// Badge de estado de inscripción
 class _EnrollmentBadge extends StatelessWidget {
   final bool isEnrolled;
 
@@ -216,7 +194,7 @@ class _EnrollmentBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isEnrolled) {
-      return SacBadge.success(label: 'members.common.enrolled'.tr());
+      return const SizedBox.shrink();
     }
     return SacBadge(
       label: 'members.common.not_enrolled'.tr(),
@@ -225,7 +203,6 @@ class _EnrollmentBadge extends StatelessWidget {
   }
 }
 
-/// Botón para asignar rol al miembro
 class _AssignRoleButton extends StatelessWidget {
   final VoidCallback onTap;
 
@@ -233,20 +210,26 @@ class _AssignRoleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return SacPressable(
       onTap: onTap,
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.10),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: const Center(
-          child: HugeIcon(
-            icon: HugeIcons.strokeRoundedUserEdit01,
-            color: AppColors.primary,
-            size: 18,
+      child: SizedBox(
+        width: 40,
+        height: 40,
+        child: Center(
+          child: Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: SacAccent.of(context).color.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Center(
+              child: HugeIcon(
+                icon: HugeIcons.strokeRoundedUserEdit01,
+                color: SacAccent.of(context).color,
+                size: 16,
+              ),
+            ),
           ),
         ),
       ),
@@ -254,7 +237,6 @@ class _AssignRoleButton extends StatelessWidget {
   }
 }
 
-/// Iniciales de fallback cuando la foto 404 o no existe.
 class _AvatarInitials extends StatelessWidget {
   final String initials;
 
@@ -269,7 +251,7 @@ class _AvatarInitials extends StatelessWidget {
       child: Text(
         initials,
         style: TextStyle(
-          fontSize: 14,
+          fontSize: 12,
           fontWeight: FontWeight.w600,
           color: theme.colorScheme.onPrimaryContainer,
         ),

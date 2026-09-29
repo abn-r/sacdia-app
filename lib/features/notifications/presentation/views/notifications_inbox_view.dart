@@ -1,8 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
@@ -89,14 +91,19 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
           Stack(
             alignment: Alignment.center,
             children: [
-              IconButton(
-                onPressed: null, // Decorative — tapping the list navigates
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedNotification01,
-                  size: 22,
-                  color: c.text,
+              SacPressable(
+                listenOnly: true,
+                enabled: false,
+                child: IconButton(
+                  enableFeedback: false,
+                  onPressed: null, // Decorative — tapping the list navigates
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedNotification01,
+                    size: 22,
+                    color: c.text,
+                  ),
+                  tooltip: 'notifications.inbox.tooltip_bell'.tr(),
                 ),
-                tooltip: 'notifications.inbox.tooltip_bell'.tr(),
               ),
               if (unreadCount > 0)
                 Positioned(
@@ -127,30 +134,39 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
           ),
           // Mark all as read
           if (unreadCount > 0)
-            IconButton(
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                onPressed: inboxState.isLoading
+                    ? null
+                    : () => ref
+                        .read(notificationsInboxProvider.notifier)
+                        .markAllAsRead(),
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedCheckmarkSquare01,
+                  size: 22,
+                  color: c.text,
+                ),
+                tooltip: 'notifications.inbox.tooltip_mark_read'.tr(),
+              ),
+            ),
+          // Refresh
+          SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
               onPressed: inboxState.isLoading
                   ? null
-                  : () => ref
-                      .read(notificationsInboxProvider.notifier)
-                      .markAllAsRead(),
+                  : () =>
+                      ref.read(notificationsInboxProvider.notifier).refresh(),
               icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedCheckmarkSquare01,
+                icon: HugeIcons.strokeRoundedRefresh,
                 size: 22,
                 color: c.text,
               ),
-              tooltip: 'notifications.inbox.tooltip_mark_read'.tr(),
+              tooltip: 'notifications.inbox.tooltip_refresh'.tr(),
             ),
-          // Refresh
-          IconButton(
-            onPressed: inboxState.isLoading
-                ? null
-                : () => ref.read(notificationsInboxProvider.notifier).refresh(),
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedRefresh,
-              size: 22,
-              color: c.text,
-            ),
-            tooltip: 'notifications.inbox.tooltip_refresh'.tr(),
           ),
         ],
       ),
@@ -182,7 +198,7 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
 
     // Lista con datos
     return RefreshIndicator(
-      color: AppColors.primary,
+      color: SacAccent.of(context).color,
       onRefresh: () => ref.read(notificationsInboxProvider.notifier).refresh(),
       child: ListView.builder(
         controller: _scrollController,
@@ -297,7 +313,7 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
             height: 24,
             child: CircularProgressIndicator(
               strokeWidth: 2.5,
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
             ),
           ),
         ),
@@ -309,16 +325,20 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
         child: Center(
-          child: TextButton.icon(
-            onPressed: () =>
-                ref.read(notificationsInboxProvider.notifier).loadNextPage(),
-            icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedRefresh,
-                size: 16,
-                color: AppColors.primary),
-            label: Text(
-              'notifications.inbox.load_more_error'.tr(),
-              style: TextStyle(fontSize: 13, color: c.textSecondary),
+          child: SacPressable(
+            listenOnly: true,
+            child: TextButton.icon(
+              style: const ButtonStyle(enableFeedback: false),
+              onPressed: () =>
+                  ref.read(notificationsInboxProvider.notifier).loadNextPage(),
+              icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedRefresh,
+                  size: 16,
+                  color: SacAccent.of(context).color),
+              label: Text(
+                'notifications.inbox.load_more_error'.tr(),
+                style: TextStyle(fontSize: 13, color: c.textSecondary),
+              ),
             ),
           ),
         ),

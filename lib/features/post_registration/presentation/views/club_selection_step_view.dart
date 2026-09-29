@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
@@ -138,7 +139,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
               HugeIcon(
                   icon: HugeIcons.strokeRoundedLocation01,
                   size: 20,
-                  color: AppColors.primary),
+                  color: SacAccent.of(context).color),
               const SizedBox(width: 8),
               Text(
                 'post_registration.club_selection.location'.tr(),
@@ -301,7 +302,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                 HugeIcon(
                     icon: HugeIcons.strokeRoundedUserGroup,
                     size: 20,
-                    color: AppColors.primary),
+                    color: SacAccent.of(context).color),
                 const SizedBox(width: 8),
                 Text(
                   'post_registration.club_selection.your_club'.tr(),
@@ -363,7 +364,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
             //     HugeIcon(
             //         icon: HugeIcons.strokeRoundedUserGroup,
             //         size: 20,
-            //         color: AppColors.primary),
+            //         color: SacAccent.of(context).color),
             //     const SizedBox(width: 8),
             //     Text(
             //       'post_registration.club_selection.club_type_section'.tr(),
@@ -402,7 +403,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
             //     HugeIcon(
             //         icon: HugeIcons.strokeRoundedSchool,
             //         size: 20,
-            //         color: AppColors.primary),
+            //         color: SacAccent.of(context).color),
             //     const SizedBox(width: 8),
             //     Text(
             //       'post_registration.club_selection.your_class'.tr(),

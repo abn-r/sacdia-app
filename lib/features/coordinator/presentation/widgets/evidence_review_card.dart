@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -27,7 +28,7 @@ class EvidenceReviewCard extends StatelessWidget {
     return Material(
       color: c.surface,
       borderRadius: BorderRadius.circular(16),
-      child: InkWell(
+      child: SacInkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: onTap,
         child: Container(

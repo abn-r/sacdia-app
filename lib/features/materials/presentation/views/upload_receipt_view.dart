@@ -3,17 +3,20 @@ import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../providers/receipts_provider.dart';
 import '../providers/order_detail_provider.dart';
 import '../widgets/price_input.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_tweened_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
@@ -194,21 +197,27 @@ class _UploadProgress extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const HugeIcon(
+            HugeIcon(
                 icon: HugeIcons.strokeRoundedCloudUpload,
                 size: 56,
-                color: AppColors.primary),
+                color: SacAccent.of(context).color),
             const SizedBox(height: 16),
             Text(
               'materials.receipt.sending'.tr(),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
-            LinearProgressIndicator(
-              value: progress > 0 ? progress : null,
-              backgroundColor: AppColors.primarySurface,
-              color: AppColors.primary,
-            ),
+            progress > 0
+                ? SacTweenedBar(
+                    value: progress,
+                    minHeight: 4,
+                    backgroundColor: SacAccent.of(context).surface,
+                    color: SacAccent.of(context).color,
+                  )
+                : LinearProgressIndicator(
+                    backgroundColor: SacAccent.of(context).surface,
+                    color: SacAccent.of(context).color,
+                  ),
             if (progress > 0) ...[
               const SizedBox(height: 8),
               Text(
@@ -277,7 +286,7 @@ class _FormBody extends StatelessWidget {
               text: 'materials.receipt.pick_file'.tr(),
               icon: HugeIcons.strokeRoundedAttachment01,
               borderColor:
-                  fileError != null ? AppColors.error : AppColors.primary,
+                  fileError != null ? AppColors.error : SacAccent.of(context).color,
               labelMaxLines: 2,
               onPressed: onPickFile,
             )
@@ -335,10 +344,10 @@ class _FormBody extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const HugeIcon(
+                  HugeIcon(
                       icon: HugeIcons.strokeRoundedCalendar03,
                       size: 18,
-                      color: AppColors.primary),
+                      color: SacAccent.of(context).color),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -391,21 +400,21 @@ class _FilePreview extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.primarySurface,
+        color: SacAccent.of(context).surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+        border: Border.all(color: SacAccent.of(context).color.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
+              color: SacAccent.of(context).color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const HugeIcon(
+            child: HugeIcon(
                 icon: HugeIcons.strokeRoundedFile01,
-                color: AppColors.primary,
+                color: SacAccent.of(context).color,
                 size: 24),
           ),
           const SizedBox(width: 12),
@@ -430,9 +439,13 @@ class _FilePreview extends StatelessWidget {
               ],
             ),
           ),
-          TextButton(
-            onPressed: onReplace,
-            child: Text('materials.receipt.change'.tr()),
+          SacPressable(
+            listenOnly: true,
+            child: TextButton(
+              onPressed: onReplace,
+              style: TextButton.styleFrom(enableFeedback: false),
+              child: Text('materials.receipt.change'.tr()),
+            ),
           ),
         ],
       ),

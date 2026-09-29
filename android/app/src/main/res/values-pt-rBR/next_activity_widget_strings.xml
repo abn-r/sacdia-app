@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="next_activity_widget_label">Próxima atividade</string>
+    <string name="next_activity_widget_description">A próxima atividade do seu clube</string>
+    <string name="next_activity_widget_empty">Nenhuma atividade programada</string>
+</resources>

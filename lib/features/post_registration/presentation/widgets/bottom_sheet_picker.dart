@@ -1,7 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -151,7 +152,7 @@ class PickerField extends StatelessWidget {
                         icon: icon,
                         size: 20,
                         color: hasValue
-                            ? AppColors.primary
+                            ? SacAccent.of(context).color
                             : context.sac.textSecondary,
                       ),
                 const SizedBox(width: 12),
@@ -290,13 +291,17 @@ class _BottomSheetPickerSheetState extends State<BottomSheetPickerSheet> {
                   color: Colors.black,
                 ),
                 suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const HugeIcon(
-                            icon: HugeIcons.strokeRoundedCancel01, size: 18),
-                        onPressed: () {
-                          _searchController.clear();
-                        },
-                        splashRadius: 16,
+                    ? SacPressable(
+                        listenOnly: true,
+                        child: IconButton(
+                          enableFeedback: false,
+                          icon: const HugeIcon(
+                              icon: HugeIcons.strokeRoundedCancel01, size: 18),
+                          onPressed: () {
+                            _searchController.clear();
+                          },
+                          splashRadius: 16,
+                        ),
                       )
                     : null,
                 contentPadding: const EdgeInsets.symmetric(
@@ -314,7 +319,7 @@ class _BottomSheetPickerSheetState extends State<BottomSheetPickerSheet> {
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   borderSide:
-                      const BorderSide(color: AppColors.primary, width: 2),
+                      BorderSide(color: SacAccent.of(context).color, width: 2),
                 ),
                 filled: true,
                 fillColor: context.sac.surfaceVariant,
@@ -354,39 +359,44 @@ class _BottomSheetPickerSheetState extends State<BottomSheetPickerSheet> {
                       final item = _filtered[index];
                       final isSelected = item.id == widget.selectedId;
 
-                      return ListTile(
-                        minTileHeight: 48,
-                        leading: item.logoAsset != null
-                            ? _PickerLogo(
-                                assetPath: item.logoAsset!,
-                                isSelected: isSelected,
-                                fallbackIcon: widget.icon,
-                              )
-                            : HugeIcon(
-                                icon: widget.icon,
-                                size: 22,
-                                color: isSelected
-                                    ? AppColors.primary
-                                    : context.sac.textSecondary,
-                              ),
-                        title: Text(
-                          item.name,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: isSelected
-                                ? AppColors.primary
-                                : context.sac.text,
-                            fontWeight:
-                                isSelected ? FontWeight.w600 : FontWeight.w400,
+                      return SacPressable(
+                        listenOnly: true,
+                        child: ListTile(
+                          enableFeedback: false,
+                          minTileHeight: 48,
+                          leading: item.logoAsset != null
+                              ? _PickerLogo(
+                                  assetPath: item.logoAsset!,
+                                  isSelected: isSelected,
+                                  fallbackIcon: widget.icon,
+                                )
+                              : HugeIcon(
+                                  icon: widget.icon,
+                                  size: 22,
+                                  color: isSelected
+                                      ? SacAccent.of(context).color
+                                      : context.sac.textSecondary,
+                                ),
+                          title: Text(
+                            item.name,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: isSelected
+                                  ? SacAccent.of(context).color
+                                  : context.sac.text,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.w400,
+                            ),
                           ),
+                          trailing: isSelected
+                              ? HugeIcon(
+                                  icon: HugeIcons.strokeRoundedTick02,
+                                  color: SacAccent.of(context).color,
+                                  size: 20,
+                                )
+                              : null,
+                          onTap: () => Navigator.of(context).pop(item.id),
                         ),
-                        trailing: isSelected
-                            ? const HugeIcon(
-                                icon: HugeIcons.strokeRoundedTick02,
-                                color: AppColors.primary,
-                                size: 20,
-                              )
-                            : null,
-                        onTap: () => Navigator.of(context).pop(item.id),
                       );
                     },
                   ),
@@ -419,12 +429,12 @@ class _PickerLogo extends StatelessWidget {
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
         color: isSelected
-            ? AppColors.primary.withValues(alpha: 0.08)
+            ? SacAccent.of(context).color.withValues(alpha: 0.08)
             : context.sac.surfaceVariant,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: isSelected
-              ? AppColors.primary.withValues(alpha: 0.35)
+              ? SacAccent.of(context).color.withValues(alpha: 0.35)
               : context.sac.border,
         ),
       ),
@@ -435,7 +445,7 @@ class _PickerLogo extends StatelessWidget {
         errorBuilder: (_, __, ___) => HugeIcon(
           icon: fallbackIcon,
           size: 20,
-          color: isSelected ? AppColors.primary : context.sac.textSecondary,
+          color: isSelected ? SacAccent.of(context).color : context.sac.textSecondary,
         ),
       ),
     );

@@ -49,6 +49,10 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Abre la app desde el widget. No es un scheme público navegable. -->
+            <intent-filter>
+                <action android:name="es.antonborri.home_widget.action.LAUNCH" />
+            </intent-filter>
             <!-- Verified App Link for OAuth callback (preferred) -->
             <!-- REQUIRED: Publish assetlinks.json at:
                    https://sacdia-backend.onrender.com/.well-known/assetlinks.json
@@ -70,6 +74,17 @@
                  with android:autoVerify="true" handles OAuth callbacks securely.
                  Custom schemes are interceptable by any app and offer no origin verification. -->
         </activity>
+        <receiver
+            android:name=".NextActivityWidgetProvider"
+            android:exported="true"
+            android:label="@string/next_activity_widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/next_activity_widget_info" />
+        </receiver>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

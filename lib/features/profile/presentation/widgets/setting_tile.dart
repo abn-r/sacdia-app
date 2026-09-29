@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -40,7 +41,7 @@ class SettingTile extends StatelessWidget {
             ? iconColor!.withValues(alpha: 0.12)
             : c.surfaceVariant);
 
-    return InkWell(
+    return SacInkWell(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),

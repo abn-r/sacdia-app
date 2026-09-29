@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -6,6 +7,7 @@ import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_empty_state.dart';
@@ -38,13 +40,17 @@ class TransferRequestsView extends ConsumerWidget {
       appBar: SacTopBar(
         title: tr('transfers.list.title'),
         actions: [
-          IconButton(
-            tooltip: tr('transfers.list.new_request'),
-            onPressed: () => _openNewRequest(context),
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedAdd01,
-              size: 22,
-              color: AppColors.primary,
+          SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              tooltip: tr('transfers.list.new_request'),
+              onPressed: () => _openNewRequest(context),
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedAdd01,
+                size: 22,
+                color: SacAccent.of(context).color,
+              ),
             ),
           ),
         ],
@@ -63,7 +69,7 @@ class TransferRequestsView extends ConsumerWidget {
           }
 
           return RefreshIndicator(
-            color: AppColors.primary,
+            color: SacAccent.of(context).color,
             onRefresh: () async => ref.invalidate(myTransferRequestsProvider),
             child: ListView.separated(
               padding: const EdgeInsets.all(20),

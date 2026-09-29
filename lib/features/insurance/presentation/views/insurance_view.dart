@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -9,7 +10,7 @@ import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/config/route_names.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/fixed_input_icon_slot.dart';
@@ -64,7 +65,7 @@ class _InsuranceViewState extends ConsumerState<InsuranceView> {
       backgroundColor: context.sac.background,
       body: SafeArea(
         child: RefreshIndicator(
-          color: AppColors.primary,
+          color: SacAccent.of(context).color,
           onRefresh: () async {
             ref.invalidate(membersInsuranceProvider);
           },
@@ -92,31 +93,39 @@ class _InsuranceViewState extends ConsumerState<InsuranceView> {
                 centerTitle: false,
                 actions: [
                   if (ordersEnabled)
-                    IconButton(
-                      tooltip: 'payment_orders.list.title'.tr(),
-                      onPressed: () => context.push(
-                        '${RouteNames.paymentOrders}?purpose=INSURANCE',
-                      ),
-                      icon: HugeIcon(
-                        icon: HugeIcons.strokeRoundedInvoice01,
-                        color: context.sac.text,
-                        size: 22,
+                    SacPressable(
+                      listenOnly: true,
+                      child: IconButton(
+                        enableFeedback: false,
+                        tooltip: 'payment_orders.list.title'.tr(),
+                        onPressed: () => context.push(
+                          '${RouteNames.paymentOrders}?purpose=INSURANCE',
+                        ),
+                        icon: HugeIcon(
+                          icon: HugeIcons.strokeRoundedInvoice01,
+                          color: context.sac.text,
+                          size: 22,
+                        ),
                       ),
                     ),
                   if (showAdd)
-                    IconButton(
-                      tooltip: 'insurance.view.fab_register'.tr(),
-                      onPressed: () {
-                        if (ordersEnabled && canIssueOrders) {
-                          context.push(RouteNames.paymentOrderIssueInsurance);
-                          return;
-                        }
-                        _openAddSheet(context, null);
-                      },
-                      icon: HugeIcon(
-                        icon: HugeIcons.strokeRoundedAdd01,
-                        color: AppColors.primary,
-                        size: 22,
+                    SacPressable(
+                      listenOnly: true,
+                      child: IconButton(
+                        enableFeedback: false,
+                        tooltip: 'insurance.view.fab_register'.tr(),
+                        onPressed: () {
+                          if (ordersEnabled && canIssueOrders) {
+                            context.push(RouteNames.paymentOrderIssueInsurance);
+                            return;
+                          }
+                          _openAddSheet(context, null);
+                        },
+                        icon: HugeIcon(
+                          icon: HugeIcons.strokeRoundedAdd01,
+                          color: SacAccent.of(context).color,
+                          size: 22,
+                        ),
                       ),
                     ),
                 ],
@@ -377,15 +386,19 @@ class _SearchBar extends StatelessWidget {
             color: c.textTertiary,
           ),
           suffixIcon: controller.text.isNotEmpty
-              ? IconButton(
-                  onPressed: () {
-                    controller.clear();
-                    onChanged('');
-                  },
-                  icon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedCancel01,
-                    size: 16,
-                    color: c.textTertiary,
+              ? SacPressable(
+                  listenOnly: true,
+                  child: IconButton(
+                    enableFeedback: false,
+                    onPressed: () {
+                      controller.clear();
+                      onChanged('');
+                    },
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedCancel01,
+                      size: 16,
+                      color: c.textTertiary,
+                    ),
                   ),
                 )
               : null,
@@ -442,32 +455,35 @@ class _SortCountRow extends StatelessWidget {
                 ),
           ),
           const Spacer(),
-          TextButton(
-            onPressed: () => _showSortMenu(context),
-            style: TextButton.styleFrom(
-              minimumSize: const Size(44, 44),
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              foregroundColor: c.textSecondary,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedSortByUp01,
-                  size: 14,
-                  color: c.textSecondary,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  sortOrder.label,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 13,
+          SacPressable(
+            listenOnly: true,
+            child: TextButton(
+              onPressed: () => _showSortMenu(context),
+              style: (TextButton.styleFrom(
+                minimumSize: const Size(44, 44),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                foregroundColor: c.textSecondary,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              )).copyWith(enableFeedback: false),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedSortByUp01,
+                    size: 14,
                     color: c.textSecondary,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 4),
+                  Text(
+                    sortOrder.label,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 13,
+                      color: c.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -524,25 +540,29 @@ class _SortSheet extends StatelessWidget {
           ),
           ...InsuranceSortOrder.values.map((so) {
             final isSelected = so == current;
-            return ListTile(
-              title: Text(
-                so.label,
-                style: TextStyle(
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                  color: isSelected ? AppColors.primary : c.text,
+            return SacPressable(
+              listenOnly: true,
+              child: ListTile(
+                enableFeedback: false,
+                title: Text(
+                  so.label,
+                  style: TextStyle(
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    color: isSelected ? SacAccent.of(context).color : c.text,
+                  ),
                 ),
+                trailing: isSelected
+                    ? HugeIcon(
+                        icon: HugeIcons.strokeRoundedTick02,
+                        size: 18,
+                        color: SacAccent.of(context).color,
+                      )
+                    : null,
+                onTap: () {
+                  onSelected(so);
+                  Navigator.pop(context);
+                },
               ),
-              trailing: isSelected
-                  ? const HugeIcon(
-                      icon: HugeIcons.strokeRoundedTick02,
-                      size: 18,
-                      color: AppColors.primary,
-                    )
-                  : null,
-              onTap: () {
-                onSelected(so);
-                Navigator.pop(context);
-              },
             );
           }),
           SizedBox(height: MediaQuery.paddingOf(context).bottom + 8),

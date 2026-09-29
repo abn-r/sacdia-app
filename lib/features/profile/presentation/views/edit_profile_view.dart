@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -8,6 +9,7 @@ import 'package:sacdia_app/core/utils/app_logger.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
@@ -109,6 +111,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
 
       if (photo == null) return; // User cancelled at picker
 
+      final toolbarColor = SacAccent.of(context).color;
       final croppedFile = await ImageCropper().cropImage(
         sourcePath: photo.path,
         aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
@@ -116,7 +119,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
         uiSettings: [
           AndroidUiSettings(
             toolbarTitle: tr('profile.edit.crop_photo_title'),
-            toolbarColor: AppColors.primary,
+            toolbarColor: toolbarColor,
             toolbarWidgetColor: Colors.white,
             lockAspectRatio: true,
             hideBottomControls: false,
@@ -450,28 +453,32 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
                     SacCard(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 8),
-                      child: SwitchListTile(
-                        title: Text(
-                          tr('profile.edit.baptism_toggle'),
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
+                      child: SacPressable(
+                        listenOnly: true,
+                        child: SwitchListTile(
+                          enableFeedback: false,
+                          title: Text(
+                            tr('profile.edit.baptism_toggle'),
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
+                          value: _baptized,
+                          activeTrackColor: SacAccent.of(context).light,
+                          thumbColor:
+                              WidgetStatePropertyAll(SacAccent.of(context).color),
+                          contentPadding: EdgeInsets.zero,
+                          onChanged: (value) {
+                            setState(() {
+                              _baptized = value;
+                              if (!value) {
+                                _baptismDate = null;
+                                _baptismDateError = null;
+                              }
+                            });
+                          },
                         ),
-                        value: _baptized,
-                        activeTrackColor: AppColors.primaryLight,
-                        thumbColor:
-                            const WidgetStatePropertyAll(AppColors.primary),
-                        contentPadding: EdgeInsets.zero,
-                        onChanged: (value) {
-                          setState(() {
-                            _baptized = value;
-                            if (!value) {
-                              _baptismDate = null;
-                              _baptismDateError = null;
-                            }
-                          });
-                        },
                       ),
                     ),
 
@@ -546,12 +553,12 @@ class _AvatarHeader extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppColors.primaryLight,
+                      color: SacAccent.of(context).light,
                       width: 3,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.15),
+                        color: SacAccent.of(context).color.withValues(alpha: 0.15),
                         blurRadius: 16,
                         offset: const Offset(0, 4),
                       ),
@@ -562,17 +569,17 @@ class _AvatarHeader extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: radius,
-                        backgroundColor: AppColors.primarySurface,
+                        backgroundColor: SacAccent.of(context).surface,
                         backgroundImage: avatar != null
                             ? sacProfileImageProvider(avatar!)
                             : null,
                         child: avatar == null
                             ? Text(
                                 name.isNotEmpty ? name[0].toUpperCase() : 'U',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 36,
                                   fontWeight: FontWeight.w700,
-                                  color: AppColors.primary,
+                                  color: SacAccent.of(context).color,
                                 ),
                               )
                             : null,
@@ -607,7 +614,7 @@ class _AvatarHeader extends StatelessWidget {
                       width: 32,
                       height: 32,
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
+                        color: SacAccent.of(context).color,
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: context.sac.background,
@@ -649,7 +656,7 @@ class _AvatarHeader extends StatelessWidget {
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
                 color:
-                    isUploading ? context.sac.textTertiary : AppColors.primary,
+                    isUploading ? context.sac.textTertiary : SacAccent.of(context).color,
               ),
             ),
           ),
@@ -674,13 +681,13 @@ class _SectionHeader extends StatelessWidget {
           width: 28,
           height: 28,
           decoration: BoxDecoration(
-            color: AppColors.primaryLight,
+            color: SacAccent.of(context).light,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Center(
             child: HugeIcon(
               icon: icon,
-              color: AppColors.primaryDark,
+              color: SacAccent.of(context).dark,
               size: 15,
             ),
           ),
@@ -726,7 +733,7 @@ class _GenderPickerField extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               color: hasValue
-                  ? AppColors.primaryLight
+                  ? SacAccent.of(context).light
                   : context.sac.surfaceVariant,
               borderRadius: BorderRadius.circular(10),
             ),
@@ -734,7 +741,7 @@ class _GenderPickerField extends StatelessWidget {
               child: HugeIcon(
                 icon: hasValue ? selected!.icon : HugeIcons.strokeRoundedUser,
                 size: 20,
-                color: hasValue ? AppColors.primary : context.sac.textTertiary,
+                color: hasValue ? SacAccent.of(context).color : context.sac.textTertiary,
               ),
             ),
           ),
@@ -809,7 +816,7 @@ class _DatePickerField extends StatelessWidget {
                   color: errorText != null
                       ? AppColors.errorLight
                       : (date != null
-                          ? AppColors.primaryLight
+                          ? SacAccent.of(context).light
                           : context.sac.surfaceVariant),
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -820,7 +827,7 @@ class _DatePickerField extends StatelessWidget {
                     color: errorText != null
                         ? AppColors.error
                         : (date != null
-                            ? AppColors.primary
+                            ? SacAccent.of(context).color
                             : context.sac.textTertiary),
                   ),
                 ),

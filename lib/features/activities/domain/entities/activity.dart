@@ -1,6 +1,24 @@
 import 'package:equatable/equatable.dart';
 import 'activity_instance.dart';
 
+/// Clase incluida cuando la actividad es solo para algunas clases.
+class ActivityAudienceClass extends Equatable {
+  final int classId;
+  final String name;
+  final String? assetCode;
+  final int clubTypeId;
+
+  const ActivityAudienceClass({
+    required this.classId,
+    required this.name,
+    this.assetCode,
+    required this.clubTypeId,
+  });
+
+  @override
+  List<Object?> get props => [classId, name, assetCode, clubTypeId];
+}
+
 /// Entidad de actividad del club del dominio
 class Activity extends Equatable {
   final int id;
@@ -39,6 +57,12 @@ class Activity extends Equatable {
   /// Series this session belongs to, if it was created from a recurrence.
   final int? activitySeriesId;
 
+  /// `all`, `board`, or `classes`.
+  final String audience;
+
+  /// Classes that can see the activity when [audience] is `classes`.
+  final List<ActivityAudienceClass> audienceClasses;
+
   const Activity({
     required this.id,
     required this.name,
@@ -67,6 +91,8 @@ class Activity extends Equatable {
     this.isJoint = false,
     this.instances,
     this.activitySeriesId,
+    this.audience = 'all',
+    this.audienceClasses = const [],
   });
 
   /// Returns true if the activity is in the past (based on activityDate or createdAt).
@@ -112,5 +138,7 @@ class Activity extends Equatable {
         isJoint,
         instances,
         activitySeriesId,
+        audience,
+        audienceClasses,
       ];
 }

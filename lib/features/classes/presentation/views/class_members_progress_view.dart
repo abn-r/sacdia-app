@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -210,7 +211,7 @@ class _MemberProgressTile extends StatelessWidget {
     return Material(
       color: c.paper,
       borderRadius: BorderRadius.circular(18),
-      child: InkWell(
+      child: SacInkWell(
         borderRadius: BorderRadius.circular(18),
         onTap: onTap,
         child: Container(

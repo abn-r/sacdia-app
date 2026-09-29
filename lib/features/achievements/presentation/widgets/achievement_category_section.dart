@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 import '../../domain/repositories/achievements_repository.dart';
@@ -77,9 +78,9 @@ class _CategoryHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final headerBg = isDark
-        ? AppColors.primary.withValues(alpha: 0.15)
-        : AppColors.primaryLight;
-    final titleColor = isDark ? AppColors.primary : AppColors.primaryDark;
+        ? SacAccent.of(context).color.withValues(alpha: 0.15)
+        : SacAccent.of(context).light;
+    final titleColor = isDark ? SacAccent.of(context).color : SacAccent.of(context).dark;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -93,7 +94,7 @@ class _CategoryHeader extends StatelessWidget {
           HugeIcon(
             icon: HugeIcons.strokeRoundedAward01,
             size: 18,
-            color: AppColors.primary,
+            color: SacAccent.of(context).color,
           ),
           const SizedBox(width: 8),
 

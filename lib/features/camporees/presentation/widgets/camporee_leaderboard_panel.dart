@@ -2,9 +2,10 @@ import 'dart:ui' show FontFeature;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_leaderboard.dart';
@@ -40,8 +41,8 @@ class CamporeeLeaderboardPanel extends StatelessWidget {
               Container(
                 width: 6,
                 height: 6,
-                decoration: const BoxDecoration(
-                  color: AppColors.primary,
+                decoration: BoxDecoration(
+                  color: SacAccent.of(context).color,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -274,9 +275,13 @@ class _LeaderboardRetry extends StatelessWidget {
               ),
             ),
           ),
-          TextButton(
-            onPressed: onRetry,
-            child: Text('common.retry'.tr()),
+          SacPressable(
+            listenOnly: true,
+            child: TextButton(
+              style: const ButtonStyle(enableFeedback: false),
+              onPressed: onRetry,
+              child: Text('common.retry'.tr()),
+            ),
           ),
         ],
       ),

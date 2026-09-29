@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/sla_dashboard.dart';
 
@@ -30,7 +31,7 @@ class SlaPipelineChart extends StatelessWidget {
     final total = stages.fold<int>(0, (sum, s) => sum + s.count);
 
     final stageColors = [
-      AppColors.primary,
+      SacAccent.of(context).color,
       AppColors.accent,
       AppColors.info,
       AppColors.secondary,

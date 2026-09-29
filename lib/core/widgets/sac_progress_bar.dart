@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 /// Barra de progreso lineal del design system SACDIA "Scout Vibrante"
@@ -14,8 +15,8 @@ class SacProgressBar extends StatefulWidget {
   /// Altura de la barra
   final double height;
 
-  /// Color sólido (si useGradient es false)
-  final Color color;
+  /// Color sólido (si useGradient es false). Null usa el acento del sistema.
+  final Color? color;
 
   /// Color del track de fondo (null = resolved from theme)
   final Color? trackColor;
@@ -42,7 +43,7 @@ class SacProgressBar extends StatefulWidget {
     super.key,
     required this.progress,
     this.height = 6.0,
-    this.color = AppColors.primary,
+    this.color,
     this.trackColor,
     this.useGradient = false,
     this.borderRadius = 100.0,
@@ -197,14 +198,17 @@ class _SacProgressBarState extends State<SacProgressBar>
                             child: Container(
                               decoration: BoxDecoration(
                                 gradient: widget.useGradient
-                                    ? const LinearGradient(
+                                    ? LinearGradient(
                                         colors: [
-                                          AppColors.primary,
+                                          SacAccent.of(context).color,
                                           AppColors.secondary,
                                         ],
                                       )
                                     : null,
-                                color: widget.useGradient ? null : widget.color,
+                                color: widget.useGradient
+                                    ? null
+                                    : (widget.color ??
+                                        SacAccent.of(context).color),
                                 borderRadius:
                                     BorderRadius.circular(widget.borderRadius),
                               ),

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -11,7 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/constants/maps_constants.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -409,11 +410,11 @@ class _CenterPin extends StatelessWidget {
           // Cuerpo del pin
           Container(
             decoration: BoxDecoration(
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.5),
+                  color: SacAccent.of(context).color.withValues(alpha: 0.5),
                   blurRadius: 10,
                   spreadRadius: 2,
                 ),
@@ -510,13 +511,13 @@ class _LocationBottomCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
+                  color: SacAccent.of(context).light,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedLocation01,
                   size: 18,
-                  color: AppColors.primary,
+                  color: SacAccent.of(context).color,
                 ),
               ),
               const SizedBox(width: 12),
@@ -764,35 +765,43 @@ class _LocationSearchDelegate extends SearchDelegate<LocationSearchResult?> {
   List<Widget> buildActions(BuildContext context) {
     return [
       if (query.isNotEmpty)
-        IconButton(
-          icon: HugeIcon(
-            icon: HugeIcons.strokeRoundedCancel01,
-            size: 20,
-            color: context.sac.textSecondary,
+        SacPressable(
+          listenOnly: true,
+          child: IconButton(
+            enableFeedback: false,
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedCancel01,
+              size: 20,
+              color: context.sac.textSecondary,
+            ),
+            onPressed: () {
+              query = '';
+              _debounce?.cancel();
+              _results = [];
+              _isLoading = false;
+              _hasError = false;
+            },
           ),
-          onPressed: () {
-            query = '';
-            _debounce?.cancel();
-            _results = [];
-            _isLoading = false;
-            _hasError = false;
-          },
         ),
     ];
   }
 
   @override
   Widget buildLeading(BuildContext context) {
-    return IconButton(
-      icon: HugeIcon(
-        icon: HugeIcons.strokeRoundedArrowLeft01,
-        size: 20,
-        color: context.sac.text,
+    return SacPressable(
+      listenOnly: true,
+      child: IconButton(
+        enableFeedback: false,
+        icon: HugeIcon(
+          icon: HugeIcons.strokeRoundedArrowLeft01,
+          size: 20,
+          color: context.sac.text,
+        ),
+        onPressed: () {
+          _debounce?.cancel();
+          close(context, null);
+        },
       ),
-      onPressed: () {
-        _debounce?.cancel();
-        close(context, null);
-      },
     );
   }
 
@@ -824,7 +833,7 @@ class _LocationSearchDelegate extends SearchDelegate<LocationSearchResult?> {
         if (_isLoading) {
           return Center(
             child: LoadingAnimationWidget.waveDots(
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
               size: 50,
             ),
           );
@@ -862,43 +871,47 @@ class _LocationSearchDelegate extends SearchDelegate<LocationSearchResult?> {
             final title = _placeTitle(place.displayName);
             final subtitle = _placeSubtitle(place.displayName);
 
-            return ListTile(
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
-                  borderRadius: BorderRadius.circular(8),
+            return SacPressable(
+              listenOnly: true,
+              child: ListTile(
+                enableFeedback: false,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: SacAccent.of(context).light,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedLocation01,
+                    size: 18,
+                    color: SacAccent.of(context).color,
+                  ),
                 ),
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedLocation01,
-                  size: 18,
-                  color: AppColors.primary,
+                title: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: c.text,
+                  ),
                 ),
+                subtitle: subtitle.isNotEmpty
+                    ? Text(
+                        subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 12, color: c.textSecondary),
+                      )
+                    : null,
+                onTap: () {
+                  _debounce?.cancel();
+                  close(context, place);
+                },
               ),
-              title: Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: c.text,
-                ),
-              ),
-              subtitle: subtitle.isNotEmpty
-                  ? Text(
-                      subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 12, color: c.textSecondary),
-                    )
-                  : null,
-              onTap: () {
-                _debounce?.cancel();
-                close(context, place);
-              },
             );
           },
         );
@@ -927,14 +940,14 @@ class _SearchEmptyHint extends StatelessWidget {
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              color: AppColors.primaryLight,
+              color: SacAccent.of(context).light,
               shape: BoxShape.circle,
             ),
             child: Center(
               child: HugeIcon(
                 icon: HugeIcons.strokeRoundedLocation01,
                 size: 34,
-                color: AppColors.primary,
+                color: SacAccent.of(context).color,
               ),
             ),
           ),
@@ -998,14 +1011,14 @@ class _SearchStatusMessage extends StatelessWidget {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: AppColors.primaryLight,
+              color: SacAccent.of(context).light,
               shape: BoxShape.circle,
             ),
             child: Center(
               child: HugeIcon(
                 icon: icon,
                 size: 28,
-                color: AppColors.primary,
+                color: SacAccent.of(context).color,
               ),
             ),
           ),

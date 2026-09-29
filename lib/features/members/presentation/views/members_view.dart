@@ -1,9 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -23,14 +25,14 @@ import '../widgets/join_request_card.dart';
 import '../widgets/member_card.dart';
 import '../widgets/member_class_group_header.dart';
 import '../widgets/members_filter_bar.dart';
+import '../widgets/members_mode_switcher.dart';
 import 'annual_continuations_view.dart';
 import 'member_profile_view.dart';
 import 'role_assignment_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 
-/// Vista principal de Miembros con dos pestañas:
-/// 1. Lista de miembros del club
-/// 2. Solicitudes de ingreso al club
+/// Vista principal de Miembros.
+/// Modos: miembros, solicitudes, y no inscritos si hay `club_members:approve`.
 class MembersView extends ConsumerStatefulWidget {
   const MembersView({super.key});
 
@@ -38,22 +40,8 @@ class MembersView extends ConsumerStatefulWidget {
   ConsumerState<MembersView> createState() => _MembersViewState();
 }
 
-class _MembersViewState extends ConsumerState<MembersView>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    // AsyncNotifier loads automatically via build() — no manual initState trigger needed
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
+class _MembersViewState extends ConsumerState<MembersView> {
+  int _mode = 0;
 
   /// Determina si el usuario actual puede asignar/revocar roles de club.
   bool _canManageClubRoles(WidgetRef ref) {
@@ -80,8 +68,23 @@ class _MembersViewState extends ConsumerState<MembersView>
     final pendingCount = ref.watch(pendingRequestsCountProvider);
     final isDirector = _canManageClubRoles(ref);
     final canContinue = _canManageContinuations(ref);
+    if (!canContinue && _mode == 2) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _mode == 2) setState(() => _mode = 0);
+      });
+    }
+    final mode = (!canContinue && _mode == 2) ? 0 : _mode;
+    final continuationsAsync =
+        canContinue ? ref.watch(annualContinuationsNotifierProvider) : null;
+    final pendingContinuations =
+        continuationsAsync?.valueOrNull?.items.length ?? 0;
     final clubCtxAsync = ref.watch(clubContextProvider);
     final membersAsync = ref.watch(membersNotifierProvider);
+    final onContinuations = canContinue && mode == 2;
+    final fadeDuration = SacMotion.reducedFade;
+    final refreshing = onContinuations
+        ? (continuationsAsync?.isLoading ?? false)
+        : membersAsync.isLoading;
 
     return Scaffold(
       backgroundColor: c.background,
@@ -91,27 +94,37 @@ class _MembersViewState extends ConsumerState<MembersView>
         titleIcon: HugeIcon(
           icon: HugeIcons.strokeRoundedUserList,
           size: 22,
-          color: AppColors.primary,
+          color: SacAccent.of(context).color,
         ),
         actions: [
-          IconButton(
-            onPressed: membersAsync.isLoading
-                ? null
-                : () => ref.read(membersNotifierProvider.notifier).refresh(),
-            icon: membersAsync.isLoading
-                ? SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
+          SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              onPressed: refreshing
+                  ? null
+                  : () {
+                      if (onContinuations) {
+                        ref.invalidate(annualContinuationsNotifierProvider);
+                      } else {
+                        ref.read(membersNotifierProvider.notifier).refresh();
+                      }
+                    },
+              icon: refreshing
+                  ? SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: c.textTertiary,
+                      ),
+                    )
+                  : HugeIcon(
+                      icon: HugeIcons.strokeRoundedRefresh,
                       color: c.textTertiary,
+                      size: 18,
                     ),
-                  )
-                : HugeIcon(
-                    icon: HugeIcons.strokeRoundedRefresh,
-                    color: c.textTertiary,
-                    size: 18,
-                  ),
+            ),
           ),
         ],
       ),
@@ -119,81 +132,48 @@ class _MembersViewState extends ConsumerState<MembersView>
         top: false,
         child: Column(
           children: [
-            // ── Tab bar ────────────────────────────────────────────────
             Padding(
               padding: EdgeInsets.symmetric(horizontal: hPad, vertical: 8),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: c.surfaceVariant,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: TabBar(
-                  controller: _tabController,
-                  indicator: BoxDecoration(
-                    color: c.surface,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: context.sac.shadow,
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  dividerColor: Colors.transparent,
-                  labelColor: c.text,
-                  unselectedLabelColor: c.textSecondary,
-                  labelStyle: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  unselectedLabelStyle: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  padding: const EdgeInsets.all(4),
-                  tabs: [
-                    Tab(text: 'members.view.members_tab'.tr()),
-                    Tab(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text('members.view.requests_tab'.tr()),
-                          if (pendingCount > 0) ...[
-                            const SizedBox(width: 6),
-                            _PendingBadge(count: pendingCount),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+              child: MembersModeSwitcher(
+                index: mode,
+                onChanged: (next) => setState(() => _mode = next),
+                showContinuations: canContinue,
+                pendingRequests: pendingCount,
+                pendingContinuations: pendingContinuations,
               ),
             ),
-
-            // ── Tab content ────────────────────────────────────────────
             Expanded(
               child: clubCtxAsync.when(
                 data: (ctx) {
                   if (ctx == null) {
                     return _NoClubState();
                   }
-                  return TabBarView(
-                    controller: _tabController,
+                  final pages = <Widget>[
+                    _MembersTab(
+                      clubContext: ctx,
+                      isDirector: isDirector,
+                      membersAsync: membersAsync,
+                    ),
+                    _JoinRequestsTab(
+                      clubContext: ctx,
+                      isDirector: isDirector,
+                      membersAsync: membersAsync,
+                    ),
+                    if (canContinue) const AnnualContinuationsBody(),
+                  ];
+                  return Stack(
+                    fit: StackFit.expand,
                     children: [
-                      _MembersTab(
-                        clubContext: ctx,
-                        isDirector: isDirector,
-                        canManageContinuations: canContinue,
-                        membersAsync: membersAsync,
-                      ),
-                      _JoinRequestsTab(
-                        clubContext: ctx,
-                        isDirector: isDirector,
-                        membersAsync: membersAsync,
-                      ),
+                      for (var i = 0; i < pages.length; i++)
+                        IgnorePointer(
+                          ignoring: mode != i,
+                          child: AnimatedOpacity(
+                            opacity: mode == i ? 1 : 0,
+                            duration: fadeDuration,
+                            curve: SacMotion.easeOut,
+                            child: pages[i],
+                          ),
+                        ),
                     ],
                   );
                 },
@@ -218,13 +198,11 @@ class _MembersViewState extends ConsumerState<MembersView>
 class _MembersTab extends ConsumerWidget {
   final ClubContext clubContext;
   final bool isDirector;
-  final bool canManageContinuations;
   final AsyncValue<MembersData> membersAsync;
 
   const _MembersTab({
     required this.clubContext,
     required this.isDirector,
-    required this.canManageContinuations,
     required this.membersAsync,
   });
 
@@ -232,56 +210,45 @@ class _MembersTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final membersByClass = ref.watch(membersByClassProvider);
     final hPad = Responsive.horizontalPadding(context);
+    final c = context.sac;
 
     return Column(
       children: [
-        // ── Miembros no inscritos ───────────────────────────────────
-        if (canManageContinuations)
-          Padding(
-            padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 4),
-            child: _AnnualContinuationsCard(
-              onTap: () => Navigator.push(
-                context,
-                SacSharedAxisRoute(
-                  builder: (_) => const AnnualContinuationsView(),
-                ),
-              ),
-            ),
+        ColoredBox(
+          color: c.background,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 8),
+            child: const MembersFilterBar(),
           ),
-
-        // ── Filter bar ──────────────────────────────────────────────
-        Padding(
-          padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 8),
-          child: const MembersFilterBar(),
         ),
-
-        // ── Content ─────────────────────────────────────────────────
         Expanded(
-          child: membersAsync.when(
-            loading: () => const Center(child: SacLoading()),
-            error: (error, _) => _ErrorState(
-              message: error.toString(),
-              onRetry: () =>
-                  ref.read(membersNotifierProvider.notifier).refresh(),
-            ),
-            data: (_) => membersByClass.isEmpty
-                ? _EmptyState(
-                    icon: HugeIcons.strokeRoundedUserGroup,
-                    title: 'members.view.no_members_title'.tr(),
-                    subtitle: 'members.view.no_members_subtitle'.tr(),
-                  )
-                : RefreshIndicator(
-                    color: AppColors.primary,
-                    onRefresh: () =>
-                        ref.read(membersNotifierProvider.notifier).refresh(),
-                    child: _buildMembersList(
-                      context,
-                      ref,
-                      membersByClass,
-                      hPad,
-                      isDirector,
+          child: ClipRect(
+            child: membersAsync.when(
+              loading: () => const Center(child: SacLoading()),
+              error: (error, _) => _ErrorState(
+                message: error.toString(),
+                onRetry: () =>
+                    ref.read(membersNotifierProvider.notifier).refresh(),
+              ),
+              data: (_) => membersByClass.isEmpty
+                  ? _EmptyState(
+                      icon: HugeIcons.strokeRoundedUserGroup,
+                      title: 'members.view.no_members_title'.tr(),
+                      subtitle: 'members.view.no_members_subtitle'.tr(),
+                    )
+                  : RefreshIndicator(
+                      color: SacAccent.of(context).color,
+                      onRefresh: () =>
+                          ref.read(membersNotifierProvider.notifier).refresh(),
+                      child: _buildMembersList(
+                        context,
+                        ref,
+                        membersByClass,
+                        hPad,
+                        isDirector,
+                      ),
                     ),
-                  ),
+            ),
           ),
         ),
       ],
@@ -325,7 +292,7 @@ class _MembersTab extends ConsumerWidget {
 
           // Post-header spacing
           if (flatIndex == cursor) {
-            return const SizedBox(height: 8);
+            return const SizedBox(height: 6);
           }
           cursor++;
 
@@ -335,7 +302,7 @@ class _MembersTab extends ConsumerWidget {
             final memberIndex = flatIndex - cursor;
             final member = entry.value[memberIndex];
             return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.only(bottom: 6),
               child: MemberCard(
                 member: member,
                 onTap: () => _openMemberProfile(context, member),
@@ -349,7 +316,7 @@ class _MembersTab extends ConsumerWidget {
 
           // Trailing spacing
           if (flatIndex == cursor) {
-            return const SizedBox(height: 8);
+            return const SizedBox(height: 6);
           }
           cursor++;
         }
@@ -412,54 +379,53 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
     final filteredRequests = ref.watch(filteredJoinRequestsProvider);
     final filters = ref.watch(joinRequestFiltersProvider);
     final hPad = Responsive.horizontalPadding(context);
+    final c = context.sac;
 
     return Column(
       children: [
-        // ── Search bar ──────────────────────────────────────────────
-        Padding(
-          padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 8),
-          child: _JoinRequestSearchBar(
-            filters: filters,
-            onFiltersChanged: (updated) {
-              ref.read(joinRequestFiltersProvider.notifier).state = updated;
-            },
+        ColoredBox(
+          color: c.background,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 8),
+            child: _JoinRequestSearchBar(
+              filters: filters,
+              onFiltersChanged: (updated) {
+                ref.read(joinRequestFiltersProvider.notifier).state = updated;
+              },
+            ),
           ),
         ),
-
-        // ── Content ─────────────────────────────────────────────────
         Expanded(
-          child: widget.membersAsync.when(
-            loading: () => const Center(child: SacLoading()),
-            error: (error, _) => _ErrorState(
-              message: error.toString(),
-              onRetry: () =>
-                  ref.read(membersNotifierProvider.notifier).refresh(),
-            ),
-            data: (_) => filteredRequests.isEmpty
-                ? _EmptyState(
-                    icon: HugeIcons.strokeRoundedUserAdd01,
-                    title: 'members.view.no_requests_title'.tr(),
-                    subtitle: 'members.view.no_requests_subtitle'.tr(),
-                  )
-                : RefreshIndicator(
-                    color: AppColors.primary,
-                    onRefresh: () =>
-                        ref.read(membersNotifierProvider.notifier).refresh(),
-                    child: ListView.separated(
-                      padding: EdgeInsets.fromLTRB(hPad, 4, hPad, 24),
-                      itemCount: filteredRequests.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 10),
-                      itemBuilder: (context, index) {
-                        final request = filteredRequests[index];
-                        final isProcessing =
-                            _processingIds.contains(request.assignmentId);
-                        final canAct = widget.isDirector &&
-                            request.status == JoinRequestStatus.pending &&
-                            !isProcessing;
-                        return StaggeredListItem(
-                          index: index,
-                          initialDelay: const Duration(milliseconds: 30),
-                          child: JoinRequestCard(
+          child: ClipRect(
+            child: widget.membersAsync.when(
+              loading: () => const Center(child: SacLoading()),
+              error: (error, _) => _ErrorState(
+                message: error.toString(),
+                onRetry: () =>
+                    ref.read(membersNotifierProvider.notifier).refresh(),
+              ),
+              data: (_) => filteredRequests.isEmpty
+                  ? _EmptyState(
+                      icon: HugeIcons.strokeRoundedUserAdd01,
+                      title: 'members.view.no_requests_title'.tr(),
+                      subtitle: 'members.view.no_requests_subtitle'.tr(),
+                    )
+                  : RefreshIndicator(
+                      color: SacAccent.of(context).color,
+                      onRefresh: () =>
+                          ref.read(membersNotifierProvider.notifier).refresh(),
+                      child: ListView.separated(
+                        padding: EdgeInsets.fromLTRB(hPad, 4, hPad, 24),
+                        itemCount: filteredRequests.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 6),
+                        itemBuilder: (context, index) {
+                          final request = filteredRequests[index];
+                          final isProcessing =
+                              _processingIds.contains(request.assignmentId);
+                          final canAct = widget.isDirector &&
+                              request.status == JoinRequestStatus.pending &&
+                              !isProcessing;
+                          return JoinRequestCard(
                             request: request,
                             onTap: () => _openRequestProfile(context, request),
                             onApprove: canAct
@@ -468,11 +434,11 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
                             onReject: canAct
                                 ? () => _rejectRequest(context, request)
                                 : null,
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
-                  ),
+            ),
           ),
         ),
       ],
@@ -554,32 +520,6 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
 
 // ── Helper Widgets ────────────────────────────────────────────────────────────
 
-/// Badge con el número de solicitudes pendientes
-class _PendingBadge extends StatelessWidget {
-  final int count;
-
-  const _PendingBadge({required this.count});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: AppColors.error,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        count > 99 ? '99+' : '$count',
-        style: const TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          color: Colors.white,
-        ),
-      ),
-    );
-  }
-}
-
 /// Estado vacío genérico
 class _EmptyState extends StatelessWidget {
   final List<List<dynamic>> icon;
@@ -647,89 +587,6 @@ class _ErrorState extends StatelessWidget {
               ),
             ],
           ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Annual Continuations Card ─────────────────────────────────────────────────
-
-/// Tarjeta de acceso rápido a la vista de continuaciones anuales.
-/// Solo visible para usuarios con `club_members:approve`.
-class _AnnualContinuationsCard extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _AnnualContinuationsCard({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Semantics(
-      button: true,
-      label: tr('members.continuations.card_label'),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
-          child: Container(
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.25),
-              ),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            child: Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Center(
-                    child: HugeIcon(
-                      icon: HugeIcons.strokeRoundedUserCheck01,
-                      size: 18,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        tr('members.continuations.card_title'),
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      Text(
-                        tr('members.continuations.card_subtitle'),
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: c.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedArrowRight01,
-                  size: 16,
-                  color: AppColors.primary,
-                ),
-              ],
-            ),
-          ),
         ),
       ),
     );

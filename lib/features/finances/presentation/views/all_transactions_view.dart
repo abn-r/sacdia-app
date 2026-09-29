@@ -1,10 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_empty_state.dart';
@@ -137,20 +139,28 @@ class _AllTransactionsViewState extends ConsumerState<AllTransactionsView> {
         title: 'finances.all_transactions.title'.tr(),
         subtitle: rangeLabel,
         actions: [
-          IconButton(
-            onPressed: _openSortSheet,
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedSortByDown02,
-              size: 22,
-              color: context.sac.textSecondary,
+          SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              onPressed: _openSortSheet,
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedSortByDown02,
+                size: 22,
+                color: context.sac.textSecondary,
+              ),
             ),
           ),
-          IconButton(
-            onPressed: _openRangeSheet,
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedCalendar03,
-              size: 22,
-              color: context.sac.textSecondary,
+          SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              onPressed: _openRangeSheet,
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedCalendar03,
+                size: 22,
+                color: context.sac.textSecondary,
+              ),
             ),
           ),
         ],
@@ -178,7 +188,7 @@ class _AllTransactionsViewState extends ConsumerState<AllTransactionsView> {
             // ── Transaction list ──────────────────────────────────────
             Expanded(
               child: RefreshIndicator(
-                color: AppColors.primary,
+                color: SacAccent.of(context).color,
                 onRefresh: () async {
                   ref
                       .read(allTransactionsFilterNotifierProvider.notifier)
@@ -354,12 +364,12 @@ class _LoadMoreIndicator extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(
+          SizedBox(
             width: 16,
             height: 16,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: AppColors.primary,
+              color: SacAccent.of(context).color,
             ),
           ),
           const SizedBox(width: 10),

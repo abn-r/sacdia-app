@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 
 import '../providers/master_honor_modal_queue_provider.dart';
 
@@ -38,7 +40,7 @@ class MasterHonorChangeModal extends StatelessWidget {
                     shape: BoxShape.circle,
                     color: (isDark
                             ? AppColors.darkSurfaceVariant
-                            : AppColors.primaryLight)
+                            : SacAccent.of(context).light)
                         .withValues(alpha: 0.9),
                   ),
                   alignment: Alignment.center,
@@ -74,9 +76,13 @@ class MasterHonorChangeModal extends StatelessWidget {
             const SizedBox(height: 16),
             Align(
               alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: onConfirm,
-                child: const Text('Entendido'),
+              child: SacPressable(
+                listenOnly: true,
+                child: TextButton(
+                  style: const ButtonStyle(enableFeedback: false),
+                  onPressed: onConfirm,
+                  child: const Text('Entendido'),
+                ),
               ),
             ),
           ],

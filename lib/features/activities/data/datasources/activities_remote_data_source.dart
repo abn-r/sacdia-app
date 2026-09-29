@@ -8,6 +8,7 @@ import '../../../../core/utils/app_logger.dart';
 import '../models/activity_model.dart';
 import '../models/attendance_model.dart';
 import '../models/club_section_model.dart';
+import '../../domain/entities/activity_rsvp.dart';
 import '../../domain/entities/create_activity_request.dart';
 import '../../domain/entities/activity_series.dart';
 
@@ -51,6 +52,9 @@ abstract class ActivitiesRemoteDataSource {
     CancelToken? cancelToken,
   });
   Future<int> registerAttendance(int activityId, List<String> userIds);
+  Future<MyActivityRsvp> getMyRsvp(int activityId);
+  Future<String> setMyRsvp(int activityId, String status);
+  Future<List<AttendanceRosterMember>> getAttendanceRoster(int activityId);
 
   /// Sube una imagen para la actividad y devuelve la URL firmada resultante.
   Future<String> uploadActivityImage(int activityId, File imageFile);
@@ -103,27 +107,49 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
     CancelToken? cancelToken,
   }) async {
     try {
-      final queryParams = <String, dynamic>{'active': 'true'};
-      if (clubTypeId != null) queryParams['clubTypeId'] = clubTypeId;
-      if (seriesId != null) queryParams['seriesId'] = seriesId;
+      // The API defaults to 20 rows, newest created first. The calendar needs
+      // every active activity, including dates before that first page.
+      const pageSize = 100;
+      final all = <ActivityModel>[];
+      var page = 1;
 
-      final response = await _dio.get(
-        '$_baseUrl${ApiEndpoints.clubs}/$clubId/activities',
-        queryParameters: queryParams,
-        cancelToken: cancelToken,
-      );
+      while (page <= 20) {
+        final queryParams = <String, dynamic>{
+          'active': 'true',
+          'page': page,
+          'limit': pageSize,
+        };
+        if (clubTypeId != null) queryParams['clubTypeId'] = clubTypeId;
+        if (seriesId != null) queryParams['seriesId'] = seriesId;
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
+        final response = await _dio.get(
+          '$_baseUrl${ApiEndpoints.clubs}/$clubId/activities',
+          queryParameters: queryParams,
+          cancelToken: cancelToken,
+        );
+
+        if (response.statusCode != 200 && response.statusCode != 201) {
+          throw ServerException(
+            message: tr('activities.errors.fetch_list'),
+            code: response.statusCode,
+          );
+        }
+
         final responseBody = response.data as Map<String, dynamic>;
-        final List<dynamic> data = responseBody['data'] as List<dynamic>;
-        return data
-            .map((json) => ActivityModel.fromJson(json as Map<String, dynamic>))
-            .toList();
+        final data = responseBody['data'] as List<dynamic>;
+        all.addAll(
+          data.map(
+            (json) => ActivityModel.fromJson(json as Map<String, dynamic>),
+          ),
+        );
+
+        final meta = responseBody['meta'];
+        final hasNext = meta is Map && meta['hasNextPage'] == true;
+        if (!hasNext || data.isEmpty) break;
+        page++;
       }
 
-      throw ServerException(
-          message: tr('activities.errors.fetch_list'),
-          code: response.statusCode);
+      return all;
     } catch (e) {
       AppLogger.e('Error en getClubActivities', tag: _tag, error: e);
       if (e is DioException) {
@@ -381,6 +407,78 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
       if (e is ServerException || e is AuthException) rethrow;
       throw ServerException(message: e.toString());
     }
+  }
+
+  @override
+  Future<MyActivityRsvp> getMyRsvp(int activityId) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.activities}/$activityId/rsvp',
+      );
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        return MyActivityRsvp.fromJson(data);
+      }
+      if (data is Map) {
+        return MyActivityRsvp.fromJson(Map<String, dynamic>.from(data));
+      }
+      throw ServerException(message: tr('activities.errors.fetch_attendance'));
+    } catch (e) {
+      _throwServerException(e, tr('activities.errors.fetch_attendance'));
+    }
+  }
+
+  @override
+  Future<String> setMyRsvp(int activityId, String status) async {
+    try {
+      final response = await _dio.put(
+        '$_baseUrl${ApiEndpoints.activities}/$activityId/rsvp',
+        data: {'status': status},
+      );
+      final data = response.data;
+      if (data is Map && data['status'] is String) {
+        return data['status'] as String;
+      }
+      return status;
+    } catch (e) {
+      _throwServerException(e, tr('activities.errors.register_attendance'));
+    }
+  }
+
+  @override
+  Future<List<AttendanceRosterMember>> getAttendanceRoster(
+    int activityId,
+  ) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.activities}/$activityId/attendance-roster',
+      );
+      final data = response.data;
+      final rawMembers = data is Map ? data['members'] : null;
+      if (rawMembers is! List) return const [];
+      return rawMembers
+          .whereType<Map>()
+          .map(
+            (row) => AttendanceRosterMember.fromJson(
+              Map<String, dynamic>.from(row),
+            ),
+          )
+          .toList();
+    } catch (e) {
+      _throwServerException(e, tr('activities.errors.fetch_attendance'));
+    }
+  }
+
+  Never _throwServerException(Object error, String fallback) {
+    if (error is DioException) {
+      final body = error.response?.data;
+      final message = body is Map && body['message'] is String
+          ? body['message'] as String
+          : error.message ?? fallback;
+      throw ServerException(message: message, code: error.response?.statusCode);
+    }
+    if (error is ServerException || error is AuthException) throw error;
+    throw ServerException(message: error.toString());
   }
 
   @override

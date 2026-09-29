@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -157,24 +158,32 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
           centerTitle: true,
           backgroundColor: c.canvas,
           borderColor: c.ink150,
-          leading: IconButton(
-            onPressed: isLoading ? null : () => Navigator.pop(context),
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedArrowLeft01,
-              size: 22,
-              color: c.ink800,
+          leading: SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              onPressed: isLoading ? null : () => Navigator.pop(context),
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowLeft01,
+                size: 22,
+                color: c.ink800,
+              ),
             ),
           ),
           actions: [
-            IconButton(
-              onPressed: () => showRequirementStatusHistorySheet(
-                context,
-                requirement: requirement,
-              ),
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedMoreHorizontal,
-                size: 20,
-                color: c.ink600,
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                onPressed: () => showRequirementStatusHistorySheet(
+                  context,
+                  requirement: requirement,
+                ),
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedMoreHorizontal,
+                  size: 20,
+                  color: c.ink600,
+                ),
               ),
             ),
           ],
@@ -955,7 +964,7 @@ class _EmptyFileSlot extends StatelessWidget {
           color: c.paper,
           borderRadius: BorderRadius.circular(12),
           clipBehavior: Clip.antiAlias,
-          child: InkWell(
+          child: SacInkWell(
             onTap: onTap,
             borderRadius: BorderRadius.circular(12),
             child: Padding(
@@ -1163,7 +1172,7 @@ class _StatusChip extends StatelessWidget {
     return Semantics(
       button: true,
       label: 'Estado: ${meta.label}. Toca para ver historial.',
-      child: InkWell(
+      child: SacInkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Container(

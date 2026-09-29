@@ -1,9 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../../core/widgets/sac_button.dart';
@@ -60,32 +62,36 @@ class TeachingScopeView extends ConsumerWidget {
         title: 'classes.teaching_scope.title'.tr(),
         actions: [
           if (canManageAssignments && activeClubContext != null)
-            IconButton(
-              tooltip: 'classes.class_assignments.title'.tr(),
-              onPressed: resolvedAssignmentYearId == null
-                  ? null
-                  : () async {
-                      final query = TeachingScopeQuery(
-                        clubId: activeClubContext.clubId,
-                        sectionId: activeClubContext.sectionId,
-                        yearId: resolvedAssignmentYearId,
-                      );
-                      await Navigator.of(context).push(
-                        SacSharedAxisRoute<void>(
-                          builder: (_) => ClassCounselorAssignmentsView(
-                            clubId: activeClubContext.clubId,
-                            sectionId: activeClubContext.sectionId,
-                            clubTypeId: activeClubContext.clubTypeId,
-                            yearId: resolvedAssignmentYearId,
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                tooltip: 'classes.class_assignments.title'.tr(),
+                onPressed: resolvedAssignmentYearId == null
+                    ? null
+                    : () async {
+                        final query = TeachingScopeQuery(
+                          clubId: activeClubContext.clubId,
+                          sectionId: activeClubContext.sectionId,
+                          yearId: resolvedAssignmentYearId,
+                        );
+                        await Navigator.of(context).push(
+                          SacSharedAxisRoute<void>(
+                            builder: (_) => ClassCounselorAssignmentsView(
+                              clubId: activeClubContext.clubId,
+                              sectionId: activeClubContext.sectionId,
+                              clubTypeId: activeClubContext.clubTypeId,
+                              yearId: resolvedAssignmentYearId,
+                            ),
                           ),
-                        ),
-                      );
-                      ref.invalidate(classProgressScopeProvider(query));
-                    },
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedUserCheck01,
-                size: 22,
-                color: context.sac.ink700,
+                        );
+                        ref.invalidate(classProgressScopeProvider(query));
+                      },
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedUserCheck01,
+                  size: 22,
+                  color: context.sac.ink700,
+                ),
               ),
             ),
         ],
@@ -150,7 +156,7 @@ class _TeachingScopeBody extends StatelessWidget {
   Widget build(BuildContext context) {
     if (scope.classes.isEmpty) {
       return RefreshIndicator(
-        color: AppColors.primary,
+        color: SacAccent.of(context).color,
         onRefresh: onRefresh,
         child: ListView(
           padding: const EdgeInsets.all(24),
@@ -167,7 +173,7 @@ class _TeachingScopeBody extends StatelessWidget {
     }
 
     return RefreshIndicator(
-      color: AppColors.primary,
+      color: SacAccent.of(context).color,
       onRefresh: onRefresh,
       child: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
@@ -218,9 +224,9 @@ class _ScopeHeader extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.08),
+        color: SacAccent.of(context).color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.18)),
+        border: Border.all(color: SacAccent.of(context).color.withValues(alpha: 0.18)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -229,14 +235,14 @@ class _ScopeHeader extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.14),
+              color: SacAccent.of(context).color.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Center(
+            child: Center(
               child: HugeIcon(
                 icon: HugeIcons.strokeRoundedSchool,
                 size: 22,
-                color: AppColors.primary,
+                color: SacAccent.of(context).color,
               ),
             ),
           ),
@@ -286,7 +292,7 @@ class _ClassScopeTile extends StatelessWidget {
     return Material(
       color: c.paper,
       borderRadius: BorderRadius.circular(18),
-      child: InkWell(
+      child: SacInkWell(
         borderRadius: BorderRadius.circular(18),
         onTap: onTap,
         child: Container(

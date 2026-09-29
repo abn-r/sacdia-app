@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
@@ -171,10 +172,10 @@ class _DetailBody extends ConsumerWidget {
                   const SizedBox(height: 28),
                   Row(
                     children: [
-                      const HugeIcon(
+                      HugeIcon(
                         icon: HugeIcons.strokeRoundedCheckList,
                         size: 16,
-                        color: AppColors.primary,
+                        color: SacAccent.of(context).color,
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -330,14 +331,14 @@ class _CertificateMark extends StatelessWidget {
       width: 44,
       height: 44,
       decoration: BoxDecoration(
-        color: AppColors.primaryLight,
+        color: SacAccent.of(context).light,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Center(
+      child: Center(
         child: HugeIcon(
           icon: HugeIcons.strokeRoundedCertificate01,
           size: 22,
-          color: AppColors.primary,
+          color: SacAccent.of(context).color,
         ),
       ),
     );
@@ -435,7 +436,7 @@ class _ModuleRowState extends State<_ModuleRow>
               color: _pressed
                   ? c.surfaceVariant
                   : _expanded
-                      ? AppColors.primarySurface
+                      ? SacAccent.of(context).surface
                       : Colors.transparent,
               constraints: const BoxConstraints(minHeight: 48),
               padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
@@ -448,8 +449,8 @@ class _ModuleRowState extends State<_ModuleRow>
                     height: 36,
                     decoration: BoxDecoration(
                       color: _expanded
-                          ? AppColors.primary
-                          : AppColors.primaryLight,
+                          ? SacAccent.of(context).color
+                          : SacAccent.of(context).light,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Center(
@@ -459,7 +460,7 @@ class _ModuleRowState extends State<_ModuleRow>
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: _expanded ? Colors.white : AppColors.primary,
+                          color: _expanded ? Colors.white : SacAccent.of(context).color,
                         ),
                         child: Text('${widget.index}'),
                       ),
@@ -487,7 +488,7 @@ class _ModuleRowState extends State<_ModuleRow>
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: _expanded
-                                        ? AppColors.primaryDark
+                                        ? SacAccent.of(context).dark
                                         : c.textTertiary,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -501,7 +502,7 @@ class _ModuleRowState extends State<_ModuleRow>
                     child: HugeIcon(
                       icon: HugeIcons.strokeRoundedArrowDown01,
                       size: 16,
-                      color: _expanded ? AppColors.primary : c.textTertiary,
+                      color: _expanded ? SacAccent.of(context).color : c.textTertiary,
                     ),
                   ),
                 ],
@@ -553,12 +554,12 @@ class _ModuleSections extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(top: 3),
                     child: HugeIcon(
                       icon: HugeIcons.strokeRoundedCheckmarkCircle02,
                       size: 14,
-                      color: AppColors.primary,
+                      color: SacAccent.of(context).color,
                     ),
                   ),
                   const SizedBox(width: 8),
