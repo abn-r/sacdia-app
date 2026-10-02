@@ -207,23 +207,23 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
           frosted: true),
       body: SacFrostedVeil(
         child: Builder(
-          builder: (context) => Padding(
-            padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
-            child: exportsAsync.when(
-              loading: () => _buildBody(
-                context: context,
-                exports: null,
-                isLoading: true,
-              ),
-              error: (error, _) => _ErrorState(
+          builder: (context) => exportsAsync.when(
+            loading: () => _buildBody(
+              context: context,
+              exports: null,
+              isLoading: true,
+            ),
+            error: (error, _) => Padding(
+              padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+              child: _ErrorState(
                 message: error.toString().replaceFirst('Exception: ', ''),
                 onRetry: () => ref.read(dataExportProvider.notifier).refresh(),
               ),
-              data: (exports) => _buildBody(
-                context: context,
-                exports: exports,
-                isLoading: false,
-              ),
+            ),
+            data: (exports) => _buildBody(
+              context: context,
+              exports: exports,
+              isLoading: false,
             ),
           ),
         ),

@@ -66,6 +66,7 @@ class ClubInfoCard extends ConsumerWidget {
         : userRole;
 
     final Color clubColor = clubColorFromName(resolvedClubType);
+    final logoAsset = clubLogoAssetFromName(resolvedClubType);
     final (badgeBg, badgeFg) = clubBadgeColorsFromName(resolvedClubType);
 
     return SacCard(
@@ -87,15 +88,29 @@ class ClubInfoCard extends ConsumerWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: clubColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: clubColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Center(
-              child: HugeIcon(
-                icon: HugeIcons.strokeRoundedBackpack03,
-                color: clubColor,
-                size: 24,
-              ),
+              child: logoAsset != null
+                  ? Image.asset(
+                      logoAsset,
+                      width: 30,
+                      height: 30,
+                      fit: BoxFit.contain,
+                      cacheWidth: 90,
+                      cacheHeight: 90,
+                      errorBuilder: (_, __, ___) => HugeIcon(
+                        icon: HugeIcons.strokeRoundedUserGroup,
+                        color: clubColor,
+                        size: 22,
+                      ),
+                    )
+                  : HugeIcon(
+                      icon: HugeIcons.strokeRoundedUserGroup,
+                      color: clubColor,
+                      size: 22,
+                    ),
             ),
           ),
           const SizedBox(width: 14),

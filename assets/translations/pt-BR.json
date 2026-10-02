@@ -1418,13 +1418,11 @@
       "delete_title": "Excluir unidade",
       "delete_confirm": "Tem certeza que deseja excluir \"{name}\"? Esta ação não pode ser desfeita.",
       "member_of_month": "Miembro del Mes",
+      "mom_history_subtitle": "Veja quem recebeu o reconhecimento da seção.",
       "points_with_tie": "{points} pts (empate)",
       "points": "{points} pts",
       "members_count": "{count} membros",
       "leader_label": "Líder: {name}",
-      "summary_count": "{count} unidades ativas",
-      "summary_manage": "Gerencie funções e membros com ações táteis.",
-      "summary_view": "Abra uma unidade para revisar membros e registrar pontos.",
       "manage_unit": "Gerenciar unidade {name}",
       "action_sheet_title": "Gerenciar unidade",
       "edit_action_title": "Editar dados",
@@ -1463,7 +1461,13 @@
       "bulk_done_button": "Pronto",
       "week_activities_title": "Atividades desta semana",
       "week_activities_empty": "Não há atividades programadas nesta semana.",
-      "week_range_label": "{start} – {end}"
+      "week_range_label": "{start} – {end}",
+      "points_history_title": "Pontos das semanas anteriores",
+      "points_history_subtitle": "Histórico do ano eclesiástico.",
+      "points_history_screen_title": "Pontos do ano",
+      "points_history_empty": "Ainda não há pontos registrados neste ano.",
+      "points_history_no_year": "Não há um ano eclesiástico ativo.",
+      "points_history_week": "Semana {week}"
     },
     "member_of_month": {
       "history_title": "Miembro del Mes — Historial",
@@ -1930,6 +1934,7 @@
       "fetch_camporee_payments": "Erro ao obter pagamentos do campori",
       "fetch_events": "Erro ao obter eventos do campori",
       "fetch_leaderboard": "Não foi possível carregar a classificação do campori.",
+      "fetch_official_score": "Não foi possível carregar a pontuação oficial.",
       "fetch_judge_assignments": "Não foi possível carregar suas atribuições de juiz."
     },
     "common": {
@@ -1942,8 +1947,15 @@
       "title": "Camporees",
       "subtitle": "Acampamentos e eventos disponíveis para o seu clube.",
       "available_count": "{count} disponíveis",
-      "empty": "Não há camporees disponíveis",
-      "error_loading": "Erro ao carregar camporees"
+      "empty": "Tudo calmo por aqui",
+      "empty_body": "{name}, enquanto tudo se prepara para você fazer parte do acampamento, continue se preparando para o encontro com Jesus no camporee celestial.",
+      "empty_body_anon": "Enquanto tudo se prepara para você fazer parte do acampamento, continue se preparando para o encontro com Jesus no camporee celestial.",
+      "error_loading": "Não conseguimos carregar os camporees",
+      "history": "Os que já passaram",
+      "history_title": "Os que já passaram",
+      "ended_label": "Já passou",
+      "history_empty": "Nenhum terminou ainda",
+      "history_empty_body": "Quando um camporee fechar, ele fica aqui com os participantes e as pontuações."
     },
     "detail": {
       "description": "Descrição",
@@ -1954,7 +1966,11 @@
       "cost": "Custo",
       "local_field": "Campo local",
       "club_types": "Tipos de clube",
+      "history_notice": "Este já passou. Dá para ver quem foi e como ficaram as pontuações.",
       "members_enrolled": "Membros inscritos",
+      "enrollment_orders": "Ordens de inscrição",
+      "enrollment_orders_empty": "Ainda não há ordens de inscrição.",
+      "enrollment_orders_error": "Não foi possível carregar as ordens de inscrição.",
       "tab_info": "Detalhe",
       "tab_people": "Participantes",
       "tab_events": "Eventos",
@@ -2127,6 +2143,11 @@
       "no_primary_assignments_hint": "Juízes auxiliares podem apoiar a avaliação, mas somente o juiz principal envia a pontuação oficial.",
       "assignments_error": "Não foi possível carregar suas atribuições.",
       "score_title": "Pontuação por rubrica",
+      "official_title": "Pontuação oficial",
+      "evaluated_by": "Avaliou",
+      "evaluator_unknown": "Avaliador não identificado",
+      "official_score_error": "Não foi possível carregar a pontuação oficial.",
+      "no_show_result": "O clube não compareceu.",
       "total_label": "Total calculado: {total} / {maxTotal} pontos",
       "total_caption": "Total",
       "total_value": "{total} / {maxTotal}",
@@ -2136,6 +2157,7 @@
       "notes_label": "Notas opcionais",
       "awarded_points": "Pontos concedidos",
       "max_points_hint": "Máximo: {max} pontos",
+      "min_points_hint": "A pontuação mínima é de {min}",
       "submit_score": "Enviar pontuação oficial",
       "score_invalid": "Revise os pontos: eles não podem ser negativos nem exceder o máximo do critério.",
       "score_saved": "Pontuação oficial enviada.",
@@ -2344,6 +2366,7 @@
       "remove_role": "Erro ao remover função",
       "no_class": "Sem classe"
     },
+    "guide_majors_group": "Guias Maiores",
     "common": {
       "enrolled": "Inscrito",
       "not_enrolled": "Não inscrito",
@@ -4649,8 +4672,11 @@
   },
   "certificate_import": {
     "upload": {
+      "pdf_too_many_pages": "O PDF tem mais de 5 páginas. Divida o documento ou extraia até 5 páginas e envie-o novamente.",
+      "pdf_encrypted": "O PDF está protegido. Remova a senha ou a proteção e envie-o novamente.",
+      "pdf_invalid": "Não foi possível ler o PDF. Exporte-o novamente como PDF e envie-o novamente.",
       "title": "Carga por certificado",
-      "hint": "Um documento por envio. Você pode creditar classes em qualquer ordem, sem exigir sequência curricular. Complete os dados à mão antes de enviar.",
+      "hint": "PDF de até 5 páginas ou imagens JPEG, PNG e WebP, máximo de 10 MiB. Um documento por envio. Você pode creditar classes em qualquer ordem, sem exigir sequência curricular. Complete os dados à mão antes de enviar.",
       "submit": "Enviar comprovante",
       "camera": "Tirar foto",
       "file": "Escolher arquivo",

@@ -15,7 +15,9 @@ import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_progress_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/features/camporees/domain/entities/camporee_official_score.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_rubric.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_score_submission.dart';
 import 'package:sacdia_app/features/camporees/domain/utils/camporee_score_format.dart';
@@ -109,7 +111,7 @@ class _JudgeScoreEntryViewState extends ConsumerState<JudgeScoreEntryView> {
     for (final rubric in rubrics) {
       final awarded = _pointsFor(rubric.rubricId);
       if (awarded < 0 || awarded > rubric.maxPoints) {
-        SacSnackBar.show(context, 'camporees.judge.score_invalid'.tr());
+        await _showScoreError('camporees.judge.score_invalid'.tr());
         return;
       }
       items.add(CamporeeScoreSubmissionItem(
@@ -127,15 +129,43 @@ class _JudgeScoreEntryViewState extends ConsumerState<JudgeScoreEntryView> {
         );
 
     if (!mounted) return;
-    SacSnackBar.show(
-        context,
-        ok
-            ? 'camporees.judge.score_saved'.tr()
-            : 'camporees.judge.score_save_failed'.tr());
+    if (ok) {
+      SacSnackBar.show(context, 'camporees.judge.score_saved'.tr());
+      return;
+    }
+    final message =
+        ref.read(camporeeScoreSubmissionProvider(_params)).errorMessage;
+    await _showScoreError(
+      message ?? 'camporees.judge.score_save_failed'.tr(),
+    );
+  }
+
+  Future<void> _showScoreError(String message) {
+    final title = 'camporees.judge.score_save_failed'.tr();
+    return SacDialog.present<void>(
+      context,
+      builder: (dialogContext) {
+        final colors = dialogContext.sac;
+        return SacDialog(
+          title: title,
+          content: message == title ? null : message,
+          icon: HugeIcons.strokeRoundedAlert02,
+          iconColor: colors.error,
+          iconBackgroundColor: colors.error.withValues(alpha: 0.12),
+          actions: [
+            SacDialogAction(
+              label: 'common.close'.tr(),
+              onPressed: () => Navigator.of(dialogContext).pop(),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final officialAsync = ref.watch(camporeeOfficialScoreProvider(_params));
     final rubricsAsync =
         ref.watch(camporeeEventRubricsProvider(widget.eventId));
     final submitState = ref.watch(camporeeScoreSubmissionProvider(_params));
@@ -154,14 +184,36 @@ class _JudgeScoreEntryViewState extends ConsumerState<JudgeScoreEntryView> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: c.background,
-      appBar:
-          SacTopBar(title: 'camporees.judge.score_title'.tr(), frosted: true),
+      appBar: SacTopBar(
+        title: (officialAsync.valueOrNull != null
+                ? 'camporees.judge.official_title'
+                : 'camporees.judge.score_title')
+            .tr(),
+        frosted: true,
+      ),
       body: SacFrostedVeil(
         child: Builder(
           builder: (context) => SafeArea(
             top: false,
-            child: rubricsAsync.when(
-              data: (rubrics) {
+            child: officialAsync.when(
+              loading: () => const Center(child: SacLoading()),
+              error: (error, _) => _ErrorRubrics(
+                titleKey: 'camporees.judge.official_score_error',
+                message: error.toString().replaceFirst('Exception: ', ''),
+                onRetry: () =>
+                    ref.invalidate(camporeeOfficialScoreProvider(_params)),
+              ),
+              data: (official) {
+                if (official != null) {
+                  return _OfficialScoreView(
+                    score: official,
+                    title: title,
+                    clubLabel: clubLabel,
+                  );
+                }
+                return rubricsAsync.when(
+              data: (sheet) {
+                final rubrics = sheet.rubrics;
                 _syncControllers(rubrics);
                 if (rubrics.isEmpty) {
                   return _EmptyRubrics(
@@ -170,7 +222,8 @@ class _JudgeScoreEntryViewState extends ConsumerState<JudgeScoreEntryView> {
                   );
                 }
 
-                final total = _total(rubrics);
+                final rawTotal = _total(rubrics);
+                final officialTotal = sheet.officialTotal(rawTotal);
                 final maxTotal = rubrics.fold<double>(
                   0,
                   (sum, rubric) => sum + rubric.maxPoints,
@@ -208,22 +261,15 @@ class _JudgeScoreEntryViewState extends ConsumerState<JudgeScoreEntryView> {
                             label: 'camporees.judge.notes_label'.tr(),
                             maxLines: 4,
                           ),
-                          if (submitState.errorMessage != null) ...[
-                            const SizedBox(height: 12),
-                            Text(
-                              submitState.errorMessage!,
-                              style: TextStyle(
-                                color: c.error,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
                         ],
                       ),
                     ),
                     _ScoreSubmitBar(
-                      total: formatCamporeeScoreNumber(total),
+                      total: formatCamporeeScoreNumber(officialTotal),
                       maxTotal: formatCamporeeScoreNumber(maxTotal),
+                      minPoints: sheet.minPoints > 0
+                          ? formatCamporeeScoreNumber(sheet.minPoints)
+                          : null,
                       isLoading: submitState.isLoading,
                       onSubmit:
                           submitState.isLoading ? null : () => _submit(rubrics),
@@ -237,6 +283,8 @@ class _JudgeScoreEntryViewState extends ConsumerState<JudgeScoreEntryView> {
                 onRetry: () => ref
                     .invalidate(camporeeEventRubricsProvider(widget.eventId)),
               ),
+            );
+              },
             ),
           ),
         ),
@@ -480,12 +528,14 @@ class _ScoreStepButton extends StatelessWidget {
 class _ScoreSubmitBar extends StatelessWidget {
   final String total;
   final String maxTotal;
+  final String? minPoints;
   final bool isLoading;
   final VoidCallback? onSubmit;
 
   const _ScoreSubmitBar({
     required this.total,
     required this.maxTotal,
+    required this.minPoints,
     required this.isLoading,
     required this.onSubmit,
   });
@@ -508,21 +558,22 @@ class _ScoreSubmitBar extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  'camporees.judge.total_caption'.tr(),
+                  '${'camporees.judge.total_caption'.tr()}:',
                   style: TextStyle(
                     color: c.textSecondary,
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(width: 8),
                 Text(
                   'camporees.judge.total_value'.tr(
                     namedArgs: {'total': total, 'maxTotal': maxTotal},
@@ -534,18 +585,36 @@ class _ScoreSubmitBar extends StatelessWidget {
                     letterSpacing: -0.4,
                   ),
                 ),
+                if (minPoints != null) ...[
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'camporees.judge.min_points_hint'.tr(
+                        namedArgs: {'min': minPoints!},
+                      ),
+                      textAlign: TextAlign.end,
+                      maxLines: 2,
+                      style: TextStyle(
+                        color: c.textSecondary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        height: 1.25,
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: SacButton.primary(
+            if (onSubmit != null || isLoading) ...[
+              const SizedBox(height: 12),
+              SacButton.primary(
                 text: 'camporees.judge.submit_score'.tr(),
                 icon: HugeIcons.strokeRoundedSent,
                 isLoading: isLoading,
                 isEnabled: onSubmit != null,
                 onPressed: onSubmit,
               ),
-            ),
+            ],
           ],
         ),
       ),
@@ -590,11 +659,181 @@ class _EmptyRubrics extends StatelessWidget {
   }
 }
 
+class _OfficialScoreView extends StatelessWidget {
+  final CamporeeOfficialScore score;
+  final String title;
+  final String clubLabel;
+
+  const _OfficialScoreView({
+    required this.score,
+    required this.title,
+    required this.clubLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final evaluator = score.evaluatorName.trim().isEmpty
+        ? 'camporees.judge.evaluator_unknown'.tr()
+        : score.evaluatorName.trim();
+    final submittedAt = score.submittedAt?.toLocal();
+    final minimum = score.minimumAdjustment > 0
+        ? formatCamporeeScoreNumber(score.totalAwarded)
+        : null;
+
+    return Column(
+      children: [
+        Expanded(
+          child: ListView(
+            padding: SacTopBar.paddingBelowBar(
+              context,
+              const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            ),
+            children: [
+              _ScoreIdentityCard(title: title, clubLabel: clubLabel),
+              const SizedBox(height: 14),
+              SacCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'camporees.judge.evaluated_by'.tr(),
+                      style: TextStyle(
+                        color: c.textSecondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      evaluator,
+                      style: TextStyle(
+                        color: c.text,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    if (submittedAt != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        _formatScoreDate(submittedAt),
+                        style: TextStyle(
+                          color: c.textSecondary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (score.isNoShow) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'camporees.judge.no_show_result'.tr(),
+                  style: TextStyle(
+                    color: c.text,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+              for (final item in score.items) ...[
+                const SizedBox(height: 12),
+                SacCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.title,
+                        style: TextStyle(
+                          color: c.text,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'camporees.judge.total_value'.tr(
+                          namedArgs: {
+                            'total':
+                                formatCamporeeScoreNumber(item.awardedPoints),
+                            'maxTotal':
+                                formatCamporeeScoreNumber(item.maxPoints),
+                          },
+                        ),
+                        style: TextStyle(
+                          color: c.textSecondary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SacProgressBar(
+                        progress: item.maxPoints <= 0
+                            ? 0
+                            : (item.awardedPoints / item.maxPoints)
+                                .clamp(0.0, 1.0),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              if (score.notes != null && score.notes!.trim().isNotEmpty) ...[
+                const SizedBox(height: 12),
+                SacCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'camporees.judge.notes_label'.tr(),
+                        style: TextStyle(
+                          color: c.textSecondary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        score.notes!,
+                        style: TextStyle(color: c.text, height: 1.35),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        _ScoreSubmitBar(
+          total: formatCamporeeScoreNumber(score.totalAwarded),
+          maxTotal: formatCamporeeScoreNumber(score.totalMax),
+          minPoints: minimum,
+          isLoading: false,
+          onSubmit: null,
+        ),
+      ],
+    );
+  }
+}
+
+String _formatScoreDate(DateTime value) {
+  final day = value.day.toString().padLeft(2, '0');
+  final month = value.month.toString().padLeft(2, '0');
+  final hour = value.hour.toString().padLeft(2, '0');
+  final minute = value.minute.toString().padLeft(2, '0');
+  return '$day/$month/${value.year} $hour:$minute';
+}
+
 class _ErrorRubrics extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
+  final String titleKey;
 
-  const _ErrorRubrics({required this.message, required this.onRetry});
+  const _ErrorRubrics({
+    required this.message,
+    required this.onRetry,
+    this.titleKey = 'camporees.judge.rubrics_error',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -610,7 +849,7 @@ class _ErrorRubrics extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          'camporees.judge.rubrics_error'.tr(),
+          titleKey.tr(),
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 color: context.sac.text,

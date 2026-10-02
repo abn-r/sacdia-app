@@ -28,11 +28,13 @@ import 'package:sacdia_app/core/animations/page_transitions.dart';
 class CamporeeMembersView extends ConsumerWidget {
   final int camporeeId;
   final String camporeeName;
+  final bool readOnly;
 
   const CamporeeMembersView({
     super.key,
     required this.camporeeId,
     required this.camporeeName,
+    this.readOnly = false,
   });
 
   @override
@@ -40,14 +42,16 @@ class CamporeeMembersView extends ConsumerWidget {
     final sectionRegistrationAsync =
         ref.watch(camporeeSectionRegistrationProvider(camporeeId));
     final authAsync = ref.watch(authNotifierProvider);
-    final canRegisterParticipants = canRegisterCamporeeParticipants(
-      sectionRegistrationAsync,
-      authAsync,
-    );
-    final canRemoveParticipants = canRemoveCamporeeParticipants(
-      sectionRegistrationAsync,
-      authAsync,
-    );
+    final canRegisterParticipants = !readOnly &&
+        canRegisterCamporeeParticipants(
+          sectionRegistrationAsync,
+          authAsync,
+        );
+    final canRemoveParticipants = !readOnly &&
+        canRemoveCamporeeParticipants(
+          sectionRegistrationAsync,
+          authAsync,
+        );
     final c = context.sac;
 
     return Scaffold(

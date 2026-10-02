@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/features/certifications/presentation/providers/certifications_providers.dart';
 import 'package:sacdia_app/features/profile/presentation/widgets/profile_certifications_section.dart';
 import 'package:sacdia_app/features/profile/presentation/widgets/profile_quiet_add_chip.dart';
@@ -54,6 +55,22 @@ void main() {
       expect(find.byType(ProfileQuietAddChip), findsOneWidget);
       expect(find.text('Agregar'), findsOneWidget);
       expect(find.text('Ver certificaciones disponibles'), findsNothing);
+    });
+  });
+
+  group('ProfileQuietAddChip', () {
+    testWidgets('uses the accent selected in the app', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.buildLight(SacAccent.coral),
+          home: Scaffold(
+            body: ProfileQuietAddChip(label: 'Agregar', onTap: () {}),
+          ),
+        ),
+      );
+
+      final style = tester.widget<Text>(find.text('Agregar')).style;
+      expect(style?.color, SacAccent.coral.color);
     });
   });
 }

@@ -58,3 +58,28 @@ ScoringWeekPeriod getScoringWeekPeriod([DateTime? now]) {
     endDate: endDate,
   );
 }
+
+/// Semana de scoring `week` del año del sábado que la cierra.
+ScoringWeekPeriod scoringWeekPeriodFor(int year, int week) {
+  final endDate = _addDays(_firstSaturdayOfYear(year), (week - 1) * 7);
+  final startDate = _addDays(endDate, -6);
+  return ScoringWeekPeriod(
+    week: week,
+    year: year,
+    startDate: startDate,
+    endDate: endDate,
+  );
+}
+
+/// True si la semana domingo–sábado cruza [rangeStart]–[rangeEnd] (fechas inclusive).
+bool scoringWeekOverlapsRange(
+  int week,
+  int year,
+  DateTime rangeStart,
+  DateTime rangeEnd,
+) {
+  final period = scoringWeekPeriodFor(year, week);
+  final start = _dateOnly(rangeStart);
+  final end = _dateOnly(rangeEnd);
+  return !period.endDate.isBefore(start) && !period.startDate.isAfter(end);
+}

@@ -1,6 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -21,7 +20,7 @@ import '../providers/evidence_folder_providers.dart';
 import '../widgets/folder_closed_banner.dart';
 import '../widgets/section_card.dart';
 import 'evidence_section_detail_view.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 /// Vista principal de la Carpeta Anual de Evidencias.
@@ -44,37 +43,49 @@ class EvidenceFolderView extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
-      body: SafeArea(
-        child: folderAsync.when(
-          loading: () => const EvidenceFolderLoadingSkeleton(),
-          // Path happy: backend nuevo (200 + data: null) → folder == null.
-          // Path legacy: backend viejo (404 → NotFoundException) → error branch.
-          // Ambos convergen en _NoFolderBody.
-          data: (folder) => folder == null
-              ? _NoFolderBody(
-                  clubSectionId: clubSectionId,
-                  onBack: () => Navigator.of(context).maybePop(),
-                )
-              : _FolderBody(
-                  folder: folder,
-                  clubSectionId: clubSectionId,
-                ),
-          error: (error, _) {
-            // Fallback defensivo: backend viejo que todavía devuelve 404.
-            if (error is NotFoundException) {
-              return _NoFolderBody(
-                clubSectionId: clubSectionId,
-                onBack: () => Navigator.of(context).maybePop(),
-              );
-            }
-            return _ErrorBody(
-              message: error.toString().replaceFirst('Exception: ', ''),
-              onRetry: () =>
-                  ref.invalidate(evidenceFolderProvider(clubSectionId)),
-              onBack: () => Navigator.of(context).maybePop(),
-            );
-          },
+      appBar: SacTopBar(
+        title: 'evidence_folder.title'.tr(),
+        frosted: true,
+      ),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            top: false,
+            child: folderAsync.when(
+              loading: () => Padding(
+                padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+                child: const EvidenceFolderLoadingSkeleton(),
+              ),
+              // Path happy: backend nuevo (200 + data: null) → folder == null.
+              // Path legacy: backend viejo (404 → NotFoundException) → error branch.
+              // Ambos convergen en _NoFolderBody.
+              data: (folder) => folder == null
+                  ? _NoFolderBody(
+                      clubSectionId: clubSectionId,
+                      onBack: () => Navigator.of(context).maybePop(),
+                    )
+                  : _FolderBody(
+                      folder: folder,
+                      clubSectionId: clubSectionId,
+                    ),
+              error: (error, _) {
+                // Fallback defensivo: backend viejo que todavía devuelve 404.
+                if (error is NotFoundException) {
+                  return _NoFolderBody(
+                    clubSectionId: clubSectionId,
+                    onBack: () => Navigator.of(context).maybePop(),
+                  );
+                }
+                return _ErrorBody(
+                  message: error.toString().replaceFirst('Exception: ', ''),
+                  onRetry: () =>
+                      ref.invalidate(evidenceFolderProvider(clubSectionId)),
+                );
+              },
+            ),
+          ),
         ),
       ),
     );
@@ -210,6 +221,7 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
 
     return RefreshIndicator(
       color: SacAccent.of(context).color,
+      edgeOffset: SacTopBar.frostedInset(context),
       onRefresh: () async {
         final provider = evidenceFolderProvider(widget.clubSectionId);
         ref.invalidate(provider);
@@ -219,22 +231,8 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
         physics: const BouncingScrollPhysics(
             parent: AlwaysScrollableScrollPhysics()),
         slivers: [
-          // App bar con título
-          SliverAppBar(
-            automaticallyImplyLeading: false,
-            leading: sacAutoBackButton(context),
-            pinned: true,
-            expandedHeight: 0,
-            backgroundColor: c.background,
-            surfaceTintColor: Colors.transparent,
-            title: Text(
-              'evidence_folder.title'.tr(),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: c.text,
-                  ),
-            ),
-            centerTitle: false,
+          SliverToBoxAdapter(
+            child: SizedBox(height: SacTopBar.frostedInset(context)),
           ),
 
           SliverToBoxAdapter(
@@ -475,118 +473,90 @@ class _NoFolderBody extends ConsumerWidget {
     final creationState =
         ref.watch(evidenceFolderCreationNotifierProvider(clubSectionId));
 
-    return Column(
-      children: [
-        AppBar(
-          backgroundColor: c.background,
-          surfaceTintColor: Colors.transparent,
-          elevation: 0,
-          leading: SacPressable(
-            listenOnly: true,
-            child: IconButton(
-              enableFeedback: false,
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedArrowLeft01,
-                size: 22,
-                color: c.text,
-              ),
-              onPressed: onBack,
-            ),
-          ),
-          title: Text(
-            'evidence_folder.title'.tr(),
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: c.text,
+    return Padding(
+      padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: c.surfaceVariant,
+                  shape: BoxShape.circle,
                 ),
-          ),
-          centerTitle: false,
-        ),
-        Expanded(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: c.surfaceVariant,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: HugeIcon(
-                        icon: HugeIcons.strokeRoundedFolder01,
-                        size: 36,
-                        color: c.textTertiary,
-                      ),
-                    ),
+                child: Center(
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedFolder01,
+                    size: 36,
+                    color: c.textTertiary,
                   ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'evidence_folder.no_folder.title'.tr(),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: c.text,
-                        ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'evidence_folder.no_folder.description1'.tr(),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: c.textSecondary,
-                          height: 1.55,
-                        ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    canCreate
-                        ? 'evidence_folder.no_folder.available_hint'.tr()
-                        : 'evidence_folder.no_folder.description2'.tr(),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: c.textSecondary,
-                          height: 1.55,
-                        ),
-                    textAlign: TextAlign.center,
-                  ),
-                  if (creationState.errorMessage != null) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      creationState.errorMessage!,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.error,
-                            height: 1.4,
-                          ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                  const SizedBox(height: 32),
-                  if (canCreate) ...[
-                    SacButton.primary(
-                      text: creationState.isLoading
-                          ? 'evidence_folder.no_folder.creating'.tr()
-                          : 'evidence_folder.no_folder.create_action'.tr(),
-                      icon: HugeIcons.strokeRoundedAdd01,
-                      isLoading: creationState.isLoading,
-                      onPressed: () => _handleCreate(context, ref),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                  SacButton.ghost(
-                    text: 'common.back'.tr(),
-                    icon: HugeIcons.strokeRoundedArrowLeft01,
-                    onPressed: onBack,
-                  ),
-                ],
+                ),
               ),
-            ),
+              const SizedBox(height: 20),
+              Text(
+                'evidence_folder.no_folder.title'.tr(),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: c.text,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'evidence_folder.no_folder.description1'.tr(),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: c.textSecondary,
+                      height: 1.55,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                canCreate
+                    ? 'evidence_folder.no_folder.available_hint'.tr()
+                    : 'evidence_folder.no_folder.description2'.tr(),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: c.textSecondary,
+                      height: 1.55,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              if (creationState.errorMessage != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  creationState.errorMessage!,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.error,
+                        height: 1.4,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+              const SizedBox(height: 32),
+              if (canCreate) ...[
+                SacButton.primary(
+                  text: creationState.isLoading
+                      ? 'evidence_folder.no_folder.creating'.tr()
+                      : 'evidence_folder.no_folder.create_action'.tr(),
+                  icon: HugeIcons.strokeRoundedAdd01,
+                  isLoading: creationState.isLoading,
+                  onPressed: () => _handleCreate(context, ref),
+                ),
+                const SizedBox(height: 12),
+              ],
+              SacButton.ghost(
+                text: 'common.back'.tr(),
+                icon: HugeIcons.strokeRoundedArrowLeft01,
+                onPressed: onBack,
+              ),
+            ],
           ),
         ),
-      ],
+      ),
     );
   }
 }
@@ -596,85 +566,55 @@ class _NoFolderBody extends ConsumerWidget {
 class _ErrorBody extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
-  final VoidCallback onBack;
 
   const _ErrorBody({
     required this.message,
     required this.onRetry,
-    required this.onBack,
   });
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    return Column(
-      children: [
-        AppBar(
-          backgroundColor: c.background,
-          surfaceTintColor: Colors.transparent,
-          elevation: 0,
-          leading: SacPressable(
-            listenOnly: true,
-            child: IconButton(
-              enableFeedback: false,
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedArrowLeft01,
-                size: 22,
-                color: c.text,
+    return Padding(
+      padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedAlert02,
+                size: 56,
+                color: AppColors.error,
               ),
-              onPressed: onBack,
-            ),
-          ),
-          title: Text(
-            'evidence_folder.title'.tr(),
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: c.text,
-                ),
-          ),
-          centerTitle: false,
-        ),
-        Expanded(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedAlert02,
-                    size: 56,
-                    color: AppColors.error,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'evidence_folder.error_load_title'.tr(),
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w600),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    message,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: c.textSecondary,
-                        ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  SacButton.primary(
-                    text: 'common.retry'.tr(),
-                    icon: HugeIcons.strokeRoundedRefresh,
-                    onPressed: onRetry,
-                  ),
-                ],
+              const SizedBox(height: 16),
+              Text(
+                'evidence_folder.error_load_title'.tr(),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w600),
+                textAlign: TextAlign.center,
               ),
-            ),
+              const SizedBox(height: 8),
+              Text(
+                message,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: c.textSecondary,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              SacButton.primary(
+                text: 'common.retry'.tr(),
+                icon: HugeIcons.strokeRoundedRefresh,
+                onPressed: onRetry,
+              ),
+            ],
           ),
         ),
-      ],
+      ),
     );
   }
 }

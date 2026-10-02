@@ -57,3 +57,47 @@ class CamporeeRubricModel extends Equatable {
         active,
       ];
 }
+
+/// Sobre de `GET /camporee-events/:eventId/rubrics`.
+class CamporeeEventRubricSheetModel extends Equatable {
+  final List<CamporeeRubricModel> rubrics;
+  final double minPoints;
+
+  const CamporeeEventRubricSheetModel({
+    required this.rubrics,
+    this.minPoints = 0,
+  });
+
+  factory CamporeeEventRubricSheetModel.fromEnvelope(dynamic responseData) {
+    final rawList = responseData is Map && responseData['data'] is List
+        ? responseData['data'] as List<dynamic>
+        : responseData is List
+            ? responseData
+            : const <dynamic>[];
+    final minPoints = responseData is Map
+        ? safeDouble(responseData['min_points'])
+        : 0.0;
+
+    return CamporeeEventRubricSheetModel(
+      rubrics: rawList
+          .whereType<Map>()
+          .map(
+            (item) => CamporeeRubricModel.fromJson(
+              Map<String, dynamic>.from(item),
+            ),
+          )
+          .toList(),
+      minPoints: minPoints,
+    );
+  }
+
+  CamporeeEventRubricSheet toEntity() {
+    return CamporeeEventRubricSheet(
+      rubrics: rubrics.map((rubric) => rubric.toEntity()).toList(),
+      minPoints: minPoints,
+    );
+  }
+
+  @override
+  List<Object?> get props => [rubrics, minPoints];
+}

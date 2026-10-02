@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/features/achievements/domain/entities/achievement.dart';
@@ -55,7 +56,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.byType(AchievementBadge), findsOneWidget);
-        expect(find.byType(ClipOval), findsOneWidget);
+        expect(find.byType(ClipOval), findsNothing);
         expect(_starFinder, findsOneWidget);
         expect(_starScale(tester), 1.0);
         expect(tester.binding.hasScheduledFrame, isFalse);
@@ -182,6 +183,56 @@ void main() {
 
       expect(_starFinder, findsNothing);
       expect(tester.binding.hasScheduledFrame, isFalse);
+    });
+
+    testWidgets('locked grayscale stays inside the badge', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Align(
+              alignment: Alignment.topLeft,
+              child: RepaintBoundary(
+                key: const Key('badge-boundary'),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const ColoredBox(
+                      key: Key('marker'),
+                      color: Color(0xFF00C853),
+                      child: SizedBox(width: 48, height: 48),
+                    ),
+                    AchievementBadge(
+                      badgeImageUrl: null,
+                      tier: AchievementTier.gold,
+                      visualState: AchievementVisualState.locked,
+                      isSecret: true,
+                      size: 64,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      final boundary = tester.renderObject<RenderRepaintBoundary>(
+        find.byKey(const Key('badge-boundary')),
+      );
+      final image = await tester.runAsync(() => boundary.toImage(pixelRatio: 1));
+      final bytes = await tester.runAsync(
+        () => image!.toByteData(format: ui.ImageByteFormat.rawRgba),
+      );
+      final marker = tester.getTopLeft(find.byKey(const Key('marker')));
+      final origin = tester.getTopLeft(find.byKey(const Key('badge-boundary')));
+      final x = (marker.dx - origin.dx + 24).round();
+      final y = (marker.dy - origin.dy + 24).round();
+      final offset = 4 * (y * image!.width + x);
+      final r = bytes!.getUint8(offset);
+      final g = bytes.getUint8(offset + 1);
+      final b = bytes.getUint8(offset + 2);
+      image.dispose();
+      expect(g, greaterThan(150), reason: 'rgba=$r,$g,$b');
+      expect(r, lessThan(40));
     });
   });
 }

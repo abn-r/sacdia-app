@@ -11,6 +11,7 @@ import '../../domain/entities/camporee_judge_assignment.dart';
 import '../../domain/entities/camporee_leaderboard.dart';
 import '../../domain/entities/camporee_member.dart';
 import '../../domain/entities/camporee_payment.dart';
+import '../../domain/entities/camporee_official_score.dart';
 import '../../domain/entities/camporee_rubric.dart';
 import '../../domain/entities/camporee_section_registration.dart';
 import '../../domain/entities/camporee_score_submission.dart';
@@ -356,16 +357,36 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
   }
 
   @override
-  Future<Either<Failure, List<CamporeeRubric>>> getCamporeeEventRubrics(
+  Future<Either<Failure, CamporeeEventRubricSheet>> getCamporeeEventRubrics(
     int eventId, {
     RequestCancelToken? cancelToken,
   }) async {
     try {
-      final models = await remoteDataSource.getCamporeeEventRubrics(
+      final sheet = await remoteDataSource.getCamporeeEventRubrics(
         eventId,
         cancelToken: cancelToken.asDioCancelToken(),
       );
-      return Right(models.map((m) => m.toEntity()).toList());
+      return Right(sheet.toEntity());
+    } on AppException catch (e) {
+      return _appFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, CamporeeOfficialScore?>> getCamporeeOfficialScore(
+    int eventId,
+    int clubSectionId, {
+    RequestCancelToken? cancelToken,
+  }) async {
+    try {
+      final model = await remoteDataSource.getCamporeeOfficialScore(
+        eventId,
+        clubSectionId,
+        cancelToken: cancelToken.asDioCancelToken(),
+      );
+      return Right(model?.toEntity());
     } on AppException catch (e) {
       return _appFailure(e);
     } catch (e) {

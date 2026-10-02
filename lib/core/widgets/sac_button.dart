@@ -91,14 +91,14 @@ class SacButton extends StatefulWidget {
     this.borderRadius,
     this.padding,
     this.iconSize,
+    this.minHeight,
     this.spaceBetween = 8,
     this.labelMaxLines = 1,
     this.labelOverflow = TextOverflow.ellipsis,
     this.loadingSemanticLabel,
   })  : variant = SacButtonVariant.primary,
         size = SacButtonSize.medium,
-        fullWidth = true,
-        minHeight = null;
+        fullWidth = true;
 
   /// Constructor rápido para botón outline
   const SacButton.outline({

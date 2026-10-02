@@ -213,7 +213,6 @@ class _UnlockOverlayState extends State<_UnlockOverlay>
                         visualState: AchievementVisualState.unlocked,
                         isSecret: false,
                         size: 96,
-                        progress: 1.0,
                       ),
                     ),
                   ],

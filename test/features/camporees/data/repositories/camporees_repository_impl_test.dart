@@ -15,6 +15,7 @@ import 'package:sacdia_app/features/camporees/data/models/camporee_leaderboard_m
 import 'package:sacdia_app/features/camporees/data/models/camporee_member_model.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_model.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_payment_model.dart';
+import 'package:sacdia_app/features/camporees/data/models/camporee_official_score_model.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_rubric_model.dart';
 import 'package:sacdia_app/features/camporees/data/models/camporee_section_registration_model.dart';
 import 'package:sacdia_app/features/camporees/data/repositories/camporees_repository_impl.dart';
@@ -34,7 +35,8 @@ class _StubDataSource implements CamporeesRemoteDataSource {
   Object?
       judgeAssignmentsResult; // List<CamporeeJudgeAssignmentModel> or Exception
   Object? leaderboardResult; // CamporeeLeaderboardModel or Exception
-  Object? rubricsResult; // List<CamporeeRubricModel> or Exception
+  Object? rubricsResult; // CamporeeEventRubricSheetModel or Exception
+  Object? officialScoreResult; // CamporeeOfficialScoreModel? or Exception
   Object? submitScoreResult; // null or Exception
   Object? getSectionRegistrationResult;
   Object? registerSectionResult;
@@ -166,13 +168,24 @@ class _StubDataSource implements CamporeesRemoteDataSource {
   }
 
   @override
-  Future<List<CamporeeRubricModel>> getCamporeeEventRubrics(
+  Future<CamporeeEventRubricSheetModel> getCamporeeEventRubrics(
     int eventId, {
     CancelToken? cancelToken,
   }) async {
     final r = rubricsResult;
     if (r is Exception) throw r;
-    return r as List<CamporeeRubricModel>;
+    return r as CamporeeEventRubricSheetModel;
+  }
+
+  @override
+  Future<CamporeeOfficialScoreModel?> getCamporeeOfficialScore(
+    int eventId,
+    int clubSectionId, {
+    CancelToken? cancelToken,
+  }) async {
+    final r = officialScoreResult;
+    if (r is Exception) throw r;
+    return r as CamporeeOfficialScoreModel?;
   }
 
   @override

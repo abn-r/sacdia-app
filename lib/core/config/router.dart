@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sacdia_app/core/analytics/posthog_analytics.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/utils/app_logger.dart';
@@ -155,10 +158,16 @@ Page<void> _slideUpBuild(
 final routerProvider = Provider<GoRouter>((ref) {
   var wasAuthenticated = ref.read(authNotifierProvider).valueOrNull != null;
 
+  final initialUser = ref.read(authNotifierProvider).valueOrNull;
+  if (initialUser != null) {
+    unawaited(identifyAnalyticsUser(initialUser.id));
+  }
+
   final router = GoRouter(
     navigatorKey: pushNavigatorKey,
     initialLocation: RouteNames.splash,
     debugLogDiagnostics: kDebugMode,
+    observers: [createPosthogNavigatorObserver()],
     redirect: (context, state) {
       // Read the current auth state snapshot without watching it here —
       // watching would cause the Provider to rebuild and recreate the router.
@@ -1404,6 +1413,10 @@ final routerProvider = Provider<GoRouter>((ref) {
 
     if (user != null) {
       wasAuthenticated = true;
+      final userId = user.id;
+      if (userId is String) {
+        unawaited(identifyAnalyticsUser(userId));
+      }
     } else if (wasAuthenticated && !next.isLoading) {
       clearUserStateOnLogout(ref);
       wasAuthenticated = false;

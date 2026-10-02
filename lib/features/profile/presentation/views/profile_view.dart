@@ -422,7 +422,8 @@ class _ProfileScrollBody extends StatelessWidget {
                   icon: HugeIcons.strokeRoundedFirstAidKit,
                   title: 'profile.view.medical_info_title'.tr(),
                   subtitle: 'profile.view.medical_info_subtitle'.tr(),
-                  iconColor: AppColors.error,
+                  iconColor: SacAccent.of(context).color,
+                  titleColor: SacAccent.of(context).color,
                   onTap: () => Navigator.push(
                     context,
                     SacSharedAxisRoute(
@@ -867,7 +868,8 @@ class _ProfileHeaderCard extends StatelessWidget {
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: SacAccent.of(context).color
+                                    color: SacAccent.of(context)
+                                        .color
                                         .withValues(alpha: 0.15),
                                     blurRadius: 16,
                                     offset: const Offset(0, 4),
@@ -973,6 +975,11 @@ class _ProfileHeaderCard extends StatelessWidget {
                     text: 'profile.view.update_profile'.tr(),
                     icon: HugeIcons.strokeRoundedPencilEdit01,
                     onPressed: onEditProfile,
+                    minHeight: 40.8,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 11,
+                    ),
                   ),
                 ),
               ],

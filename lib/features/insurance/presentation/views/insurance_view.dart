@@ -14,7 +14,7 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/fixed_input_icon_slot.dart';
-import '../../../../core/widgets/sac_back_button.dart';
+import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_empty_state.dart';
 import '../../../payment_orders/presentation/providers/payment_orders_providers.dart';
@@ -62,104 +62,100 @@ class _InsuranceViewState extends ConsumerState<InsuranceView> {
     final showAdd = ordersEnabled ? canIssueOrders : canManage;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: context.sac.background,
-      body: SafeArea(
-        child: RefreshIndicator(
-          color: SacAccent.of(context).color,
-          onRefresh: () async {
-            ref.invalidate(membersInsuranceProvider);
-          },
-          child: CustomScrollView(
-            physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics(),
-            ),
-            slivers: [
-              SliverAppBar(
-                automaticallyImplyLeading: false,
-                leading: sacAutoBackButton(context),
-                pinned: true,
-                expandedHeight: 0,
-                backgroundColor: context.sac.background.withValues(alpha: 0.92),
-                surfaceTintColor: Colors.transparent,
-                scrolledUnderElevation: 0.5,
-                title: Text(
-                  'insurance.view.title'.tr(),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: context.sac.text,
-                        letterSpacing: -0.2,
-                      ),
+      appBar: SacTopBar(
+        title: 'insurance.view.title'.tr(),
+        frosted: true,
+        actions: [
+          if (ordersEnabled)
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                tooltip: 'payment_orders.list.title'.tr(),
+                onPressed: () => context.push(
+                  '${RouteNames.paymentOrders}?purpose=INSURANCE',
                 ),
-                centerTitle: false,
-                actions: [
-                  if (ordersEnabled)
-                    SacPressable(
-                      listenOnly: true,
-                      child: IconButton(
-                        enableFeedback: false,
-                        tooltip: 'payment_orders.list.title'.tr(),
-                        onPressed: () => context.push(
-                          '${RouteNames.paymentOrders}?purpose=INSURANCE',
-                        ),
-                        icon: HugeIcon(
-                          icon: HugeIcons.strokeRoundedInvoice01,
-                          color: context.sac.text,
-                          size: 22,
-                        ),
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedInvoice01,
+                  color: context.sac.text,
+                  size: 22,
+                ),
+              ),
+            ),
+          if (showAdd)
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                tooltip: 'insurance.view.fab_register'.tr(),
+                onPressed: () {
+                  if (ordersEnabled && canIssueOrders) {
+                    context.push(RouteNames.paymentOrderIssueInsurance);
+                    return;
+                  }
+                  _openAddSheet(context, null);
+                },
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedAdd01,
+                  color: SacAccent.of(context).color,
+                  size: 22,
+                ),
+              ),
+            ),
+        ],
+      ),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            top: false,
+            child: RefreshIndicator(
+              color: SacAccent.of(context).color,
+              edgeOffset: SacTopBar.frostedInset(context),
+              onRefresh: () async {
+                ref.invalidate(membersInsuranceProvider);
+              },
+              child: CustomScrollView(
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: SizedBox(height: SacTopBar.frostedInset(context)),
+                  ),
+                  SliverToBoxAdapter(
+                    child: filteredAsync.when(
+                      loading: () => const InsuranceLoadingSkeleton(),
+                      error: (e, _) => _ErrorBody(
+                        message: e.toString().replaceFirst('Exception: ', ''),
+                        onRetry: () => ref.invalidate(membersInsuranceProvider),
                       ),
-                    ),
-                  if (showAdd)
-                    SacPressable(
-                      listenOnly: true,
-                      child: IconButton(
-                        enableFeedback: false,
-                        tooltip: 'insurance.view.fab_register'.tr(),
-                        onPressed: () {
-                          if (ordersEnabled && canIssueOrders) {
-                            context.push(RouteNames.paymentOrderIssueInsurance);
-                            return;
-                          }
-                          _openAddSheet(context, null);
+                      data: (items) => _InsuranceBody(
+                        items: items,
+                        summary: summaryAsync,
+                        filters: filters,
+                        searchController: _searchController,
+                        canManage: canManage,
+                        onSearchChanged: (query) {
+                          ref.read(insuranceFiltersProvider.notifier).state =
+                              filters.copyWith(searchQuery: query);
                         },
-                        icon: HugeIcon(
-                          icon: HugeIcons.strokeRoundedAdd01,
-                          color: SacAccent.of(context).color,
-                          size: 22,
-                        ),
+                        onStatusFilterChanged: (sf) {
+                          ref.read(insuranceFiltersProvider.notifier).state =
+                              filters.copyWith(statusFilter: sf);
+                        },
+                        onSortChanged: (so) {
+                          ref.read(insuranceFiltersProvider.notifier).state =
+                              filters.copyWith(sortOrder: so);
+                        },
+                        onItemTap: (mi) => _onMemberTap(context, mi, canManage),
                       ),
                     ),
+                  ),
                 ],
               ),
-              SliverToBoxAdapter(
-                child: filteredAsync.when(
-                  loading: () => const InsuranceLoadingSkeleton(),
-                  error: (e, _) => _ErrorBody(
-                    message: e.toString().replaceFirst('Exception: ', ''),
-                    onRetry: () => ref.invalidate(membersInsuranceProvider),
-                  ),
-                  data: (items) => _InsuranceBody(
-                    items: items,
-                    summary: summaryAsync,
-                    filters: filters,
-                    searchController: _searchController,
-                    canManage: canManage,
-                    onSearchChanged: (query) {
-                      ref.read(insuranceFiltersProvider.notifier).state =
-                          filters.copyWith(searchQuery: query);
-                    },
-                    onStatusFilterChanged: (sf) {
-                      ref.read(insuranceFiltersProvider.notifier).state =
-                          filters.copyWith(statusFilter: sf);
-                    },
-                    onSortChanged: (so) {
-                      ref.read(insuranceFiltersProvider.notifier).state =
-                          filters.copyWith(sortOrder: so);
-                    },
-                    onItemTap: (mi) => _onMemberTap(context, mi, canManage),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

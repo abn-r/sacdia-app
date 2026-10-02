@@ -13,11 +13,13 @@ import '../../domain/entities/dashboard_summary.dart';
 class UpcomingActivitiesCard extends StatelessWidget {
   final List<UpcomingActivity> activities;
   final VoidCallback? onViewAll;
+  final ValueChanged<UpcomingActivity>? onActivityTap;
 
   const UpcomingActivitiesCard({
     super.key,
     required this.activities,
     this.onViewAll,
+    this.onActivityTap,
   });
 
   @override
@@ -87,6 +89,9 @@ class UpcomingActivitiesCard extends StatelessWidget {
               return _ActivityRow(
                 activity: entry.value,
                 showDivider: !isLast,
+                onTap: onActivityTap == null
+                    ? null
+                    : () => onActivityTap!(entry.value),
               );
             }),
         ],
@@ -98,10 +103,12 @@ class UpcomingActivitiesCard extends StatelessWidget {
 class _ActivityRow extends StatelessWidget {
   final UpcomingActivity activity;
   final bool showDivider;
+  final VoidCallback? onTap;
 
   const _ActivityRow({
     required this.activity,
     this.showDivider = true,
+    this.onTap,
   });
 
   static final _weekdayFormatter = DateFormat('EEEE', 'es');
@@ -124,91 +131,95 @@ class _ActivityRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            children: [
-              // Date badge
-              Container(
-                width: 48,
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                decoration: BoxDecoration(
-                  color: SacAccent.of(context).light,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      _dayFormatter.format(activity.activityDate),
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: SacAccent.of(context).color,
-                        height: 1,
-                      ),
-                    ),
-                    Text(
-                      _monthFormatter
-                          .format(activity.activityDate)
-                          .toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: SacAccent.of(context).color,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-
-              // Activity info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      activity.title,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        Text(
-                          '${_formatRelativeDate(activity.activityDate)} · ${activity.activityTime ?? '—'}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: context.sac.textSecondary,
-                          ),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              children: [
+                // Date badge
+                Container(
+                  width: 48,
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  decoration: BoxDecoration(
+                    color: SacAccent.of(context).light,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        _dayFormatter.format(activity.activityDate),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: SacAccent.of(context).color,
+                          height: 1,
                         ),
-                        if (activity.location != null) ...[
+                      ),
+                      Text(
+                        _monthFormatter
+                            .format(activity.activityDate)
+                            .toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: SacAccent.of(context).color,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+
+                // Activity info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        activity.title,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
                           Text(
-                            ' · ',
+                            '${_formatRelativeDate(activity.activityDate)} · ${activity.activityTime ?? '—'}',
                             style: TextStyle(
                               fontSize: 12,
-                              color: context.sac.textTertiary,
+                              color: context.sac.textSecondary,
                             ),
                           ),
-                          Expanded(
-                            child: Text(
-                              activity.location!,
+                          if (activity.location != null) ...[
+                            Text(
+                              ' · ',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: context.sac.textSecondary,
+                                color: context.sac.textTertiary,
                               ),
-                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
+                            Expanded(
+                              child: Text(
+                                activity.location!,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: context.sac.textSecondary,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ],
-                      ],
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         if (showDivider)

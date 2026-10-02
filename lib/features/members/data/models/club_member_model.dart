@@ -16,6 +16,7 @@ class ClubMemberModel extends ClubMember {
     super.clubRoleAssignmentId,
     super.currentClass,
     super.currentClassId,
+    super.guideMajorClassName,
     super.classCounselorEligible,
     super.isEnrolled,
     super.clubSectionId,
@@ -45,6 +46,11 @@ class ClubMemberModel extends ClubMember {
         currentClassData?['id'] ??
         json['current_class_id'] ??
         user['current_class_id'];
+    final guideMajorData =
+        json['guide_major_class'] ?? user['guide_major_class'];
+    final guideMajorClassName = guideMajorData is Map
+        ? guideMajorData['name'] as String?
+        : guideMajorData as String?;
     final classCounselorEligibleRaw = json['class_counselor_eligible'] ??
         json['classCounselorEligible'] ??
         user['class_counselor_eligible'] ??
@@ -88,6 +94,7 @@ class ClubMemberModel extends ClubMember {
           json['club_role_assignment_id']?.toString() ??
           json['id']?.toString(),
       currentClass: currentClassName,
+      guideMajorClassName: guideMajorClassName,
       currentClassId: currentClassIdRaw is int
           ? currentClassIdRaw
           : int.tryParse(currentClassIdRaw?.toString() ?? ''),

@@ -43,6 +43,27 @@ void main() {
       expect(vm.seccion, SeccionCode.AV);
     });
 
+    test('vigencia is the ecclesiastical year from the card', () {
+      final vm = CredencialViewModel.fromVirtualCard(
+        VirtualCard(
+          userId: 'user-1',
+          fullName: 'Ana Lopez',
+          qrToken: 'token',
+          qrExpiresAt: DateTime.utc(2099, 10, 1),
+          isActive: true,
+          clubName: 'ACV',
+          localFieldName: 'Campo Centro',
+          unionName: 'Unión Norte',
+          ecclesiasticalYear: '2026',
+        ),
+      );
+
+      expect(vm.anioEclesiastico, '2026');
+      expect(vm.campoLocal, 'Campo Centro');
+      expect(vm.unionNombre, 'Unión Norte');
+      expect(vm.club, 'ACV');
+    });
+
     test('should paint Conquistadores from section name', () {
       final vm = CredencialViewModel.fromVirtualCard(
         _card(sectionName: 'Conquistadores'),

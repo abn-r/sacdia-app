@@ -55,8 +55,12 @@ class StagedFileGrid extends StatelessWidget {
         GridView.builder(
           // shrinkWrap OK: bounded to maxFiles items max; lives inside a
           // Column (non-scrollable), so height must be intrinsically defined.
+          // Zero padding: a GridView with null padding insets itself by
+          // MediaQuery.padding. Under a frosted bar that padding is the full
+          // bar height, so the files drop far below the section title.
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.zero,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 3,
             crossAxisSpacing: 10,

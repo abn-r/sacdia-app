@@ -8,6 +8,7 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/monthly_report.dart';
 import '../models/monthly_report_model.dart';
+import '../monthly_report_pdf_filename.dart';
 
 /// Interfaz para el data source remoto de informes mensuales
 abstract class MonthlyReportsRemoteDataSource {
@@ -282,16 +283,23 @@ class MonthlyReportsRemoteDataSourceImpl
       {CancelToken? cancelToken}) async {
     try {
       final dir = await getTemporaryDirectory();
-      final filename =
-          'sacdia_report_${reportId}_${DateTime.now().millisecondsSinceEpoch}.pdf';
-      final filePath = '${dir.path}/$filename';
+      late final String filePath;
 
       // Download PDF bytes via the authenticated Dio client.
       // AuthInterceptor will attach the Bearer token in the Authorization
       // header, so the JWT never appears in the URL or query parameters.
+      // The saved name comes from Content-Disposition so share/save matches
+      // informe-mensual-{club}-{tipo}-{mes}-{año}.pdf.
       await _dio.download(
         '$_baseUrl${ApiEndpoints.monthlyReports}/$reportId/pdf',
-        filePath,
+        (headers) {
+          final filename = monthlyReportPdfFileName(
+            headers.value('content-disposition'),
+            fallback: 'informe-mensual-$reportId.pdf',
+          );
+          filePath = '${dir.path}/$filename';
+          return filePath;
+        },
         cancelToken: cancelToken,
         options: Options(
           // responseType is intentionally omitted: Dio.download() always

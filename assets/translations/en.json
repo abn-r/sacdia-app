@@ -1418,13 +1418,11 @@
       "delete_title": "Delete unit",
       "delete_confirm": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
       "member_of_month": "Miembro del Mes",
+      "mom_history_subtitle": "See who received the section award.",
       "points_with_tie": "{points} pts (tied)",
       "points": "{points} pts",
       "members_count": "{count} members",
       "leader_label": "Leader: {name}",
-      "summary_count": "{count} active units",
-      "summary_manage": "Manage roles and members from touch-friendly actions.",
-      "summary_view": "Open a unit to review members and record points.",
       "manage_unit": "Manage unit {name}",
       "action_sheet_title": "Manage unit",
       "edit_action_title": "Edit details",
@@ -1463,7 +1461,13 @@
       "bulk_done_button": "Done",
       "week_activities_title": "Activities this week",
       "week_activities_empty": "No activities scheduled this week.",
-      "week_range_label": "{start} – {end}"
+      "week_range_label": "{start} – {end}",
+      "points_history_title": "Points from previous weeks",
+      "points_history_subtitle": "History for the ecclesiastical year.",
+      "points_history_screen_title": "Points this year",
+      "points_history_empty": "No points recorded this year yet.",
+      "points_history_no_year": "There is no active ecclesiastical year.",
+      "points_history_week": "Week {week}"
     },
     "member_of_month": {
       "history_title": "Miembro del Mes — Historial",
@@ -1930,6 +1934,7 @@
       "fetch_camporee_payments": "Error fetching camporee payments",
       "fetch_events": "Error fetching camporee events",
       "fetch_leaderboard": "Could not load the camporee ranking.",
+      "fetch_official_score": "Could not load the official score.",
       "fetch_judge_assignments": "Could not load your judge assignments."
     },
     "common": {
@@ -1942,8 +1947,15 @@
       "title": "Camporees",
       "subtitle": "Camps and events available for your club.",
       "available_count": "{count} available",
-      "empty": "No camporees available",
-      "error_loading": "Error loading camporees"
+      "empty": "All quiet for now",
+      "empty_body": "{name}, while everything is getting ready so you can take part in the camp, keep preparing for the meeting with Jesus at the heavenly camporee.",
+      "empty_body_anon": "While everything is getting ready so you can take part in the camp, keep preparing for the meeting with Jesus at the heavenly camporee.",
+      "error_loading": "We couldn't load the camporees",
+      "history": "Past ones",
+      "history_title": "Past ones",
+      "ended_label": "Over",
+      "history_empty": "None have ended yet",
+      "history_empty_body": "When a camporee closes, it stays here with its attendees and scores."
     },
     "detail": {
       "description": "Description",
@@ -1954,7 +1966,11 @@
       "cost": "Cost",
       "local_field": "Local field",
       "club_types": "Club types",
+      "history_notice": "This one is over. You can see who attended and how the scores landed.",
       "members_enrolled": "Enrolled members",
+      "enrollment_orders": "Enrollment orders",
+      "enrollment_orders_empty": "No enrollment orders yet.",
+      "enrollment_orders_error": "We couldn't load the enrollment orders.",
       "tab_info": "Detail",
       "tab_people": "Attendees",
       "tab_events": "Events",
@@ -2128,6 +2144,11 @@
       "no_primary_assignments_hint": "Assistant judges can support evaluation, but only the primary judge submits the official score.",
       "assignments_error": "Could not load your assignments.",
       "score_title": "Rubric score",
+      "official_title": "Official score",
+      "evaluated_by": "Scored by",
+      "evaluator_unknown": "Unknown evaluator",
+      "official_score_error": "Could not load the official score.",
+      "no_show_result": "The club did not attend.",
       "total_label": "Calculated total: {total} / {maxTotal} points",
       "total_caption": "Total",
       "total_value": "{total} / {maxTotal}",
@@ -2137,6 +2158,7 @@
       "notes_label": "Optional notes",
       "awarded_points": "Awarded points",
       "max_points_hint": "Maximum: {max} points",
+      "min_points_hint": "The minimum score is {min}",
       "submit_score": "Submit official score",
       "score_invalid": "Review the points: they cannot be negative or exceed the criterion maximum.",
       "score_saved": "Official score submitted.",
@@ -2345,6 +2367,7 @@
       "remove_role": "Error removing role",
       "no_class": "No class"
     },
+    "guide_majors_group": "Master Guides",
     "common": {
       "enrolled": "Enrolled",
       "not_enrolled": "Not enrolled",
@@ -4651,8 +4674,11 @@
   },
   "certificate_import": {
     "upload": {
+      "pdf_too_many_pages": "The PDF has more than 5 pages. Split the document or extract up to 5 pages and upload it again.",
+      "pdf_encrypted": "The PDF is protected. Remove its password or protection and upload it again.",
+      "pdf_invalid": "The PDF could not be read. Export it again as a PDF and upload it again.",
       "title": "Certificate upload",
-      "hint": "One document per upload. You can credit classes in any order, without a curriculum sequence. Complete the data by hand before sending.",
+      "hint": "PDFs with up to 5 pages or JPEG, PNG and WebP images, maximum 10 MiB. One document per upload. You can credit classes in any order, without a curriculum sequence. Complete the data by hand before sending.",
       "submit": "Upload receipt",
       "camera": "Take photo",
       "file": "Choose file",

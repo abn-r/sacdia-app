@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
@@ -55,25 +53,18 @@ Color achievementTierChipBackground(
   };
 }
 
-/// Badge visual de logro con soporte para tres estados:
-/// LOCKED, IN_PROGRESS y UNLOCKED.
+/// Imagen del logro, sin aro alrededor.
 ///
-/// Especificaciones:
-/// - LOCKED: imagen en escala de grises, borde gris, sin glow.
-///   Si secret && !completed: muestra "???" en lugar de la imagen.
-/// - IN_PROGRESS: escala de grises + [SacProgressRing] alrededor del borde.
-/// - UNLOCKED: imagen a color, borde del tier (3px), glow via [BoxShadow].
-///   PLATINUM: shimmer animado ciclando [tierColor, white, tierColor].
-///   DIAMOND: shimmer + pulso de escala periódico en ícono de estrella.
+/// - LOCKED e IN_PROGRESS: imagen en escala de grises.
+///   Si es secreto y no está desbloqueado, muestra "???".
+/// - UNLOCKED: imagen a color.
+///   PLATINUM: shimmer. DIAMOND: shimmer y estrella.
 class AchievementBadge extends StatefulWidget {
   final String? badgeImageUrl;
   final AchievementTier tier;
   final AchievementVisualState visualState;
   final bool isSecret;
   final double size;
-
-  /// Progreso de 0.0 a 1.0 para el estado IN_PROGRESS
-  final double progress;
 
   const AchievementBadge({
     super.key,
@@ -82,7 +73,6 @@ class AchievementBadge extends StatefulWidget {
     required this.visualState,
     this.isSecret = false,
     this.size = 64,
-    this.progress = 0.0,
   });
 
   @override
@@ -178,21 +168,6 @@ class _AchievementBadgeState extends State<AchievementBadge>
     final imageCacheSize = (widget.size * 3).round();
     final showSecret = widget.isSecret && !isUnlocked;
 
-    // Border color and width
-    final borderColor = isUnlocked ? tierColor : context.sac.border;
-    final borderWidth = isUnlocked ? 3.0 : 1.5;
-
-    // Glow shadow only for unlocked
-    final boxShadow = isUnlocked
-        ? [
-            BoxShadow(
-              color: tierColor.withValues(alpha: 0.4),
-              blurRadius: 12,
-              spreadRadius: 2,
-            ),
-          ]
-        : <BoxShadow>[];
-
     Widget imageContent;
 
     final placeholderColor = context.sac.surfaceVariant;
@@ -231,7 +206,7 @@ class _AchievementBadgeState extends State<AchievementBadge>
         height: widget.size,
         memCacheWidth: imageCacheSize,
         memCacheHeight: imageCacheSize,
-        fit: BoxFit.cover,
+        fit: BoxFit.contain,
         placeholder: (context, url) => Container(
           width: widget.size,
           height: widget.size,
@@ -249,13 +224,32 @@ class _AchievementBadgeState extends State<AchievementBadge>
       );
     }
 
-    // Apply grayscale for locked and in-progress states
+    // Escala de grises. Matriz, no BlendMode.saturation: ese modo se salía
+    // del badge y pintaba de gris toda la grilla.
     if (isLocked || isInProgress) {
       imageContent = ColorFiltered(
-        colorFilter: const ColorFilter.mode(
-          Colors.grey,
-          BlendMode.saturation,
-        ),
+        colorFilter: const ColorFilter.matrix(<double>[
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+        ]),
         child: imageContent,
       );
     }
@@ -292,15 +286,12 @@ class _AchievementBadgeState extends State<AchievementBadge>
       );
     }
 
-    Widget badge = Container(
-      width: widget.size,
-      height: widget.size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: borderColor, width: borderWidth),
-        boxShadow: boxShadow,
+    Widget badge = ClipRect(
+      child: SizedBox(
+        width: widget.size,
+        height: widget.size,
+        child: imageContent,
       ),
-      child: ClipOval(child: imageContent),
     );
 
     // Diamond: add sparkle star overlay on top
@@ -335,31 +326,6 @@ class _AchievementBadgeState extends State<AchievementBadge>
       );
     }
 
-    // IN_PROGRESS: circular progress overlay around the badge
-    if (isInProgress) {
-      badge = SizedBox(
-        width: widget.size + 8,
-        height: widget.size + 8,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Progress arc (drawn with CustomPaint)
-            RepaintBoundary(
-              child: CustomPaint(
-                size: Size(widget.size + 8, widget.size + 8),
-                painter: _ProgressArcPainter(
-                  progress: widget.progress.clamp(0.0, 1.0),
-                  color: Colors.amber.shade600,
-                  trackColor: context.sac.border,
-                ),
-              ),
-            ),
-            badge,
-          ],
-        ),
-      );
-    }
-
     return badge;
   }
 }
@@ -382,56 +348,4 @@ class _FallbackBadgeIcon extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Painter para el arco de progreso alrededor del badge
-class _ProgressArcPainter extends CustomPainter {
-  final double progress;
-  final Color color;
-  final Color trackColor;
-
-  _ProgressArcPainter({
-    required this.progress,
-    required this.color,
-    required this.trackColor,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - 4) / 2;
-    final rect = Rect.fromCircle(center: center, radius: radius);
-
-    // Track (full circle, theme-aware)
-    final trackPaint = Paint()
-      ..color = trackColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.0
-      ..strokeCap = StrokeCap.round;
-    canvas.drawCircle(center, radius, trackPaint);
-
-    // Progress arc
-    if (progress > 0) {
-      final sweepAngle = 2 * math.pi * progress;
-      final progressPaint = Paint()
-        ..color = color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 3.0
-        ..strokeCap = StrokeCap.round;
-
-      canvas.drawArc(
-        rect,
-        -math.pi / 2,
-        sweepAngle,
-        false,
-        progressPaint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(_ProgressArcPainter oldDelegate) =>
-      oldDelegate.progress != progress ||
-      oldDelegate.color != color ||
-      oldDelegate.trackColor != trackColor;
 }

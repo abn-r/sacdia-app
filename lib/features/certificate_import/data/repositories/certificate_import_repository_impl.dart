@@ -162,11 +162,31 @@ class CertificateImportRepositoryImpl implements CertificateImportRepository {
     } on AuthException catch (error) {
       return Left(AuthFailure(message: error.message, code: error.code));
     } on DioException catch (error) {
-      return Left(
-        ServerFailure(
-            message: error.message ?? 'Error de red',
-            code: error.response?.statusCode),
-      );
+      final body = error.response?.data;
+      final responseCode = body is Map ? body['code'] : null;
+      final responseMessage = body is Map ? body['message'] : null;
+      // Legacy BadRequest responses expose the business code as message.
+      // Keep only these known codes; never surface parser details or paths.
+      const pdfCodes = <String>{
+        'CERTIFICATE_IMPORT_PDF_TOO_MANY_PAGES',
+        'CERTIFICATE_IMPORT_PDF_INVALID',
+        'CERTIFICATE_IMPORT_PDF_ENCRYPTED',
+      };
+      final businessCode = pdfCodes.contains(responseCode)
+          ? responseCode as String
+          : pdfCodes.contains(responseMessage)
+              ? responseMessage as String
+              : null;
+      final wrappedError = error.error;
+      final friendlyMessage = responseMessage is String
+          ? responseMessage
+          : wrappedError is AppException
+              ? wrappedError.message
+              : error.message ?? 'Error de red';
+      return Left(ServerFailure(
+        message: businessCode ?? friendlyMessage,
+        code: error.response?.statusCode,
+      ));
     } catch (error) {
       return Left(UnexpectedFailure(message: error.toString()));
     }

@@ -13,6 +13,9 @@ class VirtualCardModel extends VirtualCard {
     super.clubName,
     super.clubLogoUrl,
     super.sectionName,
+    super.localFieldName,
+    super.unionName,
+    super.ecclesiasticalYear,
     super.memberSince,
     super.achievementTier,
     super.cardIdShort,
@@ -106,6 +109,18 @@ class VirtualCardModel extends VirtualCard {
         json['section'],
         json['current_class'],
       ]),
+      localFieldName: _pickString([
+        member?['local_field_name'],
+        json['local_field_name'],
+      ]),
+      unionName: _pickString([
+        member?['union_name'],
+        json['union_name'],
+      ]),
+      ecclesiasticalYear: _pickString([
+        member?['ecclesiastical_year'],
+        json['ecclesiastical_year'],
+      ]),
       memberSince:
           rawMemberSince != null ? DateTime.tryParse(rawMemberSince) : null,
       achievementTier: VirtualCardTier.fromString(
@@ -144,6 +159,9 @@ class VirtualCardModel extends VirtualCard {
       'club_name': clubName,
       'club_logo_url': clubLogoUrl,
       'section_name': sectionName,
+      'local_field_name': localFieldName,
+      'union_name': unionName,
+      'ecclesiastical_year': ecclesiasticalYear,
       'member_since': memberSince?.toIso8601String(),
       'achievement_tier': achievementTier?.name,
       'card_id_short': cardIdShort,

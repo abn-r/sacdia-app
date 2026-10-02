@@ -12,6 +12,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'core/analytics/posthog_analytics.dart';
 import 'core/config/cache_config.dart';
 import 'core/l10n/sunday_first_material_localizations.dart';
 import 'core/config/router.dart';
@@ -176,6 +177,7 @@ Future<void> main() async {
     appRunner: () async {
       // Aseguramos que las dependencias de Flutter estén inicializadas
       WidgetsFlutterBinding.ensureInitialized();
+      await setupPosthog();
       _configureDebugPerformanceFlags();
       // EasyLocalization lee los catálogos en assets/translations/* y expone
       // `context.tr` una vez que el widget se monta. ensureInitialized debe

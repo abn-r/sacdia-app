@@ -1418,13 +1418,11 @@
       "delete_title": "Supprimer l'unité",
       "delete_confirm": "Êtes-vous sûr de vouloir supprimer « {name} » ? Cette action est irréversible.",
       "member_of_month": "Miembro del Mes",
+      "mom_history_subtitle": "Consulte qui a reçu la reconnaissance de la section.",
       "points_with_tie": "{points} pts (ex æquo)",
       "points": "{points} pts",
       "members_count": "{count} membres",
       "leader_label": "Responsable : {name}",
-      "summary_count": "{count} unités actives",
-      "summary_manage": "Gérez les rôles et membres avec des actions tactiles.",
-      "summary_view": "Ouvrez une unité pour consulter les membres et saisir les points.",
       "manage_unit": "Gérer l'unité {name}",
       "action_sheet_title": "Gérer l'unité",
       "edit_action_title": "Modifier les données",
@@ -1463,7 +1461,13 @@
       "bulk_done_button": "OK",
       "week_activities_title": "Activités de cette semaine",
       "week_activities_empty": "Aucune activité prévue cette semaine.",
-      "week_range_label": "{start} – {end}"
+      "week_range_label": "{start} – {end}",
+      "points_history_title": "Points des semaines précédentes",
+      "points_history_subtitle": "Historique de l'année ecclésiastique.",
+      "points_history_screen_title": "Points de l'année",
+      "points_history_empty": "Aucun point enregistré cette année.",
+      "points_history_no_year": "Aucune année ecclésiastique active.",
+      "points_history_week": "Semaine {week}"
     },
     "member_of_month": {
       "history_title": "Miembro del Mes — Historial",
@@ -1930,6 +1934,7 @@
       "fetch_camporee_payments": "Erreur lors de la recuperation des paiements du camporee",
       "fetch_events": "Erreur lors de la recuperation des événements du camporee",
       "fetch_leaderboard": "Impossible de charger le classement du camporee.",
+      "fetch_official_score": "Impossible de charger le score officiel.",
       "fetch_judge_assignments": "Impossible de charger vos affectations de juge."
     },
     "common": {
@@ -1942,8 +1947,15 @@
       "title": "Camporees",
       "subtitle": "Camps et événements disponibles pour votre club.",
       "available_count": "{count} disponibles",
-      "empty": "Aucun camporee disponible",
-      "error_loading": "Erreur lors du chargement des camporees"
+      "empty": "Tout est calme pour l'instant",
+      "empty_body": "{name}, pendant que tout se prépare pour que vous puissiez faire partie du campement, continuez à vous préparer à la rencontre avec Jésus au camporee céleste.",
+      "empty_body_anon": "Pendant que tout se prépare pour que vous puissiez faire partie du campement, continuez à vous préparer à la rencontre avec Jésus au camporee céleste.",
+      "error_loading": "Nous n'avons pas pu charger les camporees",
+      "history": "Ceux déjà passés",
+      "history_title": "Ceux déjà passés",
+      "ended_label": "Déjà passé",
+      "history_empty": "Aucun n'est encore terminé",
+      "history_empty_body": "Quand un camporee se termine, il reste ici avec ses participants et ses scores."
     },
     "detail": {
       "description": "Description",
@@ -1954,7 +1966,11 @@
       "cost": "Coût",
       "local_field": "Champ local",
       "club_types": "Types de club",
+      "history_notice": "Celui-ci est terminé. Vous pouvez revoir qui est venu et comment les scores ont fini.",
       "members_enrolled": "Membres inscrits",
+      "enrollment_orders": "Ordres d'inscription",
+      "enrollment_orders_empty": "Aucun ordre d'inscription pour le moment.",
+      "enrollment_orders_error": "Impossible de charger les ordres d'inscription.",
       "tab_info": "Détail",
       "tab_people": "Participants",
       "tab_events": "Événements",
@@ -2127,6 +2143,11 @@
       "no_primary_assignments_hint": "Les juges assistants peuvent soutenir l’évaluation, mais seul le juge principal envoie le score officiel.",
       "assignments_error": "Impossible de charger vos assignations.",
       "score_title": "Score par grille",
+      "official_title": "Score officiel",
+      "evaluated_by": "Évalué par",
+      "evaluator_unknown": "Évaluateur non identifié",
+      "official_score_error": "Impossible de charger le score officiel.",
+      "no_show_result": "Le club ne s’est pas présenté.",
       "total_label": "Total calculé : {total} / {maxTotal} points",
       "total_caption": "Total",
       "total_value": "{total} / {maxTotal}",
@@ -2136,6 +2157,7 @@
       "notes_label": "Notes optionnelles",
       "awarded_points": "Points accordés",
       "max_points_hint": "Maximum : {max} points",
+      "min_points_hint": "Le score minimum est de {min}",
       "submit_score": "Envoyer le score officiel",
       "score_invalid": "Vérifiez les points : ils ne peuvent pas être négatifs ni dépasser le maximum du critère.",
       "score_saved": "Score officiel envoyé.",
@@ -2344,6 +2366,7 @@
       "remove_role": "Erreur lors du retrait du rôle",
       "no_class": "Sans classe"
     },
+    "guide_majors_group": "Guides majeurs",
     "common": {
       "enrolled": "Inscrit",
       "not_enrolled": "Non inscrit",
@@ -4649,8 +4672,11 @@
   },
   "certificate_import": {
     "upload": {
+      "pdf_too_many_pages": "Le PDF contient plus de 5 pages. Divisez le document ou extrayez jusqu’à 5 pages, puis importez-le à nouveau.",
+      "pdf_encrypted": "Le PDF est protégé. Retirez son mot de passe ou sa protection, puis importez-le à nouveau.",
+      "pdf_invalid": "Le PDF n’a pas pu être lu. Exportez-le à nouveau au format PDF, puis importez-le à nouveau.",
       "title": "Import par certificat",
-      "hint": "Un document par envoi. Vous pouvez attester des classes dans n’importe quel ordre, sans séquence du cursus. Complétez les données à la main avant d’envoyer.",
+      "hint": "PDF de 5 pages maximum ou images JPEG, PNG et WebP, maximum 10 MiB. Un document par envoi. Vous pouvez attester des classes dans n’importe quel ordre, sans séquence du cursus. Complétez les données à la main avant d’envoyer.",
       "submit": "Envoyer le justificatif",
       "camera": "Prendre une photo",
       "file": "Choisir un fichier",

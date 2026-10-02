@@ -8,6 +8,7 @@ import '../entities/camporee_judge_assignment.dart';
 import '../entities/camporee_leaderboard.dart';
 import '../entities/camporee_member.dart';
 import '../entities/camporee_payment.dart';
+import '../entities/camporee_official_score.dart';
 import '../entities/camporee_rubric.dart';
 import '../entities/camporee_section_registration.dart';
 import '../entities/camporee_score_submission.dart';
@@ -106,9 +107,16 @@ abstract class CamporeesRepository {
     RequestCancelToken? cancelToken,
   });
 
-  /// Obtiene rúbricas activas de un evento puntuable.
-  Future<Either<Failure, List<CamporeeRubric>>> getCamporeeEventRubrics(
+  /// Obtiene rúbricas activas y el mínimo del evento.
+  Future<Either<Failure, CamporeeEventRubricSheet>> getCamporeeEventRubrics(
     int eventId, {
+    RequestCancelToken? cancelToken,
+  });
+
+  /// Lee el puntaje oficial activo, o null si la sección aún no tiene uno.
+  Future<Either<Failure, CamporeeOfficialScore?>> getCamporeeOfficialScore(
+    int eventId,
+    int clubSectionId, {
     RequestCancelToken? cancelToken,
   });
 

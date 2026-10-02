@@ -11,6 +11,7 @@ import '../models/camporee_model.dart';
 import '../models/camporee_event_model.dart';
 import '../models/camporee_member_model.dart';
 import '../models/camporee_payment_model.dart';
+import '../models/camporee_official_score_model.dart';
 import '../models/camporee_rubric_model.dart';
 import '../models/camporee_section_registration_model.dart';
 
@@ -127,10 +128,18 @@ abstract class CamporeesRemoteDataSource {
     CancelToken? cancelToken,
   });
 
-  /// Obtiene las rúbricas activas de un evento puntuable.
+  /// Obtiene las rúbricas activas y el mínimo del evento.
   /// GET /api/v1/camporee-events/:eventId/rubrics
-  Future<List<CamporeeRubricModel>> getCamporeeEventRubrics(
+  Future<CamporeeEventRubricSheetModel> getCamporeeEventRubrics(
     int eventId, {
+    CancelToken? cancelToken,
+  });
+
+  /// Lee el puntaje oficial activo de una sección, o null si aún no existe.
+  /// GET /api/v1/camporee-events/:eventId/sections/:clubSectionId/score
+  Future<CamporeeOfficialScoreModel?> getCamporeeOfficialScore(
+    int eventId,
+    int clubSectionId, {
     CancelToken? cancelToken,
   });
 
@@ -217,7 +226,11 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
     CancelToken? cancelToken,
   }) async {
     try {
-      final queryParams = <String, dynamic>{};
+      final queryParams = <String, dynamic>{
+        // La lista parte vigentes e histórico del mismo alcance.
+        // El default del API es 20 y dejaría fuera camporees viejos.
+        'limit': 100,
+      };
       if (active != null) queryParams['active'] = active;
       if (clubTypeId != null) queryParams['club_type_id'] = clubTypeId;
 
@@ -778,7 +791,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
   // ── GET /api/v1/camporee-events/:eventId/rubrics ─────────────────────────
 
   @override
-  Future<List<CamporeeRubricModel>> getCamporeeEventRubrics(
+  Future<CamporeeEventRubricSheetModel> getCamporeeEventRubrics(
     int eventId, {
     CancelToken? cancelToken,
   }) async {
@@ -789,10 +802,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return _extractList(response.data)
-            .whereType<Map<String, dynamic>>()
-            .map(CamporeeRubricModel.fromJson)
-            .toList();
+        return CamporeeEventRubricSheetModel.fromEnvelope(response.data);
       }
 
       throw ServerException(
@@ -802,6 +812,44 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getCamporeeEventRubrics', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /api/v1/camporee-events/:eventId/sections/:sectionId/score ────────
+
+  @override
+  Future<CamporeeOfficialScoreModel?> getCamporeeOfficialScore(
+    int eventId,
+    int clubSectionId, {
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl/camporee-events/$eventId/sections/$clubSectionId/score',
+        cancelToken: cancelToken,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = response.data;
+        if (body is! Map) return null;
+        final data = body['data'];
+        if (data == null) return null;
+        if (data is Map) {
+          return CamporeeOfficialScoreModel.fromJson(
+            Map<String, dynamic>.from(data),
+          );
+        }
+        return null;
+      }
+
+      throw ServerException(
+        message: tr('camporees.errors.fetch_official_score'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
+      AppLogger.e('Error en getCamporeeOfficialScore', tag: _tag, error: e);
       _rethrow(e);
     }
   }

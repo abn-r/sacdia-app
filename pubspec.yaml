@@ -9,6 +9,7 @@ environment:
 
 dependencies:
   sentry_flutter: ^9.19.0
+  posthog_flutter: ^5.26.0
   flutter:
     sdk: flutter
   flutter_localizations:

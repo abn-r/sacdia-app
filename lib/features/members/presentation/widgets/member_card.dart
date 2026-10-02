@@ -27,14 +27,14 @@ class MemberCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final classLogoAsset = member.currentClass == null
-        ? null
-        : AppColors.classLogoAsset(member.currentClass!);
+    final displayClass = _displayClass(member);
+    final classLogoAsset =
+        displayClass == null ? null : AppColors.classLogoAsset(displayClass);
     final roleLabel = member.clubRole == null
         ? null
         : RoleUtils.translate(member.clubRole, gender: member.gender);
     final showNotEnrolled = !member.isEnrolled;
-    final hasClassMark = member.currentClass != null;
+    final hasClassMark = displayClass != null;
 
     return SacPressable(
       onTap: onTap,
@@ -75,7 +75,7 @@ class MemberCard extends StatelessWidget {
                             Image.asset(
                               classLogoAsset,
                               key: ValueKey(
-                                'member-card-class-logo-${member.currentClass}',
+                                'member-card-class-logo-$displayClass',
                               ),
                               width: 16,
                               height: 16,
@@ -145,6 +145,15 @@ class MemberCard extends StatelessWidget {
       ),
     );
   }
+}
+
+String? _displayClass(ClubMember member) {
+  final sectionClass = member.currentClass?.trim();
+  if (sectionClass != null && sectionClass.isNotEmpty) return sectionClass;
+  if (!member.hasGuideMajorClass || !member.isSectionBoard) return null;
+  final guideMajor = member.guideMajorClassName?.trim();
+  if (guideMajor != null && guideMajor.isNotEmpty) return guideMajor;
+  return 'members.guide_majors_group'.tr();
 }
 
 class _MemberAvatar extends StatelessWidget {

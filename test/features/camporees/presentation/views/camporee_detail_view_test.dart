@@ -499,7 +499,7 @@ Future<void> _openTab(WidgetTester tester, String label) async {
   };
   await tester.tap(find.byKey(key));
   await tester.pump();
-  await tester.pump(const Duration(milliseconds: 160));
+  await tester.pump(const Duration(milliseconds: 220));
 }
 
 const _director = UserEntity(

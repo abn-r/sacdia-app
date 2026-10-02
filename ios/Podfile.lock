@@ -163,6 +163,11 @@ PODS:
     - FlutterMacOS
   - permission_handler_apple (9.3.0):
     - Flutter
+  - PostHog (3.87.0)
+  - posthog_flutter (0.0.1):
+    - Flutter
+    - FlutterMacOS
+    - PostHog (< 4.0.0, >= 3.84.0)
   - PromisesObjC (2.4.0)
   - screen_brightness_ios (0.1.0):
     - Flutter
@@ -214,6 +219,7 @@ DEPENDENCIES:
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
+  - posthog_flutter (from `.symlinks/plugins/posthog_flutter/darwin`)
   - screen_brightness_ios (from `.symlinks/plugins/screen_brightness_ios/ios`)
   - secure_application (from `.symlinks/plugins/secure_application/ios`)
   - sentry_flutter (from `.symlinks/plugins/sentry_flutter/ios`)
@@ -240,6 +246,7 @@ SPEC REPOS:
     - GoogleMaps
     - GoogleUtilities
     - nanopb
+    - PostHog
     - PromisesObjC
     - SDWebImage
     - Sentry
@@ -291,6 +298,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
+  posthog_flutter:
+    :path: ".symlinks/plugins/posthog_flutter/darwin"
   screen_brightness_ios:
     :path: ".symlinks/plugins/screen_brightness_ios/ios"
   secure_application:
@@ -346,6 +355,8 @@ SPEC CHECKSUMS:
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
+  PostHog: d6f5951a7a6e36ca626a6f0a91e5412b08d6afc6
+  posthog_flutter: c5462b0e35302b20ff880fc8036b842221408729
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   screen_brightness_ios: 9953fd7da5bd480f1a93990daeec2eb42d4f3b52
   SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf

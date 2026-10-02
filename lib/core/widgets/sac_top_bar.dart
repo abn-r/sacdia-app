@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:haze/haze.dart';
 
 import 'package:sacdia_app/core/theme/sac_accent.dart';
@@ -69,6 +70,17 @@ class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
   double get _toolbarHeight =>
       subtitle == null ? compactHeight : subtitleHeight;
 
+  /// La barra esmerilada es transparente. Flutter mediría ese negro
+  /// transparente como fondo oscuro y pintaría hora y batería en blanco.
+  static SystemUiOverlayStyle _statusBarOnSurface(BuildContext context) {
+    final light = Theme.of(context).brightness == Brightness.light;
+    return SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: light ? Brightness.dark : Brightness.light,
+      statusBarBrightness: light ? Brightness.light : Brightness.dark,
+    );
+  }
+
   @override
   Size get preferredSize => Size.fromHeight(
         _toolbarHeight + (bottom?.preferredSize.height ?? 0),
@@ -89,6 +101,7 @@ class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
       automaticallyImplyLeading: false,
       backgroundColor: frosted ? Colors.transparent : barColor,
       forceMaterialTransparency: frosted,
+      systemOverlayStyle: frosted ? _statusBarOnSurface(context) : null,
       foregroundColor: resolvedForeground,
       surfaceTintColor: Colors.transparent,
       shadowColor: Colors.transparent,
@@ -119,9 +132,8 @@ class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
 
 /// Desenfoque progresivo detrás de una [SacTopBar] con [SacTopBar.frosted].
 ///
-/// El blur es máximo arriba y se disuelve hacia abajo, unos
-/// [fadeExtension] px por debajo de la barra. El título queda nítido
-/// porque la barra no pinta fondo.
+/// El blur es máximo arriba y se disuelve hacia abajo, [fadeExtension] px
+/// por debajo de la barra. El título queda nítido porque la barra no pinta fondo.
 class SacFrostedVeil extends StatelessWidget {
   const SacFrostedVeil({super.key, required this.child, this.tint});
 
@@ -131,7 +143,7 @@ class SacFrostedVeil extends StatelessWidget {
   final Color? tint;
 
   /// Cuánto sigue el blur por debajo de la barra, en px lógicos.
-  static const double fadeExtension = 64;
+  static const double fadeExtension = 44;
 
   @override
   Widget build(BuildContext context) {

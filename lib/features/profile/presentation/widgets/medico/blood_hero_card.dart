@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'medico_tokens.dart';
 
 /// Tarjeta hero con tipo de sangre + barra de completitud.
@@ -41,6 +42,10 @@ class BloodHeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final pct = total > 0 ? (filled / total).clamp(0.0, 1.0) : 0.0;
     final rhLabel = _rhLabel();
+    final accent = SacAccent.of(context).forBrightness(
+      Theme.brightnessOf(context),
+    );
+    final ink = accent.onColor;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(MedicoTokens.rHero),
@@ -48,26 +53,32 @@ class BloodHeroCard extends StatelessWidget {
         onTap: onEditar,
         child: Container(
           padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [MedicoTokens.coral500, MedicoTokens.coral600],
+              colors: [accent.color, accent.dark],
             ),
-            boxShadow: MedicoTokens.shadowHero,
+            boxShadow: [
+              BoxShadow(
+                color: accent.color.withValues(alpha: 0.4),
+                blurRadius: 28,
+                offset: const Offset(0, 10),
+                spreadRadius: -10,
+              ),
+            ],
           ),
           child: Stack(
             clipBehavior: Clip.none,
             children: [
-              // Blob decorativo
               Positioned(
                 right: -40,
                 top: -40,
                 child: Container(
                   width: 180,
                   height: 180,
-                  decoration: const BoxDecoration(
-                    color: Color(0x14FFFFFF), // 8% white
+                  decoration: BoxDecoration(
+                    color: ink.withValues(alpha: 0.08),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -78,12 +89,12 @@ class BloodHeroCard extends StatelessWidget {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(child: _identidad(rhLabel)),
-                      _gota(),
+                      Expanded(child: _identidad(rhLabel, ink)),
+                      _gota(ink),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  _progreso(pct),
+                  _progreso(pct, ink),
                 ],
               ),
             ],
@@ -93,17 +104,17 @@ class BloodHeroCard extends StatelessWidget {
     );
   }
 
-  Widget _identidad(String? rhLabel) {
+  Widget _identidad(String? rhLabel, Color ink) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'profile.medical_info.hero.eyebrow'.tr(),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 11,
             letterSpacing: 1.54, // ~0.14em
             fontWeight: FontWeight.w700,
-            color: Color(0xD9FFFFFF),
+            color: ink.withValues(alpha: 0.85),
           ),
         ),
         const SizedBox(height: 4),
@@ -117,10 +128,10 @@ class BloodHeroCard extends StatelessWidget {
                 child: Text(
                   bloodType ?? 'profile.medical_info.hero.empty_blood'.tr(),
                   maxLines: 1,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 44,
                     fontWeight: FontWeight.w800,
-                    color: Colors.white,
+                    color: ink,
                     height: 1,
                     letterSpacing: -1.3,
                   ),
@@ -136,9 +147,9 @@ class BloodHeroCard extends StatelessWidget {
                     rhLabel,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: Color(0xD9FFFFFF),
+                      color: ink.withValues(alpha: 0.85),
                     ),
                   ),
                 ),
@@ -150,23 +161,23 @@ class BloodHeroCard extends StatelessWidget {
     );
   }
 
-  Widget _gota() {
+  Widget _gota(Color ink) {
     return Container(
       width: 56,
       height: 56,
       decoration: BoxDecoration(
-        color: const Color(0x2EFFFFFF), // 18% white
+        color: ink.withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(16),
       ),
       child: HugeIcon(
         icon: HugeIcons.strokeRoundedBlood,
-        color: Colors.white,
+        color: ink,
         size: 28,
       ),
     );
   }
 
-  Widget _progreso(double pct) {
+  Widget _progreso(double pct, Color ink) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -175,9 +186,9 @@ class BloodHeroCard extends StatelessWidget {
           children: [
             Text(
               'profile.medical_info.hero.completeness_title'.tr(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: Color(0xD9FFFFFF),
+                color: ink.withValues(alpha: 0.85),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -188,9 +199,9 @@ class BloodHeroCard extends StatelessWidget {
                   'total': total.toString(),
                 },
               ),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: Colors.white,
+                color: ink,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -201,17 +212,17 @@ class BloodHeroCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(99),
           child: Stack(
             children: [
-              Container(height: 6, color: const Color(0x38FFFFFF)),
+              Container(height: 6, color: ink.withValues(alpha: 0.22)),
               FractionallySizedBox(
                 widthFactor: pct,
                 child: Container(
                   height: 6,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: ink,
                     borderRadius: BorderRadius.circular(99),
-                    boxShadow: const [
+                    boxShadow: [
                       BoxShadow(
-                        color: Color(0x99FFFFFF), // 60% white
+                        color: ink.withValues(alpha: 0.6),
                         blurRadius: 12,
                       ),
                     ],

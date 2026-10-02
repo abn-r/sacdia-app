@@ -1356,7 +1356,6 @@ class _BottomActionBar extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Expanded(
-            flex: 2,
             child: SacButton.primary(
               text: isEditMode ? 'common.save'.tr() : 'units.form.create'.tr(),
               isLoading: isSaving,

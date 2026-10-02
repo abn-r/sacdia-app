@@ -571,20 +571,20 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
 
                           return Column(
                             children: [
-                              // Progress bar
-                              _ProgressSection(
-                                completed: completedAll,
-                                total: totalAll,
-                                categoryColor: categoryColor,
+                              Padding(
+                                padding: EdgeInsets.only(
+                                    top: SacTopBar.frostedInset(context)),
+                                child: _ProgressSection(
+                                  completed: completedAll,
+                                  total: totalAll,
+                                  categoryColor: categoryColor,
+                                ),
                               ),
 
-                              // Hierarchical requirements list
                               Expanded(
                                 child: ListView.separated(
-                                  padding: SacTopBar.paddingBelowBar(
-                                      context,
-                                      const EdgeInsets.fromLTRB(
-                                          16, 8, 16, 120)),
+                                  padding: const EdgeInsets.fromLTRB(
+                                      16, 8, 16, 120),
                                   itemCount: requirements.length,
                                   separatorBuilder: (_, __) => Divider(
                                     height: 1,

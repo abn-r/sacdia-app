@@ -79,8 +79,14 @@ void main() {
         await _pumpClubInfoCard(tester, clubTypeName: 'Aventureros');
 
         final sectionLabel = tester.widget<Text>(find.text('Aventureros'));
+        final logo = tester.widget<Image>(find.byType(Image));
+        final provider = logo.image;
+        final asset = provider is ResizeImage
+            ? provider.imageProvider as AssetImage
+            : provider as AssetImage;
 
         expect(sectionLabel.style?.color, const Color(0xFF1A6B9C));
+        expect(asset.assetName, 'assets/img/logo_aventureros.png');
       },
     );
   });

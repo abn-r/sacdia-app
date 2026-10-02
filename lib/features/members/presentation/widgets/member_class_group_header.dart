@@ -1,5 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/club_type.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
@@ -17,7 +19,10 @@ class MemberClassGroupHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final logoAsset = AppColors.classLogoAsset(label);
+    final logoAsset = AppColors.classLogoAsset(label) ??
+        (label == 'members.guide_majors_group'.tr()
+            ? ClubType.guiasMayores.logoAsset
+            : null);
 
     return Row(
       children: [

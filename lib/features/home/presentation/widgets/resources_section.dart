@@ -260,8 +260,6 @@ class _ResourcesSectionState extends State<ResourcesSection> {
                   ),
                   const SizedBox(height: 10),
                   GridView.builder(
-                    padding:
-                        EdgeInsets.only(top: SacTopBar.frostedInset(context)),
                     // shrinkWrap OK: _mockCategories is a compile-time constant
                     // list (bounded). Widget lives in a non-scrolling Column whose
                     // parent is SafeArea — intrinsic height is required.

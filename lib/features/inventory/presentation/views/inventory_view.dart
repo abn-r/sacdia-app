@@ -18,7 +18,7 @@ import '../widgets/inventory_summary_header.dart';
 import 'add_inventory_item_sheet.dart';
 import 'inventory_filter_sheet.dart';
 import 'inventory_item_detail_view.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
@@ -55,158 +55,159 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
     final canManage = canManageAsync.valueOrNull ?? false;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: context.sac.background,
-      body: SafeArea(
-        child: RefreshIndicator(
-          color: SacAccent.of(context).color,
-          onRefresh: () async {
-            ref.invalidate(inventoryItemsProvider);
-          },
-          child: CustomScrollView(
-            physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics()),
-            slivers: [
-              // ── App bar ──────────────────────────────────────────────────
-              SliverAppBar(
-                automaticallyImplyLeading: false,
-                leading: sacAutoBackButton(context),
-                pinned: true,
-                expandedHeight: 0,
-                backgroundColor: context.sac.background,
-                surfaceTintColor: Colors.transparent,
-                title: Text(
-                  'inventory.view.title'.tr(),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: context.sac.text,
-                      ),
+      appBar: SacTopBar(
+        title: 'inventory.view.title'.tr(),
+        frosted: true,
+        actions: [
+          if (canManage)
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                tooltip: 'inventory.view.add_button'.tr(),
+                onPressed: () => _openAddSheet(context),
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedAdd01,
+                  size: 22,
+                  color: SacAccent.of(context).color,
                 ),
-                centerTitle: false,
-                actions: [
-                  if (canManage)
-                    SacPressable(
-                      listenOnly: true,
-                      child: IconButton(
-                        enableFeedback: false,
-                        tooltip: 'inventory.view.add_button'.tr(),
-                        onPressed: () => _openAddSheet(context),
-                        icon: HugeIcon(
-                          icon: HugeIcons.strokeRoundedAdd01,
-                          size: 22,
-                          color: SacAccent.of(context).color,
-                        ),
-                      ),
-                    ),
-                  SacPressable(
-                    listenOnly: true,
-                    child: IconButton(
-                      enableFeedback: false,
-                      onPressed: () => ref.invalidate(inventoryItemsProvider),
-                      icon: HugeIcon(
-                        icon: HugeIcons.strokeRoundedRefresh,
-                        size: 20,
-                        color: context.sac.textSecondary,
-                      ),
+              ),
+            ),
+          SacPressable(
+            listenOnly: true,
+            child: IconButton(
+              enableFeedback: false,
+              onPressed: () => ref.invalidate(inventoryItemsProvider),
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedRefresh,
+                size: 20,
+                color: context.sac.textSecondary,
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            top: false,
+            child: RefreshIndicator(
+              color: SacAccent.of(context).color,
+              edgeOffset: SacTopBar.frostedInset(context),
+              onRefresh: () async {
+                ref.invalidate(inventoryItemsProvider);
+              },
+              child: CustomScrollView(
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: SizedBox(height: SacTopBar.frostedInset(context)),
+                  ),
+
+                  // ── Search + filter button ───────────────────────────────────
+                  SliverToBoxAdapter(
+                    child: InventoryFilterBar(
+                      searchController: _searchController,
+                      onSearchChanged: (query) {
+                        ref.read(inventoryFiltersProvider.notifier).state =
+                            filters.copyWith(searchQuery: query);
+                      },
+                      onFilterTap: () => _openFilterSheet(context),
+                      hasActiveFilters: filters.hasActiveFilters,
                     ),
                   ),
-                ],
-              ),
 
-              // ── Search + filter button ───────────────────────────────────
-              SliverToBoxAdapter(
-                child: InventoryFilterBar(
-                  searchController: _searchController,
-                  onSearchChanged: (query) {
-                    ref.read(inventoryFiltersProvider.notifier).state =
-                        filters.copyWith(searchQuery: query);
-                  },
-                  onFilterTap: () => _openFilterSheet(context),
-                  hasActiveFilters: filters.hasActiveFilters,
-                ),
-              ),
-
-              // ── Category chips (inline) ──────────────────────────────────
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.only(top: 4, bottom: 8),
-                  child: InventoryCategoryChips(),
-                ),
-              ),
-
-              // ── Active filter tags (condition / search) ──────────────────
-              SliverToBoxAdapter(
-                child: _ActiveFiltersRow(filters: filters),
-              ),
-
-              // ── Body (loading / error / list) ────────────────────────────
-              filteredAsync.when(
-                loading: () => const SliverToBoxAdapter(child: _SkeletonBody()),
-                error: (e, _) => SliverToBoxAdapter(
-                  child: _ErrorBody(
-                    message: e.toString().replaceFirst('Exception: ', ''),
-                    onRetry: () => ref.invalidate(inventoryItemsProvider),
+                  // ── Category chips (inline) ──────────────────────────────────
+                  const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 4, bottom: 8),
+                      child: InventoryCategoryChips(),
+                    ),
                   ),
-                ),
-                data: (items) {
-                  if (items.isEmpty) {
-                    return SliverToBoxAdapter(
-                      child: _EmptyState(
-                        canAdd: canManage && !filters.hasActiveFilters,
-                        onAddTap:
-                            canManage ? () => _openAddSheet(context) : null,
-                      ),
-                    );
-                  }
 
-                  return SliverMainAxisGroup(
-                    slivers: [
-                      // Item count label
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
-                          child: Text(
-                            'inventory.view.item_count'.plural(
-                              items.length,
-                              name: 'count',
-                            ),
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                  // ── Active filter tags (condition / search) ──────────────────
+                  SliverToBoxAdapter(
+                    child: _ActiveFiltersRow(filters: filters),
+                  ),
+
+                  // ── Body (loading / error / list) ────────────────────────────
+                  filteredAsync.when(
+                    loading: () =>
+                        const SliverToBoxAdapter(child: _SkeletonBody()),
+                    error: (e, _) => SliverToBoxAdapter(
+                      child: _ErrorBody(
+                        message: e.toString().replaceFirst('Exception: ', ''),
+                        onRetry: () => ref.invalidate(inventoryItemsProvider),
+                      ),
+                    ),
+                    data: (items) {
+                      if (items.isEmpty) {
+                        return SliverToBoxAdapter(
+                          child: _EmptyState(
+                            canAdd: canManage && !filters.hasActiveFilters,
+                            onAddTap:
+                                canManage ? () => _openAddSheet(context) : null,
+                          ),
+                        );
+                      }
+
+                      return SliverMainAxisGroup(
+                        slivers: [
+                          // Item count label
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
+                              child: Text(
+                                'inventory.view.item_count'.plural(
+                                  items.length,
+                                  name: 'count',
+                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
                                       color: context.sac.textSecondary,
                                       fontWeight: FontWeight.w500,
                                     ),
-                          ),
-                        ),
-                      ),
-
-                      // Item list — SliverList.builder instead of Column spread
-                      SliverList.builder(
-                        itemCount: items.length,
-                        itemBuilder: (context, index) {
-                          final item = items[index];
-                          return StaggeredListItem(
-                            index: index,
-                            child: InventoryItemCard(
-                              item: item,
-                              onTap: () => _openDetail(context, item),
-                              onEdit: canManage
-                                  ? () => _openEdit(context, item)
-                                  : null,
-                              onDelete: canManage
-                                  ? () => _confirmDelete(context, item)
-                                  : null,
+                              ),
                             ),
-                          );
-                        },
-                      ),
+                          ),
 
-                      const SliverToBoxAdapter(
-                        child: SizedBox(height: 24),
-                      ),
-                    ],
-                  );
-                },
+                          // Item list — SliverList.builder instead of Column spread
+                          SliverList.builder(
+                            itemCount: items.length,
+                            itemBuilder: (context, index) {
+                              final item = items[index];
+                              return StaggeredListItem(
+                                index: index,
+                                child: InventoryItemCard(
+                                  item: item,
+                                  onTap: () => _openDetail(context, item),
+                                  onEdit: canManage
+                                      ? () => _openEdit(context, item)
+                                      : null,
+                                  onDelete: canManage
+                                      ? () => _confirmDelete(context, item)
+                                      : null,
+                                ),
+                              );
+                            },
+                          ),
+
+                          const SliverToBoxAdapter(
+                            child: SizedBox(height: 24),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

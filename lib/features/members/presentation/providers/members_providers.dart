@@ -364,17 +364,24 @@ final pendingRequestsCountProvider = Provider.autoDispose<int>((ref) {
       0;
 });
 
-/// Clases únicas presentes en la lista de miembros (para el filtro)
+/// Clases únicas presentes en la lista de miembros (para el filtro).
+///
+/// El orden es el de [sortClassFilterOptions]: id de catálogo ascendente.
 final availableClassesProvider = Provider.autoDispose<List<String>>((ref) {
   final members = ref.watch(membersNotifierProvider).valueOrNull?.members ?? [];
-  final classes = members
-      .map((m) => m.currentClass)
-      .whereType<String>()
-      .where((c) => c.isNotEmpty)
-      .toSet()
-      .toList()
-    ..sort();
-  return classes;
+  final classes = <String>[];
+  final seen = <String>{};
+  for (final member in members) {
+    final name = member.currentClass?.trim();
+    if (name == null || name.isEmpty || !seen.add(name)) continue;
+    classes.add(name);
+  }
+  return sortClassFilterOptions(
+    classes,
+    members,
+    noClassLabel: tr('members.errors.no_class'),
+    guideMajorsLabel: tr('members.guide_majors_group'),
+  );
 });
 
 /// Roles únicos presentes en la lista de miembros (para el filtro)
@@ -397,30 +404,44 @@ final membersByClassProvider =
   return groupMembersByClass(
     members,
     noClassLabel: tr('members.errors.no_class'),
+    guideMajorsLabel: tr('members.guide_majors_group'),
   );
 });
 
 /// Agrupa miembros por clase y ordena los grupos por su ID de catálogo.
+///
+/// Quien no cursa una clase de esta sección, pero es Guía Mayor y tiene un
+/// cargo de la directiva, va en [guideMajorsLabel]. El resto sin clase de la
+/// sección queda en [noClassLabel].
 Map<String, List<ClubMember>> groupMembersByClass(
   List<ClubMember> members, {
   required String noClassLabel,
+  required String guideMajorsLabel,
 }) {
   final groupedMembers = <String, List<ClubMember>>{};
   final classIds = <String, int?>{};
 
   for (final member in members) {
-    final label = member.currentClass ?? noClassLabel;
+    final sectionClass = member.currentClass?.trim();
+    final label = sectionClass != null && sectionClass.isNotEmpty
+        ? sectionClass
+        : member.hasGuideMajorClass && member.isSectionBoard
+            ? guideMajorsLabel
+            : noClassLabel;
     groupedMembers.putIfAbsent(label, () => []).add(member);
 
-    if (member.currentClass != null && member.currentClassId != null) {
+    if (sectionClass != null &&
+        sectionClass.isNotEmpty &&
+        member.currentClassId != null) {
       classIds[label] ??= member.currentClassId;
     }
   }
 
   final sortedLabels = groupedMembers.keys.toList()
     ..sort((a, b) {
-      if (a == noClassLabel) return b == noClassLabel ? 0 : 1;
-      if (b == noClassLabel) return -1;
+      final rankA = _classGroupRank(a, noClassLabel, guideMajorsLabel);
+      final rankB = _classGroupRank(b, noClassLabel, guideMajorsLabel);
+      if (rankA != rankB) return rankA.compareTo(rankB);
 
       final idA = classIds[a];
       final idB = classIds[b];
@@ -436,6 +457,102 @@ Map<String, List<ClubMember>> groupMembersByClass(
   return {
     for (final label in sortedLabels) label: groupedMembers[label]!,
   };
+}
+
+int _classGroupRank(
+  String label,
+  String noClassLabel,
+  String guideMajorsLabel,
+) {
+  if (label == noClassLabel) return 2;
+  if (label == guideMajorsLabel) return 1;
+  return 0;
+}
+
+int _classFilterRank(
+  String label,
+  String noClassLabel,
+  String guideMajorsLabel,
+) {
+  if (label == noClassLabel || label == 'Sin clase') return 2;
+  if (label == guideMajorsLabel || label == 'Guías Mayores') return 1;
+  return 0;
+}
+
+/// Orden progresivo de Conquistadores. Solo aplica si la clase no tiene id.
+const _conquistadoresClassOrder = <String, int>{
+  'Amigo': 0,
+  'Compañero': 1,
+  'Explorador': 2,
+  'Orientador': 3,
+  'Viajero': 4,
+  'Guía': 5,
+};
+
+/// Ordena las opciones del filtro de clase como [groupMembersByClass].
+///
+/// Con id, gana el menor [ClubMember.currentClassId] visto para ese nombre.
+/// Sin id, las seis clases de Conquistadores van en orden progresivo y el
+/// resto por nombre. Guías Mayores queda antes de Sin clase, ambas al final.
+List<String> sortClassFilterOptions(
+  List<String> options,
+  List<ClubMember> members, {
+  required String noClassLabel,
+  required String guideMajorsLabel,
+}) {
+  final classIds = <String, int>{};
+  for (final member in members) {
+    final name = member.currentClass?.trim();
+    final id = member.currentClassId;
+    if (name == null || name.isEmpty || id == null) continue;
+    final known = classIds[name];
+    if (known == null || id < known) classIds[name] = id;
+  }
+
+  final sorted = List<String>.of(options);
+  sorted.sort(
+    (a, b) => _compareClassFilterOption(
+      a,
+      b,
+      classIds,
+      noClassLabel: noClassLabel,
+      guideMajorsLabel: guideMajorsLabel,
+    ),
+  );
+  return sorted;
+}
+
+int _compareClassFilterOption(
+  String a,
+  String b,
+  Map<String, int> classIds, {
+  required String noClassLabel,
+  required String guideMajorsLabel,
+}) {
+  final left = a.trim();
+  final right = b.trim();
+  final rankA = _classFilterRank(left, noClassLabel, guideMajorsLabel);
+  final rankB = _classFilterRank(right, noClassLabel, guideMajorsLabel);
+  if (rankA != rankB) return rankA.compareTo(rankB);
+
+  final idA = classIds[left];
+  final idB = classIds[right];
+  if (idA != null && idB != null) {
+    final comparison = idA.compareTo(idB);
+    return comparison == 0 ? left.compareTo(right) : comparison;
+  }
+  if (idA != null) return -1;
+  if (idB != null) return 1;
+  return _compareClassNamesWithoutId(left, right);
+}
+
+int _compareClassNamesWithoutId(String a, String b) {
+  final canonA = _conquistadoresClassOrder[a];
+  final canonB = _conquistadoresClassOrder[b];
+  if (canonA != null && canonB != null) return canonA.compareTo(canonB);
+  if (canonA != null) return -1;
+  if (canonB != null) return 1;
+  return a.compareTo(b);
 }
 
 // ── Member detail provider ─────────────────────────────────────────────────────
@@ -575,10 +692,8 @@ class AnnualContinuationsNotifier
     return result.fold(
       (failure) => throw Exception(failure.message),
       (items) {
-        final selectedIds = items
-            .where((m) => !m.isBlocked)
-            .map((m) => m.userId)
-            .toSet();
+        final selectedIds =
+            items.where((m) => !m.isBlocked).map((m) => m.userId).toSet();
         return AnnualContinuationsState(items: items, selectedIds: selectedIds);
       },
     );

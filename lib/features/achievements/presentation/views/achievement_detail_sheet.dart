@@ -66,7 +66,6 @@ class _AchievementDetailSheetState extends State<AchievementDetailSheet>
     final isSecret = achievement.secret && !isCompleted;
     final visualState =
         userAchievement?.visualState ?? AchievementVisualState.locked;
-    final tierColor = achievementTierColor(achievement.tier);
     final tierInk = achievementTierInkColor(achievement.tier);
     final tierChipBg = achievementTierChipBackground(
       achievement.tier,
@@ -156,10 +155,6 @@ class _AchievementDetailSheetState extends State<AchievementDetailSheet>
                                       visualState: visualState,
                                       isSecret: isSecret,
                                       tier: achievement.tier,
-                                      tierColor: tierColor,
-                                      progress:
-                                          userAchievement?.progressPercentage ??
-                                              0.0,
                                     ),
                                   ),
                                 ),
@@ -196,8 +191,10 @@ class _AchievementDetailSheetState extends State<AchievementDetailSheet>
                                         _MetaChip(
                                           icon: HugeIcons.strokeRoundedFlash,
                                           label: '${achievement.points} pts',
-                                          foreground: SacAccent.of(context).color,
-                                          background: SacAccent.of(context).color
+                                          foreground:
+                                              SacAccent.of(context).color,
+                                          background: SacAccent.of(context)
+                                              .color
                                               .withValues(alpha: 0.12),
                                         ),
                                         if (achievement.repeatable)
@@ -337,61 +334,22 @@ class _BadgeHero extends StatelessWidget {
   final AchievementVisualState visualState;
   final bool isSecret;
   final AchievementTier tier;
-  final Color tierColor;
-  final double progress;
 
   const _BadgeHero({
     required this.achievement,
     required this.visualState,
     required this.isSecret,
     required this.tier,
-    required this.tierColor,
-    required this.progress,
   });
 
   @override
   Widget build(BuildContext context) {
-    final unlocked = visualState == AchievementVisualState.unlocked;
-    final c = context.sac;
-    final glowCore = unlocked
-        ? tierColor.withValues(alpha: 0.42)
-        : c.border.withValues(alpha: 0.28);
-    final glowMid = unlocked
-        ? tierColor.withValues(alpha: 0.18)
-        : c.border.withValues(alpha: 0.12);
-
-    return SizedBox(
-      width: 255,
-      height: 255,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Soft disc so tier reads even on locked badges.
-          Container(
-            width: 240,
-            height: 240,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  glowCore,
-                  glowMid,
-                  glowMid.withValues(alpha: 0),
-                ],
-                stops: const [0.0, 0.55, 1.0],
-              ),
-            ),
-          ),
-          AchievementBadge(
-            badgeImageUrl: achievement.badgeImageUrl,
-            tier: tier,
-            visualState: visualState,
-            isSecret: isSecret,
-            size: 203,
-            progress: progress,
-          ),
-        ],
-      ),
+    return AchievementBadge(
+      badgeImageUrl: achievement.badgeImageUrl,
+      tier: tier,
+      visualState: visualState,
+      isSecret: isSecret,
+      size: 203,
     );
   }
 }

@@ -151,7 +151,6 @@ class _AchievementProfileData extends StatelessWidget {
                       visualState: visualState,
                       isSecret: false,
                       size: 44,
-                      progress: userAchievement?.progressPercentage ?? 1.0,
                     );
                   },
                 ),

@@ -11,7 +11,7 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/coordinator_club.dart';
@@ -30,120 +30,82 @@ class CoordinatorClubsListView extends ConsumerWidget {
     final hPad = Responsive.horizontalPadding(context);
     final clubsAsync = ref.watch(coordinatorClubsProvider);
 
-    return Scaffold(
-      backgroundColor: c.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ── Header ────────────────────────────────────────────────────
-            _ClubsHeader(hPad: hPad),
-
-            // ── Search bar ────────────────────────────────────────────────
-            Padding(
-              padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 12),
-              child: const _ClubSearchBar(),
-            ),
-
-            // ── Content ───────────────────────────────────────────────────
-            Expanded(
-              child: clubsAsync.when(
-                loading: () => _ClubsLoadingSkeleton(hPad: hPad),
-                error: (error, _) => _ClubsErrorState(
-                  message: error.toString(),
-                  onRetry: () => ref.invalidate(coordinatorClubsRawProvider),
-                ),
-                data: (clubs) => clubs.isEmpty
-                    ? const _ClubsEmptyState()
-                    : _ClubsList(
-                        clubs: clubs,
-                        hPad: hPad,
-                        onRefresh: () =>
-                            ref.invalidate(coordinatorClubsRawProvider),
-                      ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Header ────────────────────────────────────────────────────────────────────
-
-class _ClubsHeader extends ConsumerWidget {
-  final double hPad;
-  const _ClubsHeader({required this.hPad});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.sac;
     final rawAsync = ref.watch(coordinatorClubsRawProvider);
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 16),
-      child: Row(
-        children: [
-          SacBackButton(
-            color: c.text,
-            onPressed: () {
-              if (Navigator.of(context).canPop()) {
-                Navigator.of(context).maybePop();
-                return;
-              }
-              if (GoRouter.maybeOf(context) != null) {
-                context.go(RouteNames.coordinator);
-              }
-            },
-          ),
-          Expanded(
-            child: Text(
-              'coordinator.clubs.title'.tr(),
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineSmall
-                  ?.copyWith(color: c.text, fontWeight: FontWeight.w700),
-            ),
-          ),
-          // Refresh button (44dp touch target)
-          SizedBox(
-            width: 44,
-            height: 44,
-            child: Material(
-              color: c.surface,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-                side: BorderSide(color: c.border),
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      backgroundColor: c.background,
+      appBar: SacTopBar(
+        title: 'coordinator.clubs.title'.tr(),
+        frosted: true,
+        onBack: () {
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).maybePop();
+            return;
+          }
+          if (GoRouter.maybeOf(context) != null) {
+            context.go(RouteNames.coordinator);
+          }
+        },
+        actions: [
+          if (rawAsync.isLoading)
+            const Padding(
+              padding: EdgeInsets.all(14),
+              child: SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
               ),
-              child: SacInkWell(
-                borderRadius: BorderRadius.circular(10),
-                onTap: rawAsync.isLoading
-                    ? null
-                    : () => ref.invalidate(coordinatorClubsRawProvider),
-                child: Semantics(
-                  label: 'common.retry'.tr(),
-                  button: true,
-                  child: Center(
-                    child: rawAsync.isLoading
-                        ? SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: c.textTertiary,
-                            ),
-                          )
-                        : HugeIcon(
-                            icon: HugeIcons.strokeRoundedRefresh,
-                            color: c.textTertiary,
-                            size: 18,
+            )
+          else
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                tooltip: 'common.retry'.tr(),
+                onPressed: () => ref.invalidate(coordinatorClubsRawProvider),
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedRefresh,
+                  color: c.textTertiary,
+                  size: 20,
+                ),
+              ),
+            ),
+        ],
+      ),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 12),
+                  child: const _ClubSearchBar(),
+                ),
+
+                // ── Content ───────────────────────────────────────────────────
+                Expanded(
+                  child: clubsAsync.when(
+                    loading: () => _ClubsLoadingSkeleton(hPad: hPad),
+                    error: (error, _) => _ClubsErrorState(
+                      message: error.toString(),
+                      onRetry: () =>
+                          ref.invalidate(coordinatorClubsRawProvider),
+                    ),
+                    data: (clubs) => clubs.isEmpty
+                        ? const _ClubsEmptyState()
+                        : _ClubsList(
+                            clubs: clubs,
+                            hPad: hPad,
+                            onRefresh: () =>
+                                ref.invalidate(coordinatorClubsRawProvider),
                           ),
                   ),
                 ),
-              ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

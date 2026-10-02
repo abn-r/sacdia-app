@@ -928,7 +928,7 @@ class PushNotificationService {
   /// Supported types:
   /// - `member_of_month`: navigate to member of month history for the section.
   ///   Payload: `{ type, club_id, section_id, month, year }`
-  /// - `member_of_month_director`: navigate to the section's units list.
+  /// - `member_of_month_director`: navigate to the section award history.
   ///   Payload: `{ type, club_id, section_id, month, year }`
   void _handleTypedNotification(String type, Map<String, dynamic> data) {
     AppLogger.i('Manejando notificación tipada: $type', tag: _tag);
@@ -951,7 +951,17 @@ class PushNotificationService {
         return;
 
       case 'member_of_month_director':
-        // Navigate to the units list for the section
+        final directorClubId = _parseInt(data['club_id']);
+        final directorSectionId = _parseInt(data['section_id']);
+        if (directorClubId != null && directorSectionId != null) {
+          _pushRoute(
+            RouteNames.memberOfMonthHistoryPath(
+              directorClubId,
+              directorSectionId,
+            ),
+          );
+          return;
+        }
         _pushRoute(RouteNames.homeUnits);
         return;
 

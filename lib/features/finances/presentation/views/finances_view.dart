@@ -21,7 +21,7 @@ import '../widgets/transaction_tile.dart';
 import 'add_transaction_sheet.dart';
 import 'all_transactions_view.dart';
 import 'transaction_detail_view.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
@@ -46,96 +46,91 @@ class FinancesView extends ConsumerWidget {
 
     return SecureScreen(
       child: Scaffold(
+        extendBodyBehindAppBar: true,
         backgroundColor: context.sac.background,
-        body: SafeArea(
-          child: RefreshIndicator(
-            color: SacAccent.of(context).color,
-            onRefresh: () async {
-              ref.invalidate(financeMonthProvider);
-              ref.invalidate(financeSummaryProvider);
-            },
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
-              ),
-              slivers: [
-                // ── App bar ───────────────────────────────────────────────────
-                SliverAppBar(
-                  automaticallyImplyLeading: false,
-                  leading: sacAutoBackButton(context),
-                  pinned: true,
-                  expandedHeight: 0,
-                  backgroundColor: context.sac.background,
-                  surfaceTintColor: Colors.transparent,
-                  title: Text(
-                    'finances.view.title'.tr(),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: context.sac.text,
-                        ),
+        appBar: SacTopBar(
+          title: 'finances.view.title'.tr(),
+          frosted: true,
+          actions: [
+            if (showAddButton)
+              SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  tooltip: 'finances.add_transaction.new_title'.tr(),
+                  onPressed: () => _openAddSheet(context, ref),
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedAdd01,
+                    size: 22,
+                    color: SacAccent.of(context).color,
                   ),
-                  centerTitle: false,
-                  actions: [
-                    if (showAddButton)
-                      SacPressable(
-                        listenOnly: true,
-                        child: IconButton(
-                          enableFeedback: false,
-                          tooltip: 'finances.add_transaction.new_title'.tr(),
-                          onPressed: () => _openAddSheet(context, ref),
-                          icon: HugeIcon(
-                            icon: HugeIcons.strokeRoundedAdd01,
-                            size: 22,
-                            color: SacAccent.of(context).color,
-                          ),
-                        ),
-                      ),
-                    if (financeMonthAsync.isLoading)
-                      const Padding(
-                        padding: EdgeInsets.all(14),
-                        child: SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      )
-                    else
-                      SacPressable(
-                        listenOnly: true,
-                        child: IconButton(
-                          enableFeedback: false,
-                          onPressed: () {
+                ),
+              ),
+            if (financeMonthAsync.isLoading)
+              const Padding(
+                padding: EdgeInsets.all(14),
+                child: SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              )
+            else
+              SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  onPressed: () {
+                    ref.invalidate(financeMonthProvider);
+                    ref.invalidate(financeSummaryProvider);
+                  },
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedRefresh,
+                    size: 20,
+                    color: context.sac.textSecondary,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        body: SacFrostedVeil(
+          child: Builder(
+            builder: (context) => SafeArea(
+              top: false,
+              child: RefreshIndicator(
+                color: SacAccent.of(context).color,
+                edgeOffset: SacTopBar.frostedInset(context),
+                onRefresh: () async {
+                  ref.invalidate(financeMonthProvider);
+                  ref.invalidate(financeSummaryProvider);
+                },
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
+                  ),
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: SizedBox(height: SacTopBar.frostedInset(context)),
+                    ),
+                    SliverToBoxAdapter(
+                      child: financeMonthAsync.when(
+                        loading: () => const FinancesLoadingSkeleton(),
+                        error: (e, _) => _ErrorBody(
+                          message: e.toString().replaceFirst('Exception: ', ''),
+                          onRetry: () {
                             ref.invalidate(financeMonthProvider);
                             ref.invalidate(financeSummaryProvider);
                           },
-                          icon: HugeIcon(
-                            icon: HugeIcons.strokeRoundedRefresh,
-                            size: 20,
-                            color: context.sac.textSecondary,
-                          ),
+                        ),
+                        data: (financeMonth) => _FinanceBody(
+                          financeMonth: financeMonth,
+                          summaryAsync: summaryAsync,
                         ),
                       ),
+                    ),
                   ],
                 ),
-
-                // ── Body ──────────────────────────────────────────────────────
-                SliverToBoxAdapter(
-                  child: financeMonthAsync.when(
-                    loading: () => const FinancesLoadingSkeleton(),
-                    error: (e, _) => _ErrorBody(
-                      message: e.toString().replaceFirst('Exception: ', ''),
-                      onRetry: () {
-                        ref.invalidate(financeMonthProvider);
-                        ref.invalidate(financeSummaryProvider);
-                      },
-                    ),
-                    data: (financeMonth) => _FinanceBody(
-                      financeMonth: financeMonth,
-                      summaryAsync: summaryAsync,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),

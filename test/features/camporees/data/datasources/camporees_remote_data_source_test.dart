@@ -558,6 +558,7 @@ void main() {
     test('parses event rubrics from backend data envelope', () async {
       final (:dio, :adapter) = _dioWith({
         'status': 'success',
+        'min_points': 15,
         'data': [
           {
             'camporee_event_rubric_id': 101,
@@ -575,9 +576,32 @@ void main() {
       final result = await ds.getCamporeeEventRubrics(77);
 
       expect(adapter.lastOptions!.path, '$baseUrl/camporee-events/77/rubrics');
-      expect(result, hasLength(1));
-      expect(result.first.rubricId, 101);
-      expect(result.first.maxPoints, 40.5);
+      expect(result.rubrics, hasLength(1));
+      expect(result.rubrics.first.rubricId, 101);
+      expect(result.rubrics.first.maxPoints, 40.5);
+      expect(result.minPoints, 15);
+    });
+
+    test('treats a missing event minimum as zero', () async {
+      final (:dio, :adapter) = _dioWith({
+        'status': 'success',
+        'data': [
+          {
+            'camporee_event_rubric_id': 101,
+            'camporee_event_id': 77,
+            'title': 'Técnica',
+            'max_points': 10,
+            'display_order': 0,
+            'active': true,
+          },
+        ],
+      });
+      final ds = CamporeesRemoteDataSourceImpl(dio: dio, baseUrl: baseUrl);
+
+      final result = await ds.getCamporeeEventRubrics(77);
+
+      expect(result.minPoints, 0);
+      expect(result.rubrics, hasLength(1));
     });
 
     test('submits one official score item per rubric', () async {

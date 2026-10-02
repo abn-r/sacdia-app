@@ -46,5 +46,27 @@ void main() {
 
       expect(member.classCounselorEligible, isTrue);
     });
+
+    test('parses guide major class for section board members', () {
+      final member = ClubMemberModel.fromJson({
+        'user_id': 'user-4',
+        'name': 'Secretary',
+        'roles': {'role_name': 'secretary'},
+        'guide_major_class': {
+          'enrollment_id': 9,
+          'class_id': 20,
+          'name': 'Guía Mayor',
+          'investiture_status': 'completed',
+          'active': true,
+        },
+        'class_counselor_eligible': true,
+      });
+
+      expect(member.guideMajorClassName, 'Guía Mayor');
+      expect(member.clubRole, 'secretary');
+      expect(member.isSectionBoard, isTrue);
+      expect(member.hasGuideMajorClass, isTrue);
+      expect(member.currentClass, isNull);
+    });
   });
 }

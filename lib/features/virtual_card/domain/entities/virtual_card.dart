@@ -63,6 +63,9 @@ class VirtualCard extends Equatable {
     this.clubName,
     this.clubLogoUrl,
     this.sectionName,
+    this.localFieldName,
+    this.unionName,
+    this.ecclesiasticalYear,
     this.memberSince,
     this.achievementTier,
     this.cardIdShort,
@@ -80,6 +83,9 @@ class VirtualCard extends Equatable {
   final String? clubName;
   final String? clubLogoUrl;
   final String? sectionName;
+  final String? localFieldName;
+  final String? unionName;
+  final String? ecclesiasticalYear;
   final DateTime? memberSince;
   final VirtualCardTier? achievementTier;
   final String? cardIdShort;
@@ -112,6 +118,9 @@ class VirtualCard extends Equatable {
     String? clubName,
     String? clubLogoUrl,
     String? sectionName,
+    String? localFieldName,
+    String? unionName,
+    String? ecclesiasticalYear,
     DateTime? memberSince,
     VirtualCardTier? achievementTier,
     String? cardIdShort,
@@ -132,6 +141,9 @@ class VirtualCard extends Equatable {
       clubName: clubName ?? this.clubName,
       clubLogoUrl: clubLogoUrl ?? this.clubLogoUrl,
       sectionName: sectionName ?? this.sectionName,
+      localFieldName: localFieldName ?? this.localFieldName,
+      unionName: unionName ?? this.unionName,
+      ecclesiasticalYear: ecclesiasticalYear ?? this.ecclesiasticalYear,
       memberSince: memberSince ?? this.memberSince,
       achievementTier: achievementTier ?? this.achievementTier,
       cardIdShort: cardIdShort ?? this.cardIdShort,
@@ -155,6 +167,9 @@ class VirtualCard extends Equatable {
         clubName,
         clubLogoUrl,
         sectionName,
+        localFieldName,
+        unionName,
+        ecclesiasticalYear,
         memberSince,
         achievementTier,
         cardIdShort,

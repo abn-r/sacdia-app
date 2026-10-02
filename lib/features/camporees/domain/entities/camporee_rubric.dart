@@ -31,3 +31,24 @@ class CamporeeRubric extends Equatable {
         active,
       ];
 }
+
+/// Rúbricas activas de un evento y el piso de puntaje del evento.
+class CamporeeEventRubricSheet extends Equatable {
+  final List<CamporeeRubric> rubrics;
+  final double minPoints;
+
+  const CamporeeEventRubricSheet({
+    required this.rubrics,
+    this.minPoints = 0,
+  });
+
+  /// Misma regla que el backend: si el mínimo es mayor que cero y la suma
+  /// cruda queda debajo, el total oficial sube a ese piso.
+  double officialTotal(double raw) {
+    if (minPoints > 0 && raw < minPoints) return minPoints;
+    return raw;
+  }
+
+  @override
+  List<Object?> get props => [rubrics, minPoints];
+}

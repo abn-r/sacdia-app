@@ -16,7 +16,9 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee.dart';
+import 'package:sacdia_app/features/camporees/domain/utils/camporee_period.dart';
 
 import '../providers/camporees_providers.dart';
 import 'camporee_detail_view.dart';
@@ -34,6 +36,11 @@ class CamporeesListView extends ConsumerWidget {
     final camporeesAsync = ref.watch(camporeesProvider);
     final hPad = Responsive.horizontalPadding(context);
     final c = context.sac;
+    final hasHistory = camporeesAsync.maybeWhen(
+      data: (camporees) =>
+          historicalCamporees(camporees, DateTime.now()).isNotEmpty,
+      orElse: () => false,
+    );
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -42,6 +49,13 @@ class CamporeesListView extends ConsumerWidget {
           title: 'camporees.list.title'.tr(),
           centerTitle: true,
           onBack: () => context.go(RouteNames.homeDashboard),
+          actions: hasHistory
+              ? [
+                  _HistoryAction(
+                    onTap: () => _openHistory(context),
+                  ),
+                ]
+              : const [],
           frosted: true),
       body: SacFrostedVeil(
         child: Builder(
@@ -49,7 +63,8 @@ class CamporeesListView extends ConsumerWidget {
             top: false,
             child: camporeesAsync.when(
               data: (camporees) {
-                if (camporees.isEmpty) {
+                final current = currentCamporees(camporees, DateTime.now());
+                if (current.isEmpty) {
                   return _EmptyCamporeesState(
                     onRetry: () => ref.invalidate(camporeesProvider),
                   );
@@ -62,26 +77,142 @@ class CamporeesListView extends ConsumerWidget {
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: SacTopBar.paddingBelowBar(
                         context, EdgeInsets.fromLTRB(hPad, 16, hPad, 28)),
-                    itemCount: camporees.length,
+                    itemCount: current.length,
                     itemBuilder: (context, index) {
-                      final camporee = camporees[index];
+                      final camporee = current[index];
                       return StaggeredListItem(
                         index: index,
                         initialDelay: const Duration(milliseconds: 40),
                         staggerDelay: SacMotion.stagger,
                         child: _CamporeeCard(
                           camporee: camporee,
-                          onTap: () {
-                            HapticFeedback.selectionClick();
-                            Navigator.push(
-                              context,
-                              SacSharedAxisRoute(
-                                builder: (context) => CamporeeDetailView(
-                                  camporeeId: camporee.camporeeId,
-                                ),
-                              ),
-                            );
-                          },
+                          onTap: () => _openCamporee(context, camporee),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+              loading: () => const _CamporeesSkeleton(),
+              error: (error, stack) => _ErrorState(
+                message: error.toString().replaceFirst('Exception: ', ''),
+                onRetry: () => ref.invalidate(camporeesProvider),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+void _openHistory(BuildContext context) {
+  HapticFeedback.selectionClick();
+  Navigator.push(
+    context,
+    SacSharedAxisRoute(
+      builder: (context) => const CamporeesHistoryView(),
+    ),
+  );
+}
+
+void _openCamporee(
+  BuildContext context,
+  Camporee camporee, {
+  bool readOnly = false,
+}) {
+  HapticFeedback.selectionClick();
+  Navigator.push(
+    context,
+    SacSharedAxisRoute(
+      builder: (context) => CamporeeDetailView(
+        camporeeId: camporee.camporeeId,
+        readOnly: readOnly,
+      ),
+    ),
+  );
+}
+
+class _HistoryAction extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _HistoryAction({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return SacPressable(
+      listenOnly: true,
+      child: IconButton(
+        enableFeedback: false,
+        tooltip: 'camporees.list.history'.tr(),
+        onPressed: onTap,
+        icon: HugeIcon(
+          icon: HugeIcons.strokeRoundedClock01,
+          size: 22,
+          color: SacAccent.of(context).color,
+        ),
+      ),
+    );
+  }
+}
+
+/// Camporees ya cerrados del mismo alcance. Solo consulta.
+class CamporeesHistoryView extends ConsumerWidget {
+  const CamporeesHistoryView({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final camporeesAsync = ref.watch(camporeesProvider);
+    final hPad = Responsive.horizontalPadding(context);
+    final c = context.sac;
+
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      backgroundColor: c.background,
+      appBar: SacTopBar(
+        title: 'camporees.list.history_title'.tr(),
+        centerTitle: true,
+        frosted: true,
+      ),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) => SafeArea(
+            top: false,
+            child: camporeesAsync.when(
+              data: (camporees) {
+                final history = historicalCamporees(camporees, DateTime.now());
+                if (history.isEmpty) {
+                  return _EmptyCamporeesState(
+                    titleKey: 'camporees.list.history_empty',
+                    bodyKey: 'camporees.list.history_empty_body',
+                    onRetry: () => ref.invalidate(camporeesProvider),
+                  );
+                }
+
+                return RefreshIndicator(
+                  color: SacAccent.of(context).color,
+                  onRefresh: () async => ref.invalidate(camporeesProvider),
+                  child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: SacTopBar.paddingBelowBar(
+                      context,
+                      EdgeInsets.fromLTRB(hPad, 16, hPad, 28),
+                    ),
+                    itemCount: history.length,
+                    itemBuilder: (context, index) {
+                      final camporee = history[index];
+                      return StaggeredListItem(
+                        index: index,
+                        initialDelay: const Duration(milliseconds: 40),
+                        staggerDelay: SacMotion.stagger,
+                        child: _CamporeeCard(
+                          camporee: camporee,
+                          historical: true,
+                          onTap: () => _openCamporee(
+                            context,
+                            camporee,
+                            readOnly: true,
+                          ),
                         ),
                       );
                     },
@@ -104,10 +235,12 @@ class CamporeesListView extends ConsumerWidget {
 class _CamporeeCard extends StatelessWidget {
   final Camporee camporee;
   final VoidCallback onTap;
+  final bool historical;
 
   const _CamporeeCard({
     required this.camporee,
     required this.onTap,
+    this.historical = false,
   });
 
   @override
@@ -143,7 +276,10 @@ class _CamporeeCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _CardBanner(dateRange: dateRange),
+                _CardBanner(
+                  dateRange: dateRange,
+                  historical: historical,
+                ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
                   child: Column(
@@ -241,8 +377,12 @@ class _CamporeeCard extends StatelessWidget {
 /// La fecha es la protagonista: es el dato que decide si el evento importa.
 class _CardBanner extends StatelessWidget {
   final String dateRange;
+  final bool historical;
 
-  const _CardBanner({required this.dateRange});
+  const _CardBanner({
+    required this.dateRange,
+    this.historical = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -276,7 +416,11 @@ class _CardBanner extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'camporees.list.title'.tr().toUpperCase(),
+                  (historical
+                          ? 'camporees.list.ended_label'
+                          : 'camporees.list.title')
+                      .tr()
+                      .toUpperCase(),
                   style: TextStyle(
                     fontSize: 10.5,
                     fontWeight: FontWeight.w800,
@@ -429,23 +573,61 @@ class _Badge extends StatelessWidget {
   }
 }
 
-class _EmptyCamporeesState extends StatelessWidget {
+class _EmptyCamporeesState extends ConsumerWidget {
   final VoidCallback onRetry;
+  final String titleKey;
+  final String bodyKey;
 
-  const _EmptyCamporeesState({required this.onRetry});
+  const _EmptyCamporeesState({
+    required this.onRetry,
+    this.titleKey = 'camporees.list.empty',
+    this.bodyKey = 'camporees.list.empty_body',
+  });
 
   @override
-  Widget build(BuildContext context) {
-    return SacEmptyState(
-      icon: HugeIcons.strokeRoundedCampfire,
-      title: 'camporees.list.empty'.tr(),
-      body: 'camporees.list.subtitle'.tr(),
-      actionLabel: 'common.retry'.tr(),
-      onAction: onRetry,
-      actionIcon: HugeIcons.strokeRoundedRefresh,
-      actionVariant: SacButtonVariant.outline,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final body = bodyKey == 'camporees.list.empty_body'
+        ? _openCamporeeBody(ref)
+        : bodyKey.tr();
+    return RefreshIndicator(
+      color: SacAccent.of(context).color,
+      onRefresh: () async => onRetry(),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final top = SacTopBar.frostedInset(context);
+          final height = (constraints.maxHeight - top).clamp(0.0, double.infinity);
+          return ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.only(top: top),
+            children: [
+              SizedBox(
+                height: height,
+                child: SacEmptyState(
+                  icon: HugeIcons.strokeRoundedCampfire,
+                  title: titleKey.tr(),
+                  body: body,
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
+
+  String _openCamporeeBody(WidgetRef ref) {
+    final name = _firstName(ref.watch(authNotifierProvider).valueOrNull?.name);
+    if (name == null) return 'camporees.list.empty_body_anon'.tr();
+    return 'camporees.list.empty_body'.tr(namedArgs: {'name': name});
+  }
+}
+
+String? _firstName(String? raw) {
+  final trimmed = raw?.trim();
+  if (trimmed == null || trimmed.isEmpty) return null;
+  final first = trimmed.split(RegExp(r'\s+')).first;
+  if (first.length < 2) return null;
+  return first;
 }
 
 class _ErrorState extends StatelessWidget {

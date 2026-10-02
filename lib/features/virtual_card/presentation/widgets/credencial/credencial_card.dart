@@ -9,7 +9,6 @@ import 'chip.dart';
 import 'credencial_tokens.dart';
 import 'credencial_view_model.dart';
 import 'live_clock.dart';
-import 'mini_field.dart';
 import 'verified_dot.dart';
 
 /// Tarjeta inmersiva — Variante B.
@@ -103,6 +102,78 @@ class CredencialCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  static String _shown(String value) {
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? '—' : trimmed;
+  }
+
+  Widget _stat(String label, String value, {Color? color}) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            height: 1.1,
+            color: Color(0xFF6B7280),
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          _shown(value),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            height: 1.15,
+            color: color ?? CredencialTokens.textPrimaryLight,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _line(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 52,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF6B7280),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              _shown(value),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                height: 1.15,
+                color: CredencialTokens.textPrimaryLight,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -281,163 +352,112 @@ class CredencialCard extends StatelessWidget {
       languageCode: context.locale.languageCode,
     );
 
-    String fmt(DateTime d) {
-      const meses = [
-        'ENE',
-        'FEB',
-        'MAR',
-        'ABR',
-        'MAY',
-        'JUN',
-        'JUL',
-        'AGO',
-        'SEP',
-        'OCT',
-        'NOV',
-        'DIC',
-      ];
-      return '${d.day.toString().padLeft(2, '0')} ${meses[d.month - 1]} ${d.year}';
-    }
-
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xF7FFFFFF), // .97 alpha
         border: Border(top: BorderSide(color: sec.accent, width: 4)),
       ),
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              GestureDetector(
-                onTap: onQrTap,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(CredencialTokens.rCard),
-                    border: Border.all(color: CredencialTokens.borderLight),
-                    boxShadow: [
-                      BoxShadow(
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                        color: Colors.black.withAlpha(0x0F), // ~6%
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3F5F8),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _stat('Año', vm.anioEclesiastico),
                       ),
-                    ],
-                  ),
-                  child: vm.qrData.isNotEmpty
-                      ? QrImageView(
-                          data: vm.qrData,
-                          size: qrSize,
-                          backgroundColor: Colors.white,
-                          eyeStyle: QrEyeStyle(
-                            eyeShape: QrEyeShape.square,
-                            color: sec.primaryDark,
-                          ),
-                          dataModuleStyle: QrDataModuleStyle(
-                            dataModuleShape: QrDataModuleShape.square,
-                            color: sec.primaryDark,
-                          ),
-                        )
-                      : SizedBox(
-                          width: qrSize,
-                          height: qrSize,
-                          child: const Center(
-                            child: HugeIcon(
-                              icon: HugeIcons.strokeRoundedQrCode01,
-                              size: 48,
-                              color: Color(0xFF9AA0AB),
-                            ),
-                          ),
-                        ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (vm.club.isNotEmpty || vm.sectionFull.isNotEmpty) ...[
-                      Text(
-                        // Si el clubName parece acrónimo (ej "ACV"), preferimos
-                        // mostrar el nombre completo de la sección como label
-                        // principal. Si no, mostramos CLUB normal.
-                        vm.clubLooksLikeAcronym && vm.sectionFull.isNotEmpty
-                            ? 'SECCIÓN'
-                            : 'CLUB',
-                        style: const TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.2,
-                          color: Color(0xFF6B7280),
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        vm.clubLooksLikeAcronym && vm.sectionFull.isNotEmpty
-                            ? vm.sectionFull
-                            : vm.club,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: CredencialTokens.textPrimaryLight,
-                          letterSpacing: -0.2,
-                          height: 1.15,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                    ],
-                    // 2×2 mini-field grid per SPEC.
-                    // Slot 2: blood type when available, otherwise section
-                    // acronym as fallback.
-                    GridView.count(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 8,
-                      crossAxisSpacing: 8,
-                      childAspectRatio: 1.9,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      children: [
-                        MiniField(
-                          label: 'VIGENTE',
-                          value: fmt(vm.fechaVencimiento),
-                        ),
-                        // Slot 2: SANGRE if available, else SECCIÓN acronym.
-                        displayBloodType != null && displayBloodType.isNotEmpty
-                            ? MiniField(
-                                label: 'SANGRE',
-                                value: displayBloodType,
-                                highlight: CredencialTokens.danger,
-                              )
-                            : MiniField(
-                                label: 'SECCIÓN',
-                                value: vm.seccion.name,
-                              ),
-                        MiniField(
-                          label: 'AÑO ECL.',
-                          value: vm.anioEclesiastico,
-                        ),
-                        MiniField(
-                          label: 'ESTADO',
-                          value: vm.estado,
-                          highlight: vm.estado == 'Activo'
+                      const _StatDivider(),
+                      Expanded(
+                        child: _stat(
+                          'Estado',
+                          vm.estado,
+                          color: vm.estado == 'Activo'
                               ? CredencialTokens.success
                               : CredencialTokens.danger,
                         ),
+                      ),
+                      if (displayBloodType != null &&
+                          displayBloodType.isNotEmpty) ...[
+                        const _StatDivider(),
+                        Expanded(
+                          child: _stat(
+                            'Sangre',
+                            displayBloodType,
+                            color: CredencialTokens.danger,
+                          ),
+                        ),
                       ],
+                    ],
+                  ),
+                ),
+                const Divider(
+                    height: 1, thickness: 1, color: Color(0xFFE4E7EC)),
+                _line('Club', vm.club),
+                const Divider(
+                    height: 1, thickness: 1, color: Color(0xFFE4E7EC)),
+                _line('Campo', vm.campoLocal),
+                const Divider(
+                    height: 1, thickness: 1, color: Color(0xFFE4E7EC)),
+                _line('Unión', vm.unionNombre),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          Center(
+            child: GestureDetector(
+              onTap: onQrTap,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(CredencialTokens.rCard),
+                  border: Border.all(color: CredencialTokens.borderLight),
+                  boxShadow: [
+                    BoxShadow(
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                      color: Colors.black.withAlpha(0x0F),
                     ),
                   ],
                 ),
+                child: vm.qrData.isNotEmpty
+                    ? QrImageView(
+                        data: vm.qrData,
+                        size: qrSize,
+                        backgroundColor: Colors.white,
+                        eyeStyle: QrEyeStyle(
+                          eyeShape: QrEyeShape.square,
+                          color: sec.primaryDark,
+                        ),
+                        dataModuleStyle: QrDataModuleStyle(
+                          dataModuleShape: QrDataModuleShape.square,
+                          color: sec.primaryDark,
+                        ),
+                      )
+                    : SizedBox(
+                        width: qrSize,
+                        height: qrSize,
+                        child: const Center(
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedQrCode01,
+                            size: 48,
+                            color: Color(0xFF9AA0AB),
+                          ),
+                        ),
+                      ),
               ),
-            ],
+            ),
           ),
-          const SizedBox(height: 14),
-          // Footer institucional
+          const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.only(top: 12),
             decoration: const BoxDecoration(
@@ -537,6 +557,21 @@ class CredencialCard extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _StatDivider extends StatelessWidget {
+  const _StatDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      width: 1,
+      height: 28,
+      child: DecoratedBox(
+        decoration: BoxDecoration(color: Color(0xFFE4E7EC)),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/analytics/posthog_analytics.dart';
 import '../../../../core/providers/app_bootstrap_provider.dart';
 import '../../../../core/storage/json_file_cache.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -43,6 +44,7 @@ void clearUserStateOnLogout(Ref ref) {
   }
   ref.invalidate(appBootstrapProvider);
   _clearScopedDashboardCache(ref);
+  unawaited(resetAnalyticsUser());
   unawaited(clearNextActivityWidget());
   unawaited(
     ref.read(jsonFileCacheProvider).deleteByPrefix(kUserClassesCacheKeyPrefix),

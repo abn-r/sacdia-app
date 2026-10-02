@@ -163,10 +163,8 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
                 // ── Role list ────────────────────────────────────────────
                 Expanded(
                   child: ListView.separated(
-                    padding: SacTopBar.paddingBelowBar(
-                        context,
-                        const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12)),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     itemCount: _availableRoles.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 4),
                     itemBuilder: (context, index) {

@@ -1,5 +1,15 @@
 import 'package:equatable/equatable.dart';
 
+const _sectionBoardRoles = {
+  'director',
+  'deputy-director',
+  'secretary',
+  'treasurer',
+  'secretary-treasurer',
+  'counselor',
+  'instructor',
+};
+
 /// Entidad que representa un miembro del club
 class ClubMember extends Equatable {
   final String userId;
@@ -16,9 +26,12 @@ class ClubMember extends Equatable {
   final String? clubRole;
   final String? clubRoleAssignmentId;
 
-  /// Clase progresiva actual
+  /// Clase progresiva actual dentro del tipo de club de la sección.
   final String? currentClass;
   final int? currentClassId;
+
+  /// Clase de Guías Mayores, aunque no pertenezca al tipo de esta sección.
+  final String? guideMajorClassName;
 
   /// Indica si el usuario puede ser responsable formal de una clase.
   ///
@@ -51,6 +64,7 @@ class ClubMember extends Equatable {
     this.clubRoleAssignmentId,
     this.currentClass,
     this.currentClassId,
+    this.guideMajorClassName,
     this.classCounselorEligible = false,
     this.isEnrolled = true,
     this.clubSectionId,
@@ -59,6 +73,21 @@ class ClubMember extends Equatable {
     this.baptism,
     this.baptismDate,
   });
+
+  /// Cargo de la directiva de la sección, no el rol de miembro.
+  bool get isSectionBoard {
+    final role = (clubRole ?? '')
+        .trim()
+        .toLowerCase()
+        .replaceAll('_', '-')
+        .replaceAll(' ', '-');
+    return _sectionBoardRoles.contains(role);
+  }
+
+  /// Tiene una clase de Guías Mayores, aunque la sección sea de otro club.
+  bool get hasGuideMajorClass =>
+      classCounselorEligible ||
+      (guideMajorClassName?.trim().isNotEmpty ?? false);
 
   /// Nombre completo del miembro
   String get fullName {
@@ -92,6 +121,7 @@ class ClubMember extends Equatable {
         clubRoleAssignmentId,
         currentClass,
         currentClassId,
+        guideMajorClassName,
         classCounselorEligible,
         isEnrolled,
         clubSectionId,

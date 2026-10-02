@@ -17,6 +17,10 @@ class SettingTile extends StatelessWidget {
   final Widget? trailing;
   final VoidCallback? onTap;
   final Color? iconColor;
+
+  /// Si se define, el título usa este color en lugar del texto normal.
+  final Color? titleColor;
+
   // Color de fondo del contenedor del ícono (opcional)
   final Color? iconBackgroundColor;
 
@@ -28,6 +32,7 @@ class SettingTile extends StatelessWidget {
     this.trailing,
     this.onTap,
     this.iconColor,
+    this.titleColor,
     this.iconBackgroundColor,
   });
 
@@ -74,10 +79,10 @@ class SettingTile extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
-                      // Si el ícono es de error, el texto también va en ese tono
-                      color: iconColor == AppColors.error
-                          ? AppColors.error
-                          : c.text,
+                      color: titleColor ??
+                          (iconColor == AppColors.error
+                              ? AppColors.error
+                              : c.text),
                     ),
                   ),
                   if (subtitle != null) ...[

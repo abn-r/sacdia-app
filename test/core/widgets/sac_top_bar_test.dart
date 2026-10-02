@@ -38,5 +38,62 @@ void main() {
       expect(find.text('Local'), findsOneWidget);
       expect(find.text('Unión'), findsOneWidget);
     });
+
+    testWidgets('frosted bar keeps dark status icons on a light surface',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: const Scaffold(
+            extendBodyBehindAppBar: true,
+            appBar: SacTopBar(title: 'Credencial', frosted: true),
+            body: SizedBox.shrink(),
+          ),
+        ),
+      );
+
+      final style =
+          tester.widget<AppBar>(find.byType(AppBar)).systemOverlayStyle;
+      expect(style?.statusBarIconBrightness, Brightness.dark);
+      expect(style?.statusBarBrightness, Brightness.light);
+    });
+
+    testWidgets('frosted scroll inset is not doubled by SafeArea',
+        (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.padding = const FakeViewPadding(top: 59, bottom: 34);
+      tester.view.viewPadding = const FakeViewPadding(top: 59, bottom: 34);
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: Scaffold(
+            extendBodyBehindAppBar: true,
+            appBar: const SacTopBar(title: 'Notificaciones', frosted: true),
+            body: SacFrostedVeil(
+              child: Builder(
+                builder: (context) => SafeArea(
+                  top: false,
+                  child: ListView(
+                    padding: EdgeInsets.only(
+                      top: SacTopBar.frostedInset(context),
+                    ),
+                    children: const [
+                      SizedBox(key: Key('card'), height: 80),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final bar = tester.getRect(find.byType(AppBar));
+      final card = tester.getRect(find.byKey(const Key('card')));
+      expect(card.top, bar.bottom);
+    });
   });
 }

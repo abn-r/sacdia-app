@@ -223,58 +223,88 @@ class UnitsNotifier extends Notifier<UnitsState> {
   @override
   UnitsState build() {
     // Cargar las unidades del club en cuanto se construye el notifier.
+    // isLoading arranca en true para que la primera pintura sea el indicador
+    // de carga y no el estado vacío.
     _loadUnits();
-    return const UnitsState(units: []);
+    return const UnitsState(units: [], isLoading: true);
   }
 
   // ── Carga inicial ────────────────────────────────────────────────────────
 
   Future<void> _loadUnits() async {
     final cancelToken = CancelToken();
-    ref.onDispose(() => cancelToken.cancel());
+    var disposed = false;
+    ref.onDispose(() {
+      disposed = true;
+      cancelToken.cancel();
+    });
 
-    final ctx = await ref.read(clubContextProvider.future);
-    if (ctx == null) return;
+    try {
+      final ctx = await ref.read(clubContextProvider.future);
+      if (disposed) return;
+      if (ctx == null) {
+        state = state.copyWith(isLoading: false);
+        return;
+      }
 
-    state = state.copyWith(isLoading: true, clearError: true);
+      state = state.copyWith(isLoading: true, clearError: true);
 
-    // Cargar unidades y miembro del mes en paralelo
-    final unitsFuture = ref
-        .read(getClubUnitsUseCaseProvider)
-        .call(GetClubUnitsParams(clubId: ctx.clubId), cancelToken: cancelToken);
+      // Cargar unidades y miembro del mes en paralelo
+      final unitsFuture = ref.read(getClubUnitsUseCaseProvider).call(
+            GetClubUnitsParams(clubId: ctx.clubId),
+            cancelToken: cancelToken,
+          );
 
-    final memberOfMonthFuture = ref.read(getMemberOfMonthUseCaseProvider).call(
-        GetMemberOfMonthParams(
-          clubId: ctx.clubId,
-          sectionId: ctx.sectionId,
-        ),
-        cancelToken: cancelToken);
+      final memberOfMonthFuture =
+          ref.read(getMemberOfMonthUseCaseProvider).call(
+                GetMemberOfMonthParams(
+                  clubId: ctx.clubId,
+                  sectionId: ctx.sectionId,
+                ),
+                cancelToken: cancelToken,
+              );
 
-    final results = await Future.wait([unitsFuture, memberOfMonthFuture]);
-    final unitsResult = results[0] as dynamic;
-    final momResult = results[1] as dynamic;
+      final results = await Future.wait([unitsFuture, memberOfMonthFuture]);
+      if (disposed) return;
+      final unitsResult = results[0] as dynamic;
+      final momResult = results[1] as dynamic;
 
-    // Procesar unidades
-    unitsResult.fold(
-      (failure) => state = state.copyWith(
-        isLoading: false,
-        errorMessage: failure.message,
-      ),
-      (units) {
-        state = state.copyWith(
+      // Procesar unidades
+      unitsResult.fold(
+        (failure) => state = state.copyWith(
           isLoading: false,
-          units: units as List<Unit>,
-        );
-      },
-    );
+          errorMessage: failure.message,
+        ),
+        (units) {
+          state = state.copyWith(
+            isLoading: false,
+            units: units as List<Unit>,
+          );
+        },
+      );
 
-    // Procesar miembro del mes (errores no bloquean la vista)
-    momResult.fold(
-      (_) {}, // error silencioso — el card simplemente no aparece
-      (mom) => state = state.copyWith(
-        memberOfMonth: mom as MemberOfMonth?,
-      ),
-    );
+      if (disposed) return;
+
+      // Procesar miembro del mes (errores no bloquean la vista)
+      momResult.fold(
+        (_) {}, // error silencioso — el card simplemente no aparece
+        (mom) => state = state.copyWith(
+          memberOfMonth: mom as MemberOfMonth?,
+        ),
+      );
+    } on DioException catch (error) {
+      if (disposed || CancelToken.isCancel(error)) return;
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'units.errors.fetch_club_units'.tr(),
+      );
+    } catch (_) {
+      if (disposed) return;
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'units.errors.fetch_club_units'.tr(),
+      );
+    }
   }
 
   /// Refresca la lista de unidades desde la API.

@@ -29,6 +29,7 @@ import 'package:sacdia_app/features/camporees/domain/entities/camporee_leaderboa
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
 import 'package:sacdia_app/features/camporees/domain/utils/camporee_description.dart';
+import 'package:sacdia_app/features/camporees/domain/utils/camporee_period.dart';
 import 'package:sacdia_app/features/camporees/domain/utils/camporee_event_agenda.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_location_card.dart';
 import 'package:sacdia_app/features/camporees/presentation/widgets/camporee_leaderboard_panel.dart';
@@ -40,6 +41,9 @@ import '../providers/camporees_providers.dart';
 import 'camporee_members_view.dart';
 import 'camporee_register_member_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/features/payment_orders/domain/entities/payment_order.dart';
+import 'package:sacdia_app/features/payment_orders/presentation/providers/payment_orders_providers.dart';
+import 'package:sacdia_app/features/payment_orders/presentation/widgets/payment_order_widgets.dart';
 import 'package:sacdia_app/features/camporee_orders/presentation/views/camporee_order_catalog_view.dart';
 import 'package:sacdia_app/features/camporee_supplies/presentation/views/camporee_supply_plan_view.dart';
 
@@ -50,9 +54,13 @@ import 'package:sacdia_app/features/camporee_supplies/presentation/views/campore
 class CamporeeDetailView extends ConsumerWidget {
   final int camporeeId;
 
+  /// Consulta. El detalle también se bloquea si la fecha de cierre ya pasó.
+  final bool readOnly;
+
   const CamporeeDetailView({
     super.key,
     required this.camporeeId,
+    this.readOnly = false,
   });
 
   @override
@@ -72,6 +80,7 @@ class CamporeeDetailView extends ConsumerWidget {
         body: _DetailBody(
           camporee: camporee,
           camporeeId: camporeeId,
+          readOnly: readOnly || !camporeeIsOpen(camporee, DateTime.now()),
         ),
       ),
     );
@@ -118,10 +127,12 @@ enum _CamporeeDetailTab { info, people, events, agenda }
 class _DetailBody extends ConsumerStatefulWidget {
   final Camporee camporee;
   final int camporeeId;
+  final bool readOnly;
 
   const _DetailBody({
     required this.camporee,
     required this.camporeeId,
+    required this.readOnly,
   });
 
   @override
@@ -130,6 +141,7 @@ class _DetailBody extends ConsumerStatefulWidget {
 
 class _DetailBodyState extends ConsumerState<_DetailBody> {
   _CamporeeDetailTab _tab = _CamporeeDetailTab.info;
+  int _tabSlide = 1;
 
   int get _camporeeId => widget.camporeeId;
   Camporee get _camporee => widget.camporee;
@@ -151,10 +163,11 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
         ref.watch(camporeeSectionRegistrationProvider(_camporeeId));
     final participantsEnabled =
         camporeeParticipantsAreEnabled(registrationAsync);
-    final canRegisterParticipants = canRegisterCamporeeParticipants(
-      registrationAsync,
-      authAsync,
-    );
+    final canRegisterParticipants = !widget.readOnly &&
+        canRegisterCamporeeParticipants(
+          registrationAsync,
+          authAsync,
+        );
     final membersAsync = participantsEnabled
         ? ref.watch(camporeeMembersProvider(_camporeeId))
         : const AsyncData<List<CamporeeMember>>(<CamporeeMember>[]);
@@ -178,44 +191,58 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
     return Column(
       children: [
         Padding(
-          padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 4),
+          padding: EdgeInsets.fromLTRB(
+            hPad,
+            SacTopBar.frostedInset(context) + 8,
+            hPad,
+            4,
+          ),
           child: _DetailTabBar(
             tab: tab,
             showProgram: canViewEvents,
             onChanged: (next) {
+              if (next == _tab) return;
               HapticFeedback.selectionClick();
-              setState(() => _tab = next);
+              setState(() {
+                _tabSlide = next.index >= _tab.index ? 1 : -1;
+                _tab = next;
+              });
             },
           ),
         ),
         Expanded(
-          child: RefreshIndicator(
-            color: SacAccent.of(context).color,
-            onRefresh: () async {
-              ref.invalidate(camporeeDetailProvider(_camporeeId));
-              ref.invalidate(camporeeSectionRegistrationProvider(_camporeeId));
-              if (participantsEnabled) {
-                ref.invalidate(camporeeMembersProvider(_camporeeId));
-              }
-              if (canViewEvents) {
-                ref.invalidate(camporeeEventsProvider(_camporeeId));
-                ref.invalidate(camporeeLeaderboardProvider(_camporeeId));
-              }
-            },
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: SacTopBar.paddingBelowBar(
-                  context, EdgeInsets.fromLTRB(hPad, 16, hPad, 48)),
-              children: _tabChildren(
-                tab: tab,
-                registrationAsync: registrationAsync,
-                membersAsync: membersAsync,
-                eventsAsync: eventsAsync,
-                leaderboardAsync: leaderboardAsync,
-                participantsEnabled: participantsEnabled,
-                canRegisterParticipants: canRegisterParticipants,
-                showDescription: showDescription,
-                description: description,
+          child: _DetailTabBody(
+            tab: tab,
+            slide: _tabSlide,
+            child: RefreshIndicator(
+              color: SacAccent.of(context).color,
+              onRefresh: () async {
+                ref.invalidate(camporeeDetailProvider(_camporeeId));
+                ref.invalidate(
+                    camporeeSectionRegistrationProvider(_camporeeId));
+                if (participantsEnabled) {
+                  ref.invalidate(camporeeMembersProvider(_camporeeId));
+                }
+                if (canViewEvents) {
+                  ref.invalidate(camporeeEventsProvider(_camporeeId));
+                  ref.invalidate(camporeeLeaderboardProvider(_camporeeId));
+                }
+              },
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 48),
+                children: _tabChildren(
+                  tab: tab,
+                  registrationAsync: registrationAsync,
+                  membersAsync: membersAsync,
+                  eventsAsync: eventsAsync,
+                  leaderboardAsync: leaderboardAsync,
+                  participantsEnabled: participantsEnabled,
+                  canRegisterParticipants: canRegisterParticipants,
+                  readOnly: widget.readOnly,
+                  showDescription: showDescription,
+                  description: description,
+                ),
               ),
             ),
           ),
@@ -232,6 +259,7 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
     required AsyncValue<CamporeeLeaderboard>? leaderboardAsync,
     required bool participantsEnabled,
     required bool canRegisterParticipants,
+    required bool readOnly,
     required bool showDescription,
     required String? description,
   }) {
@@ -239,6 +267,18 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
       case _CamporeeDetailTab.info:
         return [
           _TitleSection(camporee: _camporee),
+          if (readOnly) ...[
+            const SizedBox(height: 10),
+            Text(
+              'camporees.detail.history_notice'.tr(),
+              style: TextStyle(
+                color: context.sac.textSecondary,
+                fontSize: 14,
+                height: 1.35,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
           const SizedBox(height: 24),
           _CamporeeFactsPanel(camporee: _camporee),
           const SizedBox(height: 20),
@@ -263,6 +303,7 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
               );
             },
             onManageParticipants: () => _openParticipants(),
+            showActions: !readOnly,
             showParticipantAction: false,
           ),
         ];
@@ -274,11 +315,12 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
             membersAsync: membersAsync,
             participantsEnabled: participantsEnabled,
             canRegisterParticipants: canRegisterParticipants,
+            readOnly: readOnly,
             registrationAsync: registrationAsync,
             onRetryMembers: () =>
                 ref.invalidate(camporeeMembersProvider(_camporeeId)),
           ),
-          if (participantsEnabled) ...[
+          if (participantsEnabled && !readOnly) ...[
             const SizedBox(height: 20),
             _ResourcesSection(camporeeId: _camporeeId),
           ],
@@ -327,6 +369,53 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
   }
 }
 
+class _DetailTabBody extends StatelessWidget {
+  final _CamporeeDetailTab tab;
+  final int slide;
+  final Widget child;
+
+  const _DetailTabBody({
+    required this.tab,
+    required this.slide,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final reduce = SacMotion.reduceMotionOf(context);
+    return AnimatedSwitcher(
+      duration: reduce ? SacMotion.reducedFade : SacMotion.standard,
+      switchInCurve: SacMotion.easeOut,
+      switchOutCurve: SacMotion.easeOut,
+      layoutBuilder: (current, previous) {
+        return Stack(
+          alignment: Alignment.topCenter,
+          fit: StackFit.expand,
+          children: [
+            for (final old in previous) IgnorePointer(child: old),
+            if (current != null) current,
+          ],
+        );
+      },
+      transitionBuilder: (child, animation) {
+        final fade = FadeTransition(opacity: animation, child: child);
+        if (reduce) return fade;
+        final incoming = child.key == ValueKey(tab);
+        final begin = Offset((incoming ? 0.06 : -0.06) * slide, 0);
+        return SlideTransition(
+          position:
+              Tween<Offset>(begin: begin, end: Offset.zero).animate(animation),
+          child: fade,
+        );
+      },
+      child: KeyedSubtree(
+        key: ValueKey(tab),
+        child: child,
+      ),
+    );
+  }
+}
+
 class _DetailTabBar extends StatelessWidget {
   final _CamporeeDetailTab tab;
   final bool showProgram;
@@ -368,7 +457,7 @@ class _DetailTabBar extends StatelessWidget {
               height: 44,
               child: TweenAnimationBuilder<double>(
                 tween: Tween<double>(end: targetLeft),
-                duration: reduce ? Duration.zero : SacMotion.press,
+                duration: reduce ? Duration.zero : SacMotion.standard,
                 curve: SacMotion.easeOut,
                 builder: (context, dx, _) {
                   return Stack(
@@ -1593,6 +1682,7 @@ class _MembersSection extends StatelessWidget {
   final AsyncValue<List<CamporeeMember>> membersAsync;
   final bool participantsEnabled;
   final bool canRegisterParticipants;
+  final bool readOnly;
   final AsyncValue<CamporeeSectionRegistration> registrationAsync;
   final VoidCallback onRetryMembers;
 
@@ -1602,6 +1692,7 @@ class _MembersSection extends StatelessWidget {
     required this.membersAsync,
     required this.participantsEnabled,
     required this.canRegisterParticipants,
+    required this.readOnly,
     required this.registrationAsync,
     required this.onRetryMembers,
   });
@@ -1623,6 +1714,7 @@ class _MembersSection extends StatelessWidget {
                 camporeeId: camporeeId,
                 camporeeName: camporeeName,
                 members: members,
+                readOnly: readOnly,
               ),
               loading: () => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 18),
@@ -1636,6 +1728,7 @@ class _MembersSection extends StatelessWidget {
               ),
               error: (_, __) => _MembersError(onRetry: onRetryMembers),
             ),
+          _EnrollmentOrders(camporeeId: camporeeId),
           if (canRegisterParticipants) ...[
             const SizedBox(height: 14),
             SacButton.primary(
@@ -1659,6 +1752,124 @@ class _MembersSection extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _EnrollmentOrders extends ConsumerWidget {
+  final int camporeeId;
+
+  const _EnrollmentOrders({required this.camporeeId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ordersContext = ref.watch(paymentOrdersContextProvider);
+    if (ordersContext.valueOrNull?.enabled != true) {
+      return const SizedBox.shrink();
+    }
+
+    final ordersAsync = ref.watch(
+      paymentOrdersListProvider(
+        PaymentOrdersFilter(
+          purpose: PaymentOrderPurpose.camporee,
+          camporeeId: camporeeId,
+        ),
+      ),
+    );
+    final c = context.sac;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 20),
+        _SectionHeader(label: 'camporees.detail.enrollment_orders'.tr()),
+        const SizedBox(height: 10),
+        ordersAsync.when(
+          loading: () => const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Center(child: SacLoading()),
+          ),
+          error: (_, __) => Text(
+            'camporees.detail.enrollment_orders_error'.tr(),
+            style:
+                TextStyle(fontSize: 13, color: c.textSecondary, height: 1.35),
+          ),
+          data: (orders) {
+            if (orders.isEmpty) {
+              return Text(
+                'camporees.detail.enrollment_orders_empty'.tr(),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: c.textSecondary,
+                  height: 1.35,
+                ),
+              );
+            }
+            return Column(
+              children: [
+                for (var i = 0; i < orders.length; i++) ...[
+                  if (i > 0) const SizedBox(height: 8),
+                  _EnrollmentOrderRow(order: orders[i]),
+                ],
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _EnrollmentOrderRow extends StatelessWidget {
+  final PaymentOrder order;
+
+  const _EnrollmentOrderRow({required this.order});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return Material(
+      color: c.background,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: () => context.push(
+          RouteNames.paymentOrderDetailPath(order.orderId),
+        ),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: c.border),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      order.folioReference,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: c.text,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      formatCentavos(order.totalCentavos, order.currency),
+                      style: TextStyle(fontSize: 12.5, color: c.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              PaymentOrderStatusBadge(status: order.status),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1750,11 +1961,13 @@ class _MembersPreview extends StatelessWidget {
   final int camporeeId;
   final String camporeeName;
   final List<CamporeeMember> members;
+  final bool readOnly;
 
   const _MembersPreview({
     required this.camporeeId,
     required this.camporeeName,
     required this.members,
+    required this.readOnly,
   });
 
   @override
@@ -1807,6 +2020,7 @@ class _MembersPreview extends StatelessWidget {
                 builder: (context) => CamporeeMembersView(
                   camporeeId: camporeeId,
                   camporeeName: camporeeName,
+                  readOnly: readOnly,
                 ),
               ),
             );

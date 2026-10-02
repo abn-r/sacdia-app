@@ -8,11 +8,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
@@ -30,6 +32,7 @@ import '../../domain/entities/unit.dart';
 import '../../domain/entities/unit_member.dart';
 import '../../domain/week_activities.dart';
 import '../providers/units_providers.dart';
+import 'unit_points_history_view.dart';
 
 /// Asignación semanal de puntos — UI minimalista.
 ///
@@ -105,56 +108,71 @@ class UnitDetailView extends ConsumerWidget {
           frosted: true),
       body: SacFrostedVeil(
         child: Builder(
-          builder: (context) => Column(
-            children: [
-              _WeekActivitiesBanner(unit: unit),
-              if (state.isSavedToday) const _SavedStatusStrip(),
-              Expanded(
-                child: members.isEmpty
-                    ? const SizedBox.shrink()
-                    : _MemberScoreList(
-                        members: members,
-                        categories: state.categories,
-                        pendingScores: state.pendingScores,
-                        totalFor: state.totalPendingForMember,
-                        isDisabled: state.isSavedToday || !canRegisterPoints,
-                        isReadOnly: !canRegisterPoints,
-                        topPadding: state.isSavedToday ? 8 : 12,
-                        bottomPadding: canRegisterPoints ? 16 : 28,
-                        onAdjust: (memberId, categoryId, delta) {
-                          HapticFeedback.selectionClick();
-                          notifier.adjustCategoryPoints(
-                            memberId,
-                            categoryId,
-                            delta,
-                          );
-                        },
-                        onSetValue: (memberId, categoryId, value) {
-                          HapticFeedback.selectionClick();
-                          notifier.setCategoryPoints(
-                            memberId,
-                            categoryId,
-                            value,
-                          );
-                        },
-                        onSetAll: (memberId) {
-                          HapticFeedback.lightImpact();
-                          notifier.setAllCategoryPointsForMember(memberId);
-                        },
-                        onClear: (memberId) {
-                          HapticFeedback.lightImpact();
-                          notifier.clearCategoryPointsForMember(memberId);
-                        },
+          builder: (context) => Padding(
+            padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+            child: Column(
+              children: [
+                _SectionLink(
+                  icon: HugeIcons.strokeRoundedCalendar01,
+                  title: 'units.detail.points_history_title'.tr(),
+                  subtitle: 'units.detail.points_history_subtitle'.tr(),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      SacSharedAxisRoute<void>(
+                        builder: (_) => UnitPointsHistoryView(unit: unit),
                       ),
-              ),
-              if (canRegisterPoints)
-                _SaveFooter(
-                  isSavedToday: state.isSavedToday,
-                  isSaving: state.isSaving,
-                  onSave: () => _handleSave(context, notifier),
-                  onReset: () => notifier.resetSession(),
+                    );
+                  },
                 ),
-            ],
+                _WeekActivitiesBanner(unit: unit),
+                if (state.isSavedToday) const _SavedStatusStrip(),
+                Expanded(
+                  child: members.isEmpty
+                      ? const SizedBox.shrink()
+                      : _MemberScoreList(
+                          members: members,
+                          categories: state.categories,
+                          pendingScores: state.pendingScores,
+                          totalFor: state.totalPendingForMember,
+                          isDisabled: state.isSavedToday || !canRegisterPoints,
+                          isReadOnly: !canRegisterPoints,
+                          topPadding: state.isSavedToday ? 8 : 12,
+                          bottomPadding: canRegisterPoints ? 16 : 28,
+                          onAdjust: (memberId, categoryId, delta) {
+                            HapticFeedback.selectionClick();
+                            notifier.adjustCategoryPoints(
+                              memberId,
+                              categoryId,
+                              delta,
+                            );
+                          },
+                          onSetValue: (memberId, categoryId, value) {
+                            HapticFeedback.selectionClick();
+                            notifier.setCategoryPoints(
+                              memberId,
+                              categoryId,
+                              value,
+                            );
+                          },
+                          onSetAll: (memberId) {
+                            HapticFeedback.lightImpact();
+                            notifier.setAllCategoryPointsForMember(memberId);
+                          },
+                          onClear: (memberId) {
+                            HapticFeedback.lightImpact();
+                            notifier.clearCategoryPointsForMember(memberId);
+                          },
+                        ),
+                ),
+                if (canRegisterPoints)
+                  _SaveFooter(
+                    isSavedToday: state.isSavedToday,
+                    isSaving: state.isSaving,
+                    onSave: () => _handleSave(context, notifier),
+                    onReset: () => notifier.resetSession(),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -260,6 +278,77 @@ class UnitDetailView extends ConsumerWidget {
 }
 
 // ── Status ────────────────────────────────────────────────────────────────────
+
+class _SectionLink extends StatelessWidget {
+  const _SectionLink({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final List<List<dynamic>> icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final accent = SacAccent.of(context).color;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: SacCard(
+        onTap: onTap,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        borderColor: c.borderLight,
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+              ),
+              child: HugeIcon(icon: icon, color: accent, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: c.text,
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: c.textSecondary,
+                          height: 1.3,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowRight01,
+              size: 18,
+              color: c.textTertiary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class _WeekActivitiesBanner extends ConsumerWidget {
   const _WeekActivitiesBanner({required this.unit});
@@ -483,8 +572,8 @@ class _MemberScoreListState extends State<_MemberScoreList> {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      padding: SacTopBar.paddingBelowBar(context,
-          EdgeInsets.fromLTRB(16, widget.topPadding, 16, widget.bottomPadding)),
+      padding:
+          EdgeInsets.fromLTRB(16, widget.topPadding, 16, widget.bottomPadding),
       itemCount: widget.members.length,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, index) {

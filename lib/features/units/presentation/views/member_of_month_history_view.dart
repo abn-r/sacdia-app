@@ -76,10 +76,7 @@ class _MemberOfMonthHistoryViewState
           title: 'units.member_of_month.history_title'.tr(), frosted: true),
       body: SacFrostedVeil(
         child: Builder(
-          builder: (context) => Padding(
-            padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
-            child: _buildBody(context, c, historyState),
-          ),
+          builder: (context) => _buildBody(context, c, historyState),
         ),
       ),
     );

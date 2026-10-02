@@ -61,7 +61,6 @@ class AchievementCard extends StatelessWidget {
             visualState: visualState,
             isSecret: achievement.secret,
             size: 64,
-            progress: progressPercentage,
           ),
           const SizedBox(width: 12),
 

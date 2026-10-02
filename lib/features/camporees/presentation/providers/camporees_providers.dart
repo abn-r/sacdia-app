@@ -14,6 +14,7 @@ import '../../domain/entities/camporee_judge_assignment.dart';
 import '../../domain/entities/camporee_leaderboard.dart';
 import '../../domain/entities/camporee_member.dart';
 import '../../domain/entities/camporee_payment.dart';
+import '../../domain/entities/camporee_official_score.dart';
 import '../../domain/entities/camporee_rubric.dart';
 import '../../domain/entities/camporee_score_submission.dart';
 import '../../domain/entities/camporee_section_registration.dart';
@@ -41,8 +42,9 @@ final camporeesRepositoryProvider = Provider<CamporeesRepository>((ref) {
 
 // ── Data providers ────────────────────────────────────────────────────────────
 
-/// Provider para la lista de camporees activos de la sección.
+/// Provider para los camporees habilitados del alcance de la sección.
 ///
+/// Incluye vigentes e históricos. La pantalla principal recorta por fecha.
 /// Envía `club_type_id` de la sección activa y vuelve a filtrar en cliente
 /// por si el API aún no recorta (paginación / despliegues viejos).
 final camporeesProvider =
@@ -852,7 +854,7 @@ final camporeeLeaderboardProvider = FutureProvider.autoDispose
 
 /// Rúbricas activas de un evento de camporee.
 final camporeeEventRubricsProvider = FutureProvider.autoDispose
-    .family<List<CamporeeRubric>, int>((ref, eventId) async {
+    .family<CamporeeEventRubricSheet, int>((ref, eventId) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final repository = ref.read(camporeesRepositoryProvider);
@@ -863,7 +865,25 @@ final camporeeEventRubricsProvider = FutureProvider.autoDispose
 
   return result.fold(
     (failure) => throw Exception(failure.message),
-    (rubrics) => rubrics,
+    (sheet) => sheet,
+  );
+});
+
+/// Puntaje oficial activo de una sección. Null si todavía se puede capturar.
+final camporeeOfficialScoreProvider = FutureProvider.autoDispose
+    .family<CamporeeOfficialScore?, CamporeeJudgeScoreParams>((ref, params) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final repository = ref.read(camporeesRepositoryProvider);
+  final result = await repository.getCamporeeOfficialScore(
+    params.eventId,
+    params.clubSectionId,
+    cancelToken: cancelToken,
+  );
+
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (score) => score,
   );
 });
 

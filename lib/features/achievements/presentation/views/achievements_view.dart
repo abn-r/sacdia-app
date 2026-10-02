@@ -1,9 +1,5 @@
-import 'dart:ui';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
@@ -12,9 +8,9 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
-import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../../domain/entities/user_achievement.dart';
 import '../../domain/repositories/achievements_repository.dart';
@@ -22,431 +18,121 @@ import '../providers/achievements_providers.dart';
 import '../widgets/achievement_grid_card.dart';
 import 'achievement_detail_sheet.dart';
 
-enum _AchievementFilter { all, unlocked, inProgress, locked }
-
-/// Achievements screen v2 — summary hero, filters, badge grid with motion.
-class AchievementsView extends ConsumerStatefulWidget {
+/// Misma composición que Maestrías: barra esmerilada y grilla de tarjetas.
+class AchievementsView extends ConsumerWidget {
   const AchievementsView({super.key});
 
   @override
-  ConsumerState<AchievementsView> createState() => _AchievementsViewState();
-}
-
-class _AchievementsViewState extends ConsumerState<AchievementsView> {
-  _AchievementFilter _filter = _AchievementFilter.all;
-  bool _entrancePlayed = false;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final responseAsync = ref.watch(userAchievementsProvider);
     final c = context.sac;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: c.background,
-      body: responseAsync.when(
-        loading: () => const Center(child: SacLoading()),
-        error: (error, stack) => CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            _buildAppBar(context),
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: _ErrorState(
-                onRetry: () => ref.invalidate(userAchievementsProvider),
+      appBar: SacTopBar(
+        title: 'achievements.views.title'.tr(),
+        centerTitle: true,
+        frosted: true,
+      ),
+      body: SacFrostedVeil(
+        child: Builder(
+          builder: (context) {
+            final top = SacTopBar.frostedInset(context);
+            return responseAsync.when(
+              loading: () => Padding(
+                padding: EdgeInsets.only(top: top),
+                child: const Center(child: SacLoading()),
               ),
-            ),
-          ],
-        ),
-        data: (response) {
-          final all = _flattenSorted(response);
-          if (all.isEmpty) {
-            return CustomScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                _buildAppBar(context),
-                const SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: _EmptyState(),
+              error: (_, __) => Padding(
+                padding: EdgeInsets.only(top: top),
+                child: _ErrorState(
+                  onRetry: () => ref.invalidate(userAchievementsProvider),
                 ),
-              ],
+              ),
+              data: (response) {
+                final items = _flattenSorted(response);
+                if (items.isEmpty) {
+                  return Padding(
+                    padding: EdgeInsets.only(top: top),
+                    child: const _EmptyState(),
+                  );
+                }
+
+                return RefreshIndicator(
+                  color: SacAccent.of(context).color,
+                  backgroundColor: c.surface,
+                  edgeOffset: top,
+                  onRefresh: () async {
+                    ref.invalidate(userAchievementsProvider);
+                    await ref.read(userAchievementsProvider.future);
+                  },
+                  child: GridView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics(),
+                    ),
+                    padding: EdgeInsets.fromLTRB(16, top, 16, 24),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      childAspectRatio: 0.62,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                    ),
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      final delayMs =
+                          index.clamp(0, 11) * SacMotion.stagger.inMilliseconds;
+                      return AchievementGridCard(
+                        key: ValueKey(item.achievement.achievementId),
+                        achievementWithProgress: item,
+                        animationDelay: Duration(milliseconds: delayMs),
+                        onTap: () => _showDetail(context, item),
+                      );
+                    },
+                  ),
+                );
+              },
             );
-          }
-
-          final filtered = _applyFilter(all, _filter);
-          final counts = _FilterCounts.from(all);
-
-          if (!_entrancePlayed) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted && !_entrancePlayed) {
-                setState(() => _entrancePlayed = true);
-              }
-            });
-          }
-
-          return RefreshIndicator(
-            color: SacAccent.of(context).color,
-            backgroundColor: c.surface,
-            edgeOffset: MediaQuery.paddingOf(context).top + 56,
-            onRefresh: () async {
-              ref.invalidate(userAchievementsProvider);
-              await ref.read(userAchievementsProvider.future);
-            },
-            child: CustomScrollView(
-              physics: const AlwaysScrollableScrollPhysics(
-                parent: BouncingScrollPhysics(),
-              ),
-              slivers: [
-                _buildAppBar(context),
-                SliverToBoxAdapter(
-                  child: _SummaryHeader(
-                    completed: response.summary.totalCompleted,
-                    total: all.length,
-                    points: response.summary.totalPoints,
-                    percentage: response.summary.completionPercentage,
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: _FilterBar(
-                    filter: _filter,
-                    counts: counts,
-                    onChanged: (value) => setState(() => _filter = value),
-                  ),
-                ),
-                if (filtered.isEmpty)
-                  SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: _FilterEmptyState(
-                      onClear: () =>
-                          setState(() => _filter = _AchievementFilter.all),
-                    ),
-                  )
-                else
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
-                    sliver: SliverGrid(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                        childAspectRatio: 0.62,
-                      ),
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final item = filtered[index];
-                          // Stagger only on first paint — filter/scroll must not re-play.
-                          final delayMs = _entrancePlayed
-                              ? 0
-                              : (index.clamp(0, 11)) *
-                                  SacMotion.stagger.inMilliseconds;
-                          return AchievementGridCard(
-                            key: ValueKey(item.achievement.achievementId),
-                            achievementWithProgress: item,
-                            animationDelay: Duration(milliseconds: delayMs),
-                            animateEntrance: !_entrancePlayed,
-                            onTap: () => _showDetailSheet(context, item),
-                          );
-                        },
-                        childCount: filtered.length,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  SliverAppBar _buildAppBar(BuildContext context) {
-    final c = context.sac;
-    return SliverAppBar(
-      pinned: true,
-      floating: false,
-      stretch: false,
-      backgroundColor: c.background.withValues(alpha: 0.88),
-      surfaceTintColor: Colors.transparent,
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      systemOverlayStyle: Theme.of(context).brightness == Brightness.dark
-          ? SystemUiOverlayStyle.light
-          : SystemUiOverlayStyle.dark,
-      foregroundColor: c.text,
-      centerTitle: true,
-      title: Text(
-        'achievements.views.title'.tr(),
-        style: TextStyle(
-          color: c.text,
-          fontSize: 17,
-          fontWeight: FontWeight.w700,
-          letterSpacing: -0.2,
-        ),
-      ),
-      leading: SacPressable(
-        listenOnly: true,
-        child: IconButton(
-          enableFeedback: false,
-          icon: HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowLeft01,
-            color: c.text,
-            size: 22,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
-      flexibleSpace: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-          child: Container(color: c.background.withValues(alpha: 0.72)),
+          },
         ),
       ),
     );
   }
-
-  List<AchievementWithProgress> _flattenSorted(
-    UserAchievementsResponse response,
-  ) {
-    final all =
-        response.categories.expand((group) => group.achievements).toList();
-
-    int rank(AchievementWithProgress item) {
-      final state =
-          item.userAchievement?.visualState ?? AchievementVisualState.locked;
-      return switch (state) {
-        AchievementVisualState.unlocked => 0,
-        AchievementVisualState.inProgress => 1,
-        AchievementVisualState.locked => 2,
-      };
-    }
-
-    all.sort((a, b) => rank(a).compareTo(rank(b)));
-    return all;
-  }
-
-  List<AchievementWithProgress> _applyFilter(
-    List<AchievementWithProgress> all,
-    _AchievementFilter filter,
-  ) {
-    if (filter == _AchievementFilter.all) return all;
-    return all.where((item) {
-      final state =
-          item.userAchievement?.visualState ?? AchievementVisualState.locked;
-      return switch (filter) {
-        _AchievementFilter.all => true,
-        _AchievementFilter.unlocked => state == AchievementVisualState.unlocked,
-        _AchievementFilter.inProgress =>
-          state == AchievementVisualState.inProgress,
-        _AchievementFilter.locked => state == AchievementVisualState.locked,
-      };
-    }).toList();
-  }
-
-  void _showDetailSheet(
-    BuildContext context,
-    AchievementWithProgress item,
-  ) {
-    showSacSheet(
-      context: context,
-      isScrollControlled: true,
-      useRootNavigator: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withValues(alpha: 0.4),
-      builder: (_) => AchievementDetailSheet(
-        achievementWithProgress: item,
-      ),
-    );
-  }
 }
 
-class _FilterCounts {
-  final int all;
-  final int unlocked;
-  final int inProgress;
-  final int locked;
+List<AchievementWithProgress> _flattenSorted(
+    UserAchievementsResponse response) {
+  final all =
+      response.categories.expand((group) => group.achievements).toList();
 
-  const _FilterCounts({
-    required this.all,
-    required this.unlocked,
-    required this.inProgress,
-    required this.locked,
-  });
-
-  factory _FilterCounts.from(List<AchievementWithProgress> items) {
-    var unlocked = 0;
-    var inProgress = 0;
-    var locked = 0;
-    for (final item in items) {
-      final state =
-          item.userAchievement?.visualState ?? AchievementVisualState.locked;
-      switch (state) {
-        case AchievementVisualState.unlocked:
-          unlocked++;
-        case AchievementVisualState.inProgress:
-          inProgress++;
-        case AchievementVisualState.locked:
-          locked++;
-      }
-    }
-    return _FilterCounts(
-      all: items.length,
-      unlocked: unlocked,
-      inProgress: inProgress,
-      locked: locked,
-    );
+  int rank(AchievementWithProgress item) {
+    final state =
+        item.userAchievement?.visualState ?? AchievementVisualState.locked;
+    return switch (state) {
+      AchievementVisualState.unlocked => 0,
+      AchievementVisualState.inProgress => 1,
+      AchievementVisualState.locked => 2,
+    };
   }
+
+  all.sort((a, b) => rank(a).compareTo(rank(b)));
+  return all;
 }
 
-// ── Summary header ─────────────────────────────────────────────────────────────
-
-class _SummaryHeader extends StatelessWidget {
-  final int completed;
-  final int total;
-  final int points;
-  final double percentage;
-
-  const _SummaryHeader({
-    required this.completed,
-    required this.total,
-    required this.points,
-    required this.percentage,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final progress = (percentage / 100).clamp(0.0, 1.0);
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '$completed',
-                style: TextStyle(
-                  fontSize: 40,
-                  fontWeight: FontWeight.w800,
-                  height: 1,
-                  letterSpacing: -1.2,
-                  color: c.text,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 6, left: 6),
-                child: Text(
-                  'achievements.views.summary_of'.tr(
-                    namedArgs: {'total': '$total'},
-                  ),
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    color: c.textSecondary,
-                  ),
-                ),
-              ),
-              const Spacer(),
-              if (points > 0)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Text(
-                    'achievements.views.summary_points'.tr(
-                      namedArgs: {'points': '$points'},
-                    ),
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: SacAccent.of(context).color,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: SizedBox(
-              height: 5,
-              child: Stack(
-                children: [
-                  Container(color: c.border),
-                  FractionallySizedBox(
-                    widthFactor: progress,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: SacAccent.of(context).color,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+void _showDetail(BuildContext context, AchievementWithProgress item) {
+  showSacSheet(
+    context: context,
+    isScrollControlled: true,
+    useRootNavigator: true,
+    backgroundColor: Colors.transparent,
+    barrierColor: Colors.black.withValues(alpha: 0.4),
+    builder: (_) => AchievementDetailSheet(
+      achievementWithProgress: item,
+    ),
+  );
 }
-
-// ── Filter bar ─────────────────────────────────────────────────────────────────
-
-class _FilterBar extends StatelessWidget {
-  final _AchievementFilter filter;
-  final _FilterCounts counts;
-  final ValueChanged<_AchievementFilter> onChanged;
-
-  const _FilterBar({
-    required this.filter,
-    required this.counts,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: SacFilterChip.barHeight,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        children: [
-          SacFilterChip(
-            label: 'achievements.views.filter_all'.tr(),
-            count: counts.all,
-            selected: filter == _AchievementFilter.all,
-            onTap: () => onChanged(_AchievementFilter.all),
-          ),
-          const SizedBox(width: 8),
-          SacFilterChip(
-            label: 'achievements.views.filter_unlocked'.tr(),
-            count: counts.unlocked,
-            selected: filter == _AchievementFilter.unlocked,
-            onTap: () => onChanged(_AchievementFilter.unlocked),
-          ),
-          const SizedBox(width: 8),
-          SacFilterChip(
-            label: 'achievements.views.filter_in_progress'.tr(),
-            count: counts.inProgress,
-            selected: filter == _AchievementFilter.inProgress,
-            onTap: () => onChanged(_AchievementFilter.inProgress),
-          ),
-          const SizedBox(width: 8),
-          SacFilterChip(
-            label: 'achievements.views.filter_locked'.tr(),
-            count: counts.locked,
-            selected: filter == _AchievementFilter.locked,
-            onTap: () => onChanged(_AchievementFilter.locked),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Empty / error ──────────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState();
@@ -456,23 +142,6 @@ class _EmptyState extends StatelessWidget {
     return SacEmptyState(
       icon: HugeIcons.strokeRoundedAward01,
       title: 'achievements.views.empty_title'.tr(),
-    );
-  }
-}
-
-class _FilterEmptyState extends StatelessWidget {
-  final VoidCallback onClear;
-
-  const _FilterEmptyState({required this.onClear});
-
-  @override
-  Widget build(BuildContext context) {
-    return SacEmptyState(
-      icon: HugeIcons.strokeRoundedFilter,
-      title: 'achievements.views.filter_empty'.tr(),
-      actionLabel: 'achievements.views.filter_all'.tr(),
-      onAction: onClear,
-      actionVariant: SacButtonVariant.outline,
     );
   }
 }

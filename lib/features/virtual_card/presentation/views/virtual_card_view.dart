@@ -125,6 +125,7 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
         body: SacFrostedVeil(
           child: Builder(
             builder: (context) => SafeArea(
+              top: false,
               child: RefreshIndicator(
                 onRefresh: _refresh,
                 child: ListView(

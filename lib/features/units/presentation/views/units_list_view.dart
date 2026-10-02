@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -14,6 +13,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../../../auth/domain/utils/authorization_utils.dart';
@@ -68,38 +68,44 @@ class UnitsListView extends ConsumerStatefulWidget {
 }
 
 class _UnitsListViewState extends ConsumerState<UnitsListView> {
+  bool _openedSingleUnit = false;
+
   @override
   void initState() {
     super.initState();
 
-    // Evaluar post-build para no causar un push durante el build tree.
-    // Auto-navigate when there is exactly ONE visible unit for this user.
-    // We wait for the club context so that role-based filtering is applied
-    // before deciding, avoiding a race between the async provider and the
-    // raw units list.
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
+    // El provider puede llegar ya resuelto. ref.listen no dispara el valor
+    // actual, así que la decisión de una sola unidad se evalúa al primer frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final rawUnits = ref.read(unitsNotifierProvider).units;
-      if (rawUnits.isEmpty) return; // nothing loaded yet — build reacts later
+      _tryOpenSingleUnit();
+    });
+  }
 
-      // Resolve role + userId for filtering (may be cached already)
-      final clubCtx = await ref.read(clubContextProvider.future);
+  void _tryOpenSingleUnit() {
+    if (_openedSingleUnit || !mounted) return;
+
+    final state = ref.read(unitsNotifierProvider);
+    if (state.isLoading || state.units.isEmpty) return;
+
+    final clubAsync = ref.read(clubContextProvider);
+    final auth = ref.read(authNotifierProvider);
+    if (clubAsync.isLoading || auth.isLoading) return;
+
+    final user = auth.valueOrNull;
+    final visible = _filterUnitsByRole(
+      state.units,
+      hasAnyPermission(user, const {'units:create'}),
+      user?.id,
+      clubAsync.valueOrNull?.sectionId,
+    );
+    if (visible.length != 1) return;
+
+    _openedSingleUnit = true;
+    final unit = visible.first;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-
-      final user = ref.read(authNotifierProvider).valueOrNull;
-      final userId = user?.id;
-      final sectionId = clubCtx?.sectionId;
-      final canSeeAll = hasAnyPermission(user, const {'units:create'});
-
-      final visible = _filterUnitsByRole(
-        rawUnits,
-        canSeeAll,
-        userId,
-        sectionId,
-      );
-      if (visible.length == 1) {
-        _navigateToUnit(visible.first, replace: true);
-      }
+      _navigateToUnit(unit, replace: true);
     });
   }
 
@@ -131,19 +137,24 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(unitsNotifierProvider, (previous, next) => _tryOpenSingleUnit());
+    ref.listen(clubContextProvider, (previous, next) => _tryOpenSingleUnit());
+    ref.listen(authNotifierProvider, (previous, next) => _tryOpenSingleUnit());
+
     final state = ref.watch(unitsNotifierProvider);
     final c = context.sac;
 
     // Resolve club context for role-based features (non-blocking — async)
     final clubContextAsync = ref.watch(clubContextProvider);
-    final currentUser =
-        ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
+    final authAsync = ref.watch(authNotifierProvider);
+    final currentUser = authAsync.valueOrNull;
 
     final sectionId = clubContextAsync.valueOrNull?.sectionId;
     final userId = currentUser?.id;
     final canManage = hasAnyPermission(currentUser, const {'units:update'});
     final canCreate = hasAnyPermission(currentUser, const {'units:create'});
     final canDelete = hasAnyPermission(currentUser, const {'units:delete'});
+    final canReadMom = hasAnyPermission(currentUser, const {'mom:read'});
 
     final visibleUnits = _filterUnitsByRole(
       state.units,
@@ -152,18 +163,38 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
       sectionId,
     );
 
-    // Caso de una sola unidad: render placeholder mientras se hace el push
-    // Use visibleUnits so leadership with 1 unit also
-    // navigates directly only when they genuinely have a single unit.
-    if (visibleUnits.length == 1 && state.units.isNotEmpty) {
-      return Scaffold(
-        backgroundColor: c.background,
-        body: const Center(child: SizedBox.shrink()),
+    final initialLoad =
+        state.units.isEmpty && (state.isLoading || clubContextAsync.isLoading);
+    final identityPending = state.units.isNotEmpty &&
+        visibleUnits.isEmpty &&
+        (authAsync.isLoading || clubContextAsync.isLoading);
+    final redirectingToOnlyUnit =
+        !state.isLoading && !identityPending && visibleUnits.length == 1;
+
+    final Widget content;
+    if (initialLoad || identityPending || redirectingToOnlyUnit) {
+      content = const _UnitsLoading();
+    } else if (state.units.isEmpty && state.errorMessage != null) {
+      content = _UnitsLoadError(message: state.errorMessage!);
+    } else if (visibleUnits.isEmpty) {
+      content = _EmptyState(
+        canCreate: canCreate,
+        onCreate: canCreate
+            ? () => showUnitFormSheet(context: context, ref: ref)
+            : null,
+      );
+    } else {
+      content = _Body(
+        state: state,
+        visibleUnits: visibleUnits,
+        canManage: canManage,
+        canDelete: canDelete,
+        canReadMom: canReadMom,
+        onUnitTap: _navigateToUnit,
+        onMemberOfMonthTap: _navigateToMemberOfMonthHistory,
       );
     }
 
-    // Necesitamos el clubId/sectionId para navegar al historial
-    // Lo obtenemos del provider (asíncrono — usamos una variable local)
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: c.background,
@@ -189,23 +220,7 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
           ],
           frosted: true),
       body: SacFrostedVeil(
-        child: Builder(
-          builder: (context) => visibleUnits.isEmpty && !state.isLoading
-              ? _EmptyState(
-                  canCreate: canCreate,
-                  onCreate: canCreate
-                      ? () => showUnitFormSheet(context: context, ref: ref)
-                      : null,
-                )
-              : _Body(
-                  state: state,
-                  visibleUnits: visibleUnits,
-                  canManage: canManage,
-                  canDelete: canDelete,
-                  onUnitTap: _navigateToUnit,
-                  onMemberOfMonthTap: _navigateToMemberOfMonthHistory,
-                ),
-        ),
+        child: Builder(builder: (context) => content),
       ),
     );
   }
@@ -221,6 +236,7 @@ class _Body extends ConsumerWidget {
 
   final bool canManage;
   final bool canDelete;
+  final bool canReadMom;
   final void Function(Unit unit) onUnitTap;
   final void Function(int clubId, int sectionId) onMemberOfMonthTap;
 
@@ -229,6 +245,7 @@ class _Body extends ConsumerWidget {
     required this.visibleUnits,
     required this.canManage,
     required this.canDelete,
+    required this.canReadMom,
     required this.onUnitTap,
     required this.onMemberOfMonthTap,
   });
@@ -243,11 +260,13 @@ class _Body extends ConsumerWidget {
         padding: SacTopBar.paddingBelowBar(
             context, const EdgeInsets.fromLTRB(16, 12, 16, 100)),
         children: [
-          _UnitsOverviewHeader(
-            count: visibleUnits.length,
-            canManage: canManage,
-          ),
-          const SizedBox(height: 10),
+          if (canReadMom && ctx != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _MemberOfMonthHistoryLink(
+                onTap: () => onMemberOfMonthTap(ctx.clubId, ctx.sectionId),
+              ),
+            ),
           if (state.memberOfMonth != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
@@ -267,11 +286,6 @@ class _Body extends ConsumerWidget {
         padding: SacTopBar.paddingBelowBar(
             context, const EdgeInsets.fromLTRB(16, 12, 16, 100)),
         children: [
-          _UnitsOverviewHeader(
-            count: visibleUnits.length,
-            canManage: canManage,
-          ),
-          const SizedBox(height: 10),
           for (final entry in visibleUnits.asMap().entries)
             _buildUnitCard(context, ref, entry.value, entry.key),
         ],
@@ -349,72 +363,65 @@ class _Body extends ConsumerWidget {
   }
 }
 
-// ── Overview Header ──────────────────────────────────────────────────────────
+// ── Member of Month entry ─────────────────────────────────────────────────────
 
-class _UnitsOverviewHeader extends StatelessWidget {
-  final int count;
-  final bool canManage;
+class _MemberOfMonthHistoryLink extends StatelessWidget {
+  const _MemberOfMonthHistoryLink({required this.onTap});
 
-  const _UnitsOverviewHeader({
-    required this.count,
-    required this.canManage,
-  });
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    final accent = SacAccent.of(context).color;
 
-    return Container(
+    return SacCard(
+      onTap: onTap,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: Color.alphaBlend(
-          SacAccent.of(context).color.withValues(alpha: 0.06),
-          c.surface,
-        ),
-        borderRadius: BorderRadius.circular(AppTheme.radiusXL),
-        border: Border.all(color: c.borderLight),
-      ),
+      borderColor: c.borderLight,
       child: Row(
         children: [
           Container(
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: SacAccent.of(context).color.withValues(alpha: 0.12),
+              color: accent.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppTheme.radiusMD),
             ),
             child: HugeIcon(
-              icon: HugeIcons.strokeRoundedUserGroup,
-              color: SacAccent.of(context).color,
-              size: 21,
+              icon: HugeIcons.strokeRoundedAward01,
+              color: accent,
+              size: 20,
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'units.list.summary_count'.tr(
-                    namedArgs: {'count': '$count'},
-                  ),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  'units.list.member_of_month'.tr(),
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         color: c.text,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                       ),
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 2),
                 Text(
-                  canManage
-                      ? 'units.list.summary_manage'.tr()
-                      : 'units.list.summary_view'.tr(),
+                  'units.list.mom_history_subtitle'.tr(),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: c.textSecondary,
-                        height: 1.35,
+                        height: 1.3,
                       ),
                 ),
               ],
             ),
+          ),
+          const SizedBox(width: 8),
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowRight01,
+            size: 18,
+            color: c.textTertiary,
           ),
         ],
       ),
@@ -698,7 +705,7 @@ class _UnitCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final accent = _unitAccentColor(unit.type);
+    final accent = SacAccent.of(context).color;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -893,16 +900,6 @@ class _UnitIdentityMark extends StatelessWidget {
   }
 }
 
-Color _unitAccentColor(String type) {
-  final lower = type.toLowerCase();
-  if (lower.contains('aventurer')) return AppColors.secondary;
-  if (lower.contains('guía') || lower.contains('guia')) {
-    return AppColors.colorGuiaMayor;
-  }
-  if (lower.contains('conquistador')) return AppColors.primary;
-  return AppColors.primary;
-}
-
 String _unitInitials(String name) {
   final words = name.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
   if (words.isEmpty) return '--';
@@ -962,7 +959,7 @@ class _UnitActionsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final accent = _unitAccentColor(unit.type);
+    final accent = SacAccent.of(context).color;
     final bottom = MediaQuery.of(context).padding.bottom;
 
     return Container(
@@ -1222,6 +1219,33 @@ class _ActionSheetTile extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// ── Loading / error ───────────────────────────────────────────────────────────
+
+class _UnitsLoading extends StatelessWidget {
+  const _UnitsLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(child: SacLoading());
+  }
+}
+
+class _UnitsLoadError extends ConsumerWidget {
+  const _UnitsLoadError({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SacEmptyState(
+      icon: HugeIcons.strokeRoundedAlertDiamond,
+      title: message,
+      actionLabel: 'common.retry'.tr(),
+      onAction: () => ref.read(unitsNotifierProvider.notifier).refresh(),
     );
   }
 }

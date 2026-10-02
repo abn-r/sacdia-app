@@ -117,4 +117,15 @@ void main() {
       expect(matched, hasLength(1));
     });
   });
+
+  test('scoringWeekPeriodFor matches the Saturday that closes the week', () {
+    final period = scoringWeekPeriodFor(2026, 10);
+
+    expect(period.startDate, DateTime(2026, 3, 1));
+    expect(period.endDate, DateTime(2026, 3, 7));
+    expect(
+      getScoringWeekPeriod(DateTime.utc(2026, 3, 7, 18)).week,
+      10,
+    );
+  });
 }

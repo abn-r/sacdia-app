@@ -48,6 +48,9 @@ void main() {
           'avatar': 'https://example.com/avatar.png',
           'club_name': 'ACV',
           'section_name': 'Conquistadores',
+          'local_field_name': 'Campo Centro',
+          'union_name': 'Unión Norte',
+          'ecclesiastical_year': '2026',
         },
         'visual': {
           'title': 'SACDIA',
@@ -64,6 +67,9 @@ void main() {
       expect(card.photoUrl, 'https://example.com/avatar.png');
       expect(card.clubName, 'ACV');
       expect(card.sectionName, 'Conquistadores');
+      expect(card.localFieldName, 'Campo Centro');
+      expect(card.unionName, 'Unión Norte');
+      expect(card.ecclesiasticalYear, '2026');
       expect(card.cardIdShort, 'fd43191d');
       expect(card.qrToken, 'qr-token');
       expect(card.canShowQr, isTrue);

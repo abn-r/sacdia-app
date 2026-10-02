@@ -16,6 +16,8 @@ class CredencialViewModel {
   final String etapa; // currentClass or empty
   final String club; // clubName or empty
   final String clubCorto; // 3-letter acronym
+  final String campoLocal;
+  final String unionNombre;
   final String sectionFull; // sectionName full (e.g. 'Guías Mayores')
   final String qrData; // token string — the actual QR payload
   final String folio; // derived short folio for display
@@ -37,6 +39,8 @@ class CredencialViewModel {
     required this.etapa,
     required this.club,
     required this.clubCorto,
+    required this.campoLocal,
+    required this.unionNombre,
     required this.sectionFull,
     required this.qrData,
     required this.folio,
@@ -55,8 +59,6 @@ class CredencialViewModel {
   /// Si el clubName es muy corto (≤4 chars) probablemente es un acrónimo.
   /// En ese caso preferimos mostrar el sectionName completo donde el espacio
   /// lo permita.
-  bool get clubLooksLikeAcronym => club.trim().length <= 4;
-
   /// Etiqueta principal de identidad para el chip primario.
   /// Prioriza cargo (rol del miembro). Si no existe, usa sectionFull.
   String get identidadPrimaria {
@@ -119,6 +121,8 @@ class CredencialViewModel {
       etapa: card.currentClass ?? '',
       club: card.clubName ?? '',
       clubCorto: _clubCorto(card.clubName, card.sectionName),
+      campoLocal: card.localFieldName ?? '',
+      unionNombre: card.unionName ?? '',
       sectionFull: card.sectionName ?? '',
 
       // ── QR payload ────────────────────────────────────────────────────────
@@ -128,7 +132,7 @@ class CredencialViewModel {
 
       // ── Dates & status ────────────────────────────────────────────────────
       fechaVencimiento: expiresAt,
-      anioEclesiastico: DateTime.now().year.toString(),
+      anioEclesiastico: card.ecclesiasticalYear ?? '',
       estado: card.isActive ? 'Activo' : 'Suspendido',
 
       // ── Visual ────────────────────────────────────────────────────────────

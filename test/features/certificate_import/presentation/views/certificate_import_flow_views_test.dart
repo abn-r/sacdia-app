@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
+import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/config/router.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
@@ -106,6 +107,77 @@ void main() {
   });
 
   group('CertificateImportUploadView', () {
+    testWidgets('explains the five-page PDF limit before uploading',
+        (tester) async {
+      await _pump(tester, const CertificateImportUploadView());
+      expect(find.textContaining('PDF de hasta 5 páginas'), findsOneWidget);
+    });
+
+    final pdfMessages = <String, String>{
+      'CERTIFICATE_IMPORT_PDF_TOO_MANY_PAGES':
+          'El PDF tiene más de 5 páginas. Divide el documento o extrae hasta 5 páginas y vuelve a subirlo.',
+      'CERTIFICATE_IMPORT_PDF_ENCRYPTED':
+          'El PDF está protegido. Quita la contraseña o la protección y vuelve a subirlo.',
+      'CERTIFICATE_IMPORT_PDF_INVALID':
+          'No se pudo leer el PDF. Expórtalo de nuevo como PDF y vuelve a subirlo.',
+    };
+    for (final entry in pdfMessages.entries) {
+      testWidgets('localizes ${entry.key} without exposing technical details',
+          (tester) async {
+        await _pump(
+          tester,
+          CertificateImportUploadView(
+            onSubmitProofs: (_) async =>
+                throw ServerFailure(message: entry.key, code: 400),
+            onPickFile: () async => const CertificateImportLocalProof(
+              localPath: '/private/internal.pdf',
+              fileName: 'comprobante.pdf',
+              mimeType: 'application/pdf',
+              fileSize: 128,
+            ),
+          ),
+        );
+        await tester.tap(find.text('Elegir archivo'));
+        await tester.pump();
+        await tester.tap(find.text('Subir comprobante'));
+        await tester.pumpAndSettle();
+        expect(find.text(entry.value), findsOneWidget);
+        expect(find.textContaining(entry.key), findsNothing);
+        expect(find.textContaining('/private/internal.pdf'), findsNothing);
+        expect(find.text('comprobante.pdf'), findsOneWidget);
+        final upload = tester.widget<SacButton>(
+          find.widgetWithText(SacButton, 'Subir comprobante'),
+        );
+        expect(upload.onPressed, isNotNull);
+      });
+    }
+
+    testWidgets('preserves unknown friendly failure messages', (tester) async {
+      await _pump(
+        tester,
+        CertificateImportUploadView(
+          onSubmitProofs: (_) async => throw const ServerFailure(
+            message:
+                'El almacenamiento no está disponible. Inténtalo más tarde.',
+          ),
+          onPickFile: () async => const CertificateImportLocalProof(
+            localPath: '/tmp/proof.pdf',
+            fileName: 'comprobante.pdf',
+            mimeType: 'application/pdf',
+            fileSize: 128,
+          ),
+        ),
+      );
+      await tester.tap(find.text('Elegir archivo'));
+      await tester.pump();
+      await tester.tap(find.text('Subir comprobante'));
+      await tester.pumpAndSettle();
+      expect(
+          find.text(
+              'El almacenamiento no está disponible. Inténtalo más tarde.'),
+          findsOneWidget);
+    });
+
     testWidgets('disables upload until a proof file is selected',
         (tester) async {
       var uploadCalls = 0;

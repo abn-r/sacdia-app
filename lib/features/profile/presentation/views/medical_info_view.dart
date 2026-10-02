@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/secure_screen.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/post_registration/data/models/allergy_model.dart';
@@ -124,378 +125,299 @@ class MedicalInfoView extends ConsumerWidget {
 
     return SecureScreen(
       child: Scaffold(
+        extendBodyBehindAppBar: true,
         backgroundColor: m.canvas,
-        body: SafeArea(
-          bottom: false,
-          child: Column(
-            children: [
-              _MedicoAppBar(
-                onBack: () => Navigator.of(context).maybePop(),
-              ),
-              Expanded(
-                child: ListView(
-                  padding: EdgeInsets.fromLTRB(
-                    16,
-                    16,
-                    16,
-                    MediaQuery.of(context).padding.bottom + 24,
+        appBar: SacTopBar(
+          title: 'profile.medical_info.title'.tr(),
+          centerTitle: true,
+          frosted: true,
+        ),
+        body: SacFrostedVeil(
+          child: Builder(
+            builder: (context) {
+              final bar = SacTopBar.frostedInset(context);
+              return ListView(
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  bar + 8,
+                  16,
+                  MediaQuery.paddingOf(context).bottom + 24,
+                ),
+                children: [
+                  // ── Hero: tipo de sangre ────────────────────────────────
+                  BloodHeroCard(
+                    bloodType: (blood == null || blood.isEmpty) ? null : blood,
+                    filled: filled,
+                    total: total,
+                    onEditar: () => _handleEditBlood(
+                      context,
+                      ref,
+                      rawBlood,
+                    ),
                   ),
-                  children: [
-                    // ── Hero: tipo de sangre ────────────────────────────────
-                    BloodHeroCard(
-                      bloodType:
-                          (blood == null || blood.isEmpty) ? null : blood,
-                      filled: filled,
-                      total: total,
-                      onEditar: () => _handleEditBlood(
-                        context,
-                        ref,
-                        rawBlood,
+                  const SizedBox(height: 14),
+
+                  // ── Contactos de emergencia ─────────────────────────────
+                  MedicoSectionCard(
+                    icon: HugeIcons.strokeRoundedContactBook,
+                    iconBg: m.coralSoft,
+                    iconFg: m.coralFg,
+                    title: 'profile.medical_info.emergency_contacts'.tr(),
+                    actionLabel: 'profile.medical_info.action_manage'.tr(),
+                    onAction: () => Navigator.of(context).push(
+                      SacSharedAxisRoute(
+                        builder: (_) => const EmergencyContactsView(),
                       ),
                     ),
-                    const SizedBox(height: 14),
-
-                    // ── Contactos de emergencia ─────────────────────────────
-                    MedicoSectionCard(
-                      icon: HugeIcons.strokeRoundedContactBook,
-                      iconBg: m.coralSoft,
-                      iconFg: m.coralFg,
-                      title: 'profile.medical_info.emergency_contacts'.tr(),
-                      actionLabel: 'profile.medical_info.action_manage'.tr(),
-                      onAction: () => Navigator.of(context).push(
-                        SacSharedAxisRoute(
-                          builder: (_) => const EmergencyContactsView(),
-                        ),
+                    child: contactsAsync.when(
+                      loading: () => const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: SacLoadingSmall(),
                       ),
-                      child: contactsAsync.when(
-                        loading: () => const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8),
-                          child: SacLoadingSmall(),
-                        ),
-                        error: (e, _) => _SectionError(
-                          message: e.toString(),
-                          onRetry: () =>
-                              ref.invalidate(emergencyContactsProvider),
-                        ),
-                        data: (contactList) {
-                          if (contactList.isEmpty) {
-                            return EmptyHint(
-                              label: 'profile.medical_info.none_contacts'.tr(),
-                              actionLabel:
-                                  'profile.medical_info.empty.add_contact_cta'
-                                      .tr(),
-                              onAction: () => Navigator.of(context).push(
-                                SacSharedAxisRoute(
-                                  builder: (_) => const EmergencyContactsView(),
-                                ),
+                      error: (e, _) => _SectionError(
+                        message: e.toString(),
+                        onRetry: () =>
+                            ref.invalidate(emergencyContactsProvider),
+                      ),
+                      data: (contactList) {
+                        if (contactList.isEmpty) {
+                          return EmptyHint(
+                            label: 'profile.medical_info.none_contacts'.tr(),
+                            actionLabel:
+                                'profile.medical_info.empty.add_contact_cta'
+                                    .tr(),
+                            onAction: () => Navigator.of(context).push(
+                              SacSharedAxisRoute(
+                                builder: (_) => const EmergencyContactsView(),
                               ),
-                            );
-                          }
-                          return Column(
-                            children: [
-                              for (var i = 0; i < contactList.length; i++) ...[
-                                if (i > 0) const SizedBox(height: 10),
-                                ContactTile(
-                                  contact: contactList[i],
-                                  onCall: (phone) => _call(phone),
-                                  onSms: (phone) => _sms(phone),
-                                ),
-                              ],
+                            ),
+                          );
+                        }
+                        return Column(
+                          children: [
+                            for (var i = 0; i < contactList.length; i++) ...[
+                              if (i > 0) const SizedBox(height: 10),
+                              ContactTile(
+                                contact: contactList[i],
+                                onCall: (phone) => _call(phone),
+                                onSms: (phone) => _sms(phone),
+                              ),
                             ],
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-
-                    // ── Alergias ────────────────────────────────────────────
-                    MedicoSectionCard(
-                      icon: HugeIcons.strokeRoundedFirstAidKit,
-                      iconBg: m.roseSoft,
-                      iconFg: m.roseFg,
-                      title: 'profile.medical_info.allergies'.tr(),
-                      actionLabel: 'profile.medical_info.action_edit'.tr(),
-                      onAction: () => Navigator.of(context).push(
-                        SacSharedAxisRoute(
-                          builder: (_) => const AllergiesSelectionView(),
-                        ),
-                      ),
-                      child: allergiesAsync.when(
-                        loading: () => const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8),
-                          child: SacLoadingSmall(),
-                        ),
-                        error: (e, _) => _SectionError(
-                          message: e.toString(),
-                          onRetry: () => ref.invalidate(userAllergiesProvider),
-                        ),
-                        data: (allergyList) {
-                          if (allergyList.isEmpty) {
-                            return EmptyHint(
-                              label: 'profile.medical_info.none_allergies'.tr(),
-                              actionLabel:
-                                  'profile.medical_info.action_edit'.tr(),
-                              onAction: () => Navigator.of(context).push(
-                                SacSharedAxisRoute(
-                                  builder: (_) =>
-                                      const AllergiesSelectionView(),
-                                ),
-                              ),
-                            );
-                          }
-                          return MedicalChipRow(
-                            children: allergyList
-                                .map((a) => MedicalChip(
-                                      label: a.name,
-                                      sub: a.severity.i18nKey.tr(),
-                                      tone: _severityTone(a.severity),
-                                    ))
-                                .toList(),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-
-                    // ── Enfermedades ────────────────────────────────────────
-                    MedicoSectionCard(
-                      icon: HugeIcons.strokeRoundedHealth,
-                      iconBg: m.amberSoft,
-                      iconFg: m.amberFg,
-                      title: 'profile.medical_info.diseases'.tr(),
-                      actionLabel: 'profile.medical_info.action_edit'.tr(),
-                      onAction: () => Navigator.of(context).push(
-                        SacSharedAxisRoute(
-                          builder: (_) => const DiseasesSelectionView(),
-                        ),
-                      ),
-                      child: diseasesAsync.when(
-                        loading: () => const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8),
-                          child: SacLoadingSmall(),
-                        ),
-                        error: (e, _) => _SectionError(
-                          message: e.toString(),
-                          onRetry: () => ref.invalidate(userDiseasesProvider),
-                        ),
-                        data: (diseaseList) {
-                          if (diseaseList.isEmpty) {
-                            return EmptyHint(
-                              label: 'profile.medical_info.none_diseases'.tr(),
-                              actionLabel:
-                                  'profile.medical_info.action_edit'.tr(),
-                              onAction: () => Navigator.of(context).push(
-                                SacSharedAxisRoute(
-                                  builder: (_) => const DiseasesSelectionView(),
-                                ),
-                              ),
-                            );
-                          }
-                          return MedicalChipRow(
-                            children: diseaseList.map((d) {
-                              final year = d.sinceYear;
-                              return MedicalChip(
-                                label: d.name,
-                                sub: year != null ? 'desde $year' : null,
-                                tone: SeverityTone.amber,
-                              );
-                            }).toList(),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-
-                    // ── Medicamentos ────────────────────────────────────────
-                    MedicoSectionCard(
-                      icon: HugeIcons.strokeRoundedMedicine01,
-                      iconBg: m.mintSoft,
-                      iconFg: m.mintFg,
-                      title: 'profile.medical_info.medicines'.tr(),
-                      actionLabel: 'profile.medical_info.action_edit'.tr(),
-                      onAction: () => Navigator.of(context).push(
-                        SacSharedAxisRoute(
-                          builder: (_) => const MedicinesSelectionView(),
-                        ),
-                      ),
-                      child: medicinesAsync.when(
-                        loading: () => const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8),
-                          child: SacLoadingSmall(),
-                        ),
-                        error: (e, _) => _SectionError(
-                          message: e.toString(),
-                          onRetry: () => ref.invalidate(userMedicinesProvider),
-                        ),
-                        data: (medicineList) {
-                          if (medicineList.isEmpty) {
-                            return EmptyHint(
-                              label: 'profile.medical_info.none_medicines'.tr(),
-                              actionLabel:
-                                  'profile.medical_info.action_edit'.tr(),
-                              onAction: () => Navigator.of(context).push(
-                                SacSharedAxisRoute(
-                                  builder: (_) =>
-                                      const MedicinesSelectionView(),
-                                ),
-                              ),
-                            );
-                          }
-                          return Column(
-                            children: [
-                              for (var i = 0; i < medicineList.length; i++) ...[
-                                if (i > 0) const SizedBox(height: 8),
-                                MedicamentTile(medicine: medicineList[i]),
-                              ],
-                            ],
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-
-                    // ── Representante Legal (condicional) ───────────────────
-                    legalRequiredAsync.when(
-                      loading: () => const SizedBox.shrink(),
-                      error: (_, __) => const SizedBox.shrink(),
-                      data: (isRequired) {
-                        if (!isRequired) return const SizedBox.shrink();
-                        return MedicoSectionCard(
-                          icon: HugeIcons.strokeRoundedSecurityCheck,
-                          iconBg: m.lavenderSoft,
-                          iconFg: m.lavenderFg,
-                          title: 'profile.medical_info.legal_rep'.tr(),
-                          actionLabel: 'profile.medical_info.action_edit'.tr(),
-                          onAction: () => Navigator.of(context).push(
-                            SacSharedAxisRoute(
-                              builder: (_) => const LegalRepresentativeView(),
-                            ),
-                          ),
-                          child: legalRepAsync.when(
-                            loading: () => const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 8),
-                              child: SacLoadingSmall(),
-                            ),
-                            error: (e, _) => _SectionError(
-                              message: e.toString(),
-                              onRetry: () =>
-                                  ref.invalidate(legalRepresentativeProvider),
-                            ),
-                            data: (rep) {
-                              if (rep == null) {
-                                return EmptyHint(
-                                  label: 'profile.medical_info.not_registered'
-                                      .tr(),
-                                );
-                              }
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '${rep.name} ${rep.paternalSurname} ${rep.maternalSurname}',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: m.textPrimary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '${rep.type} · ${rep.phone}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: m.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
-                          ),
+                          ],
                         );
                       },
                     ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ─────────── App bar ───────────────────────────────────────────────────────────
-
-class _MedicoAppBar extends StatelessWidget {
-  final VoidCallback? onBack;
-
-  const _MedicoAppBar({this.onBack});
-
-  @override
-  Widget build(BuildContext context) {
-    final m = MedicoTokens.of(context);
-    return Container(
-      decoration: BoxDecoration(
-        color: m.paper,
-        border: Border(bottom: BorderSide(color: m.border)),
-      ),
-      padding: const EdgeInsets.fromLTRB(18, 0, 18, 8),
-      child: Row(
-        children: [
-          _circleBtn(
-            color: m.controlBg,
-            iconColor: m.iconStrong,
-            icon: HugeIcons.strokeRoundedArrowLeft01,
-            onTap: onBack,
-          ),
-          Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Text(
-                //   'profile.medical_info.appbar.eyebrow'.tr(),
-                //   style: const TextStyle(
-                //     fontSize: 11,
-                //     color: MedicoTokens.ink400,
-                //     letterSpacing: 1.32,
-                //     fontWeight: FontWeight.w600,
-                //   ),
-                // ),
-                const SizedBox(height: 1),
-                Text(
-                  'profile.medical_info.title'.tr(),
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: m.textPrimary,
-                    letterSpacing: -0.17,
                   ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+                  const SizedBox(height: 14),
 
-  Widget _circleBtn({
-    required Color color,
-    required Color iconColor,
-    required List<List<dynamic>> icon,
-    VoidCallback? onTap,
-  }) {
-    return Material(
-      color: color,
-      borderRadius: BorderRadius.circular(12),
-      child: SacInkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: SizedBox(
-          width: 38,
-          height: 38,
-          child: HugeIcon(icon: icon, color: iconColor, size: 22),
+                  // ── Alergias ────────────────────────────────────────────
+                  MedicoSectionCard(
+                    icon: HugeIcons.strokeRoundedFirstAidKit,
+                    iconBg: m.roseSoft,
+                    iconFg: m.roseFg,
+                    title: 'profile.medical_info.allergies'.tr(),
+                    actionLabel: 'profile.medical_info.action_edit'.tr(),
+                    onAction: () => Navigator.of(context).push(
+                      SacSharedAxisRoute(
+                        builder: (_) => const AllergiesSelectionView(),
+                      ),
+                    ),
+                    child: allergiesAsync.when(
+                      loading: () => const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: SacLoadingSmall(),
+                      ),
+                      error: (e, _) => _SectionError(
+                        message: e.toString(),
+                        onRetry: () => ref.invalidate(userAllergiesProvider),
+                      ),
+                      data: (allergyList) {
+                        if (allergyList.isEmpty) {
+                          return EmptyHint(
+                            label: 'profile.medical_info.none_allergies'.tr(),
+                            actionLabel:
+                                'profile.medical_info.action_edit'.tr(),
+                            onAction: () => Navigator.of(context).push(
+                              SacSharedAxisRoute(
+                                builder: (_) => const AllergiesSelectionView(),
+                              ),
+                            ),
+                          );
+                        }
+                        return MedicalChipRow(
+                          children: allergyList
+                              .map((a) => MedicalChip(
+                                    label: a.name,
+                                    sub: a.severity.i18nKey.tr(),
+                                    tone: _severityTone(a.severity),
+                                  ))
+                              .toList(),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // ── Enfermedades ────────────────────────────────────────
+                  MedicoSectionCard(
+                    icon: HugeIcons.strokeRoundedHealth,
+                    iconBg: m.amberSoft,
+                    iconFg: m.amberFg,
+                    title: 'profile.medical_info.diseases'.tr(),
+                    actionLabel: 'profile.medical_info.action_edit'.tr(),
+                    onAction: () => Navigator.of(context).push(
+                      SacSharedAxisRoute(
+                        builder: (_) => const DiseasesSelectionView(),
+                      ),
+                    ),
+                    child: diseasesAsync.when(
+                      loading: () => const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: SacLoadingSmall(),
+                      ),
+                      error: (e, _) => _SectionError(
+                        message: e.toString(),
+                        onRetry: () => ref.invalidate(userDiseasesProvider),
+                      ),
+                      data: (diseaseList) {
+                        if (diseaseList.isEmpty) {
+                          return EmptyHint(
+                            label: 'profile.medical_info.none_diseases'.tr(),
+                            actionLabel:
+                                'profile.medical_info.action_edit'.tr(),
+                            onAction: () => Navigator.of(context).push(
+                              SacSharedAxisRoute(
+                                builder: (_) => const DiseasesSelectionView(),
+                              ),
+                            ),
+                          );
+                        }
+                        return MedicalChipRow(
+                          children: diseaseList.map((d) {
+                            final year = d.sinceYear;
+                            return MedicalChip(
+                              label: d.name,
+                              sub: year != null ? 'desde $year' : null,
+                              tone: SeverityTone.amber,
+                            );
+                          }).toList(),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // ── Medicamentos ────────────────────────────────────────
+                  MedicoSectionCard(
+                    icon: HugeIcons.strokeRoundedMedicine01,
+                    iconBg: m.mintSoft,
+                    iconFg: m.mintFg,
+                    title: 'profile.medical_info.medicines'.tr(),
+                    actionLabel: 'profile.medical_info.action_edit'.tr(),
+                    onAction: () => Navigator.of(context).push(
+                      SacSharedAxisRoute(
+                        builder: (_) => const MedicinesSelectionView(),
+                      ),
+                    ),
+                    child: medicinesAsync.when(
+                      loading: () => const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: SacLoadingSmall(),
+                      ),
+                      error: (e, _) => _SectionError(
+                        message: e.toString(),
+                        onRetry: () => ref.invalidate(userMedicinesProvider),
+                      ),
+                      data: (medicineList) {
+                        if (medicineList.isEmpty) {
+                          return EmptyHint(
+                            label: 'profile.medical_info.none_medicines'.tr(),
+                            actionLabel:
+                                'profile.medical_info.action_edit'.tr(),
+                            onAction: () => Navigator.of(context).push(
+                              SacSharedAxisRoute(
+                                builder: (_) => const MedicinesSelectionView(),
+                              ),
+                            ),
+                          );
+                        }
+                        return Column(
+                          children: [
+                            for (var i = 0; i < medicineList.length; i++) ...[
+                              if (i > 0) const SizedBox(height: 8),
+                              MedicamentTile(medicine: medicineList[i]),
+                            ],
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // ── Representante Legal (condicional) ───────────────────
+                  legalRequiredAsync.when(
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                    data: (isRequired) {
+                      if (!isRequired) return const SizedBox.shrink();
+                      return MedicoSectionCard(
+                        icon: HugeIcons.strokeRoundedSecurityCheck,
+                        iconBg: m.lavenderSoft,
+                        iconFg: m.lavenderFg,
+                        title: 'profile.medical_info.legal_rep'.tr(),
+                        actionLabel: 'profile.medical_info.action_edit'.tr(),
+                        onAction: () => Navigator.of(context).push(
+                          SacSharedAxisRoute(
+                            builder: (_) => const LegalRepresentativeView(),
+                          ),
+                        ),
+                        child: legalRepAsync.when(
+                          loading: () => const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            child: SacLoadingSmall(),
+                          ),
+                          error: (e, _) => _SectionError(
+                            message: e.toString(),
+                            onRetry: () =>
+                                ref.invalidate(legalRepresentativeProvider),
+                          ),
+                          data: (rep) {
+                            if (rep == null) {
+                              return EmptyHint(
+                                label:
+                                    'profile.medical_info.not_registered'.tr(),
+                              );
+                            }
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${rep.name} ${rep.paternalSurname} ${rep.maternalSurname}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: m.textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '${rep.type} · ${rep.phone}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: m.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );

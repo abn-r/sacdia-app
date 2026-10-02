@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
@@ -21,6 +22,7 @@ import '../widgets/current_class_card.dart';
 // Stats card kept available for future dashboard experiments.
 // import '../widgets/quick_stats_card.dart';
 import '../widgets/quick_access_grid.dart';
+import '../../../activities/presentation/views/activity_detail_view.dart';
 import '../widgets/upcoming_activities_card.dart';
 import '../widgets/membership_status_banner.dart';
 import '../widgets/birthday_celebration.dart';
@@ -165,6 +167,16 @@ class DashboardView extends ConsumerWidget {
                           UpcomingActivitiesCard(
                             activities:
                                 dashboard.upcomingActivities.take(3).toList(),
+                            onActivityTap: (activity) {
+                              Navigator.push(
+                                context,
+                                SacSharedAxisRoute(
+                                  builder: (context) => ActivityDetailView(
+                                    activityId: activity.id,
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                           const SizedBox(height: 24),
                         ],

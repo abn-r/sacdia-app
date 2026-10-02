@@ -312,8 +312,7 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
       },
       child: GridView.builder(
         key: ValueKey(displayed.items.map((item) => item.id).join(',')),
-        padding: SacTopBar.paddingBelowBar(
-            context, const EdgeInsets.fromLTRB(16, 0, 16, 100)),
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           mainAxisSpacing: 12,
@@ -350,8 +349,7 @@ class _CatalogSkeleton extends StatelessWidget {
     final c = context.sac;
     return GridView.builder(
       physics: const NeverScrollableScrollPhysics(),
-      padding: SacTopBar.paddingBelowBar(
-          context, const EdgeInsets.fromLTRB(16, 0, 16, 24)),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         mainAxisSpacing: 12,

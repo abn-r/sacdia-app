@@ -4,6 +4,7 @@ import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/club_type.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
@@ -33,7 +34,12 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
   Widget build(BuildContext context) {
     final c = context.sac;
     final filters = ref.watch(memberFiltersProvider);
-    final availableClasses = ref.watch(availableClassesProvider);
+    final availableClasses = sortClassFilterOptions(
+      ref.watch(availableClassesProvider),
+      ref.watch(membersNotifierProvider).valueOrNull?.members ?? const [],
+      noClassLabel: 'members.errors.no_class'.tr(),
+      guideMajorsLabel: 'members.guide_majors_group'.tr(),
+    );
     final availableRoles = ref.watch(availableRolesProvider);
 
     return Column(
@@ -209,10 +215,13 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
+      // El arrastre lo controla la hoja: así la lista la hace crecer.
+      enableDrag: false,
       builder: (_) => _PickerSheet(
         title: 'members.filter_bar.class_picker_title'.tr(),
         options: classes,
         selected: current,
+        showClassLogos: true,
       ),
     );
     if (selected != null && mounted) {
@@ -230,6 +239,7 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
+      enableDrag: false,
       builder: (_) => _PickerSheet(
         title: 'members.filter_bar.role_picker_title'.tr(),
         options: roles,
@@ -276,8 +286,9 @@ class _FilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final bgColor =
-        isActive ? SacAccent.of(context).color.withValues(alpha: 0.12) : c.surfaceVariant;
+    final bgColor = isActive
+        ? SacAccent.of(context).color.withValues(alpha: 0.12)
+        : c.surfaceVariant;
     final fgColor = isActive ? SacAccent.of(context).color : c.textSecondary;
     final borderColor = isActive ? SacAccent.of(context).light : c.border;
 
@@ -326,80 +337,104 @@ class _FilterChip extends StatelessWidget {
   }
 }
 
-/// Sheet genérico para selección de opciones
+/// Sheet genérico para selección de opciones.
+///
+/// Abre a la mitad de la pantalla y crece al desplazar la lista, hasta dejar
+/// un margen arriba. El mismo tamaño aplica a clase y a cargo.
 class _PickerSheet extends StatelessWidget {
   final String title;
   final List<String> options;
   final String? selected;
   final String Function(String)? labelBuilder;
+  final bool showClassLogos;
+
+  static const double initialChildSize = 0.5;
+  static const double minChildSize = 0.45;
+  static const double maxChildSize = 0.92;
 
   const _PickerSheet({
     required this.title,
     required this.options,
     this.selected,
     this.labelBuilder,
+    this.showClassLogos = false,
   });
+
+  /// Logo de clase. Sin mapeo, la fila queda solo con texto.
+  /// «Guías Mayores» usa el logo del club; «Sin clase» no tiene logo.
+  String? _logoAsset(String option) {
+    if (!showClassLogos) return null;
+    final mapped = AppColors.classLogoAsset(option);
+    if (mapped != null) return mapped;
+    if (option == 'members.guide_majors_group'.tr() ||
+        option == 'Guías Mayores') {
+      return ClubType.guiasMayores.logoAsset;
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
 
-    final bottomInset = MediaQuery.of(context).padding.bottom;
-    final maxHeight = MediaQuery.of(context).size.height * 0.8;
-
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: maxHeight),
-      child: Container(
-        decoration: BoxDecoration(
-          color: c.surfaceVariant,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            Center(
-              child: Container(
-                width: 36,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: c.border,
-                  borderRadius: BorderRadius.circular(3),
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: initialChildSize,
+      minChildSize: minChildSize,
+      maxChildSize: maxChildSize,
+      builder: (context, scrollController) {
+        return Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: c.surfaceVariant,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: CustomScrollView(
+            controller: scrollController,
+            slivers: [
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _FilterPickerHeaderDelegate(
+                  title: title,
+                  background: c.surfaceVariant,
+                  handleColor: c.border,
+                  titleColor: c.text,
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: c.text,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Flexible(
-              child: ListView(
-                // shrinkWrap removed: Flexible already provides a bounded
-                // height constraint, so ListView can scroll normally.
-                children: [
-                  ...options.map((option) {
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final option = options[index];
                     final label = labelBuilder?.call(option) ?? option;
                     final isSelected = option == selected;
+                    final logo = _logoAsset(option);
                     return SacPressable(
                       listenOnly: true,
                       child: ListTile(
                         enableFeedback: false,
+                        minLeadingWidth: 24,
+                        horizontalTitleGap: 8,
+                        leading: logo == null
+                            ? null
+                            : Image.asset(
+                                logo,
+                                key: ValueKey(
+                                    'member-filter-class-logo-$option'),
+                                width: 24,
+                                height: 24,
+                                fit: BoxFit.contain,
+                                excludeFromSemantics: true,
+                              ),
                         title: Text(
                           label,
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight:
                                 isSelected ? FontWeight.w600 : FontWeight.w400,
-                            color: isSelected ? SacAccent.of(context).color : c.text,
+                            color: isSelected
+                                ? SacAccent.of(context).color
+                                : c.text,
                           ),
                         ),
                         trailing: isSelected
@@ -412,15 +447,86 @@ class _PickerSheet extends StatelessWidget {
                         onTap: () => Navigator.pop(context, option),
                       ),
                     );
-                  }),
-                  SizedBox(height: 16 + bottomInset),
-                ],
+                  },
+                  childCount: options.length,
+                ),
+              ),
+              SliverToBoxAdapter(child: SizedBox(height: 16 + bottomInset)),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _FilterPickerHeaderDelegate extends SliverPersistentHeaderDelegate {
+  const _FilterPickerHeaderDelegate({
+    required this.title,
+    required this.background,
+    required this.handleColor,
+    required this.titleColor,
+  });
+
+  final String title;
+  final Color background;
+  final Color handleColor;
+  final Color titleColor;
+
+  static const double extent = 76;
+
+  @override
+  double get minExtent => extent;
+
+  @override
+  double get maxExtent => extent;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return ColoredBox(
+      color: background,
+      child: Column(
+        children: [
+          const SizedBox(height: 12),
+          Center(
+            child: Container(
+              width: 36,
+              height: 5,
+              decoration: BoxDecoration(
+                color: handleColor,
+                borderRadius: BorderRadius.circular(3),
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: titleColor,
+                height: 1.2,
+              ),
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  @override
+  bool shouldRebuild(covariant _FilterPickerHeaderDelegate oldDelegate) {
+    return title != oldDelegate.title ||
+        background != oldDelegate.background ||
+        handleColor != oldDelegate.handleColor ||
+        titleColor != oldDelegate.titleColor;
   }
 }
 
@@ -497,7 +603,8 @@ class _EnrollmentPickerSheet extends StatelessWidget {
                 'members.common.not_enrolled'.tr(),
                 style: TextStyle(
                   fontSize: 15,
-                  color: current == false ? SacAccent.of(context).color : c.text,
+                  color:
+                      current == false ? SacAccent.of(context).color : c.text,
                   fontWeight:
                       current == false ? FontWeight.w600 : FontWeight.w400,
                 ),

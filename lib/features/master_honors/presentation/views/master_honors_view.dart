@@ -29,28 +29,43 @@ class MasterHonorsView extends ConsumerWidget {
           title: 'master_honors.title'.tr(), centerTitle: true, frosted: true),
       body: SacFrostedVeil(
         child: Builder(
-          builder: (context) => Padding(
-            padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
-            child: roadmapAsync.when(
-              loading: () => const Center(child: SacLoading()),
-              error: (_, __) => _ErrorState(
-                onRetry: () => ref.invalidate(userMasterHonorRoadmapProvider),
+          builder: (context) {
+            final top = SacTopBar.frostedInset(context);
+            return roadmapAsync.when(
+              loading: () => Padding(
+                padding: EdgeInsets.only(top: top),
+                child: const Center(child: SacLoading()),
+              ),
+              error: (_, __) => Padding(
+                padding: EdgeInsets.only(top: top),
+                child: _ErrorState(
+                  onRetry: () => ref.invalidate(userMasterHonorRoadmapProvider),
+                ),
               ),
               data: (items) {
-                if (items.isEmpty) return const _EmptyState();
+                if (items.isEmpty) {
+                  return Padding(
+                    padding: EdgeInsets.only(top: top),
+                    child: const _EmptyState(),
+                  );
+                }
 
                 return RefreshIndicator(
                   color: SacAccent.of(context).color,
                   backgroundColor: context.sac.surface,
+                  edgeOffset: top,
                   onRefresh: () async {
                     ref.invalidate(userMasterHonorRoadmapProvider);
                     await ref.read(userMasterHonorRoadmapProvider.future);
                   },
-                  child: MasterHonorRoadmapGrid(items: items),
+                  child: MasterHonorRoadmapGrid(
+                    items: items,
+                    padding: EdgeInsets.fromLTRB(16, top, 16, 24),
+                  ),
                 );
               },
-            ),
-          ),
+            );
+          },
         ),
       ),
     );

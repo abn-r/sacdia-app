@@ -57,6 +57,7 @@ class InvestiturePendingListView extends ConsumerWidget {
       body: SacFrostedVeil(
         child: Builder(
           builder: (context) => SafeArea(
+            top: false,
             child: pendingAsync.when(
               data: (list) => _buildList(context, ref, list, hPad, c),
               loading: () => const Center(child: SacLoading()),

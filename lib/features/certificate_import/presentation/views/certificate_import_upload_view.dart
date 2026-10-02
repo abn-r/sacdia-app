@@ -14,6 +14,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
+import '../../../../core/errors/failures.dart';
 import '../../domain/entities/certificate_import_payloads.dart';
 import '../providers/certificate_import_providers.dart';
 import '../widgets/certificate_import_back_button.dart';
@@ -33,7 +34,7 @@ class CertificateImportUploadRouteView extends ConsumerWidget {
         final result =
             await ref.read(uploadCertificateImportProofProvider).call(proof);
         await result.fold(
-          (failure) async => throw Exception(failure.message),
+          (failure) async => throw failure,
           (batch) async {
             // A failed or empty reading still leaves the sealed file for manual entry.
             final ocr = await ref
@@ -299,6 +300,20 @@ class _CertificateImportUploadViewState
     }
   }
 
+  String _uploadErrorMessage(Object error) {
+    final message = error is Failure ? error.message : error.toString();
+    switch (message) {
+      case 'CERTIFICATE_IMPORT_PDF_TOO_MANY_PAGES':
+        return 'certificate_import.upload.pdf_too_many_pages'.tr();
+      case 'CERTIFICATE_IMPORT_PDF_ENCRYPTED':
+        return 'certificate_import.upload.pdf_encrypted'.tr();
+      case 'CERTIFICATE_IMPORT_PDF_INVALID':
+        return 'certificate_import.upload.pdf_invalid'.tr();
+      default:
+        return message;
+    }
+  }
+
   Future<void> _submit() async {
     final proof = _selectedProof;
     if (proof == null) return;
@@ -316,7 +331,7 @@ class _CertificateImportUploadViewState
     try {
       await widget.onSubmitProofs!(proof);
     } catch (error) {
-      setState(() => _error = error.toString());
+      if (mounted) setState(() => _error = _uploadErrorMessage(error));
     } finally {
       if (mounted) setState(() => _loading = false);
     }

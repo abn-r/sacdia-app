@@ -357,17 +357,20 @@ void main() {
       onInsuranceLoad: () => insuranceLoads += 1,
       onRegisteredIdsLoad: () => registeredIdsLoads += 1,
     );
+    await tester.pump();
 
-    expect(find.text('Seleccionar miembros'), findsNothing);
-    expect(find.text('Cómo inscribir'), findsOneWidget);
-    expect(find.text('Elegir miembros'), findsOneWidget);
-    expect(find.text('Elige a los miembros'), findsOneWidget);
+    expect(find.text('Cómo inscribir'), findsNothing);
+    expect(find.text('Emitir orden de camporee'), findsOneWidget);
+    expect(find.text('Seleccionar miembros'), findsOneWidget);
     expect(
-      find.text('Cuando el campo aprueba el pago, aparecen en Asistentes'),
+      find.text(
+        'Solo se muestran miembros activos con seguro vigente que aún no estén inscritos.',
+      ),
       findsOneWidget,
     );
-    expect(insuranceLoads, 0);
-    expect(registeredIdsLoads, 0);
+    expect(find.text('Registrar 0 miembros'), findsNothing);
+    expect(insuranceLoads, 1);
+    expect(registeredIdsLoads, 1);
   });
 
   testWidgets('contexto de órdenes con flag OFF conserva el flujo legacy',
@@ -421,9 +424,9 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
 
     expect(contextLoads, 2);
-    expect(find.text('Cómo inscribir'), findsOneWidget);
-    expect(find.text('Seleccionar miembros'), findsNothing);
-    expect(insuranceLoads, 0);
+    expect(find.text('Emitir orden de camporee'), findsOneWidget);
+    expect(find.text('Registrar 0 miembros'), findsNothing);
+    expect(insuranceLoads, 1);
   });
 }
 

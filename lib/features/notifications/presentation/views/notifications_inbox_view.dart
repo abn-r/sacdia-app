@@ -174,6 +174,7 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
       body: SacFrostedVeil(
         child: Builder(
           builder: (context) => SafeArea(
+            top: false,
             child: _buildBody(context, inboxState, c),
           ),
         ),

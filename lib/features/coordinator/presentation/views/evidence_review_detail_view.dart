@@ -61,13 +61,16 @@ class EvidenceReviewDetailView extends ConsumerWidget {
           frosted: true),
       body: SacFrostedVeil(
         child: Builder(
-          builder: (context) => Padding(
-            padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
-            child: detailAsync.when(
-              data: (item) =>
-                  _buildContent(context, ref, item, actionState, hPad, c),
-              loading: () => const Center(child: SacLoading()),
-              error: (error, _) => _buildError(context, ref, error, key),
+          builder: (context) => detailAsync.when(
+            data: (item) =>
+                _buildContent(context, ref, item, actionState, hPad, c),
+            loading: () => Padding(
+              padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+              child: const Center(child: SacLoading()),
+            ),
+            error: (error, _) => Padding(
+              padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+              child: _buildError(context, ref, error, key),
             ),
           ),
         ),
