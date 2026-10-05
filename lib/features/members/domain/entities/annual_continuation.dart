@@ -134,8 +134,7 @@ class ContinuationBatchResult extends Equatable {
   int get blockedCount =>
       results.where((row) => row.outcome == 'blocked').length;
 
-  int get failedCount =>
-      results.where((row) => row.outcome == 'failed').length;
+  int get failedCount => results.where((row) => row.outcome == 'failed').length;
 
   bool get hasPartialFailure => blockedCount > 0 || failedCount > 0;
 

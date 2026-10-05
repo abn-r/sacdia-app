@@ -115,7 +115,10 @@ class AuthorizationSnapshot extends Equatable {
   /// Whether the active assignment is in a non-active state
   /// (pending/rejected/expired/inactive).
   bool get hasRestrictedAccess =>
-      isActivePending || isActiveRejected || isActiveExpired || isActiveInactive;
+      isActivePending ||
+      isActiveRejected ||
+      isActiveExpired ||
+      isActiveInactive;
 
   /// Role names relevant to the current context: global grants + the active
   /// club assignment only. Roles from inactive club assignments are excluded so

@@ -60,7 +60,10 @@ class CoordinatorHubView extends ConsumerWidget {
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [SacAccent.of(context).color, SacAccent.of(context).dark],
+                      colors: [
+                        SacAccent.of(context).color,
+                        SacAccent.of(context).dark
+                      ],
                     ),
                   ),
                   child: SafeArea(

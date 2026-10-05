@@ -345,7 +345,9 @@ class _EnrollPreviousClassSheetState
                             : c.surface,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: isSelected ? SacAccent.of(context).color : c.border,
+                          color: isSelected
+                              ? SacAccent.of(context).color
+                              : c.border,
                           width: isSelected ? 1.5 : 1,
                         ),
                       ),
@@ -355,8 +357,9 @@ class _EnrollPreviousClassSheetState
                             icon: isSelected
                                 ? HugeIcons.strokeRoundedCheckmarkCircle02
                                 : HugeIcons.strokeRoundedCircle,
-                            color:
-                                isSelected ? SacAccent.of(context).color : c.textTertiary,
+                            color: isSelected
+                                ? SacAccent.of(context).color
+                                : c.textTertiary,
                             size: 20,
                           ),
                           const SizedBox(width: 10),
@@ -425,7 +428,9 @@ class _EnrollPreviousClassSheetState
                                 fontWeight: isSelected
                                     ? FontWeight.w600
                                     : FontWeight.normal,
-                                color: isSelected ? SacAccent.of(context).color : c.text,
+                                color: isSelected
+                                    ? SacAccent.of(context).color
+                                    : c.text,
                               ),
                             ),
                           ),

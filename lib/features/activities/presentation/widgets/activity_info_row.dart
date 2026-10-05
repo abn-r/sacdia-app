@@ -32,7 +32,8 @@ class ActivityInfoRow extends StatelessWidget {
               color: SacAccent.of(context).light,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: buildIcon(icon, size: 18, color: SacAccent.of(context).color),
+            child:
+                buildIcon(icon, size: 18, color: SacAccent.of(context).color),
           ),
           const SizedBox(width: 12),
           Expanded(

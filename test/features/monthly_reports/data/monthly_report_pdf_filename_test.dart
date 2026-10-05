@@ -2,8 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/monthly_reports/data/monthly_report_pdf_filename.dart';
 
 void main() {
-  const filename =
-      'informe-mensual-Senderos-Conquistadores-agosto-2026.pdf';
+  const filename = 'informe-mensual-Senderos-Conquistadores-agosto-2026.pdf';
 
   test('uses the Content-Disposition filename', () {
     expect(

@@ -203,7 +203,8 @@ void main() {
     });
 
     test('designated status is not inactive (no ghost banner)', () {
-      const grant = AuthorizationGrant(status: 'designated', roleName: 'director');
+      const grant =
+          AuthorizationGrant(status: 'designated', roleName: 'director');
       expect(grant.isInactive, isFalse);
       expect(grant.isActive, isFalse);
     });

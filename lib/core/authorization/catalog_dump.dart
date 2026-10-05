@@ -23,8 +23,7 @@ Map<String, Object?> dumpAppCatalog() {
   final aliases = <String, List<String>>{
     for (final key in aliasKeys) key: [...kGlobalRoleAliases[key]!],
   };
-  final screens = [...kAppScreenCatalog]
-    ..sort((a, b) => a.id.compareTo(b.id));
+  final screens = [...kAppScreenCatalog]..sort((a, b) => a.id.compareTo(b.id));
   return {
     'version': 1,
     'aliases': aliases,
@@ -34,19 +33,20 @@ Map<String, Object?> dumpAppCatalog() {
           'id': screen.id,
           'surfaces': [...screen.surfaces]..sort(),
           'viewAny': dumpGate(screen.viewAny),
-          'capabilities': ([...screen.capabilities]
-                ..sort((a, b) => a.id.compareTo(b.id)))
-              .map(
-                (capability) => {
-                  'id': capability.id,
-                  'kind': capability.kind,
-                  'gate': dumpGate(capability.gate),
-                },
-              )
-              .toList(),
+          'capabilities':
+              ([...screen.capabilities]..sort((a, b) => a.id.compareTo(b.id)))
+                  .map(
+                    (capability) => {
+                      'id': capability.id,
+                      'kind': capability.kind,
+                      'gate': dumpGate(capability.gate),
+                    },
+                  )
+                  .toList(),
         },
     ],
   };
 }
 
-String dumpAppCatalogJson() => '${const JsonEncoder.withIndent('  ').convert(dumpAppCatalog())}\n';
+String dumpAppCatalogJson() =>
+    '${const JsonEncoder.withIndent('  ').convert(dumpAppCatalog())}\n';

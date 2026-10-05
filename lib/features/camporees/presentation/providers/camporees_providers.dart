@@ -871,7 +871,8 @@ final camporeeEventRubricsProvider = FutureProvider.autoDispose
 
 /// Puntaje oficial activo de una sección. Null si todavía se puede capturar.
 final camporeeOfficialScoreProvider = FutureProvider.autoDispose
-    .family<CamporeeOfficialScore?, CamporeeJudgeScoreParams>((ref, params) async {
+    .family<CamporeeOfficialScore?, CamporeeJudgeScoreParams>(
+        (ref, params) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final repository = ref.read(camporeesRepositoryProvider);

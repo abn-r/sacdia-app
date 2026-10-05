@@ -72,7 +72,8 @@ void main() {
     expect(find.text('El puntaje mínimo es de 40'), findsOneWidget);
   });
 
-  testWidgets('el botón de envío cabe completo junto al mínimo', (tester) async {
+  testWidgets('el botón de envío cabe completo junto al mínimo',
+      (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);

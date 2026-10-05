@@ -34,7 +34,8 @@ void main() {
       expect(item.isBlocked, isFalse);
     });
 
-    test('does not treat already_continued / last_role as the list contract', () {
+    test('does not treat already_continued / last_role as the list contract',
+        () {
       final item = AnnualContinuationModel.fromJson({
         'user_id': 'user-a',
         'name': 'Ana',
@@ -143,7 +144,8 @@ void main() {
       expect(visibleClubAssignments([designated]), isEmpty);
     });
 
-    test('operational GM director wins over not-enrolled banner of another section',
+    test(
+        'operational GM director wins over not-enrolled banner of another section',
         () {
       const snap = AuthorizationSnapshot(
         activeAssignmentId: 'inactive-cq',
@@ -197,7 +199,8 @@ void main() {
   });
 
   group('D02 policy copy and D01 CTA', () {
-    test('ANNUAL_CLASS_POLICY_UNRESOLVED names catalog, age or dest section', () {
+    test('ANNUAL_CLASS_POLICY_UNRESOLVED names catalog, age or dest section',
+        () {
       final decoded = jsonDecode(
         File('assets/translations/es.json').readAsStringSync(),
       ) as Map<String, dynamic>;

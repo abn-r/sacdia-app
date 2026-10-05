@@ -184,8 +184,9 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
                     ? HugeIcons.strokeRoundedCancel01
                     : HugeIcons.strokeRoundedTick02,
                 fullWidth: true,
-                backgroundColor:
-                    _isCompleted ? AppColors.warning : SacAccent.of(context).color,
+                backgroundColor: _isCompleted
+                    ? AppColors.warning
+                    : SacAccent.of(context).color,
               ),
             ),
           ],

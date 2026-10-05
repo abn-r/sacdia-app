@@ -242,8 +242,7 @@ class _MembersModeSwitcherState extends State<MembersModeSwitcher>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    for (final tab in tabs)
-                      _ModeSlot(tab: tab, active: true),
+                    for (final tab in tabs) _ModeSlot(tab: tab, active: true),
                   ],
                 ),
               ),

@@ -408,7 +408,9 @@ class _FilterButton extends StatelessWidget {
               : context.sac.surfaceVariant,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: hasActiveFilters ? SacAccent.of(context).color : context.sac.border,
+            color: hasActiveFilters
+                ? SacAccent.of(context).color
+                : context.sac.border,
           ),
         ),
         child: Stack(
@@ -514,10 +516,13 @@ class _CategoryChip extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
         decoration: BoxDecoration(
-          color: isSelected ? SacAccent.of(context).color : context.sac.surfaceVariant,
+          color: isSelected
+              ? SacAccent.of(context).color
+              : context.sac.surfaceVariant,
           borderRadius: BorderRadius.circular(AppTheme.radiusFull),
           border: Border.all(
-            color: isSelected ? SacAccent.of(context).color : context.sac.border,
+            color:
+                isSelected ? SacAccent.of(context).color : context.sac.border,
             width: isSelected ? 1.5 : 1,
           ),
         ),
