@@ -548,11 +548,16 @@ class _FileAssetLoader extends AssetLoader {
   }
 }
 
+// Relative to today: a past end date makes the view read-only.
+final _camporeeStart = DateUtils.dateOnly(DateTime.now()).add(
+  const Duration(days: 30),
+);
+
 final _camporee = Camporee(
   camporeeId: 41,
   name: 'Camporí Esperanza',
-  startDate: DateTime(2026, 8, 15),
-  endDate: DateTime(2026, 8, 18),
+  startDate: _camporeeStart,
+  endDate: _camporeeStart.add(const Duration(days: 3)),
   place: 'Valle Verde',
   registrationCost: 125,
   includesAdventurers: true,

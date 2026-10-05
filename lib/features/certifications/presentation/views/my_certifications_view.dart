@@ -378,8 +378,9 @@ class _UserCertificationCard extends StatelessWidget {
                           ? HugeIcons.strokeRoundedCheckmarkCircle01
                           : HugeIcons.strokeRoundedCertificate01,
                       size: 22,
-                      color:
-                          isComplete ? AppColors.secondary : SacAccent.of(context).color,
+                      color: isComplete
+                          ? AppColors.secondary
+                          : SacAccent.of(context).color,
                     ),
                   ),
                 ),
@@ -469,7 +470,9 @@ class _UserCertificationCard extends StatelessWidget {
             SacProgressBar(
               progress: progressRatio,
               height: 7,
-              color: isComplete ? AppColors.secondary : SacAccent.of(context).color,
+              color: isComplete
+                  ? AppColors.secondary
+                  : SacAccent.of(context).color,
               showShimmer: false,
             ),
 

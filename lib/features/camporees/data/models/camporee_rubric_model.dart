@@ -74,9 +74,8 @@ class CamporeeEventRubricSheetModel extends Equatable {
         : responseData is List
             ? responseData
             : const <dynamic>[];
-    final minPoints = responseData is Map
-        ? safeDouble(responseData['min_points'])
-        : 0.0;
+    final minPoints =
+        responseData is Map ? safeDouble(responseData['min_points']) : 0.0;
 
     return CamporeeEventRubricSheetModel(
       rubrics: rawList

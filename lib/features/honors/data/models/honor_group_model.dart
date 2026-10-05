@@ -109,7 +109,8 @@ List<HonorGroup> decodeHonorGroupCache(Object? payload) {
   }
   return payload
       .map(
-        (item) => honorGroupFromCacheJson(Map<String, dynamic>.from(item as Map)),
+        (item) =>
+            honorGroupFromCacheJson(Map<String, dynamic>.from(item as Map)),
       )
       .toList();
 }

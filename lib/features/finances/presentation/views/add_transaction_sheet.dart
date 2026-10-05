@@ -854,7 +854,8 @@ class _CategoryPickerOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final foreground = isSelected ? SacAccent.of(context).color : context.sac.text;
+    final foreground =
+        isSelected ? SacAccent.of(context).color : context.sac.text;
     final background = isSelected
         ? SacAccent.of(context).color.withValues(alpha: 0.08)
         : Colors.transparent;

@@ -1716,7 +1716,8 @@ class _OAuthCallbackScreenState extends ConsumerState<_OAuthCallbackScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            LoadingAnimationWidget.waveDots(color: SacAccent.of(context).color, size: 30),
+            LoadingAnimationWidget.waveDots(
+                color: SacAccent.of(context).color, size: 30),
             const SizedBox(height: 24),
             Text(
               tr('router.oauth_callback.completing_signin'),

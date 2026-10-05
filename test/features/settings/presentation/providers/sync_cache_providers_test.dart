@@ -100,9 +100,8 @@ class _FakeCatalogsRemoteDataSource implements CatalogsRemoteDataSource {
 }
 
 final _syncRunnerProvider = Provider<Future<SyncResult> Function()>((ref) {
-  return () => ref
-      .read(syncControllerProvider.notifier)
-      .run(RealtimeRef.fromRef(ref));
+  return () =>
+      ref.read(syncControllerProvider.notifier).run(RealtimeRef.fromRef(ref));
 });
 
 final _clearRunnerProvider = Provider<Future<bool> Function(ClearCacheMode)>(

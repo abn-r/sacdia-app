@@ -80,7 +80,8 @@ class _CategoryHeader extends StatelessWidget {
     final headerBg = isDark
         ? SacAccent.of(context).color.withValues(alpha: 0.15)
         : SacAccent.of(context).light;
-    final titleColor = isDark ? SacAccent.of(context).color : SacAccent.of(context).dark;
+    final titleColor =
+        isDark ? SacAccent.of(context).color : SacAccent.of(context).dark;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

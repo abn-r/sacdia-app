@@ -49,7 +49,8 @@ class AnnualContinuationModel extends AnnualContinuation {
     return AnnualContinuationModel(
       userId: json['user_id']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
-      baseSectionId: int.tryParse(json['base_section_id']?.toString() ?? '') ?? 0,
+      baseSectionId:
+          int.tryParse(json['base_section_id']?.toString() ?? '') ?? 0,
       ecclesiasticalYearId:
           int.tryParse(json['ecclesiastical_year_id']?.toString() ?? '') ?? 0,
       annualStatus: json['annual_status']?.toString() ?? 'not_enrolled',
