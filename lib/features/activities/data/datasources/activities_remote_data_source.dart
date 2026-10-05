@@ -635,8 +635,7 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final body = _unwrapObject(response.data);
         final series = body['series'];
-        final seriesMap =
-            series is Map<String, dynamic> ? series : body;
+        final seriesMap = series is Map<String, dynamic> ? series : body;
         final ids = (body['activity_ids'] as List<dynamic>? ?? [])
             .map((e) => (e as num).toInt())
             .toList();
@@ -686,10 +685,8 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
           weekdays: (body['weekdays'] as List<dynamic>? ?? [])
               .map((e) => (e as num).toInt())
               .toList(),
-          firstDate:
-              (body['first_date'] ?? '').toString().split('T').first,
-          untilDate:
-              (body['until_date'] ?? '').toString().split('T').first,
+          firstDate: (body['first_date'] ?? '').toString().split('T').first,
+          untilDate: (body['until_date'] ?? '').toString().split('T').first,
           counts: counts,
         );
       }

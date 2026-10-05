@@ -58,7 +58,8 @@ void main() {
     });
 
     test('unknown screen is deny', () {
-      final subject = subjectFromUser(_user(permissions: ['users:read_detail']));
+      final subject =
+          subjectFromUser(_user(permissions: ['users:read_detail']));
       expect(canViewScreen(subject, 'does-not-exist'), isFalse);
     });
   });

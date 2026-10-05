@@ -42,9 +42,8 @@ class CertificateImportItemModel extends Equatable {
   factory CertificateImportItemModel.fromJson(Map<String, dynamic> json) {
     final rawFieldConfidence = json['field_confidence'];
     final nestedClass = json['class'];
-    final nestedAssetCode = nestedClass is Map<String, dynamic>
-        ? nestedClass['asset_code']
-        : null;
+    final nestedAssetCode =
+        nestedClass is Map<String, dynamic> ? nestedClass['asset_code'] : null;
     return CertificateImportItemModel(
       id: safeString(json['item_id'] ?? json['id']),
       batchId: safeStringOrNull(json['batch_id']),

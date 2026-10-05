@@ -68,7 +68,8 @@ class _StepButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = enabled ? SacAccent.of(context).color : AppColors.lightTextTertiary;
+    final color =
+        enabled ? SacAccent.of(context).color : AppColors.lightTextTertiary;
 
     return GestureDetector(
       onTap: onTap,

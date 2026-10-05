@@ -128,8 +128,7 @@ class SacAccent extends ThemeExtension<SacAccent> {
   /// Alto contraste: empuja el tono hasta 4.5:1 contra el fondo, sin
   /// cambiar de familia.
   SacAccent forHighContrast(Brightness brightness) {
-    final against =
-        brightness == Brightness.dark ? Colors.black : Colors.white;
+    final against = brightness == Brightness.dark ? Colors.black : Colors.white;
     final darken = brightness != Brightness.dark;
     var hsl = HSLColor.fromColor(color);
     for (var i = 0; i < 24; i++) {

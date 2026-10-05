@@ -157,7 +157,8 @@ class ProfilePhotoPicker extends StatelessWidget {
             // RepaintBoundary evita que Impeller propague opacidad heredada al CustomPaint
             child: RepaintBoundary(
               child: CustomPaint(
-                painter: _DashedCirclePainter(color: SacAccent.of(context).color),
+                painter:
+                    _DashedCirclePainter(color: SacAccent.of(context).color),
                 child: Container(
                   width: 200,
                   height: 200,

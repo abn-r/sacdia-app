@@ -262,8 +262,8 @@ class _ContinuationItem extends StatelessWidget {
                   ),
                 ),
                 child: isSelected && !blocked
-                    ? const Icon(
-                        Icons.check_rounded,
+                    ? const HugeIcon(
+                        icon: HugeIcons.strokeRoundedTick02,
                         size: 12,
                         color: Colors.white,
                       )

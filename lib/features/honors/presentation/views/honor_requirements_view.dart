@@ -580,11 +580,10 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
                                   categoryColor: categoryColor,
                                 ),
                               ),
-
                               Expanded(
                                 child: ListView.separated(
-                                  padding: const EdgeInsets.fromLTRB(
-                                      16, 8, 16, 120),
+                                  padding:
+                                      const EdgeInsets.fromLTRB(16, 8, 16, 120),
                                   itemCount: requirements.length,
                                   separatorBuilder: (_, __) => Divider(
                                     height: 1,
@@ -604,7 +603,6 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
                                   },
                                 ),
                               ),
-
                               _SaveBar(
                                 hasChanges:
                                     userHonor.canSubmit && _hasUnsavedChanges,

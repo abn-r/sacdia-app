@@ -65,8 +65,9 @@ class ActivitySeriesFormSection extends StatelessWidget {
             color: c.surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color:
-                  repeat ? SacAccent.of(context).color.withValues(alpha: 0.45) : c.border,
+              color: repeat
+                  ? SacAccent.of(context).color.withValues(alpha: 0.45)
+                  : c.border,
               width: repeat ? 1.5 : 1,
             ),
             boxShadow: [
@@ -100,7 +101,8 @@ class ActivitySeriesFormSection extends StatelessWidget {
               secondary: Container(
                 padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
-                  color: repeat ? SacAccent.of(context).light : c.surfaceVariant,
+                  color:
+                      repeat ? SacAccent.of(context).light : c.surfaceVariant,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: HugeIcon(

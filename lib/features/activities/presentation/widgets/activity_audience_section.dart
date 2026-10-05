@@ -166,7 +166,8 @@ class _ActivityAudienceSectionState
               padding: EdgeInsets.symmetric(vertical: 12),
               child: Center(child: CircularProgressIndicator()),
             ),
-            error: (_, __) => Text('activities.form.audience_classes_error'.tr()),
+            error: (_, __) =>
+                Text('activities.form.audience_classes_error'.tr()),
             data: (classes) {
               if (classes.isEmpty) {
                 return Text('activities.form.audience_classes_empty'.tr());
@@ -219,7 +220,8 @@ class _ModeChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? SacAccent.of(context).color : SacAccent.of(context).light,
+      color:
+          selected ? SacAccent.of(context).color : SacAccent.of(context).light,
       borderRadius: BorderRadius.circular(20),
       child: SacInkWell(
         onTap: onTap,
@@ -269,7 +271,9 @@ class _ClassLogoTile extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: selected ? SacAccent.of(context).color : Colors.transparent,
+                  color: selected
+                      ? SacAccent.of(context).color
+                      : Colors.transparent,
                   width: 3,
                 ),
               ),

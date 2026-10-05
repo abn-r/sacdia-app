@@ -129,10 +129,12 @@ class _TimePickerSheetState extends State<_TimePickerSheet> {
                   child: Container(
                     height: 44,
                     decoration: BoxDecoration(
-                      color: SacAccent.of(context).color.withValues(alpha: 0.12),
+                      color:
+                          SacAccent.of(context).color.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                       border: Border.all(
-                        color: SacAccent.of(context).color.withValues(alpha: 0.3),
+                        color:
+                            SacAccent.of(context).color.withValues(alpha: 0.3),
                       ),
                     ),
                   ),
@@ -242,7 +244,8 @@ class ActivitySectionHeader extends StatelessWidget {
             color: SacAccent.of(context).light,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: HugeIcon(icon: icon, size: 16, color: SacAccent.of(context).color),
+          child: HugeIcon(
+              icon: icon, size: 16, color: SacAccent.of(context).color),
         ),
         const SizedBox(width: 10),
         Text(
@@ -328,7 +331,8 @@ class ActivityPickerField extends StatelessWidget {
                 HugeIcon(
                   icon: icon,
                   size: 20,
-                  color: hasValue ? SacAccent.of(context).color : c.textSecondary,
+                  color:
+                      hasValue ? SacAccent.of(context).color : c.textSecondary,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -422,7 +426,9 @@ class ActivityLocationPickerField extends StatelessWidget {
                   ? Border.all(color: theme.colorScheme.error, width: 1.5)
                   : hasResult
                       ? Border.all(
-                          color: SacAccent.of(context).color.withValues(alpha: 0.4),
+                          color: SacAccent.of(context)
+                              .color
+                              .withValues(alpha: 0.4),
                           width: 1.5,
                         )
                       : null,
@@ -438,7 +444,9 @@ class ActivityLocationPickerField extends StatelessWidget {
                         ? HugeIcons.strokeRoundedLocation01
                         : HugeIcons.strokeRoundedLocation03,
                     size: 20,
-                    color: hasResult ? SacAccent.of(context).color : c.textSecondary,
+                    color: hasResult
+                        ? SacAccent.of(context).color
+                        : c.textSecondary,
                   ),
                 ),
                 Expanded(
@@ -574,7 +582,8 @@ class ActivityDatePickerField extends StatelessWidget {
                 HugeIcon(
                   icon: HugeIcons.strokeRoundedCalendar01,
                   size: 20,
-                  color: hasValue ? SacAccent.of(context).color : c.textSecondary,
+                  color:
+                      hasValue ? SacAccent.of(context).color : c.textSecondary,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -667,7 +676,8 @@ class ActivitySegmentedSelector<T> extends StatelessWidget {
                     color: isSelected ? SacAccent.of(context).color : c.surface,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: isSelected ? SacAccent.of(context).color : c.border,
+                      color:
+                          isSelected ? SacAccent.of(context).color : c.border,
                     ),
                     boxShadow: [
                       BoxShadow(

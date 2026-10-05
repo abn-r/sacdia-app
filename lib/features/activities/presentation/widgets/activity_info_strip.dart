@@ -186,7 +186,8 @@ class ActivityInfoStrip extends StatelessWidget {
             : HugeIcons.strokeRoundedClock01,
         text: countdown.text,
         // Urgent: primary color to keep attention. Otherwise muted.
-        color: countdown.isUrgent ? SacAccent.of(context).dark : sac.textSecondary,
+        color:
+            countdown.isUrgent ? SacAccent.of(context).dark : sac.textSecondary,
         weight: countdown.isUrgent ? FontWeight.w700 : FontWeight.w600,
       ));
     }

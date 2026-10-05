@@ -240,6 +240,9 @@ void main() {
       expect(find.text('Elige 4 de 6 opciones'), findsOneWidget);
       expect(find.text('Árboles'), findsNothing);
 
+      // The toggle sits below the sheet's initial height.
+      await tester.ensureVisible(find.text('Elige 4 de 6 opciones'));
+      await tester.pump();
       await tester.tap(find.text('Elige 4 de 6 opciones'));
       await tester.pump();
 
