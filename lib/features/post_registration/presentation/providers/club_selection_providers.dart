@@ -29,7 +29,7 @@ final clubSelectionDataSourceProvider =
 ///
 /// Toma primero la fecha elegida en el paso de datos personales y cae al
 /// cumpleaños del usuario autenticado cuando el flujo inicia directamente en
-/// selección de club.
+/// selección de club; como último recurso usa la fecha ya guardada en backend.
 ///
 /// Importante: el backend valida la clase progresiva con la edad calculada
 /// contra `ecclesiastical_years.start_date`, no contra la fecha del dispositivo.
@@ -39,12 +39,20 @@ final userAgeProvider = Provider.autoDispose<int?>((ref) {
   final authBirthdate = ref.watch(
     authNotifierProvider.select((state) => state.valueOrNull?.birthday),
   );
+  // El formulario es autoDispose y el PageView desmonta el paso 2; la sesión
+  // no se refresca tras guardarlo. El snapshot persistido cubre ese hueco.
+  final savedBirthdate = (birthdate ?? authBirthdate) == null
+      ? ref.watch(
+          personalInfoSnapshotProvider
+              .select((snapshot) => snapshot.valueOrNull?.birthdate),
+        )
+      : null;
   final currentYear = ref.watch(currentEcclesiasticalYearProvider).valueOrNull;
 
   if (currentYear == null) return null;
 
   return calculateAgeFromBirthdate(
-    birthdate ?? authBirthdate,
+    birthdate ?? authBirthdate ?? savedBirthdate,
     today: currentYear.startDate,
   );
 });

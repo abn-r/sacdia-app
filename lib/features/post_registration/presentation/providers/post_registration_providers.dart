@@ -114,6 +114,9 @@ class CompletionStatusNotifier
     extends AutoDisposeAsyncNotifier<CompletionStatus?> {
   @override
   Future<CompletionStatus?> build() async {
+    // keepAlive sobrevive al logout: atar el cache al usuario evita que una
+    // cuenta nueva herede el paso del usuario anterior.
+    ref.watch(authNotifierProvider.select((state) => state.valueOrNull?.id));
     ref.keepAlive();
     final cancelToken = CancelToken();
     ref.onDispose(() => cancelToken.cancel());

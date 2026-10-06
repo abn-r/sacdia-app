@@ -1,11 +1,51 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/post_registration/data/models/class_model.dart';
 import 'package:sacdia_app/features/post_registration/data/models/club_section_model.dart';
 import 'package:sacdia_app/features/post_registration/presentation/providers/club_selection_providers.dart';
+import 'package:sacdia_app/features/post_registration/presentation/providers/personal_info_providers.dart';
+import 'package:sacdia_app/providers/catalogs_provider.dart';
+import 'package:sacdia_app/shared/models/catalogs/ecclesiastical_year_model.dart';
+
+class _FakeAuthNotifier extends AuthNotifier {
+  @override
+  Future<UserEntity?> build() async => null;
+}
 
 void main() {
   group('club selection providers', () {
+    test(
+        'user age falls back to the saved personal info snapshot once the '
+        'personal info form is disposed', () async {
+      final container = ProviderContainer(
+        overrides: [
+          authNotifierProvider.overrideWith(_FakeAuthNotifier.new),
+          currentEcclesiasticalYearProvider.overrideWith((ref) async {
+            return EcclesiasticalYearModel(
+              ecclesiasticalYearId: 1,
+              name: '2025-2026',
+              startDate: DateTime.utc(2026, 1, 1),
+              endDate: DateTime.utc(2026, 12, 31),
+              active: true,
+            );
+          }),
+          personalInfoSnapshotProvider.overrideWith((ref) async {
+            return PersonalInfoSnapshot(birthdate: DateTime.utc(2014, 10, 15));
+          }),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final subscription = container.listen(userAgeProvider, (_, __) {});
+      addTearDown(subscription.close);
+      await container.read(currentEcclesiasticalYearProvider.future);
+      await container.read(personalInfoSnapshotProvider.future);
+
+      expect(container.read(userAgeProvider), 11);
+    });
+
     test('parses backend club section shape used by post-registration', () {
       final section = ClubSectionModel.fromJson({
         'club_section_id': 2,
