@@ -65,4 +65,78 @@ void main() {
       expect((post.data as Map)['role_id'], 'role-instructor');
     });
   });
+
+  group('getAssignableRoles', () {
+    const payload = {
+      'roles': [
+        {
+          'role_id': 'role-director',
+          'role_name': 'director',
+          'allowed': false,
+          'violation_rule': 1,
+          'violation_code': 'CLUB_ROLE_GUIDE_MAJOR_REQUIRED',
+        },
+        {
+          'role_id': 'role-member',
+          'role_name': 'member',
+          'allowed': true,
+          'violation_rule': null,
+          'violation_code': null,
+        },
+      ],
+      'guide_major_eligible': false,
+      'section_kind': 'CONQUISTADORES',
+    };
+
+    Future<(MembersRemoteDataSourceImpl, List<RequestOptions>)> build(
+        Object body) async {
+      final requests = <RequestOptions>[];
+      final dio = Dio()
+        ..interceptors.add(InterceptorsWrapper(onRequest: (o, h) {
+          requests.add(o);
+          h.resolve(Response(requestOptions: o, statusCode: 200, data: body));
+        }));
+      return (
+        MembersRemoteDataSourceImpl(dio: dio, baseUrl: 'http://api'),
+        requests
+      );
+    }
+
+    test('parses roles, eligibility flags and unwraps {data}', () async {
+      final (ds, requests) =
+          await build({'status': 'success', 'data': payload});
+
+      final result =
+          await ds.getAssignableRoles(clubId: 1, sectionId: 2, userId: 'u-1');
+
+      expect(requests.single.path,
+          'http://api/clubs/1/sections/2/members/u-1/assignable-roles');
+      expect(result.guideMajorEligible, isFalse);
+      expect(result.sectionKind, 'CONQUISTADORES');
+      expect(result.roles, hasLength(2));
+      expect(result.roles.first.roleName, 'director');
+      expect(result.roles.first.allowed, isFalse);
+      expect(
+          result.roles.first.violationCode, 'CLUB_ROLE_GUIDE_MAJOR_REQUIRED');
+      expect(result.roles.last.allowed, isTrue);
+      expect(result.roles.last.violationCode, isNull);
+    });
+
+    test('reuses role_id from the endpoint when assigning (no catalog call)',
+        () async {
+      final (ds, requests) = await build(payload);
+      await ds.getAssignableRoles(clubId: 1, sectionId: 2, userId: 'u-1');
+
+      await ds.assignClubRole(
+        clubId: 1,
+        sectionId: 2,
+        userId: 'u-1',
+        role: 'member',
+      );
+
+      expect(requests.any((r) => r.path.endsWith('/catalogs/roles')), isFalse);
+      final post = requests.singleWhere((r) => r.method == 'POST');
+      expect((post.data as Map)['role_id'], 'role-member');
+    });
+  });
 }

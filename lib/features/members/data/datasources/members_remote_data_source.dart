@@ -4,6 +4,7 @@ import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/annual_continuation.dart';
+import '../../domain/entities/assignable_role.dart';
 import '../models/annual_continuation_model.dart';
 import '../models/club_member_model.dart';
 import '../models/join_request_model.dart';
@@ -40,6 +41,13 @@ abstract class MembersRemoteDataSource {
     required int sectionId,
     required String userId,
     required String role,
+  });
+
+  /// Roles de club con su elegibilidad para [userId] en la sección.
+  Future<AssignableRolesResult> getAssignableRoles({
+    required int clubId,
+    required int sectionId,
+    required String userId,
   });
 
   /// Remueve una asignación de rol
@@ -370,6 +378,45 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       throw ServerException(
         message:
             e.response?.data?['message'] ?? tr('members.errors.assign_role'),
+        code: e.response?.statusCode,
+      );
+    } catch (e) {
+      if (e is AuthException || e is ServerException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<AssignableRolesResult> getAssignableRoles({
+    required int clubId,
+    required int sectionId,
+    required String userId,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/members/$userId/assignable-roles',
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw ServerException(
+          message: tr('members.errors.fetch_assignable_roles'),
+          code: response.statusCode,
+        );
+      }
+
+      final result = AssignableRolesResult.fromJson(_unwrapMap(response.data));
+      // Los role_id de este endpoint sirven directo al asignar; el catálogo
+      // queda como respaldo.
+      for (final role in result.roles) {
+        if (role.roleId.isEmpty) continue;
+        _clubRoleIdsByName[_normalizeRoleKey(role.roleName)] = role.roleId;
+      }
+      return result;
+    } on DioException catch (e) {
+      AppLogger.e('Error al obtener roles asignables', tag: _tag, error: e);
+      throw ServerException(
+        message: e.response?.data?['message'] ??
+            tr('members.errors.fetch_assignable_roles'),
         code: e.response?.statusCode,
       );
     } catch (e) {

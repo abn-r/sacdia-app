@@ -9,10 +9,12 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
+import '../../domain/entities/assignable_role.dart';
 import '../../domain/entities/club_member.dart';
 import '../providers/members_providers.dart';
 
@@ -33,9 +35,9 @@ class RoleAssignmentView extends ConsumerStatefulWidget {
 }
 
 class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
-  /// Roles disponibles para asignar en el club. Deben existir en el catálogo
-  /// `GET /catalogs/roles?category=CLUB`; si no, no se resuelve su `role_id`.
-  static const _availableRoles = [
+  /// Orden de visualización. También es el respaldo si falla el endpoint de
+  /// roles asignables (el servidor igual valida al guardar).
+  static const _displayOrder = [
     'director',
     'deputy-director',
     'secretary',
@@ -44,6 +46,34 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
     'counselor',
     'member',
   ];
+
+  /// Roles del endpoint en orden de visualización; los desconocidos al final.
+  static List<AssignableRole> _sortRoles(List<AssignableRole> roles) {
+    int rank(AssignableRole r) {
+      final i = _displayOrder.indexOf(r.roleName);
+      return i < 0 ? _displayOrder.length : i;
+    }
+
+    final sorted = List<AssignableRole>.of(roles);
+    // sort de Dart no es estable: desempata por nombre.
+    sorted.sort((a, b) {
+      final byRank = rank(a).compareTo(rank(b));
+      return byRank != 0 ? byRank : a.roleName.compareTo(b.roleName);
+    });
+    return sorted;
+  }
+
+  String? _blockedReason(AssignableRole role) {
+    if (role.allowed) return null;
+    switch (role.violationCode) {
+      case clubRoleMemberRequiresGuideMajorSectionCode:
+        return 'members.role_assignment.blocked_member_in_guide_major_section'
+            .tr();
+      case clubRoleGuideMajorRequiredCode:
+      default:
+        return 'members.role_assignment.blocked_guide_major_required'.tr();
+    }
+  }
 
   String? _selectedRole;
   bool _isLoading = false;
@@ -99,9 +129,97 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
     return 'members.role_assignment.assign_error'.tr();
   }
 
+  Widget _buildRoleList(BuildContext context, List<AssignableRole> roles) {
+    final c = context.sac;
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      itemCount: roles.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 4),
+      itemBuilder: (context, index) {
+        final assignable = roles[index];
+        final role = assignable.roleName;
+        final enabled = assignable.allowed;
+        final reason = _blockedReason(assignable);
+        final isSelected = role == _selectedRole;
+
+        return Opacity(
+          opacity: enabled ? 1 : 0.5,
+          child: Material(
+            color: isSelected
+                ? SacAccent.of(context).color.withValues(alpha: 0.08)
+                : c.surface,
+            borderRadius: BorderRadius.circular(12),
+            child: SacInkWell(
+              onTap:
+                  enabled ? () => setState(() => _selectedRole = role) : null,
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isSelected ? SacAccent.of(context).color : c.border,
+                    width: isSelected ? 1.5 : 1,
+                  ),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            RoleUtils.translate(role,
+                                gender: widget.member.gender),
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.w400,
+                              color: isSelected
+                                  ? SacAccent.of(context).color
+                                  : c.text,
+                            ),
+                          ),
+                          if (reason != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: Text(
+                                reason,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: c.textSecondary,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    if (isSelected)
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                        color: SacAccent.of(context).color,
+                        size: 20,
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    final rolesAsync = ref.watch(assignableRolesProvider(AssignableRolesParams(
+      clubId: widget.clubContext.clubId,
+      sectionId: widget.clubContext.sectionId,
+      userId: widget.member.userId,
+    )));
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -175,69 +293,22 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
 
                 // ── Role list ────────────────────────────────────────────
                 Expanded(
-                  child: ListView.separated(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
-                    itemCount: _availableRoles.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 4),
-                    itemBuilder: (context, index) {
-                      final role = _availableRoles[index];
-                      final isSelected = role == _selectedRole;
-
-                      return Material(
-                        color: isSelected
-                            ? SacAccent.of(context)
-                                .color
-                                .withValues(alpha: 0.08)
-                            : c.surface,
-                        borderRadius: BorderRadius.circular(12),
-                        child: SacInkWell(
-                          onTap: () => setState(() => _selectedRole = role),
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: isSelected
-                                    ? SacAccent.of(context).color
-                                    : c.border,
-                                width: isSelected ? 1.5 : 1,
-                              ),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    RoleUtils.translate(role,
-                                        gender: widget.member.gender),
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: isSelected
-                                          ? FontWeight.w600
-                                          : FontWeight.w400,
-                                      color: isSelected
-                                          ? SacAccent.of(context).color
-                                          : c.text,
-                                    ),
-                                  ),
-                                ),
-                                if (isSelected)
-                                  HugeIcon(
-                                    icon: HugeIcons
-                                        .strokeRoundedCheckmarkCircle01,
-                                    color: SacAccent.of(context).color,
-                                    size: 20,
-                                  ),
-                              ],
-                            ),
-                          ),
+                  child: rolesAsync.when(
+                    loading: () => const Center(child: SacLoading()),
+                    // Si el endpoint falla, se muestra la lista previa y el
+                    // servidor aplica la regla al guardar.
+                    error: (_, __) => _buildRoleList(context, [
+                      for (final name in _displayOrder)
+                        AssignableRole(
+                          roleId: '',
+                          roleName: name,
+                          allowed: true,
                         ),
-                      );
-                    },
+                    ]),
+                    data: (result) => _buildRoleList(
+                      context,
+                      _sortRoles(result.roles),
+                    ),
                   ),
                 ),
 

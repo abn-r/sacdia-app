@@ -2358,6 +2358,7 @@
       "fetch_club_members": "Erro ao obter membros do clube",
       "fetch_members": "Erro ao obter membros",
       "fetch_member_detail": "Erro ao obter detalhes do membro",
+      "fetch_assignable_roles": "Erro ao obter as funções atribuíveis",
       "fetch_join_requests": "Erro ao obter solicitações de adesão",
       "fetch_requests": "Erro ao obter solicitações",
       "approve_request": "Erro ao aprovar solicitação",
@@ -2443,7 +2444,9 @@
       "assign_error": "Erro ao atribuir função. Tente novamente.",
       "title": "Atribuir função",
       "current_role": "Função atual: {role}",
-      "save_button": "Salvar função"
+      "save_button": "Salvar função",
+      "blocked_guide_major_required": "Exige cursar ou ser investido como Guia Maior",
+      "blocked_member_in_guide_major_section": "Um Guia Maior não pode ser membro nesta seção"
     },
     "filter_bar": {
       "search_hint": "Buscar por nome...",

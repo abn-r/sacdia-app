@@ -2359,6 +2359,7 @@
       "fetch_club_members": "Error fetching club members",
       "fetch_members": "Error fetching members",
       "fetch_member_detail": "Error fetching member detail",
+      "fetch_assignable_roles": "Error fetching assignable roles",
       "fetch_join_requests": "Error fetching join requests",
       "fetch_requests": "Error fetching requests",
       "approve_request": "Error approving request",
@@ -2444,7 +2445,9 @@
       "assign_error": "Error assigning role. Please try again.",
       "title": "Assign Role",
       "current_role": "Current role: {role}",
-      "save_button": "Save Role"
+      "save_button": "Save Role",
+      "blocked_guide_major_required": "Requires being enrolled or invested as a Master Guide",
+      "blocked_member_in_guide_major_section": "A Master Guide cannot be a member in this section"
     },
     "filter_bar": {
       "search_hint": "Search by name...",

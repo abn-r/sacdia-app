@@ -7,6 +7,7 @@ import '../../../../core/network/network_info.dart';
 import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/annual_continuation.dart';
+import '../../domain/entities/assignable_role.dart';
 import '../../domain/entities/club_member.dart';
 import '../../domain/entities/join_request.dart';
 import '../../domain/repositories/members_repository.dart';
@@ -150,6 +151,30 @@ class MembersRepositoryImpl implements MembersRepository {
     try {
       final result = await remoteDataSource.removeClubRole(assignmentId);
       return Right(result);
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, AssignableRolesResult>> getAssignableRoles({
+    required int clubId,
+    required int sectionId,
+    required String userId,
+  }) async {
+    try {
+      final result = await remoteDataSource.getAssignableRoles(
+        clubId: clubId,
+        sectionId: sectionId,
+        userId: userId,
+      );
+      return Right(result);
+    } on DioException catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message, code: e.code));
     } on ServerException catch (e) {

@@ -2358,6 +2358,7 @@
       "fetch_club_members": "Erreur lors de la récupération des membres du club",
       "fetch_members": "Erreur lors de la récupération des membres",
       "fetch_member_detail": "Erreur lors de la récupération du détail du membre",
+      "fetch_assignable_roles": "Erreur lors de la récupération des rôles assignables",
       "fetch_join_requests": "Erreur lors de la récupération des demandes d'inscription",
       "fetch_requests": "Erreur lors de la récupération des demandes",
       "approve_request": "Erreur lors de l'approbation de la demande",
@@ -2443,7 +2444,9 @@
       "assign_error": "Erreur lors de l'attribution du rôle. Veuillez réessayer.",
       "title": "Attribuer un rôle",
       "current_role": "Rôle actuel : {role}",
-      "save_button": "Enregistrer le rôle"
+      "save_button": "Enregistrer le rôle",
+      "blocked_guide_major_required": "Exige d'être inscrit ou investi comme Guide majeur",
+      "blocked_member_in_guide_major_section": "Un Guide majeur ne peut pas être membre dans cette section"
     },
     "filter_bar": {
       "search_hint": "Rechercher par nom...",
@@ -3905,7 +3908,7 @@
       "pioneer": "Guide",
       "voyager": "Voyageur",
       "guide": "Guide",
-      "master_guide": "Guide Majeur",
+      "master_guide": "Guide majeur",
       "advanced_guide": "Guide avancé",
       "instructor_guide": "Guide instructeur"
     },
