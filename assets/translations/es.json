@@ -2423,6 +2423,8 @@
       "no_members_subtitle": "No se encontraron miembros con los filtros actuales.",
       "no_requests_title": "Sin solicitudes",
       "no_requests_subtitle": "No hay solicitudes de ingreso pendientes.",
+      "no_requests_any_subtitle": "Todavía no hay solicitudes de ingreso.",
+      "no_requests_filtered_subtitle": "No se encontraron solicitudes con los filtros actuales.",
       "request_profile_title": "Perfil del solicitante",
       "request_approved": "Solicitud de {name} aprobada",
       "approve_error": "Error al aprobar la solicitud",

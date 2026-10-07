@@ -2423,6 +2423,8 @@
       "no_members_subtitle": "No members found with the current filters.",
       "no_requests_title": "No requests",
       "no_requests_subtitle": "There are no pending join requests.",
+      "no_requests_any_subtitle": "There are no join requests yet.",
+      "no_requests_filtered_subtitle": "No requests match the current filters.",
       "request_profile_title": "Applicant Profile",
       "request_approved": "Request from {name} approved",
       "approve_error": "Error approving request",

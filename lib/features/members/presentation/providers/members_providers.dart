@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/errors/failures.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
@@ -277,8 +278,11 @@ class MembersNotifier extends AutoDisposeAsyncNotifier<MembersData> {
     );
   }
 
-  /// Asigna un rol de club a un miembro y recarga los datos
-  Future<bool> assignRole({
+  /// Asigna un rol de club a un miembro y recarga los datos.
+  ///
+  /// Devuelve `null` si se asignó; si no, el [Failure] para que la vista
+  /// pueda mostrar el motivo que envía el backend (p. ej. cupo lleno).
+  Future<Failure?> assignRole({
     required ClubContext context,
     required String userId,
     required String role,
@@ -293,10 +297,11 @@ class MembersNotifier extends AutoDisposeAsyncNotifier<MembersData> {
     );
 
     return result.fold(
-      (_) => false,
+      (failure) => failure,
       (success) {
-        if (success) ref.invalidateSelf();
-        return success;
+        if (!success) return const UnexpectedFailure(message: '');
+        ref.invalidateSelf();
+        return null;
       },
     );
   }

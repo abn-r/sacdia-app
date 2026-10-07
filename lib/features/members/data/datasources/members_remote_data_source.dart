@@ -139,7 +139,10 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
 
       final roles = _unwrapList(response.data);
       for (final roleRecord in roles) {
-        final roleName = roleRecord['role_name']?.toString();
+        // El catálogo público expone `name` (contrato normalizado);
+        // `role_name` queda como fallback de respuestas legacy.
+        final roleName =
+            (roleRecord['name'] ?? roleRecord['role_name'])?.toString();
         final roleId = roleRecord['role_id']?.toString();
 
         if (roleName == null || roleId == null || roleId.isEmpty) {

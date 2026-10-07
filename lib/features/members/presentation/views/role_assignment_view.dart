@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -32,14 +33,15 @@ class RoleAssignmentView extends ConsumerStatefulWidget {
 }
 
 class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
-  /// Roles disponibles para asignar en el club
+  /// Roles disponibles para asignar en el club. Deben existir en el catálogo
+  /// `GET /catalogs/roles?category=CLUB`; si no, no se resuelve su `role_id`.
   static const _availableRoles = [
     'director',
     'deputy-director',
     'secretary',
     'treasurer',
+    'secretary-treasurer',
     'counselor',
-    'instructor',
     'member',
   ];
 
@@ -62,7 +64,7 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
 
     setState(() => _isLoading = true);
 
-    final success = await ref.read(membersNotifierProvider.notifier).assignRole(
+    final failure = await ref.read(membersNotifierProvider.notifier).assignRole(
           context: widget.clubContext,
           userId: widget.member.userId,
           role: _selectedRole!,
@@ -71,7 +73,7 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
     if (!mounted) return;
     setState(() => _isLoading = false);
 
-    if (success) {
+    if (failure == null) {
       SacSnackBar.show(
           context,
           tr('members.role_assignment.assigned_role', namedArgs: {
@@ -81,9 +83,20 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
           backgroundColor: AppColors.secondary);
       Navigator.pop(context, true);
     } else {
-      SacSnackBar.show(context, 'members.role_assignment.assign_error'.tr(),
-          isError: true);
+      SacSnackBar.show(context, _assignErrorMessage(failure), isError: true);
     }
+  }
+
+  /// Muestra el motivo del backend en rechazos de negocio (4xx, p. ej. cupo
+  /// del cargo lleno); para el resto, el mensaje genérico.
+  String _assignErrorMessage(Failure failure) {
+    final code = failure.code;
+    final isBusinessRejection =
+        failure is ServerFailure && code != null && code >= 400 && code < 500;
+    if (isBusinessRejection && failure.message.trim().isNotEmpty) {
+      return failure.message;
+    }
+    return 'members.role_assignment.assign_error'.tr();
   }
 
   @override
@@ -244,8 +257,11 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
                     text: 'members.role_assignment.save_button'.tr(),
                     icon: HugeIcons.strokeRoundedCheckmarkCircle01,
                     isLoading: _isLoading,
-                    onPressed:
-                        _isLoading || _selectedRole == null ? null : _save,
+                    onPressed: _isLoading ||
+                            _selectedRole == null ||
+                            _selectedRole == widget.member.clubRole
+                        ? null
+                        : _save,
                   ),
                 ),
               ],

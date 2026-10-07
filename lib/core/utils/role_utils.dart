@@ -43,7 +43,10 @@ class RoleUtils {
   /// fallback (sin distinción de género).
   static String translate(String? role, {String? gender}) {
     if (role == null || role.isEmpty) return '';
-    final key = role.toLowerCase();
+    // El backend usa `secretary-treasurer`; la clave de traducción usa `_`.
+    final key = role
+        .toLowerCase()
+        .replaceAll('secretary-treasurer', 'secretary_treasurer');
     if (!_knownRoles.contains(key)) return _capitalize(role);
     final genderSuffix = _isFeminine(gender) ? 'feminine' : 'masculine';
     return tr('roles.$key.$genderSuffix');

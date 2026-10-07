@@ -2422,6 +2422,8 @@
       "no_members_subtitle": "Aucun membre trouvé avec les filtres actuels.",
       "no_requests_title": "Aucune demande",
       "no_requests_subtitle": "Il n'y a pas de demandes d'adhésion en attente.",
+      "no_requests_any_subtitle": "Il n'y a pas encore de demandes d'adhésion.",
+      "no_requests_filtered_subtitle": "Aucune demande ne correspond aux filtres actuels.",
       "request_profile_title": "Profil du demandeur",
       "request_approved": "Demande de {name} approuvée",
       "approve_error": "Erreur lors de l'approbation de la demande",

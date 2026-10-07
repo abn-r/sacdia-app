@@ -2422,6 +2422,8 @@
       "no_members_subtitle": "Nenhum membro encontrado com os filtros atuais.",
       "no_requests_title": "Sem solicitações",
       "no_requests_subtitle": "Não há solicitações de adesão pendentes.",
+      "no_requests_any_subtitle": "Ainda não há solicitações de adesão.",
+      "no_requests_filtered_subtitle": "Nenhuma solicitação corresponde aos filtros atuais.",
       "request_profile_title": "Perfil do solicitante",
       "request_approved": "Solicitação de {name} aprovada",
       "approve_error": "Erro ao aprovar a solicitação",
