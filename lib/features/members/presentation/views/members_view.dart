@@ -378,6 +378,19 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
   /// IDs de solicitudes que están siendo procesadas (approve o reject en vuelo)
   final Set<String> _processingIds = {};
 
+  /// El texto vacío debe reflejar el filtro activo: "pendientes" solo aplica
+  /// cuando se filtra por pendientes.
+  String _emptySubtitleKey(JoinRequestFilters filters) {
+    if (filters.searchQuery.isNotEmpty) {
+      return 'members.view.no_requests_filtered_subtitle';
+    }
+    return switch (filters.statusFilter) {
+      null => 'members.view.no_requests_any_subtitle',
+      JoinRequestStatus.pending => 'members.view.no_requests_subtitle',
+      _ => 'members.view.no_requests_filtered_subtitle',
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final filteredRequests = ref.watch(filteredJoinRequestsProvider);
@@ -412,7 +425,7 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
                   ? _EmptyState(
                       icon: HugeIcons.strokeRoundedUserAdd01,
                       title: 'members.view.no_requests_title'.tr(),
-                      subtitle: 'members.view.no_requests_subtitle'.tr(),
+                      subtitle: _emptySubtitleKey(filters).tr(),
                     )
                   : RefreshIndicator(
                       color: SacAccent.of(context).color,

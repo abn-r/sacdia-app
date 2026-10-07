@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/errors/failures.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
@@ -17,6 +18,7 @@ import '../../../post_registration/data/models/medicine_model.dart';
 import '../../data/datasources/members_remote_data_source.dart';
 import '../../data/repositories/members_repository_impl.dart';
 import '../../domain/entities/annual_continuation.dart';
+import '../../domain/entities/assignable_role.dart';
 import '../../domain/entities/club_member.dart';
 import '../../domain/entities/join_request.dart';
 import '../../domain/repositories/members_repository.dart';
@@ -277,8 +279,11 @@ class MembersNotifier extends AutoDisposeAsyncNotifier<MembersData> {
     );
   }
 
-  /// Asigna un rol de club a un miembro y recarga los datos
-  Future<bool> assignRole({
+  /// Asigna un rol de club a un miembro y recarga los datos.
+  ///
+  /// Devuelve `null` si se asignó; si no, el [Failure] para que la vista
+  /// pueda mostrar el motivo que envía el backend (p. ej. cupo lleno).
+  Future<Failure?> assignRole({
     required ClubContext context,
     required String userId,
     required String role,
@@ -293,10 +298,11 @@ class MembersNotifier extends AutoDisposeAsyncNotifier<MembersData> {
     );
 
     return result.fold(
-      (_) => false,
+      (failure) => failure,
       (success) {
-        if (success) ref.invalidateSelf();
-        return success;
+        if (!success) return const UnexpectedFailure(message: '');
+        ref.invalidateSelf();
+        return null;
       },
     );
   }
@@ -568,6 +574,46 @@ final memberDetailProvider =
   return result.fold(
     (failure) => throw Exception(failure.message),
     (member) => member,
+  );
+});
+
+// ── Assignable roles provider ─────────────────────────────────────────────────
+
+/// Parámetros del provider de roles asignables.
+class AssignableRolesParams {
+  final int clubId;
+  final int sectionId;
+  final String userId;
+
+  const AssignableRolesParams({
+    required this.clubId,
+    required this.sectionId,
+    required this.userId,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      other is AssignableRolesParams &&
+      other.clubId == clubId &&
+      other.sectionId == sectionId &&
+      other.userId == userId;
+
+  @override
+  int get hashCode => Object.hash(clubId, sectionId, userId);
+}
+
+/// Roles de club con elegibilidad para un miembro en una sección.
+final assignableRolesProvider = FutureProvider.autoDispose
+    .family<AssignableRolesResult, AssignableRolesParams>((ref, params) async {
+  final repo = ref.read(membersRepositoryProvider);
+  final result = await repo.getAssignableRoles(
+    clubId: params.clubId,
+    sectionId: params.sectionId,
+    userId: params.userId,
+  );
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (data) => data,
   );
 });
 

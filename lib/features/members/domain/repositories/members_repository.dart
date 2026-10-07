@@ -3,6 +3,7 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/annual_continuation.dart';
+import '../entities/assignable_role.dart';
 import '../entities/club_member.dart';
 import '../entities/join_request.dart';
 
@@ -38,6 +39,13 @@ abstract class MembersRepository {
     required int sectionId,
     required String userId,
     required String role,
+  });
+
+  /// Roles de club con su elegibilidad para un usuario en la sección
+  Future<Either<Failure, AssignableRolesResult>> getAssignableRoles({
+    required int clubId,
+    required int sectionId,
+    required String userId,
   });
 
   /// Remueve un rol de club de un miembro

@@ -2359,6 +2359,7 @@
       "fetch_club_members": "Error al obtener miembros del club",
       "fetch_members": "Error al obtener miembros",
       "fetch_member_detail": "Error al obtener detalle del miembro",
+      "fetch_assignable_roles": "Error al obtener los roles asignables",
       "fetch_join_requests": "Error al obtener solicitudes de ingreso",
       "fetch_requests": "Error al obtener solicitudes",
       "approve_request": "Error al aprobar solicitud",
@@ -2423,6 +2424,8 @@
       "no_members_subtitle": "No se encontraron miembros con los filtros actuales.",
       "no_requests_title": "Sin solicitudes",
       "no_requests_subtitle": "No hay solicitudes de ingreso pendientes.",
+      "no_requests_any_subtitle": "Todavía no hay solicitudes de ingreso.",
+      "no_requests_filtered_subtitle": "No se encontraron solicitudes con los filtros actuales.",
       "request_profile_title": "Perfil del solicitante",
       "request_approved": "Solicitud de {name} aprobada",
       "approve_error": "Error al aprobar la solicitud",
@@ -2442,7 +2445,9 @@
       "assign_error": "Error al asignar el cargo. Intenta de nuevo.",
       "title": "Asignar cargo",
       "current_role": "Cargo actual: {role}",
-      "save_button": "Guardar cargo"
+      "save_button": "Guardar cargo",
+      "blocked_guide_major_required": "Requiere cursar o estar investido como Guía Mayor",
+      "blocked_member_in_guide_major_section": "Un Guía Mayor no puede ser miembro en esta sección"
     },
     "filter_bar": {
       "search_hint": "Buscar por nombre...",

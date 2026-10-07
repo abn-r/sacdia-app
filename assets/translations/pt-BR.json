@@ -2358,6 +2358,7 @@
       "fetch_club_members": "Erro ao obter membros do clube",
       "fetch_members": "Erro ao obter membros",
       "fetch_member_detail": "Erro ao obter detalhes do membro",
+      "fetch_assignable_roles": "Erro ao obter as funções atribuíveis",
       "fetch_join_requests": "Erro ao obter solicitações de adesão",
       "fetch_requests": "Erro ao obter solicitações",
       "approve_request": "Erro ao aprovar solicitação",
@@ -2422,6 +2423,8 @@
       "no_members_subtitle": "Nenhum membro encontrado com os filtros atuais.",
       "no_requests_title": "Sem solicitações",
       "no_requests_subtitle": "Não há solicitações de adesão pendentes.",
+      "no_requests_any_subtitle": "Ainda não há solicitações de adesão.",
+      "no_requests_filtered_subtitle": "Nenhuma solicitação corresponde aos filtros atuais.",
       "request_profile_title": "Perfil do solicitante",
       "request_approved": "Solicitação de {name} aprovada",
       "approve_error": "Erro ao aprovar a solicitação",
@@ -2441,7 +2444,9 @@
       "assign_error": "Erro ao atribuir função. Tente novamente.",
       "title": "Atribuir função",
       "current_role": "Função atual: {role}",
-      "save_button": "Salvar função"
+      "save_button": "Salvar função",
+      "blocked_guide_major_required": "Exige cursar ou ser investido como Guia Maior",
+      "blocked_member_in_guide_major_section": "Um Guia Maior não pode ser membro nesta seção"
     },
     "filter_bar": {
       "search_hint": "Buscar por nome...",
