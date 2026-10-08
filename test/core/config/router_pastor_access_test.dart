@@ -163,12 +163,67 @@ void main() {
       );
     });
 
-    testWidgets('can open any app route without the post-registration detour',
+    testWidgets('may open only the authorization screens and the profile',
         (tester) async {
       final container = await setUpRouter(tester, _user(role: 'pastor'));
-      expect(await redirectFor(container, RouteNames.homeProfile), isNull);
-      expect(await redirectFor(container, RouteNames.investitureAuthorize),
-          isNull);
+      for (final allowed in [
+        RouteNames.homeDashboard,
+        RouteNames.homeProfile,
+        RouteNames.homeMedicalInfo,
+        RouteNames.investitureAuthorize,
+        RouteNames.investitureAuthorizeDetailPath('req-123'),
+      ]) {
+        expect(await redirectFor(container, allowed), isNull, reason: allowed);
+      }
+    });
+
+    testWidgets('any other route is redirected to the authorizations list',
+        (tester) async {
+      final container = await setUpRouter(tester, _user(role: 'pastor'));
+      for (final blocked in [
+        RouteNames.homeHonors,
+        RouteNames.homeCertifications,
+        RouteNames.certificateImportUpload,
+        RouteNames.homeClasses,
+        RouteNames.homeClub,
+        RouteNames.homeMembers,
+        RouteNames.homeActivities,
+        RouteNames.sectionInvestiture,
+        RouteNames.ownInvestiture,
+        RouteNames.notificationsInbox,
+        RouteNames.clubDetailPath('1'),
+        RouteNames.classDetailPath('3'),
+        RouteNames.camporeeDetail,
+        '/investiture/authorized',
+        '/investiture/authorize/req-123/extra',
+        '${RouteNames.investitureAuthorize}-x',
+      ]) {
+        expect(
+          await redirectFor(container, blocked),
+          RouteNames.investitureAuthorize,
+          reason: blocked,
+        );
+      }
+    });
+
+    testWidgets('users with a club or other roles are not restricted',
+        (tester) async {
+      final withClub = await setUpRouter(
+        tester,
+        _user(
+          role: 'pastor',
+          postRegisterComplete: true,
+          clubAssignments: const [_activeClubGrant],
+        ),
+      );
+      expect(await redirectFor(withClub, RouteNames.homeHonors), isNull);
+
+      final director = await setUpRouter(
+        tester,
+        _user(role: 'director-lf', postRegisterComplete: true),
+      );
+      expect(await redirectFor(director, RouteNames.homeHonors), isNull);
+      expect(await redirectFor(director, RouteNames.homeClub), isNull);
     });
 
     testWidgets(

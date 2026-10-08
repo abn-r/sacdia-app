@@ -121,6 +121,7 @@ import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/core/authorization/access_subject.dart';
 import 'package:sacdia_app/core/authorization/screen_catalog.dart';
+import 'pastor_route_access.dart';
 import 'route_names.dart';
 import 'package:sacdia_app/core/widgets/sac_nav_icon.dart';
 import 'package:sacdia_app/core/widgets/sac_shell_nav.dart';
@@ -297,6 +298,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (!needsPostRegistration &&
           currentPath == RouteNames.postRegistration) {
         return RouteNames.homeDashboard;
+      }
+
+      // El pastor sin club solo ve «Autorizaciones» y su perfil: cualquier otra
+      // ruta (también por enlace profundo) vuelve al listado de autorizaciones.
+      if (isPastorWithoutClub(user) && !isPastorAllowedPath(currentPath)) {
+        return RouteNames.investitureAuthorize;
       }
 
       return null;
