@@ -3864,6 +3864,7 @@
       "finances": "Finances",
       "units": "Units",
       "grouped_class": "Group Class",
+      "investiture": "Investitures",
       "insurance": "Club Insurance",
       "inventory": "Inventory",
       "resources": "Resources",
@@ -4787,6 +4788,16 @@
     "empty_title": "No master honors available"
   },
   "investiture_requests": {
+    "section": {
+      "title": "Section investitures"
+    },
+    "own": {
+      "title": "My investiture"
+    },
+    "history": {
+      "title": "Investiture history"
+    },
+    "placeholder": "Coming soon",
     "errors": {
       "forbidden": "You do not have permission for this investiture request",
       "stale": "This request is no longer the section's active one. Reload the list",

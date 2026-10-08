@@ -3863,6 +3863,7 @@
       "finances": "Finanças",
       "units": "Unidades",
       "grouped_class": "Aula em Grupo",
+      "investiture": "Investiduras",
       "insurance": "Seguros do Clube",
       "inventory": "Inventário",
       "resources": "Recursos",
@@ -4785,6 +4786,16 @@
     "empty_title": "Não há maestrias disponíveis"
   },
   "investiture_requests": {
+    "section": {
+      "title": "Investiduras da seção"
+    },
+    "own": {
+      "title": "Minha investidura"
+    },
+    "history": {
+      "title": "Histórico de investidura"
+    },
+    "placeholder": "Em breve",
     "errors": {
       "forbidden": "Você não tem permissão para esta solicitação de investidura",
       "stale": "Esta solicitação não é mais a ativa da seção. Recarregue a lista",

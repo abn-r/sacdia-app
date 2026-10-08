@@ -3863,6 +3863,7 @@
       "finances": "Finances",
       "units": "Unités",
       "grouped_class": "Classe groupée",
+      "investiture": "Investitures",
       "insurance": "Assurances du club",
       "inventory": "Inventaire",
       "resources": "Ressources",
@@ -4785,6 +4786,16 @@
     "empty_title": "Aucune maîtrise disponible"
   },
   "investiture_requests": {
+    "section": {
+      "title": "Investitures de la section"
+    },
+    "own": {
+      "title": "Mon investiture"
+    },
+    "history": {
+      "title": "Historique des investitures"
+    },
+    "placeholder": "Bientôt disponible",
     "errors": {
       "forbidden": "Vous n'avez pas la permission pour cette demande d'investiture",
       "stale": "Cette demande n'est plus la demande active de la section. Rechargez la liste",

@@ -18,7 +18,10 @@ class _FakeAuthNotifier extends AuthNotifier {
   Future<UserEntity?> build() async => _user;
 }
 
-UserEntity _userWithPermissions(List<String> permissions) {
+UserEntity _userWithPermissions(
+  List<String> permissions, {
+  String roleName = 'counselor',
+}) {
   const activeAssignmentId = 'assignment-1';
 
   return UserEntity(
@@ -27,10 +30,10 @@ UserEntity _userWithPermissions(List<String> permissions) {
     authorization: AuthorizationSnapshot(
       effectivePermissions: permissions,
       activeAssignmentId: activeAssignmentId,
-      clubAssignments: const [
+      clubAssignments: [
         AuthorizationGrant(
           assignmentId: activeAssignmentId,
-          roleName: 'counselor',
+          roleName: roleName,
           clubId: 1,
           sectionId: 2,
           status: 'active',
@@ -220,5 +223,25 @@ void main() {
             find.text('dashboard.quick_access.camporee_judge'), findsNothing);
       },
     );
+
+    for (final role in ['director', 'secretary', 'secretary-treasurer']) {
+      testWidgets('shows the investiture shortcut to $role', (tester) async {
+        await _pumpQuickAccessGrid(
+          tester,
+          _userWithPermissions(const ['reports:read'], roleName: role),
+        );
+        expect(find.text('dashboard.quick_access.investiture'), findsOne);
+      });
+    }
+
+    for (final role in ['counselor', 'deputy-director', 'treasurer']) {
+      testWidgets('hides the investiture shortcut from $role', (tester) async {
+        await _pumpQuickAccessGrid(
+          tester,
+          _userWithPermissions(const ['reports:read'], roleName: role),
+        );
+        expect(find.text('dashboard.quick_access.investiture'), findsNothing);
+      });
+    }
   });
 }

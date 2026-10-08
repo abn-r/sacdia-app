@@ -25,6 +25,9 @@ import 'package:sacdia_app/features/certificate_import/presentation/views/certif
 import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_import_proof_card.dart';
 import 'package:sacdia_app/features/investiture/presentation/views/investiture_pending_list_view.dart';
 import 'package:sacdia_app/features/investiture/presentation/views/investiture_history_view.dart';
+import 'package:sacdia_app/features/investiture_requests/presentation/views/own_investiture_view.dart';
+import 'package:sacdia_app/features/investiture_requests/presentation/views/section_investiture_history_view.dart';
+import 'package:sacdia_app/features/investiture_requests/presentation/views/section_investiture_view.dart';
 import 'package:sacdia_app/features/evidence_folder/presentation/views/evidence_folder_view.dart';
 import 'package:sacdia_app/features/club/presentation/providers/club_providers.dart';
 import 'package:sacdia_app/features/club/presentation/views/club_detail_view.dart';
@@ -462,6 +465,22 @@ final routerProvider = Provider<GoRouter>((ref) {
                     _sharedAxisBuild(context, state, const CatalogView()),
               ),
               GoRoute(
+                path: RouteNames.sectionInvestiture,
+                pageBuilder: (context, state) => _sharedAxisBuild(
+                  context,
+                  state,
+                  const SectionInvestitureView(),
+                ),
+              ),
+              GoRoute(
+                path: RouteNames.sectionInvestitureHistory,
+                pageBuilder: (context, state) => _sharedAxisBuild(
+                  context,
+                  state,
+                  const SectionInvestitureHistoryView(),
+                ),
+              ),
+              GoRoute(
                 path: RouteNames.homeReports,
                 pageBuilder: (context, state) => _sharedAxisBuild(
                   context,
@@ -749,6 +768,16 @@ final routerProvider = Provider<GoRouter>((ref) {
             InvestitureHistoryView(enrollmentId: enrollmentId),
           );
         },
+      ),
+
+      // Estado de investidura de la propia persona (investidura por autorización)
+      GoRoute(
+        path: RouteNames.ownInvestiture,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          const OwnInvestitureView(),
+        ),
       ),
 
       // Carga masiva por certificado OCR (member flow).
