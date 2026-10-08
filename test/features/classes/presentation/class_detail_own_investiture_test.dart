@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/classes/domain/entities/class_with_progress.dart';
 import 'package:sacdia_app/features/classes/domain/entities/progressive_class.dart';
@@ -32,6 +34,7 @@ Future<void> _pump(
   List<OwnInvestitureEntry> history = const [],
   String? targetUserId,
   String role = 'director',
+  Future<List<OwnInvestitureEntry>>? pendingHistory,
 }) {
   final repo = FakeInvestitureRequestsRepository()..ownHistory = history;
   final data = ClassWithProgress(
@@ -51,6 +54,8 @@ Future<void> _pump(
     ),
     overrides: [
       investitureRequestsRepositoryProvider.overrideWithValue(repo),
+      if (pendingHistory != null)
+        ownInvestitureHistoryProvider.overrideWith((ref) => pendingHistory),
       classWithProgressProvider.overrideWith((ref, query) async => data),
       classDetailProvider.overrideWith(
         (ref, classId) async =>
@@ -129,6 +134,73 @@ void main() {
 
       expect(
           find.text('Falta de requisitos para investidura.'), findsOneWidget);
+    });
+  });
+
+  group('legacy status while the old pipeline is still active', () {
+    // Estado legado -> texto de la tarjeta legada.
+    const legacyCards = {
+      'SUBMITTED_FOR_VALIDATION': 'Enviado a validación',
+      'CLUB_APPROVED': 'Aprobado por el club',
+      'COORDINATOR_APPROVED': 'Aprobado por coordinador',
+      'FIELD_APPROVED': 'Aprobado por campo',
+      'APPROVED': 'Aprobado',
+      'REJECTED': 'Observada',
+      'INVESTIDO': 'Investido',
+    };
+
+    for (final entry in legacyCards.entries) {
+      testWidgets('${entry.key} without an authorization entry keeps the card',
+          (tester) async {
+        await _pump(tester, legacyStatus: entry.key);
+
+        expect(find.text(entry.value), findsOneWidget);
+        // Nunca se ofrece enviar o reenviar desde la clase propia.
+        expect(find.text(_legacySend), findsNothing);
+        expect(find.text('Reenviar a validación'), findsNothing);
+      });
+
+      testWidgets('${entry.key} yields to the authorization entry',
+          (tester) async {
+        await _pump(
+          tester,
+          legacyStatus: entry.key,
+          history: [_entry(PersonStatus.pending)],
+        );
+
+        expect(find.text(_pending), findsOneWidget);
+        expect(find.text(entry.value), findsNothing);
+      });
+    }
+
+    testWidgets('waits for the authorization history before showing the card',
+        (tester) async {
+      final completer = Completer<List<OwnInvestitureEntry>>();
+      await _pump(
+        tester,
+        legacyStatus: 'SUBMITTED_FOR_VALIDATION',
+        pendingHistory: completer.future,
+      );
+      expect(find.text('Enviado a validación'), findsNothing);
+
+      completer.complete([_entry(PersonStatus.pending)]);
+      await settle(tester);
+      expect(find.text(_pending), findsOneWidget);
+      expect(find.text('Enviado a validación'), findsNothing);
+    });
+
+    testWidgets('falls back to the card when the history fails to load',
+        (tester) async {
+      final completer = Completer<List<OwnInvestitureEntry>>();
+      await _pump(
+        tester,
+        legacyStatus: 'CLUB_APPROVED',
+        pendingHistory: completer.future,
+      );
+      completer.completeError(Exception('sin conexión'));
+      await settle(tester);
+
+      expect(find.text('Aprobado por el club'), findsOneWidget);
     });
   });
 
