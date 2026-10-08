@@ -19,6 +19,7 @@ import '../realtime/realtime_ref.dart';
 import '../theme/sac_colors.dart';
 import '../utils/app_logger.dart';
 import '../../features/achievements/presentation/providers/achievements_providers.dart';
+import '../../features/investiture_requests/presentation/utils/investiture_notification_routes.dart';
 import '../../features/master_honors/presentation/providers/master_honor_modal_queue_provider.dart';
 import '../../features/master_honors/presentation/providers/master_honors_providers.dart';
 import '../../features/master_honors/presentation/widgets/master_honor_change_modal.dart';
@@ -460,6 +461,11 @@ class PushNotificationService {
   }
 
   @visibleForTesting
+  void handleNotificationTapForTesting(RemoteMessage message) {
+    _handleNotificationTap(message);
+  }
+
+  @visibleForTesting
   String achievementRouteForTesting(Map<String, dynamic> data) {
     return _achievementUnlockedRoute(data);
   }
@@ -820,6 +826,7 @@ class PushNotificationService {
     'member_of_month_director',
     'achievement_unlocked',
     'master_honor_changed',
+    'investiture_result',
   };
 
   /// RegExp patterns for routes that carry path parameters.
@@ -973,6 +980,13 @@ class PushNotificationService {
         return;
       case 'master_honor_changed':
         _pushRoute(_masterHonorsNotificationRoute());
+        return;
+
+      case 'investiture_result':
+        // Payload: { type, audience: 'person' | 'board', requestId, sectionId,
+        // classId? }. La persona puede no traer classId (filas viejas): en ese
+        // caso va a su lista de investiduras.
+        _pushRoute(investitureResultPushRoute(data));
         return;
 
       default:

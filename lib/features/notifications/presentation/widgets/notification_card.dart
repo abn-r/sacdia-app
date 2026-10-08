@@ -4,11 +4,14 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
+import '../../../investiture_requests/presentation/utils/investiture_notification_routes.dart';
+import '../../../members/presentation/providers/members_providers.dart';
 import '../../domain/entities/notification_item.dart';
 import '../../domain/notification_body_parser.dart';
 import '../../domain/notification_time.dart';
@@ -187,6 +190,23 @@ class NotificationCard extends ConsumerWidget {
     }
 
     if (!context.mounted) return;
+
+    // Resultado de investidura: lleva a la pantalla que muestra el estado
+    // (directiva → sección; el resto → su lista de investiduras).
+    if (isInvestitureResultSource(notification.source)) {
+      var isBoard = false;
+      try {
+        isBoard =
+            (await ref.read(clubContextProvider.future))?.isInvestitureBoard ??
+                false;
+      } catch (_) {
+        // Sin contexto de club se trata como persona: su lista siempre existe.
+      }
+      if (!context.mounted) return;
+      context.push(investitureInboxRoute(isBoard: isBoard));
+      return;
+    }
+
     await _showDetailsSheet(context);
   }
 
