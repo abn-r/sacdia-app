@@ -11,7 +11,38 @@ final _forbidden = <RegExp>[
   RegExp(r'ValidationEntityType\.classProgress'),
 ];
 
+bool _flags(String line) => _forbidden.any((pattern) => pattern.hasMatch(line));
+
 void main() {
+  group('each forbidden pattern flags an example', () {
+    final samples = <String, String>{
+      'submit-for-validation': r"'/enrollments/$id/submit-for-validation'",
+      '/investiture/pending': r"'/investiture/pending'",
+      'ApiEndpoints.investiture': r"'${ApiEndpoints.investiture}/enrollments'",
+      'validate': r"'${ApiEndpoints.enrollments}/$id/validate'",
+      'investiture': r"'${ApiEndpoints.enrollments}/$id/investiture'",
+      'investiture-history':
+          r"'${ApiEndpoints.enrollments}/$id/investiture-history'",
+      'old feature data':
+          r"import 'package:sacdia/features/investiture/data/x.dart';",
+      'old feature presentation':
+          r"import 'package:sacdia/features/investiture/presentation/x.dart';",
+      'ValidationEntityType.classProgress':
+          'ValidationEntityType.classProgress',
+    };
+    for (final entry in samples.entries) {
+      test(entry.key, () => expect(_flags(entry.value), isTrue));
+    }
+
+    test('does not flag the new authorization flow', () {
+      expect(_flags(r"'${ApiEndpoints.enrollments}/$id/progress'"), isFalse);
+      expect(
+        _flags("import 'package:sacdia/features/investiture_requests/x.dart';"),
+        isFalse,
+      );
+    });
+  });
+
   test('the app no longer reaches the retired investiture pipeline', () {
     final root = Directory.current.path;
     final offenders = <String>[];
