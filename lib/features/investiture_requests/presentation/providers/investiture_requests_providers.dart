@@ -295,17 +295,23 @@ class ResolveState extends Equatable {
   const ResolveState({
     this.isLoading = false,
     this.errorMessage,
+    this.errorCode,
     this.success = false,
     this.resolution,
   });
 
   final bool isLoading;
   final String? errorMessage;
+
+  /// Código de negocio del backend del error (la UI ramifica por él, no por el
+  /// mensaje traducido).
+  final String? errorCode;
   final bool success;
   final InvestitureResolution? resolution;
 
   @override
-  List<Object?> get props => [isLoading, errorMessage, success, resolution];
+  List<Object?> get props =>
+      [isLoading, errorMessage, errorCode, success, resolution];
 }
 
 /// Confirma las decisiones del autorizador sobre una solicitud (family por
@@ -325,7 +331,10 @@ class ResolveNotifier extends AutoDisposeFamilyNotifier<ResolveState, String> {
 
     return result.fold(
       (failure) {
-        state = ResolveState(errorMessage: failure.message);
+        state = ResolveState(
+          errorMessage: failure.message,
+          errorCode: failure.errorCode,
+        );
         return false;
       },
       (resolution) {

@@ -265,20 +265,25 @@ void main() {
       expect(find.textContaining('Motivo privado'), findsNothing);
     });
 
-    testWidgets('a closed window or year blocks the decisions', (tester) async {
-      final repo = repoWith()
-        ..writeFailure = const ServerFailure(
-          message:
-              'La ventana del Campo no permite presentar ni agregar personas',
-        );
-      await _pump(tester, repo);
-
+    Future<void> confirmOneDecision(WidgetTester tester) async {
       await _openSheetFor(tester, 'Ana Pérez');
       await _tapText(tester, 'Investir');
       await tester.tap(_confirmButton());
       await settle(tester);
       await _tapText(tester, 'Confirmar decisiones (1)');
       await _tapText(tester, 'Confirmar');
+    }
+
+    testWidgets('a closed window blocks the decisions (by error code)',
+        (tester) async {
+      final repo = repoWith()
+        ..writeFailure = const ServerFailure(
+          message: 'texto que no se compara',
+          code: 409,
+          errorCode: 'INVESTITURE_REQUEST_WINDOW_CLOSED',
+        );
+      await _pump(tester, repo);
+      await confirmOneDecision(tester);
 
       expect(
         find.text(
@@ -288,6 +293,44 @@ void main() {
       );
       expect(find.text('Decidir'), findsNothing);
       expect(find.text('Confirmar decisiones (1)'), findsNothing);
+    });
+
+    testWidgets('a closed year blocks the decisions (by error code)',
+        (tester) async {
+      final repo = repoWith()
+        ..writeFailure = const ServerFailure(
+          message: 'texto que no se compara',
+          code: 409,
+          errorCode: 'INVESTITURE_REQUEST_YEAR_CLOSED',
+        );
+      await _pump(tester, repo);
+      await confirmOneDecision(tester);
+
+      expect(
+        find.text(
+          'El año eclesiástico está cerrado. Por ahora no se pueden confirmar decisiones.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Decidir'), findsNothing);
+    });
+
+    testWidgets('the same message without the code is not treated as closed',
+        (tester) async {
+      final repo = repoWith()
+        ..writeFailure = const ServerFailure(
+          message:
+              'La ventana del Campo no permite presentar ni agregar personas',
+        );
+      await _pump(tester, repo);
+      await confirmOneDecision(tester);
+
+      expect(
+        find.text(
+          'La ventana del Campo está cerrada. Por ahora no se pueden confirmar decisiones.',
+        ),
+        findsNothing,
+      );
     });
 
     testWidgets('shows a retry state when loading fails', (tester) async {

@@ -121,7 +121,7 @@ class _AuthorizerRequestDetailViewState
     }
 
     final message = state.errorMessage;
-    final closed = _closedReasonOf(message);
+    final closed = _closedReasonOf(state.errorCode);
     if (closed != null) {
       setState(() {
         _closed = closed;
@@ -138,21 +138,12 @@ class _AuthorizerRequestDetailViewState
     }
   }
 
-  /// El backend responde con el mismo mensaje traducido que el mapa de
-  /// códigos; así se reconoce el cierre de ventana o de año sin depender del
-  /// código en el estado.
-  _ClosedReason? _closedReasonOf(String? message) {
-    if (message == null) return null;
-    if (message ==
-        investitureRequestErrorMessage('INVESTITURE_REQUEST_WINDOW_CLOSED')) {
-      return _ClosedReason.window;
-    }
-    if (message ==
-        investitureRequestErrorMessage('INVESTITURE_REQUEST_YEAR_CLOSED')) {
-      return _ClosedReason.year;
-    }
-    return null;
-  }
+  /// Cierre de ventana o de año según el código de negocio del error.
+  _ClosedReason? _closedReasonOf(String? errorCode) => switch (errorCode) {
+        investitureWindowClosedCode => _ClosedReason.window,
+        investitureYearClosedCode => _ClosedReason.year,
+        _ => null,
+      };
 
   @override
   Widget build(BuildContext context) {
