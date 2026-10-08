@@ -26,12 +26,18 @@ class _QuickAccessItemConfig {
   /// Screen catalog id. Omit only for runtime tiles (judge assignment).
   final String? screenId;
 
+  /// El súper-admin pasa todo el catálogo, pero estas pantallas dependen de un
+  /// rol operativo concreto (el backend no deja autorizar ni presentar al
+  /// súper-admin): se evalúan por los roles reales, sin ese atajo.
+  final bool ignoreSuperAdminBypass;
+
   const _QuickAccessItemConfig({
     required this.labelKey,
     required this.icon,
     this.color,
     this.route = '',
     this.screenId,
+    this.ignoreSuperAdminBypass = false,
   });
 }
 
@@ -96,6 +102,7 @@ List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
     color: AppColors.accent,
     route: RouteNames.sectionInvestiture,
     screenId: 'app-section-investiture',
+    ignoreSuperAdminBypass: true,
   ),
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.authorizations',
@@ -103,6 +110,7 @@ List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
     color: AppColors.secondary,
     route: RouteNames.investitureAuthorize,
     screenId: 'app-investiture-authorizer',
+    ignoreSuperAdminBypass: true,
   ),
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.insurance',
@@ -195,10 +203,18 @@ class QuickAccessGrid extends ConsumerWidget {
     }
 
     final subject = subjectFromUser(user);
+    final withoutSuperAdminBypass = AccessSubject(
+      permissions: subject.permissions,
+      roles: subject.roles,
+      isSuperAdmin: false,
+    );
     final filteredItems = _quickAccessItemsConfig.where((item) {
       final screenId = item.screenId;
       if (screenId == null) return true;
-      return canViewScreen(subject, screenId);
+      return canViewScreen(
+        item.ignoreSuperAdminBypass ? withoutSuperAdminBypass : subject,
+        screenId,
+      );
     }).toList();
 
     final showJudgeTile = ref.watch(camporeeJudgeAssignmentsProvider).maybeWhen(

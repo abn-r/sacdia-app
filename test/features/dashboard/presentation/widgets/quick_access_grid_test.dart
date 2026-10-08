@@ -271,6 +271,40 @@ void main() {
       });
     }
 
+    testWidgets('hides both investiture shortcuts from a super-admin only',
+        (tester) async {
+      await _pumpQuickAccessGrid(tester, globalUser('super-admin'));
+      expect(find.text('dashboard.quick_access.authorizations'), findsNothing);
+      expect(find.text('dashboard.quick_access.investiture'), findsNothing);
+    });
+
+    testWidgets('a super-admin who is also a section director keeps his tile',
+        (tester) async {
+      await _pumpQuickAccessGrid(
+        tester,
+        UserEntity(
+          id: 'user-1',
+          email: 'user@example.com',
+          authorization: AuthorizationSnapshot(
+            effectivePermissions: const ['reports:read'],
+            globalGrants: const [AuthorizationGrant(roleName: 'super-admin')],
+            activeAssignmentId: 'a1',
+            clubAssignments: const [
+              AuthorizationGrant(
+                assignmentId: 'a1',
+                roleName: 'director',
+                clubId: 1,
+                sectionId: 2,
+                status: 'active',
+              ),
+            ],
+          ),
+        ),
+      );
+      expect(find.text('dashboard.quick_access.investiture'), findsOne);
+      expect(find.text('dashboard.quick_access.authorizations'), findsNothing);
+    });
+
     testWidgets('hides it from a plain club counselor', (tester) async {
       await _pumpQuickAccessGrid(
         tester,
