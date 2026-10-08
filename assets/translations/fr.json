@@ -4902,6 +4902,8 @@
       "no_year_title": "Aucune année ecclésiastique active",
       "no_year_body": "Il n'y a pas d'année ecclésiastique active pour afficher des demandes.",
       "load_error_title": "Impossible de charger les autorisations",
+      "no_districts_title": "Aucun district ne vous est encore attribué.",
+      "no_districts_body": "Demandez au Champ de vous en attribuer un.",
       "empty_title": "Aucune demande à autoriser",
       "empty_body": "Lorsqu'une section présente des personnes à l'investiture, la demande apparaîtra ici.",
       "waiting_title": "À autoriser",

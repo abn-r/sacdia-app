@@ -120,9 +120,17 @@ class InvestitureRequestsRemoteDataSourceImpl
 
       if (mapped != null) {
         if (status == 403) {
-          throw AuthException(message: mapped, code: status);
+          throw AuthException(
+            message: mapped,
+            code: status,
+            errorCode: errorCode,
+          );
         }
-        throw ServerException(message: mapped, code: status);
+        throw ServerException(
+          message: mapped,
+          code: status,
+          errorCode: errorCode,
+        );
       }
       if (status == 403) {
         throw AuthException(

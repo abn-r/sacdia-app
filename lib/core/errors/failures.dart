@@ -5,16 +5,20 @@ import 'package:equatable/equatable.dart';
 abstract class Failure extends Equatable implements Exception {
   final String message;
   final int? code;
+
+  /// Código de negocio del backend, distinto de [code] (estado HTTP).
+  final String? errorCode;
   final StackTrace? stackTrace;
 
   const Failure({
     required this.message,
     this.code,
+    this.errorCode,
     this.stackTrace,
   });
 
   @override
-  List<Object?> get props => [message, code, stackTrace];
+  List<Object?> get props => [message, code, errorCode, stackTrace];
 }
 
 // Fallos específicos del servidor
@@ -22,6 +26,7 @@ class ServerFailure extends Failure {
   const ServerFailure({
     required super.message,
     super.code,
+    super.errorCode,
     super.stackTrace,
   });
 }
@@ -57,6 +62,7 @@ class AuthFailure extends Failure {
   const AuthFailure({
     required super.message,
     super.code,
+    super.errorCode,
     super.stackTrace,
   });
 }

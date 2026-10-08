@@ -4902,6 +4902,8 @@
       "no_year_title": "Sem ano eclesiástico ativo",
       "no_year_body": "Não há um ano eclesiástico ativo para mostrar solicitações.",
       "load_error_title": "Não foi possível carregar as autorizações",
+      "no_districts_title": "Você ainda não tem distritos atribuídos.",
+      "no_districts_body": "Peça ao Campo que atribua um a você.",
       "empty_title": "Não há solicitações para autorizar",
       "empty_body": "Quando uma seção apresentar pessoas para investidura, a solicitação aparecerá aqui.",
       "waiting_title": "Para autorizar",

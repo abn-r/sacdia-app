@@ -7,6 +7,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/authorization/access_subject.dart';
 import '../../../../core/authorization/screen_catalog.dart';
 import '../../../../core/config/route_names.dart';
+import '../../../../core/errors/failures.dart';
 import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_empty_state.dart';
@@ -14,6 +15,7 @@ import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../../providers/catalogs_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../data/investiture_request_error_keys.dart';
 import '../../domain/entities/investiture_request.dart';
 import '../providers/investiture_requests_providers.dart';
 import '../widgets/authorizer_request_card.dart';
@@ -102,6 +104,29 @@ class _RequestsBody extends ConsumerWidget {
     final requests = requestsAsync.valueOrNull;
     if (requests == null) {
       if (requestsAsync.hasError) {
+        final error = requestsAsync.error;
+        // Pastor sin distritos asignados: el backend responde 403 al listado.
+        if (error is Failure && error.errorCode == investitureForbiddenCode) {
+          return RefreshIndicator(
+            color: SacAccent.of(context).color,
+            onRefresh: refresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: SacTopBar.paddingBelowBar(
+                context,
+                const EdgeInsets.fromLTRB(16, 16, 16, 32),
+              ),
+              children: [
+                const SizedBox(height: 48),
+                SacEmptyState(
+                  title: tr('$_i18n.no_districts_title'),
+                  body: tr('$_i18n.no_districts_body'),
+                  icon: HugeIcons.strokeRoundedLocation01,
+                ),
+              ],
+            ),
+          );
+        }
         return InvestitureMessageState(
           title: tr('$_i18n.load_error_title'),
           onRetry: refresh,

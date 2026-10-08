@@ -23,9 +23,17 @@ class InvestitureRequestsRepositoryImpl
     try {
       return Right(await action());
     } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, code: e.code));
+      return Left(ServerFailure(
+        message: e.message,
+        code: e.code,
+        errorCode: e.errorCode,
+      ));
     } on AuthException catch (e) {
-      return Left(AuthFailure(message: e.message, code: e.code));
+      return Left(AuthFailure(
+        message: e.message,
+        code: e.code,
+        errorCode: e.errorCode,
+      ));
     } catch (e) {
       return Left(
         UnexpectedFailure(message: tr('investiture_requests.errors.generic')),

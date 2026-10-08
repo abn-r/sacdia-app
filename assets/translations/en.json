@@ -4904,6 +4904,8 @@
       "no_year_title": "No active ecclesiastical year",
       "no_year_body": "There is no active ecclesiastical year to show requests for.",
       "load_error_title": "We could not load the authorizations",
+      "no_districts_title": "You don't have any districts assigned yet.",
+      "no_districts_body": "Ask the Field to assign you.",
       "empty_title": "No requests to authorize",
       "empty_body": "When a section presents people for investiture, the request will show up here.",
       "waiting_title": "To authorize",

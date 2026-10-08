@@ -228,6 +228,40 @@ void main() {
       );
     });
 
+    test('the backend error code travels on the exception', () async {
+      final forbidden = _build(
+        (o) => _ok(
+          o,
+          {'code': 'INVESTITURE_REQUEST_FORBIDDEN', 'message': 'Forbidden'},
+          status: 403,
+        ),
+      );
+      await expectLater(
+        forbidden.ds.getPresentationContext(4, 9),
+        throwsA(
+          isA<AuthException>().having(
+              (e) => e.errorCode, 'errorCode', 'INVESTITURE_REQUEST_FORBIDDEN'),
+        ),
+      );
+      final closed = _build(
+        (o) => _ok(
+          o,
+          {'code': 'INVESTITURE_REQUEST_WINDOW_CLOSED', 'message': 'x'},
+          status: 409,
+        ),
+      );
+      await expectLater(
+        closed.ds.getPresentationContext(4, 9),
+        throwsA(
+          isA<ServerException>().having(
+            (e) => e.errorCode,
+            'errorCode',
+            'INVESTITURE_REQUEST_WINDOW_CLOSED',
+          ),
+        ),
+      );
+    });
+
     test('an unknown code falls back to the server message', () async {
       final t = _build(
         (o) => _ok(

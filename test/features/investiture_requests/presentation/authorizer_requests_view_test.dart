@@ -123,6 +123,44 @@ void main() {
       expect(find.text('Club Alfa'), findsOneWidget);
     });
 
+    testWidgets('a pastor without districts sees an empty state, not an error',
+        (tester) async {
+      final repo = FakeInvestitureRequestsRepository()
+        ..readFailure = const AuthFailure(
+          message: 'No tiene permiso para esta solicitud de investidura',
+          code: 403,
+          errorCode: 'INVESTITURE_REQUEST_FORBIDDEN',
+        );
+      await pumpRouterApp(
+        tester,
+        _router([]),
+        overrides: authorizerOverrides(repo),
+      );
+
+      expect(
+          find.text('Todavía no tenés distritos asignados.'), findsOneWidget);
+      expect(find.text('Pedí al Campo que te asigne.'), findsOneWidget);
+      expect(find.text('No pudimos cargar las autorizaciones'), findsNothing);
+      expect(find.text('Reintentar'), findsNothing);
+    });
+
+    testWidgets('other failures keep the generic retry state', (tester) async {
+      final repo = FakeInvestitureRequestsRepository()
+        ..readFailure = const AuthFailure(
+          message: 'Sesión vencida',
+          code: 401,
+          errorCode: 'AUTH_EXPIRED',
+        );
+      await pumpRouterApp(
+        tester,
+        _router([]),
+        overrides: authorizerOverrides(repo),
+      );
+
+      expect(find.text('No pudimos cargar las autorizaciones'), findsOneWidget);
+      expect(find.text('Reintentar'), findsOneWidget);
+    });
+
     testWidgets('director-lf and assistant-lf can open it too', (tester) async {
       for (final role in ['director-lf', 'assistant-lf']) {
         final repo = FakeInvestitureRequestsRepository()
