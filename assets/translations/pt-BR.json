@@ -4783,5 +4783,36 @@
   "master_honors": {
     "title": "Maestrias",
     "empty_title": "Não há maestrias disponíveis"
+  },
+  "investiture_requests": {
+    "errors": {
+      "forbidden": "Você não tem permissão para esta solicitação de investidura",
+      "stale": "Esta solicitação não é mais a ativa da seção. Recarregue a lista",
+      "active_exists": "Esta pessoa já tem uma solicitação ativa incompatível",
+      "already_invested": "Esta pessoa já está investida nesta classe",
+      "legacy_pipeline_active": "Esta matrícula ainda está na validação anterior de investidura",
+      "class_not_eligible": "Esta classe institucional não aceita solicitações de investidura",
+      "not_eligible": "Esta pessoa ainda não atingiu o progresso da classe",
+      "outside_section": "Esta pessoa não pertence a esta seção",
+      "window_closed": "A janela do Campo não permite apresentar nem adicionar pessoas",
+      "year_closed": "O ano eclesiástico não admite alterações na solicitação",
+      "date_outside_window": "A data de investidura está fora da janela do Campo",
+      "date_outside_year": "A data de investidura está fora do ano eclesiástico",
+      "date_invalid": "A data de investidura não é válida",
+      "progress_locked": "O progresso e as evidências desta classe ficam bloqueados enquanto a solicitação estiver pendente",
+      "time_zone_invalid": "O fuso horário da solicitação não é válido",
+      "not_operational": "Um certificado histórico não entra nesta solicitação",
+      "not_pending": "Esta pessoa não está mais pendente na solicitação",
+      "not_found": "Solicitação de investidura não encontrada",
+      "section_not_found": "Seção não encontrada",
+      "empty": "Escolha pelo menos uma pessoa",
+      "already_resolved": "Esta pessoa já foi resolvida. Recarregue a solicitação",
+      "reason_required": "A rejeição precisa de um motivo",
+      "conflicting_decision": "Escolha uma única decisão por pessoa",
+      "text_too_long": "O texto excede o limite permitido",
+      "duration_min_not_met": "A duração mínima da classe ainda não foi cumprida",
+      "duration_expired": "A duração da classe expirou para esta matrícula",
+      "generic": "Não foi possível concluir a operação de investidura"
+    }
   }
 }

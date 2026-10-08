@@ -4783,5 +4783,36 @@
   "master_honors": {
     "title": "Maîtrises",
     "empty_title": "Aucune maîtrise disponible"
+  },
+  "investiture_requests": {
+    "errors": {
+      "forbidden": "Vous n'avez pas la permission pour cette demande d'investiture",
+      "stale": "Cette demande n'est plus la demande active de la section. Rechargez la liste",
+      "active_exists": "Cette personne a déjà une demande active incompatible",
+      "already_invested": "Cette personne est déjà investie dans cette classe",
+      "legacy_pipeline_active": "Cette inscription est encore dans la validation d'investiture précédente",
+      "class_not_eligible": "Cette classe institutionnelle n'accepte pas de demandes d'investiture",
+      "not_eligible": "Cette personne n'a pas encore atteint la progression de la classe",
+      "outside_section": "Cette personne n'appartient pas à cette section",
+      "window_closed": "La fenêtre du Champ ne permet ni de présenter ni d'ajouter des personnes",
+      "year_closed": "L'année ecclésiastique n'admet pas de modifications de la demande",
+      "date_outside_window": "La date d'investiture est en dehors de la fenêtre du Champ",
+      "date_outside_year": "La date d'investiture est en dehors de l'année ecclésiastique",
+      "date_invalid": "La date d'investiture n'est pas valide",
+      "progress_locked": "La progression et les preuves de cette classe sont verrouillées tant que la demande est en attente",
+      "time_zone_invalid": "Le fuseau horaire de la demande n'est pas valide",
+      "not_operational": "Un certificat historique ne peut pas faire partie de cette demande",
+      "not_pending": "Cette personne n'est plus en attente dans la demande",
+      "not_found": "Demande d'investiture introuvable",
+      "section_not_found": "Section introuvable",
+      "empty": "Choisissez au moins une personne",
+      "already_resolved": "Cette personne a déjà été traitée. Rechargez la demande",
+      "reason_required": "Un refus nécessite un motif",
+      "conflicting_decision": "Choisissez une seule décision par personne",
+      "text_too_long": "Le texte dépasse la limite autorisée",
+      "duration_min_not_met": "La durée minimale de la classe n'est pas encore atteinte",
+      "duration_expired": "La durée de la classe a expiré pour cette inscription",
+      "generic": "L'opération d'investiture n'a pas pu être terminée"
+    }
   }
 }

@@ -4785,5 +4785,36 @@
   "master_honors": {
     "title": "Maestrías",
     "empty_title": "No hay maestrías disponibles"
+  },
+  "investiture_requests": {
+    "errors": {
+      "forbidden": "No tiene permiso para esta solicitud de investidura",
+      "stale": "Esta solicitud ya no es la activa de la sección. Hay que volver a cargar el listado",
+      "active_exists": "Esa persona ya tiene una solicitud activa incompatible",
+      "already_invested": "Esa persona ya está investida en esta clase",
+      "legacy_pipeline_active": "Este enrollment sigue en la validación anterior de investidura",
+      "class_not_eligible": "Esta clase institucional no admite solicitudes de investidura",
+      "not_eligible": "La persona todavía no cumple el progreso de la clase",
+      "outside_section": "La persona no pertenece a esta sección",
+      "window_closed": "La ventana del Campo no permite presentar ni agregar personas",
+      "year_closed": "El año eclesiástico no admite cambios en la solicitud",
+      "date_outside_window": "La fecha de investidura queda fuera de la ventana del Campo",
+      "date_outside_year": "La fecha de investidura queda fuera del año eclesiástico",
+      "date_invalid": "La fecha de investidura no es válida",
+      "progress_locked": "El progreso y las evidencias de esta clase quedan bloqueados mientras la solicitud sigue pendiente",
+      "time_zone_invalid": "La zona horaria de la solicitud no es válida",
+      "not_operational": "Un certificado histórico no entra en esta solicitud",
+      "not_pending": "Esa persona ya no está pendiente en la solicitud",
+      "not_found": "Solicitud de investidura no encontrada",
+      "section_not_found": "Sección no encontrada",
+      "empty": "Hay que elegir al menos una persona",
+      "already_resolved": "Esta persona ya fue resuelta. Hay que volver a cargar la solicitud",
+      "reason_required": "El rechazo necesita un motivo",
+      "conflicting_decision": "Hay que elegir una sola decisión por persona",
+      "text_too_long": "El texto supera el límite permitido",
+      "duration_min_not_met": "Todavía no se cumplió la duración mínima de la clase",
+      "duration_expired": "La duración de la clase venció para este enrollment",
+      "generic": "No se pudo completar la operación de investidura"
+    }
   }
 }
