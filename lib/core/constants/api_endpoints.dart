@@ -66,9 +66,6 @@ class ApiEndpoints {
   /// Appended to `$clubSections/$sectionId` for the annual continuation list.
   static const String annualContinuations = '/annual-continuations';
 
-  // ── Investiture ───────────────────────────────────────────────────────────
-  static const String investiture = '/investiture';
-
   // ── Validation ────────────────────────────────────────────────────────────
   static const String validation = '/validation';
 

@@ -39,13 +39,11 @@ extension ValidationStatusX on ValidationStatus {
 }
 
 /// Tipo de entidad que puede ser validada.
-enum ValidationEntityType { classProgress, honor }
+enum ValidationEntityType { honor }
 
 extension ValidationEntityTypeX on ValidationEntityType {
   String get slug {
     switch (this) {
-      case ValidationEntityType.classProgress:
-        return 'class_progress';
       case ValidationEntityType.honor:
         return 'honor';
     }
