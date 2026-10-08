@@ -3870,7 +3870,8 @@
       "reports": "Rapports",
       "my_ranking": "Mon classement",
       "section_ranking": "Classement de section",
-      "club_rankings": "Progression annuelle"
+      "club_rankings": "Progression annuelle",
+      "authorizations": "Autorisations"
     },
     "stats": {
       "honors_completed": "Spéc. terminées",
@@ -4089,7 +4090,8 @@
       "home": "Accueil",
       "classes": "Classes",
       "activities": "Activités",
-      "profile": "Profil"
+      "profile": "Profil",
+      "authorizations": "Autorisations"
     },
     "evidence_folder": {
       "title": "Dossier annuel de preuves",
@@ -4892,6 +4894,69 @@
       "duration_min_not_met": "La durée minimale de la classe n'est pas encore atteinte",
       "duration_expired": "La durée de la classe a expiré pour cette inscription",
       "generic": "L'opération d'investiture n'a pas pu être terminée"
+    },
+    "authorizer": {
+      "title": "Autorisations",
+      "restricted_title": "Accès restreint",
+      "restricted_body": "Seules les personnes qui autorisent les investitures (pasteur de district, directeur ou directeur adjoint du Champ) peuvent voir cet écran.",
+      "no_year_title": "Aucune année ecclésiastique active",
+      "no_year_body": "Il n'y a pas d'année ecclésiastique active pour afficher des demandes.",
+      "load_error_title": "Impossible de charger les autorisations",
+      "empty_title": "Aucune demande à autoriser",
+      "empty_body": "Lorsqu'une section présente des personnes à l'investiture, la demande apparaîtra ici.",
+      "waiting_title": "À autoriser",
+      "rest_title": "Personne en attente",
+      "club_fallback": "Club sans nom",
+      "district": "District {name}",
+      "pending_count": "{count} en attente",
+      "nothing_pending": "Personne en attente",
+      "earliest_date": "Première date : {date}",
+      "detail_title": "Demande d'investiture",
+      "detail_load_error_title": "Impossible de charger la demande",
+      "pending_title": "En attente",
+      "resolved_title": "Déjà résolues",
+      "no_people": "Cette demande ne contient aucune personne.",
+      "undecided": "Sans décision",
+      "waiting": "En attente",
+      "decision_invest": "Sera investi",
+      "decision_reject": "Sera refusé",
+      "decide": "Décider",
+      "change": "Modifier",
+      "confirm_cta": "Confirmer les décisions ({count})",
+      "confirm_title": "Confirmer les décisions",
+      "confirm_body": "Investis : {invest}. Refusés : {reject}. Une fois confirmées, les décisions ne peuvent plus être modifiées.",
+      "confirm_action": "Confirmer",
+      "window_closed": "La fenêtre du Champ est fermée. Il n'est pas possible de confirmer des décisions pour le moment.",
+      "year_closed": "L'année ecclésiastique est clôturée. Il n'est pas possible de confirmer des décisions pour le moment.",
+      "status_rejected_by_system": "Refusé par le système",
+      "status_removed": "Retiré de la demande",
+      "decided_by": "Décidé par : {name}",
+      "sheet": {
+        "title": "Votre décision",
+        "invest": "Investir",
+        "reject": "Refuser",
+        "comment_label": "Commentaire (facultatif)",
+        "comment_helper": "Si vous en écrivez un, la personne le voit dans son statut d'investiture.",
+        "reason_label": "Motif du refus",
+        "reason_helper": "Le bureau de la section le voit. La personne reçoit seulement « Conditions d'investiture non remplies ».",
+        "reason_required": "Écrivez le motif pour pouvoir refuser.",
+        "save": "Enregistrer la décision",
+        "clear": "Retirer la décision"
+      },
+      "summary": {
+        "title": "Résultat des décisions",
+        "invested": "Investis ({count})",
+        "rejected": "Refusés ({count})",
+        "rejected_by_system": "Refusés par le système ({count})",
+        "retired": "Retirés de la demande ({count})",
+        "retired_note": "Leur classe n'admet pas l'investiture par cette voie.",
+        "blocked": "Non appliquées ({count})",
+        "already_resolved": "Déjà résolus ({count})",
+        "already_invested": "Déjà investi.",
+        "already_rejected": "Déjà résolu comme non investi.",
+        "already_other": "N'était plus en attente.",
+        "dismiss": "Compris"
+      }
     }
   }
 }

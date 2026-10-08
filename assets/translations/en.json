@@ -3872,7 +3872,8 @@
       "club_rankings": "Annual progress",
       "my_ranking": "My ranking",
       "section_ranking": "Section ranking",
-      "materials": "Orders"
+      "materials": "Orders",
+      "authorizations": "Authorizations"
     },
     "stats": {
       "honors_completed": "Honors completed",
@@ -4091,7 +4092,8 @@
       "home": "Home",
       "classes": "Classes",
       "activities": "Activities",
-      "profile": "Profile"
+      "profile": "Profile",
+      "authorizations": "Authorizations"
     },
     "evidence_folder": {
       "title": "Annual Evidence Folder",
@@ -4894,6 +4896,69 @@
       "duration_min_not_met": "The class minimum duration has not been met yet",
       "duration_expired": "The class duration has expired for this enrollment",
       "generic": "The investiture operation could not be completed"
+    },
+    "authorizer": {
+      "title": "Authorizations",
+      "restricted_title": "Restricted access",
+      "restricted_body": "Only those who authorize investitures (district pastor, Field director or assistant director) can see this screen.",
+      "no_year_title": "No active ecclesiastical year",
+      "no_year_body": "There is no active ecclesiastical year to show requests for.",
+      "load_error_title": "We could not load the authorizations",
+      "empty_title": "No requests to authorize",
+      "empty_body": "When a section presents people for investiture, the request will show up here.",
+      "waiting_title": "To authorize",
+      "rest_title": "No one waiting",
+      "club_fallback": "Unnamed club",
+      "district": "District {name}",
+      "pending_count": "{count} waiting",
+      "nothing_pending": "No one waiting",
+      "earliest_date": "First date: {date}",
+      "detail_title": "Investiture request",
+      "detail_load_error_title": "We could not load the request",
+      "pending_title": "Waiting",
+      "resolved_title": "Already resolved",
+      "no_people": "This request has no people.",
+      "undecided": "Undecided",
+      "waiting": "Waiting",
+      "decision_invest": "To be invested",
+      "decision_reject": "To be rejected",
+      "decide": "Decide",
+      "change": "Change",
+      "confirm_cta": "Confirm decisions ({count})",
+      "confirm_title": "Confirm decisions",
+      "confirm_body": "Invested: {invest}. Rejected: {reject}. Once confirmed, decisions cannot be changed.",
+      "confirm_action": "Confirm",
+      "window_closed": "The Field window is closed. Decisions cannot be confirmed for now.",
+      "year_closed": "The ecclesiastical year is closed. Decisions cannot be confirmed for now.",
+      "status_rejected_by_system": "Rejected by the system",
+      "status_removed": "Removed from the request",
+      "decided_by": "Decided by: {name}",
+      "sheet": {
+        "title": "Your decision",
+        "invest": "Invest",
+        "reject": "Reject",
+        "comment_label": "Comment (optional)",
+        "comment_helper": "If you write one, the person sees it in their investiture status.",
+        "reason_label": "Reason for rejection",
+        "reason_helper": "The section board sees it. The person only receives \"Investiture requirements not met\".",
+        "reason_required": "Write the reason to be able to reject.",
+        "save": "Save decision",
+        "clear": "Remove decision"
+      },
+      "summary": {
+        "title": "Outcome of the decisions",
+        "invested": "Invested ({count})",
+        "rejected": "Rejected ({count})",
+        "rejected_by_system": "Rejected by the system ({count})",
+        "retired": "Removed from the request ({count})",
+        "retired_note": "Their class does not allow investiture this way.",
+        "blocked": "Not applied ({count})",
+        "already_resolved": "Already resolved ({count})",
+        "already_invested": "Already invested.",
+        "already_rejected": "Already resolved as not invested.",
+        "already_other": "No longer waiting.",
+        "dismiss": "Got it"
+      }
     }
   }
 }

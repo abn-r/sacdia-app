@@ -6,6 +6,8 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/config/router.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/features/investiture_requests/presentation/views/authorizer_request_detail_view.dart';
+import 'package:sacdia_app/features/investiture_requests/presentation/views/authorizer_requests_view.dart';
 import 'package:sacdia_app/features/investiture_requests/presentation/views/own_investiture_view.dart';
 import 'package:sacdia_app/features/investiture_requests/presentation/views/section_investiture_history_view.dart';
 import 'package:sacdia_app/features/investiture_requests/presentation/views/section_investiture_view.dart';
@@ -33,8 +35,9 @@ Iterable<GoRoute> _flattenRoutes(List<RouteBase> routes) sync* {
 CustomTransitionPage<dynamic> _buildPage(
   GoRouter router,
   GoRoute route,
-  BuildContext context,
-) {
+  BuildContext context, {
+  Map<String, String> pathParameters = const {},
+}) {
   final page = route.pageBuilder!(
     context,
     GoRouterState(
@@ -43,7 +46,7 @@ CustomTransitionPage<dynamic> _buildPage(
       matchedLocation: route.path,
       path: route.path,
       fullPath: route.path,
-      pathParameters: const {},
+      pathParameters: pathParameters,
       pageKey: ValueKey(route.path),
     ),
   );
@@ -62,6 +65,19 @@ void main() {
         RouteNames.ownInvestiture,
       },
       hasLength(3),
+    );
+  });
+
+  test('the authorizer routes keep the catalog path and a detail below it', () {
+    // `app-investiture-authorizer` está registrada con esta ruta en el panel.
+    expect(RouteNames.investitureAuthorize, '/investiture/authorize');
+    expect(
+      RouteNames.investitureAuthorizeDetail,
+      '/investiture/authorize/:requestId',
+    );
+    expect(
+      RouteNames.investitureAuthorizeDetailPath('abc-123'),
+      '/investiture/authorize/abc-123',
     );
   });
 
@@ -88,11 +104,18 @@ void main() {
       RouteNames.sectionInvestiture: SectionInvestitureView,
       RouteNames.sectionInvestitureHistory: SectionInvestitureHistoryView,
       RouteNames.ownInvestiture: OwnInvestitureView,
+      RouteNames.investitureAuthorize: AuthorizerRequestsView,
+      RouteNames.investitureAuthorizeDetail: AuthorizerRequestDetailView,
     };
 
     for (final entry in expected.entries) {
       final route = routes.singleWhere((r) => r.path == entry.key);
-      final page = _buildPage(router, route, context);
+      final page = _buildPage(
+        router,
+        route,
+        context,
+        pathParameters: const {'requestId': 'r-1'},
+      );
       expect(page.child.runtimeType, entry.value, reason: entry.key);
       final transition = page.transitionsBuilder(
         context,

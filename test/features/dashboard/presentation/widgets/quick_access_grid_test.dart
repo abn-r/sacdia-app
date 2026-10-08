@@ -244,4 +244,39 @@ void main() {
       });
     }
   });
+
+  group('QuickAccessGrid authorizer shortcut', () {
+    UserEntity globalUser(String role) => UserEntity(
+          id: 'user-1',
+          email: 'user@example.com',
+          authorization: AuthorizationSnapshot(
+            effectivePermissions: const ['reports:read'],
+            globalGrants: [AuthorizationGrant(roleName: role)],
+          ),
+        );
+
+    for (final role in ['pastor', 'director-lf', 'assistant-lf']) {
+      testWidgets('shows the authorizations shortcut to $role', (tester) async {
+        await _pumpQuickAccessGrid(tester, globalUser(role));
+        expect(find.text('dashboard.quick_access.authorizations'), findsOne);
+      });
+    }
+
+    for (final role in ['coordinator', 'director-union']) {
+      testWidgets('hides the authorizations shortcut from $role',
+          (tester) async {
+        await _pumpQuickAccessGrid(tester, globalUser(role));
+        expect(
+            find.text('dashboard.quick_access.authorizations'), findsNothing);
+      });
+    }
+
+    testWidgets('hides it from a plain club counselor', (tester) async {
+      await _pumpQuickAccessGrid(
+        tester,
+        _userWithPermissions(const ['reports:read']),
+      );
+      expect(find.text('dashboard.quick_access.authorizations'), findsNothing);
+    });
+  });
 }

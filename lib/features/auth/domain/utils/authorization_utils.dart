@@ -169,6 +169,33 @@ bool canAccessClubOperationalSurface(UserEntity? user) {
   return membershipGrantForDisplay(authorization) == null;
 }
 
+/// Rol global que solo autoriza investiduras en la app, sin pertenecer a un
+/// club.
+const String _pastorRole = 'pastor';
+
+/// ¿Es un pastor (rol global) sin ninguna presencia en un club?
+///
+/// Esa persona no pasa por el post-registro de club ni ve el inicio de un
+/// miembro: la app le muestra solo «Autorizaciones» y su perfil. Con cualquier
+/// asignación de club utilizable, pendiente, inactiva o vencida, deja de
+/// calificar y conserva el flujo normal.
+bool isPastorWithoutClub(UserEntity? user) {
+  final authorization = user?.authorization;
+  if (authorization == null) return false;
+  final isPastor = authorization.globalGrants.any(
+    (grant) => grant.roleName?.trim().toLowerCase() == _pastorRole,
+  );
+  if (!isPastor) return false;
+  return authorization.clubAssignments.every(_isDesignated);
+}
+
+/// ¿Debe pasar por el post-registro de club?
+///
+/// Falta completarlo, salvo para el pastor sin club: su cuenta no tiene
+/// datos de club que completar.
+bool userNeedsPostRegistration(UserEntity user) =>
+    !user.postRegisterComplete && !isPastorWithoutClub(user);
+
 bool isUserOwner(UserEntity? user, String targetUserId) {
   final normalizedTarget = targetUserId.trim();
   if (user == null || normalizedTarget.isEmpty) {

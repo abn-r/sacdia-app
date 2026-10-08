@@ -98,6 +98,13 @@ List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
     screenId: 'app-section-investiture',
   ),
   _QuickAccessItemConfig(
+    labelKey: 'dashboard.quick_access.authorizations',
+    icon: HugeIcons.strokeRoundedCheckmarkBadge01,
+    color: AppColors.secondary,
+    route: RouteNames.investitureAuthorize,
+    screenId: 'app-investiture-authorizer',
+  ),
+  _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.insurance',
     icon: HugeIcons.strokeRoundedShield01,
     color: AppColors.secondaryDark,

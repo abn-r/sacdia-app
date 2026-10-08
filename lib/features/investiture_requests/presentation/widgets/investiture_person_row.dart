@@ -20,6 +20,7 @@ class InvestiturePersonRow extends StatelessWidget {
     this.selectSemanticLabel,
     this.trailing,
     this.footer,
+    this.onTap,
   });
 
   final String name;
@@ -32,6 +33,10 @@ class InvestiturePersonRow extends StatelessWidget {
   final String? selectSemanticLabel;
   final Widget? trailing;
   final Widget? footer;
+
+  /// Toque de la fila cuando no es seleccionable (p. ej. abrir una hoja).
+  /// Con selección, el toque alterna la casilla y esto se ignora.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -127,7 +132,13 @@ class InvestiturePersonRow extends StatelessWidget {
               onTap: () => onSelectedChanged!(!isSelected),
               child: content,
             )
-          : content,
+          : onTap != null
+              ? SacInkWell(
+                  borderRadius: BorderRadius.circular(18),
+                  onTap: onTap,
+                  child: content,
+                )
+              : content,
     );
 
     if (!selectable || selectSemanticLabel == null) return card;
