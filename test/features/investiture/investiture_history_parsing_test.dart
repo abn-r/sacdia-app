@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sacdia_app/features/investiture/data/datasources/investiture_remote_data_source.dart';
+import 'package:sacdia_app/features/investiture_requests/data/models/json_parsing.dart';
 import 'package:sacdia_app/features/investiture/data/models/investiture_history_entry_model.dart';
 import 'package:sacdia_app/features/investiture/domain/entities/investiture_history_entry.dart';
 

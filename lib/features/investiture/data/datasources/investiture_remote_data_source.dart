@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../../../investiture_requests/data/models/json_parsing.dart';
 import '../models/investiture_pending_model.dart';
 import '../models/investiture_history_entry_model.dart';
 
@@ -306,27 +307,4 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
       _rethrow(e);
     }
   }
-}
-
-List<dynamic> extractInvestitureListFromResponse(
-  dynamic raw,
-  String nestedKey,
-) {
-  if (raw is List) return raw;
-
-  if (raw is Map) {
-    final directNested = raw[nestedKey];
-    if (directNested is List) return directNested;
-
-    final data = raw['data'];
-    if (data is List) return data;
-    if (data is Map) {
-      final nested = data[nestedKey];
-      if (nested is List) return nested;
-      final items = data['items'];
-      if (items is List) return items;
-    }
-  }
-
-  return const [];
 }
