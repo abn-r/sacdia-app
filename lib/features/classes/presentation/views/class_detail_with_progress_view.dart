@@ -22,6 +22,8 @@ import '../../../../core/widgets/sac_pressable.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../investiture/domain/entities/investiture_status.dart';
 import '../../../investiture/presentation/providers/investiture_providers.dart';
+import '../../../investiture_requests/presentation/providers/investiture_requests_providers.dart';
+import '../../../investiture_requests/presentation/widgets/own_investiture_card.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import '../../domain/entities/class_honor.dart';
 import '../../domain/entities/class_module_detail.dart';
@@ -331,10 +333,20 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
     final classColor = AppColors.classColor(classData.name);
     final resolvedEnrollmentId = widget.enrollmentId ?? classData.enrollmentId;
     final investitureStatus = _investitureStatusOf(classData);
+    // Quien mira su propia clase ve el estado de la autorización; el envío a
+    // validación ya no es suyo: lo presenta la directiva de la sección.
+    final isOwnView = widget.targetUserId == null;
+    final hasOwnAuthorization = isOwnView &&
+        ref.watch(ownInvestitureEntryForClassProvider(widget.classId)) != null;
     final showInvestitureCard = _shouldShowInvestitureCard(
-      classData,
-      enrollmentId: resolvedEnrollmentId,
-    );
+          classData,
+          enrollmentId: resolvedEnrollmentId,
+        ) &&
+        _shouldShowLegacyInvestitureCard(
+          status: investitureStatus,
+          isOwnView: isOwnView,
+          hasOwnAuthorization: hasOwnAuthorization,
+        );
     final clubContextAsync =
         showInvestitureCard ? ref.watch(clubContextProvider) : null;
     final submitState = showInvestitureCard && resolvedEnrollmentId != null
@@ -362,6 +374,7 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
                   if (widget.prerequisites.isNotEmpty)
                     _PrerequisitesBanner(prerequisites: widget.prerequisites),
                   _PillsRow(classData: classData),
+                  if (isOwnView) OwnInvestitureCard(classId: widget.classId),
                   if (showInvestitureCard)
                     _InvestitureCompletionCard(
                       status: investitureStatus,
@@ -503,6 +516,20 @@ bool _shouldShowInvestitureCard(
 }) {
   if (enrollmentId == null || classData.isExpired) return false;
   return classData.isInvestitureEligibleByTrackOrLegacy;
+}
+
+/// La tarjeta del flujo legado sigue para quien mira a otro miembro (el
+/// director o consejero que envía a validación). En la clase propia se oculta
+/// cuando ya hay estado de autorización o cuando solo ofrecería enviar; queda
+/// únicamente para informar una validación legada en curso.
+bool _shouldShowLegacyInvestitureCard({
+  required InvestitureStatus status,
+  required bool isOwnView,
+  required bool hasOwnAuthorization,
+}) {
+  if (!isOwnView) return true;
+  if (hasOwnAuthorization) return false;
+  return !_canSubmitInvestiture(status) && status != InvestitureStatus.expired;
 }
 
 bool _canSubmitInvestiture(InvestitureStatus status) {

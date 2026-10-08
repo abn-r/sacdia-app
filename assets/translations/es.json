@@ -4838,7 +4838,15 @@
       }
     },
     "own": {
-      "title": "Mi investidura"
+      "title": "Mi investidura",
+      "pending": "En espera de autorización.",
+      "invested": "El camino rindió fruto. Ya estás investido, y esta noticia es para celebrarla.",
+      "rejected": "Falta de requisitos para investidura.",
+      "closed_year": "No investido en {year}",
+      "comment_title": "Comentario de la autorización",
+      "empty_title": "Todavía no tenés investiduras",
+      "empty_body": "Cuando tu sección te presente a investidura, vas a ver acá cómo va.",
+      "load_error_title": "No pudimos cargar tu investidura"
     },
     "history": {
       "title": "Historial de investidura"

@@ -14,6 +14,7 @@ import '../../domain/entities/own_investiture_entry.dart';
 import '../../domain/entities/presentation_context.dart';
 import '../../domain/entities/yearbook_entry.dart';
 import '../../domain/repositories/investiture_requests_repository.dart';
+import '../utils/own_investiture_selection.dart';
 
 // ── Infraestructura ──────────────────────────────────────────────────────────
 
@@ -76,6 +77,15 @@ final ownInvestitureHistoryProvider =
       .watch(investitureRequestsRepositoryProvider)
       .getOwnHistory(cancelToken: cancelToken);
   return result.fold((failure) => throw failure, (value) => value);
+});
+
+/// Entrada de la propia persona que representa su estado en [classId] (año más
+/// reciente); `null` mientras carga, si falla o si no hay nada que mostrar.
+final ownInvestitureEntryForClassProvider =
+    Provider.autoDispose.family<OwnInvestitureEntry?, int>((ref, classId) {
+  final history = ref.watch(ownInvestitureHistoryProvider).valueOrNull;
+  if (history == null) return null;
+  return selectOwnEntryForClass(history, classId);
 });
 
 final sectionInvestitureHistoryProvider = FutureProvider.autoDispose

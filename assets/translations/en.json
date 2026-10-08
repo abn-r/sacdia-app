@@ -4838,7 +4838,15 @@
       }
     },
     "own": {
-      "title": "My investiture"
+      "title": "My investiture",
+      "pending": "Awaiting authorization.",
+      "invested": "The journey bore fruit. You are now invested, and this news is worth celebrating.",
+      "rejected": "Investiture requirements not met.",
+      "closed_year": "Not invested in {year}",
+      "comment_title": "Authorization comment",
+      "empty_title": "You have no investitures yet",
+      "empty_body": "When your section presents you for investiture, you will see how it is going here.",
+      "load_error_title": "We couldn't load your investiture"
     },
     "history": {
       "title": "Investiture history"

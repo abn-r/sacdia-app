@@ -4836,7 +4836,15 @@
       }
     },
     "own": {
-      "title": "Mon investiture"
+      "title": "Mon investiture",
+      "pending": "En attente d'autorisation.",
+      "invested": "Le chemin a porté du fruit. Tu es maintenant investi(e), et cette nouvelle est à fêter.",
+      "rejected": "Conditions d'investiture non remplies.",
+      "closed_year": "Non investi(e) en {year}",
+      "comment_title": "Commentaire de l'autorisation",
+      "empty_title": "Tu n'as pas encore d'investiture",
+      "empty_body": "Quand ta section te présentera à l'investiture, tu verras ici où cela en est.",
+      "load_error_title": "Impossible de charger ton investiture"
     },
     "history": {
       "title": "Historique des investitures"
