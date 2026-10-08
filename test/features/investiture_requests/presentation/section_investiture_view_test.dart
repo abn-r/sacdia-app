@@ -165,6 +165,30 @@ void main() {
       expect(find.text('Ana Pérez'), findsOneWidget);
     });
 
+    testWidgets(
+        'without a configured window nobody can change dates or present',
+        (tester) async {
+      final repo = FakeInvestitureRequestsRepository()
+        ..context = _context(
+          openRequestId: 'r1',
+          window: const WindowState(openToday: true),
+        )
+        ..openRequest = _openRequest();
+      await pumpApp(tester, const SectionInvestitureView(),
+          overrides: _overrides(repo));
+
+      expect(
+        find.text(
+          'La ventana del Campo está cerrada. No se puede presentar ni agregar personas.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.byType(Checkbox), findsNothing);
+      expect(find.textContaining('Cambiar fecha'), findsNothing);
+      expect(find.textContaining('Presentar ('), findsNothing);
+      expect(find.text('Carla Ruiz'), findsOneWidget);
+    });
+
     testWidgets('invalid time zone is treated as closed with its own message',
         (tester) async {
       final repo = FakeInvestitureRequestsRepository()

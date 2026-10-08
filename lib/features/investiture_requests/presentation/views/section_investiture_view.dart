@@ -159,13 +159,16 @@ class _SectionBodyState extends ConsumerState<_SectionBody> {
   }
 
   /// Rango de fechas válido: ventana del Campo recortada al año eclesiástico.
-  /// `null` si no se cruzan (nadie puede elegir una fecha).
+  /// `null` si el Campo no configuró la ventana (el backend rechaza toda fecha
+  /// con `DATE_OUTSIDE_WINDOW`) o si no se cruzan (nadie puede elegir fecha).
   ({DateTime first, DateTime last})? _bounds(WindowState window) {
+    final start = window.startDate;
+    final end = window.endDate;
+    if (start == null || end == null) return null;
     final yearStart = civilDay(widget.year.startDate);
     final yearEnd = civilDay(widget.year.endDate);
-    var first =
-        window.startDate == null ? yearStart : civilDay(window.startDate!);
-    var last = window.endDate == null ? yearEnd : civilDay(window.endDate!);
+    var first = civilDay(start);
+    var last = civilDay(end);
     if (first.isBefore(yearStart)) first = yearStart;
     if (last.isAfter(yearEnd)) last = yearEnd;
     if (first.isAfter(last)) return null;
@@ -536,21 +539,21 @@ class _WindowBanner extends StatelessWidget {
         tone: InvestitureBannerTone.caution,
       );
     }
-    if (!window.openToday) {
+    // Sin ventana configurada (fechas nulas) tampoco hay nada que presentar.
+    if (!window.openToday ||
+        window.startDate == null ||
+        window.endDate == null) {
       return InvestitureBanner(
         text: tr('$_i18n.window_closed'),
         tone: InvestitureBannerTone.caution,
         icon: HugeIcons.strokeRoundedCalendarLock01,
       );
     }
-    final end = window.endDate;
     return InvestitureBanner(
-      text: end == null
-          ? tr('$_i18n.window_open_no_end')
-          : tr(
-              '$_i18n.window_open',
-              namedArgs: {'date': formatInvestitureDate(context, end)},
-            ),
+      text: tr(
+        '$_i18n.window_open',
+        namedArgs: {'date': formatInvestitureDate(context, window.endDate!)},
+      ),
       tone: InvestitureBannerTone.positive,
     );
   }
