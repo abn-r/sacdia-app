@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../members/presentation/providers/members_providers.dart';
 import '../../data/datasources/investiture_requests_remote_data_source.dart';
 import '../../data/repositories/investiture_requests_repository_impl.dart';
 import '../../domain/entities/investiture_request.dart';
@@ -106,6 +107,21 @@ final sectionYearbookProvider = FutureProvider.autoDispose
       .watch(investitureRequestsRepositoryProvider)
       .getSectionYearbook(sectionId, cancelToken: cancelToken);
   return result.fold((failure) => throw failure, (value) => value);
+});
+
+/// Nombres de las personas de la sección por `userId`.
+///
+/// El historial y el anuario del backend traen solo el `user_id`; el nombre se
+/// resuelve contra los miembros actuales de la sección. Quien ya no está en la
+/// sección no aparece en el mapa y la vista usa un nombre neutro.
+final sectionPeopleNamesProvider =
+    Provider.autoDispose<Map<String, String>>((ref) {
+  final members = ref.watch(membersNotifierProvider).valueOrNull?.members;
+  if (members == null) return const {};
+  return {
+    for (final member in members)
+      if (member.fullName.trim().isNotEmpty) member.userId: member.fullName,
+  };
 });
 
 // ── Lectura: autorizador ─────────────────────────────────────────────────────

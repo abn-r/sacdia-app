@@ -27,6 +27,7 @@ import '../providers/investiture_requests_providers.dart';
 import '../utils/investiture_dates.dart';
 import '../widgets/change_date_sheet.dart';
 import '../widgets/investiture_banner.dart';
+import '../widgets/investiture_message_state.dart';
 import '../widgets/investiture_person_row.dart';
 import '../widgets/investiture_section_label.dart';
 import '../widgets/present_sheet.dart';
@@ -76,21 +77,21 @@ class SectionInvestitureView extends ConsumerWidget {
           builder: (context) {
             if (club == null) {
               if (clubAsync.hasError) {
-                return _MessageState(
+                return InvestitureMessageState(
                   title: tr('$_i18n.load_error_title'),
                   onRetry: () => ref.invalidate(clubContextProvider),
                 );
               }
               return clubAsync.isLoading
                   ? const Center(child: SacLoading())
-                  : _MessageState(
+                  : InvestitureMessageState(
                       title: tr('$_i18n.restricted_title'),
                       body: tr('$_i18n.restricted_body'),
                       icon: HugeIcons.strokeRoundedLockKey,
                     );
             }
             if (!isBoard) {
-              return _MessageState(
+              return InvestitureMessageState(
                 title: tr('$_i18n.restricted_title'),
                 body: tr('$_i18n.restricted_body'),
                 icon: HugeIcons.strokeRoundedLockKey,
@@ -99,7 +100,7 @@ class SectionInvestitureView extends ConsumerWidget {
             final year = yearAsync.valueOrNull;
             if (year == null) {
               if (yearAsync.hasError) {
-                return _MessageState(
+                return InvestitureMessageState(
                   title: tr('$_i18n.load_error_title'),
                   onRetry: () =>
                       ref.invalidate(currentEcclesiasticalYearProvider),
@@ -107,7 +108,7 @@ class SectionInvestitureView extends ConsumerWidget {
               }
               return yearAsync.isLoading
                   ? const Center(child: SacLoading())
-                  : _MessageState(
+                  : InvestitureMessageState(
                       title: tr('$_i18n.no_year_title'),
                       body: tr('$_i18n.no_year_body'),
                       icon: HugeIcons.strokeRoundedCalendar03,
@@ -122,38 +123,6 @@ class SectionInvestitureView extends ConsumerWidget {
             );
           },
         ),
-      ),
-    );
-  }
-}
-
-/// Estado a pantalla completa (acceso, sin datos, error) con reintento
-/// opcional vía [onRetry].
-class _MessageState extends StatelessWidget {
-  const _MessageState({
-    required this.title,
-    this.body,
-    this.icon = HugeIcons.strokeRoundedAlert02,
-    this.onRetry,
-  });
-
-  final String title;
-  final String? body;
-  final List<List<dynamic>> icon;
-  final VoidCallback? onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
-      child: SacEmptyState(
-        title: title,
-        body: body,
-        icon: icon,
-        actionLabel: onRetry == null ? null : tr('common.retry'),
-        onAction: onRetry,
-        actionIcon: HugeIcons.strokeRoundedRefresh,
-        actionVariant: SacButtonVariant.outline,
       ),
     );
   }
@@ -374,7 +343,7 @@ class _SectionBodyState extends ConsumerState<_SectionBody> {
     final request = requestAsync.valueOrNull;
     if (ctx == null || (request == null && requestAsync.isLoading)) {
       if (contextAsync.hasError || requestAsync.hasError) {
-        return _MessageState(
+        return InvestitureMessageState(
           title: tr('$_i18n.load_error_title'),
           body: (contextAsync.error ?? requestAsync.error)
               ?.toString()

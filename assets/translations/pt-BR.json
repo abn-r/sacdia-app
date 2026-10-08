@@ -4847,7 +4847,21 @@
       "load_error_title": "Não foi possível carregar sua investidura"
     },
     "history": {
-      "title": "Histórico de investidura"
+      "title": "Histórico de investidura",
+      "tab_history": "Histórico",
+      "tab_yearbook": "Anuário",
+      "load_error_title": "Não foi possível carregar o histórico",
+      "yearbook_load_error_title": "Não foi possível carregar o anuário",
+      "empty_title": "Ainda não há investiduras registradas",
+      "empty_body": "Quando a seção tiver investiduras resolvidas, elas aparecerão aqui.",
+      "yearbook_empty_title": "O anuário ainda está vazio",
+      "yearbook_empty_body": "As pessoas inscritas em cada classe aparecerão aqui, ano a ano.",
+      "status_invested": "Investido",
+      "status_not_invested": "Não investido",
+      "status_closed_year": "Não investido no ano",
+      "reason": "Motivo: {reason}",
+      "year_fallback": "Ano eclesiástico",
+      "class_fallback": "Classe sem nome"
     },
     "placeholder": "Em breve",
     "errors": {

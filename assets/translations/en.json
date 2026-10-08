@@ -4849,7 +4849,21 @@
       "load_error_title": "We couldn't load your investiture"
     },
     "history": {
-      "title": "Investiture history"
+      "title": "Investiture history",
+      "tab_history": "History",
+      "tab_yearbook": "Yearbook",
+      "load_error_title": "We could not load the history",
+      "yearbook_load_error_title": "We could not load the yearbook",
+      "empty_title": "No investitures recorded yet",
+      "empty_body": "Once the section has resolved investitures, they will be listed here.",
+      "yearbook_empty_title": "The yearbook is still empty",
+      "yearbook_empty_body": "People enrolled in each class will appear here, year by year.",
+      "status_invested": "Invested",
+      "status_not_invested": "Not invested",
+      "status_closed_year": "Not invested this year",
+      "reason": "Reason: {reason}",
+      "year_fallback": "Ecclesiastical year",
+      "class_fallback": "Unnamed class"
     },
     "placeholder": "Coming soon",
     "errors": {
