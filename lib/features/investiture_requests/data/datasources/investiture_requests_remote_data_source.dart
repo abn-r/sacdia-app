@@ -138,7 +138,7 @@ class InvestitureRequestsRemoteDataSourceImpl
       );
     }
     if (e is ServerException || e is AuthException) throw e;
-    throw ServerException(message: e.toString());
+    throw ServerException(message: tr('investiture_requests.errors.generic'));
   }
 
   String _extractDioMessage(DioException e) {

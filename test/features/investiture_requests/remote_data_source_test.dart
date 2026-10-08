@@ -66,6 +66,13 @@ Map<String, dynamic> _request() => {
 Response<dynamic> _ok(RequestOptions o, Object? data, {int status = 200}) =>
     Response<dynamic>(requestOptions: o, statusCode: status, data: data);
 
+/// Dio que falla con un error ajeno a Dio (no llega a la red).
+class _BrokenDio implements Dio {
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw StateError('raw internal detail');
+}
+
 void main() {
   group('InvestitureRequestsRemoteDataSourceImpl', () {
     test('presentationContext calls the exact route and unwraps data',
@@ -234,6 +241,23 @@ void main() {
         throwsA(
           isA<ServerException>()
               .having((e) => e.message, 'message', 'mensaje del servidor'),
+        ),
+      );
+    });
+
+    test('an unexpected error never leaks its raw text', () async {
+      final ds = InvestitureRequestsRemoteDataSourceImpl(
+        dio: _BrokenDio(),
+        baseUrl: _base,
+      );
+      await expectLater(
+        ds.getPresentationContext(4, 9),
+        throwsA(
+          isA<ServerException>().having(
+            (e) => e.message,
+            'message',
+            tr('investiture_requests.errors.generic'),
+          ),
         ),
       );
     });

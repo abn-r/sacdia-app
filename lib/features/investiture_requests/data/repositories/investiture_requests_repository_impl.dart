@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -26,7 +27,9 @@ class InvestitureRequestsRepositoryImpl
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message, code: e.code));
     } catch (e) {
-      return Left(UnexpectedFailure(message: e.toString()));
+      return Left(
+        UnexpectedFailure(message: tr('investiture_requests.errors.generic')),
+      );
     }
   }
 

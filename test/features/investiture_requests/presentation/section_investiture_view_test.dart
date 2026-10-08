@@ -402,6 +402,17 @@ void main() {
       expect(find.text('Ana Pérez'), findsOneWidget);
     });
 
+    testWidgets('a load failure shows its mapped message, not the class dump',
+        (tester) async {
+      final repo = FakeInvestitureRequestsRepository()
+        ..readFailure =
+            const ServerFailure(message: 'Sin conexión con el Campo');
+      await pumpApp(tester, const SectionInvestitureView(),
+          overrides: _overrides(repo));
+
+      expect(find.text('Sin conexión con el Campo'), findsOneWidget);
+    });
+
     testWidgets('pull to refresh reloads context and open request',
         (tester) async {
       final repo = FakeInvestitureRequestsRepository()..context = _context();

@@ -25,6 +25,7 @@ import '../../domain/entities/investiture_request.dart';
 import '../../domain/entities/presentation_context.dart';
 import '../providers/investiture_requests_providers.dart';
 import '../utils/investiture_dates.dart';
+import '../utils/investiture_error_message.dart';
 import '../widgets/change_date_sheet.dart';
 import '../widgets/investiture_banner.dart';
 import '../widgets/investiture_message_state.dart';
@@ -348,9 +349,9 @@ class _SectionBodyState extends ConsumerState<_SectionBody> {
       if (contextAsync.hasError || requestAsync.hasError) {
         return InvestitureMessageState(
           title: tr('$_i18n.load_error_title'),
-          body: (contextAsync.error ?? requestAsync.error)
-              ?.toString()
-              .replaceFirst('Exception: ', ''),
+          body: investitureErrorMessage(
+            contextAsync.error ?? requestAsync.error,
+          ),
           onRetry: _refresh,
         );
       }
