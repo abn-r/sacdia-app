@@ -4677,6 +4677,7 @@
       "pdf_too_many_pages": "The PDF has more than 5 pages. Split the document or extract up to 5 pages and upload it again.",
       "pdf_encrypted": "The PDF is protected. Remove its password or protection and upload it again.",
       "pdf_invalid": "The PDF could not be read. Export it again as a PDF and upload it again.",
+      "pdf_busy": "Other files are being processed. Try again in a few seconds.",
       "title": "Certificate upload",
       "hint": "PDFs with up to 5 pages or JPEG, PNG and WebP images, maximum 10 MiB. One document per upload. You can credit classes in any order, without a curriculum sequence. Complete the data by hand before sending.",
       "submit": "Upload receipt",

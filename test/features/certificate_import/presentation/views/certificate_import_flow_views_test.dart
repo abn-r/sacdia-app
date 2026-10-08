@@ -120,6 +120,8 @@ void main() {
           'El PDF está protegido. Quita la contraseña o la protección y vuelve a subirlo.',
       'CERTIFICATE_IMPORT_PDF_INVALID':
           'No se pudo leer el PDF. Expórtalo de nuevo como PDF y vuelve a subirlo.',
+      'CERTIFICATE_IMPORT_PDF_BUSY':
+          'Estamos procesando otros archivos. Intenta de nuevo en unos segundos.',
     };
     for (final entry in pdfMessages.entries) {
       testWidgets('localizes ${entry.key} without exposing technical details',

@@ -4675,6 +4675,7 @@
       "pdf_too_many_pages": "O PDF tem mais de 5 páginas. Divida o documento ou extraia até 5 páginas e envie-o novamente.",
       "pdf_encrypted": "O PDF está protegido. Remova a senha ou a proteção e envie-o novamente.",
       "pdf_invalid": "Não foi possível ler o PDF. Exporte-o novamente como PDF e envie-o novamente.",
+      "pdf_busy": "Estamos processando outros arquivos. Tente novamente em alguns segundos.",
       "title": "Carga por certificado",
       "hint": "PDF de até 5 páginas ou imagens JPEG, PNG e WebP, máximo de 10 MiB. Um documento por envio. Você pode creditar classes em qualquer ordem, sem exigir sequência curricular. Complete os dados à mão antes de enviar.",
       "submit": "Enviar comprovante",

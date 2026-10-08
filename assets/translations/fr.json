@@ -4675,6 +4675,7 @@
       "pdf_too_many_pages": "Le PDF contient plus de 5 pages. Divisez le document ou extrayez jusqu’à 5 pages, puis importez-le à nouveau.",
       "pdf_encrypted": "Le PDF est protégé. Retirez son mot de passe ou sa protection, puis importez-le à nouveau.",
       "pdf_invalid": "Le PDF n’a pas pu être lu. Exportez-le à nouveau au format PDF, puis importez-le à nouveau.",
+      "pdf_busy": "D’autres fichiers sont en cours de traitement. Réessayez dans quelques secondes.",
       "title": "Import par certificat",
       "hint": "PDF de 5 pages maximum ou images JPEG, PNG et WebP, maximum 10 MiB. Un document par envoi. Vous pouvez attester des classes dans n’importe quel ordre, sans séquence du cursus. Complétez les données à la main avant d’envoyer.",
       "submit": "Envoyer le justificatif",

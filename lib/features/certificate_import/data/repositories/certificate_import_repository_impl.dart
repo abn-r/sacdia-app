@@ -165,12 +165,13 @@ class CertificateImportRepositoryImpl implements CertificateImportRepository {
       final body = error.response?.data;
       final responseCode = body is Map ? body['code'] : null;
       final responseMessage = body is Map ? body['message'] : null;
-      // Legacy BadRequest responses expose the business code as message.
+      // Legacy responses expose the business code as message.
       // Keep only these known codes; never surface parser details or paths.
       const pdfCodes = <String>{
         'CERTIFICATE_IMPORT_PDF_TOO_MANY_PAGES',
         'CERTIFICATE_IMPORT_PDF_INVALID',
         'CERTIFICATE_IMPORT_PDF_ENCRYPTED',
+        'CERTIFICATE_IMPORT_PDF_BUSY',
       };
       final businessCode = pdfCodes.contains(responseCode)
           ? responseCode as String

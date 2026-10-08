@@ -309,6 +309,8 @@ class _CertificateImportUploadViewState
         return 'certificate_import.upload.pdf_encrypted'.tr();
       case 'CERTIFICATE_IMPORT_PDF_INVALID':
         return 'certificate_import.upload.pdf_invalid'.tr();
+      case 'CERTIFICATE_IMPORT_PDF_BUSY':
+        return 'certificate_import.upload.pdf_busy'.tr();
       default:
         return message;
     }

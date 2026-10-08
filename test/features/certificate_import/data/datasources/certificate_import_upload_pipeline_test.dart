@@ -80,7 +80,11 @@ class _RecordingAdapter implements HttpClientAdapter {
     }
 
     if (method == 'POST' && path.endsWith('/files/file-1/confirm')) {
-      if (confirmError != null) return _json(confirmError!, status: 400);
+      if (confirmError != null) {
+        final busy = confirmError!['code'] == 'CERTIFICATE_IMPORT_PDF_BUSY' ||
+            confirmError!['message'] == 'CERTIFICATE_IMPORT_PDF_BUSY';
+        return _json(confirmError!, status: busy ? 429 : 400);
+      }
       return _json({
         'status': 'success',
         'data': {
@@ -138,6 +142,7 @@ void main() {
     'CERTIFICATE_IMPORT_PDF_TOO_MANY_PAGES',
     'CERTIFICATE_IMPORT_PDF_INVALID',
     'CERTIFICATE_IMPORT_PDF_ENCRYPTED',
+    'CERTIFICATE_IMPORT_PDF_BUSY',
     'Inténtalo más tarde: el almacenamiento no está disponible.',
   ];
   for (final errorCode in errors) {
@@ -183,7 +188,10 @@ void main() {
           result.fold((failure) {
             expect(failure, isA<ServerFailure>());
             expect(failure.message, errorCode);
-            expect(failure.code, 400);
+            expect(
+              failure.code,
+              errorCode == 'CERTIFICATE_IMPORT_PDF_BUSY' ? 429 : 400,
+            );
           }, (_) => fail('PDF rejection must not produce a confirmed batch'));
           expect(apiAdapter.requests.map((r) => r.method),
               ['POST', 'POST', 'POST']);
