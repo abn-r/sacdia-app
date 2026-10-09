@@ -91,6 +91,13 @@ List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
     screenId: 'app-grouped-class',
   ),
   _QuickAccessItemConfig(
+    labelKey: 'dashboard.quick_access.investiture',
+    icon: HugeIcons.strokeRoundedMedal01,
+    color: AppColors.accent,
+    route: RouteNames.sectionInvestiture,
+    screenId: 'app-section-investiture',
+  ),
+  _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.insurance',
     icon: HugeIcons.strokeRoundedShield01,
     color: AppColors.secondaryDark,

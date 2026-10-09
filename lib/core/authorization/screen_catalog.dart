@@ -82,12 +82,30 @@ final List<ScreenDefinition> kAppScreenCatalog = [
     surfaces: _appOnly,
     permissions: ['classes:submit_progress'],
   ),
+  // Autorizadores de investidura (backend `FIELD_AUTHORIZER_ROLES` + pastor).
+  // `exactRoles` evita expandir `director-lf`/`assistant-lf` a los demás roles
+  // de Campo/Unión/DIA, que el backend no autoriza.
+  const ScreenDefinition(
+    id: 'app-investiture-authorizer',
+    surfaces: _appOnly,
+    viewAny: CapabilityGate(
+      roles: ['pastor', 'director-lf', 'assistant-lf'],
+      exactRoles: true,
+    ),
+  ),
   _view(
     'app-materials',
     surfaces: _appOnly,
     permissions: ['materiales:create'],
   ),
   _view('app-members', surfaces: _appOnly, permissions: ['users:read_detail']),
+  // Directiva de la sección: presenta, agrega, quita y cambia la fecha de
+  // investidura (backend `MARK_ROLES`).
+  _view(
+    'app-section-investiture',
+    surfaces: _appOnly,
+    roles: ['director', 'secretary', 'secretary-treasurer'],
+  ),
   _view('app-units', surfaces: _appOnly, permissions: ['units:update']),
   _view(
     'campamentos-list-local',

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/auth/club_role_names.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -86,6 +87,13 @@ class ClubContext {
 
   /// Whether the active user is a director in this club context.
   bool get isDirector => roleName?.trim().toLowerCase() == 'director';
+
+  /// Whether the active user belongs to the investiture board
+  /// (director, secretary, secretary-treasurer).
+  bool get isInvestitureBoard {
+    final role = roleName?.trim().toLowerCase();
+    return role != null && ClubRoleNames.investitureBoard.contains(role);
+  }
 }
 
 /// Provider del contexto del club activo.

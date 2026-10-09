@@ -81,6 +81,11 @@ class RouteNames {
   static const String investitureHistory =
       '/investiture/enrollment/:enrollmentId/history';
 
+  // Investidura por autorización
+  static const String sectionInvestiture = '/home/investiture';
+  static const String sectionInvestitureHistory = '/home/investiture/history';
+  static const String ownInvestiture = '/investiture/mine';
+
   // Carga masiva por comprobante/certificado OCR
   static const String certificateImportUpload = '/certificate-import';
   static const String certificateImportProcessing =

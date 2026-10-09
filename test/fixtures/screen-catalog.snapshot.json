@@ -124,6 +124,12 @@
       "capabilities": []
     },
     {
+      "id": "app-investiture-authorizer",
+      "surfaces": ["app"],
+      "viewAny": { "roles": ["pastor", "director-lf", "assistant-lf"], "exactRoles": true },
+      "capabilities": []
+    },
+    {
       "id": "app-materials",
       "surfaces": ["app"],
       "viewAny": { "permissions": ["materiales:create"] },
@@ -133,6 +139,12 @@
       "id": "app-members",
       "surfaces": ["app"],
       "viewAny": { "permissions": ["users:read_detail"] },
+      "capabilities": []
+    },
+    {
+      "id": "app-section-investiture",
+      "surfaces": ["app"],
+      "viewAny": { "roles": ["director", "secretary", "secretary-treasurer"] },
       "capabilities": []
     },
     {

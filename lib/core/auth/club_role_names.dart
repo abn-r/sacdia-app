@@ -31,4 +31,12 @@ abstract class ClubRoleNames {
     secretaryTreasurer,
     counselor,
   ];
+
+  /// Roles de la directiva que presentan, agregan, quitan y cambian la fecha
+  /// de investidura (plan funcional de investidura por autorización).
+  static const investitureBoard = <String>[
+    director,
+    secretary,
+    secretaryTreasurer,
+  ];
 }

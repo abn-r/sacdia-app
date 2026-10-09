@@ -3864,6 +3864,7 @@
       "finances": "Finances",
       "units": "Units",
       "grouped_class": "Group Class",
+      "investiture": "Investitures",
       "insurance": "Club Insurance",
       "inventory": "Inventory",
       "resources": "Resources",
@@ -4785,5 +4786,46 @@
   "master_honors": {
     "title": "Master honors",
     "empty_title": "No master honors available"
+  },
+  "investiture_requests": {
+    "section": {
+      "title": "Section investitures"
+    },
+    "own": {
+      "title": "My investiture"
+    },
+    "history": {
+      "title": "Investiture history"
+    },
+    "placeholder": "Coming soon",
+    "errors": {
+      "forbidden": "You do not have permission for this investiture request",
+      "stale": "This request is no longer the section's active one. Reload the list",
+      "active_exists": "This person already has an incompatible active request",
+      "already_invested": "This person is already invested in this class",
+      "legacy_pipeline_active": "This enrollment is still in the previous investiture validation",
+      "class_not_eligible": "This institutional class does not accept investiture requests",
+      "not_eligible": "This person has not yet met the class progress",
+      "outside_section": "This person does not belong to this section",
+      "window_closed": "The Field's window does not allow presenting or adding people",
+      "year_closed": "The ecclesiastical year does not allow changes to the request",
+      "date_outside_window": "The investiture date falls outside the Field's window",
+      "date_outside_year": "The investiture date falls outside the ecclesiastical year",
+      "date_invalid": "The investiture date is not valid",
+      "progress_locked": "Progress and evidence for this class are locked while the request is pending",
+      "time_zone_invalid": "The request's time zone is not valid",
+      "not_operational": "A historical certificate cannot be part of this request",
+      "not_pending": "This person is no longer pending in the request",
+      "not_found": "Investiture request not found",
+      "section_not_found": "Section not found",
+      "empty": "Choose at least one person",
+      "already_resolved": "This person was already resolved. Reload the request",
+      "reason_required": "A rejection needs a reason",
+      "conflicting_decision": "Choose only one decision per person",
+      "text_too_long": "The text exceeds the allowed limit",
+      "duration_min_not_met": "The class minimum duration has not been met yet",
+      "duration_expired": "The class duration has expired for this enrollment",
+      "generic": "The investiture operation could not be completed"
+    }
   }
 }
