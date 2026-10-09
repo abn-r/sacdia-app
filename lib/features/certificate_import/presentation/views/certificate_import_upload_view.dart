@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,9 +10,15 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../../../../core/errors/failures.dart';
@@ -24,54 +31,40 @@ typedef CertificateImportSubmit = Future<void> Function(
 typedef CertificateImportProofPicker = Future<CertificateImportLocalProof?>
     Function();
 
-class CertificateImportUploadRouteView extends ConsumerWidget {
+/// Maximum proof size accepted client-side (matches the backend limit).
+const int certificateImportMaxProofBytes = 10 * 1024 * 1024;
+
+/// MIME types accepted for a proof: PDF plus JPEG, PNG and WebP images.
+const Set<String> certificateImportAllowedMimeTypes = {
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+};
+
+/// What the screen is waiting for while [CertificateImportUploadView] is busy.
+enum CertificateImportUploadPhase { uploading, reading }
+
+/// Where a proof comes from, offered in the "add proof" bottom sheet.
+enum _ProofSource { camera, gallery, file }
+
+class CertificateImportUploadRouteView extends ConsumerStatefulWidget {
   const CertificateImportUploadRouteView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return CertificateImportUploadView(
-      onSubmitProofs: (proof) async {
-        final result =
-            await ref.read(uploadCertificateImportProofProvider).call(proof);
-        await result.fold(
-          (failure) async => throw failure,
-          (batch) async {
-            // A failed or empty reading still leaves the sealed file for manual entry.
-            final ocr = await ref
-                .read(processCertificateImportOcrProvider)
-                .call(batch.id);
-            await ocr.fold((_) async {}, (queued) async {
-              if (queued.items.isNotEmpty) return;
-              for (var attempt = 0; attempt < 6; attempt++) {
-                await Future<void>.delayed(const Duration(seconds: 2));
-                final detail = await ref
-                    .read(getCertificateImportBatchProvider)
-                    .call(batch.id);
-                final ready = detail.fold(
-                  (_) => true,
-                  (loaded) => loaded.items.isNotEmpty,
-                );
-                if (ready) return;
-              }
-            });
-            if (context.mounted) {
-              context.push(RouteNames.certificateImportReviewPath(batch.id));
-            }
-          },
-        );
-      },
-      onPickCamera: _pickCameraProof,
-      onPickFile: _pickFileProof,
-    );
-  }
+  ConsumerState<CertificateImportUploadRouteView> createState() =>
+      _CertificateImportUploadRouteViewState();
 
-  static Future<CertificateImportLocalProof?> _pickCameraProof() async {
-    final image = await ImagePicker().pickImage(
-      source: ImageSource.camera,
-      maxWidth: 2048,
-      maxHeight: 2048,
-      imageQuality: 85,
-    );
+  /// Picks an image from [source] and maps it to a local proof.
+  ///
+  /// [pickImage] is injectable so tests can verify the [ImageSource] used
+  /// without touching the platform plugin.
+  @visibleForTesting
+  static Future<CertificateImportLocalProof?> pickImageProof(
+    ImageSource source, {
+    Future<XFile?> Function(ImageSource source)? pickImage,
+  }) async {
+    final image = await (pickImage ?? _defaultPickImage)(source);
     if (image == null) return null;
 
     final path = image.path;
@@ -83,6 +76,21 @@ class CertificateImportUploadRouteView extends ConsumerWidget {
       fileSize: size,
     );
   }
+
+  static Future<XFile?> _defaultPickImage(ImageSource source) {
+    return ImagePicker().pickImage(
+      source: source,
+      maxWidth: 2048,
+      maxHeight: 2048,
+      imageQuality: 85,
+    );
+  }
+
+  static Future<CertificateImportLocalProof?> _pickCameraProof() =>
+      pickImageProof(ImageSource.camera);
+
+  static Future<CertificateImportLocalProof?> _pickGalleryProof() =>
+      pickImageProof(ImageSource.gallery);
 
   static Future<CertificateImportLocalProof?> _pickFileProof() async {
     final result = await FilePicker.platform.pickFiles(
@@ -124,17 +132,77 @@ class CertificateImportUploadRouteView extends ConsumerWidget {
   }
 }
 
+class _CertificateImportUploadRouteViewState
+    extends ConsumerState<CertificateImportUploadRouteView> {
+  final ValueNotifier<CertificateImportUploadPhase> _phase =
+      ValueNotifier(CertificateImportUploadPhase.uploading);
+
+  @override
+  void dispose() {
+    _phase.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CertificateImportUploadView(
+      phase: _phase,
+      onSubmitProofs: (proof) async {
+        _phase.value = CertificateImportUploadPhase.uploading;
+        final result =
+            await ref.read(uploadCertificateImportProofProvider).call(proof);
+        await result.fold(
+          (failure) async => throw failure,
+          (batch) async {
+            if (mounted) _phase.value = CertificateImportUploadPhase.reading;
+            // A failed or empty reading still leaves the sealed file for manual entry.
+            final ocr = await ref
+                .read(processCertificateImportOcrProvider)
+                .call(batch.id);
+            await ocr.fold((_) async {}, (queued) async {
+              if (queued.items.isNotEmpty) return;
+              for (var attempt = 0; attempt < 6; attempt++) {
+                await Future<void>.delayed(const Duration(seconds: 2));
+                final detail = await ref
+                    .read(getCertificateImportBatchProvider)
+                    .call(batch.id);
+                final ready = detail.fold(
+                  (_) => true,
+                  (loaded) => loaded.items.isNotEmpty,
+                );
+                if (ready) return;
+              }
+            });
+            if (context.mounted) {
+              context.push(RouteNames.certificateImportReviewPath(batch.id));
+            }
+          },
+        );
+      },
+      onPickCamera: CertificateImportUploadRouteView._pickCameraProof,
+      onPickGallery: CertificateImportUploadRouteView._pickGalleryProof,
+      onPickFile: CertificateImportUploadRouteView._pickFileProof,
+    );
+  }
+}
+
 class CertificateImportUploadView extends StatefulWidget {
   const CertificateImportUploadView({
     super.key,
     this.onSubmitProofs,
     this.onPickCamera,
+    this.onPickGallery,
     this.onPickFile,
+    this.phase,
   });
 
   final CertificateImportSubmit? onSubmitProofs;
   final CertificateImportProofPicker? onPickCamera;
+  final CertificateImportProofPicker? onPickGallery;
   final CertificateImportProofPicker? onPickFile;
+
+  /// Current waiting phase while submitting; defaults to uploading.
+  final ValueListenable<CertificateImportUploadPhase>? phase;
 
   @override
   State<CertificateImportUploadView> createState() =>
@@ -226,40 +294,23 @@ class _CertificateImportUploadViewState
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          SacButton.primary(
-                            text: 'certificate_import.upload.submit'.tr(),
-                            icon: HugeIcons.strokeRoundedFileUpload,
-                            isLoading: _loading,
-                            isEnabled: _hasFilesToAnalyze,
-                            onPressed: _loading || !_hasFilesToAnalyze
-                                ? null
-                                : _submit,
-                          ),
+                          if (_loading)
+                            _UploadProgressPanel(phase: widget.phase)
+                          else
+                            SacButton.primary(
+                              text: 'certificate_import.upload.submit'.tr(),
+                              icon: HugeIcons.strokeRoundedFileUpload,
+                              isEnabled: _hasFilesToAnalyze,
+                              onPressed: !_hasFilesToAnalyze ? null : _submit,
+                            ),
                           const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: SacButton.outline(
-                                  text: 'certificate_import.upload.camera'.tr(),
-                                  icon: HugeIcons.strokeRoundedCamera01,
-                                  isLoading: _picking,
-                                  onPressed: _picking
-                                      ? null
-                                      : () => _pickProof(widget.onPickCamera),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: SacButton.outline(
-                                  text: 'certificate_import.upload.file'.tr(),
-                                  icon: HugeIcons.strokeRoundedFolder01,
-                                  isLoading: _picking,
-                                  onPressed: _picking
-                                      ? null
-                                      : () => _pickProof(widget.onPickFile),
-                                ),
-                              ),
-                            ],
+                          SacButton.outline(
+                            text: 'certificate_import.upload.choose'.tr(),
+                            icon: HugeIcons.strokeRoundedImageUpload,
+                            isLoading: _picking,
+                            isEnabled: !_loading,
+                            onPressed:
+                                _picking || _loading ? null : _chooseSource,
                           ),
                         ],
                       ),
@@ -272,6 +323,31 @@ class _CertificateImportUploadViewState
         ),
       ),
     );
+  }
+
+  Future<void> _chooseSource() async {
+    final source = await _showProofSourceSheet(context);
+    if (source == null || !mounted) return;
+    switch (source) {
+      case _ProofSource.camera:
+        await _pickProof(widget.onPickCamera);
+      case _ProofSource.gallery:
+        await _pickProof(widget.onPickGallery);
+      case _ProofSource.file:
+        await _pickProof(widget.onPickFile);
+    }
+  }
+
+  /// Same rules for camera, gallery and files: PDF/JPEG/PNG/WebP, max 10 MiB.
+  String? _validateProof(CertificateImportLocalProof proof) {
+    if (!certificateImportAllowedMimeTypes
+        .contains(proof.mimeType.toLowerCase())) {
+      return 'certificate_import.upload.unsupported_type'.tr();
+    }
+    if (proof.fileSize > certificateImportMaxProofBytes) {
+      return 'certificate_import.upload.too_large'.tr();
+    }
+    return null;
   }
 
   Future<void> _pickProof(CertificateImportProofPicker? picker) async {
@@ -289,12 +365,21 @@ class _CertificateImportUploadViewState
       if (file == null) return;
       if (!mounted) return;
 
+      final validationError = _validateProof(file);
+      if (validationError != null) {
+        setState(() {
+          _selectedProof = null;
+          _error = validationError;
+        });
+        return;
+      }
+
       setState(() {
         // Un documento por carga.
         _selectedProof = file;
       });
     } catch (error) {
-      setState(() => _error = error.toString());
+      if (mounted) setState(() => _error = error.toString());
     } finally {
       if (mounted) setState(() => _picking = false);
     }
@@ -335,6 +420,150 @@ class _CertificateImportUploadViewState
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+}
+
+Future<_ProofSource?> _showProofSourceSheet(BuildContext context) {
+  return showSacSheet<_ProofSource>(
+    context: context,
+    // Lets the sheet grow past the default 9/16 cap on short screens or with
+    // large text scale instead of overflowing.
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (ctx) => SafeArea(
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SacSheetHeader(
+                title: 'certificate_import.upload.source_title'.tr()),
+            _ProofSourceTile(
+              icon: HugeIcons.strokeRoundedCamera01,
+              title: 'certificate_import.upload.camera'.tr(),
+              subtitle: 'certificate_import.upload.camera_sub'.tr(),
+              onTap: () => Navigator.pop(ctx, _ProofSource.camera),
+            ),
+            _ProofSourceTile(
+              icon: HugeIcons.strokeRoundedImage01,
+              title: 'certificate_import.upload.gallery'.tr(),
+              subtitle: 'certificate_import.upload.gallery_sub'.tr(),
+              onTap: () => Navigator.pop(ctx, _ProofSource.gallery),
+            ),
+            _ProofSourceTile(
+              icon: HugeIcons.strokeRoundedFolder01,
+              title: 'certificate_import.upload.file'.tr(),
+              subtitle: 'certificate_import.upload.file_sub'.tr(),
+              onTap: () => Navigator.pop(ctx, _ProofSource.file),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+class _ProofSourceTile extends StatelessWidget {
+  const _ProofSourceTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final HugeIconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = SacAccent.of(context);
+    return SacPressable(
+      listenOnly: true,
+      child: ListTile(
+        enableFeedback: false,
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: accent.light,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Center(
+            child: HugeIcon(icon: icon, size: 22, color: accent.color),
+          ),
+        ),
+        title: Text(title),
+        subtitle: Text(subtitle),
+        onTap: onTap,
+      ),
+    );
+  }
+}
+
+/// Busy state shown in place of the primary button while a proof is sent.
+///
+/// Three-dot [SacLoadingSmall] (static under Reduced Motion) plus a clear
+/// message, announced to assistive tech as a live region.
+class _UploadProgressPanel extends StatelessWidget {
+  const _UploadProgressPanel({this.phase});
+
+  final ValueListenable<CertificateImportUploadPhase>? phase;
+
+  @override
+  Widget build(BuildContext context) {
+    final listenable = phase;
+    if (listenable == null) {
+      return _body(context, CertificateImportUploadPhase.uploading);
+    }
+    return ValueListenableBuilder<CertificateImportUploadPhase>(
+      valueListenable: listenable,
+      builder: (context, value, _) => _body(context, value),
+    );
+  }
+
+  Widget _body(BuildContext context, CertificateImportUploadPhase value) {
+    final c = context.sac;
+    final message = value == CertificateImportUploadPhase.reading
+        ? 'certificate_import.upload.reading'.tr()
+        : 'certificate_import.upload.uploading'.tr();
+    return Semantics(
+      liveRegion: true,
+      container: true,
+      label: message,
+      child: ExcludeSemantics(
+        child: Container(
+          key: const ValueKey('certificate-import-upload-progress'),
+          constraints: const BoxConstraints(minHeight: 52),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: c.surfaceVariant,
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+            border: Border.all(color: c.border),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SacLoadingSmall(),
+              const SizedBox(width: 12),
+              Flexible(
+                child: Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: c.text,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

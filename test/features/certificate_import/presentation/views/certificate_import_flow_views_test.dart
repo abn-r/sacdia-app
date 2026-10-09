@@ -1,15 +1,18 @@
 import 'dart:convert';
+import 'dart:async';
 import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/config/router.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_batch.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_file.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_item.dart';
@@ -43,6 +46,26 @@ Future<void> _pump(WidgetTester tester, Widget child) async {
   await tester.pump();
   await tester.pump();
 }
+
+/// Opens the "add proof" sheet and taps [option] (camera, gallery or files).
+Future<void> _choose(WidgetTester tester, String option) async {
+  await tester.tap(find.text('Agregar comprobante'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text(option));
+  await tester.pumpAndSettle();
+}
+
+CertificateImportLocalProof _proof({
+  String name = 'comprobante.jpg',
+  String mimeType = 'image/jpeg',
+  int size = 128,
+}) =>
+    CertificateImportLocalProof(
+      localPath: '/tmp/$name',
+      fileName: name,
+      mimeType: mimeType,
+      fileSize: size,
+    );
 
 CertificateImportBatch _batch({bool complete = false, bool rejected = false}) {
   return CertificateImportBatch(
@@ -137,7 +160,7 @@ void main() {
             ),
           ),
         );
-        await tester.tap(find.text('Elegir archivo'));
+        await _choose(tester, 'Elegir archivo');
         await tester.pump();
         await tester.tap(find.text('Subir comprobante'));
         await tester.pumpAndSettle();
@@ -168,7 +191,7 @@ void main() {
           ),
         ),
       );
-      await tester.tap(find.text('Elegir archivo'));
+      await _choose(tester, 'Elegir archivo');
       await tester.pump();
       await tester.tap(find.text('Subir comprobante'));
       await tester.pumpAndSettle();
@@ -195,8 +218,7 @@ void main() {
       );
 
       expect(find.text('Subir comprobante'), findsOneWidget);
-      expect(find.text('Tomar foto'), findsOneWidget);
-      expect(find.text('Elegir archivo'), findsOneWidget);
+      expect(find.text('Agregar comprobante'), findsOneWidget);
 
       final initialUpload = tester.widget<SacButton>(
         find.widgetWithText(SacButton, 'Subir comprobante'),
@@ -207,7 +229,7 @@ void main() {
       await tester.pump();
       expect(uploadCalls, 0);
 
-      await tester.tap(find.text('Elegir archivo'));
+      await _choose(tester, 'Elegir archivo');
       await tester.pump();
 
       expect(find.text('Comprobante seleccionado'), findsOneWidget);
@@ -231,7 +253,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.text('Elegir archivo'));
+      await _choose(tester, 'Elegir archivo');
       await tester.pumpAndSettle();
 
       expect(find.text('Comprobante seleccionado'), findsNothing);
@@ -240,7 +262,7 @@ void main() {
       );
       expect(upload.onPressed, isNull);
 
-      await tester.tap(find.text('Tomar foto'));
+      await _choose(tester, 'Tomar foto');
       await tester.pumpAndSettle();
 
       expect(find.text('Comprobante seleccionado'), findsNothing);
@@ -252,6 +274,255 @@ void main() {
       await tester.tap(find.text('Subir comprobante'));
       await tester.pump();
       expect(uploadCalls, 0);
+    });
+    testWidgets('lists camera, gallery and files in one bottom sheet',
+        (tester) async {
+      await _pump(tester, const CertificateImportUploadView());
+      expect(find.text('Tomar foto'), findsNothing);
+
+      await tester.tap(find.text('Agregar comprobante'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tomar foto'), findsOneWidget);
+      expect(find.text('Elegir de la galería'), findsOneWidget);
+      expect(find.text('Elegir archivo'), findsOneWidget);
+    });
+
+    testWidgets('gallery option uses the gallery picker and selects the image',
+        (tester) async {
+      var galleryCalls = 0;
+      var cameraCalls = 0;
+      var fileCalls = 0;
+      await _pump(
+        tester,
+        CertificateImportUploadView(
+          onPickCamera: () async {
+            cameraCalls++;
+            return null;
+          },
+          onPickFile: () async {
+            fileCalls++;
+            return null;
+          },
+          onPickGallery: () async {
+            galleryCalls++;
+            return _proof(name: 'carrete.png', mimeType: 'image/png');
+          },
+        ),
+      );
+
+      await _choose(tester, 'Elegir de la galería');
+
+      expect([galleryCalls, cameraCalls, fileCalls], [1, 0, 0]);
+      expect(find.text('Comprobante seleccionado'), findsOneWidget);
+      expect(find.text('carrete.png'), findsOneWidget);
+    });
+
+    testWidgets('route picker requests ImageSource.gallery for the gallery',
+        (tester) async {
+      final dir = Directory.systemTemp.createTempSync('cert_gallery_');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final file = File('${dir.path}/foto.jpg')..writeAsBytesSync([1, 2, 3]);
+
+      final sources = <ImageSource>[];
+      final proof = await tester.runAsync(() =>
+          CertificateImportUploadRouteView.pickImageProof(
+            ImageSource.gallery,
+            pickImage: (source) async {
+              sources.add(source);
+              return XFile(file.path, name: 'foto.jpg', mimeType: 'image/jpeg');
+            },
+          ));
+
+      expect(sources, [ImageSource.gallery]);
+      expect(proof?.fileName, 'foto.jpg');
+      expect(proof?.mimeType, 'image/jpeg');
+      expect(proof?.fileSize, 3);
+    });
+
+    for (final picker in [
+      'Tomar foto',
+      'Elegir de la galería',
+      'Elegir archivo'
+    ]) {
+      testWidgets('$picker rejects unsupported types', (tester) async {
+        Future<CertificateImportLocalProof?> unsupported() async =>
+            _proof(name: 'animacion.gif', mimeType: 'image/gif');
+        await _pump(
+          tester,
+          CertificateImportUploadView(
+            onSubmitProofs: (_) async {},
+            onPickCamera: unsupported,
+            onPickGallery: unsupported,
+            onPickFile: unsupported,
+          ),
+        );
+
+        await _choose(tester, picker);
+
+        expect(
+          find.text(
+              'Formato no admitido. Usa un PDF o una imagen JPEG, PNG o WebP.'),
+          findsOneWidget,
+        );
+        expect(find.text('Comprobante seleccionado'), findsNothing);
+        final upload = tester.widget<SacButton>(
+          find.widgetWithText(SacButton, 'Subir comprobante'),
+        );
+        expect(upload.onPressed, isNull);
+      });
+
+      testWidgets('$picker rejects files over 10 MiB', (tester) async {
+        Future<CertificateImportLocalProof?> huge() async =>
+            _proof(size: 10 * 1024 * 1024 + 1);
+        await _pump(
+          tester,
+          CertificateImportUploadView(
+            onPickCamera: huge,
+            onPickGallery: huge,
+            onPickFile: huge,
+          ),
+        );
+
+        await _choose(tester, picker);
+
+        expect(
+            find.text('El archivo supera los 10 MiB. Elige uno más liviano.'),
+            findsOneWidget);
+        expect(find.text('Comprobante seleccionado'), findsNothing);
+      });
+    }
+
+    testWidgets('accepts exactly 10 MiB and a PDF', (tester) async {
+      await _pump(
+        tester,
+        CertificateImportUploadView(
+          onPickGallery: () async => _proof(size: 10 * 1024 * 1024),
+          onPickFile: () async =>
+              _proof(name: 'acta.pdf', mimeType: 'application/pdf'),
+        ),
+      );
+
+      await _choose(tester, 'Elegir de la galería');
+      expect(find.text('comprobante.jpg'), findsOneWidget);
+
+      await _choose(tester, 'Elegir archivo');
+      expect(find.text('acta.pdf'), findsOneWidget);
+      expect(find.textContaining('Formato no admitido'), findsNothing);
+    });
+
+    testWidgets('a rejected pick clears the previous valid selection',
+        (tester) async {
+      var next = _proof();
+      await _pump(
+        tester,
+        CertificateImportUploadView(onPickGallery: () async => next),
+      );
+
+      await _choose(tester, 'Elegir de la galería');
+      expect(find.text('comprobante.jpg'), findsOneWidget);
+
+      next = _proof(name: 'raro.heic', mimeType: 'image/heic');
+      await _choose(tester, 'Elegir de la galería');
+      expect(find.text('comprobante.jpg'), findsNothing);
+      expect(find.textContaining('Formato no admitido'), findsOneWidget);
+    });
+
+    testWidgets('shows three-dot loader and upload text instead of a spinner',
+        (tester) async {
+      final completer = Completer<void>();
+      final phase = ValueNotifier(CertificateImportUploadPhase.uploading);
+      addTearDown(phase.dispose);
+      await _pump(
+        tester,
+        CertificateImportUploadView(
+          phase: phase,
+          onSubmitProofs: (_) => completer.future,
+          onPickFile: () async => _proof(),
+        ),
+      );
+      await _choose(tester, 'Elegir archivo');
+      await tester.tap(find.text('Subir comprobante'));
+      await tester.pump();
+
+      expect(find.text('Subiendo tu comprobante…'), findsOneWidget);
+      expect(find.byType(SacLoadingSmall), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byType(SacLoadingSmall),
+          matching: find.byType(AnimatedBuilder),
+        ),
+        findsOneWidget,
+      );
+      expect(find.widgetWithText(SacButton, 'Subir comprobante'), findsNothing);
+      final choose = tester.widget<SacButton>(
+        find.widgetWithText(SacButton, 'Agregar comprobante'),
+      );
+      expect(choose.onPressed, isNull);
+
+      final semantics = tester.ensureSemantics();
+      expect(
+        tester.getSemantics(
+          find.byKey(const ValueKey('certificate-import-upload-progress')),
+        ),
+        matchesSemantics(
+          label: 'Subiendo tu comprobante…',
+          isLiveRegion: true,
+        ),
+      );
+      semantics.dispose();
+
+      phase.value = CertificateImportUploadPhase.reading;
+      await tester.pump();
+      expect(find.text('Leyendo tu comprobante…'), findsOneWidget);
+      expect(find.text('Subiendo tu comprobante…'), findsNothing);
+
+      completer.complete();
+      await tester.pump();
+      await tester.pump();
+      expect(find.byType(SacLoadingSmall), findsNothing);
+      expect(find.text('Subir comprobante'), findsOneWidget);
+    });
+
+    testWidgets('uses the static dots variant under Reduced Motion',
+        (tester) async {
+      tester.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: true);
+      addTearDown(
+          tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+      final completer = Completer<void>();
+      await _pump(
+        tester,
+        CertificateImportUploadView(
+          onSubmitProofs: (_) => completer.future,
+          onPickFile: () async => _proof(),
+        ),
+      );
+      await _choose(tester, 'Elegir archivo');
+      await tester.tap(find.text('Subir comprobante'));
+      await tester.pump();
+
+      expect(find.text('Subiendo tu comprobante…'), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byType(SacLoadingSmall),
+          matching: find.byType(AnimatedBuilder),
+        ),
+        findsNothing,
+      );
+      expect(
+        find.descendant(
+          of: find.byType(SacLoadingSmall),
+          matching: find.byType(DecoratedBox),
+        ),
+        findsNWidgets(3),
+      );
+
+      completer.complete();
+      await tester.pump();
+      await tester.pump();
     });
   });
 
