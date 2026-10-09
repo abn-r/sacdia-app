@@ -244,4 +244,73 @@ void main() {
       });
     }
   });
+
+  group('QuickAccessGrid authorizer shortcut', () {
+    UserEntity globalUser(String role) => UserEntity(
+          id: 'user-1',
+          email: 'user@example.com',
+          authorization: AuthorizationSnapshot(
+            effectivePermissions: const ['reports:read'],
+            globalGrants: [AuthorizationGrant(roleName: role)],
+          ),
+        );
+
+    for (final role in ['pastor', 'director-lf', 'assistant-lf']) {
+      testWidgets('shows the authorizations shortcut to $role', (tester) async {
+        await _pumpQuickAccessGrid(tester, globalUser(role));
+        expect(find.text('dashboard.quick_access.authorizations'), findsOne);
+      });
+    }
+
+    for (final role in ['coordinator', 'director-union']) {
+      testWidgets('hides the authorizations shortcut from $role',
+          (tester) async {
+        await _pumpQuickAccessGrid(tester, globalUser(role));
+        expect(
+            find.text('dashboard.quick_access.authorizations'), findsNothing);
+      });
+    }
+
+    testWidgets('hides both investiture shortcuts from a super-admin only',
+        (tester) async {
+      await _pumpQuickAccessGrid(tester, globalUser('super-admin'));
+      expect(find.text('dashboard.quick_access.authorizations'), findsNothing);
+      expect(find.text('dashboard.quick_access.investiture'), findsNothing);
+    });
+
+    testWidgets('a super-admin who is also a section director keeps his tile',
+        (tester) async {
+      await _pumpQuickAccessGrid(
+        tester,
+        UserEntity(
+          id: 'user-1',
+          email: 'user@example.com',
+          authorization: AuthorizationSnapshot(
+            effectivePermissions: const ['reports:read'],
+            globalGrants: const [AuthorizationGrant(roleName: 'super-admin')],
+            activeAssignmentId: 'a1',
+            clubAssignments: const [
+              AuthorizationGrant(
+                assignmentId: 'a1',
+                roleName: 'director',
+                clubId: 1,
+                sectionId: 2,
+                status: 'active',
+              ),
+            ],
+          ),
+        ),
+      );
+      expect(find.text('dashboard.quick_access.investiture'), findsOne);
+      expect(find.text('dashboard.quick_access.authorizations'), findsNothing);
+    });
+
+    testWidgets('hides it from a plain club counselor', (tester) async {
+      await _pumpQuickAccessGrid(
+        tester,
+        _userWithPermissions(const ['reports:read']),
+      );
+      expect(find.text('dashboard.quick_access.authorizations'), findsNothing);
+    });
+  });
 }

@@ -3,6 +3,11 @@ import 'package:easy_localization/easy_localization.dart';
 /// Códigos de error del backend (`ErrorCode`) de la investidura por
 /// autorización, mapeados a su clave de traducción.
 ///
+/// Códigos que la UI distingue por su valor (no solo por su mensaje).
+const investitureForbiddenCode = 'INVESTITURE_REQUEST_FORBIDDEN';
+const investitureWindowClosedCode = 'INVESTITURE_REQUEST_WINDOW_CLOSED';
+const investitureYearClosedCode = 'INVESTITURE_REQUEST_YEAR_CLOSED';
+
 /// Mismo mapa para los errores de las acciones y para los motivos de bloqueo
 /// (`blocked_code`) de los candidatos.
 const Map<String, String> _errorKeysByCode = {

@@ -22,6 +22,8 @@ import '../../../../core/widgets/sac_pressable.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../investiture/domain/entities/investiture_status.dart';
 import '../../../investiture/presentation/providers/investiture_providers.dart';
+import '../../../investiture_requests/presentation/providers/investiture_requests_providers.dart';
+import '../../../investiture_requests/presentation/widgets/own_investiture_card.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import '../../domain/entities/class_honor.dart';
 import '../../domain/entities/class_module_detail.dart';
@@ -331,10 +333,29 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
     final classColor = AppColors.classColor(classData.name);
     final resolvedEnrollmentId = widget.enrollmentId ?? classData.enrollmentId;
     final investitureStatus = _investitureStatusOf(classData);
+    // Quien mira su propia clase ve el estado de la autorización; el envío a
+    // validación ya no es suyo: lo presenta la directiva de la sección.
+    final isOwnView = widget.targetUserId == null;
+    final hasOwnAuthorization = isOwnView &&
+        ref.watch(ownInvestitureEntryForClassProvider(widget.classId)) != null;
+    // Mientras el historial de autorización carga no se sabe si la entrada
+    // nueva reemplaza a la tarjeta legada: se espera para no mostrar un estado
+    // viejo que enseguida desaparece. Si falla, se informa el estado legado.
+    final ownHistory =
+        isOwnView ? ref.watch(ownInvestitureHistoryProvider) : null;
+    final awaitingOwnHistory = ownHistory != null &&
+        ownHistory.isLoading &&
+        ownHistory.valueOrNull == null;
     final showInvestitureCard = _shouldShowInvestitureCard(
-      classData,
-      enrollmentId: resolvedEnrollmentId,
-    );
+          classData,
+          enrollmentId: resolvedEnrollmentId,
+        ) &&
+        _shouldShowLegacyInvestitureCard(
+          status: investitureStatus,
+          isOwnView: isOwnView,
+          hasOwnAuthorization: hasOwnAuthorization,
+          awaitingOwnHistory: awaitingOwnHistory,
+        );
     final clubContextAsync =
         showInvestitureCard ? ref.watch(clubContextProvider) : null;
     final submitState = showInvestitureCard && resolvedEnrollmentId != null
@@ -362,9 +383,11 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
                   if (widget.prerequisites.isNotEmpty)
                     _PrerequisitesBanner(prerequisites: widget.prerequisites),
                   _PillsRow(classData: classData),
+                  if (isOwnView) OwnInvestitureCard(classId: widget.classId),
                   if (showInvestitureCard)
                     _InvestitureCompletionCard(
                       status: investitureStatus,
+                      readOnly: isOwnView,
                       clubContextAsync: clubContextAsync!,
                       submitState: submitState,
                       onSubmit: (clubId) => _submitInvestiture(
@@ -505,6 +528,27 @@ bool _shouldShowInvestitureCard(
   return classData.isInvestitureEligibleByTrackOrLegacy;
 }
 
+/// La tarjeta del flujo legado sigue para quien mira a otro miembro (el
+/// director o consejero que envía a validación).
+///
+/// En la clase propia, mientras el pipeline viejo siga activo (fase 8 sin
+/// ejecutar), informa el estado legado de la persona (enviada, aprobada por
+/// alguna instancia, observada o investida) cuando NO hay entrada del flujo
+/// nuevo: esa entrada, si existe, tiene precedencia y la reemplaza. «En
+/// progreso» y «vencida» no dicen nada que informar: el envío ya no es de la
+/// persona sino de la directiva, que presenta por el flujo nuevo.
+bool _shouldShowLegacyInvestitureCard({
+  required InvestitureStatus status,
+  required bool isOwnView,
+  required bool hasOwnAuthorization,
+  bool awaitingOwnHistory = false,
+}) {
+  if (!isOwnView) return true;
+  if (hasOwnAuthorization || awaitingOwnHistory) return false;
+  return status != InvestitureStatus.inProgress &&
+      status != InvestitureStatus.expired;
+}
+
 bool _canSubmitInvestiture(InvestitureStatus status) {
   return status == InvestitureStatus.inProgress ||
       status == InvestitureStatus.rejected;
@@ -517,6 +561,10 @@ bool _isInvestitureReviewer(ClubContext? context) {
 
 class _InvestitureCompletionCard extends StatelessWidget {
   final InvestitureStatus status;
+
+  /// Clase propia: solo informa el estado legado, sin ofrecer enviar o
+  /// reenviar (eso ahora lo presenta la directiva por el flujo nuevo).
+  final bool readOnly;
   final AsyncValue<ClubContext?> clubContextAsync;
   final InvestitureActionState? submitState;
   final ValueChanged<int> onSubmit;
@@ -524,6 +572,7 @@ class _InvestitureCompletionCard extends StatelessWidget {
 
   const _InvestitureCompletionCard({
     required this.status,
+    this.readOnly = false,
     required this.clubContextAsync,
     required this.submitState,
     required this.onSubmit,
@@ -533,7 +582,7 @@ class _InvestitureCompletionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = _InvestitureCardStyle.forStatus(status);
-    final canSubmit = _canSubmitInvestiture(status);
+    final canSubmit = !readOnly && _canSubmitInvestiture(status);
     final clubContext = clubContextAsync.valueOrNull;
     final canCurrentUserSubmit = _isInvestitureReviewer(clubContext);
     final isContextLoading = clubContextAsync.isLoading;
@@ -627,6 +676,8 @@ class _InvestitureCompletionCard extends StatelessWidget {
           : 'Un consejero o director debe enviarla.';
     }
     if (status == InvestitureStatus.investido) return null;
+    // «Observada» en la clase propia ya no tiene un envío pendiente que decir.
+    if (readOnly && status == InvestitureStatus.rejected) return null;
     return 'investiture.history.estimated_time'.tr();
   }
 }

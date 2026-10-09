@@ -3872,7 +3872,8 @@
       "club_rankings": "Progreso anual",
       "my_ranking": "Mi ranking",
       "section_ranking": "Ranking de sección",
-      "materials": "Pedidos"
+      "materials": "Pedidos",
+      "authorizations": "Autorizaciones"
     },
     "stats": {
       "honors_completed": "Esp. completadas",
@@ -4091,7 +4092,8 @@
       "home": "Inicio",
       "classes": "Clases",
       "activities": "Actividades",
-      "profile": "Perfil"
+      "profile": "Perfil",
+      "authorizations": "Autorizaciones"
     },
     "evidence_folder": {
       "title": "Carpeta Anual de Evidencias",
@@ -4838,10 +4840,32 @@
       }
     },
     "own": {
-      "title": "Mi investidura"
+      "title": "Mi investidura",
+      "pending": "En espera de autorización.",
+      "invested": "El camino rindió fruto. Ya estás investido, y esta noticia es para celebrarla.",
+      "rejected": "Falta de requisitos para investidura.",
+      "closed_year": "No investido en {year}",
+      "comment_title": "Comentario de la autorización",
+      "empty_title": "Todavía no tenés investiduras",
+      "empty_body": "Cuando tu sección te presente a investidura, vas a ver acá cómo va.",
+      "load_error_title": "No pudimos cargar tu investidura"
     },
     "history": {
-      "title": "Historial de investidura"
+      "title": "Historial de investidura",
+      "tab_history": "Historial",
+      "tab_yearbook": "Anuario",
+      "load_error_title": "No pudimos cargar el historial",
+      "yearbook_load_error_title": "No pudimos cargar el anuario",
+      "empty_title": "Todavía no hay investiduras registradas",
+      "empty_body": "Cuando la sección tenga investiduras resueltas, van a quedar acá.",
+      "yearbook_empty_title": "El anuario todavía está vacío",
+      "yearbook_empty_body": "Acá van a aparecer las personas inscriptas en cada clase, año por año.",
+      "status_invested": "Investido",
+      "status_not_invested": "No investido",
+      "status_closed_year": "No investido en el año",
+      "reason": "Motivo: {reason}",
+      "year_fallback": "Año eclesiástico",
+      "class_fallback": "Clase sin nombre"
     },
     "placeholder": "Próximamente",
     "errors": {
@@ -4872,6 +4896,71 @@
       "duration_min_not_met": "Todavía no se cumplió la duración mínima de la clase",
       "duration_expired": "La duración de la clase venció para este enrollment",
       "generic": "No se pudo completar la operación de investidura"
+    },
+    "authorizer": {
+      "title": "Autorizaciones",
+      "restricted_title": "Acceso restringido",
+      "restricted_body": "Solo quienes autorizan investiduras (pastor de distrito, director o subdirector del Campo) pueden ver esta pantalla.",
+      "no_year_title": "Sin año eclesiástico activo",
+      "no_year_body": "No hay un año eclesiástico activo para mostrar solicitudes.",
+      "load_error_title": "No pudimos cargar las autorizaciones",
+      "no_districts_title": "Todavía no tenés distritos asignados.",
+      "no_districts_body": "Pedí al Campo que te asigne.",
+      "empty_title": "No hay solicitudes por autorizar",
+      "empty_body": "Cuando una sección presente personas a investidura, la solicitud va a aparecer acá.",
+      "waiting_title": "Para autorizar",
+      "rest_title": "Sin personas en espera",
+      "club_fallback": "Club sin nombre",
+      "district": "Distrito {name}",
+      "pending_count": "{count} en espera",
+      "nothing_pending": "Sin personas en espera",
+      "earliest_date": "Primera fecha: {date}",
+      "detail_title": "Solicitud de investidura",
+      "detail_load_error_title": "No pudimos cargar la solicitud",
+      "pending_title": "En espera",
+      "resolved_title": "Ya resueltas",
+      "no_people": "Esta solicitud no tiene personas.",
+      "undecided": "Sin decidir",
+      "waiting": "En espera",
+      "decision_invest": "Se inviste",
+      "decision_reject": "Se rechaza",
+      "decide": "Decidir",
+      "change": "Cambiar",
+      "confirm_cta": "Confirmar decisiones ({count})",
+      "confirm_title": "Confirmar decisiones",
+      "confirm_body": "Investidas: {invest}. Rechazadas: {reject}. Una vez confirmadas, las decisiones no se pueden cambiar.",
+      "confirm_action": "Confirmar",
+      "window_closed": "La ventana del Campo está cerrada. Por ahora no se pueden confirmar decisiones.",
+      "year_closed": "El año eclesiástico está cerrado. Por ahora no se pueden confirmar decisiones.",
+      "status_rejected_by_system": "Rechazado por el sistema",
+      "status_removed": "Retirado de la solicitud",
+      "decided_by": "Decidió: {name}",
+      "sheet": {
+        "title": "Tu decisión",
+        "invest": "Investir",
+        "reject": "Rechazar",
+        "comment_label": "Comentario (opcional)",
+        "comment_helper": "Si lo escribís, la persona lo ve en su estado de investidura.",
+        "reason_label": "Motivo del rechazo",
+        "reason_helper": "Lo ve la directiva de la sección. La persona solo recibe «Falta de requisitos para investidura».",
+        "reason_required": "Escribí el motivo para poder rechazar.",
+        "save": "Guardar decisión",
+        "clear": "Quitar decisión"
+      },
+      "summary": {
+        "title": "Resultado de las decisiones",
+        "invested": "Investidos ({count})",
+        "rejected": "Rechazados ({count})",
+        "rejected_by_system": "Rechazados por el sistema ({count})",
+        "retired": "Retirados de la solicitud ({count})",
+        "retired_note": "Su clase no admite investidura por esta vía.",
+        "blocked": "No se aplicaron ({count})",
+        "already_resolved": "Ya estaban resueltos ({count})",
+        "already_invested": "Ya estaba investido.",
+        "already_rejected": "Ya estaba resuelto como no investido.",
+        "already_other": "Ya no estaba en espera.",
+        "dismiss": "Entendido"
+      }
     }
   }
 }

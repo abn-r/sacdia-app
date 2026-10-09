@@ -75,6 +75,78 @@ void main() {
       expect(find.text('Primera clase de Aventureros'), findsOneWidget);
     });
   });
+  group('ClassStatusCircles investiture state', () {
+    Future<void> pumpCircles(
+      WidgetTester tester, {
+      required String investitureStatus,
+      required int progress,
+    }) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            userClassesProvider.overrideWith(
+              (ref) async => [
+                ProgressiveClass(
+                  id: 1,
+                  name: 'Amigo',
+                  clubTypeId: 2,
+                  assetCode: 'CQ-01',
+                  enrollmentId: 7,
+                  investitureStatus: investitureStatus,
+                  overallProgress: progress,
+                ),
+              ],
+            ),
+            allClassesProvider.overrideWith((ref) async => const []),
+          ],
+          child: EasyLocalization(
+            supportedLocales: const [Locale('es')],
+            path: 'assets/translations',
+            assetLoader: const _FileAssetLoader(),
+            fallbackLocale: const Locale('es'),
+            startLocale: const Locale('es'),
+            child: Builder(
+              builder: (context) => MaterialApp(
+                theme: AppTheme.lightTheme,
+                locale: context.locale,
+                localizationsDelegates: context.localizationDelegates,
+                supportedLocales: context.supportedLocales,
+                home: const Scaffold(
+                  body: ClassStatusCircles(clubType: 'Conquistadores'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+    }
+
+    testWidgets('a class with high progress is not drawn as invested',
+        (tester) async {
+      await pumpCircles(
+        tester,
+        investitureStatus: 'IN_PROGRESS',
+        progress: 95,
+      );
+
+      // En curso: lleva la insignia de avance y el logo atenuado.
+      expect(find.text('95%'), findsOneWidget);
+    });
+
+    testWidgets('only the INVESTIDO status draws the class as invested',
+        (tester) async {
+      await pumpCircles(
+        tester,
+        investitureStatus: 'INVESTIDO',
+        progress: 95,
+      );
+
+      // Investida: sin insignia de avance.
+      expect(find.text('95%'), findsNothing);
+    });
+  });
 }
 
 class _FileAssetLoader extends AssetLoader {

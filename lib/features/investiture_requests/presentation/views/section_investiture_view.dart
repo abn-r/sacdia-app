@@ -25,8 +25,10 @@ import '../../domain/entities/investiture_request.dart';
 import '../../domain/entities/presentation_context.dart';
 import '../providers/investiture_requests_providers.dart';
 import '../utils/investiture_dates.dart';
+import '../utils/investiture_error_message.dart';
 import '../widgets/change_date_sheet.dart';
 import '../widgets/investiture_banner.dart';
+import '../widgets/investiture_message_state.dart';
 import '../widgets/investiture_person_row.dart';
 import '../widgets/investiture_section_label.dart';
 import '../widgets/present_sheet.dart';
@@ -76,21 +78,21 @@ class SectionInvestitureView extends ConsumerWidget {
           builder: (context) {
             if (club == null) {
               if (clubAsync.hasError) {
-                return _MessageState(
+                return InvestitureMessageState(
                   title: tr('$_i18n.load_error_title'),
                   onRetry: () => ref.invalidate(clubContextProvider),
                 );
               }
               return clubAsync.isLoading
                   ? const Center(child: SacLoading())
-                  : _MessageState(
+                  : InvestitureMessageState(
                       title: tr('$_i18n.restricted_title'),
                       body: tr('$_i18n.restricted_body'),
                       icon: HugeIcons.strokeRoundedLockKey,
                     );
             }
             if (!isBoard) {
-              return _MessageState(
+              return InvestitureMessageState(
                 title: tr('$_i18n.restricted_title'),
                 body: tr('$_i18n.restricted_body'),
                 icon: HugeIcons.strokeRoundedLockKey,
@@ -99,7 +101,7 @@ class SectionInvestitureView extends ConsumerWidget {
             final year = yearAsync.valueOrNull;
             if (year == null) {
               if (yearAsync.hasError) {
-                return _MessageState(
+                return InvestitureMessageState(
                   title: tr('$_i18n.load_error_title'),
                   onRetry: () =>
                       ref.invalidate(currentEcclesiasticalYearProvider),
@@ -107,7 +109,7 @@ class SectionInvestitureView extends ConsumerWidget {
               }
               return yearAsync.isLoading
                   ? const Center(child: SacLoading())
-                  : _MessageState(
+                  : InvestitureMessageState(
                       title: tr('$_i18n.no_year_title'),
                       body: tr('$_i18n.no_year_body'),
                       icon: HugeIcons.strokeRoundedCalendar03,
@@ -122,38 +124,6 @@ class SectionInvestitureView extends ConsumerWidget {
             );
           },
         ),
-      ),
-    );
-  }
-}
-
-/// Estado a pantalla completa (acceso, sin datos, error) con reintento
-/// opcional vía [onRetry].
-class _MessageState extends StatelessWidget {
-  const _MessageState({
-    required this.title,
-    this.body,
-    this.icon = HugeIcons.strokeRoundedAlert02,
-    this.onRetry,
-  });
-
-  final String title;
-  final String? body;
-  final List<List<dynamic>> icon;
-  final VoidCallback? onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
-      child: SacEmptyState(
-        title: title,
-        body: body,
-        icon: icon,
-        actionLabel: onRetry == null ? null : tr('common.retry'),
-        onAction: onRetry,
-        actionIcon: HugeIcons.strokeRoundedRefresh,
-        actionVariant: SacButtonVariant.outline,
       ),
     );
   }
@@ -190,13 +160,16 @@ class _SectionBodyState extends ConsumerState<_SectionBody> {
   }
 
   /// Rango de fechas válido: ventana del Campo recortada al año eclesiástico.
-  /// `null` si no se cruzan (nadie puede elegir una fecha).
+  /// `null` si el Campo no configuró la ventana (el backend rechaza toda fecha
+  /// con `DATE_OUTSIDE_WINDOW`) o si no se cruzan (nadie puede elegir fecha).
   ({DateTime first, DateTime last})? _bounds(WindowState window) {
+    final start = window.startDate;
+    final end = window.endDate;
+    if (start == null || end == null) return null;
     final yearStart = civilDay(widget.year.startDate);
     final yearEnd = civilDay(widget.year.endDate);
-    var first =
-        window.startDate == null ? yearStart : civilDay(window.startDate!);
-    var last = window.endDate == null ? yearEnd : civilDay(window.endDate!);
+    var first = civilDay(start);
+    var last = civilDay(end);
     if (first.isBefore(yearStart)) first = yearStart;
     if (last.isAfter(yearEnd)) last = yearEnd;
     if (first.isAfter(last)) return null;
@@ -374,11 +347,11 @@ class _SectionBodyState extends ConsumerState<_SectionBody> {
     final request = requestAsync.valueOrNull;
     if (ctx == null || (request == null && requestAsync.isLoading)) {
       if (contextAsync.hasError || requestAsync.hasError) {
-        return _MessageState(
+        return InvestitureMessageState(
           title: tr('$_i18n.load_error_title'),
-          body: (contextAsync.error ?? requestAsync.error)
-              ?.toString()
-              .replaceFirst('Exception: ', ''),
+          body: investitureErrorMessage(
+            contextAsync.error ?? requestAsync.error,
+          ),
           onRetry: _refresh,
         );
       }
@@ -567,21 +540,21 @@ class _WindowBanner extends StatelessWidget {
         tone: InvestitureBannerTone.caution,
       );
     }
-    if (!window.openToday) {
+    // Sin ventana configurada (fechas nulas) tampoco hay nada que presentar.
+    if (!window.openToday ||
+        window.startDate == null ||
+        window.endDate == null) {
       return InvestitureBanner(
         text: tr('$_i18n.window_closed'),
         tone: InvestitureBannerTone.caution,
         icon: HugeIcons.strokeRoundedCalendarLock01,
       );
     }
-    final end = window.endDate;
     return InvestitureBanner(
-      text: end == null
-          ? tr('$_i18n.window_open_no_end')
-          : tr(
-              '$_i18n.window_open',
-              namedArgs: {'date': formatInvestitureDate(context, end)},
-            ),
+      text: tr(
+        '$_i18n.window_open',
+        namedArgs: {'date': formatInvestitureDate(context, window.endDate!)},
+      ),
       tone: InvestitureBannerTone.positive,
     );
   }

@@ -28,6 +28,7 @@ import '../widgets/membership_status_banner.dart';
 import '../widgets/birthday_celebration.dart';
 import '../widgets/welcome_header.dart';
 import '../../../enrollment/presentation/widgets/enrollment_status_card.dart';
+import '../../../investiture_requests/presentation/views/authorizer_requests_view.dart';
 
 /// Vista principal del dashboard - Estilo "Scout Vibrante"
 class DashboardView extends ConsumerWidget {
@@ -35,10 +36,15 @@ class DashboardView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dashboardState = ref.watch(dashboardNotifierProvider);
     final user = ref.watch(
       authNotifierProvider.select((v) => v.valueOrNull),
     );
+    // El pastor sin club no tiene inicio de miembro: su inicio son las
+    // autorizaciones. Se decide antes de leer el resumen del dashboard, que
+    // pertenece a un club.
+    if (isPastorWithoutClub(user)) return const AuthorizerRequestsView();
+
+    final dashboardState = ref.watch(dashboardNotifierProvider);
     final userGender = user?.metadata?['gender']?.toString();
     final unreadNotificationsCount =
         ref.watch(unreadNotificationsCountProvider);

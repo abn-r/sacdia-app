@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../members/presentation/providers/members_providers.dart';
 import '../../data/datasources/investiture_requests_remote_data_source.dart';
 import '../../data/repositories/investiture_requests_repository_impl.dart';
 import '../../domain/entities/investiture_request.dart';
@@ -14,6 +15,7 @@ import '../../domain/entities/own_investiture_entry.dart';
 import '../../domain/entities/presentation_context.dart';
 import '../../domain/entities/yearbook_entry.dart';
 import '../../domain/repositories/investiture_requests_repository.dart';
+import '../utils/own_investiture_selection.dart';
 
 // ── Infraestructura ──────────────────────────────────────────────────────────
 
@@ -78,6 +80,15 @@ final ownInvestitureHistoryProvider =
   return result.fold((failure) => throw failure, (value) => value);
 });
 
+/// Entrada de la propia persona que representa su estado en [classId] (año más
+/// reciente); `null` mientras carga, si falla o si no hay nada que mostrar.
+final ownInvestitureEntryForClassProvider =
+    Provider.autoDispose.family<OwnInvestitureEntry?, int>((ref, classId) {
+  final history = ref.watch(ownInvestitureHistoryProvider).valueOrNull;
+  if (history == null) return null;
+  return selectOwnEntryForClass(history, classId);
+});
+
 final sectionInvestitureHistoryProvider = FutureProvider.autoDispose
     .family<List<OwnInvestitureEntry>, int>((ref, sectionId) async {
   final cancelToken = CancelToken();
@@ -96,6 +107,21 @@ final sectionYearbookProvider = FutureProvider.autoDispose
       .watch(investitureRequestsRepositoryProvider)
       .getSectionYearbook(sectionId, cancelToken: cancelToken);
   return result.fold((failure) => throw failure, (value) => value);
+});
+
+/// Nombres de las personas de la sección por `userId`.
+///
+/// El historial y el anuario del backend traen solo el `user_id`; el nombre se
+/// resuelve contra los miembros actuales de la sección. Quien ya no está en la
+/// sección no aparece en el mapa y la vista usa un nombre neutro.
+final sectionPeopleNamesProvider =
+    Provider.autoDispose<Map<String, String>>((ref) {
+  final members = ref.watch(membersNotifierProvider).valueOrNull?.members;
+  if (members == null) return const {};
+  return {
+    for (final member in members)
+      if (member.fullName.trim().isNotEmpty) member.userId: member.fullName,
+  };
 });
 
 // ── Lectura: autorizador ─────────────────────────────────────────────────────
@@ -269,17 +295,23 @@ class ResolveState extends Equatable {
   const ResolveState({
     this.isLoading = false,
     this.errorMessage,
+    this.errorCode,
     this.success = false,
     this.resolution,
   });
 
   final bool isLoading;
   final String? errorMessage;
+
+  /// Código de negocio del backend del error (la UI ramifica por él, no por el
+  /// mensaje traducido).
+  final String? errorCode;
   final bool success;
   final InvestitureResolution? resolution;
 
   @override
-  List<Object?> get props => [isLoading, errorMessage, success, resolution];
+  List<Object?> get props =>
+      [isLoading, errorMessage, errorCode, success, resolution];
 }
 
 /// Confirma las decisiones del autorizador sobre una solicitud (family por
@@ -299,7 +331,10 @@ class ResolveNotifier extends AutoDisposeFamilyNotifier<ResolveState, String> {
 
     return result.fold(
       (failure) {
-        state = ResolveState(errorMessage: failure.message);
+        state = ResolveState(
+          errorMessage: failure.message,
+          errorCode: failure.errorCode,
+        );
         return false;
       },
       (resolution) {

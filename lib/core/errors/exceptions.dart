@@ -4,11 +4,16 @@ import 'package:easy_localization/easy_localization.dart';
 class AppException implements Exception {
   final String message;
   final int? code;
+
+  /// Código de negocio del backend (p. ej. `INVESTITURE_REQUEST_FORBIDDEN`),
+  /// distinto de [code], que es el estado HTTP.
+  final String? errorCode;
   final StackTrace? stackTrace;
 
   AppException({
     required this.message,
     this.code,
+    this.errorCode,
     this.stackTrace,
   });
 
@@ -21,6 +26,7 @@ class ServerException extends AppException {
   ServerException({
     required super.message,
     super.code,
+    super.errorCode,
     super.stackTrace,
   });
 }
@@ -46,6 +52,7 @@ class AuthException extends AppException {
   AuthException({
     required super.message,
     super.code,
+    super.errorCode,
     super.stackTrace,
   });
 }

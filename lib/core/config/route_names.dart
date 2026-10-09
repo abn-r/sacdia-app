@@ -86,6 +86,13 @@ class RouteNames {
   static const String sectionInvestitureHistory = '/home/investiture/history';
   static const String ownInvestiture = '/investiture/mine';
 
+  // Autorizador de investiduras (pastor, director-lf, assistant-lf). La ruta
+  // del listado coincide con la del catálogo de pantallas del panel
+  // (`app-investiture-authorizer`).
+  static const String investitureAuthorize = '/investiture/authorize';
+  static const String investitureAuthorizeDetail =
+      '/investiture/authorize/:requestId';
+
   // Carga masiva por comprobante/certificado OCR
   static const String certificateImportUpload = '/certificate-import';
   static const String certificateImportProcessing =
@@ -112,6 +119,9 @@ class RouteNames {
     final query = Uri(queryParameters: queryParameters).query;
     return query.isEmpty ? '/class/$classId' : '/class/$classId?$query';
   }
+
+  static String investitureAuthorizeDetailPath(String requestId) =>
+      '/investiture/authorize/${Uri.encodeComponent(requestId)}';
 
   static String honorDetailPath(String honorId) => '/honor/$honorId';
   static String activityDetailPath(int activityId) => '/activity/$activityId';

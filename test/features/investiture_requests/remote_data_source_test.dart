@@ -66,6 +66,13 @@ Map<String, dynamic> _request() => {
 Response<dynamic> _ok(RequestOptions o, Object? data, {int status = 200}) =>
     Response<dynamic>(requestOptions: o, statusCode: status, data: data);
 
+/// Dio que falla con un error ajeno a Dio (no llega a la red).
+class _BrokenDio implements Dio {
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw StateError('raw internal detail');
+}
+
 void main() {
   group('InvestitureRequestsRemoteDataSourceImpl', () {
     test('presentationContext calls the exact route and unwraps data',
@@ -221,6 +228,40 @@ void main() {
       );
     });
 
+    test('the backend error code travels on the exception', () async {
+      final forbidden = _build(
+        (o) => _ok(
+          o,
+          {'code': 'INVESTITURE_REQUEST_FORBIDDEN', 'message': 'Forbidden'},
+          status: 403,
+        ),
+      );
+      await expectLater(
+        forbidden.ds.getPresentationContext(4, 9),
+        throwsA(
+          isA<AuthException>().having(
+              (e) => e.errorCode, 'errorCode', 'INVESTITURE_REQUEST_FORBIDDEN'),
+        ),
+      );
+      final closed = _build(
+        (o) => _ok(
+          o,
+          {'code': 'INVESTITURE_REQUEST_WINDOW_CLOSED', 'message': 'x'},
+          status: 409,
+        ),
+      );
+      await expectLater(
+        closed.ds.getPresentationContext(4, 9),
+        throwsA(
+          isA<ServerException>().having(
+            (e) => e.errorCode,
+            'errorCode',
+            'INVESTITURE_REQUEST_WINDOW_CLOSED',
+          ),
+        ),
+      );
+    });
+
     test('an unknown code falls back to the server message', () async {
       final t = _build(
         (o) => _ok(
@@ -234,6 +275,23 @@ void main() {
         throwsA(
           isA<ServerException>()
               .having((e) => e.message, 'message', 'mensaje del servidor'),
+        ),
+      );
+    });
+
+    test('an unexpected error never leaks its raw text', () async {
+      final ds = InvestitureRequestsRemoteDataSourceImpl(
+        dio: _BrokenDio(),
+        baseUrl: _base,
+      );
+      await expectLater(
+        ds.getPresentationContext(4, 9),
+        throwsA(
+          isA<ServerException>().having(
+            (e) => e.message,
+            'message',
+            tr('investiture_requests.errors.generic'),
+          ),
         ),
       );
     });

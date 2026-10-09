@@ -25,6 +25,8 @@ import 'package:sacdia_app/features/certificate_import/presentation/views/certif
 import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_import_proof_card.dart';
 import 'package:sacdia_app/features/investiture/presentation/views/investiture_pending_list_view.dart';
 import 'package:sacdia_app/features/investiture/presentation/views/investiture_history_view.dart';
+import 'package:sacdia_app/features/investiture_requests/presentation/views/authorizer_request_detail_view.dart';
+import 'package:sacdia_app/features/investiture_requests/presentation/views/authorizer_requests_view.dart';
 import 'package:sacdia_app/features/investiture_requests/presentation/views/own_investiture_view.dart';
 import 'package:sacdia_app/features/investiture_requests/presentation/views/section_investiture_history_view.dart';
 import 'package:sacdia_app/features/investiture_requests/presentation/views/section_investiture_view.dart';
@@ -119,6 +121,7 @@ import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/core/authorization/access_subject.dart';
 import 'package:sacdia_app/core/authorization/screen_catalog.dart';
+import 'pastor_route_access.dart';
 import 'route_names.dart';
 import 'package:sacdia_app/core/widgets/sac_nav_icon.dart';
 import 'package:sacdia_app/core/widgets/sac_shell_nav.dart';
@@ -264,7 +267,9 @@ final routerProvider = Provider<GoRouter>((ref) {
             welcomeCarouselSeen: ref.read(welcomeCarouselSeenProvider),
           );
         }
-        if (!user.postRegisterComplete) return RouteNames.postRegistration;
+        if (userNeedsPostRegistration(user)) {
+          return RouteNames.postRegistration;
+        }
         return RouteNames.homeDashboard;
       }
 
@@ -273,23 +278,32 @@ final routerProvider = Provider<GoRouter>((ref) {
         return isPublicRoute ? null : RouteNames.login;
       }
 
+      // El pastor sin club no tiene datos de club que completar: no pasa por
+      // el post-registro (la app solo le muestra «Autorizaciones» y su perfil).
+      final needsPostRegistration = userNeedsPostRegistration(user);
+
       // Usuario autenticado en ruta pública → destino home compartido.
       if (isPublicRoute) {
-        if (!user.postRegisterComplete) return RouteNames.postRegistration;
+        if (needsPostRegistration) return RouteNames.postRegistration;
         return RouteNames.homeDashboard;
       }
 
       // Usuario autenticado con post-registro incompleto fuera de la ruta de post-registro
-      if (!user.postRegisterComplete &&
-          currentPath != RouteNames.postRegistration) {
+      if (needsPostRegistration && currentPath != RouteNames.postRegistration) {
         return RouteNames.postRegistration;
       }
 
-      // Usuario autenticado con post-registro completo en la ruta de post-registro
+      // Usuario sin nada pendiente en la ruta de post-registro
       // (e.g., navigated back somehow) → redirigir al home compartido.
-      if (user.postRegisterComplete &&
+      if (!needsPostRegistration &&
           currentPath == RouteNames.postRegistration) {
         return RouteNames.homeDashboard;
+      }
+
+      // El pastor sin club solo ve «Autorizaciones» y su perfil: cualquier otra
+      // ruta (también por enlace profundo) vuelve al listado de autorizaciones.
+      if (isPastorWithoutClub(user) && !isPastorAllowedPath(currentPath)) {
+        return RouteNames.investitureAuthorize;
       }
 
       return null;
@@ -778,6 +792,27 @@ final routerProvider = Provider<GoRouter>((ref) {
           state,
           const OwnInvestitureView(),
         ),
+      ),
+
+      // Autorizador de investiduras (pastor, director-lf, assistant-lf).
+      GoRoute(
+        path: RouteNames.investitureAuthorize,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          const AuthorizerRequestsView(),
+        ),
+      ),
+      GoRoute(
+        path: RouteNames.investitureAuthorizeDetail,
+        pageBuilder: (context, state) {
+          final requestId = state.pathParameters['requestId']!;
+          return _sharedAxisBuild(
+            context,
+            state,
+            AuthorizerRequestDetailView(requestId: requestId),
+          );
+        },
       ),
 
       // Carga masiva por certificado OCR (member flow).
@@ -1510,12 +1545,30 @@ const List<_NavItemConfig> _navItemsConfig = [
   ),
 ];
 
+/// Navegación del pastor sin club: solo «Autorizaciones» (su inicio) y el
+/// perfil. El resto de las pestañas pertenece a un miembro de club.
+const List<_NavItemConfig> _pastorNavItems = [
+  _NavItemConfig(
+    branchIndex: 0,
+    route: RouteNames.homeDashboard,
+    icon: HugeIcons.strokeRoundedMedal01,
+    labelKey: 'router.nav.authorizations',
+  ),
+  _NavItemConfig(
+    branchIndex: 3,
+    route: RouteNames.homeProfile,
+    icon: HugeIcons.strokeRoundedUser,
+    labelKey: 'router.nav.profile',
+  ),
+];
+
 List<_NavItemConfig> _filterNavItems(
   List<_NavItemConfig> items,
   UserEntity? user,
   AuthorizationSnapshot? authorization,
 ) {
   if (authorization == null) return items;
+  if (isPastorWithoutClub(user)) return _pastorNavItems;
   final subject = subjectFromUser(user);
 
   return items.where((item) {
@@ -1524,6 +1577,21 @@ List<_NavItemConfig> _filterNavItems(
     if (!canAccessClubOperationalSurface(user)) return false;
     return canViewScreen(subject, screenId);
   }).toList();
+}
+
+/// Pestañas de la barra principal para [user] (ruta y clave de traducción).
+@visibleForTesting
+List<({String route, String labelKey})> shellNavItemsForTesting(
+  UserEntity? user,
+) {
+  return [
+    for (final item in _filterNavItems(
+      _navItemsConfig,
+      user,
+      user?.authorization,
+    ))
+      (route: item.route, labelKey: item.labelKey),
+  ];
 }
 
 // ── Main shell — adaptive navigation ─────────────────────────────────────────

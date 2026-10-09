@@ -120,9 +120,17 @@ class InvestitureRequestsRemoteDataSourceImpl
 
       if (mapped != null) {
         if (status == 403) {
-          throw AuthException(message: mapped, code: status);
+          throw AuthException(
+            message: mapped,
+            code: status,
+            errorCode: errorCode,
+          );
         }
-        throw ServerException(message: mapped, code: status);
+        throw ServerException(
+          message: mapped,
+          code: status,
+          errorCode: errorCode,
+        );
       }
       if (status == 403) {
         throw AuthException(
@@ -138,7 +146,7 @@ class InvestitureRequestsRemoteDataSourceImpl
       );
     }
     if (e is ServerException || e is AuthException) throw e;
-    throw ServerException(message: e.toString());
+    throw ServerException(message: tr('investiture_requests.errors.generic'));
   }
 
   String _extractDioMessage(DioException e) {
