@@ -58,3 +58,28 @@ List<Map<String, dynamic>> asJsonMapList(Object? raw) {
   if (raw is! List) return const [];
   return raw.whereType<Map>().map(asJsonMap).toList(growable: false);
 }
+
+/// Extrae una lista de una respuesta que puede venir como lista, como
+/// `{data: [...]}`, `{data: {<nestedKey>: [...]}}` o `{data: {items: [...]}}`.
+List<dynamic> extractInvestitureListFromResponse(
+  dynamic raw,
+  String nestedKey,
+) {
+  if (raw is List) return raw;
+
+  if (raw is Map) {
+    final directNested = raw[nestedKey];
+    if (directNested is List) return directNested;
+
+    final data = raw['data'];
+    if (data is List) return data;
+    if (data is Map) {
+      final nested = data[nestedKey];
+      if (nested is List) return nested;
+      final items = data['items'];
+      if (items is List) return items;
+    }
+  }
+
+  return const [];
+}

@@ -6,25 +6,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../../../core/animations/animated_counter.dart';
 import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/animations/page_transitions.dart';
-import '../../../../core/auth/club_role_names.dart';
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/widgets/sac_button.dart';
-import '../../../../core/widgets/sac_dialog.dart';
+import '../../../../core/widgets/sac_badge.dart';
 import '../../../../core/widgets/sac_network_image.dart';
-import '../../../../core/widgets/sac_pressable.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../investiture/domain/entities/investiture_status.dart';
-import '../../../investiture/presentation/providers/investiture_providers.dart';
 import '../../../investiture_requests/presentation/providers/investiture_requests_providers.dart';
 import '../../../investiture_requests/presentation/widgets/own_investiture_card.dart';
-import '../../../members/presentation/providers/members_providers.dart';
 import '../../domain/entities/class_honor.dart';
 import '../../domain/entities/class_module_detail.dart';
 import '../../domain/entities/class_prerequisite.dart';
@@ -280,58 +274,10 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
     );
   }
 
-  Future<void> _submitInvestiture({
-    required int enrollmentId,
-    required int clubId,
-  }) async {
-    final confirmed = await SacDialog.show(
-      context,
-      title: 'Enviar a validación',
-      content:
-          'Tu clase quedará bloqueada mientras el equipo responsable revisa la investidura.',
-      highlight: 'Requisitos validados: 100%',
-      confirmLabel: 'Enviar',
-      cancelLabel: 'Cancelar',
-      icon: HugeIcons.strokeRoundedMailSend01,
-      iconColor: AppColors.coral700,
-      iconBackgroundColor: AppColors.coral50,
-    );
-
-    if (confirmed != true || !mounted) return;
-
-    final notifier =
-        ref.read(submitForValidationNotifierProvider(enrollmentId).notifier);
-    final ok = await notifier.submit(clubId: clubId);
-
-    if (!mounted) return;
-
-    if (ok) {
-      ref
-        ..invalidate(classWithProgressProvider(ClassProgressQuery(
-          classId: widget.classId,
-          enrollmentId: widget.enrollmentId,
-          targetUserId: widget.targetUserId,
-        )))
-        ..invalidate(userClassesProvider)
-        ..invalidate(investitureHistoryProvider(enrollmentId));
-    }
-
-    final state = ref.read(submitForValidationNotifierProvider(enrollmentId));
-    SacSnackBar.show(
-      context,
-      ok
-          ? 'Clase enviada a validación de investidura.'
-          : state.errorMessage ??
-              'No pudimos enviar la clase a validación. Intenta nuevamente.',
-      isError: !ok,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final classData = widget.classWithProgress;
     final classColor = AppColors.classColor(classData.name);
-    final resolvedEnrollmentId = widget.enrollmentId ?? classData.enrollmentId;
     final investitureStatus = _investitureStatusOf(classData);
     // Quien mira su propia clase ve el estado de la autorización; el envío a
     // validación ya no es suyo: lo presenta la directiva de la sección.
@@ -339,28 +285,17 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
     final hasOwnAuthorization = isOwnView &&
         ref.watch(ownInvestitureEntryForClassProvider(widget.classId)) != null;
     // Mientras el historial de autorización carga no se sabe si la entrada
-    // nueva reemplaza a la tarjeta legada: se espera para no mostrar un estado
-    // viejo que enseguida desaparece. Si falla, se informa el estado legado.
+    // nueva reemplaza a la insignia «Investido»: se espera para no mostrar un
+    // estado que enseguida desaparece. Si falla, se muestra la insignia.
     final ownHistory =
         isOwnView ? ref.watch(ownInvestitureHistoryProvider) : null;
     final awaitingOwnHistory = ownHistory != null &&
         ownHistory.isLoading &&
         ownHistory.valueOrNull == null;
-    final showInvestitureCard = _shouldShowInvestitureCard(
-          classData,
-          enrollmentId: resolvedEnrollmentId,
-        ) &&
-        _shouldShowLegacyInvestitureCard(
-          status: investitureStatus,
-          isOwnView: isOwnView,
-          hasOwnAuthorization: hasOwnAuthorization,
-          awaitingOwnHistory: awaitingOwnHistory,
-        );
-    final clubContextAsync =
-        showInvestitureCard ? ref.watch(clubContextProvider) : null;
-    final submitState = showInvestitureCard && resolvedEnrollmentId != null
-        ? ref.watch(submitForValidationNotifierProvider(resolvedEnrollmentId))
-        : null;
+    final showInvestedBadge =
+        investitureStatus == InvestitureStatus.investido &&
+            !hasOwnAuthorization &&
+            !awaitingOwnHistory;
 
     return RefreshIndicator(
       color: classColor,
@@ -384,22 +319,7 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
                     _PrerequisitesBanner(prerequisites: widget.prerequisites),
                   _PillsRow(classData: classData),
                   if (isOwnView) OwnInvestitureCard(classId: widget.classId),
-                  if (showInvestitureCard)
-                    _InvestitureCompletionCard(
-                      status: investitureStatus,
-                      readOnly: isOwnView,
-                      clubContextAsync: clubContextAsync!,
-                      submitState: submitState,
-                      onSubmit: (clubId) => _submitInvestiture(
-                        enrollmentId: resolvedEnrollmentId!,
-                        clubId: clubId,
-                      ),
-                      onHistoryTap: () => context.push(
-                        RouteNames.investitureHistoryPath(
-                          resolvedEnrollmentId!.toString(),
-                        ),
-                      ),
-                    ),
+                  if (showInvestedBadge) const _EnrollmentInvestedBadge(),
                   ValueListenableBuilder<String>(
                     valueListenable: _query,
                     builder: (context, query, _) {
@@ -518,312 +438,6 @@ InvestitureStatus _investitureStatusOf(ClassWithProgress classData) {
     return InvestitureStatus.inProgress;
   }
   return InvestitureStatus.fromString(raw);
-}
-
-bool _shouldShowInvestitureCard(
-  ClassWithProgress classData, {
-  required int? enrollmentId,
-}) {
-  if (enrollmentId == null || classData.isExpired) return false;
-  return classData.isInvestitureEligibleByTrackOrLegacy;
-}
-
-/// La tarjeta del flujo legado sigue para quien mira a otro miembro (el
-/// director o consejero que envía a validación).
-///
-/// En la clase propia, mientras el pipeline viejo siga activo (fase 8 sin
-/// ejecutar), informa el estado legado de la persona (enviada, aprobada por
-/// alguna instancia, observada o investida) cuando NO hay entrada del flujo
-/// nuevo: esa entrada, si existe, tiene precedencia y la reemplaza. «En
-/// progreso» y «vencida» no dicen nada que informar: el envío ya no es de la
-/// persona sino de la directiva, que presenta por el flujo nuevo.
-bool _shouldShowLegacyInvestitureCard({
-  required InvestitureStatus status,
-  required bool isOwnView,
-  required bool hasOwnAuthorization,
-  bool awaitingOwnHistory = false,
-}) {
-  if (!isOwnView) return true;
-  if (hasOwnAuthorization || awaitingOwnHistory) return false;
-  return status != InvestitureStatus.inProgress &&
-      status != InvestitureStatus.expired;
-}
-
-bool _canSubmitInvestiture(InvestitureStatus status) {
-  return status == InvestitureStatus.inProgress ||
-      status == InvestitureStatus.rejected;
-}
-
-bool _isInvestitureReviewer(ClubContext? context) {
-  final role = context?.roleName?.trim().toLowerCase();
-  return role == ClubRoleNames.director || role == ClubRoleNames.counselor;
-}
-
-class _InvestitureCompletionCard extends StatelessWidget {
-  final InvestitureStatus status;
-
-  /// Clase propia: solo informa el estado legado, sin ofrecer enviar o
-  /// reenviar (eso ahora lo presenta la directiva por el flujo nuevo).
-  final bool readOnly;
-  final AsyncValue<ClubContext?> clubContextAsync;
-  final InvestitureActionState? submitState;
-  final ValueChanged<int> onSubmit;
-  final VoidCallback onHistoryTap;
-
-  const _InvestitureCompletionCard({
-    required this.status,
-    this.readOnly = false,
-    required this.clubContextAsync,
-    required this.submitState,
-    required this.onSubmit,
-    required this.onHistoryTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final style = _InvestitureCardStyle.forStatus(status);
-    final canSubmit = !readOnly && _canSubmitInvestiture(status);
-    final clubContext = clubContextAsync.valueOrNull;
-    final canCurrentUserSubmit = _isInvestitureReviewer(clubContext);
-    final isContextLoading = clubContextAsync.isLoading;
-    final hasContextError = clubContextAsync.hasError;
-    final isSubmitting = submitState?.isLoading ?? false;
-    final showHistory = status != InvestitureStatus.inProgress;
-    final showSubmit = canSubmit && canCurrentUserSubmit;
-    final title = _title(canSubmit: canSubmit);
-    final subtitle = _subtitle(
-      canSubmit: canSubmit,
-      canCurrentUserSubmit: canCurrentUserSubmit,
-      isContextLoading: isContextLoading,
-      hasContextError: hasContextError,
-    );
-
-    final card = Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: style.background,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: style.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _InvestitureStatusRow(
-            style: style,
-            title: title,
-            subtitle: subtitle,
-            showChevron: showHistory,
-            onTap: showSubmit ? onHistoryTap : null,
-          ),
-          if (showSubmit)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-              child: SacButton.primary(
-                text: status == InvestitureStatus.rejected
-                    ? 'Reenviar a validación'
-                    : 'Enviar a validación',
-                icon: HugeIcons.strokeRoundedSent,
-                isLoading: isSubmitting,
-                isEnabled: !isSubmitting,
-                onPressed: () => onSubmit(clubContext!.clubId),
-                backgroundColor: AppColors.coral700,
-                borderRadius: 14,
-                fontSize: 14,
-              ),
-            ),
-        ],
-      ),
-    );
-
-    final tappable = showHistory && !showSubmit
-        ? SacPressable(
-            onTap: onHistoryTap,
-            semanticLabel: '$title. ${'investiture.history.open_action'.tr()}',
-            child: card,
-          )
-        : card;
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 12, bottom: 2),
-      child: tappable,
-    );
-  }
-
-  String _title({required bool canSubmit}) {
-    if (status == InvestitureStatus.rejected) return 'Observada';
-    if (canSubmit) return 'Lista para enviar';
-    return status.label;
-  }
-
-  String? _subtitle({
-    required bool canSubmit,
-    required bool canCurrentUserSubmit,
-    required bool isContextLoading,
-    required bool hasContextError,
-  }) {
-    if (canSubmit) {
-      if (canCurrentUserSubmit) {
-        return status == InvestitureStatus.rejected
-            ? 'Revisa el historial antes de reenviar.'
-            : 'Todos los requisitos están validados.';
-      }
-      if (isContextLoading) return 'Preparando el contexto del club…';
-      if (hasContextError) {
-        return 'No pudimos confirmar tu rol activo. Cambia de sección o recarga.';
-      }
-      return status == InvestitureStatus.rejected
-          ? 'Un consejero o director debe reenviarla.'
-          : 'Un consejero o director debe enviarla.';
-    }
-    if (status == InvestitureStatus.investido) return null;
-    // «Observada» en la clase propia ya no tiene un envío pendiente que decir.
-    if (readOnly && status == InvestitureStatus.rejected) return null;
-    return 'investiture.history.estimated_time'.tr();
-  }
-}
-
-class _InvestitureStatusRow extends StatelessWidget {
-  final _InvestitureCardStyle style;
-  final String title;
-  final String? subtitle;
-  final bool showChevron;
-  final VoidCallback? onTap;
-
-  const _InvestitureStatusRow({
-    required this.style,
-    required this.title,
-    this.subtitle,
-    this.showChevron = false,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final row = ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 48),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: c.paper.withValues(alpha: 0.78),
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: HugeIcon(
-                  icon: style.icon,
-                  size: 18,
-                  color: style.foreground,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: c.ink900,
-                      height: 1.15,
-                    ),
-                  ),
-                  if (subtitle != null) ...[
-                    const SizedBox(height: 3),
-                    Text(
-                      subtitle!,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: c.ink600,
-                        height: 1.3,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            if (showChevron) ...[
-              const SizedBox(width: 8),
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedArrowRight01,
-                size: 18,
-                color: style.foreground.withValues(alpha: 0.7),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-
-    if (onTap == null) return row;
-
-    return SacPressable(
-      onTap: onTap,
-      semanticLabel: '$title. ${'investiture.history.open_action'.tr()}',
-      child: row,
-    );
-  }
-}
-
-class _InvestitureCardStyle {
-  final Color background;
-  final Color border;
-  final Color foreground;
-  final dynamic icon;
-
-  const _InvestitureCardStyle({
-    required this.background,
-    required this.border,
-    required this.foreground,
-    required this.icon,
-  });
-
-  factory _InvestitureCardStyle.forStatus(InvestitureStatus status) {
-    switch (status) {
-      case InvestitureStatus.rejected:
-        return _InvestitureCardStyle(
-          background: AppColors.rejectedBg,
-          border: AppColors.rejectedColor.withValues(alpha: 0.24),
-          foreground: AppColors.rejectedDark,
-          icon: HugeIcons.strokeRoundedAlert02,
-        );
-      case InvestitureStatus.submittedForValidation:
-      case InvestitureStatus.clubApproved:
-      case InvestitureStatus.coordinatorApproved:
-      case InvestitureStatus.fieldApproved:
-      case InvestitureStatus.approved:
-        return _InvestitureCardStyle(
-          background: AppColors.sentBg,
-          border: AppColors.sentColor.withValues(alpha: 0.22),
-          foreground: AppColors.sentDark,
-          icon: HugeIcons.strokeRoundedClock01,
-        );
-      case InvestitureStatus.investido:
-        return _InvestitureCardStyle(
-          background: AppColors.validatedBg,
-          border: AppColors.validatedColor.withValues(alpha: 0.22),
-          foreground: AppColors.validatedDark,
-          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-        );
-      case InvestitureStatus.inProgress:
-      case InvestitureStatus.expired:
-        return _InvestitureCardStyle(
-          background: AppColors.coral50,
-          border: AppColors.coral200,
-          foreground: AppColors.coral700,
-          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-        );
-    }
-  }
 }
 
 class _ExpiredTrajectoryBanner extends StatelessWidget {
@@ -2124,6 +1738,27 @@ class _ErrorBody extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// «Investido» para una inscripción ya investida que no tiene entrada del flujo
+/// de autorización (acreditación por certificado o investidura de la vía
+/// anterior). Solo lectura: no ofrece envío ni historial.
+class _EnrollmentInvestedBadge extends StatelessWidget {
+  const _EnrollmentInvestedBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12, bottom: 2),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: SacBadge.success(
+          label: tr('investiture.status.investido'),
+          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
         ),
       ),
     );

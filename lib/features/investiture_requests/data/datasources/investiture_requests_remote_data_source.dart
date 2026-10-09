@@ -3,8 +3,6 @@ import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
-import '../../../investiture/data/datasources/investiture_remote_data_source.dart'
-    show extractInvestitureListFromResponse;
 import '../../domain/entities/investiture_resolution.dart';
 import '../investiture_request_error_keys.dart';
 import '../models/investiture_request_model.dart';

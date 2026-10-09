@@ -76,11 +76,6 @@ class RouteNames {
   // OAuth callback deep link (io.sacdia.app://auth/callback)
   static const String authCallback = '/auth/callback';
 
-  // Investidura
-  static const String investiturePendingList = '/investiture/pending';
-  static const String investitureHistory =
-      '/investiture/enrollment/:enrollmentId/history';
-
   // Investidura por autorización
   static const String sectionInvestiture = '/home/investiture';
   static const String sectionInvestitureHistory = '/home/investiture/history';
@@ -150,8 +145,6 @@ class RouteNames {
     return '$base&name=${Uri.encodeComponent(certificationName)}';
   }
 
-  static String investitureHistoryPath(String enrollmentId) =>
-      '/investiture/enrollment/$enrollmentId/history';
   static String certificateImportProcessingPath(String batchId) =>
       '/certificate-import/$batchId/processing';
   static String certificateImportReviewPath(String batchId) =>

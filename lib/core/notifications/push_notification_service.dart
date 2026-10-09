@@ -809,7 +809,6 @@ class PushNotificationService {
     RouteNames.homeAchievements,
     // Other top-level destinations
     RouteNames.transferRequests,
-    RouteNames.investiturePendingList,
     RouteNames.notificationsInbox,
     RouteNames.roleAssignments,
     RouteNames.coordinator,

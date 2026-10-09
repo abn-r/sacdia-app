@@ -23,8 +23,6 @@ import 'package:sacdia_app/features/certificate_import/presentation/views/certif
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_status_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_upload_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_import_proof_card.dart';
-import 'package:sacdia_app/features/investiture/presentation/views/investiture_pending_list_view.dart';
-import 'package:sacdia_app/features/investiture/presentation/views/investiture_history_view.dart';
 import 'package:sacdia_app/features/investiture_requests/presentation/views/authorizer_request_detail_view.dart';
 import 'package:sacdia_app/features/investiture_requests/presentation/views/authorizer_requests_view.dart';
 import 'package:sacdia_app/features/investiture_requests/presentation/views/own_investiture_view.dart';
@@ -756,30 +754,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               enrollmentId: enrollmentId,
               certificationName: certificationName,
             ),
-          );
-        },
-      ),
-
-      // Lista de investiduras pendientes (coordinador/admin)
-      GoRoute(
-        path: RouteNames.investiturePendingList,
-        pageBuilder: (context, state) => _sharedAxisBuild(
-          context,
-          state,
-          const InvestiturePendingListView(),
-        ),
-      ),
-
-      // Historial de investidura de un enrollment
-      GoRoute(
-        path: RouteNames.investitureHistory,
-        pageBuilder: (context, state) {
-          final enrollmentIdStr = state.pathParameters['enrollmentId']!;
-          final enrollmentId = int.tryParse(enrollmentIdStr) ?? 0;
-          return _sharedAxisBuild(
-            context,
-            state,
-            InvestitureHistoryView(enrollmentId: enrollmentId),
           );
         },
       ),

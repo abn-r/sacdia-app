@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/classes/domain/entities/class_with_progress.dart';
 import 'package:sacdia_app/features/classes/domain/entities/progressive_class.dart';
@@ -100,14 +98,6 @@ void main() {
       expect(find.text(_pending), findsNothing);
     });
 
-    testWidgets('keeps informing about a legacy validation in flight',
-        (tester) async {
-      await _pump(tester, legacyStatus: 'SUBMITTED_FOR_VALIDATION');
-
-      expect(find.text('Enviado a validación'), findsOneWidget);
-      expect(find.text(_legacySend), findsNothing);
-    });
-
     testWidgets('the authorization status replaces the legacy card',
         (tester) async {
       await _pump(
@@ -137,85 +127,64 @@ void main() {
     });
   });
 
-  group('legacy status while the old pipeline is still active', () {
-    // Estado legado -> texto de la tarjeta legada.
-    const legacyCards = {
+  group('after phase 8', () {
+    const legacyLabels = {
       'SUBMITTED_FOR_VALIDATION': 'Enviado a validación',
       'CLUB_APPROVED': 'Aprobado por el club',
       'COORDINATOR_APPROVED': 'Aprobado por coordinador',
       'FIELD_APPROVED': 'Aprobado por campo',
       'APPROVED': 'Aprobado',
       'REJECTED': 'Observada',
-      'INVESTIDO': 'Investido',
     };
 
-    for (final entry in legacyCards.entries) {
-      testWidgets('${entry.key} without an authorization entry keeps the card',
+    for (final entry in legacyLabels.entries) {
+      testWidgets('${entry.key} shows no legacy card in the own view',
           (tester) async {
         await _pump(tester, legacyStatus: entry.key);
 
-        expect(find.text(entry.value), findsOneWidget);
-        // Nunca se ofrece enviar o reenviar desde la clase propia.
-        expect(find.text(_legacySend), findsNothing);
-        expect(find.text('Reenviar a validación'), findsNothing);
-      });
-
-      testWidgets('${entry.key} yields to the authorization entry',
-          (tester) async {
-        await _pump(
-          tester,
-          legacyStatus: entry.key,
-          history: [_entry(PersonStatus.pending)],
-        );
-
-        expect(find.text(_pending), findsOneWidget);
         expect(find.text(entry.value), findsNothing);
+        expect(find.text(_legacySend), findsNothing);
       });
     }
 
-    testWidgets('waits for the authorization history before showing the card',
+    testWidgets('a director viewing a member gets no legacy send action',
         (tester) async {
-      final completer = Completer<List<OwnInvestitureEntry>>();
-      await _pump(
-        tester,
-        legacyStatus: 'SUBMITTED_FOR_VALIDATION',
-        pendingHistory: completer.future,
-      );
-      expect(find.text('Enviado a validación'), findsNothing);
+      await _pump(tester, legacyStatus: 'IN_PROGRESS', targetUserId: 'u99');
 
-      completer.complete([_entry(PersonStatus.pending)]);
-      await settle(tester);
-      expect(find.text(_pending), findsOneWidget);
-      expect(find.text('Enviado a validación'), findsNothing);
+      expect(find.text(_legacySend), findsNothing);
+      expect(find.text(_legacyReady), findsNothing);
     });
 
-    testWidgets('falls back to the card when the history fails to load',
+    testWidgets(
+        'an INVESTIDO class without an authorization entry shows the badge',
         (tester) async {
-      final completer = Completer<List<OwnInvestitureEntry>>();
-      await _pump(
-        tester,
-        legacyStatus: 'CLUB_APPROVED',
-        pendingHistory: completer.future,
-      );
-      completer.completeError(Exception('sin conexión'));
-      await settle(tester);
+      await _pump(tester, legacyStatus: 'INVESTIDO');
 
-      expect(find.text('Aprobado por el club'), findsOneWidget);
+      expect(find.text('Investido'), findsOneWidget);
     });
-  });
 
-  group('viewing a member (legacy flow stays until phase 8)', () {
-    testWidgets('a director still sees the legacy send action', (tester) async {
+    testWidgets('a member viewed by the board also shows the badge',
+        (tester) async {
+      await _pump(tester, legacyStatus: 'INVESTIDO', targetUserId: 'u99');
+
+      expect(find.text('Investido'), findsOneWidget);
+    });
+
+    testWidgets('the authorization entry replaces the badge', (tester) async {
       await _pump(
         tester,
-        legacyStatus: 'IN_PROGRESS',
-        targetUserId: 'u99',
-        history: [_entry(PersonStatus.pending)],
+        legacyStatus: 'INVESTIDO',
+        history: [_entry(PersonStatus.invested)],
       );
 
-      expect(find.text(_legacySend), findsOneWidget);
-      // La tarjeta de la propia persona no se muestra al mirar a otro miembro.
-      expect(find.text(_pending), findsNothing);
+      // Solo la insignia de la tarjeta de autorización.
+      expect(find.text('Investido'), findsOneWidget);
+      expect(
+        find.text(
+          'El camino rindió fruto. Ya estás investido, y esta noticia es para celebrarla.',
+        ),
+        findsOneWidget,
+      );
     });
   });
 }
