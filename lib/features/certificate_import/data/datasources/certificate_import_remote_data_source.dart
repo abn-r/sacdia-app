@@ -12,15 +12,22 @@ import '../models/certificate_import_item_model.dart';
 import '../models/certificate_import_presign_ticket_model.dart';
 import '../../domain/entities/certificate_import_error_code.dart';
 import '../../domain/entities/certificate_import_payloads.dart';
+import '../../domain/entities/certificate_import_upload_session.dart';
 
 abstract class CertificateImportRemoteDataSource {
   Future<CertificateImportBatchModel> createBatch({
     List<CertificateImportFilePayload> files = const [],
+    CancelToken? cancelToken,
   });
 
   /// Create draft → presign → PUT to R2 (no API Authorization) → confirm.
+  ///
+  /// Each stage records its result in [session], so calling it again with the
+  /// same session resumes at the first unfinished stage: after a failed
+  /// `confirm` (for example `PDF_BUSY`) only `confirm` is repeated.
   Future<CertificateImportBatchModel> uploadLocalProof(
     CertificateImportLocalProof proof, {
+    CertificateImportUploadSession? session,
     void Function(double progress)? onProgress,
     CancelToken? cancelToken,
   });
@@ -30,6 +37,7 @@ abstract class CertificateImportRemoteDataSource {
     required String fileName,
     required String mimeType,
     required int fileSize,
+    CancelToken? cancelToken,
   });
 
   Future<void> uploadToSignedUrl({
@@ -44,6 +52,7 @@ abstract class CertificateImportRemoteDataSource {
   Future<CertificateImportFileModel> confirmFile({
     required String batchId,
     required String fileId,
+    CancelToken? cancelToken,
   });
 
   Future<CertificateImportBatchListModel> listBatches({
@@ -53,7 +62,10 @@ abstract class CertificateImportRemoteDataSource {
 
   Future<CertificateImportBatchModel> processOcr(String batchId);
 
-  Future<CertificateImportBatchModel> getBatch(String batchId);
+  Future<CertificateImportBatchModel> getBatch(
+    String batchId, {
+    CancelToken? cancelToken,
+  });
 
   /// Signed download of the sealed proof. Rejects anything that is not https.
   Future<String> signedDownloadUrl({
@@ -116,6 +128,7 @@ class CertificateImportRemoteDataSourceImpl
   @override
   Future<CertificateImportBatchModel> createBatch({
     List<CertificateImportFilePayload> files = const [],
+    CancelToken? cancelToken,
   }) async {
     final remoteFiles = files.where((file) => file.isRemoteUrl).toList();
     final response = await _dio.post(
@@ -123,6 +136,7 @@ class CertificateImportRemoteDataSourceImpl
       data: {
         'files': remoteFiles.map((file) => file.toJson()).toList(),
       },
+      cancelToken: cancelToken,
     );
     return CertificateImportBatchModel.fromJson(_data(response));
   }
@@ -130,26 +144,45 @@ class CertificateImportRemoteDataSourceImpl
   @override
   Future<CertificateImportBatchModel> uploadLocalProof(
     CertificateImportLocalProof proof, {
+    CertificateImportUploadSession? session,
     void Function(double progress)? onProgress,
     CancelToken? cancelToken,
   }) async {
-    final batch = await createBatch(files: const []);
-    final ticket = await presignFile(
-      batchId: batch.id,
-      fileName: proof.fileName,
-      mimeType: proof.mimeType,
-      fileSize: proof.fileSize,
-    );
-    await uploadToSignedUrl(
-      uploadUrl: ticket.uploadUrl,
-      localPath: proof.localPath,
-      mimeType: proof.mimeType,
-      requiredHeaders: ticket.requiredHeaders,
-      onProgress: onProgress,
+    final state = session ?? CertificateImportUploadSession();
+    final batchId = state.batchId ??=
+        (await createBatch(files: const [], cancelToken: cancelToken)).id;
+    if (!state.uploaded) {
+      final ticket = state.ticket ??= (await presignFile(
+        batchId: batchId,
+        fileName: proof.fileName,
+        mimeType: proof.mimeType,
+        fileSize: proof.fileSize,
+        cancelToken: cancelToken,
+      ))
+          .toEntity();
+      try {
+        await uploadToSignedUrl(
+          uploadUrl: ticket.uploadUrl,
+          localPath: proof.localPath,
+          mimeType: proof.mimeType,
+          requiredHeaders: ticket.requiredHeaders,
+          onProgress: onProgress,
+          cancelToken: cancelToken,
+        );
+      } catch (_) {
+        // The signed URL may be spent or expired: presign again next time,
+        // on the same batch.
+        state.ticket = null;
+        rethrow;
+      }
+      state.uploaded = true;
+    }
+    await confirmFile(
+      batchId: batchId,
+      fileId: state.fileId!,
       cancelToken: cancelToken,
     );
-    await confirmFile(batchId: batch.id, fileId: ticket.fileId);
-    return getBatch(batch.id);
+    return getBatch(batchId, cancelToken: cancelToken);
   }
 
   @override
@@ -158,6 +191,7 @@ class CertificateImportRemoteDataSourceImpl
     required String fileName,
     required String mimeType,
     required int fileSize,
+    CancelToken? cancelToken,
   }) async {
     final response = await _dio.post(
       '$_endpoint/$batchId/files/presign',
@@ -166,6 +200,7 @@ class CertificateImportRemoteDataSourceImpl
         'mime_type': mimeType,
         'file_size': fileSize,
       },
+      cancelToken: cancelToken,
     );
     return CertificateImportPresignTicketModel.fromJson(_data(response));
   }
@@ -208,9 +243,11 @@ class CertificateImportRemoteDataSourceImpl
   Future<CertificateImportFileModel> confirmFile({
     required String batchId,
     required String fileId,
+    CancelToken? cancelToken,
   }) async {
     final response = await _dio.post(
       '$_endpoint/$batchId/files/$fileId/confirm',
+      cancelToken: cancelToken,
     );
     return CertificateImportFileModel.fromJson(_data(response));
   }
@@ -234,8 +271,14 @@ class CertificateImportRemoteDataSourceImpl
   }
 
   @override
-  Future<CertificateImportBatchModel> getBatch(String batchId) async {
-    final response = await _dio.get('$_endpoint/$batchId');
+  Future<CertificateImportBatchModel> getBatch(
+    String batchId, {
+    CancelToken? cancelToken,
+  }) async {
+    final response = await _dio.get(
+      '$_endpoint/$batchId',
+      cancelToken: cancelToken,
+    );
     return CertificateImportBatchModel.fromJson(_data(response));
   }
 

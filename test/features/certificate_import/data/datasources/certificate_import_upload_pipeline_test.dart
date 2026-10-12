@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/network/interceptors/error_interceptor.dart';
 import 'package:sacdia_app/features/certificate_import/data/repositories/certificate_import_repository_impl.dart';
 import 'package:sacdia_app/features/certificate_import/data/datasources/certificate_import_remote_data_source.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_payloads.dart';
+import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_upload_session.dart';
 
 class _ConnectedNetworkInfo implements NetworkInfo {
   @override
@@ -17,10 +18,17 @@ class _ConnectedNetworkInfo implements NetworkInfo {
 }
 
 class _RecordingAdapter implements HttpClientAdapter {
-  _RecordingAdapter({this.confirmError, this.confirmStatus = 400});
+  _RecordingAdapter({
+    this.confirmError,
+    this.confirmStatus = 400,
+    this.putFailures = 0,
+  });
 
-  final Map<String, dynamic>? confirmError;
-  final int confirmStatus;
+  /// How many PUTs to storage fail with a connection error before one works.
+  int putFailures;
+
+  Map<String, dynamic>? confirmError;
+  int confirmStatus;
   final List<RequestOptions> requests = [];
   final List<String?> bodies = [];
 
@@ -71,6 +79,13 @@ class _RecordingAdapter implements HttpClientAdapter {
 
     if (method == 'PUT' &&
         options.uri.toString() == 'https://r2.example.test/upload/cert.jpg') {
+      if (putFailures > 0) {
+        putFailures--;
+        throw DioException.connectionError(
+          requestOptions: options,
+          reason: 'offline',
+        );
+      }
       return ResponseBody.fromString(
         '',
         200,
@@ -306,4 +321,123 @@ void main() {
       );
     },
   );
+
+  group('resumable upload session', () {
+    late File temp;
+
+    setUp(() async {
+      temp = await File(
+        '${Directory.systemTemp.path}/sacdia_resume_${DateTime.now().microsecondsSinceEpoch}.pdf',
+      ).writeAsBytes([37, 80, 68, 70]);
+    });
+    tearDown(() => temp.delete());
+
+    CertificateImportLocalProof proof() => CertificateImportLocalProof(
+          localPath: temp.path,
+          fileName: 'cert.pdf',
+          mimeType: 'application/pdf',
+          fileSize: 4,
+        );
+
+    CertificateImportRepositoryImpl repo(
+      _RecordingAdapter api,
+      _RecordingAdapter upload,
+    ) =>
+        CertificateImportRepositoryImpl(
+          remoteDataSource: CertificateImportRemoteDataSourceImpl(
+            dio: Dio(BaseOptions(responseType: ResponseType.json))
+              ..httpClientAdapter = api
+              ..interceptors.add(ErrorInterceptor()),
+            baseUrl: 'http://localhost:3000/api/v1',
+            uploadDio: Dio()..httpClientAdapter = upload,
+          ),
+          networkInfo: _ConnectedNetworkInfo(),
+        );
+
+    int count(_RecordingAdapter a, String method, String suffix) => a.requests
+        .where((r) =>
+            r.method.toUpperCase() == method && r.uri.path.endsWith(suffix))
+        .length;
+
+    test('PDF_BUSY on confirm: the retry repeats only confirm, same batch',
+        () async {
+      final api = _RecordingAdapter(
+        confirmStatus: 429,
+        confirmError: {
+          'status': 'error',
+          'message': 'CERTIFICATE_IMPORT_PDF_BUSY',
+        },
+      );
+      final upload = _RecordingAdapter();
+      final repository = repo(api, upload);
+      final session = CertificateImportUploadSession();
+
+      final first =
+          await repository.uploadLocalProof(proof(), session: session);
+      expect(first.isLeft(), isTrue);
+      expect(session.batchId, 'batch-1');
+      expect(session.fileId, 'file-1');
+      expect(session.uploaded, isTrue);
+
+      api.confirmError = null; // the queue freed up
+      final second =
+          await repository.uploadLocalProof(proof(), session: session);
+
+      expect(second.isRight(), isTrue);
+      expect(count(api, 'POST', '/certificate-bulk-imports'), 1,
+          reason: 'no orphan batch');
+      expect(count(api, 'POST', '/files/presign'), 1);
+      expect(upload.requests.where((r) => r.method == 'PUT'), hasLength(1));
+      expect(count(api, 'POST', '/files/file-1/confirm'), 2);
+    });
+
+    test('a failed PUT keeps the batch and presigns again on the retry',
+        () async {
+      final api = _RecordingAdapter();
+      final upload = _RecordingAdapter(putFailures: 1);
+      final repository = repo(api, upload);
+      final session = CertificateImportUploadSession();
+
+      final first =
+          await repository.uploadLocalProof(proof(), session: session);
+      expect(first.isLeft(), isTrue);
+      expect(session.batchId, 'batch-1');
+      expect(session.uploaded, isFalse);
+      expect(session.ticket, isNull);
+
+      final second =
+          await repository.uploadLocalProof(proof(), session: session);
+
+      expect(second.isRight(), isTrue);
+      expect(count(api, 'POST', '/certificate-bulk-imports'), 1);
+      expect(count(api, 'POST', '/files/presign'), 2);
+      expect(count(api, 'POST', '/files/file-1/confirm'), 1);
+    });
+
+    test('a cancelled token aborts the upload before any request', () async {
+      final api = _RecordingAdapter();
+      final repository = repo(api, _RecordingAdapter());
+      final token = CancelToken()..cancel();
+
+      final result = await repository.uploadLocalProof(
+        proof(),
+        session: CertificateImportUploadSession(),
+        cancelToken: token,
+      );
+
+      expect(result.isLeft(), isTrue);
+      expect(count(api, 'POST', '/certificate-bulk-imports'), 0);
+    });
+
+    test('getBatch forwards the cancel token to Dio', () async {
+      final api = _RecordingAdapter();
+      final repository = repo(api, _RecordingAdapter());
+      final token = CancelToken()..cancel();
+
+      final result = await repository.getBatch('batch-1', cancelToken: token);
+
+      expect(result.isLeft(), isTrue);
+      expect(api.requests, isEmpty);
+    });
+  });
 }

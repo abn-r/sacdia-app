@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/certificate_import/data/models/certificate_import_batch_model.dart';
+import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_ocr_state.dart';
 
 void main() {
   group('CertificateImportBatchModel', () {
@@ -45,6 +46,42 @@ void main() {
       expect(model.files.single.url, 'https://cdn.sacdia.app/cert.jpg');
       expect(model.readyCount, 1);
       expect(model.needsReviewCount, 1);
+    });
+
+    group('ocr_state', () {
+      CertificateImportBatchModel parse(Map<String, dynamic> extra) =>
+          CertificateImportBatchModel.fromJson({
+            'batch_id': 'batch-1',
+            'status': 'DRAFT',
+            ...extra,
+          });
+
+      test('reads every known state', () {
+        for (final state in CertificateImportOcrState.values) {
+          final model = parse({'ocr_state': state.name});
+          expect(model.ocrState, state);
+          expect(model.hasOcrState, isTrue);
+          expect(model.toEntity().ocrState, state);
+        }
+      });
+
+      test('an absent key means the backend does not report it', () {
+        final model = parse({});
+        expect(model.ocrState, isNull);
+        expect(model.hasOcrState, isFalse);
+      });
+
+      test('an explicit null means OCR was never requested', () {
+        final model = parse({'ocr_state': null});
+        expect(model.ocrState, isNull);
+        expect(model.hasOcrState, isTrue);
+      });
+
+      test('an unknown value is treated as no data', () {
+        final model = parse({'ocr_state': 'recalibrating'});
+        expect(model.ocrState, isNull);
+        expect(model.hasOcrState, isFalse);
+      });
     });
   });
 }

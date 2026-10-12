@@ -4613,7 +4613,11 @@
       "hero_title": "Upload your receipt",
       "hero_body": "We read your certificate and suggest the honors and classes. You review them before sending them to your Local Field.",
       "selected_one": "Receipt selected",
-      "selected_other": "{count} receipts selected"
+      "selected_other": "{count} receipts selected",
+      "uploading_pct": "Uploading your receipt… {percent} %",
+      "reading_slow": "Still reading… multi-page PDFs take a little longer.",
+      "skip_wait": "Continue without waiting",
+      "cancel": "Cancel"
     },
     "errors": {
       "retry": "Try again",
@@ -4682,6 +4686,15 @@
       "unexpected_upload": {
         "body": "We couldn't upload your receipt. Try again."
       }
+    },
+    "steps": {
+      "upload": "Upload",
+      "read": "Read",
+      "review": "Review",
+      "done": "done",
+      "active": "in progress",
+      "pending": "pending",
+      "semantics": "Step {n} of 3, {label}, {status}"
     },
     "review": {
       "title": "Review the data",

@@ -4613,7 +4613,11 @@
       "hero_title": "Carga tu comprobante",
       "hero_body": "Leemos tu certificado y te proponemos las especialidades y clases. Tú las revisas antes de enviarlas a tu Campo Local.",
       "selected_one": "Comprobante seleccionado",
-      "selected_other": "{count} comprobantes seleccionados"
+      "selected_other": "{count} comprobantes seleccionados",
+      "uploading_pct": "Subiendo tu comprobante… {percent} %",
+      "reading_slow": "Sigue leyendo… los PDF de varias páginas tardan un poco más.",
+      "skip_wait": "Seguir sin esperar",
+      "cancel": "Cancelar"
     },
     "errors": {
       "retry": "Reintentar",
@@ -4682,6 +4686,15 @@
       "unexpected_upload": {
         "body": "No pudimos subir tu comprobante. Inténtalo de nuevo."
       }
+    },
+    "steps": {
+      "upload": "Subir",
+      "read": "Leer",
+      "review": "Revisar",
+      "done": "hecho",
+      "active": "en curso",
+      "pending": "pendiente",
+      "semantics": "Paso {n} de 3, {label}, {status}"
     },
     "review": {
       "title": "Revisa los datos",

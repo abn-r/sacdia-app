@@ -5,6 +5,7 @@ import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/network/network_info.dart';
 import 'package:dio/dio.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_payloads.dart';
+import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_upload_session.dart';
 import 'package:sacdia_app/features/certificate_import/data/models/certificate_import_batch_list_model.dart';
 import 'package:sacdia_app/features/certificate_import/data/models/certificate_import_batch_model.dart';
 import 'package:sacdia_app/features/certificate_import/data/models/certificate_import_file_model.dart';
@@ -20,10 +21,12 @@ class _NetworkInfo implements NetworkInfo {
 
 class _RemoteDataSource implements CertificateImportRemoteDataSource {
   Object? error;
+  CancelToken? lastGetBatchToken;
 
   @override
   Future<CertificateImportBatchModel> createBatch({
     List<CertificateImportFilePayload> files = const [],
+    CancelToken? cancelToken,
   }) async {
     if (error != null) throw error!;
     return const CertificateImportBatchModel(id: 'batch-1', status: 'DRAFT');
@@ -32,6 +35,7 @@ class _RemoteDataSource implements CertificateImportRemoteDataSource {
   @override
   Future<CertificateImportBatchModel> uploadLocalProof(
     CertificateImportLocalProof proof, {
+    CertificateImportUploadSession? session,
     void Function(double progress)? onProgress,
     CancelToken? cancelToken,
   }) async {
@@ -45,6 +49,7 @@ class _RemoteDataSource implements CertificateImportRemoteDataSource {
     required String fileName,
     required String mimeType,
     required int fileSize,
+    CancelToken? cancelToken,
   }) async =>
       const CertificateImportPresignTicketModel(
         fileId: 'file-1',
@@ -66,6 +71,7 @@ class _RemoteDataSource implements CertificateImportRemoteDataSource {
   Future<CertificateImportFileModel> confirmFile({
     required String batchId,
     required String fileId,
+    CancelToken? cancelToken,
   }) async =>
       const CertificateImportFileModel(
         id: 'file-1',
@@ -87,8 +93,13 @@ class _RemoteDataSource implements CertificateImportRemoteDataSource {
       );
 
   @override
-  Future<CertificateImportBatchModel> getBatch(String batchId) async =>
-      const CertificateImportBatchModel(id: 'batch-1', status: 'DRAFT');
+  Future<CertificateImportBatchModel> getBatch(
+    String batchId, {
+    CancelToken? cancelToken,
+  }) async {
+    lastGetBatchToken = cancelToken;
+    return const CertificateImportBatchModel(id: 'batch-1', status: 'DRAFT');
+  }
 
   @override
   Future<String> signedDownloadUrl({
@@ -201,6 +212,7 @@ void main() {
   });
 
   failureMappingTests();
+  cancelTokenTests();
 }
 
 Future<Failure> _failureFor(Object error) async {
@@ -225,6 +237,21 @@ DioException _dio(
         ? null
         : Response(requestOptions: request, statusCode: status, data: body),
   );
+}
+
+void cancelTokenTests() {
+  test('getBatch hands its cancel token to the data source', () async {
+    final remote = _RemoteDataSource();
+    final repository = CertificateImportRepositoryImpl(
+      remoteDataSource: remote,
+      networkInfo: _NetworkInfo(),
+    );
+    final token = CancelToken();
+
+    await repository.getBatch('batch-1', cancelToken: token);
+
+    expect(remote.lastGetBatchToken, same(token));
+  });
 }
 
 void failureMappingTests() {
