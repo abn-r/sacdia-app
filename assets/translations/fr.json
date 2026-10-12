@@ -5037,5 +5037,31 @@
         "dismiss": "Compris"
       }
     }
+  },
+  "instructor": {
+    "title": "Instructeur ou instructrice",
+    "add_hint": "Ajouter un instructeur (facultatif)",
+    "search_hint": "Rechercher par nom",
+    "scope_note": "Personnes de votre champ local",
+    "type_min": "Saisissez au moins 3 lettres",
+    "keep_typing": "Continuez à saisir le nom",
+    "use_as_name": "Utiliser « {name} » comme nom",
+    "use_as_name_hint": "Pour les instructeurs d’un autre champ local ou absents de SACDIA",
+    "local_field_person": "Personne de votre champ local",
+    "unverified": "Nom saisi · non vérifié",
+    "help": "Votre champ local vérifie cette information. Nous n’avertissons pas la personne.",
+    "remove": "Retirer",
+    "no_results": "Nous n’avons trouvé personne nommé « {query} » dans votre champ local",
+    "no_results_short": "Aucun résultat",
+    "results_one": "{count} personne trouvée",
+    "results_other": "{count} personnes trouvées",
+    "search_error": "La recherche a échoué. Vérifiez votre connexion",
+    "rate_limited": "Vous cherchez trop vite. Patientez quelques secondes et réessayez.",
+    "retry": "Réessayer",
+    "error_invalid": "Cette personne n’est pas disponible. Choisissez-en une autre ou saisissez son nom",
+    "error_self": "Vous ne pouvez pas être votre propre instructeur",
+    "error_generic": "Impossible d’enregistrer l’instructeur. Réessayez",
+    "semantics_user": "Instructeur : {name}, personne de votre champ local",
+    "semantics_external": "Instructeur : {name}, nom saisi, non vérifié"
   }
 }

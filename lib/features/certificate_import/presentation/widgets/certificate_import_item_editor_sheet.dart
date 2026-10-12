@@ -6,6 +6,8 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/constants/certificate_dates.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/instructor_field.dart';
+import 'package:sacdia_app/core/widgets/instructor_selection.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
@@ -17,6 +19,7 @@ import 'package:sacdia_app/features/honors/presentation/widgets/honor_badge_imag
 import 'package:sacdia_app/providers/catalogs_provider.dart';
 
 import '../../domain/entities/certificate_import_class_option.dart';
+import 'package:sacdia_app/core/errors/failures.dart';
 import '../../domain/entities/certificate_import_date_rule.dart';
 import '../../domain/entities/certificate_import_item.dart';
 import '../error/certificate_import_error_mapper.dart';
@@ -72,6 +75,7 @@ class _CertificateImportItemEditorSheetState
   final _dateKey = GlobalKey();
   final _honorKey = GlobalKey();
   final _classKey = GlobalKey();
+  final _instructorKey = GlobalKey();
   late final TextEditingController _name;
   late CertificateImportItemType _type;
   late final bool _typeIsOpen;
@@ -89,6 +93,10 @@ class _CertificateImportItemEditorSheetState
   CertificateImportClassOption? _class;
   int? _classId;
 
+  // Optional (D1): never counted in "Falta..." nor in the dock.
+  late final InstructorSelection _initialInstructor;
+  late InstructorSelection _instructor;
+
   DateTime? _date;
   ImportDateHint _dateHint = ImportDateHint.none;
 
@@ -98,6 +106,7 @@ class _CertificateImportItemEditorSheetState
   String? _honorError;
   String? _classError;
   String? _dateError;
+  String? _instructorError;
   String? _banner;
 
   DateTime get _today => (widget.clock ?? DateTime.now)();
@@ -127,6 +136,11 @@ class _CertificateImportItemEditorSheetState
         clubTypeId: ref.clubTypeId,
       );
     }
+    _initialInstructor = item.type == CertificateImportItemType.honor ||
+            item.type == CertificateImportItemType.unknown
+        ? _selectionOf(item.instructor)
+        : const InstructorSelection.none();
+    _instructor = _initialInstructor;
     // An OCR proposal waits for the member's confirmation ("Sugerida").
     _suggested = item.status == CertificateImportItemStatus.needsReview &&
         (item.honorId != null || item.classId != null);
@@ -198,8 +212,39 @@ class _CertificateImportItemEditorSheetState
               clubTypeId: _clubTypeId,
               clubTypeName: clubName,
             ),
-      instructor: _isHonor ? item.instructor : null,
+      instructor: _isHonor ? _instructorRef(item) : null,
     );
+  }
+
+  /// Keeps the row's own reference when nothing changed, so the caller can
+  /// tell an untouched instructor from a new one.
+  CertificateImportInstructorRef? _instructorRef(CertificateImportItem item) {
+    if (_instructor == _initialInstructor) return item.instructor;
+    return switch (_instructor.kind) {
+      InstructorKind.none => null,
+      InstructorKind.user => CertificateImportInstructorRef(
+          isUser: true,
+          userId: _instructor.userId,
+          displayName: _instructor.displayName,
+          photoUrl: _instructor.photoUrl,
+        ),
+      InstructorKind.external => CertificateImportInstructorRef(
+          isUser: false,
+          displayName: _instructor.displayName,
+        ),
+    };
+  }
+
+  static InstructorSelection _selectionOf(CertificateImportInstructorRef? ref) {
+    if (ref == null) return const InstructorSelection.none();
+    final id = ref.userId;
+    return ref.isUser && id != null
+        ? InstructorSelection.user(
+            id: id,
+            displayName: ref.displayName,
+            photoUrl: ref.photoUrl,
+          )
+        : InstructorSelection.external(ref.displayName);
   }
 
   CertificateImportItem get _draft =>
@@ -248,8 +293,9 @@ class _CertificateImportItemEditorSheetState
           _honor!.categoryId != category.id) {
         _honorId = null;
         _honor = null;
-        _honorError = 'certificate_import.editor.honor_category_mismatch'
-            .tr(namedArgs: {'category': category.name});
+        _honorError = 'certificate_import.editor.honor_category_mismatch'.tr(
+          namedArgs: {'category': category.name},
+        );
       }
     });
   }
@@ -281,6 +327,11 @@ class _CertificateImportItemEditorSheetState
     _touch(() {
       _type = type;
       _honorError = _classError = null;
+      // Only honors have an instructor: a class never sends one.
+      if (type == CertificateImportItemType.clazz) {
+        _instructor = const InstructorSelection.none();
+        _instructorError = null;
+      }
     });
   }
 
@@ -327,9 +378,13 @@ class _CertificateImportItemEditorSheetState
     });
     final complete = _draft.isComplete;
     try {
-      await widget.onSave(_make(complete
-          ? CertificateImportItemStatus.ready
-          : CertificateImportItemStatus.needsReview));
+      await widget.onSave(
+        _make(
+          complete
+              ? CertificateImportItemStatus.ready
+              : CertificateImportItemStatus.needsReview,
+        ),
+      );
       if (!mounted) return;
       _dirty = false;
       Navigator.of(context).pop();
@@ -349,15 +404,27 @@ class _CertificateImportItemEditorSheetState
           case CertificateImportErrorKind.classClubTypeMismatch:
             _classError = info.body;
           default:
-            _banner = info.body;
+            // HONOR_INSTRUCTOR_* belong on the instructor field.
+            final code = error is Failure ? error.errorCode : null;
+            final onField =
+                _isHonor ? InstructorErrorCode.fieldMessage(code) : null;
+            if (onField != null && code != InstructorErrorCode.ambiguous) {
+              _instructorError = onField;
+            } else {
+              _banner = info.body;
+            }
         }
       });
       final key = _dateError != null
           ? _dateKey
           : _classError != null
               ? _classKey
-              : null;
-      if (key != null) _showFieldError(key, _dateError ?? _classError!);
+              : _instructorError != null
+                  ? _instructorKey
+                  : null;
+      if (key != null) {
+        _showFieldError(key, _dateError ?? _classError ?? _instructorError!);
+      }
     }
   }
 
@@ -383,20 +450,23 @@ class _CertificateImportItemEditorSheetState
     final missing = draft.missing.length > 1
         ? draft.missing.where((m) => m != CertificateImportMissing.name)
         : draft.missing;
-    final names = missing.map((m) => switch (m) {
-          CertificateImportMissing.honor =>
-            'certificate_import.editor.field_honor'.tr(),
-          CertificateImportMissing.clazz =>
-            'certificate_import.editor.field_class'.tr(),
-          CertificateImportMissing.date =>
-            'certificate_import.editor.field_date'.tr(),
-          CertificateImportMissing.type =>
-            'certificate_import.editor.field_type'.tr(),
-          CertificateImportMissing.name =>
-            'certificate_import.editor.field_name'.tr(),
-        });
-    return 'certificate_import.editor.missing_line'
-        .tr(namedArgs: {'fields': names.join(', ')});
+    final names = missing.map(
+      (m) => switch (m) {
+        CertificateImportMissing.honor =>
+          'certificate_import.editor.field_honor'.tr(),
+        CertificateImportMissing.clazz =>
+          'certificate_import.editor.field_class'.tr(),
+        CertificateImportMissing.date =>
+          'certificate_import.editor.field_date'.tr(),
+        CertificateImportMissing.type =>
+          'certificate_import.editor.field_type'.tr(),
+        CertificateImportMissing.name =>
+          'certificate_import.editor.field_name'.tr(),
+      },
+    );
+    return 'certificate_import.editor.missing_line'.tr(
+      namedArgs: {'fields': names.join(', ')},
+    );
   }
 
   @override
@@ -457,8 +527,9 @@ class _CertificateImportItemEditorSheetState
             onViewProof: widget.onViewProof,
             proofLabel: widget.proofPage == null
                 ? null
-                : 'certificate_import.item.view_proof_page'
-                    .tr(namedArgs: {'page': '${widget.proofPage}'}),
+                : 'certificate_import.item.view_proof_page'.tr(
+                    namedArgs: {'page': '${widget.proofPage}'},
+                  ),
             onFix: () => setState(() => _fixingText = true),
           ),
         const SizedBox(height: 16),
@@ -476,8 +547,9 @@ class _CertificateImportItemEditorSheetState
           maxHeight: MediaQuery.sizeOf(context).height * 0.92,
         ),
         child: Padding(
-          padding:
-              EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.viewInsetsOf(context).bottom,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -576,6 +648,18 @@ class _CertificateImportItemEditorSheetState
       ),
       const SizedBox(height: 16),
       KeyedSubtree(key: _dateKey, child: _dateField(honor: true)),
+      const SizedBox(height: 16),
+      KeyedSubtree(
+        key: _instructorKey,
+        child: InstructorField(
+          selection: _instructor,
+          errorText: _instructorError,
+          onChanged: (value) => _touch(() {
+            _instructor = value;
+            _instructorError = null;
+          }),
+        ),
+      ),
       const SizedBox(height: 16),
     ];
   }

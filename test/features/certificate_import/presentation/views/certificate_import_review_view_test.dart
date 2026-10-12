@@ -108,7 +108,10 @@ Future<void> _show(
   WidgetTester tester,
   CertificateImportBatch batch, {
   bool proofRoutes = false,
-  Future<CertificateImportItem> Function(CertificateImportItem)? onUpdateItem,
+  Future<CertificateImportItem> Function(
+    CertificateImportItem,
+    CertificateImportItem,
+  )? onUpdateItem,
   Future<void> Function(CertificateImportItem)? onRemoveItem,
   Future<void> Function()? onSubmitBatch,
   Future<CertificateImportBatch> Function()? onFetchBatch,
@@ -536,7 +539,7 @@ void main() {
       await _show(
         tester,
         _batch([_honor('h1', complete: false, picked: false)]),
-        onUpdateItem: (item) async => _honor('h1', catalogName: 'Nudos'),
+        onUpdateItem: (item, _) async => _honor('h1', catalogName: 'Nudos'),
       );
 
       await tester.tap(find.text('Primeros Auxilios'));
@@ -546,6 +549,32 @@ void main() {
 
       expect(find.text('Nudos'), findsOneWidget);
       expect(find.text('Lista'), findsOneWidget);
+    });
+
+    testWidgets('saving hands over the row as it was, to send only changes',
+        (tester) async {
+      CertificateImportItem? before;
+      const ana = CertificateImportInstructorRef(
+        isUser: true,
+        userId: 'u1',
+        displayName: 'Ana Gómez',
+      );
+      await _show(
+        tester,
+        _batch([_honor('h1', instructor: ana)]),
+        onUpdateItem: (item, previous) async {
+          before = previous;
+          return item;
+        },
+      );
+
+      await tester.tap(find.text('Primeros Auxilios'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Guardar'));
+      await tester.pumpAndSettle();
+
+      expect(before?.id, 'h1');
+      expect(before?.instructor, ana);
     });
 
     testWidgets('asks before removing and keeps the row when it fails',

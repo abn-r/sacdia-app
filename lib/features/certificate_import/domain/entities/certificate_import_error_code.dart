@@ -1,3 +1,5 @@
+import 'package:sacdia_app/core/widgets/instructor_selection.dart';
+
 /// Business codes the certificate import flow knows how to classify.
 ///
 /// The backend codes come back in `message` or `code` (legacy BadRequest
@@ -19,6 +21,8 @@ abstract final class CertificateImportErrorCode {
   static const dateInvalid = 'CERTIFICATE_IMPORT_DATE_INVALID';
   static const classClubTypeMismatch =
       'CERTIFICATE_IMPORT_CLASS_CLUB_TYPE_MISMATCH';
+  static const honorInstructorNotAllowed =
+      'CERTIFICATE_IMPORT_HONOR_INSTRUCTOR_NOT_ALLOWED';
   static const batchNotDeletable = 'CERTIFICATE_IMPORT_BATCH_NOT_DELETABLE';
   static const ocrInProgress = 'CERTIFICATE_IMPORT_OCR_IN_PROGRESS';
 
@@ -43,6 +47,8 @@ abstract final class CertificateImportErrorCode {
     dateInFuture,
     dateInvalid,
     classClubTypeMismatch,
+    honorInstructorNotAllowed,
+    ...InstructorErrorCode.all,
     batchNotDeletable,
     ocrInProgress,
     network,
