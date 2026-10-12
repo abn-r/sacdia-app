@@ -3920,7 +3920,9 @@
       "error_download": "Impossible de télécharger le PDF",
       "error_not_found": "Le fichier PDF n'a pas été trouvé sur l'appareil",
       "error_open": "Erreur lors de l'ouverture du PDF",
+      "next_page": "Page suivante",
       "page_indicator": "Page {current} sur {total}",
+      "previous_page": "Page précédente",
       "retry": "Réessayer"
     },
     "section_switcher": {
@@ -4703,7 +4705,6 @@
       "class_one": "{count} classe",
       "class_other": "{count} classes",
       "and": "et",
-      "view_proof": "Voir le justificatif",
       "gm01_replace": "Si Guide majeur (GM-01) est approuvé, il remplace l’inscription actuelle. Deux enregistrements ne sont pas conservés.",
       "institutional": "Guide majeur avancé et Instructeur passent en révision institutionnelle. Approuver cette demande n’enregistre pas une classe et ne crée pas d’inscription.",
       "period_pending": "en attente de période administrative",
@@ -4757,16 +4758,28 @@
       "date_hint": "AAAA-MM-JJ",
       "save": "Enregistrer"
     },
+    "viewer": {
+      "title": "Votre justificatif",
+      "opening": "Ouverture de votre justificatif…",
+      "more": "Plus d'options",
+      "open_external": "Ouvrir dans une autre app",
+      "image_label": "Image de votre justificatif",
+      "not_found": "Justificatif introuvable",
+      "view": "Voir",
+      "kind_image": "Photo",
+      "kind_pdf": "PDF",
+      "pdf_pages_one": "PDF · 1 page",
+      "pdf_pages_other": "PDF · {count} pages",
+      "more_files_one": "+{count} fichier",
+      "more_files_other": "+{count} fichiers"
+    },
     "proof": {
       "title": "Enregistrement importé",
-      "missing": "Détail indisponible. Ouvrez-le depuis un enregistrement importé.",
       "unnamed": "Enregistrement sans nom",
       "imported_badge": "Enregistrement importé",
       "date_pending": "Date en attente",
       "applied": "Justificatif lié à l’enregistrement {id}",
-      "gm01_replaced": "Cette approbation a déjà remplacé l’inscription de Guide majeur. Il ne reste qu’un enregistrement.",
-      "open": "Ouvrir le justificatif scellé",
-      "unavailable": "Le justificatif scellé n’est pas disponible."
+      "gm01_replaced": "Cette approbation a déjà remplacé l’inscription de Guide majeur. Il ne reste qu’un enregistrement."
     }
   },
   "master_honors": {

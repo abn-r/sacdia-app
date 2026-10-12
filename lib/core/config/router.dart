@@ -17,11 +17,10 @@ import 'package:sacdia_app/features/certifications/presentation/views/certificat
 import 'package:sacdia_app/features/certifications/presentation/views/certification_progress_view.dart';
 import 'package:sacdia_app/features/certifications/presentation/views/requirement_detail_view.dart';
 import 'package:sacdia_app/features/certifications/presentation/views/certification_closeout_view.dart';
-import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_item.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_review_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_status_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_upload_view.dart';
-import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_import_proof_card.dart';
+import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_proof_viewer.dart';
 import 'package:sacdia_app/features/investiture_requests/presentation/views/authorizer_request_detail_view.dart';
 import 'package:sacdia_app/features/investiture_requests/presentation/views/authorizer_requests_view.dart';
 import 'package:sacdia_app/features/investiture_requests/presentation/views/own_investiture_view.dart';
@@ -809,7 +808,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           return _sharedAxisBuild(
             context,
             state,
-            CertificateImportReviewRouteView(batchId: batchId),
+            CertificateImportReviewRouteView(
+              batchId: batchId,
+              localPath: state.extra is String ? state.extra as String : null,
+            ),
           );
         },
       ),
@@ -825,35 +827,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
+        // Keyed by batch and file, never by item: it must open without rows.
         path: RouteNames.certificateImportProof,
         pageBuilder: (context, state) {
-          final extra = state.extra;
-          final args = extra is CertificateImportProofArgs ? extra : null;
-          final item = extra is CertificateImportItem ? extra : args?.item;
-          return _sharedAxisBuild(
-            context,
-            state,
-            Scaffold(
-              appBar: SacTopBar(
-                title: 'certificate_import.proof.title'.tr(),
-              ),
-              body: Padding(
-                padding: const EdgeInsets.all(16),
-                child: item == null
-                    ? Text('certificate_import.proof.missing'.tr())
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CertificateImportProofCard(item: item),
-                          if (args?.batchId != null && args?.fileId != null)
-                            CertificateImportSignedProof(
-                              batchId: args!.batchId!,
-                              fileId: args.fileId!,
-                            ),
-                        ],
-                      ),
-              ),
-            ),
+          return fadeThroughPage<void>(
+            key: state.pageKey,
+            fullscreenDialog: true,
+            child: CertificateProofViewer.fromRouteState(state),
           );
         },
       ),

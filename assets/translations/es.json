@@ -3922,7 +3922,9 @@
       "error_download": "No se pudo descargar el PDF",
       "error_not_found": "El archivo PDF no se encontró en el dispositivo",
       "error_open": "Error al abrir el PDF",
+      "next_page": "Página siguiente",
       "page_indicator": "Página {current} de {total}",
+      "previous_page": "Página anterior",
       "retry": "Reintentar"
     },
     "section_switcher": {
@@ -4705,7 +4707,6 @@
       "class_one": "{count} clase",
       "class_other": "{count} clases",
       "and": "y",
-      "view_proof": "Ver comprobante",
       "gm01_replace": "Si se aprueba Guía Mayor (GM-01), sustituye la inscripción actual. No se conservan dos registros.",
       "institutional": "Guía Mayor Avanzado e Instructor van a revisión institucional. Aprobar esa solicitud no registra una clase ni crea inscripción.",
       "period_pending": "pendiente de periodo administrativo",
@@ -4759,16 +4760,28 @@
       "date_hint": "AAAA-MM-DD",
       "save": "Guardar"
     },
+    "viewer": {
+      "title": "Tu comprobante",
+      "opening": "Abriendo tu comprobante…",
+      "more": "Más opciones",
+      "open_external": "Abrir en otra app",
+      "image_label": "Imagen de tu comprobante",
+      "not_found": "No encontramos este comprobante",
+      "view": "Ver",
+      "kind_image": "Foto",
+      "kind_pdf": "PDF",
+      "pdf_pages_one": "PDF · 1 página",
+      "pdf_pages_other": "PDF · {count} páginas",
+      "more_files_one": "+{count} archivo",
+      "more_files_other": "+{count} archivos"
+    },
     "proof": {
       "title": "Registro importado",
-      "missing": "Detalle no disponible. Ábrelo desde un registro importado.",
       "unnamed": "Registro sin nombre",
       "imported_badge": "Registro importado",
       "date_pending": "Fecha pendiente",
       "applied": "Comprobante ligado al registro {id}",
-      "gm01_replaced": "Esta aprobación ya sustituyó la inscripción de Guía Mayor. Queda un solo registro.",
-      "open": "Abrir comprobante sellado",
-      "unavailable": "El comprobante sellado no está disponible."
+      "gm01_replaced": "Esta aprobación ya sustituyó la inscripción de Guía Mayor. Queda un solo registro."
     }
   },
   "master_honors": {

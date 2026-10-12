@@ -163,7 +163,11 @@ class _CertificateImportUploadRouteViewState
         duration: const Duration(seconds: 6),
       );
     }
-    context.push(RouteNames.certificateImportReviewPath(outcome.batchId));
+    // The just-uploaded file lets the review thumbnail and viewer work offline.
+    context.push(
+      RouteNames.certificateImportReviewPath(outcome.batchId),
+      extra: proof.localPath,
+    );
   }
 
   @override

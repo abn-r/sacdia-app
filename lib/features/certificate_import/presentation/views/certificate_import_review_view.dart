@@ -1,6 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
@@ -24,14 +23,21 @@ import '../error/certificate_import_error_mapper.dart';
 import '../providers/certificate_import_providers.dart';
 import '../widgets/certificate_import_back_button.dart';
 import '../widgets/certificate_import_item_card.dart';
-import '../widgets/certificate_import_proof_card.dart';
+import '../widgets/certificate_proof_summary.dart';
 import '../widgets/certificate_import_item_editor_sheet.dart';
 import '../widgets/import_load_error_scaffold.dart';
 
 class CertificateImportReviewRouteView extends ConsumerWidget {
-  const CertificateImportReviewRouteView({super.key, required this.batchId});
+  const CertificateImportReviewRouteView({
+    super.key,
+    required this.batchId,
+    this.localPath,
+  });
 
   final String batchId;
+
+  /// Local file just uploaded, when arriving from the upload flow.
+  final String? localPath;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -46,6 +52,7 @@ class CertificateImportReviewRouteView extends ConsumerWidget {
       ),
       data: (batch) => CertificateImportReviewView(
         initialBatch: batch,
+        proofLocalPath: localPath,
         onUpdateItem: (item) async {
           final payload = CertificateImportItemUpdatePayload(
             itemType: item.type == CertificateImportItemType.honor
@@ -122,6 +129,7 @@ class CertificateImportReviewView extends StatefulWidget {
   const CertificateImportReviewView({
     super.key,
     required this.initialBatch,
+    this.proofLocalPath,
     this.onUpdateItem,
     this.onAddItem,
     this.onRemoveItem,
@@ -129,6 +137,9 @@ class CertificateImportReviewView extends StatefulWidget {
   });
 
   final CertificateImportBatch initialBatch;
+
+  /// Local copy of the proof just uploaded: thumbnail and offline viewing.
+  final String? proofLocalPath;
   final Future<void> Function(CertificateImportItem item)? onUpdateItem;
   final Future<CertificateImportItem> Function(CertificateImportItem draft)?
       onAddItem;
@@ -214,33 +225,11 @@ class _CertificateImportReviewViewState
                                 ),
                           ),
                           if (widget.initialBatch.files.isNotEmpty) ...[
-                            const SizedBox(height: 8),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: SacPressable(
-                                listenOnly: true,
-                                child: TextButton(
-                                  style:
-                                      const ButtonStyle(enableFeedback: false),
-                                  onPressed: () {
-                                    final file =
-                                        widget.initialBatch.files.first;
-                                    context.push(
-                                      RouteNames.certificateImportProof,
-                                      extra: CertificateImportProofArgs(
-                                        item: _items.isEmpty
-                                            ? null
-                                            : _items.first,
-                                        batchId: widget.initialBatch.id,
-                                        fileId: file.id,
-                                      ),
-                                    );
-                                  },
-                                  child: Text(
-                                    'certificate_import.review.view_proof'.tr(),
-                                  ),
-                                ),
-                              ),
+                            const SizedBox(height: 12),
+                            CertificateProofSummary(
+                              batchId: widget.initialBatch.id,
+                              files: widget.initialBatch.files,
+                              localPath: widget.proofLocalPath,
                             ),
                           ],
                           if (showGmNotice) ...[

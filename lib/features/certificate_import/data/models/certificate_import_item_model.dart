@@ -20,6 +20,8 @@ class CertificateImportItemModel extends Equatable {
   final String? rejectionReason;
   final String? appliedEntityType;
   final int? appliedEntityId;
+  final int? sourcePage;
+  final String? sourceFileId;
 
   const CertificateImportItemModel({
     required this.id,
@@ -37,6 +39,8 @@ class CertificateImportItemModel extends Equatable {
     this.rejectionReason,
     this.appliedEntityType,
     this.appliedEntityId,
+    this.sourcePage,
+    this.sourceFileId,
   });
 
   factory CertificateImportItemModel.fromJson(Map<String, dynamic> json) {
@@ -66,6 +70,8 @@ class CertificateImportItemModel extends Equatable {
       rejectionReason: safeStringOrNull(json['rejection_reason']),
       appliedEntityType: safeStringOrNull(json['applied_entity_type']),
       appliedEntityId: safeIntOrNull(json['applied_entity_id']),
+      sourcePage: _positive(json['source_page']),
+      sourceFileId: safeStringOrNull(json['source_file_id']),
     );
   }
 
@@ -127,6 +133,8 @@ class CertificateImportItemModel extends Equatable {
         'rejection_reason': rejectionReason,
         'applied_entity_type': appliedEntityType,
         'applied_entity_id': appliedEntityId,
+        'source_page': sourcePage,
+        'source_file_id': sourceFileId,
       };
 
   CertificateImportItem toEntity() => CertificateImportItem(
@@ -145,6 +153,8 @@ class CertificateImportItemModel extends Equatable {
         rejectionReason: rejectionReason,
         appliedEntityType: appliedEntityType,
         appliedEntityId: appliedEntityId,
+        sourcePage: sourcePage,
+        sourceFileId: sourceFileId,
       );
 
   static DateTime? _parseDate(dynamic value) {
@@ -153,6 +163,12 @@ class CertificateImportItemModel extends Equatable {
   }
 
   static String? _formatDate(DateTime? value) => value?.toIso8601String();
+
+  /// R6: a missing, null or non-positive value means "no data".
+  static int? _positive(dynamic value) {
+    final parsed = safeIntOrNull(value);
+    return parsed != null && parsed >= 1 ? parsed : null;
+  }
 
   @override
   List<Object?> get props => [
@@ -171,5 +187,7 @@ class CertificateImportItemModel extends Equatable {
         rejectionReason,
         appliedEntityType,
         appliedEntityId,
+        sourcePage,
+        sourceFileId,
       ];
 }

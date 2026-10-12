@@ -112,10 +112,12 @@ Widget _buildFadeThroughTransition(
 CustomTransitionPage<T> fadeThroughPage<T>({
   required LocalKey key,
   required Widget child,
+  bool fullscreenDialog = false,
 }) {
   return CustomTransitionPage<T>(
     key: key,
     child: child,
+    fullscreenDialog: fullscreenDialog,
     transitionDuration: SacMotion.reducedFade,
     reverseTransitionDuration: SacMotion.reducedFade,
     transitionsBuilder: _buildFadeThroughTransition,

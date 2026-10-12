@@ -3,6 +3,10 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
@@ -29,10 +33,39 @@ class SacPdfViewer extends StatefulWidget {
   final String pdfSource;
   final String? title;
 
+  /// One page per view with a "Page X of N" bar and previous/next buttons.
+  final bool horizontalPaged;
+
+  /// First page to show, 1-based. Out of range (below 1 or above
+  /// [pageCount]) falls back to page 1.
+  final int initialPage;
+
+  /// Known page total. When null the total comes from the PDF render.
+  final int? pageCount;
+
+  /// Shows the save/share action. Disable it for sealed documents.
+  final bool allowShare;
+
+  /// White-on-black chrome (full-screen proof viewing).
+  final bool dark;
+
+  /// Extra top bar actions, after the share action.
+  final List<Widget> actions;
+
+  /// Replaces the built-in error state, so the caller can offer its own retry.
+  final WidgetBuilder? errorBuilder;
+
   const SacPdfViewer({
     super.key,
     required this.pdfSource,
     this.title,
+    this.horizontalPaged = false,
+    this.initialPage = 1,
+    this.pageCount,
+    this.allowShare = true,
+    this.dark = false,
+    this.actions = const [],
+    this.errorBuilder,
   });
 
   static void show(
@@ -58,8 +91,11 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
   String? _fileName;
   final GlobalKey _saveButtonKey = GlobalKey();
   bool _isSharing = false;
-  int _currentPage = 0;
+  late int _currentPage;
   int _totalPages = 0;
+  PDFViewController? _controller;
+
+  int get _total => _totalPages > 0 ? _totalPages : (widget.pageCount ?? 0);
 
   /// Tracks whether this widget created the temp file (so we own cleanup).
   bool _ownsTempFile = false;
@@ -69,6 +105,10 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
   @override
   void initState() {
     super.initState();
+    final count = widget.pageCount;
+    final valid = widget.initialPage >= 1 &&
+        (count == null || widget.initialPage <= count);
+    _currentPage = valid ? widget.initialPage - 1 : 0;
     if (_isLocalPath) {
       _useLocalFile();
     } else {
@@ -178,52 +218,66 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
   @override
   Widget build(BuildContext context) {
     final title = widget.title?.trim();
-    final pageLabel = _totalPages > 0
-        ? tr(
-            'core.pdf_viewer.page_indicator',
-            namedArgs: {
-              'current': '${_currentPage + 1}',
-              'total': '$_totalPages',
-            },
-          )
-        : null;
+    final pageLabel = _total > 0 ? _pageLabel() : null;
+    final fg = widget.dark ? Colors.white : null;
 
-    return Scaffold(
-      backgroundColor: Colors.white,
+    final scaffold = Scaffold(
+      backgroundColor: widget.dark ? Colors.black : Colors.white,
       appBar: SacTopBar(
         title: (title != null && title.isNotEmpty) ? title : (pageLabel ?? ''),
         subtitle: (title != null && title.isNotEmpty) ? pageLabel : null,
+        backgroundColor: widget.dark ? Colors.black : null,
+        foregroundColor: fg,
         leading: SacPressable(
           listenOnly: true,
           child: IconButton(
             enableFeedback: false,
-            icon: const HugeIcon(icon: HugeIcons.strokeRoundedCancel01),
+            tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+            icon: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: fg),
             onPressed: () => Navigator.pop(context),
           ),
         ),
         actions: [
-          SacPressable(
-            listenOnly: true,
-            child: IconButton(
-              enableFeedback: false,
-              key: _saveButtonKey,
-              tooltip: 'common.save'.tr(),
-              onPressed: _localPath == null || _loading || _isSharing
-                  ? null
-                  : _sharePdf,
-              icon: _isSharing
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const HugeIcon(icon: HugeIcons.strokeRoundedDownload01),
+          if (widget.allowShare)
+            SacPressable(
+              listenOnly: true,
+              child: IconButton(
+                enableFeedback: false,
+                key: _saveButtonKey,
+                tooltip: 'common.save'.tr(),
+                onPressed: _localPath == null || _loading || _isSharing
+                    ? null
+                    : _sharePdf,
+                icon: _isSharing
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : HugeIcon(
+                        icon: HugeIcons.strokeRoundedDownload01, color: fg),
+              ),
             ),
-          ),
+          ...widget.actions,
         ],
       ),
       body: _buildBody(),
     );
+    if (!widget.dark) return scaffold;
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: scaffold,
+    );
+  }
+
+  String _pageLabel() => tr(
+        'core.pdf_viewer.page_indicator',
+        namedArgs: {'current': '${_currentPage + 1}', 'total': '$_total'},
+      );
+
+  void _goToPage(int page) {
+    _controller?.setPage(page);
+    setState(() => _currentPage = page);
   }
 
   Widget _buildBody() {
@@ -232,15 +286,20 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CircularProgressIndicator(),
+            SacLoading(color: widget.dark ? Colors.white : null),
             const SizedBox(height: 12),
-            Text('core.pdf_viewer.downloading'.tr()),
+            Text(
+              'core.pdf_viewer.downloading'.tr(),
+              style: TextStyle(color: widget.dark ? Colors.white : null),
+            ),
           ],
         ),
       );
     }
 
     if (_error != null) {
+      final custom = widget.errorBuilder;
+      if (custom != null) return custom(context);
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -275,12 +334,16 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
       );
     }
 
-    return PDFView(
+    final paged = widget.horizontalPaged;
+    final pdf = PDFView(
       filePath: _localPath!,
       enableSwipe: true,
-      swipeHorizontal: false,
-      autoSpacing: true,
+      swipeHorizontal: paged,
+      pageSnap: paged,
+      autoSpacing: !paged,
       pageFling: true,
+      defaultPage: _currentPage,
+      onViewCreated: (controller) => _controller = controller,
       onRender: (pages) {
         if (mounted) setState(() => _totalPages = pages ?? 0);
       },
@@ -290,6 +353,84 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
       onError: (error) {
         if (mounted) setState(() => _error = tr('core.pdf_viewer.error_open'));
       },
+    );
+    if (!paged || _total < 2) return pdf;
+    return Column(children: [Expanded(child: pdf), _buildPageBar()]);
+  }
+
+  /// "Page X of N" with previous/next buttons (the accessible alternative to
+  /// swiping) and a dot indicator.
+  Widget _buildPageBar() {
+    final fg = widget.dark ? Colors.white : Colors.black87;
+    final animate = !SacMotion.reduceMotionOf(context);
+    // The tooltip is also the accessible label; no outer Semantics so the
+    // button keeps its own tap action for screen readers.
+    Widget arrow(HugeIconData icon, String label, int? target) => SacPressable(
+          listenOnly: true,
+          child: IconButton(
+            enableFeedback: false,
+            tooltip: label,
+            constraints: const BoxConstraints.tightFor(width: 44, height: 44),
+            onPressed: target == null ? null : () => _goToPage(target),
+            icon: HugeIcon(
+              icon: icon,
+              color: target == null ? fg.withValues(alpha: 0.3) : fg,
+            ),
+          ),
+        );
+
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 4, bottom: 10),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                arrow(
+                  HugeIcons.strokeRoundedArrowLeft01,
+                  'core.pdf_viewer.previous_page'.tr(),
+                  _currentPage > 0 ? _currentPage - 1 : null,
+                ),
+                Semantics(
+                  liveRegion: true,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(_pageLabel(), style: TextStyle(color: fg)),
+                  ),
+                ),
+                arrow(
+                  HugeIcons.strokeRoundedArrowRight01,
+                  'core.pdf_viewer.next_page'.tr(),
+                  _currentPage < _total - 1 ? _currentPage + 1 : null,
+                ),
+              ],
+            ),
+            if (_total <= 10)
+              ExcludeSemantics(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(_total, (i) {
+                    final selected = i == _currentPage;
+                    return AnimatedContainer(
+                      duration: animate ? SacMotion.switcher : Duration.zero,
+                      curve: SacMotion.easeInOut,
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: selected ? 18 : 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        color: selected ? fg : fg.withValues(alpha: 0.35),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
