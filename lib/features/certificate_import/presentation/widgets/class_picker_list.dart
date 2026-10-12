@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
@@ -113,10 +114,10 @@ class _ClassRow extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(
-                selected
-                    ? Icons.radio_button_checked
-                    : Icons.radio_button_unchecked,
+              HugeIcon(
+                icon: selected
+                    ? HugeIcons.strokeRoundedCheckmarkCircle02
+                    : HugeIcons.strokeRoundedCircle,
                 size: 20,
                 color: selected ? accent : c.textTertiary,
               ),
