@@ -40,6 +40,7 @@ import '../theme/honor_category_palette.dart';
 import '../widgets/honor_badge_image.dart';
 import '../widgets/honor_completion_details.dart';
 import '../widgets/honor_signed_evidence_image.dart';
+import '../widgets/instructor_proposal_card.dart';
 
 /// Evidence & progress screen for an enrolled honor in EXTERNAL mode.
 ///
@@ -764,7 +765,14 @@ class _EvidenceBody extends StatelessWidget {
                               ),
                             ],
                             const SizedBox(height: 16),
-                            HonorInstructorCard(userHonor: userHonor),
+                            // Approved + the API knows proposals (D11): propose,
+                            // never PATCH. Anything else keeps the S7 card.
+                            if (userHonor.isCompleted &&
+                                userHonor.active &&
+                                userHonor.supportsInstructorProposal)
+                              InstructorProposalCard(userHonor: userHonor)
+                            else
+                              HonorInstructorCard(userHonor: userHonor),
                             const SizedBox(height: 16),
                             HonorCompletionDateCard(userHonor: userHonor),
                           ],

@@ -27,3 +27,28 @@ abstract final class HonorUpdateErrorCode {
   static const dateTooOld = 'HONOR_DATE_TOO_OLD';
   static const dateInFuture = 'HONOR_DATE_IN_FUTURE';
 }
+
+/// Body of `POST /users/:userId/honors/:honorId/instructor-proposal` (camelCase,
+/// exactly one of the two fields). [InstructorKind.none] has nothing to
+/// propose: callers must not send it.
+Map<String, dynamic> honorInstructorProposalBody(
+  InstructorSelection instructor,
+) =>
+    switch (instructor.kind) {
+      InstructorKind.user => {'instructorUserId': instructor.userId},
+      InstructorKind.external => {'instructorName': instructor.displayName},
+      InstructorKind.none => throw ArgumentError('Nothing to propose'),
+    };
+
+/// Business codes the proposal endpoints answer that the card explains.
+abstract final class InstructorProposalErrorCode {
+  static const unchanged = 'HONOR_INSTRUCTOR_UNCHANGED';
+  static const required = 'HONOR_INSTRUCTOR_REQUIRED';
+  static const notApproved = 'HONOR_INSTRUCTOR_PROPOSAL_NOT_APPROVED';
+  static const notFound = 'HONOR_INSTRUCTOR_PROPOSAL_NOT_FOUND';
+  static const notPending = 'HONOR_INSTRUCTOR_PROPOSAL_NOT_PENDING';
+  static const forbidden = 'HONOR_INSTRUCTOR_PROPOSAL_FORBIDDEN';
+
+  /// The honor or the proposal is no longer what the screen drew: re-read it.
+  static const Set<String> stale = {notApproved, notFound, notPending};
+}

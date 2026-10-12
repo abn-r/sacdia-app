@@ -22,11 +22,13 @@ import '../../domain/entities/user_honor.dart';
 import '../../domain/entities/user_honor_update.dart';
 import '../../domain/entities/user_honor_requirement_progress.dart';
 import '../../domain/repositories/honors_repository.dart';
+import '../../domain/usecases/cancel_honor_instructor_proposal.dart';
 import '../../domain/usecases/get_honor_categories.dart';
 import '../../domain/usecases/get_honor_requirements.dart';
 import '../../domain/usecases/get_honors.dart';
 import '../../domain/usecases/get_user_honor_progress.dart';
 import '../../domain/usecases/get_user_honors.dart';
+import '../../domain/usecases/propose_honor_instructor.dart';
 import '../../domain/usecases/register_user_honor.dart';
 import '../../domain/usecases/start_honor.dart';
 import '../../domain/usecases/update_requirement_progress.dart';
@@ -74,6 +76,16 @@ final getUserHonorsProvider = Provider<GetUserHonors>((ref) {
 /// Provider para el caso de uso de iniciar especialidad
 final startHonorProvider = Provider<StartHonor>((ref) {
   return StartHonor(ref.read(honorsRepositoryProvider));
+});
+
+/// Casos de uso de la propuesta de instructor en una especialidad aprobada.
+final proposeHonorInstructorProvider = Provider<ProposeHonorInstructor>((ref) {
+  return ProposeHonorInstructor(ref.read(honorsRepositoryProvider));
+});
+
+final cancelHonorInstructorProposalProvider =
+    Provider<CancelHonorInstructorProposal>((ref) {
+  return CancelHonorInstructorProposal(ref.read(honorsRepositoryProvider));
 });
 
 /// Provider para el caso de uso de registrar especialidad completa
@@ -407,6 +419,63 @@ final honorEvidenceActionsNotifierProvider =
   HonorEvidenceActionsNotifier.new,
 );
 
+// ── Instructor proposal on an approved honor (D11) ─────────────────────────
+
+/// Proposes or withdraws the instructor of an approved honor. Never touches
+/// [state]: the card shows its own progress. It does not use the `PATCH`.
+///
+/// On success it waits for the refreshed list, so the card swaps straight to
+/// the new state. Both methods return null when done, or why they were not.
+class InstructorProposalActionsNotifier extends AutoDisposeAsyncNotifier<void> {
+  @override
+  Future<void> build() async {}
+
+  Future<Failure?> propose({
+    required String userId,
+    required int honorId,
+    required InstructorSelection instructor,
+  }) async {
+    final result = await ref.read(proposeHonorInstructorProvider)(
+      ProposeHonorInstructorParams(
+        userId: userId,
+        honorId: honorId,
+        instructor: instructor,
+      ),
+    );
+    return _done(result.fold((f) => f, (_) => null));
+  }
+
+  Future<Failure?> cancel({
+    required String userId,
+    required int honorId,
+  }) async {
+    final result = await ref.read(cancelHonorInstructorProposalProvider)(
+      CancelHonorInstructorProposalParams(userId: userId, honorId: honorId),
+    );
+    return _done(result.fold((f) => f, (_) => null));
+  }
+
+  /// Re-reads the list (the honor or the proposal changed elsewhere).
+  Future<void> refresh() async {
+    ref.invalidate(userHonorsProvider);
+    try {
+      await ref.read(userHonorsProvider.future);
+    } catch (_) {
+      // The screen shows its own load error if the refresh fails.
+    }
+  }
+
+  Future<Failure?> _done(Failure? failure) async {
+    if (failure == null) await refresh();
+    return failure;
+  }
+}
+
+final instructorProposalActionsNotifierProvider =
+    AutoDisposeAsyncNotifierProvider<InstructorProposalActionsNotifier, void>(
+  InstructorProposalActionsNotifier.new,
+);
+
 // ── Requirement evidence actions ───────────────────────────────────────────
 
 class RequirementEvidenceActionsNotifier
@@ -485,6 +554,8 @@ UserHonor _userHonorWithCompletionMode(
     honorSkillLevel: userHonor.honorSkillLevel,
     completedAt: userHonor.completedAt,
     instructor: userHonor.instructor,
+    instructorProposal: userHonor.instructorProposal,
+    supportsInstructorProposal: userHonor.supportsInstructorProposal,
   );
 }
 
