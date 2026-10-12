@@ -619,7 +619,14 @@
       "mode_guard_title": "Este flujo no está activo",
       "mode_guard_in_app": "Esta especialidad se está completando dentro de la app. Usa la pantalla de requisitos.",
       "mode_guard_undecided": "Primero elige cómo quieres completar esta especialidad.",
-      "mode_guard_back": "Volver"
+      "mode_guard_back": "Volver",
+      "completion_date_title": "Fecha de finalización",
+      "completion_date_required": "Obligatoria para enviar a revisión",
+      "submit_needs_date": "Elige la fecha de finalización para enviar a revisión",
+      "date_too_old": "La fecha no puede ser anterior a 1960",
+      "date_future": "La fecha no puede ser futura",
+      "date_save_error": "No pudimos guardar la fecha. Inténtalo de nuevo",
+      "status_changed": "Esta especialidad cambió de estado. Actualizamos la pantalla."
     },
     "completion": {
       "title": "Especialidad Completa",
@@ -5064,6 +5071,7 @@
     "error_self": "No puedes ser tu propio instructor",
     "error_generic": "No pudimos guardar el instructor. Inténtalo de nuevo",
     "semantics_user": "Instructor: {name}, persona de tu Campo Local",
-    "semantics_external": "Instructor: {name}, nombre escrito, no verificado"
+    "semantics_external": "Instructor: {name}, nombre escrito, no verificado",
+    "none_registered": "Sin instructor registrado"
   }
 }

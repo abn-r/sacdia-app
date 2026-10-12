@@ -619,7 +619,14 @@
       "mode_guard_title": "Ce flux n'est pas actif",
       "mode_guard_in_app": "Cette spécialité est complétée dans l'appli. Utilisez l'écran des exigences.",
       "mode_guard_undecided": "Choisissez d'abord comment vous voulez compléter cette spécialité.",
-      "mode_guard_back": "Retour"
+      "mode_guard_back": "Retour",
+      "completion_date_title": "Date de fin",
+      "completion_date_required": "Obligatoire pour envoyer pour révision",
+      "submit_needs_date": "Choisissez la date de fin pour envoyer pour révision",
+      "date_too_old": "La date ne peut pas être antérieure à 1960",
+      "date_future": "La date ne peut pas être dans le futur",
+      "date_save_error": "Impossible d’enregistrer la date. Réessayez",
+      "status_changed": "Cette spécialité a changé de statut. Nous avons actualisé l’écran."
     },
     "completion": {
       "title": "Spécialité Complétée",
@@ -5062,6 +5069,7 @@
     "error_self": "Vous ne pouvez pas être votre propre instructeur",
     "error_generic": "Impossible d’enregistrer l’instructeur. Réessayez",
     "semantics_user": "Instructeur : {name}, personne de votre champ local",
-    "semantics_external": "Instructeur : {name}, nom saisi, non vérifié"
+    "semantics_external": "Instructeur : {name}, nom saisi, non vérifié",
+    "none_registered": "Aucun instructeur enregistré"
   }
 }

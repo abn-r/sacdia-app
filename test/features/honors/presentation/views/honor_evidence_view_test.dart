@@ -1,13 +1,29 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/honors/presentation/views/honor_evidence_view.dart';
 
+/// No translations on purpose: the assertions below read the raw keys. The
+/// scope is only there because the date field asks for the locale.
+class _NoTranslations extends AssetLoader {
+  const _NoTranslations();
+
+  @override
+  Future<Map<String, dynamic>?> load(String path, Locale locale) async => {};
+}
+
 void main() {
+  setUpAll(() async {
+    SharedPreferences.setMockInitialValues({});
+    await EasyLocalization.ensureInitialized();
+  });
+
   Honor honor() {
     return const Honor(
       id: 7,
@@ -53,10 +69,22 @@ void main() {
             (ref) async => [currentUserHonor],
           ),
         ],
-        child: MaterialApp(
-          home: HonorEvidenceView(
-            honorId: currentHonor.id,
-            userHonorId: currentUserHonor.id,
+        child: EasyLocalization(
+          supportedLocales: const [Locale('es')],
+          path: 'assets/translations',
+          assetLoader: const _NoTranslations(),
+          fallbackLocale: const Locale('es'),
+          startLocale: const Locale('es'),
+          child: Builder(
+            builder: (context) => MaterialApp(
+              locale: context.locale,
+              localizationsDelegates: context.localizationDelegates,
+              supportedLocales: context.supportedLocales,
+              home: HonorEvidenceView(
+                honorId: currentHonor.id,
+                userHonorId: currentUserHonor.id,
+              ),
+            ),
           ),
         ),
       ),
