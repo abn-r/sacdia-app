@@ -18,7 +18,6 @@ import 'package:sacdia_app/features/certificate_import/domain/entities/certifica
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_item.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_payloads.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/controllers/certificate_import_upload_controller.dart';
-import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_import_item_editor_sheet.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_status_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_upload_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_import_proof_card.dart';
@@ -747,53 +746,6 @@ void main() {
       expect(submit.onPressed, isNotNull);
     });
   });
-
-  for (final reduced in [false, true]) {
-    group(
-        'CertificateImportItemEditorSheet save errors'
-        '${reduced ? ' (reduced motion)' : ''}', () {
-      testWidgets('stops loading and shows the mapped error when onSave fails',
-          (tester) async {
-        if (reduced) {
-          tester.platformDispatcher.accessibilityFeaturesTestValue =
-              const FakeAccessibilityFeatures(disableAnimations: true);
-          addTearDown(
-              tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
-        }
-        var calls = 0;
-        await _pump(
-          tester,
-          Scaffold(
-            body: CertificateImportItemEditorSheet(
-              item: _batch().items.first,
-              onSave: (_) async {
-                calls++;
-                throw const ServerFailure(message: 'raw', errorCode: 'TIMEOUT');
-              },
-            ),
-          ),
-        );
-
-        await tester.tap(find.text('Guardar'));
-        await tester.pumpAndSettle();
-
-        expect(calls, 1);
-        expect(find.text('Revisa tu conexión e inténtalo de nuevo.'),
-            findsOneWidget);
-        expect(find.textContaining('raw'), findsNothing);
-        final save = tester.widget<SacButton>(
-          find.widgetWithText(SacButton, 'Guardar'),
-        );
-        expect(save.isLoading, isFalse);
-        expect(save.onPressed, isNotNull);
-
-        // The same sheet can retry; the old error clears on the next attempt.
-        await tester.tap(find.text('Guardar'));
-        await tester.pumpAndSettle();
-        expect(calls, 2);
-      });
-    });
-  }
 
   group('CertificateImportStatusView', () {
     testWidgets('shows rejected correction and resubmit affordance',

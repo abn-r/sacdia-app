@@ -76,6 +76,9 @@ class CertificateImportItemUpdatePayload {
   final Map<String, dynamic>? fieldConfidence;
   final bool markAsReady;
 
+  /// Only a consistency check for class rows; the API does not store it.
+  final int? clubTypeId;
+
   const CertificateImportItemUpdatePayload({
     required this.itemType,
     this.honorId,
@@ -86,12 +89,14 @@ class CertificateImportItemUpdatePayload {
     this.ocrConfidence,
     this.fieldConfidence,
     this.markAsReady = false,
+    this.clubTypeId,
   });
 
   Map<String, dynamic> toJson() => {
         'item_type': itemType,
         if (honorId != null) 'honor_id': honorId,
         if (classId != null) 'class_id': classId,
+        if (classId != null && clubTypeId != null) 'club_type_id': clubTypeId,
         if (detectedName != null) 'detected_name': detectedName,
         if (detectedDate != null) 'detected_date': detectedDate,
         if (completedAt != null) 'completed_at': completedAt,

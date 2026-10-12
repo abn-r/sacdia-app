@@ -13,6 +13,7 @@ import 'package:sacdia_app/features/certificate_import/domain/entities/certifica
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_review_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_import_item_editor_sheet.dart';
 
+import '../../support/catalog_fakes.dart';
 import '../../support/test_app.dart';
 
 const _file1 = CertificateImportFile(
@@ -127,6 +128,7 @@ Future<void> _show(
       onChooseOtherFile: onChooseOtherFile,
     ),
     proofRoutes: proofRoutes,
+    overrides: catalogOverrides(),
   ));
   if (settle) {
     await tester.pumpAndSettle();
