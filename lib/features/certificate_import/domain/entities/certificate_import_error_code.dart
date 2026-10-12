@@ -14,6 +14,8 @@ abstract final class CertificateImportErrorCode {
   static const ocrUnsupportedType = 'CERTIFICATE_IMPORT_OCR_UNSUPPORTED_TYPE';
   static const ocrFileTooLarge = 'CERTIFICATE_IMPORT_OCR_FILE_TOO_LARGE';
   static const fileNotConfirmed = 'CERTIFICATE_IMPORT_FILE_NOT_CONFIRMED';
+  static const batchNotDeletable = 'CERTIFICATE_IMPORT_BATCH_NOT_DELETABLE';
+  static const ocrInProgress = 'CERTIFICATE_IMPORT_OCR_IN_PROGRESS';
 
   /// No HTTP response: no connectivity, DNS or TLS failure.
   static const network = 'NETWORK';
@@ -32,6 +34,8 @@ abstract final class CertificateImportErrorCode {
     ocrUnsupportedType,
     ocrFileTooLarge,
     fileNotConfirmed,
+    batchNotDeletable,
+    ocrInProgress,
     network,
     timeout,
   };

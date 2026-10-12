@@ -30,6 +30,10 @@ abstract class CertificateImportRepository {
 
   Future<Either<Failure, CertificateImportBatch>> processOcr(String batchId);
 
+  /// Deletes a DRAFT batch. A batch that no longer exists (404) counts as
+  /// deleted; any other failure is returned so the caller can log it.
+  Future<Either<Failure, void>> deleteBatch(String batchId);
+
   Future<Either<Failure, CertificateImportBatch>> getBatch(
     String batchId, {
     RequestCancelToken? cancelToken,

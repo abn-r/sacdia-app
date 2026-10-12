@@ -62,6 +62,10 @@ abstract class CertificateImportRemoteDataSource {
 
   Future<CertificateImportBatchModel> processOcr(String batchId);
 
+  /// Deletes a DRAFT batch. 404 (not found or not yours) and 409 (not
+  /// deletable, reading in progress) arrive as exceptions with their status.
+  Future<void> deleteBatch(String batchId);
+
   Future<CertificateImportBatchModel> getBatch(
     String batchId, {
     CancelToken? cancelToken,
@@ -268,6 +272,21 @@ class CertificateImportRemoteDataSourceImpl
   Future<CertificateImportBatchModel> processOcr(String batchId) async {
     final response = await _dio.post('$_endpoint/$batchId/process-ocr');
     return CertificateImportBatchModel.fromJson(_data(response));
+  }
+
+  @override
+  Future<void> deleteBatch(String batchId) async {
+    final response = await _dio.delete('$_endpoint/$batchId');
+    final status = response.statusCode;
+    if (status == 200 || status == 204) return;
+    final body = response.data;
+    throw ServerException(
+      message: 'certificate_import.errors.unexpected.body'.tr(),
+      code: status,
+      errorCode: CertificateImportErrorCode.known(
+        body is Map ? (body['code'] ?? body['message']) : null,
+      ),
+    );
   }
 
   @override
