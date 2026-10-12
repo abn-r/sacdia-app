@@ -5,15 +5,19 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../../domain/entities/certificate_import_payloads.dart';
 import '../../domain/entities/certificate_import_batch.dart';
 import '../../domain/entities/certificate_import_item.dart';
 import '../../domain/usecases/resubmit_certificate_import_item.dart';
+import '../error/certificate_import_error_mapper.dart';
 import '../providers/certificate_import_providers.dart';
 import '../widgets/certificate_import_back_button.dart';
 import '../widgets/certificate_import_item_card.dart';
+import '../widgets/import_load_error_scaffold.dart';
 
 class CertificateImportStatusRouteView extends ConsumerWidget {
   const CertificateImportStatusRouteView({super.key, required this.batchId});
@@ -24,30 +28,13 @@ class CertificateImportStatusRouteView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final batchAsync = ref.watch(certificateImportBatchProvider(batchId));
     return batchAsync.when(
-      loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (error, _) => Scaffold(
-          extendBodyBehindAppBar: true,
-          appBar: SacTopBar(
-              title: 'certificate_import.status.title'.tr(),
-              leading: const CertificateImportBackButton(
-                fallbackLocation: RouteNames.certificateImportUpload,
-              ),
-              frosted: true),
-          body: SacFrostedVeil(
-            child: Builder(
-              builder: (context) => Padding(
-                padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
-                child: Center(
-                  child: Text(
-                    'certificate_import.status.load_error'.tr(
-                      namedArgs: {'error': '$error'},
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          )),
+      loading: () => const Scaffold(body: Center(child: SacLoading())),
+      error: (_, __) => ImportLoadErrorScaffold(
+        title: 'certificate_import.status.title'.tr(),
+        bodyKey: 'certificate_import.status.load_error',
+        fallbackLocation: RouteNames.certificateImportUpload,
+        onRetry: () => ref.invalidate(certificateImportBatchProvider(batchId)),
+      ),
       data: (batch) => CertificateImportStatusView(
         batch: batch,
         onResubmitItem: (item) async {
@@ -68,7 +55,7 @@ class CertificateImportStatusRouteView extends ConsumerWidget {
                       ),
                     ),
                   );
-          result.fold((failure) => throw Exception(failure.message), (_) {});
+          result.fold((failure) => throw failure, (_) {});
         },
       ),
     );
@@ -89,6 +76,22 @@ class CertificateImportStatusView extends StatelessWidget {
 
   final CertificateImportBatch batch;
   final Future<void> Function(CertificateImportItem item)? onResubmitItem;
+
+  Future<void> _resubmit(
+    BuildContext context,
+    CertificateImportItem item,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await onResubmitItem?.call(item);
+    } catch (error) {
+      SacSnackBar.showMessenger(
+        messenger,
+        CertificateImportErrorMapper.message(error),
+        isError: true,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -189,7 +192,7 @@ class CertificateImportStatusView extends StatelessWidget {
               for (final item in rejected) ...[
                 CertificateImportItemCard(
                   item: item,
-                  onResubmit: () => onResubmitItem?.call(item),
+                  onResubmit: () => _resubmit(context, item),
                 ),
                 const SizedBox(height: 12),
               ],

@@ -4595,71 +4595,138 @@
   },
   "certificate_import": {
     "upload": {
-      "pdf_too_many_pages": "The PDF has more than 5 pages. Split the document or extract up to 5 pages and upload it again.",
-      "pdf_encrypted": "The PDF is protected. Remove its password or protection and upload it again.",
-      "pdf_invalid": "The PDF could not be read. Export it again as a PDF and upload it again.",
       "title": "Certificate upload",
-      "hint": "PDFs with up to 5 pages or JPEG, PNG and WebP images, maximum 10 MiB. One document per upload. You can credit classes in any order, without a curriculum sequence. Complete the data by hand before sending.",
-      "submit": "Upload receipt",
+      "hint": "PDF of up to 5 pages or a JPEG, PNG or WebP photo. Maximum 10 MB. One receipt per upload.",
+      "submit": "Read receipt",
       "camera": "Take photo",
       "file": "Choose file",
       "choose": "Add receipt",
       "source_title": "How do you want to add it?",
-      "camera_sub": "Use the camera to photograph the document",
+      "camera_sub": "Lay the document on a flat surface with good light",
       "gallery": "Choose from gallery",
-      "gallery_sub": "JPEG, PNG or WebP photos from your camera roll",
+      "gallery_sub": "JPEG, PNG or WebP photos",
       "file_sub": "PDF or image saved on your device",
       "uploading": "Uploading your receipt…",
       "reading": "Reading your receipt…",
       "unsupported_type": "Unsupported format. Use a PDF or a JPEG, PNG or WebP image.",
-      "too_large": "The file is larger than 10 MiB. Choose a smaller one.",
+      "too_large": "The file is larger than 10 MB. Choose a smaller one or take the photo again.",
       "picker_error": "Couldn't open the receipt picker.",
       "no_submit": "No process is configured to submit receipts.",
       "hero_title": "Upload your receipt",
-      "hero_body": "We upload the file securely. Then you complete the record by hand: check the name, class or honor, and date before sending.",
+      "hero_body": "We read your certificate and suggest the honors and classes. You review them before sending them to your Local Field.",
       "selected_one": "Receipt selected",
-      "selected_other": "{count} receipts selected"
+      "selected_other": "{count} receipts selected",
+      "uploading_pct": "Uploading your receipt… {percent} %",
+      "reading_slow": "Still reading… multi-page PDFs take a little longer.",
+      "skip_wait": "Continue without waiting",
+      "cancel": "Cancel"
     },
-    "processing": {
-      "title": "Reading receipt",
-      "running_title": "We are reading your receipt",
-      "error_title": "We couldn't read everything",
-      "manual_title": "Complete the record by hand",
-      "running_body": "We extract honors, classes and dates so you can confirm the data.",
-      "error_body": "You can complete the data manually. We won't leave you stuck.",
-      "manual_body": "Automatic reading is not available right now. You can add and correct rows manually without losing the file.",
-      "step_upload": "Uploading file",
-      "step_ocr": "Reading text",
-      "step_results": "Preparing results",
-      "manual": "Complete manually",
-      "retry": "Retry reading"
+    "errors": {
+      "retry": "Try again",
+      "change_file": "Change file",
+      "choose_other": "Choose another file",
+      "choose_other_short": "Choose another",
+      "load_error_title": "We couldn't load your receipt",
+      "local_file": {
+        "title": "We can't use this file"
+      },
+      "offline": {
+        "title": "No connection",
+        "body": "Check your internet connection and try again."
+      },
+      "offline_upload": {
+        "body": "Check your internet connection. Your file is still here, you don't need to pick it again."
+      },
+      "timeout": {
+        "title": "The connection took too long",
+        "body": "Check your connection and try again."
+      },
+      "pdf_pages": {
+        "title": "The PDF has more than 5 pages",
+        "body": "Split the document or save only the certificate pages (up to 5) and upload it again."
+      },
+      "pdf_encrypted": {
+        "title": "The PDF is protected",
+        "body": "Remove the file's password or protection and upload it again."
+      },
+      "pdf_invalid": {
+        "title": "We couldn't open the PDF",
+        "body": "Save it again as a PDF from the app where you have it and upload it once more."
+      },
+      "pdf_busy": {
+        "title": "We are very busy right now",
+        "body": "We're checking other files. Wait a few seconds and try again."
+      },
+      "type": {
+        "title": "We couldn't read this file type",
+        "body": "Use a PDF or a JPEG, PNG or WebP image."
+      },
+      "too_large": {
+        "title": "The file is too large",
+        "body": "The file is larger than 10 MB. Choose a smaller one or take the photo again."
+      },
+      "not_confirmed": {
+        "title": "Your receipt is still being processed",
+        "body": "Wait a few seconds and try again."
+      },
+      "ocr_off": {
+        "title": "Automatic reading is not available right now",
+        "body": "You can add your honors and classes yourself by looking at your receipt."
+      },
+      "ocr_quota": {
+        "title": "We've reached the reading limit for now",
+        "body": "Try again later or add your honors and classes yourself by looking at your receipt."
+      },
+      "ocr_failed": {
+        "title": "We couldn't read your receipt",
+        "body": "Something went wrong while reading it. You can try again or add them yourself by looking at your receipt."
+      },
+      "unexpected": {
+        "title": "Something went wrong",
+        "body": "We couldn't complete the action. Try again."
+      },
+      "unexpected_upload": {
+        "body": "We couldn't upload your receipt. Try again."
+      }
+    },
+    "steps": {
+      "upload": "Upload",
+      "read": "Read",
+      "review": "Review",
+      "done": "done",
+      "active": "in progress",
+      "pending": "pending",
+      "semantics": "Step {n} of 3, {label}, {status}"
     },
     "review": {
       "title": "Review the data",
-      "load_error": "We couldn't load the batch: {error}",
+      "load_error": "Check your connection and try again.",
       "found": "We found",
       "honor_one": "{count} honor",
       "honor_other": "{count} honors",
       "class_one": "{count} class",
       "class_other": "{count} classes",
       "and": "and",
-      "independent_hint": "You can upload Friend and Explorer separately, in any order, without requiring Companion.",
       "view_proof": "View proof",
       "gm01_replace": "If Guide Major (GM-01) is approved, it replaces the current enrollment. Two records are not kept.",
       "institutional": "Advanced Guide Major and Instructor go to institutional review. Approving that request does not register a class or create an enrollment.",
       "period_pending": "pending an administrative period",
       "filter_all": "All {count}",
       "filter_ready": "Ready {count}",
-      "filter_missing": "Missing data {count}",
+      "filter_missing": "To complete {count}",
       "empty_filter": "No rows for this filter.",
-      "add_row": "Add row",
+      "add_row": "Add honor or class",
       "submit": "Send for review",
       "ready_dock": "{count} ready",
-      "missing_dock": "{count} missing data"
+      "missing_dock": "{count} missing data",
+      "no_rows": "No rows yet",
+      "remove_honor_title": "Remove this honor?",
+      "remove_class_title": "Remove this class?",
+      "remove_body": "It won't be sent for review. You can add it again later."
     },
     "status": {
       "title": "Submission status",
-      "load_error": "We couldn't load the status: {error}",
+      "load_error": "Check your connection and try again.",
       "corrections_title": "Pending corrections",
       "in_review_title": "In review",
       "corrections_body": "There are pending corrections",
@@ -4670,20 +4737,18 @@
       "period_pending": "pending an administrative period"
     },
     "item": {
-      "honor": "HONOR",
-      "class": "CLASS",
-      "rejected": "REJECTED",
-      "ready": "READY",
-      "missing": "MISSING DATA",
+      "honor": "Honor",
+      "class": "Class",
+      "rejected": "Rejected",
+      "ready": "Ready",
+      "missing": "To complete",
       "unnamed": "No name detected",
       "fix_resubmit": "Fix and resubmit",
       "fix": "Fix",
       "remove": "Remove",
       "period_pending": "pending an administrative period",
       "gm01_replace": "If approved, it replaces the current Guide Major enrollment.",
-      "institutional": "Institutional review: approving does not create an enrollment.",
-      "catalog_meta": "Catalog: {id} · {date}",
-      "catalog_pending": "pending"
+      "institutional": "Institutional review: approving does not create an enrollment."
     },
     "editor": {
       "title": "Edit row",
@@ -4694,7 +4759,7 @@
       "catalog_id": "Catalog ID",
       "completed_at": "Completion date",
       "date_hint": "YYYY-MM-DD",
-      "save": "Save correction"
+      "save": "Save"
     },
     "viewer": {
       "title": "Your proof",

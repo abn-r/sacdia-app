@@ -3,6 +3,7 @@ export '../../domain/entities/certificate_import_item.dart';
 import 'package:equatable/equatable.dart';
 import '../../../../core/utils/json_helpers.dart';
 import '../../domain/entities/certificate_import_batch.dart';
+import '../../domain/entities/certificate_import_ocr_state.dart';
 import 'certificate_import_file_model.dart';
 import 'certificate_import_item_model.dart';
 
@@ -16,6 +17,8 @@ class CertificateImportBatchModel extends Equatable {
   final DateTime? reviewedAt;
   final DateTime? createdAt;
   final DateTime? modifiedAt;
+  final CertificateImportOcrState? ocrState;
+  final bool hasOcrState;
 
   const CertificateImportBatchModel({
     required this.id,
@@ -27,6 +30,8 @@ class CertificateImportBatchModel extends Equatable {
     this.reviewedAt,
     this.createdAt,
     this.modifiedAt,
+    this.ocrState,
+    this.hasOcrState = false,
   });
 
   factory CertificateImportBatchModel.fromJson(Map<String, dynamic> json) {
@@ -52,6 +57,12 @@ class CertificateImportBatchModel extends Equatable {
       reviewedAt: _parseDate(json['reviewed_at']),
       createdAt: _parseDate(json['created_at']),
       modifiedAt: _parseDate(json['modified_at']),
+      ocrState: CertificateImportOcrState.tryParse(json['ocr_state']),
+      // An absent key or an unknown value means "no data"; an explicit null
+      // means OCR was never requested.
+      hasOcrState: json.containsKey('ocr_state') &&
+          (json['ocr_state'] == null ||
+              CertificateImportOcrState.tryParse(json['ocr_state']) != null),
     );
   }
 
@@ -71,6 +82,7 @@ class CertificateImportBatchModel extends Equatable {
         'reviewed_at': reviewedAt?.toIso8601String(),
         'created_at': createdAt?.toIso8601String(),
         'modified_at': modifiedAt?.toIso8601String(),
+        if (hasOcrState) 'ocr_state': ocrState?.name,
       };
 
   CertificateImportBatch toEntity() => CertificateImportBatch(
@@ -83,6 +95,8 @@ class CertificateImportBatchModel extends Equatable {
         reviewedAt: reviewedAt,
         createdAt: createdAt,
         modifiedAt: modifiedAt,
+        ocrState: ocrState,
+        hasOcrState: hasOcrState,
       );
 
   static DateTime? _parseDate(dynamic value) {
@@ -101,5 +115,7 @@ class CertificateImportBatchModel extends Equatable {
         reviewedAt,
         createdAt,
         modifiedAt,
+        ocrState,
+        hasOcrState,
       ];
 }

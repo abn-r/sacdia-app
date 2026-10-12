@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'certificate_import_file.dart';
 import 'certificate_import_item.dart';
+import 'certificate_import_ocr_state.dart';
 
 class CertificateImportBatch extends Equatable {
   final String id;
@@ -13,6 +14,14 @@ class CertificateImportBatch extends Equatable {
   final DateTime? createdAt;
   final DateTime? modifiedAt;
 
+  /// Reading state reported by the API. `null` with [hasOcrState] means OCR
+  /// was never requested for this batch.
+  final CertificateImportOcrState? ocrState;
+
+  /// False when the API did not send `ocr_state` at all (backend without
+  /// the field): callers fall back to checking whether rows arrived.
+  final bool hasOcrState;
+
   const CertificateImportBatch({
     required this.id,
     required this.status,
@@ -23,6 +32,8 @@ class CertificateImportBatch extends Equatable {
     this.reviewedAt,
     this.createdAt,
     this.modifiedAt,
+    this.ocrState,
+    this.hasOcrState = false,
   });
 
   int get readyCount => items.where((item) => item.isReady).length;
@@ -40,5 +51,7 @@ class CertificateImportBatch extends Equatable {
         reviewedAt,
         createdAt,
         modifiedAt,
+        ocrState,
+        hasOcrState,
       ];
 }

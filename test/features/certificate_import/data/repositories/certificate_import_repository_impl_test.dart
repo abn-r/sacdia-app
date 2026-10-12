@@ -5,6 +5,7 @@ import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/network/network_info.dart';
 import 'package:dio/dio.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_payloads.dart';
+import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_upload_session.dart';
 import 'package:sacdia_app/features/certificate_import/data/models/certificate_import_batch_list_model.dart';
 import 'package:sacdia_app/features/certificate_import/data/models/certificate_import_batch_model.dart';
 import 'package:sacdia_app/features/certificate_import/data/models/certificate_import_file_model.dart';
@@ -20,10 +21,12 @@ class _NetworkInfo implements NetworkInfo {
 
 class _RemoteDataSource implements CertificateImportRemoteDataSource {
   Object? error;
+  CancelToken? lastGetBatchToken;
 
   @override
   Future<CertificateImportBatchModel> createBatch({
     List<CertificateImportFilePayload> files = const [],
+    CancelToken? cancelToken,
   }) async {
     if (error != null) throw error!;
     return const CertificateImportBatchModel(id: 'batch-1', status: 'DRAFT');
@@ -32,6 +35,7 @@ class _RemoteDataSource implements CertificateImportRemoteDataSource {
   @override
   Future<CertificateImportBatchModel> uploadLocalProof(
     CertificateImportLocalProof proof, {
+    CertificateImportUploadSession? session,
     void Function(double progress)? onProgress,
     CancelToken? cancelToken,
   }) async {
@@ -45,6 +49,7 @@ class _RemoteDataSource implements CertificateImportRemoteDataSource {
     required String fileName,
     required String mimeType,
     required int fileSize,
+    CancelToken? cancelToken,
   }) async =>
       const CertificateImportPresignTicketModel(
         fileId: 'file-1',
@@ -66,6 +71,7 @@ class _RemoteDataSource implements CertificateImportRemoteDataSource {
   Future<CertificateImportFileModel> confirmFile({
     required String batchId,
     required String fileId,
+    CancelToken? cancelToken,
   }) async =>
       const CertificateImportFileModel(
         id: 'file-1',
@@ -87,8 +93,13 @@ class _RemoteDataSource implements CertificateImportRemoteDataSource {
       );
 
   @override
-  Future<CertificateImportBatchModel> getBatch(String batchId) async =>
-      const CertificateImportBatchModel(id: 'batch-1', status: 'DRAFT');
+  Future<CertificateImportBatchModel> getBatch(
+    String batchId, {
+    CancelToken? cancelToken,
+  }) async {
+    lastGetBatchToken = cancelToken;
+    return const CertificateImportBatchModel(id: 'batch-1', status: 'DRAFT');
+  }
 
   @override
   Future<String> signedDownloadUrl({
@@ -198,5 +209,100 @@ void main() {
       },
       (_) => fail('expected failure'),
     );
+  });
+
+  failureMappingTests();
+  cancelTokenTests();
+}
+
+Future<Failure> _failureFor(Object error) async {
+  final repository = CertificateImportRepositoryImpl(
+    remoteDataSource: _RemoteDataSource()..error = error,
+    networkInfo: _NetworkInfo(),
+  );
+  final result = await repository.createBatch(files: const []);
+  return result.fold((failure) => failure, (_) => fail('expected failure'));
+}
+
+DioException _dio(
+  DioExceptionType type, {
+  int? status,
+  Object? body,
+}) {
+  final request = RequestOptions(path: '/certificate-bulk-imports');
+  return DioException(
+    requestOptions: request,
+    type: type,
+    response: status == null
+        ? null
+        : Response(requestOptions: request, statusCode: status, data: body),
+  );
+}
+
+void cancelTokenTests() {
+  test('getBatch hands its cancel token to the data source', () async {
+    final remote = _RemoteDataSource();
+    final repository = CertificateImportRepositoryImpl(
+      remoteDataSource: remote,
+      networkInfo: _NetworkInfo(),
+    );
+    final token = CancelToken();
+
+    await repository.getBatch('batch-1', cancelToken: token);
+
+    expect(remote.lastGetBatchToken, same(token));
+  });
+}
+
+void failureMappingTests() {
+  group('failure mapping', () {
+    test('keeps the PDF_BUSY code and status from the legacy envelope',
+        () async {
+      final failure = await _failureFor(_dio(
+        DioExceptionType.badResponse,
+        status: 429,
+        body: {'message': 'CERTIFICATE_IMPORT_PDF_BUSY'},
+      ));
+      expect(failure.errorCode, 'CERTIFICATE_IMPORT_PDF_BUSY');
+      expect(failure.code, 429);
+      expect(failure.message, isNot(contains('PDF_BUSY')));
+    });
+
+    test('reads the business code from the code field too', () async {
+      final failure = await _failureFor(_dio(
+        DioExceptionType.badResponse,
+        status: 400,
+        body: {
+          'code': 'CERTIFICATE_IMPORT_OCR_UNAVAILABLE',
+          'message': 'Redis down at 10.0.0.4',
+        },
+      ));
+      expect(failure.errorCode, 'CERTIFICATE_IMPORT_OCR_UNAVAILABLE');
+      expect(failure.message, isNot(contains('Redis')));
+    });
+
+    test('flags connection errors and timeouts without a response', () async {
+      expect(
+        (await _failureFor(_dio(DioExceptionType.connectionError))).errorCode,
+        'NETWORK',
+      );
+      expect(
+        (await _failureFor(_dio(DioExceptionType.receiveTimeout))).errorCode,
+        'TIMEOUT',
+      );
+      expect(
+        (await _failureFor(ConnectionException(message: 'offline'))).errorCode,
+        'NETWORK',
+      );
+    });
+
+    test('drops unknown backend text instead of passing it on', () async {
+      final failure = await _failureFor(
+        ServerException(message: 'ORA-00942 table missing', code: 500),
+      );
+      expect(failure.errorCode, isNull);
+      expect(failure.message, isNot(contains('ORA-00942')));
+      expect(failure.code, 500);
+    });
   });
 }

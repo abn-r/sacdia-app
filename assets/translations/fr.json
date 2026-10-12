@@ -1536,7 +1536,7 @@
     },
     "nav": {
       "evidence_title": "Révision des preuves",
-      "evidence_subtitle": "Approuver ou rejeter dossiers, cours et honneurs",
+      "evidence_subtitle": "Approuver ou rejeter dossiers, cours et spécialités",
       "clubs_title": "Clubs et sections",
       "clubs_subtitle": "Voir les clubs et sections sous votre coordination",
       "camporees_title": "Approbations de camporées",
@@ -1607,7 +1607,7 @@
         "filter_all": "Tous",
         "filter_folders": "Dossiers",
         "filter_classes": "Cours",
-        "filter_honors": "Honneurs",
+        "filter_honors": "Spécialités",
         "access_restricted": "Accès restreint",
         "access_restricted_msg": "Seuls les coordinateurs et administrateurs peuvent accéder à cette section.",
         "error_load": "Erreur lors du chargement des preuves",
@@ -1693,7 +1693,7 @@
     "evidence_type": {
       "folder": "Dossier",
       "class_type": "Classe",
-      "honor": "Honneur"
+      "honor": "Spécialité"
     },
     "clubs": {
       "title": "Clubs assignés",
@@ -4593,71 +4593,138 @@
   },
   "certificate_import": {
     "upload": {
-      "pdf_too_many_pages": "Le PDF contient plus de 5 pages. Divisez le document ou extrayez jusqu’à 5 pages, puis importez-le à nouveau.",
-      "pdf_encrypted": "Le PDF est protégé. Retirez son mot de passe ou sa protection, puis importez-le à nouveau.",
-      "pdf_invalid": "Le PDF n’a pas pu être lu. Exportez-le à nouveau au format PDF, puis importez-le à nouveau.",
       "title": "Import par certificat",
-      "hint": "PDF de 5 pages maximum ou images JPEG, PNG et WebP, maximum 10 MiB. Un document par envoi. Vous pouvez attester des classes dans n’importe quel ordre, sans séquence du cursus. Complétez les données à la main avant d’envoyer.",
-      "submit": "Envoyer le justificatif",
+      "hint": "PDF de 5 pages maximum ou photo JPEG, PNG ou WebP. 10 Mo maximum. Un justificatif par envoi.",
+      "submit": "Lire le justificatif",
       "camera": "Prendre une photo",
       "file": "Choisir un fichier",
       "choose": "Ajouter un justificatif",
       "source_title": "Comment voulez-vous l’ajouter ?",
-      "camera_sub": "Utilisez l’appareil photo pour photographier le document",
+      "camera_sub": "Posez le document sur une surface plane et bien éclairée",
       "gallery": "Choisir dans la galerie",
-      "gallery_sub": "Photos JPEG, PNG ou WebP de votre pellicule",
+      "gallery_sub": "Photos JPEG, PNG ou WebP",
       "file_sub": "PDF ou image enregistrés sur votre appareil",
       "uploading": "Envoi de votre justificatif…",
       "reading": "Lecture de votre justificatif…",
       "unsupported_type": "Format non pris en charge. Utilisez un PDF ou une image JPEG, PNG ou WebP.",
-      "too_large": "Le fichier dépasse 10 Mio. Choisissez-en un plus léger.",
+      "too_large": "Le fichier dépasse 10 Mo. Choisissez-en un plus léger ou reprenez la photo.",
       "picker_error": "Impossible d’ouvrir le sélecteur de justificatifs.",
       "no_submit": "Aucun processus n’est configuré pour envoyer des justificatifs.",
       "hero_title": "Chargez votre justificatif",
-      "hero_body": "Nous envoyons le fichier de façon sécurisée. Vous complétez ensuite le dossier à la main : vérifiez le nom, la classe ou la spécialité et la date avant d’envoyer.",
+      "hero_body": "Nous lisons votre certificat et vous proposons les spécialités et classes. Vous les vérifiez avant de les envoyer à votre Champ local.",
       "selected_one": "Justificatif sélectionné",
-      "selected_other": "{count} justificatifs sélectionnés"
+      "selected_other": "{count} justificatifs sélectionnés",
+      "uploading_pct": "Envoi de votre justificatif… {percent} %",
+      "reading_slow": "Lecture en cours… les PDF de plusieurs pages prennent un peu plus de temps.",
+      "skip_wait": "Continuer sans attendre",
+      "cancel": "Annuler"
     },
-    "processing": {
-      "title": "Lecture du justificatif",
-      "running_title": "Nous lisons votre justificatif",
-      "error_title": "Nous n’avons pas tout lu",
-      "manual_title": "Complétez le dossier à la main",
-      "running_body": "Nous extrayons honneurs, classes et dates pour que vous confirmiez les données.",
-      "error_body": "Vous pouvez compléter les données manuellement. Nous ne vous laissons pas bloqué.",
-      "manual_body": "La lecture automatique n’est pas disponible pour le moment. Vous pouvez ajouter et corriger des lignes sans perdre le fichier.",
-      "step_upload": "Envoi du fichier",
-      "step_ocr": "Lecture du texte",
-      "step_results": "Préparation des résultats",
-      "manual": "Compléter manuellement",
-      "retry": "Relancer la lecture"
+    "errors": {
+      "retry": "Réessayer",
+      "change_file": "Changer de fichier",
+      "choose_other": "Choisir un autre fichier",
+      "choose_other_short": "En choisir un autre",
+      "load_error_title": "Impossible de charger votre justificatif",
+      "local_file": {
+        "title": "Nous ne pouvons pas utiliser ce fichier"
+      },
+      "offline": {
+        "title": "Pas de connexion",
+        "body": "Vérifiez votre connexion internet et réessayez."
+      },
+      "offline_upload": {
+        "body": "Vérifiez votre connexion internet. Votre fichier est toujours là, inutile de le choisir à nouveau."
+      },
+      "timeout": {
+        "title": "La connexion a pris trop de temps",
+        "body": "Vérifiez votre connexion et réessayez."
+      },
+      "pdf_pages": {
+        "title": "Le PDF contient plus de 5 pages",
+        "body": "Divisez le document ou enregistrez seulement les pages du certificat (5 au maximum), puis importez-le à nouveau."
+      },
+      "pdf_encrypted": {
+        "title": "Le PDF est protégé",
+        "body": "Retirez le mot de passe ou la protection du fichier, puis importez-le à nouveau."
+      },
+      "pdf_invalid": {
+        "title": "Impossible d’ouvrir le PDF",
+        "body": "Enregistrez-le à nouveau au format PDF depuis l’application où vous l’avez, puis importez-le encore."
+      },
+      "pdf_busy": {
+        "title": "Forte demande en ce moment",
+        "body": "Nous vérifions d’autres fichiers. Attendez quelques secondes et réessayez."
+      },
+      "type": {
+        "title": "Impossible de lire ce type de fichier",
+        "body": "Utilisez un PDF ou une image JPEG, PNG ou WebP."
+      },
+      "too_large": {
+        "title": "Le fichier est trop volumineux",
+        "body": "Le fichier dépasse 10 Mo. Choisissez-en un plus léger ou reprenez la photo."
+      },
+      "not_confirmed": {
+        "title": "Votre justificatif est encore en cours de traitement",
+        "body": "Attendez quelques secondes et réessayez."
+      },
+      "ocr_off": {
+        "title": "La lecture automatique n’est pas disponible pour le moment",
+        "body": "Vous pouvez ajouter vous-même vos spécialités et classes en regardant votre justificatif."
+      },
+      "ocr_quota": {
+        "title": "Nous avons atteint la limite de lectures pour le moment",
+        "body": "Réessayez plus tard ou ajoutez vous-même vos spécialités et classes en regardant votre justificatif."
+      },
+      "ocr_failed": {
+        "title": "Impossible de lire votre justificatif",
+        "body": "Un problème est survenu à la lecture. Vous pouvez réessayer ou les ajouter vous-même en regardant votre justificatif."
+      },
+      "unexpected": {
+        "title": "Un problème est survenu",
+        "body": "Impossible de terminer l’action. Réessayez."
+      },
+      "unexpected_upload": {
+        "body": "Impossible d’envoyer votre justificatif. Réessayez."
+      }
+    },
+    "steps": {
+      "upload": "Envoyer",
+      "read": "Lire",
+      "review": "Vérifier",
+      "done": "terminée",
+      "active": "en cours",
+      "pending": "à venir",
+      "semantics": "Étape {n} sur 3, {label}, {status}"
     },
     "review": {
       "title": "Vérifiez les données",
-      "load_error": "Impossible de charger le lot : {error}",
+      "load_error": "Vérifiez votre connexion et réessayez.",
       "found": "Nous avons trouvé",
       "honor_one": "{count} spécialité",
       "honor_other": "{count} spécialités",
       "class_one": "{count} classe",
       "class_other": "{count} classes",
       "and": "et",
-      "independent_hint": "Vous pouvez charger Ami et Explorateur séparément, dans n’importe quel ordre, sans exiger Compagnon.",
       "view_proof": "Voir le justificatif",
       "gm01_replace": "Si Guide majeur (GM-01) est approuvé, il remplace l’inscription actuelle. Deux enregistrements ne sont pas conservés.",
       "institutional": "Guide majeur avancé et Instructeur passent en révision institutionnelle. Approuver cette demande n’enregistre pas une classe et ne crée pas d’inscription.",
       "period_pending": "en attente de période administrative",
       "filter_all": "Toutes {count}",
       "filter_ready": "Prêtes {count}",
-      "filter_missing": "Donnée manquante {count}",
+      "filter_missing": "À compléter {count}",
       "empty_filter": "Aucune ligne pour ce filtre.",
-      "add_row": "Ajouter une ligne",
+      "add_row": "Ajouter une spécialité ou une classe",
       "submit": "Envoyer en révision",
       "ready_dock": "{count} prêtes",
-      "missing_dock": "{count} données manquantes"
+      "missing_dock": "{count} données manquantes",
+      "no_rows": "Aucune ligne pour le moment",
+      "remove_honor_title": "Retirer cette spécialité ?",
+      "remove_class_title": "Retirer cette classe ?",
+      "remove_body": "Elle ne sera pas envoyée en révision. Vous pourrez la rajouter plus tard."
     },
     "status": {
       "title": "État de l’envoi",
-      "load_error": "Impossible de charger l’état : {error}",
+      "load_error": "Vérifiez votre connexion et réessayez.",
       "corrections_title": "Corrections en attente",
       "in_review_title": "En révision",
       "corrections_body": "Des corrections sont en attente",
@@ -4668,31 +4735,29 @@
       "period_pending": "en attente de période administrative"
     },
     "item": {
-      "honor": "HONNEUR",
-      "class": "CLASSE",
-      "rejected": "REJETÉ",
-      "ready": "PRÊT",
-      "missing": "DONNÉE MANQUANTE",
+      "honor": "Spécialité",
+      "class": "Classe",
+      "rejected": "Rejetée",
+      "ready": "Prête",
+      "missing": "À compléter",
       "unnamed": "Aucun nom détecté",
       "fix_resubmit": "Corriger et renvoyer",
       "fix": "Corriger",
       "remove": "Retirer",
       "period_pending": "en attente de période administrative",
       "gm01_replace": "S’il est approuvé, il remplace l’inscription actuelle de Guide majeur.",
-      "institutional": "Révision institutionnelle : approuver ne crée pas d’inscription.",
-      "catalog_meta": "Catalogue : {id} · {date}",
-      "catalog_pending": "en attente"
+      "institutional": "Révision institutionnelle : approuver ne crée pas d’inscription."
     },
     "editor": {
       "title": "Corriger la ligne",
       "add_title": "Ajouter une ligne",
-      "honor": "Honneur",
+      "honor": "Spécialité",
       "class": "Classe",
       "name": "Nom détecté",
       "catalog_id": "ID catalogue",
       "completed_at": "Date de fin",
       "date_hint": "AAAA-MM-JJ",
-      "save": "Enregistrer la correction"
+      "save": "Enregistrer"
     },
     "viewer": {
       "title": "Votre justificatif",
