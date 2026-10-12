@@ -149,7 +149,8 @@ class HonorsRepositoryImpl implements HonorsRepository {
           await remoteDataSource.updateUserHonor(userId, honorId, data);
       return Right(userHonorModel.toEntity());
     } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, code: e.code));
+      return Left(ServerFailure(
+          message: e.message, code: e.code, errorCode: e.errorCode));
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message, code: e.code));
     } catch (e) {

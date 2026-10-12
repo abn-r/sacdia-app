@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:sacdia_app/core/widgets/instructor_selection.dart';
 
 enum HonorCompletionMode { undecided, inApp, external }
 
@@ -56,6 +57,14 @@ class UserHonor extends Equatable {
   final String? document;
   final DateTime date;
 
+  /// Day the member finished the honor (`date` is when it was started). Null
+  /// until the member picks it, and on rows the API has no value for.
+  final DateTime? completedAt;
+
+  /// Declared instructor: a person of the Local Field or a typed name. Null
+  /// when there is none (or the API did not send it).
+  final InstructorSelection? instructor;
+
   // Validation audit fields
   final DateTime? submittedAt;
   final String? validatedById;
@@ -86,6 +95,8 @@ class UserHonor extends Equatable {
     this.images = const [],
     this.document,
     required this.date,
+    this.completedAt,
+    this.instructor,
     this.submittedAt,
     this.validatedById,
     this.validatedByName,
@@ -118,6 +129,10 @@ class UserHonor extends Equatable {
     }
     return 'inscrito';
   }
+
+  /// Day to show as "finished": the member's date, else when it was
+  /// validated, else the start date.
+  DateTime get completionDate => completedAt ?? validatedAt ?? date;
 
   /// Whether the honor has been fully validated/completed.
   bool get isCompleted => validationStatus.toUpperCase() == 'APPROVED';
@@ -164,6 +179,8 @@ class UserHonor extends Equatable {
         images,
         document,
         date,
+        completedAt,
+        instructor,
         submittedAt,
         validatedById,
         validatedByName,

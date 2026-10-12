@@ -17,6 +17,19 @@ import '../models/requirement_evidence_model.dart';
 import '../models/user_honor_requirement_progress_model.dart';
 import '../models/user_honor_model.dart';
 
+/// Business code of an error body (`HONOR_INSTRUCTOR_INVALID`): in `code`, or
+/// in `message` on the legacy BadRequest envelope. Other messages are not
+/// codes and are ignored.
+String? _businessCode(Object? body) {
+  if (body is! Map) return null;
+  final pattern = RegExp(r'^[A-Z][A-Z0-9_]{3,}$');
+  for (final key in ['code', 'message']) {
+    final value = body[key];
+    if (value is String && pattern.hasMatch(value)) return value;
+  }
+  return null;
+}
+
 List<Map<String, dynamic>> _flattenRequirementProgressItems(
     List<dynamic> items) {
   final flattened = <Map<String, dynamic>>[];
@@ -406,7 +419,8 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       if (e is DioException) {
         throw ServerException(
             message: e.message ?? tr('common.error_network'),
-            code: e.response?.statusCode);
+            code: e.response?.statusCode,
+            errorCode: _businessCode(e.response?.data));
       }
       if (e is ServerException || e is AuthException) rethrow;
       throw ServerException(message: e.toString());

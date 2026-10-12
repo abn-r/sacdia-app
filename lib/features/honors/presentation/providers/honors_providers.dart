@@ -4,6 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../../core/errors/failures.dart';
+import '../../../../core/widgets/instructor_selection.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../../providers/json_file_cache_provider.dart';
 import '../../../../core/storage/cache_first.dart';
@@ -17,6 +19,7 @@ import '../../domain/entities/honor_category.dart';
 import '../../domain/entities/honor_group.dart';
 import '../../domain/entities/honor_requirement.dart';
 import '../../domain/entities/user_honor.dart';
+import '../../domain/entities/user_honor_update.dart';
 import '../../domain/entities/user_honor_requirement_progress.dart';
 import '../../domain/repositories/honors_repository.dart';
 import '../../domain/usecases/get_honor_categories.dart';
@@ -332,6 +335,42 @@ class HonorEvidenceActionsNotifier extends AutoDisposeAsyncNotifier<void> {
     ref.invalidate(userHonorForHonorProvider(honorId));
   }
 
+  /// Saves the instructor (the whole choice, `none` removes it).
+  ///
+  /// Does not touch [state]: the card shows its own progress. On success the
+  /// list is refreshed. Returns null when saved, or why it was not.
+  Future<Failure?> saveInstructor({
+    required String userId,
+    required int honorId,
+    required InstructorSelection instructor,
+  }) =>
+      _patch(userId, honorId, honorInstructorPatch(instructor));
+
+  /// Saves the day the member finished the honor.
+  Future<Failure?> saveCompletedAt({
+    required String userId,
+    required int honorId,
+    required DateTime completedAt,
+  }) =>
+      _patch(userId, honorId, honorCompletedAtPatch(completedAt));
+
+  Future<Failure?> _patch(
+    String userId,
+    int honorId,
+    Map<String, dynamic> data,
+  ) async {
+    final result = await ref
+        .read(honorsRepositoryProvider)
+        .updateUserHonor(userId, honorId, data);
+    return result.fold(
+      (failure) => failure,
+      (_) {
+        invalidateHonorEvidence(honorId);
+        return null;
+      },
+    );
+  }
+
   Future<bool> deleteEvidenceFile({
     required String userId,
     required UserHonor userHonor,
@@ -444,6 +483,8 @@ UserHonor _userHonorWithCompletionMode(
     honorCategoryName: userHonor.honorCategoryName,
     honorCategoryId: userHonor.honorCategoryId,
     honorSkillLevel: userHonor.honorSkillLevel,
+    completedAt: userHonor.completedAt,
+    instructor: userHonor.instructor,
   );
 }
 
