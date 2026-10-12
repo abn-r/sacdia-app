@@ -16,6 +16,7 @@ import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../domain/entities/certificate_import_file.dart';
+import '../error/certificate_import_error_mapper.dart';
 import '../providers/certificate_import_providers.dart';
 
 /// Optional `extra` of the proof route. When it is lost (deep link, process
@@ -108,7 +109,8 @@ class _CertificateProofViewerState
   String? _source;
   bool _isPdf = false;
   int? _pageCount;
-  String? _errorKey;
+  CertificateImportErrorInfo? _error;
+  bool _notFound = false;
   int _attempt = 0;
 
   @override
@@ -118,10 +120,11 @@ class _CertificateProofViewerState
   }
 
   Future<void> _load() async {
-    if (_source != null || _errorKey != null) {
+    if (_source != null || _error != null || _notFound) {
       setState(() {
         _source = null;
-        _errorKey = null;
+        _error = null;
+        _notFound = false;
         _attempt++;
       });
     }
@@ -138,10 +141,13 @@ class _CertificateProofViewerState
         final file =
             batch.files.where((f) => f.id == widget.fileId).firstOrNull;
         if (!mounted) return;
-        if (file == null) return _fail('not_found');
+        if (file == null) {
+          setState(() => _notFound = true);
+          return;
+        }
         (name, mime, count) = (file.name, file.type, file.pageCount);
-      } catch (_) {
-        return _fail('error');
+      } catch (error) {
+        return _fail(error);
       }
     }
 
@@ -150,30 +156,26 @@ class _CertificateProofViewerState
       final result = await ref
           .read(signedCertificateImportDownloadProvider)
           .call(batchId: widget.batchId, fileId: widget.fileId);
-      source = result.fold<String?>(
-        (failure) {
-          // Never show the raw message: it can carry backend codes.
-          _errorKey = failure.message.contains('FILE_NOT_CONFIRMED')
-              ? 'processing'
-              : 'error';
-          return null;
-        },
-        (url) => url,
-      );
+      if (!mounted) return;
+      // Copy comes from the shared mapper: never the raw failure message.
+      final failure = result.fold<Object?>((f) => f, (_) => null);
+      if (failure != null) return _fail(failure);
+      source = result.fold<String?>((_) => null, (url) => url);
     }
     if (!mounted) return;
-    if (source == null) return _fail(_errorKey ?? 'error');
     setState(() {
       _source = source;
-      _errorKey = null;
+      _error = null;
       _pageCount = count;
       _isPdf = [mime, name, local]
           .any((v) => v != null && v.toLowerCase().contains('pdf'));
     });
   }
 
-  void _fail(String key) {
-    if (mounted) setState(() => _errorKey = key);
+  void _fail(Object? error) {
+    if (mounted) {
+      setState(() => _error = CertificateImportErrorMapper.map(error));
+    }
   }
 
   Future<void> _openExternal() async {
@@ -185,7 +187,7 @@ class _CertificateProofViewerState
     if (!opened) {
       SacSnackBar.showMessenger(
         messenger,
-        'certificate_import.viewer.error'.tr(),
+        CertificateImportErrorMapper.message(null),
         isError: true,
       );
     }
@@ -211,10 +213,15 @@ class _CertificateProofViewerState
     ];
   }
 
-  Widget _message(String key, {bool retry = true}) => _ProofMessage(
-        text: 'certificate_import.viewer.$key'.tr(),
-        onRetry: retry ? _load : null,
+  Widget _message(CertificateImportErrorInfo info) => _ProofMessage(
+        title: info.title,
+        body: info.body,
+        onRetry:
+            info.action == CertificateImportErrorAction.retry ? _load : null,
       );
+
+  /// Render or hand-off failure of an already signed source.
+  Widget _renderError() => _message(CertificateImportErrorMapper.map(null));
 
   @override
   Widget build(BuildContext context) {
@@ -233,7 +240,7 @@ class _CertificateProofViewerState
               allowShare: false,
               dark: true,
               actions: _actions(),
-              errorBuilder: (_) => _message('error'),
+              errorBuilder: (_) => _renderError(),
             )
           : SacImageViewer.gallery(
               key: key,
@@ -244,10 +251,10 @@ class _CertificateProofViewerState
               heroTag: CertificateProofViewer.heroTagFor(widget.fileId),
               semanticLabel: 'certificate_import.viewer.image_label'.tr(),
               actions: _actions(),
-              errorBuilder: (_) => _message('error'),
+              errorBuilder: (_) => _renderError(),
             );
     }
-    final failed = _errorKey;
+    final failed = _error;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
@@ -269,30 +276,33 @@ class _CertificateProofViewerState
             ),
           ),
         ),
-        body: failed != null
-            ? _message(failed, retry: failed != 'not_found')
-            : Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SacLoading(color: Colors.white),
-                    const SizedBox(height: 12),
-                    Text(
-                      'certificate_import.viewer.opening'.tr(),
-                      style: const TextStyle(color: Colors.white),
+        body: _notFound
+            ? _ProofMessage(body: 'certificate_import.viewer.not_found'.tr())
+            : failed != null
+                ? _message(failed)
+                : Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SacLoading(color: Colors.white),
+                        const SizedBox(height: 12),
+                        Text(
+                          'certificate_import.viewer.opening'.tr(),
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
+                  ),
       ),
     );
   }
 }
 
 class _ProofMessage extends StatelessWidget {
-  const _ProofMessage({required this.text, this.onRetry});
+  const _ProofMessage({this.title, required this.body, this.onRetry});
 
-  final String text;
+  final String? title;
+  final String body;
   final VoidCallback? onRetry;
 
   @override
@@ -311,10 +321,26 @@ class _ProofMessage extends StatelessWidget {
             const SizedBox(height: 12),
             Semantics(
               liveRegion: true,
-              child: Text(
-                text,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (title != null) ...[
+                    Text(
+                      title!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                  ],
+                  Text(
+                    body,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ],
               ),
             ),
             if (onRetry != null) ...[
@@ -324,7 +350,7 @@ class _ProofMessage extends StatelessWidget {
                 child: TextButton(
                   style: TextButton.styleFrom(foregroundColor: Colors.white),
                   onPressed: onRetry,
-                  child: Text('certificate_import.viewer.retry'.tr()),
+                  child: Text('certificate_import.errors.retry'.tr()),
                 ),
               ),
             ],

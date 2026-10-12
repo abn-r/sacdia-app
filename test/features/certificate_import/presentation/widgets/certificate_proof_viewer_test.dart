@@ -232,20 +232,21 @@ void main() {
       ));
       await _settle(tester);
 
-      expect(find.textContaining('No pudimos abrir tu comprobante'),
+      expect(find.text('Algo salió mal'), findsOneWidget);
+      expect(find.textContaining('No pudimos completar la acción'),
           findsOneWidget);
       expect(find.textContaining('raw backend'), findsNothing);
-      expect(find.text('Detalle no disponible'), findsNothing);
 
       await tester.tap(find.text('Reintentar'));
       await _settle(tester);
 
       expect(signed.calls, 2, reason: 'retry asks for a fresh signed URL');
       expect(find.byType(SacPdfViewer), findsOneWidget);
-      expect(find.textContaining('No pudimos abrir'), findsNothing);
+      expect(find.text('Algo salió mal'), findsNothing);
     });
 
-    testWidgets('an unconfirmed file says it is still being processed',
+    testWidgets(
+        'an unconfirmed file says it is still being processed (shared mapper)',
         (tester) async {
       await tester.pumpWidget(_app(
         const CertificateProofViewer(
@@ -255,14 +256,19 @@ void main() {
           mimeType: 'image/jpeg',
         ),
         signed: _FakeSigned([
-          const Left(
-              ServerFailure(message: 'CERTIFICATE_IMPORT_FILE_NOT_CONFIRMED')),
+          const Left(ServerFailure(
+            message: 'raw backend text',
+            errorCode: 'CERTIFICATE_IMPORT_FILE_NOT_CONFIRMED',
+          )),
         ]),
       ));
       await _settle(tester);
 
       expect(find.text('Tu comprobante todavía se está procesando'),
           findsOneWidget);
+      expect(find.text('Espera unos segundos e inténtalo de nuevo.'),
+          findsOneWidget);
+      expect(find.textContaining('raw backend'), findsNothing);
       expect(find.textContaining('CERTIFICATE_IMPORT'), findsNothing);
       expect(find.text('Reintentar'), findsOneWidget);
     });
@@ -293,8 +299,7 @@ void main() {
       ));
       await _settle(tester);
 
-      expect(find.textContaining('No pudimos abrir tu comprobante'),
-          findsOneWidget);
+      expect(find.text('Algo salió mal'), findsOneWidget);
       expect(find.text('Reintentar'), findsOneWidget);
       expect(find.textContaining('network down'), findsNothing);
     });
@@ -439,7 +444,35 @@ void main() {
           find.text('proof /certificate-import/batch-1/proof/file-1 '
               'certificado.pdf 3'),
           findsOneWidget);
-      expect(find.text('Detalle no disponible'), findsNothing);
+    });
+
+    testWidgets('the just-uploaded local path travels to the viewer route',
+        (tester) async {
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, __) => CertificateImportReviewView(
+              initialBatch: _batchOf(const [_pdf]),
+              proofLocalPath: '/tmp/acta.pdf',
+            ),
+          ),
+          GoRoute(
+            path: RouteNames.certificateImportProof,
+            builder: (_, state) => Scaffold(
+              body: Text(
+                'local ${(state.extra as CertificateProofArgs?)?.localPath}',
+              ),
+            ),
+          ),
+        ],
+      );
+      await tester.pumpWidget(host(router));
+      await _settle(tester);
+      await tester.tap(find.text('Tu comprobante'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('local /tmp/acta.pdf'), findsOneWidget);
     });
 
     testWidgets('a PDF without page_count says just "PDF"; images say "Foto"',

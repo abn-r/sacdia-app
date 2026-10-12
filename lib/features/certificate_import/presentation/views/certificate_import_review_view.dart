@@ -28,9 +28,16 @@ import '../widgets/certificate_import_item_editor_sheet.dart';
 import '../widgets/import_load_error_scaffold.dart';
 
 class CertificateImportReviewRouteView extends ConsumerWidget {
-  const CertificateImportReviewRouteView({super.key, required this.batchId});
+  const CertificateImportReviewRouteView({
+    super.key,
+    required this.batchId,
+    this.localPath,
+  });
 
   final String batchId;
+
+  /// Local file just uploaded, when arriving from the upload flow.
+  final String? localPath;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -45,6 +52,7 @@ class CertificateImportReviewRouteView extends ConsumerWidget {
       ),
       data: (batch) => CertificateImportReviewView(
         initialBatch: batch,
+        proofLocalPath: localPath,
         onUpdateItem: (item) async {
           final payload = CertificateImportItemUpdatePayload(
             itemType: item.type == CertificateImportItemType.honor
@@ -121,6 +129,7 @@ class CertificateImportReviewView extends StatefulWidget {
   const CertificateImportReviewView({
     super.key,
     required this.initialBatch,
+    this.proofLocalPath,
     this.onUpdateItem,
     this.onAddItem,
     this.onRemoveItem,
@@ -128,6 +137,9 @@ class CertificateImportReviewView extends StatefulWidget {
   });
 
   final CertificateImportBatch initialBatch;
+
+  /// Local copy of the proof just uploaded: thumbnail and offline viewing.
+  final String? proofLocalPath;
   final Future<void> Function(CertificateImportItem item)? onUpdateItem;
   final Future<CertificateImportItem> Function(CertificateImportItem draft)?
       onAddItem;
@@ -217,6 +229,7 @@ class _CertificateImportReviewViewState
                             CertificateProofSummary(
                               batchId: widget.initialBatch.id,
                               files: widget.initialBatch.files,
+                              localPath: widget.proofLocalPath,
                             ),
                           ],
                           if (showGmNotice) ...[

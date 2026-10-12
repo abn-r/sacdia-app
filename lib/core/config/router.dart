@@ -808,7 +808,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           return _sharedAxisBuild(
             context,
             state,
-            CertificateImportReviewRouteView(batchId: batchId),
+            CertificateImportReviewRouteView(
+              batchId: batchId,
+              localPath: state.extra is String ? state.extra as String : null,
+            ),
           );
         },
       ),

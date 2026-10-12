@@ -4705,7 +4705,6 @@
       "class_one": "{count} classe",
       "class_other": "{count} classes",
       "and": "et",
-      "view_proof": "Voir le justificatif",
       "gm01_replace": "Si Guide majeur (GM-01) est approuvé, il remplace l’inscription actuelle. Deux enregistrements ne sont pas conservés.",
       "institutional": "Guide majeur avancé et Instructeur passent en révision institutionnelle. Approuver cette demande n’enregistre pas une classe et ne crée pas d’inscription.",
       "period_pending": "en attente de période administrative",
@@ -4762,9 +4761,6 @@
     "viewer": {
       "title": "Votre justificatif",
       "opening": "Ouverture de votre justificatif…",
-      "error": "Impossible d'ouvrir votre justificatif. Vérifiez votre connexion et réessayez.",
-      "processing": "Votre justificatif est encore en cours de traitement",
-      "retry": "Réessayer",
       "more": "Plus d'options",
       "open_external": "Ouvrir dans une autre app",
       "image_label": "Image de votre justificatif",
@@ -4779,14 +4775,11 @@
     },
     "proof": {
       "title": "Enregistrement importé",
-      "missing": "Détail indisponible. Ouvrez-le depuis un enregistrement importé.",
       "unnamed": "Enregistrement sans nom",
       "imported_badge": "Enregistrement importé",
       "date_pending": "Date en attente",
       "applied": "Justificatif lié à l’enregistrement {id}",
-      "gm01_replaced": "Cette approbation a déjà remplacé l’inscription de Guide majeur. Il ne reste qu’un enregistrement.",
-      "open": "Ouvrir le justificatif scellé",
-      "unavailable": "Le justificatif scellé n’est pas disponible."
+      "gm01_replaced": "Cette approbation a déjà remplacé l’inscription de Guide majeur. Il ne reste qu’un enregistrement."
     }
   },
   "master_honors": {

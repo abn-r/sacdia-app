@@ -4707,7 +4707,6 @@
       "class_one": "{count} class",
       "class_other": "{count} classes",
       "and": "and",
-      "view_proof": "View proof",
       "gm01_replace": "If Guide Major (GM-01) is approved, it replaces the current enrollment. Two records are not kept.",
       "institutional": "Advanced Guide Major and Instructor go to institutional review. Approving that request does not register a class or create an enrollment.",
       "period_pending": "pending an administrative period",
@@ -4764,9 +4763,6 @@
     "viewer": {
       "title": "Your proof",
       "opening": "Opening your proof…",
-      "error": "We couldn't open your proof. Check your connection and try again.",
-      "processing": "Your proof is still being processed",
-      "retry": "Retry",
       "more": "More options",
       "open_external": "Open in another app",
       "image_label": "Image of your proof",
@@ -4781,14 +4777,11 @@
     },
     "proof": {
       "title": "Imported record",
-      "missing": "Details unavailable. Open it from an imported record.",
       "unnamed": "Unnamed record",
       "imported_badge": "Imported record",
       "date_pending": "Date pending",
       "applied": "Receipt linked to record {id}",
-      "gm01_replaced": "This approval already replaced the Guide Major enrollment. One record remains.",
-      "open": "Open sealed proof",
-      "unavailable": "The sealed proof is not available."
+      "gm01_replaced": "This approval already replaced the Guide Major enrollment. One record remains."
     }
   },
   "master_honors": {

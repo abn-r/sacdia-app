@@ -4705,7 +4705,6 @@
       "class_one": "{count} classe",
       "class_other": "{count} classes",
       "and": "e",
-      "view_proof": "Ver comprovante",
       "gm01_replace": "Se Guia Maior (GM-01) for aprovado, substitui a inscrição atual. Não se conservam dois registros.",
       "institutional": "Guia Maior Avançado e Instrutor vão para revisão institucional. Aprovar essa solicitação não registra uma classe nem cria inscrição.",
       "period_pending": "pendente de período administrativo",
@@ -4762,9 +4761,6 @@
     "viewer": {
       "title": "Seu comprovante",
       "opening": "Abrindo seu comprovante…",
-      "error": "Não foi possível abrir seu comprovante. Verifique sua conexão e tente novamente.",
-      "processing": "Seu comprovante ainda está sendo processado",
-      "retry": "Tentar novamente",
       "more": "Mais opções",
       "open_external": "Abrir em outro app",
       "image_label": "Imagem do seu comprovante",
@@ -4779,14 +4775,11 @@
     },
     "proof": {
       "title": "Registro importado",
-      "missing": "Detalhe indisponível. Abra a partir de um registro importado.",
       "unnamed": "Registro sem nome",
       "imported_badge": "Registro importado",
       "date_pending": "Data pendente",
       "applied": "Comprovante ligado ao registro {id}",
-      "gm01_replaced": "Esta aprovação já substituiu a inscrição de Guia Maior. Fica um único registro.",
-      "open": "Abrir comprovante selado",
-      "unavailable": "O comprovante selado não está disponível."
+      "gm01_replaced": "Esta aprovação já substituiu a inscrição de Guia Maior. Fica um único registro."
     }
   },
   "master_honors": {
