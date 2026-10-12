@@ -139,7 +139,13 @@ class _InstructorPickerState extends ConsumerState<InstructorPicker> {
                 onChanged: _onChanged,
                 decoration: InputDecoration(
                   hintText: 'instructor.search_hint'.tr(),
-                  prefixIcon: const Icon(Icons.search),
+                  prefixIcon: const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedSearch01,
+                      size: 20,
+                    ),
+                  ),
                   suffixIcon: _controller.text.isEmpty
                       ? null
                       : IconButton(
@@ -150,7 +156,10 @@ class _InstructorPickerState extends ConsumerState<InstructorPicker> {
                             minWidth: 48,
                             minHeight: 48,
                           ),
-                          icon: const Icon(Icons.close),
+                          icon: const HugeIcon(
+                            icon: HugeIcons.strokeRoundedCancel01,
+                            size: 20,
+                          ),
                           onPressed: _clear,
                         ),
                 ),
