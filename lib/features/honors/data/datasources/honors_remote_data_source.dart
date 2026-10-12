@@ -50,6 +50,7 @@ abstract class HonorsRemoteDataSource {
       {int? categoryId,
       int? clubTypeId,
       int? skillLevel,
+      String? search,
       CancelToken? cancelToken});
   Future<HonorModel> getHonorById(int honorId, {CancelToken? cancelToken});
   Future<List<UserHonorModel>> getUserHonors(String userId,
@@ -211,12 +212,16 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       {int? categoryId,
       int? clubTypeId,
       int? skillLevel,
+      String? search,
       CancelToken? cancelToken}) async {
     try {
       final baseParams = <String>['limit=100'];
       if (categoryId != null) baseParams.add('categoryId=$categoryId');
       if (clubTypeId != null) baseParams.add('clubTypeId=$clubTypeId');
       if (skillLevel != null) baseParams.add('skillLevel=$skillLevel');
+      if (search != null) {
+        baseParams.add('search=${Uri.encodeQueryComponent(search)}');
+      }
 
       final allHonors = <HonorModel>[];
       int page = 1;

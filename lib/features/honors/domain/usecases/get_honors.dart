@@ -18,6 +18,7 @@ class GetHonors implements UseCase<List<Honor>, GetHonorsParams> {
       categoryId: params.categoryId,
       clubTypeId: params.clubTypeId,
       skillLevel: params.skillLevel,
+      search: params.search,
       cancelToken: cancelToken,
     );
   }
@@ -29,9 +30,13 @@ class GetHonorsParams {
   final int? clubTypeId;
   final int? skillLevel;
 
+  /// Name filter (2 to 60 characters); the API ignores anything shorter.
+  final String? search;
+
   const GetHonorsParams({
     this.categoryId,
     this.clubTypeId,
     this.skillLevel,
+    this.search,
   });
 }
