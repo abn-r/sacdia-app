@@ -1536,7 +1536,7 @@
     },
     "nav": {
       "evidence_title": "Revisão de Evidências",
-      "evidence_subtitle": "Aprovar ou rejeitar pastas, aulas e honras",
+      "evidence_subtitle": "Aprovar ou rejeitar pastas, aulas e especialidades",
       "clubs_title": "Clubes e seções",
       "clubs_subtitle": "Ver clubes e seções sob sua coordenação",
       "camporees_title": "Aprovações de Camporis",
@@ -1607,7 +1607,7 @@
         "filter_all": "Todos",
         "filter_folders": "Pastas",
         "filter_classes": "Aulas",
-        "filter_honors": "Honras",
+        "filter_honors": "Especialidades",
         "access_restricted": "Acesso restrito",
         "access_restricted_msg": "Somente coordenadores e administradores podem acessar esta seção.",
         "error_load": "Erro ao carregar evidências",
@@ -1693,7 +1693,7 @@
     "evidence_type": {
       "folder": "Pasta",
       "class_type": "Aula",
-      "honor": "Honra"
+      "honor": "Especialidade"
     },
     "clubs": {
       "title": "Clubes atribuídos",
@@ -4591,71 +4591,125 @@
   },
   "certificate_import": {
     "upload": {
-      "pdf_too_many_pages": "O PDF tem mais de 5 páginas. Divida o documento ou extraia até 5 páginas e envie-o novamente.",
-      "pdf_encrypted": "O PDF está protegido. Remova a senha ou a proteção e envie-o novamente.",
-      "pdf_invalid": "Não foi possível ler o PDF. Exporte-o novamente como PDF e envie-o novamente.",
       "title": "Carga por certificado",
-      "hint": "PDF de até 5 páginas ou imagens JPEG, PNG e WebP, máximo de 10 MiB. Um documento por envio. Você pode creditar classes em qualquer ordem, sem exigir sequência curricular. Complete os dados à mão antes de enviar.",
-      "submit": "Enviar comprovante",
+      "hint": "PDF de até 5 páginas ou foto JPEG, PNG ou WebP. Máximo de 10 MB. Um comprovante por envio.",
+      "submit": "Ler comprovante",
       "camera": "Tirar foto",
       "file": "Escolher arquivo",
       "choose": "Adicionar comprovante",
       "source_title": "Como você quer adicioná-lo?",
-      "camera_sub": "Use a câmera para fotografar o documento",
+      "camera_sub": "Apoie o documento em uma superfície plana e com boa luz",
       "gallery": "Escolher da galeria",
-      "gallery_sub": "Fotos JPEG, PNG ou WebP do seu rolo da câmera",
+      "gallery_sub": "Fotos JPEG, PNG ou WebP",
       "file_sub": "PDF ou imagem salvos no seu dispositivo",
       "uploading": "Enviando seu comprovante…",
       "reading": "Lendo seu comprovante…",
       "unsupported_type": "Formato não compatível. Use um PDF ou uma imagem JPEG, PNG ou WebP.",
-      "too_large": "O arquivo é maior que 10 MiB. Escolha um menor.",
+      "too_large": "O arquivo tem mais de 10 MB. Escolha um menor ou tire a foto de novo.",
       "picker_error": "Não foi possível abrir o seletor de comprovantes.",
       "no_submit": "Não há um processo configurado para enviar comprovantes.",
       "hero_title": "Envie seu comprovante",
-      "hero_body": "Enviamos o arquivo com segurança. Depois você completa o expediente à mão: confira nome, classe ou especialidade e data antes de enviar.",
+      "hero_body": "Lemos seu certificado e sugerimos as especialidades e classes. Você as revisa antes de enviá-las ao seu Campo Local.",
       "selected_one": "Comprovante selecionado",
       "selected_other": "{count} comprovantes selecionados"
     },
-    "processing": {
-      "title": "Lendo comprovante",
-      "running_title": "Estamos lendo seu comprovante",
-      "error_title": "Não conseguimos ler tudo",
-      "manual_title": "Complete o expediente à mão",
-      "running_body": "Extraímos honras, classes e datas para você confirmar os dados.",
-      "error_body": "Você pode completar os dados manualmente. Não vamos deixar você sem saída.",
-      "manual_body": "A leitura automática não está disponível agora. Você pode adicionar e corrigir linhas sem perder o arquivo.",
-      "step_upload": "Enviando arquivo",
-      "step_ocr": "Lendo texto",
-      "step_results": "Preparando resultados",
-      "manual": "Completar manualmente",
-      "retry": "Tentar leitura de novo"
+    "errors": {
+      "retry": "Tentar novamente",
+      "change_file": "Trocar arquivo",
+      "choose_other": "Escolher outro arquivo",
+      "choose_other_short": "Escolher outro",
+      "load_error_title": "Não foi possível carregar seu comprovante",
+      "local_file": {
+        "title": "Não podemos usar este arquivo"
+      },
+      "offline": {
+        "title": "Sem conexão",
+        "body": "Verifique sua conexão com a internet e tente novamente."
+      },
+      "offline_upload": {
+        "body": "Verifique sua conexão com a internet. Seu arquivo continua aqui, você não precisa escolhê-lo de novo."
+      },
+      "timeout": {
+        "title": "A conexão demorou demais",
+        "body": "Verifique sua conexão e tente novamente."
+      },
+      "pdf_pages": {
+        "title": "O PDF tem mais de 5 páginas",
+        "body": "Divida o documento ou salve apenas as páginas do certificado (até 5) e envie-o novamente."
+      },
+      "pdf_encrypted": {
+        "title": "O PDF está protegido",
+        "body": "Remova a senha ou a proteção do arquivo e envie-o novamente."
+      },
+      "pdf_invalid": {
+        "title": "Não foi possível abrir o PDF",
+        "body": "Salve-o novamente como PDF no app onde você o tem e envie-o outra vez."
+      },
+      "pdf_busy": {
+        "title": "Há muita demanda neste momento",
+        "body": "Estamos verificando outros arquivos. Aguarde alguns segundos e tente novamente."
+      },
+      "type": {
+        "title": "Não foi possível ler este tipo de arquivo",
+        "body": "Use um PDF ou uma imagem JPEG, PNG ou WebP."
+      },
+      "too_large": {
+        "title": "O arquivo é grande demais",
+        "body": "O arquivo tem mais de 10 MB. Escolha um menor ou tire a foto de novo."
+      },
+      "not_confirmed": {
+        "title": "Seu comprovante ainda está sendo processado",
+        "body": "Aguarde alguns segundos e tente novamente."
+      },
+      "ocr_off": {
+        "title": "A leitura automática não está disponível agora",
+        "body": "Você pode adicionar suas especialidades e classes olhando seu comprovante."
+      },
+      "ocr_quota": {
+        "title": "Atingimos o limite de leituras por enquanto",
+        "body": "Tente mais tarde ou adicione suas especialidades e classes olhando seu comprovante."
+      },
+      "ocr_failed": {
+        "title": "Não foi possível ler seu comprovante",
+        "body": "Algo falhou ao lê-lo. Você pode tentar de novo ou adicioná-las olhando seu comprovante."
+      },
+      "unexpected": {
+        "title": "Algo deu errado",
+        "body": "Não foi possível concluir a ação. Tente novamente."
+      },
+      "unexpected_upload": {
+        "body": "Não foi possível enviar seu comprovante. Tente novamente."
+      }
     },
     "review": {
       "title": "Revise os dados",
-      "load_error": "Não foi possível carregar o lote: {error}",
+      "load_error": "Verifique sua conexão e tente novamente.",
       "found": "Encontramos",
       "honor_one": "{count} especialidade",
       "honor_other": "{count} especialidades",
       "class_one": "{count} classe",
       "class_other": "{count} classes",
       "and": "e",
-      "independent_hint": "Você pode enviar Amigo e Explorador separados, em qualquer ordem, sem exigir Companheiro.",
       "view_proof": "Ver comprovante",
       "gm01_replace": "Se Guia Maior (GM-01) for aprovado, substitui a inscrição atual. Não se conservam dois registros.",
       "institutional": "Guia Maior Avançado e Instrutor vão para revisão institucional. Aprovar essa solicitação não registra uma classe nem cria inscrição.",
       "period_pending": "pendente de período administrativo",
       "filter_all": "Todas {count}",
       "filter_ready": "Prontas {count}",
-      "filter_missing": "Falta dado {count}",
+      "filter_missing": "A completar {count}",
       "empty_filter": "Não há linhas para este filtro.",
-      "add_row": "Adicionar linha",
+      "add_row": "Adicionar especialidade ou classe",
       "submit": "Enviar para revisão",
       "ready_dock": "{count} prontas",
-      "missing_dock": "{count} com dados faltando"
+      "missing_dock": "{count} com dados faltando",
+      "no_rows": "Ainda não há linhas",
+      "remove_honor_title": "Remover esta especialidade?",
+      "remove_class_title": "Remover esta classe?",
+      "remove_body": "Ela não será enviada para revisão. Você pode adicioná-la de novo depois."
     },
     "status": {
       "title": "Estado do envio",
-      "load_error": "Não foi possível carregar o estado: {error}",
+      "load_error": "Verifique sua conexão e tente novamente.",
       "corrections_title": "Correções pendentes",
       "in_review_title": "Em revisão",
       "corrections_body": "Há correções pendentes",
@@ -4666,31 +4720,29 @@
       "period_pending": "pendente de período administrativo"
     },
     "item": {
-      "honor": "HONRA",
-      "class": "CLASSE",
-      "rejected": "REJEITADO",
-      "ready": "PRONTO",
-      "missing": "FALTA DADO",
+      "honor": "Especialidade",
+      "class": "Classe",
+      "rejected": "Rejeitada",
+      "ready": "Pronta",
+      "missing": "A completar",
       "unnamed": "Nenhum nome detectado",
       "fix_resubmit": "Corrigir e reenviar",
       "fix": "Corrigir",
       "remove": "Remover",
       "period_pending": "pendente de período administrativo",
       "gm01_replace": "Se for aprovado, substitui a inscrição atual de Guia Maior.",
-      "institutional": "Revisão institucional: aprovar não cria inscrição.",
-      "catalog_meta": "Catálogo: {id} · {date}",
-      "catalog_pending": "pendente"
+      "institutional": "Revisão institucional: aprovar não cria inscrição."
     },
     "editor": {
       "title": "Corrigir linha",
       "add_title": "Adicionar linha",
-      "honor": "Honra",
+      "honor": "Especialidade",
       "class": "Classe",
       "name": "Nome detectado",
       "catalog_id": "ID do catálogo",
       "completed_at": "Data de conclusão",
       "date_hint": "AAAA-MM-DD",
-      "save": "Salvar correção"
+      "save": "Salvar"
     },
     "proof": {
       "title": "Registro importado",

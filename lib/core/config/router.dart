@@ -18,7 +18,6 @@ import 'package:sacdia_app/features/certifications/presentation/views/certificat
 import 'package:sacdia_app/features/certifications/presentation/views/requirement_detail_view.dart';
 import 'package:sacdia_app/features/certifications/presentation/views/certification_closeout_view.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_item.dart';
-import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_processing_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_review_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_status_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_upload_view.dart';
@@ -802,17 +801,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           state,
           const CertificateImportUploadRouteView(),
         ),
-      ),
-      GoRoute(
-        path: RouteNames.certificateImportProcessing,
-        pageBuilder: (context, state) {
-          final batchId = state.pathParameters['batchId']!;
-          return _sharedAxisBuild(
-            context,
-            state,
-            CertificateImportProcessingRouteView(batchId: batchId),
-          );
-        },
       ),
       GoRoute(
         path: RouteNames.certificateImportReview,

@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../domain/entities/certificate_import_item.dart';
+import '../error/certificate_import_error_mapper.dart';
 import '../providers/certificate_import_providers.dart';
 
 class CertificateImportProofArgs {
@@ -134,7 +135,9 @@ class _CertificateImportSignedProofState
     if (!mounted) return;
     await result.fold(
       (failure) async {
-        setState(() => _error = failure.message);
+        setState(
+          () => _error = CertificateImportErrorMapper.message(failure),
+        );
       },
       (url) async {
         final uri = Uri.tryParse(url);

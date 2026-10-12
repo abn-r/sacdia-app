@@ -10,6 +10,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
+import 'package:sacdia_app/core/animations/sac_state_swap.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
@@ -21,10 +22,11 @@ import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
-import '../../../../core/errors/failures.dart';
 import '../../domain/entities/certificate_import_payloads.dart';
+import '../error/certificate_import_error_mapper.dart';
 import '../providers/certificate_import_providers.dart';
 import '../widgets/certificate_import_back_button.dart';
+import '../widgets/import_status_card.dart';
 
 typedef CertificateImportSubmit = Future<void> Function(
     CertificateImportLocalProof proof);
@@ -213,7 +215,12 @@ class _CertificateImportUploadViewState
     extends State<CertificateImportUploadView> {
   bool _loading = false;
   bool _picking = false;
-  String? _error;
+
+  /// Local validation problem (C0): the file itself cannot be used.
+  String? _localError;
+
+  /// Upload failure (C1 to C3 and unexpected), already classified.
+  CertificateImportErrorInfo? _uploadError;
   CertificateImportLocalProof? _selectedProof;
 
   bool get _hasFilesToAnalyze => _selectedProof != null;
@@ -239,6 +246,11 @@ class _CertificateImportUploadViewState
                     context, const EdgeInsets.fromLTRB(18, 8, 18, 190)),
                 children: [
                   _UploadHero(),
+                  // Right under the hero so it stays above the dock.
+                  if (_localError != null || _uploadError != null) ...[
+                    const SizedBox(height: 12),
+                    SacStateSwap(child: _buildIssueCard()),
+                  ],
                   const SizedBox(height: 14),
                   SacCard(
                     child: Row(
@@ -262,17 +274,8 @@ class _CertificateImportUploadViewState
                       ],
                     ),
                   ),
-                  if (_error != null) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      _error!,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: c.error,
-                            fontWeight: FontWeight.w600,
-                          ),
-                    ),
-                  ],
-                  if (_hasFilesToAnalyze) ...[
+                  // An upload failure takes the place of the selected-file card.
+                  if (_hasFilesToAnalyze && _uploadError == null) ...[
                     const SizedBox(height: 12),
                     _SelectedProofCard(proof: _selectedProof!),
                   ],
@@ -325,6 +328,25 @@ class _CertificateImportUploadViewState
     );
   }
 
+  Widget _buildIssueCard() {
+    final error = _uploadError;
+    if (error != null) {
+      return ImportStatusCard.fromError(
+        error,
+        onRetry: _loading ? null : _submit,
+        onChooseOther: _picking || _loading ? null : _chooseSource,
+      );
+    }
+    return ImportStatusCard(
+      key: const ValueKey('import-status-local'),
+      icon: HugeIcons.strokeRoundedAlert02,
+      title: 'certificate_import.errors.local_file.title'.tr(),
+      body: _localError!,
+      primaryLabel: 'certificate_import.errors.choose_other_short'.tr(),
+      onPrimary: _picking || _loading ? null : _chooseSource,
+    );
+  }
+
   Future<void> _chooseSource() async {
     final source = await _showProofSourceSheet(context);
     if (source == null || !mounted) return;
@@ -352,13 +374,15 @@ class _CertificateImportUploadViewState
 
   Future<void> _pickProof(CertificateImportProofPicker? picker) async {
     if (picker == null) {
-      setState(() => _error = 'certificate_import.upload.picker_error'.tr());
+      setState(
+          () => _localError = 'certificate_import.upload.picker_error'.tr());
       return;
     }
 
     setState(() {
       _picking = true;
-      _error = null;
+      _localError = null;
+      _uploadError = null;
     });
     try {
       final file = await picker();
@@ -369,7 +393,7 @@ class _CertificateImportUploadViewState
       if (validationError != null) {
         setState(() {
           _selectedProof = null;
-          _error = validationError;
+          _localError = validationError;
         });
         return;
       }
@@ -378,24 +402,13 @@ class _CertificateImportUploadViewState
         // Un documento por carga.
         _selectedProof = file;
       });
-    } catch (error) {
-      if (mounted) setState(() => _error = error.toString());
+    } catch (_) {
+      if (mounted) {
+        setState(
+            () => _localError = 'certificate_import.upload.picker_error'.tr());
+      }
     } finally {
       if (mounted) setState(() => _picking = false);
-    }
-  }
-
-  String _uploadErrorMessage(Object error) {
-    final message = error is Failure ? error.message : error.toString();
-    switch (message) {
-      case 'CERTIFICATE_IMPORT_PDF_TOO_MANY_PAGES':
-        return 'certificate_import.upload.pdf_too_many_pages'.tr();
-      case 'CERTIFICATE_IMPORT_PDF_ENCRYPTED':
-        return 'certificate_import.upload.pdf_encrypted'.tr();
-      case 'CERTIFICATE_IMPORT_PDF_INVALID':
-        return 'certificate_import.upload.pdf_invalid'.tr();
-      default:
-        return message;
     }
   }
 
@@ -404,19 +417,25 @@ class _CertificateImportUploadViewState
     if (proof == null) return;
     if (widget.onSubmitProofs == null) {
       setState(
-        () => _error = 'certificate_import.upload.no_submit'.tr(),
+        () => _localError = 'certificate_import.upload.no_submit'.tr(),
       );
       return;
     }
 
     setState(() {
       _loading = true;
-      _error = null;
+      _localError = null;
+      _uploadError = null;
     });
     try {
       await widget.onSubmitProofs!(proof);
     } catch (error) {
-      if (mounted) setState(() => _error = _uploadErrorMessage(error));
+      if (mounted) {
+        setState(() => _uploadError = CertificateImportErrorMapper.map(
+              error,
+              context: CertificateImportErrorContext.upload,
+            ));
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }

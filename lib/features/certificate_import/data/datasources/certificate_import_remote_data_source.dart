@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../models/certificate_import_batch_list_model.dart';
@@ -9,6 +10,7 @@ import '../models/certificate_import_file_model.dart';
 import '../models/certificate_import_institutional_request_model.dart';
 import '../models/certificate_import_item_model.dart';
 import '../models/certificate_import_presign_ticket_model.dart';
+import '../../domain/entities/certificate_import_error_code.dart';
 import '../../domain/entities/certificate_import_payloads.dart';
 
 abstract class CertificateImportRemoteDataSource {
@@ -248,7 +250,8 @@ class CertificateImportRemoteDataSourceImpl
     final url = _data(response)['download_url'];
     if (url is! String || !url.startsWith('https://')) {
       throw ServerException(
-        message: 'CERTIFICATE_IMPORT_FILE_NOT_CONFIRMED',
+        message: 'certificate_import.errors.not_confirmed.body'.tr(),
+        errorCode: CertificateImportErrorCode.fileNotConfirmed,
       );
     }
     return url;
@@ -276,7 +279,7 @@ class CertificateImportRemoteDataSourceImpl
         response.statusCode != 201 &&
         response.statusCode != 204) {
       throw ServerException(
-        message: 'Error al quitar la fila del expediente',
+        message: 'certificate_import.errors.unexpected.body'.tr(),
         code: response.statusCode,
       );
     }
@@ -332,7 +335,7 @@ class CertificateImportRemoteDataSourceImpl
   Map<String, dynamic> _data(Response<dynamic> response) {
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw ServerException(
-        message: 'Error al comunicarse con carga por certificado',
+        message: 'certificate_import.errors.unexpected.body'.tr(),
         code: response.statusCode,
       );
     }
@@ -346,6 +349,7 @@ class CertificateImportRemoteDataSourceImpl
     }
 
     throw ServerException(
-        message: 'Respuesta inválida de carga por certificado');
+      message: 'certificate_import.errors.unexpected.body'.tr(),
+    );
   }
 }

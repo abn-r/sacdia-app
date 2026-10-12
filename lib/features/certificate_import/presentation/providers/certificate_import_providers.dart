@@ -119,7 +119,7 @@ final certificateImportBatchProvider = FutureProvider.autoDispose
       .call(batchId, cancelToken: cancelToken);
 
   return result.fold(
-    (failure) => throw Exception(failure.message),
+    (failure) => throw failure,
     (batch) => batch,
   );
 });
@@ -132,7 +132,7 @@ final certificateImportBatchListProvider = FutureProvider.autoDispose
         limit: args.limit,
       );
   return result.fold(
-    (failure) => throw Exception(failure.message),
+    (failure) => throw failure,
     (list) => list,
   );
 });
@@ -147,7 +147,7 @@ final certificateImportInstitutionalRequestsProvider = FutureProvider
             limit: args.limit,
           );
   return result.fold(
-    (failure) => throw Exception(failure.message),
+    (failure) => throw failure,
     (list) => list,
   );
 });
