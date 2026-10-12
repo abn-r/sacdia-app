@@ -97,7 +97,7 @@ class RouteNames {
   static const String certificateImportStatus =
       '/certificate-import/:batchId/status';
   static const String certificateImportProof =
-      '/certificate-import/item/:itemId/proof';
+      '/certificate-import/:batchId/proof/:fileId';
 
   // Helpers para paths con parámetros
   static String clubDetailPath(String clubId) => '/club/$clubId';
@@ -151,8 +151,13 @@ class RouteNames {
       '/certificate-import/$batchId/review';
   static String certificateImportStatusPath(String batchId) =>
       '/certificate-import/$batchId/status';
-  static String certificateImportProofPath(String itemId) =>
-      '/certificate-import/item/$itemId/proof';
+  static String certificateImportProofPath(
+    String batchId,
+    String fileId, {
+    int page = 1,
+  }) =>
+      '/certificate-import/$batchId/proof/$fileId'
+      '${page > 1 ? '?page=$page' : ''}';
 
   // Camporees helpers
   static String camporeeDetailPath(String camporeeId) =>

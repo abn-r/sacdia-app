@@ -123,8 +123,8 @@ void main() {
           '/certificate-import/batch-1/processing');
       expect(RouteNames.certificateImportReviewPath('batch-1'),
           '/certificate-import/batch-1/review');
-      expect(RouteNames.certificateImportProofPath('item-1'),
-          '/certificate-import/item/item-1/proof');
+      expect(RouteNames.certificateImportProofPath('batch-1', 'file-1'),
+          '/certificate-import/batch-1/proof/file-1');
       expect(routerProvider, isNotNull);
     });
   });
@@ -574,6 +574,10 @@ void main() {
 
     testWidgets('opens editor and enables submit after item correction',
         (tester) async {
+      // The proof card makes the header taller; keep the rows on screen.
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
       CertificateImportItem? updated;
       await _pump(
         tester,

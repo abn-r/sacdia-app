@@ -3920,7 +3920,9 @@
       "error_download": "Não foi possível baixar o PDF",
       "error_not_found": "O arquivo PDF não foi encontrado no dispositivo",
       "error_open": "Erro ao abrir o PDF",
+      "next_page": "Próxima página",
       "page_indicator": "Página {current} de {total}",
+      "previous_page": "Página anterior",
       "retry": "Tentar novamente"
     },
     "section_switcher": {
@@ -4691,6 +4693,24 @@
       "completed_at": "Data de conclusão",
       "date_hint": "AAAA-MM-DD",
       "save": "Salvar correção"
+    },
+    "viewer": {
+      "title": "Seu comprovante",
+      "opening": "Abrindo seu comprovante…",
+      "error": "Não foi possível abrir seu comprovante. Verifique sua conexão e tente novamente.",
+      "processing": "Seu comprovante ainda está sendo processado",
+      "retry": "Tentar novamente",
+      "more": "Mais opções",
+      "open_external": "Abrir em outro app",
+      "image_label": "Imagem do seu comprovante",
+      "not_found": "Não encontramos este comprovante",
+      "view": "Ver",
+      "kind_image": "Foto",
+      "kind_pdf": "PDF",
+      "pdf_pages_one": "PDF · 1 página",
+      "pdf_pages_other": "PDF · {count} páginas",
+      "more_files_one": "+{count} arquivo",
+      "more_files_other": "+{count} arquivos"
     },
     "proof": {
       "title": "Registro importado",

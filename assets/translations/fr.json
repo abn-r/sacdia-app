@@ -3920,7 +3920,9 @@
       "error_download": "Impossible de télécharger le PDF",
       "error_not_found": "Le fichier PDF n'a pas été trouvé sur l'appareil",
       "error_open": "Erreur lors de l'ouverture du PDF",
+      "next_page": "Page suivante",
       "page_indicator": "Page {current} sur {total}",
+      "previous_page": "Page précédente",
       "retry": "Réessayer"
     },
     "section_switcher": {
@@ -4691,6 +4693,24 @@
       "completed_at": "Date de fin",
       "date_hint": "AAAA-MM-JJ",
       "save": "Enregistrer la correction"
+    },
+    "viewer": {
+      "title": "Votre justificatif",
+      "opening": "Ouverture de votre justificatif…",
+      "error": "Impossible d'ouvrir votre justificatif. Vérifiez votre connexion et réessayez.",
+      "processing": "Votre justificatif est encore en cours de traitement",
+      "retry": "Réessayer",
+      "more": "Plus d'options",
+      "open_external": "Ouvrir dans une autre app",
+      "image_label": "Image de votre justificatif",
+      "not_found": "Justificatif introuvable",
+      "view": "Voir",
+      "kind_image": "Photo",
+      "kind_pdf": "PDF",
+      "pdf_pages_one": "PDF · 1 page",
+      "pdf_pages_other": "PDF · {count} pages",
+      "more_files_one": "+{count} fichier",
+      "more_files_other": "+{count} fichiers"
     },
     "proof": {
       "title": "Enregistrement importé",

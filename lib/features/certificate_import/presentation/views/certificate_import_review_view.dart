@@ -1,6 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
@@ -20,7 +19,7 @@ import '../../domain/usecases/update_certificate_import_item.dart';
 import '../providers/certificate_import_providers.dart';
 import '../widgets/certificate_import_back_button.dart';
 import '../widgets/certificate_import_item_card.dart';
-import '../widgets/certificate_import_proof_card.dart';
+import '../widgets/certificate_proof_summary.dart';
 import '../widgets/certificate_import_item_editor_sheet.dart';
 
 class CertificateImportReviewRouteView extends ConsumerWidget {
@@ -239,33 +238,10 @@ class _CertificateImportReviewViewState
                                     ),
                           ),
                           if (widget.initialBatch.files.isNotEmpty) ...[
-                            const SizedBox(height: 8),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: SacPressable(
-                                listenOnly: true,
-                                child: TextButton(
-                                  style:
-                                      const ButtonStyle(enableFeedback: false),
-                                  onPressed: () {
-                                    final file =
-                                        widget.initialBatch.files.first;
-                                    context.push(
-                                      RouteNames.certificateImportProof,
-                                      extra: CertificateImportProofArgs(
-                                        item: _items.isEmpty
-                                            ? null
-                                            : _items.first,
-                                        batchId: widget.initialBatch.id,
-                                        fileId: file.id,
-                                      ),
-                                    );
-                                  },
-                                  child: Text(
-                                    'certificate_import.review.view_proof'.tr(),
-                                  ),
-                                ),
-                              ),
+                            const SizedBox(height: 12),
+                            CertificateProofSummary(
+                              batchId: widget.initialBatch.id,
+                              files: widget.initialBatch.files,
                             ),
                           ],
                           if (showGmNotice) ...[

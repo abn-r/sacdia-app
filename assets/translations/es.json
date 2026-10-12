@@ -3922,7 +3922,9 @@
       "error_download": "No se pudo descargar el PDF",
       "error_not_found": "El archivo PDF no se encontró en el dispositivo",
       "error_open": "Error al abrir el PDF",
+      "next_page": "Página siguiente",
       "page_indicator": "Página {current} de {total}",
+      "previous_page": "Página anterior",
       "retry": "Reintentar"
     },
     "section_switcher": {
@@ -4693,6 +4695,24 @@
       "completed_at": "Fecha completada",
       "date_hint": "AAAA-MM-DD",
       "save": "Guardar corrección"
+    },
+    "viewer": {
+      "title": "Tu comprobante",
+      "opening": "Abriendo tu comprobante…",
+      "error": "No pudimos abrir tu comprobante. Revisa tu conexión e inténtalo de nuevo.",
+      "processing": "Tu comprobante todavía se está procesando",
+      "retry": "Reintentar",
+      "more": "Más opciones",
+      "open_external": "Abrir en otra app",
+      "image_label": "Imagen de tu comprobante",
+      "not_found": "No encontramos este comprobante",
+      "view": "Ver",
+      "kind_image": "Foto",
+      "kind_pdf": "PDF",
+      "pdf_pages_one": "PDF · 1 página",
+      "pdf_pages_other": "PDF · {count} páginas",
+      "more_files_one": "+{count} archivo",
+      "more_files_other": "+{count} archivos"
     },
     "proof": {
       "title": "Registro importado",
