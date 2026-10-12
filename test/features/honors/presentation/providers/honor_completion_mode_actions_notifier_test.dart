@@ -51,6 +51,7 @@ class _StaleCompletionModeRepository implements HonorsRepository {
     int? categoryId,
     int? clubTypeId,
     int? skillLevel,
+    String? search,
     RequestCancelToken? cancelToken,
   }) =>
       throw UnimplementedError();

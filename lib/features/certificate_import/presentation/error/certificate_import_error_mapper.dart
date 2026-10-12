@@ -21,6 +21,10 @@ enum CertificateImportErrorKind {
   ocrUnsupportedType,
   ocrFileTooLarge,
   fileNotConfirmed,
+  dateTooOld,
+  dateInFuture,
+  dateInvalid,
+  classClubTypeMismatch,
   unknown,
 }
 
@@ -72,6 +76,10 @@ abstract final class CertificateImportErrorMapper {
     CertificateImportErrorKind.ocrUnsupportedType: ('type', _other),
     CertificateImportErrorKind.ocrFileTooLarge: ('too_large', _other),
     CertificateImportErrorKind.fileNotConfirmed: ('not_confirmed', _retry),
+    CertificateImportErrorKind.dateTooOld: ('date_old', _none),
+    CertificateImportErrorKind.dateInFuture: ('date_future', _none),
+    CertificateImportErrorKind.dateInvalid: ('date_invalid', _none),
+    CertificateImportErrorKind.classClubTypeMismatch: ('class_mismatch', _none),
     CertificateImportErrorKind.unknown: ('unexpected', _retry),
   };
 
@@ -96,6 +104,11 @@ abstract final class CertificateImportErrorMapper {
       bodySlug: upload ? _uploadBodies[kind] : null,
     );
   }
+
+  /// Copy for a bare business code, such as the batch `ocr_error_code`.
+  static CertificateImportErrorInfo mapCode(String? code) => map(
+        code == null ? null : ServerFailure(message: '', errorCode: code),
+      );
 
   /// Translated one-liner for snack bars and inline messages.
   static String message(
@@ -157,6 +170,14 @@ abstract final class CertificateImportErrorMapper {
         return CertificateImportErrorKind.ocrFileTooLarge;
       case CertificateImportErrorCode.fileNotConfirmed:
         return CertificateImportErrorKind.fileNotConfirmed;
+      case CertificateImportErrorCode.dateTooOld:
+        return CertificateImportErrorKind.dateTooOld;
+      case CertificateImportErrorCode.dateInFuture:
+        return CertificateImportErrorKind.dateInFuture;
+      case CertificateImportErrorCode.dateInvalid:
+        return CertificateImportErrorKind.dateInvalid;
+      case CertificateImportErrorCode.classClubTypeMismatch:
+        return CertificateImportErrorKind.classClubTypeMismatch;
       case CertificateImportErrorCode.network:
         return CertificateImportErrorKind.offline;
       case CertificateImportErrorCode.timeout:

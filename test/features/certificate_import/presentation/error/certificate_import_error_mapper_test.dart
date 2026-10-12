@@ -31,6 +31,12 @@ void main() {
           CertificateImportErrorKind.ocrFileTooLarge,
       'CERTIFICATE_IMPORT_FILE_NOT_CONFIRMED':
           CertificateImportErrorKind.fileNotConfirmed,
+      'CERTIFICATE_IMPORT_DATE_TOO_OLD': CertificateImportErrorKind.dateTooOld,
+      'CERTIFICATE_IMPORT_DATE_IN_FUTURE':
+          CertificateImportErrorKind.dateInFuture,
+      'CERTIFICATE_IMPORT_DATE_INVALID': CertificateImportErrorKind.dateInvalid,
+      'CERTIFICATE_IMPORT_CLASS_CLUB_TYPE_MISMATCH':
+          CertificateImportErrorKind.classClubTypeMismatch,
       'NETWORK': CertificateImportErrorKind.offline,
       'TIMEOUT': CertificateImportErrorKind.timeout,
     };
@@ -152,6 +158,23 @@ void main() {
           expect(node, isA<String>(), reason: '$key missing in $lang');
         }
       }
+    });
+  });
+
+  group('mapCode (batch ocr_error_code)', () {
+    test('turns a bare code into copy and an action', () {
+      final info = CertificateImportErrorMapper.mapCode(
+        'CERTIFICATE_IMPORT_PDF_ENCRYPTED',
+      );
+      expect(info.kind, CertificateImportErrorKind.pdfEncrypted);
+      expect(info.action, CertificateImportErrorAction.chooseOtherFile);
+    });
+
+    test('a missing or unknown code is the generic unexpected error', () {
+      expect(CertificateImportErrorMapper.mapCode(null).kind,
+          CertificateImportErrorKind.unknown);
+      expect(CertificateImportErrorMapper.mapCode('NOPE').kind,
+          CertificateImportErrorKind.unknown);
     });
   });
 }

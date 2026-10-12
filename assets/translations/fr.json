@@ -4685,6 +4685,22 @@
       },
       "unexpected_upload": {
         "body": "Impossible d’envoyer votre justificatif. Réessayez."
+      },
+      "date_old": {
+        "title": "Date hors limites",
+        "body": "La date ne peut pas être antérieure à 1960"
+      },
+      "date_future": {
+        "title": "Date hors limites",
+        "body": "La date ne peut pas être dans le futur"
+      },
+      "date_invalid": {
+        "title": "Date non valide",
+        "body": "La date n’est pas valide. Choisissez-en une autre."
+      },
+      "class_mismatch": {
+        "title": "La classe ne correspond pas",
+        "body": "Cette classe n’appartient pas à ce type de club. Choisissez-la à nouveau."
       }
     },
     "steps": {
@@ -4708,18 +4724,35 @@
       "gm01_replace": "Si Guide majeur (GM-01) est approuvé, il remplace l’inscription actuelle. Deux enregistrements ne sont pas conservés.",
       "institutional": "Guide majeur avancé et Instructeur passent en révision institutionnelle. Approuver cette demande n’enregistre pas une classe et ne crée pas d’inscription.",
       "period_pending": "en attente de période administrative",
-      "filter_all": "Toutes {count}",
-      "filter_ready": "Prêtes {count}",
-      "filter_missing": "À compléter {count}",
+      "filter_all": "Toutes",
+      "filter_ready": "Prêtes",
+      "filter_missing": "À compléter",
       "empty_filter": "Aucune ligne pour ce filtre.",
       "add_row": "Ajouter une spécialité ou une classe",
       "submit": "Envoyer en révision",
-      "ready_dock": "{count} prêtes",
-      "missing_dock": "{count} données manquantes",
       "no_rows": "Aucune ligne pour le moment",
       "remove_honor_title": "Retirer cette spécialité ?",
       "remove_class_title": "Retirer cette classe ?",
-      "remove_body": "Elle ne sera pas envoyée en révision. Vous pourrez la rajouter plus tard."
+      "remove_body": "Elle ne sera pas envoyée en révision. Vous pourrez la rajouter plus tard.",
+      "hint": "Vérifiez chacune et corrigez ce qui manque.",
+      "still_reading": "Nous lisons encore votre justificatif. Ce que nous trouvons apparaîtra ici.",
+      "show_all": "Tout afficher",
+      "group_honors": "Spécialités · {count}",
+      "group_classes": "Classes · {count}",
+      "progress": "{ready} sur {total} prêtes",
+      "complete_one": "Compléter {count} ligne",
+      "complete_other": "Compléter {count} lignes",
+      "submit_confirm_title": "Envoyer en révision ?",
+      "submit_confirm_body": "Votre Champ local examinera {summary}. D’ici là, vous ne pourrez pas les modifier.",
+      "submit_confirm_action": "Envoyer",
+      "submit_error": "Nous n’avons pas pu l’envoyer. Vérifiez votre connexion et réessayez.",
+      "empty_empty_title": "Nous n’avons trouvé aucune spécialité ni classe",
+      "empty_empty_body": "Cela peut arriver si la photo est floue ou si le texte est manuscrit. Vous pouvez les ajouter vous-même en regardant votre justificatif.",
+      "empty_reading_title": "Nous lisons encore votre justificatif",
+      "empty_reading_body": "Les PDF de plusieurs pages prennent un peu plus de temps. Vous verrez ici ce que nous trouvons.",
+      "empty_none_title": "Aucune ligne pour le moment",
+      "empty_none_body": "Ajoutez vos spécialités et classes en regardant votre justificatif.",
+      "retry_read": "Relancer la lecture"
     },
     "status": {
       "title": "État de l’envoi",
@@ -4738,25 +4771,60 @@
       "class": "Classe",
       "rejected": "Rejetée",
       "ready": "Prête",
-      "missing": "À compléter",
       "unnamed": "Aucun nom détecté",
       "fix_resubmit": "Corriger et renvoyer",
-      "fix": "Corriger",
       "remove": "Retirer",
       "period_pending": "en attente de période administrative",
       "gm01_replace": "S’il est approuvé, il remplace l’inscription actuelle de Guide majeur.",
-      "institutional": "Révision institutionnelle : approuver ne crée pas d’inscription."
+      "institutional": "Révision institutionnelle : approuver ne crée pas d’inscription.",
+      "missing_date": "Date manquante",
+      "missing_honor": "Choisir la spécialité",
+      "missing_class": "Choisir la classe",
+      "missing_type": "Choisir le type",
+      "missing_name": "Nom manquant",
+      "missing_many": "{count} données manquantes",
+      "read_as": "Lu : « {text} »",
+      "review_date": "Vérifiez la date",
+      "investiture": "Investiture {date}",
+      "view_proof": "Voir dans votre justificatif",
+      "view_proof_page": "Voir dans votre justificatif · p. {page}"
     },
     "editor": {
-      "title": "Corriger la ligne",
-      "add_title": "Ajouter une ligne",
+      "add_title": "Ajouter une spécialité ou une classe",
       "honor": "Spécialité",
       "class": "Classe",
-      "name": "Nom détecté",
-      "catalog_id": "ID catalogue",
-      "completed_at": "Date de fin",
-      "date_hint": "AAAA-MM-JJ",
-      "save": "Enregistrer"
+      "save": "Enregistrer",
+      "remove": "Retirer de la liste",
+      "title_honor": "Corriger la spécialité",
+      "title_class": "Corriger la classe",
+      "read_in_proof": "Lu sur votre justificatif",
+      "fix_text": "Corriger le texte",
+      "manual_name": "Nom tel qu’il apparaît sur votre justificatif (facultatif)",
+      "switch_to_class": "Est-ce une classe ?",
+      "category": "Catégorie",
+      "category_hint": "Toutes catégories",
+      "honor_hint": "Choisissez la spécialité",
+      "honor_category_mismatch": "Choisissez une spécialité de {category}",
+      "suggested": "Suggérée",
+      "date_honor": "Date à laquelle vous l’avez terminée",
+      "date_class": "Date d’investiture",
+      "date_required": "Choisissez la date",
+      "date_review": "Vérifiez la date",
+      "date_unreadable": "Vérifiez la date. Ce que nous avons lu n’est pas une date valide",
+      "date_read": "Lue",
+      "club_type": "Type de club",
+      "class_field": "Classe",
+      "pick_club_type": "Choisissez d’abord le type de club.",
+      "class_order_hint": "Vous pouvez valider {class} même sans {previous} enregistrée.",
+      "missing_line": "Manque : {fields}",
+      "field_honor": "spécialité",
+      "field_class": "classe",
+      "field_date": "date",
+      "field_type": "type",
+      "field_name": "nom",
+      "discard_title": "Abandonner les modifications ?",
+      "discard_confirm": "Abandonner",
+      "discard_keep": "Continuer à modifier"
     },
     "viewer": {
       "title": "Votre justificatif",
@@ -4780,6 +4848,16 @@
       "date_pending": "Date en attente",
       "applied": "Justificatif lié à l’enregistrement {id}",
       "gm01_replaced": "Cette approbation a déjà remplacé l’inscription de Guide majeur. Il ne reste qu’un enregistrement."
+    },
+    "picker": {
+      "honor_title": "Choisissez la spécialité",
+      "category_title": "Catégorie",
+      "search_hint": "Rechercher par nom",
+      "all_categories": "Toutes",
+      "type_to_search": "Saisissez au moins 2 lettres ou choisissez une catégorie.",
+      "no_results": "Aucun résultat pour « {query} »",
+      "no_results_in": "Aucun résultat pour « {query} » dans {category}",
+      "search_all": "Chercher dans toutes les catégories"
     }
   },
   "master_honors": {

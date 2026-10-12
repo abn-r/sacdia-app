@@ -4687,6 +4687,22 @@
       },
       "unexpected_upload": {
         "body": "No pudimos subir tu comprobante. Inténtalo de nuevo."
+      },
+      "date_old": {
+        "title": "Fecha fuera de rango",
+        "body": "La fecha no puede ser anterior a 1960"
+      },
+      "date_future": {
+        "title": "Fecha fuera de rango",
+        "body": "La fecha no puede ser futura"
+      },
+      "date_invalid": {
+        "title": "Fecha no válida",
+        "body": "La fecha no es válida. Elige otra."
+      },
+      "class_mismatch": {
+        "title": "La clase no coincide",
+        "body": "Esa clase no corresponde al tipo de club. Elígela de nuevo."
       }
     },
     "steps": {
@@ -4710,18 +4726,35 @@
       "gm01_replace": "Si se aprueba Guía Mayor (GM-01), sustituye la inscripción actual. No se conservan dos registros.",
       "institutional": "Guía Mayor Avanzado e Instructor van a revisión institucional. Aprobar esa solicitud no registra una clase ni crea inscripción.",
       "period_pending": "pendiente de periodo administrativo",
-      "filter_all": "Todas {count}",
-      "filter_ready": "Listas {count}",
-      "filter_missing": "Por completar {count}",
+      "filter_all": "Todas",
+      "filter_ready": "Listas",
+      "filter_missing": "Por completar",
       "empty_filter": "No hay filas para este filtro.",
       "add_row": "Agregar especialidad o clase",
       "submit": "Enviar a revisión",
-      "ready_dock": "{count} listas",
-      "missing_dock": "{count} con datos faltantes",
       "no_rows": "No hay filas todavía",
       "remove_honor_title": "¿Quitar esta especialidad?",
       "remove_class_title": "¿Quitar esta clase?",
-      "remove_body": "No se enviará a revisión. Puedes volver a agregarla después."
+      "remove_body": "No se enviará a revisión. Puedes volver a agregarla después.",
+      "hint": "Revisa cada una y corrige lo que haga falta.",
+      "still_reading": "Seguimos leyendo tu comprobante. Aquí verás lo que encontremos.",
+      "show_all": "Ver todas",
+      "group_honors": "Especialidades · {count}",
+      "group_classes": "Clases · {count}",
+      "progress": "{ready} de {total} listas",
+      "complete_one": "Completar {count} fila",
+      "complete_other": "Completar {count} filas",
+      "submit_confirm_title": "¿Enviar a revisión?",
+      "submit_confirm_body": "Tu Campo Local revisará {summary}. Mientras tanto no podrás editarlas.",
+      "submit_confirm_action": "Enviar",
+      "submit_error": "No pudimos enviarlo. Revisa tu conexión e inténtalo de nuevo.",
+      "empty_empty_title": "No encontramos especialidades ni clases",
+      "empty_empty_body": "Puede pasar si la foto salió borrosa o el texto está escrito a mano. Puedes agregarlas tú mismo mirando tu comprobante.",
+      "empty_reading_title": "Seguimos leyendo tu comprobante",
+      "empty_reading_body": "Los PDF de varias páginas tardan un poco más. Aquí verás lo que encontremos.",
+      "empty_none_title": "No hay filas todavía",
+      "empty_none_body": "Agrega tus especialidades y clases mirando tu comprobante.",
+      "retry_read": "Reintentar lectura"
     },
     "status": {
       "title": "Estado del envío",
@@ -4740,25 +4773,60 @@
       "class": "Clase",
       "rejected": "Rechazada",
       "ready": "Lista",
-      "missing": "Por completar",
       "unnamed": "Sin nombre detectado",
       "fix_resubmit": "Corregir y reenviar",
-      "fix": "Corregir",
       "remove": "Quitar",
       "period_pending": "pendiente de periodo administrativo",
       "gm01_replace": "Si se aprueba, sustituye la inscripción actual de Guía Mayor.",
-      "institutional": "Revisión institucional: aprobar no crea inscripción."
+      "institutional": "Revisión institucional: aprobar no crea inscripción.",
+      "missing_date": "Falta la fecha",
+      "missing_honor": "Falta elegir la especialidad",
+      "missing_class": "Falta elegir la clase",
+      "missing_type": "Falta elegir el tipo",
+      "missing_name": "Falta el nombre",
+      "missing_many": "Faltan {count} datos",
+      "read_as": "Leído: «{text}»",
+      "review_date": "Revisa la fecha",
+      "investiture": "Investidura {date}",
+      "view_proof": "Ver en tu comprobante",
+      "view_proof_page": "Ver en tu comprobante · pág. {page}"
     },
     "editor": {
-      "title": "Corregir fila",
-      "add_title": "Agregar fila",
+      "add_title": "Agregar especialidad o clase",
       "honor": "Especialidad",
       "class": "Clase",
-      "name": "Nombre detectado",
-      "catalog_id": "ID catálogo",
-      "completed_at": "Fecha completada",
-      "date_hint": "AAAA-MM-DD",
-      "save": "Guardar"
+      "save": "Guardar",
+      "remove": "Quitar de la lista",
+      "title_honor": "Corregir especialidad",
+      "title_class": "Corregir clase",
+      "read_in_proof": "Leído en tu comprobante",
+      "fix_text": "Corregir texto",
+      "manual_name": "Nombre como aparece en tu comprobante (opcional)",
+      "switch_to_class": "¿Es una clase?",
+      "category": "Categoría",
+      "category_hint": "Cualquier categoría",
+      "honor_hint": "Elige la especialidad",
+      "honor_category_mismatch": "Elige una especialidad de {category}",
+      "suggested": "Sugerida",
+      "date_honor": "Fecha en que la completaste",
+      "date_class": "Fecha de investidura",
+      "date_required": "Elige la fecha",
+      "date_review": "Revisa la fecha",
+      "date_unreadable": "Revisa la fecha. Lo que leímos no es una fecha válida",
+      "date_read": "Leída",
+      "club_type": "Tipo de club",
+      "class_field": "Clase",
+      "pick_club_type": "Elige primero el tipo de club.",
+      "class_order_hint": "Puedes acreditar {class} aunque no tengas {previous} registrado.",
+      "missing_line": "Falta: {fields}",
+      "field_honor": "especialidad",
+      "field_class": "clase",
+      "field_date": "fecha",
+      "field_type": "tipo",
+      "field_name": "nombre",
+      "discard_title": "¿Descartar los cambios?",
+      "discard_confirm": "Descartar",
+      "discard_keep": "Seguir editando"
     },
     "viewer": {
       "title": "Tu comprobante",
@@ -4782,6 +4850,16 @@
       "date_pending": "Fecha pendiente",
       "applied": "Comprobante ligado al registro {id}",
       "gm01_replaced": "Esta aprobación ya sustituyó la inscripción de Guía Mayor. Queda un solo registro."
+    },
+    "picker": {
+      "honor_title": "Elige la especialidad",
+      "category_title": "Categoría",
+      "search_hint": "Buscar por nombre",
+      "all_categories": "Todas",
+      "type_to_search": "Escribe al menos 2 letras o elige una categoría.",
+      "no_results": "No encontramos «{query}»",
+      "no_results_in": "No encontramos «{query}» en {category}",
+      "search_all": "Buscar en todas las categorías"
     }
   },
   "master_honors": {

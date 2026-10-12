@@ -4,6 +4,7 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/certificate_import_batch.dart';
 import '../entities/certificate_import_batch_list.dart';
+import '../entities/certificate_import_class_option.dart';
 import '../entities/certificate_import_institutional_request.dart';
 import '../entities/certificate_import_item.dart';
 import '../entities/certificate_import_payloads.dart';
@@ -66,6 +67,11 @@ abstract class CertificateImportRepository {
     required String batchId,
     required String itemId,
     required CertificateImportItemUpdatePayload payload,
+  });
+
+  Future<Either<Failure, List<CertificateImportClassOption>>> getClassCatalog({
+    required int clubTypeId,
+    RequestCancelToken? cancelToken,
   });
 
   Future<Either<Failure, CertificateImportInstitutionalRequestList>>

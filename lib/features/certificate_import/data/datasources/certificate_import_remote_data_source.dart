@@ -4,7 +4,9 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
+import '../../domain/entities/certificate_import_class_option.dart';
 import '../models/certificate_import_batch_list_model.dart';
+import '../models/certificate_import_class_option_model.dart';
 import '../models/certificate_import_batch_model.dart';
 import '../models/certificate_import_file_model.dart';
 import '../models/certificate_import_institutional_request_model.dart';
@@ -99,6 +101,13 @@ abstract class CertificateImportRemoteDataSource {
     required String batchId,
     required String itemId,
     required CertificateImportItemUpdatePayload payload,
+  });
+
+  /// Classes the member can pick for a club type, including withdrawn and
+  /// institutional ones (not limited to the current year's availability).
+  Future<List<CertificateImportClassOption>> getClassCatalog({
+    required int clubTypeId,
+    CancelToken? cancelToken,
   });
 
   /// Ready against GET /api/v1/certificate-import-institutional-requests.
@@ -392,6 +401,31 @@ class CertificateImportRemoteDataSourceImpl
     return CertificateImportInstitutionalRequestListModel.fromJson(
       _data(response),
     );
+  }
+
+  @override
+  Future<List<CertificateImportClassOption>> getClassCatalog({
+    required int clubTypeId,
+    CancelToken? cancelToken,
+  }) async {
+    final response = await _dio.get(
+      '$_endpoint/catalog/classes',
+      queryParameters: {'clubTypeId': clubTypeId},
+      cancelToken: cancelToken,
+    );
+    final body = response.data;
+    final data = body is Map ? body['data'] : body;
+    if (response.statusCode != 200 || data is! List) {
+      throw ServerException(
+        message: 'certificate_import.errors.unexpected.body'.tr(),
+        code: response.statusCode,
+      );
+    }
+    return data
+        .whereType<Map<String, dynamic>>()
+        .map(CertificateImportClassOptionModel.fromJson)
+        .whereType<CertificateImportClassOption>()
+        .toList(growable: false);
   }
 
   Map<String, dynamic> _data(Response<dynamic> response) {

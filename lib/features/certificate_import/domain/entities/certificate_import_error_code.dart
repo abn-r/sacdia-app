@@ -14,6 +14,11 @@ abstract final class CertificateImportErrorCode {
   static const ocrUnsupportedType = 'CERTIFICATE_IMPORT_OCR_UNSUPPORTED_TYPE';
   static const ocrFileTooLarge = 'CERTIFICATE_IMPORT_OCR_FILE_TOO_LARGE';
   static const fileNotConfirmed = 'CERTIFICATE_IMPORT_FILE_NOT_CONFIRMED';
+  static const dateTooOld = 'CERTIFICATE_IMPORT_DATE_TOO_OLD';
+  static const dateInFuture = 'CERTIFICATE_IMPORT_DATE_IN_FUTURE';
+  static const dateInvalid = 'CERTIFICATE_IMPORT_DATE_INVALID';
+  static const classClubTypeMismatch =
+      'CERTIFICATE_IMPORT_CLASS_CLUB_TYPE_MISMATCH';
   static const batchNotDeletable = 'CERTIFICATE_IMPORT_BATCH_NOT_DELETABLE';
   static const ocrInProgress = 'CERTIFICATE_IMPORT_OCR_IN_PROGRESS';
 
@@ -34,6 +39,10 @@ abstract final class CertificateImportErrorCode {
     ocrUnsupportedType,
     ocrFileTooLarge,
     fileNotConfirmed,
+    dateTooOld,
+    dateInFuture,
+    dateInvalid,
+    classClubTypeMismatch,
     batchNotDeletable,
     ocrInProgress,
     network,

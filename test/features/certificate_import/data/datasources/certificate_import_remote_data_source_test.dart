@@ -113,6 +113,78 @@ void main() {
     expect(adapter.lastBody, contains('"mark_as_ready":true'));
   });
 
+  test('lists the classes of a club type from the import catalog', () async {
+    final (:dio, :adapter) = _dioWith({
+      'status': 'success',
+      'data': [
+        {
+          'class_id': 3,
+          'name': 'Explorador',
+          'asset_code': 'CQ-02',
+          'club_type_id': 1,
+          'institutional': false,
+        },
+        {
+          'class_id': 9,
+          'name': 'Guía Mayor Instructor',
+          'asset_code': 'GM-03',
+          'club_type_id': 3,
+          'institutional': true,
+        },
+        {'class_id': null, 'name': 'sin id'},
+        'not a map',
+      ],
+    });
+    final dataSource = CertificateImportRemoteDataSourceImpl(
+      dio: dio,
+      baseUrl: baseUrl,
+    );
+
+    final classes = await dataSource.getClassCatalog(clubTypeId: 1);
+
+    expect(adapter.lastOptions!.method, 'GET');
+    expect(adapter.lastOptions!.path,
+        '$baseUrl/certificate-bulk-imports/catalog/classes');
+    expect(adapter.lastOptions!.queryParameters, {'clubTypeId': 1});
+    expect(classes.map((c) => c.id), [3, 9]);
+    expect(classes.first.assetCode, 'CQ-02');
+    expect(classes.last.institutional, isTrue);
+  });
+
+  group('item payload', () {
+    test('a class sends class_id and club_type_id, never honor_id', () {
+      final json = const CertificateImportItemUpdatePayload(
+        itemType: 'CLASS',
+        classId: 3,
+        clubTypeId: 1,
+        completedAt: '2022-11-20',
+        markAsReady: true,
+      ).toJson();
+      expect(json['class_id'], 3);
+      expect(json['club_type_id'], 1);
+      expect(json.containsKey('honor_id'), isFalse);
+    });
+
+    test('a honor sends honor_id only, with no catalog trash', () {
+      final json = const CertificateImportItemUpdatePayload(
+        itemType: 'HONOR',
+        honorId: 10,
+        completedAt: '2023-03-12',
+      ).toJson();
+      expect(json['honor_id'], 10);
+      expect(json.containsKey('class_id'), isFalse);
+      expect(json.containsKey('club_type_id'), isFalse);
+    });
+
+    test('club_type_id is dropped when there is no class', () {
+      final json = const CertificateImportItemUpdatePayload(
+        itemType: 'CLASS',
+        clubTypeId: 1,
+      ).toJson();
+      expect(json.containsKey('club_type_id'), isFalse);
+    });
+  });
+
   test('deletes a draft batch with DELETE on its id', () async {
     final (:dio, :adapter) = _dioWith({
       'status': 'success',

@@ -22,6 +22,9 @@ class CertificateImportItemModel extends Equatable {
   final int? appliedEntityId;
   final int? sourcePage;
   final String? sourceFileId;
+  final CertificateImportHonorRef? honor;
+  final CertificateImportClassRef? classRef;
+  final CertificateImportInstructorRef? instructor;
 
   const CertificateImportItemModel({
     required this.id,
@@ -41,6 +44,9 @@ class CertificateImportItemModel extends Equatable {
     this.appliedEntityId,
     this.sourcePage,
     this.sourceFileId,
+    this.honor,
+    this.classRef,
+    this.instructor,
   });
 
   factory CertificateImportItemModel.fromJson(Map<String, dynamic> json) {
@@ -72,6 +78,53 @@ class CertificateImportItemModel extends Equatable {
       appliedEntityId: safeIntOrNull(json['applied_entity_id']),
       sourcePage: _positive(json['source_page']),
       sourceFileId: safeStringOrNull(json['source_file_id']),
+      honor: _parseHonor(json['honor']),
+      classRef: _parseClass(nestedClass),
+      instructor: _parseInstructor(json['instructor']),
+    );
+  }
+
+  /// R6: every nested block may be absent or `null`; that means "no data".
+  static CertificateImportHonorRef? _parseHonor(dynamic raw) {
+    if (raw is! Map<String, dynamic>) return null;
+    final id = safeIntOrNull(raw['honor_id']);
+    final name = safeStringOrNull(raw['name']);
+    if (id == null || name == null) return null;
+    final category = raw['category'];
+    return CertificateImportHonorRef(
+      id: id,
+      name: name,
+      categoryId:
+          category is Map ? safeIntOrNull(category['honor_category_id']) : null,
+      categoryName: category is Map ? safeStringOrNull(category['name']) : null,
+    );
+  }
+
+  static CertificateImportClassRef? _parseClass(dynamic raw) {
+    if (raw is! Map<String, dynamic>) return null;
+    final id = safeIntOrNull(raw['class_id']);
+    final name = safeStringOrNull(raw['name']);
+    if (id == null || name == null) return null;
+    final clubType = raw['club_type'];
+    return CertificateImportClassRef(
+      id: id,
+      name: name,
+      assetCode: safeStringOrNull(raw['asset_code']),
+      clubTypeId:
+          clubType is Map ? safeIntOrNull(clubType['club_type_id']) : null,
+      clubTypeName: clubType is Map ? safeStringOrNull(clubType['name']) : null,
+    );
+  }
+
+  static CertificateImportInstructorRef? _parseInstructor(dynamic raw) {
+    if (raw is! Map<String, dynamic>) return null;
+    final name = safeStringOrNull(raw['display_name']);
+    if (name == null) return null;
+    return CertificateImportInstructorRef(
+      isUser: raw['kind'] == 'USER',
+      displayName: name,
+      userId: safeStringOrNull(raw['user_id']),
+      photoUrl: safeStringOrNull(raw['photo_url']),
     );
   }
 
@@ -155,6 +208,9 @@ class CertificateImportItemModel extends Equatable {
         appliedEntityId: appliedEntityId,
         sourcePage: sourcePage,
         sourceFileId: sourceFileId,
+        honor: honor,
+        classRef: classRef,
+        instructor: instructor,
       );
 
   static DateTime? _parseDate(dynamic value) {
@@ -189,5 +245,8 @@ class CertificateImportItemModel extends Equatable {
         appliedEntityId,
         sourcePage,
         sourceFileId,
+        honor,
+        classRef,
+        instructor,
       ];
 }

@@ -50,6 +50,7 @@ class HonorsRepositoryImpl implements HonorsRepository {
     int? categoryId,
     int? clubTypeId,
     int? skillLevel,
+    String? search,
     RequestCancelToken? cancelToken,
   }) async {
     try {
@@ -57,6 +58,7 @@ class HonorsRepositoryImpl implements HonorsRepository {
         categoryId: categoryId,
         clubTypeId: clubTypeId,
         skillLevel: skillLevel,
+        search: search,
         cancelToken: cancelToken.asDioCancelToken(),
       );
       final honors = honorModels.map((model) => model.toEntity()).toList();
