@@ -67,6 +67,16 @@ class CertificateImportRepositoryImpl implements CertificateImportRepository {
   }
 
   @override
+  Future<Either<Failure, void>> deleteBatch(String batchId) async {
+    final result = await _guard(() => remoteDataSource.deleteBatch(batchId));
+    // Already gone (or never yours): the member's goal is reached.
+    return result.fold(
+      (failure) => failure.code == 404 ? const Right(null) : Left(failure),
+      Right.new,
+    );
+  }
+
+  @override
   Future<Either<Failure, CertificateImportBatch>> getBatch(
     String batchId, {
     RequestCancelToken? cancelToken,

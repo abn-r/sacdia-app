@@ -1,3 +1,4 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/certificate_import/data/datasources/certificate_import_remote_data_source.dart';
 import 'package:sacdia_app/core/errors/exceptions.dart';
@@ -92,6 +93,14 @@ class _RemoteDataSource implements CertificateImportRemoteDataSource {
         page: 1,
         limit: 20,
       );
+
+  final deletedBatches = <String>[];
+
+  @override
+  Future<void> deleteBatch(String batchId) async {
+    deletedBatches.add(batchId);
+    if (error != null) throw error!;
+  }
 
   @override
   Future<List<CertificateImportClassOption>> getClassCatalog({
@@ -223,6 +232,52 @@ void main() {
 
   failureMappingTests();
   cancelTokenTests();
+  deleteBatchTests();
+}
+
+void deleteBatchTests() {
+  group('deleteBatch', () {
+    Future<Either<Failure, void>> run(_RemoteDataSource remote) =>
+        CertificateImportRepositoryImpl(
+          remoteDataSource: remote,
+          networkInfo: _NetworkInfo(),
+        ).deleteBatch('batch-1');
+
+    test('deletes through the data source', () async {
+      final remote = _RemoteDataSource();
+      expect((await run(remote)).isRight(), isTrue);
+      expect(remote.deletedBatches, ['batch-1']);
+    });
+
+    test('a batch that is already gone (404) counts as deleted', () async {
+      final result = await run(_RemoteDataSource()
+        ..error = _dio(DioExceptionType.badResponse, status: 404));
+      expect(result.isRight(), isTrue);
+    });
+
+    test('409 is returned as a failure with its business code', () async {
+      for (final code in [
+        'CERTIFICATE_IMPORT_BATCH_NOT_DELETABLE',
+        'CERTIFICATE_IMPORT_OCR_IN_PROGRESS',
+      ]) {
+        final result = await run(_RemoteDataSource()
+          ..error = _dio(
+            DioExceptionType.badResponse,
+            status: 409,
+            body: {'code': code, 'message': 'Conflict'},
+          ));
+        final failure = result.fold((f) => f, (_) => fail('expected failure'));
+        expect(failure.code, 409);
+        expect(failure.errorCode, code);
+      }
+    });
+
+    test('a network error is a failure, not a success', () async {
+      final result = await run(
+          _RemoteDataSource()..error = _dio(DioExceptionType.connectionError));
+      expect(result.isLeft(), isTrue);
+    });
+  });
 }
 
 Future<Failure> _failureFor(Object error) async {

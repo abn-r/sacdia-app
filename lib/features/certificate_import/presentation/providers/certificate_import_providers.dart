@@ -11,6 +11,7 @@ import '../../domain/entities/certificate_import_institutional_request.dart';
 import '../../domain/repositories/certificate_import_repository.dart';
 import '../../domain/usecases/add_certificate_import_item.dart';
 import '../../domain/usecases/create_certificate_import_batch.dart';
+import '../../domain/usecases/delete_certificate_import_batch.dart';
 import '../../domain/usecases/get_certificate_import_batch.dart';
 import '../../domain/usecases/get_certificate_import_class_catalog.dart';
 import '../../domain/usecases/list_certificate_import_batches.dart';
@@ -41,6 +42,12 @@ final certificateImportRepositoryProvider =
 final createCertificateImportBatchProvider =
     Provider<CreateCertificateImportBatch>((ref) {
   return CreateCertificateImportBatch(
+      ref.read(certificateImportRepositoryProvider));
+});
+
+final deleteCertificateImportBatchProvider =
+    Provider<DeleteCertificateImportBatch>((ref) {
+  return DeleteCertificateImportBatch(
       ref.read(certificateImportRepositoryProvider));
 });
 

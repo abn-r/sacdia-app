@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/certificate_import_batch.dart';
 import '../../domain/entities/certificate_import_payloads.dart';
 import '../../domain/entities/certificate_import_upload_session.dart';
 import '../../domain/repositories/certificate_import_repository.dart';
+import '../../domain/usecases/delete_certificate_import_batch.dart';
 import '../error/certificate_import_error_mapper.dart';
 
 /// What the screen is waiting for while the upload is busy.
@@ -49,12 +53,15 @@ class CertificateImportUploadOutcome {
 class CertificateImportUploadController {
   CertificateImportUploadController(
     this._repository, {
+    DeleteCertificateImportBatch? deleteBatch,
     Future<void> Function(Duration) delay = _defaultDelay,
     DateTime Function() now = DateTime.now,
-  })  : _delay = delay,
+  })  : _deleteBatch = deleteBatch ?? DeleteCertificateImportBatch(_repository),
+        _delay = delay,
         _now = now;
 
   final CertificateImportRepository _repository;
+  final DeleteCertificateImportBatch _deleteBatch;
   final Future<void> Function(Duration) _delay;
   final DateTime Function() _now;
 
@@ -88,6 +95,12 @@ class CertificateImportUploadController {
 
   void dispose() {
     _disposed = true;
+    // Leaving mid-upload strands a DRAFT that never got its file confirmed.
+    // (A confirmed batch stays: the member can still open it.)
+    if (_uploadedBatchId == null) {
+      _discardDraft(_session.batchId);
+      _resetSession();
+    }
     _cancel?.cancel();
     _poll?.cancel();
     phase.dispose();
@@ -98,7 +111,11 @@ class CertificateImportUploadController {
   Future<CertificateImportUploadOutcome> run(
     CertificateImportLocalProof proof,
   ) async {
-    if (_proofPath != proof.localPath) _resetSession();
+    if (_proofPath != proof.localPath) {
+      // A different file: the earlier attempt's DRAFT will never be used.
+      _discardDraft(_uploadedBatchId ?? _session.batchId);
+      _resetSession();
+    }
     _proofPath = proof.localPath;
     _skip = false;
     slow.value = false;
@@ -130,6 +147,34 @@ class CertificateImportUploadController {
     return CertificateImportUploadOutcome(batchId, readingIssue: issue);
   }
 
+  /// Deletes an abandoned DRAFT without blocking or bothering the member.
+  /// Failures (including "reading in progress") are only logged; a batch
+  /// that is already gone counts as deleted by the repository.
+  void _discardDraft(String? batchId) {
+    if (batchId == null) return;
+    unawaited(_delete(batchId));
+  }
+
+  Future<void> _delete(String batchId) async {
+    try {
+      final result = await _deleteBatch(batchId);
+      result.fold(
+        (failure) => AppLogger.w(
+          'Could not delete abandoned import draft',
+          tag: 'CertificateImport',
+          error: failure.errorCode ?? failure.code,
+        ),
+        (_) {},
+      );
+    } catch (error) {
+      AppLogger.w(
+        'Could not delete abandoned import draft',
+        tag: 'CertificateImport',
+        error: error,
+      );
+    }
+  }
+
   void _resetSession() {
     _session = CertificateImportUploadSession();
     _uploadedBatchId = null;
@@ -149,8 +194,16 @@ class CertificateImportUploadController {
     );
     return result.fold((failure) {
       if (cancel.isCancelled) {
+        _discardDraft(_session.batchId);
         _resetSession();
         throw const CertificateImportUploadCancelled();
+      }
+      // The file itself is the problem (protected, too long, wrong type):
+      // retrying cannot help, so the DRAFT is dropped before picking another.
+      final action = CertificateImportErrorMapper.map(failure).action;
+      if (action == CertificateImportErrorAction.chooseOtherFile) {
+        _discardDraft(_session.batchId);
+        _resetSession();
       }
       throw failure;
     }, (batch) {

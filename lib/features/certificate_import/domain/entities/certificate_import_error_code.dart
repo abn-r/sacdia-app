@@ -19,6 +19,8 @@ abstract final class CertificateImportErrorCode {
   static const dateInvalid = 'CERTIFICATE_IMPORT_DATE_INVALID';
   static const classClubTypeMismatch =
       'CERTIFICATE_IMPORT_CLASS_CLUB_TYPE_MISMATCH';
+  static const batchNotDeletable = 'CERTIFICATE_IMPORT_BATCH_NOT_DELETABLE';
+  static const ocrInProgress = 'CERTIFICATE_IMPORT_OCR_IN_PROGRESS';
 
   /// No HTTP response: no connectivity, DNS or TLS failure.
   static const network = 'NETWORK';
@@ -41,6 +43,8 @@ abstract final class CertificateImportErrorCode {
     dateInFuture,
     dateInvalid,
     classClubTypeMismatch,
+    batchNotDeletable,
+    ocrInProgress,
     network,
     timeout,
   };

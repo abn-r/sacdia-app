@@ -51,6 +51,19 @@ class _FakeRepo implements CertificateImportRepository {
   var ocrCalls = 0;
   Future<void> Function(CancelToken token)? onUpload;
 
+  /// False simulates a failure before the draft batch exists.
+  var createsBatch = true;
+  final deleted = <String>[];
+  Either<Failure, void> deleteResult = const Right(null);
+  void Function()? onDelete;
+
+  @override
+  Future<Either<Failure, void>> deleteBatch(String batchId) async {
+    deleted.add(batchId);
+    onDelete?.call();
+    return deleteResult;
+  }
+
   @override
   Future<Either<Failure, CertificateImportBatch>> uploadLocalProof(
     CertificateImportLocalProof proof, {
@@ -59,7 +72,7 @@ class _FakeRepo implements CertificateImportRepository {
     CancelToken? cancelToken,
   }) async {
     sessions.add(session);
-    session!.batchId = 'batch-1';
+    if (createsBatch) session!.batchId = 'batch-1';
     onProgress?.call(0.5);
     await onUpload?.call(cancelToken!);
     return uploadResults.isEmpty
@@ -359,6 +372,183 @@ void main() {
       expect(outcome.readingIssue, isNull);
       expect(h.repo.sessions, hasLength(1), reason: 'upload not repeated');
       expect(h.repo.ocrCalls, 2);
+    });
+  });
+
+  group('abandoned drafts are deleted (best effort)', () {
+    const unreadable = Left<Failure, CertificateImportBatch>(ServerFailure(
+      message: 'x',
+      code: 400,
+      errorCode: 'CERTIFICATE_IMPORT_PDF_ENCRYPTED',
+    ));
+
+    Future<void> cancelUpload(_Harness h) async {
+      final started = Completer<void>();
+      h.repo.onUpload = (token) async {
+        started.complete();
+        await token.whenCancel;
+      };
+      h.repo.uploadResults.add(const Left(ServerFailure(message: 'x')));
+      final run = h.controller.run(_proof);
+      final expectation = expectLater(
+        run,
+        throwsA(isA<CertificateImportUploadCancelled>()),
+      );
+      await started.future;
+      h.controller.cancel();
+      await expectation;
+    }
+
+    test('cancel deletes the batch of the session', () async {
+      final h = _Harness();
+      await cancelUpload(h);
+      expect(h.repo.deleted, ['batch-1']);
+    });
+
+    test('cancel without a batch yet calls nothing', () async {
+      final h = _Harness();
+      h.repo.createsBatch = false;
+      await cancelUpload(h);
+      expect(h.repo.deleted, isEmpty);
+    });
+
+    test('a 404 on delete is fine and cancel still ends as cancelled',
+        () async {
+      final h = _Harness();
+      // The repository maps 404 to success; the controller just moves on.
+      h.repo.deleteResult = const Right(null);
+      await cancelUpload(h);
+      h.repo.onUpload = null;
+      h.repo.ocrResult = Right(_batch(state: CertificateImportOcrState.done));
+      final outcome = await h.controller.run(_proof);
+      expect(outcome.batchId, 'batch-1');
+    });
+
+    test('a 409 on delete is ignored without a crash', () async {
+      final h = _Harness();
+      h.repo.deleteResult = const Left(ServerFailure(
+        message: 'x',
+        code: 409,
+        errorCode: 'CERTIFICATE_IMPORT_OCR_IN_PROGRESS',
+      ));
+      await cancelUpload(h);
+      expect(h.repo.deleted, ['batch-1']);
+
+      // Nothing is shown to the member and the controller keeps working.
+      h.repo.onUpload = null;
+      h.repo.ocrResult = Right(_batch(state: CertificateImportOcrState.done));
+      expect((await h.controller.run(_proof)).batchId, 'batch-1');
+    });
+
+    test('a delete that throws is swallowed', () async {
+      final h = _Harness();
+      h.repo.onDelete = () => throw StateError('boom');
+      await cancelUpload(h);
+      expect(h.repo.deleted, ['batch-1']);
+    });
+
+    test('a file that cannot be read drops its draft, a busy queue does not',
+        () async {
+      final h = _Harness();
+      h.repo.uploadResults.add(unreadable);
+      await expectLater(
+          h.controller.run(_proof), throwsA(isA<ServerFailure>()));
+      expect(h.repo.deleted, ['batch-1']);
+
+      final busy = _Harness();
+      busy.repo.uploadResults.add(const Left(ServerFailure(
+        message: 'x',
+        code: 429,
+        errorCode: 'CERTIFICATE_IMPORT_PDF_BUSY',
+      )));
+      await expectLater(
+          busy.controller.run(_proof), throwsA(isA<ServerFailure>()));
+      expect(busy.repo.deleted, isEmpty);
+    });
+
+    test('after an unreadable file the next run starts a new session',
+        () async {
+      final h = _Harness();
+      h.repo.uploadResults.add(unreadable);
+      await expectLater(
+          h.controller.run(_proof), throwsA(isA<ServerFailure>()));
+      h.repo.ocrResult = Right(_batch(state: CertificateImportOcrState.done));
+      await h.controller.run(_proof);
+      expect(h.repo.sessions[1], isNot(same(h.repo.sessions[0])));
+    });
+
+    test('picking another file deletes the previous attempt', () async {
+      final h = _Harness();
+      h.repo.uploadResults.add(const Left(ServerFailure(message: 'x')));
+      await expectLater(
+          h.controller.run(_proof), throwsA(isA<ServerFailure>()));
+      expect(h.repo.deleted, isEmpty);
+
+      h.repo.ocrResult = Right(_batch(state: CertificateImportOcrState.done));
+      await h.controller.run(const CertificateImportLocalProof(
+        localPath: '/tmp/b.pdf',
+        fileName: 'b.pdf',
+        mimeType: 'application/pdf',
+        fileSize: 4,
+      ));
+      expect(h.repo.deleted, ['batch-1']);
+    });
+
+    test('retrying the same file keeps the draft', () async {
+      final h = _Harness();
+      h.repo.uploadResults.add(const Left(ServerFailure(message: 'x')));
+      await expectLater(
+          h.controller.run(_proof), throwsA(isA<ServerFailure>()));
+      h.repo.ocrResult = Right(_batch(state: CertificateImportOcrState.done));
+      await h.controller.run(_proof);
+      expect(h.repo.deleted, isEmpty);
+    });
+
+    test('leaving after a failed upload deletes the draft', () async {
+      final h = _Harness();
+      h.repo.uploadResults.add(const Left(ServerFailure(message: 'x')));
+      await expectLater(
+          h.controller.run(_proof), throwsA(isA<ServerFailure>()));
+      h.controller.dispose();
+      expect(h.repo.deleted, ['batch-1']);
+    });
+
+    test('leaving after a finished run deletes nothing', () async {
+      final h = _Harness();
+      h.repo.ocrResult = Right(_batch(state: CertificateImportOcrState.done));
+      await h.controller.run(_proof);
+      h.controller.dispose();
+      expect(h.repo.deleted, isEmpty);
+    });
+
+    test('leaving with the file already confirmed keeps the batch', () async {
+      final h = _Harness();
+      h.repo.ocrResult = const Left(
+        ServerFailure(message: 'x', errorCode: 'NETWORK'),
+      );
+      await expectLater(
+          h.controller.run(_proof), throwsA(isA<ServerFailure>()));
+      h.controller.dispose();
+      expect(h.repo.deleted, isEmpty);
+    });
+
+    test('leaving mid-upload deletes the draft once', () async {
+      final h = _Harness();
+      final started = Completer<void>();
+      h.repo.onUpload = (token) async {
+        started.complete();
+        await token.whenCancel;
+      };
+      h.repo.uploadResults.add(const Left(ServerFailure(message: 'x')));
+      final run = h.controller.run(_proof);
+      final expectation = expectLater(
+        run,
+        throwsA(isA<CertificateImportUploadCancelled>()),
+      );
+      await started.future;
+      h.controller.dispose();
+      await expectation;
+      expect(h.repo.deleted, ['batch-1']);
     });
   });
 }

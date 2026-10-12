@@ -184,4 +184,21 @@ void main() {
       expect(json.containsKey('club_type_id'), isFalse);
     });
   });
+
+  test('deletes a draft batch with DELETE on its id', () async {
+    final (:dio, :adapter) = _dioWith({
+      'status': 'success',
+      'data': {'batch_id': 'batch-1', 'deleted': true},
+    });
+    final dataSource = CertificateImportRemoteDataSourceImpl(
+      dio: dio,
+      baseUrl: baseUrl,
+    );
+
+    await dataSource.deleteBatch('batch-1');
+
+    expect(adapter.lastOptions!.method, 'DELETE');
+    expect(
+        adapter.lastOptions!.path, '$baseUrl/certificate-bulk-imports/batch-1');
+  });
 }

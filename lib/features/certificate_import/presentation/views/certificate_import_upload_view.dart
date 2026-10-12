@@ -141,6 +141,7 @@ class _CertificateImportUploadRouteViewState
   late final CertificateImportUploadController _controller =
       CertificateImportUploadController(
     ref.read(certificateImportRepositoryProvider),
+    deleteBatch: ref.read(deleteCertificateImportBatchProvider),
   );
 
   @override
