@@ -90,8 +90,6 @@ class RouteNames {
 
   // Carga masiva por comprobante/certificado OCR
   static const String certificateImportUpload = '/certificate-import';
-  static const String certificateImportProcessing =
-      '/certificate-import/:batchId/processing';
   static const String certificateImportReview =
       '/certificate-import/:batchId/review';
   static const String certificateImportStatus =
@@ -145,8 +143,6 @@ class RouteNames {
     return '$base&name=${Uri.encodeComponent(certificationName)}';
   }
 
-  static String certificateImportProcessingPath(String batchId) =>
-      '/certificate-import/$batchId/processing';
   static String certificateImportReviewPath(String batchId) =>
       '/certificate-import/$batchId/review';
   static String certificateImportStatusPath(String batchId) =>

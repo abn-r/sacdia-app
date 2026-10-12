@@ -4616,20 +4616,6 @@
       "selected_one": "Justificatif sélectionné",
       "selected_other": "{count} justificatifs sélectionnés"
     },
-    "processing": {
-      "title": "Lecture du justificatif",
-      "running_title": "Nous lisons votre justificatif",
-      "error_title": "Nous n’avons pas tout lu",
-      "manual_title": "Complétez le dossier à la main",
-      "running_body": "Nous extrayons honneurs, classes et dates pour que vous confirmiez les données.",
-      "error_body": "Vous pouvez compléter les données manuellement. Nous ne vous laissons pas bloqué.",
-      "manual_body": "La lecture automatique n’est pas disponible pour le moment. Vous pouvez ajouter et corriger des lignes sans perdre le fichier.",
-      "step_upload": "Envoi du fichier",
-      "step_ocr": "Lecture du texte",
-      "step_results": "Préparation des résultats",
-      "manual": "Compléter manuellement",
-      "retry": "Relancer la lecture"
-    },
     "review": {
       "title": "Vérifiez les données",
       "load_error": "Impossible de charger le lot : {error}",

@@ -4618,20 +4618,6 @@
       "selected_one": "Receipt selected",
       "selected_other": "{count} receipts selected"
     },
-    "processing": {
-      "title": "Reading receipt",
-      "running_title": "We are reading your receipt",
-      "error_title": "We couldn't read everything",
-      "manual_title": "Complete the record by hand",
-      "running_body": "We extract honors, classes and dates so you can confirm the data.",
-      "error_body": "You can complete the data manually. We won't leave you stuck.",
-      "manual_body": "Automatic reading is not available right now. You can add and correct rows manually without losing the file.",
-      "step_upload": "Uploading file",
-      "step_ocr": "Reading text",
-      "step_results": "Preparing results",
-      "manual": "Complete manually",
-      "retry": "Retry reading"
-    },
     "review": {
       "title": "Review the data",
       "load_error": "We couldn't load the batch: {error}",

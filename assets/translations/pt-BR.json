@@ -4616,20 +4616,6 @@
       "selected_one": "Comprovante selecionado",
       "selected_other": "{count} comprovantes selecionados"
     },
-    "processing": {
-      "title": "Lendo comprovante",
-      "running_title": "Estamos lendo seu comprovante",
-      "error_title": "Não conseguimos ler tudo",
-      "manual_title": "Complete o expediente à mão",
-      "running_body": "Extraímos honras, classes e datas para você confirmar os dados.",
-      "error_body": "Você pode completar os dados manualmente. Não vamos deixar você sem saída.",
-      "manual_body": "A leitura automática não está disponível agora. Você pode adicionar e corrigir linhas sem perder o arquivo.",
-      "step_upload": "Enviando arquivo",
-      "step_ocr": "Lendo texto",
-      "step_results": "Preparando resultados",
-      "manual": "Completar manualmente",
-      "retry": "Tentar leitura de novo"
-    },
     "review": {
       "title": "Revise os dados",
       "load_error": "Não foi possível carregar o lote: {error}",

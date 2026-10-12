@@ -17,7 +17,6 @@ import 'package:sacdia_app/features/certificate_import/domain/entities/certifica
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_file.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_item.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_payloads.dart';
-import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_processing_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_review_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_status_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_upload_view.dart';
@@ -115,12 +114,8 @@ void main() {
   });
 
   group('Certificate import routing', () {
-    test(
-        'declares route names for upload, processing, review and imported proof',
-        () {
+    test('declares route names for upload, review and imported proof', () {
       expect(RouteNames.certificateImportUpload, '/certificate-import');
-      expect(RouteNames.certificateImportProcessingPath('batch-1'),
-          '/certificate-import/batch-1/processing');
       expect(RouteNames.certificateImportReviewPath('batch-1'),
           '/certificate-import/batch-1/review');
       expect(RouteNames.certificateImportProofPath('item-1'),
@@ -523,29 +518,6 @@ void main() {
       completer.complete();
       await tester.pump();
       await tester.pump();
-    });
-  });
-
-  group('CertificateImportProcessingView', () {
-    testWidgets('shows OCR steps and a manual fallback action', (tester) async {
-      var fallbackCalls = 0;
-      await _pump(
-        tester,
-        CertificateImportProcessingView(
-          batchId: 'batch-1',
-          autoStart: false,
-          onManualFallback: () => fallbackCalls++,
-        ),
-      );
-
-      expect(find.text('Leyendo comprobante'), findsOneWidget);
-      expect(find.text('Subiendo archivo'), findsOneWidget);
-      expect(find.text('Leyendo texto'), findsOneWidget);
-      expect(find.text('Completar manualmente'), findsOneWidget);
-
-      await tester.tap(find.text('Completar manualmente'));
-      await tester.pump();
-      expect(fallbackCalls, 1);
     });
   });
 
