@@ -22,6 +22,10 @@ class CertificateImportBatch extends Equatable {
   /// the field): callers fall back to checking whether rows arrived.
   final bool hasOcrState;
 
+  /// `CERTIFICATE_IMPORT_*` code explaining a `failed` reading, when the API
+  /// sends one. Never shown raw: the error mapper turns it into copy.
+  final String? ocrErrorCode;
+
   const CertificateImportBatch({
     required this.id,
     required this.status,
@@ -34,6 +38,7 @@ class CertificateImportBatch extends Equatable {
     this.modifiedAt,
     this.ocrState,
     this.hasOcrState = false,
+    this.ocrErrorCode,
   });
 
   int get readyCount => items.where((item) => item.isReady).length;
@@ -53,5 +58,6 @@ class CertificateImportBatch extends Equatable {
         modifiedAt,
         ocrState,
         hasOcrState,
+        ocrErrorCode,
       ];
 }

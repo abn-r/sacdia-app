@@ -3,6 +3,7 @@ export '../../domain/entities/certificate_import_item.dart';
 import 'package:equatable/equatable.dart';
 import '../../../../core/utils/json_helpers.dart';
 import '../../domain/entities/certificate_import_batch.dart';
+import '../../domain/entities/certificate_import_error_code.dart';
 import '../../domain/entities/certificate_import_ocr_state.dart';
 import 'certificate_import_file_model.dart';
 import 'certificate_import_item_model.dart';
@@ -19,6 +20,7 @@ class CertificateImportBatchModel extends Equatable {
   final DateTime? modifiedAt;
   final CertificateImportOcrState? ocrState;
   final bool hasOcrState;
+  final String? ocrErrorCode;
 
   const CertificateImportBatchModel({
     required this.id,
@@ -32,6 +34,7 @@ class CertificateImportBatchModel extends Equatable {
     this.modifiedAt,
     this.ocrState,
     this.hasOcrState = false,
+    this.ocrErrorCode,
   });
 
   factory CertificateImportBatchModel.fromJson(Map<String, dynamic> json) {
@@ -63,6 +66,7 @@ class CertificateImportBatchModel extends Equatable {
       hasOcrState: json.containsKey('ocr_state') &&
           (json['ocr_state'] == null ||
               CertificateImportOcrState.tryParse(json['ocr_state']) != null),
+      ocrErrorCode: CertificateImportErrorCode.known(json['ocr_error_code']),
     );
   }
 
@@ -83,6 +87,7 @@ class CertificateImportBatchModel extends Equatable {
         'created_at': createdAt?.toIso8601String(),
         'modified_at': modifiedAt?.toIso8601String(),
         if (hasOcrState) 'ocr_state': ocrState?.name,
+        if (ocrErrorCode != null) 'ocr_error_code': ocrErrorCode,
       };
 
   CertificateImportBatch toEntity() => CertificateImportBatch(
@@ -97,6 +102,7 @@ class CertificateImportBatchModel extends Equatable {
         modifiedAt: modifiedAt,
         ocrState: ocrState,
         hasOcrState: hasOcrState,
+        ocrErrorCode: ocrErrorCode,
       );
 
   static DateTime? _parseDate(dynamic value) {
@@ -117,5 +123,6 @@ class CertificateImportBatchModel extends Equatable {
         modifiedAt,
         ocrState,
         hasOcrState,
+        ocrErrorCode,
       ];
 }

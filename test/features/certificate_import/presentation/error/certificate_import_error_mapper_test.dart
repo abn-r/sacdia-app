@@ -154,4 +154,21 @@ void main() {
       }
     });
   });
+
+  group('mapCode (batch ocr_error_code)', () {
+    test('turns a bare code into copy and an action', () {
+      final info = CertificateImportErrorMapper.mapCode(
+        'CERTIFICATE_IMPORT_PDF_ENCRYPTED',
+      );
+      expect(info.kind, CertificateImportErrorKind.pdfEncrypted);
+      expect(info.action, CertificateImportErrorAction.chooseOtherFile);
+    });
+
+    test('a missing or unknown code is the generic unexpected error', () {
+      expect(CertificateImportErrorMapper.mapCode(null).kind,
+          CertificateImportErrorKind.unknown);
+      expect(CertificateImportErrorMapper.mapCode('NOPE').kind,
+          CertificateImportErrorKind.unknown);
+    });
+  });
 }

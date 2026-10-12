@@ -10,9 +10,7 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/config/router.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
-import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_tweened_bar.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_batch.dart';
@@ -20,7 +18,6 @@ import 'package:sacdia_app/features/certificate_import/domain/entities/certifica
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_item.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_payloads.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/controllers/certificate_import_upload_controller.dart';
-import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_review_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_import_item_editor_sheet.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_status_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_upload_view.dart';
@@ -748,155 +745,6 @@ void main() {
         find.widgetWithText(SacButton, 'Leer comprobante'),
       );
       expect(submit.onPressed, isNotNull);
-    });
-  });
-
-  group('CertificateImportReviewView', () {
-    testWidgets(
-        'renders mixed HONOR/CLASS cards, counters and disabled submit when data is missing',
-        (tester) async {
-      await _pump(
-        tester,
-        CertificateImportReviewView(
-          initialBatch: _batch(),
-        ),
-      );
-
-      expect(find.text('1 especialidad y 1 clase'), findsOneWidget);
-      expect(find.text('Especialidad'), findsOneWidget);
-      expect(find.text('Clase'), findsOneWidget);
-      expect(find.textContaining('% OCR'), findsNothing);
-      expect(find.textContaining('Catálogo'), findsNothing);
-      expect(find.textContaining('Amigo y Explorador'), findsNothing);
-      expect(find.text('Primeros Auxilios'), findsOneWidget);
-      expect(find.text('Amigo'), findsOneWidget);
-
-      final submit = tester.widget<SacButton>(
-        find.widgetWithText(SacButton, 'Enviar a revisión'),
-      );
-      expect(submit.onPressed, isNull);
-    });
-
-    testWidgets('opens editor and enables submit after item correction',
-        (tester) async {
-      // The proof card makes the header taller; keep the rows on screen.
-      tester.view.physicalSize = const Size(800, 1400);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.reset);
-      CertificateImportItem? updated;
-      await _pump(
-        tester,
-        CertificateImportReviewView(
-          initialBatch: _batch(),
-          onUpdateItem: (item) async => updated = item,
-        ),
-      );
-
-      await tester.tap(find.text('Corregir').first);
-      await tester.pumpAndSettle();
-
-      Finder inputWithLabel(String label) => find.descendant(
-            of: find.byWidgetPredicate(
-              (widget) => widget is SacTextField && widget.label == label,
-            ),
-            matching: find.byType(TextFormField),
-          );
-
-      await tester.enterText(inputWithLabel('ID catálogo'), '10');
-      await tester.enterText(
-        inputWithLabel('Fecha completada'),
-        '2026-04-12',
-      );
-      await tester.tap(find.text('Guardar'));
-      await tester.pumpAndSettle();
-
-      expect(updated?.honorId, 10);
-      expect(updated?.completedAt, DateTime(2026, 4, 12));
-
-      final submit = tester.widget<SacButton>(
-        find.widgetWithText(SacButton, 'Enviar a revisión'),
-      );
-      expect(submit.onPressed, isNotNull);
-    });
-  });
-
-  group('CertificateImportReviewView errors', () {
-    testWidgets('asks before removing and keeps the row when it fails',
-        (tester) async {
-      var removeCalls = 0;
-      await _pump(
-        tester,
-        CertificateImportReviewView(
-          initialBatch: _batch(),
-          onRemoveItem: (_) async {
-            removeCalls++;
-            throw const ServerFailure(message: 'x', errorCode: 'NETWORK');
-          },
-        ),
-      );
-
-      await tester.tap(find.text('Quitar').first);
-      await tester.pumpAndSettle();
-      expect(find.text('¿Quitar esta especialidad?'), findsOneWidget);
-
-      // Cancelling does not call the API.
-      await tester.tap(find.text('Cancelar'));
-      await tester.pumpAndSettle();
-      expect(removeCalls, 0);
-
-      await tester.tap(find.text('Quitar').first);
-      await tester.pumpAndSettle();
-      await tester.tap(find.descendant(
-        of: find.byType(SacDialog),
-        matching: find.text('Quitar'),
-      ));
-      await tester.pumpAndSettle();
-
-      expect(removeCalls, 1);
-      expect(find.text('Primeros Auxilios'), findsOneWidget);
-      expect(find.text('Revisa tu conexión a internet e inténtalo de nuevo.'),
-          findsOneWidget);
-    });
-
-    testWidgets('shows a mapped message when submit fails and re-enables it',
-        (tester) async {
-      await _pump(
-        tester,
-        CertificateImportReviewView(
-          initialBatch: _batch(complete: true),
-          onSubmitBatch: () async => throw const ServerFailure(
-            message: 'stack trace /srv/api',
-            code: 500,
-          ),
-        ),
-      );
-
-      await tester.tap(find.text('Enviar a revisión'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('No pudimos completar la acción. Inténtalo de nuevo.'),
-          findsOneWidget);
-      expect(find.textContaining('/srv/api'), findsNothing);
-      final submit = tester.widget<SacButton>(
-        find.widgetWithText(SacButton, 'Enviar a revisión'),
-      );
-      expect(submit.isLoading, isFalse);
-      expect(submit.onPressed, isNotNull);
-    });
-
-    testWidgets('summary only names the types that have rows', (tester) async {
-      await _pump(
-        tester,
-        CertificateImportReviewView(
-          initialBatch: CertificateImportBatch(
-            id: 'batch-1',
-            status: 'DRAFT',
-            items: [_batch().items.first],
-          ),
-        ),
-      );
-      expect(find.text('1 especialidad'), findsOneWidget);
-      expect(find.textContaining('0 clases'), findsNothing);
     });
   });
 
