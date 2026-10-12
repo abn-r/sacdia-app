@@ -13,11 +13,15 @@ class CertificateImportItemEditorSheet extends StatefulWidget {
     super.key,
     required this.item,
     required this.onSave,
+    this.onRemove,
     this.titleKey = 'certificate_import.editor.title',
   });
 
   final CertificateImportItem item;
   final Future<void> Function(CertificateImportItem item) onSave;
+
+  /// Shown as "Quitar de la lista" when the row can be removed.
+  final VoidCallback? onRemove;
   final String titleKey;
 
   @override
@@ -137,6 +141,11 @@ class _CertificateImportItemEditorSheetState
                 isLoading: _saving,
                 onPressed: _saving ? null : _save,
               ),
+              if (widget.onRemove != null)
+                SacButton.ghost(
+                  text: 'certificate_import.editor.remove'.tr(),
+                  onPressed: _saving ? null : widget.onRemove,
+                ),
             ],
           ),
         ),
