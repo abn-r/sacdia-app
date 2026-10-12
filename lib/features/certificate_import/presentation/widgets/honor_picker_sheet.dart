@@ -159,13 +159,22 @@ class _HonorPickerSheetState extends ConsumerState<HonorPickerSheet> {
                 onChanged: _onChanged,
                 decoration: InputDecoration(
                   hintText: 'certificate_import.picker.search_hint'.tr(),
-                  prefixIcon: const Icon(Icons.search),
+                  prefixIcon: const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedSearch01,
+                      size: 20,
+                    ),
+                  ),
                   suffixIcon: _controller.text.isEmpty
                       ? null
                       : IconButton(
                           tooltip: MaterialLocalizations.of(context)
                               .deleteButtonTooltip,
-                          icon: const Icon(Icons.close),
+                          icon: const HugeIcon(
+                            icon: HugeIcons.strokeRoundedCancel01,
+                            size: 20,
+                          ),
                           onPressed: () {
                             _controller.clear();
                             _onChanged('');
