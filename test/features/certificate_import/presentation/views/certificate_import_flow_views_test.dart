@@ -14,10 +14,12 @@ import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_tweened_bar.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_batch.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_file.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_item.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_payloads.dart';
+import 'package:sacdia_app/features/certificate_import/presentation/controllers/certificate_import_upload_controller.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_review_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_import_item_editor_sheet.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_status_view.dart';
@@ -520,10 +522,8 @@ void main() {
         findsOneWidget,
       );
       expect(find.widgetWithText(SacButton, 'Leer comprobante'), findsNothing);
-      final choose = tester.widget<SacButton>(
-        find.widgetWithText(SacButton, 'Agregar comprobante'),
-      );
-      expect(choose.onPressed, isNull);
+      // The source picker is hidden while busy: no way to swap the file.
+      expect(find.text('Agregar comprobante'), findsNothing);
 
       final semantics = tester.ensureSemantics();
       expect(
@@ -539,6 +539,7 @@ void main() {
 
       phase.value = CertificateImportUploadPhase.reading;
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
       expect(find.text('Leyendo tu comprobante…'), findsOneWidget);
       expect(find.text('Subiendo tu comprobante…'), findsNothing);
 
@@ -587,6 +588,166 @@ void main() {
       completer.complete();
       await tester.pump();
       await tester.pump();
+    });
+  });
+
+  group('CertificateImportUploadView waiting', () {
+    Future<void> startUpload(
+      WidgetTester tester, {
+      required ValueNotifier<CertificateImportUploadPhase> phase,
+      required ValueNotifier<double> progress,
+      required ValueNotifier<bool> slow,
+      required Completer<void> done,
+      VoidCallback? onCancel,
+      VoidCallback? onSkipWait,
+    }) async {
+      _phoneSurface(tester);
+      addTearDown(phase.dispose);
+      addTearDown(progress.dispose);
+      addTearDown(slow.dispose);
+      await _pump(
+        tester,
+        CertificateImportUploadView(
+          phase: phase,
+          progress: progress,
+          slow: slow,
+          onCancel: onCancel,
+          onSkipWait: onSkipWait,
+          onSubmitProofs: (_) => done.future,
+          onPickFile: () async => _proof(),
+        ),
+      );
+      await _choose(tester, 'Elegir archivo');
+      await tester.tap(find.text('Leer comprobante'));
+      await tester.pump();
+    }
+
+    for (final reduced in [false, true]) {
+      final suffix = reduced ? ' (reduced motion)' : '';
+
+      testWidgets(
+          'shows real progress, steps and Cancelar while uploading$suffix',
+          (tester) async {
+        if (reduced) {
+          tester.platformDispatcher.accessibilityFeaturesTestValue =
+              const FakeAccessibilityFeatures(disableAnimations: true);
+          addTearDown(
+              tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+        }
+        final phase = ValueNotifier(CertificateImportUploadPhase.uploading);
+        final progress = ValueNotifier(0.0);
+        final slow = ValueNotifier(false);
+        final done = Completer<void>();
+        var cancelled = 0;
+        await startUpload(
+          tester,
+          phase: phase,
+          progress: progress,
+          slow: slow,
+          done: done,
+          onCancel: () => cancelled++,
+        );
+
+        expect(find.text('Subir'), findsOneWidget);
+        expect(find.text('Leer'), findsOneWidget);
+        expect(find.text('Revisar'), findsOneWidget);
+        expect(find.text('Subiendo tu comprobante…'), findsOneWidget);
+
+        progress.value = 0.64;
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(find.text('Subiendo tu comprobante… 64 %'), findsOneWidget);
+        final bar = tester.widget<SacTweenedBar>(find.byType(SacTweenedBar));
+        expect(bar.value, 0.64);
+
+        await tester.tap(find.text('Cancelar'));
+        expect(cancelled, 1);
+
+        done.complete();
+        await tester.pump(const Duration(milliseconds: 300));
+      });
+
+      testWidgets(
+          'reading drops the bar and Cancelar, and offers to skip when slow$suffix',
+          (tester) async {
+        if (reduced) {
+          tester.platformDispatcher.accessibilityFeaturesTestValue =
+              const FakeAccessibilityFeatures(disableAnimations: true);
+          addTearDown(
+              tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+        }
+        final phase = ValueNotifier(CertificateImportUploadPhase.uploading);
+        final progress = ValueNotifier(1.0);
+        final slow = ValueNotifier(false);
+        final done = Completer<void>();
+        var skipped = 0;
+        await startUpload(
+          tester,
+          phase: phase,
+          progress: progress,
+          slow: slow,
+          done: done,
+          onSkipWait: () => skipped++,
+        );
+
+        phase.value = CertificateImportUploadPhase.reading;
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(find.text('Leyendo tu comprobante…'), findsOneWidget);
+        expect(find.byType(SacTweenedBar), findsNothing);
+        expect(find.text('Cancelar'), findsNothing);
+        expect(find.text('Seguir sin esperar'), findsNothing);
+
+        slow.value = true;
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(find.textContaining('Sigue leyendo'), findsOneWidget);
+        await tester.tap(find.text('Seguir sin esperar'));
+        expect(skipped, 1);
+
+        done.complete();
+        await tester.pump(const Duration(milliseconds: 300));
+      });
+    }
+
+    testWidgets('marks the active step for assistive tech', (tester) async {
+      final phase = ValueNotifier(CertificateImportUploadPhase.reading);
+      final done = Completer<void>();
+      await startUpload(
+        tester,
+        phase: phase,
+        progress: ValueNotifier(1),
+        slow: ValueNotifier(false),
+        done: done,
+      );
+      final semantics = tester.ensureSemantics();
+      expect(
+          find.bySemanticsLabel('Paso 2 de 3, Leer, en curso'), findsOneWidget);
+      expect(
+          find.bySemanticsLabel('Paso 1 de 3, Subir, hecho'), findsOneWidget);
+      semantics.dispose();
+      done.complete();
+      await tester.pump(const Duration(milliseconds: 300));
+    });
+
+    testWidgets('a cancelled upload returns to the file without an error',
+        (tester) async {
+      _phoneSurface(tester);
+      await _pump(
+        tester,
+        CertificateImportUploadView(
+          onSubmitProofs: (_) async =>
+              throw const CertificateImportUploadCancelled(),
+          onPickFile: () async => _proof(),
+        ),
+      );
+      await _choose(tester, 'Elegir archivo');
+      await tester.tap(find.text('Leer comprobante'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Algo salió mal'), findsNothing);
+      expect(find.text('comprobante.jpg'), findsOneWidget);
+      final submit = tester.widget<SacButton>(
+        find.widgetWithText(SacButton, 'Leer comprobante'),
+      );
+      expect(submit.onPressed, isNotNull);
     });
   });
 

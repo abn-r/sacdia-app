@@ -4611,7 +4611,11 @@
       "hero_title": "Chargez votre justificatif",
       "hero_body": "Nous lisons votre certificat et vous proposons les spécialités et classes. Vous les vérifiez avant de les envoyer à votre Champ local.",
       "selected_one": "Justificatif sélectionné",
-      "selected_other": "{count} justificatifs sélectionnés"
+      "selected_other": "{count} justificatifs sélectionnés",
+      "uploading_pct": "Envoi de votre justificatif… {percent} %",
+      "reading_slow": "Lecture en cours… les PDF de plusieurs pages prennent un peu plus de temps.",
+      "skip_wait": "Continuer sans attendre",
+      "cancel": "Annuler"
     },
     "errors": {
       "retry": "Réessayer",
@@ -4680,6 +4684,15 @@
       "unexpected_upload": {
         "body": "Impossible d’envoyer votre justificatif. Réessayez."
       }
+    },
+    "steps": {
+      "upload": "Envoyer",
+      "read": "Lire",
+      "review": "Vérifier",
+      "done": "terminée",
+      "active": "en cours",
+      "pending": "à venir",
+      "semantics": "Étape {n} sur 3, {label}, {status}"
     },
     "review": {
       "title": "Vérifiez les données",

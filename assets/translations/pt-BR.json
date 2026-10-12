@@ -4611,7 +4611,11 @@
       "hero_title": "Envie seu comprovante",
       "hero_body": "Lemos seu certificado e sugerimos as especialidades e classes. Você as revisa antes de enviá-las ao seu Campo Local.",
       "selected_one": "Comprovante selecionado",
-      "selected_other": "{count} comprovantes selecionados"
+      "selected_other": "{count} comprovantes selecionados",
+      "uploading_pct": "Enviando seu comprovante… {percent} %",
+      "reading_slow": "Ainda lendo… PDFs de várias páginas demoram um pouco mais.",
+      "skip_wait": "Continuar sem esperar",
+      "cancel": "Cancelar"
     },
     "errors": {
       "retry": "Tentar novamente",
@@ -4680,6 +4684,15 @@
       "unexpected_upload": {
         "body": "Não foi possível enviar seu comprovante. Tente novamente."
       }
+    },
+    "steps": {
+      "upload": "Enviar",
+      "read": "Ler",
+      "review": "Revisar",
+      "done": "concluída",
+      "active": "em andamento",
+      "pending": "pendente",
+      "semantics": "Etapa {n} de 3, {label}, {status}"
     },
     "review": {
       "title": "Revise os dados",

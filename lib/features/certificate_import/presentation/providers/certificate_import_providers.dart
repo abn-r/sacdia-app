@@ -19,7 +19,6 @@ import '../../domain/usecases/remove_certificate_import_item.dart';
 import '../../domain/usecases/resubmit_certificate_import_item.dart';
 import '../../domain/usecases/submit_certificate_import_batch.dart';
 import '../../domain/usecases/update_certificate_import_item.dart';
-import '../../domain/usecases/upload_certificate_import_proof.dart';
 
 final certificateImportRemoteDataSourceProvider =
     Provider<CertificateImportRemoteDataSource>((ref) {
@@ -40,12 +39,6 @@ final certificateImportRepositoryProvider =
 final createCertificateImportBatchProvider =
     Provider<CreateCertificateImportBatch>((ref) {
   return CreateCertificateImportBatch(
-      ref.read(certificateImportRepositoryProvider));
-});
-
-final uploadCertificateImportProofProvider =
-    Provider<UploadCertificateImportProof>((ref) {
-  return UploadCertificateImportProof(
       ref.read(certificateImportRepositoryProvider));
 });
 

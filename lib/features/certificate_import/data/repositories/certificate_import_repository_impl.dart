@@ -11,6 +11,7 @@ import '../../domain/entities/certificate_import_error_code.dart';
 import '../../domain/entities/certificate_import_institutional_request.dart';
 import '../../domain/entities/certificate_import_item.dart';
 import '../../domain/entities/certificate_import_payloads.dart';
+import '../../domain/entities/certificate_import_upload_session.dart';
 import '../../domain/repositories/certificate_import_repository.dart';
 import '../datasources/certificate_import_remote_data_source.dart';
 
@@ -33,12 +34,14 @@ class CertificateImportRepositoryImpl implements CertificateImportRepository {
   @override
   Future<Either<Failure, CertificateImportBatch>> uploadLocalProof(
     CertificateImportLocalProof proof, {
+    CertificateImportUploadSession? session,
     void Function(double progress)? onProgress,
     CancelToken? cancelToken,
   }) {
     return _batch(
       () => remoteDataSource.uploadLocalProof(
         proof,
+        session: session,
         onProgress: onProgress,
         cancelToken: cancelToken,
       ),
@@ -67,7 +70,12 @@ class CertificateImportRepositoryImpl implements CertificateImportRepository {
     String batchId, {
     RequestCancelToken? cancelToken,
   }) {
-    return _batch(() => remoteDataSource.getBatch(batchId));
+    return _batch(
+      () => remoteDataSource.getBatch(
+        batchId,
+        cancelToken: cancelToken is CancelToken ? cancelToken : null,
+      ),
+    );
   }
 
   @override
