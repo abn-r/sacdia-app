@@ -29,6 +29,13 @@ class CertificateImportItem extends Equatable {
   final String? appliedEntityType;
   final int? appliedEntityId;
 
+  /// Page of [sourceFileId] where OCR read the row (D4, 1-based). Null when
+  /// the row is manual or the backend does not send it yet (R6).
+  final int? sourcePage;
+
+  /// File of the batch the row was read from (D12). Null when unknown.
+  final String? sourceFileId;
+
   const CertificateImportItem({
     required this.id,
     this.batchId,
@@ -45,6 +52,8 @@ class CertificateImportItem extends Equatable {
     this.rejectionReason,
     this.appliedEntityType,
     this.appliedEntityId,
+    this.sourcePage,
+    this.sourceFileId,
   });
 
   bool get isReady =>
@@ -99,5 +108,7 @@ class CertificateImportItem extends Equatable {
         rejectionReason,
         appliedEntityType,
         appliedEntityId,
+        sourcePage,
+        sourceFileId,
       ];
 }

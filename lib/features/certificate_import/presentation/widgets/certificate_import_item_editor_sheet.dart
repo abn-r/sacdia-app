@@ -161,6 +161,8 @@ class _CertificateImportItemEditorSheetState
       rejectionReason: widget.item.rejectionReason,
       appliedEntityType: widget.item.appliedEntityType,
       appliedEntityId: widget.item.appliedEntityId,
+      sourcePage: widget.item.sourcePage,
+      sourceFileId: widget.item.sourceFileId,
     );
 
     setState(() => _saving = true);
