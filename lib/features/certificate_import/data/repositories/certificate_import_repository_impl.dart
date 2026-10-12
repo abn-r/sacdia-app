@@ -1,11 +1,13 @@
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/usecases/cancellation_token.dart';
 import '../../domain/entities/certificate_import_batch.dart';
 import '../../domain/entities/certificate_import_batch_list.dart';
+import '../../domain/entities/certificate_import_error_code.dart';
 import '../../domain/entities/certificate_import_institutional_request.dart';
 import '../../domain/entities/certificate_import_item.dart';
 import '../../domain/entities/certificate_import_payloads.dart';
@@ -157,38 +159,8 @@ class CertificateImportRepositoryImpl implements CertificateImportRepository {
     try {
       final model = await action();
       return Right(model.toEntity() as CertificateImportBatch);
-    } on ServerException catch (error) {
-      return Left(ServerFailure(message: error.message, code: error.code));
-    } on AuthException catch (error) {
-      return Left(AuthFailure(message: error.message, code: error.code));
-    } on DioException catch (error) {
-      final body = error.response?.data;
-      final responseCode = body is Map ? body['code'] : null;
-      final responseMessage = body is Map ? body['message'] : null;
-      // Legacy BadRequest responses expose the business code as message.
-      // Keep only these known codes; never surface parser details or paths.
-      const pdfCodes = <String>{
-        'CERTIFICATE_IMPORT_PDF_TOO_MANY_PAGES',
-        'CERTIFICATE_IMPORT_PDF_INVALID',
-        'CERTIFICATE_IMPORT_PDF_ENCRYPTED',
-      };
-      final businessCode = pdfCodes.contains(responseCode)
-          ? responseCode as String
-          : pdfCodes.contains(responseMessage)
-              ? responseMessage as String
-              : null;
-      final wrappedError = error.error;
-      final friendlyMessage = responseMessage is String
-          ? responseMessage
-          : wrappedError is AppException
-              ? wrappedError.message
-              : error.message ?? 'Error de red';
-      return Left(ServerFailure(
-        message: businessCode ?? friendlyMessage,
-        code: error.response?.statusCode,
-      ));
     } catch (error) {
-      return Left(UnexpectedFailure(message: error.toString()));
+      return Left(_toFailure(error));
     }
   }
 
@@ -198,36 +170,71 @@ class CertificateImportRepositoryImpl implements CertificateImportRepository {
     try {
       final model = await action();
       return Right(model.toEntity() as CertificateImportItem);
-    } on ServerException catch (error) {
-      return Left(ServerFailure(message: error.message, code: error.code));
-    } on AuthException catch (error) {
-      return Left(AuthFailure(message: error.message, code: error.code));
-    } on DioException catch (error) {
-      return Left(
-        ServerFailure(
-            message: error.message ?? 'Error de red',
-            code: error.response?.statusCode),
-      );
     } catch (error) {
-      return Left(UnexpectedFailure(message: error.toString()));
+      return Left(_toFailure(error));
     }
   }
 
   Future<Either<Failure, T>> _guard<T>(Future<T> Function() action) async {
     try {
       return Right(await action());
-    } on ServerException catch (error) {
-      return Left(ServerFailure(message: error.message, code: error.code));
-    } on AuthException catch (error) {
-      return Left(AuthFailure(message: error.message, code: error.code));
-    } on DioException catch (error) {
-      return Left(
-        ServerFailure(
-            message: error.message ?? 'Error de red',
-            code: error.response?.statusCode),
-      );
     } catch (error) {
-      return Left(UnexpectedFailure(message: error.toString()));
+      return Left(_toFailure(error));
     }
+  }
+
+  /// Classifies [error] without leaking backend text: [Failure.message] is
+  /// always translated app copy, and the business code (if any) goes in
+  /// [Failure.errorCode] for the presentation mapper.
+  Failure _toFailure(Object error) {
+    final fallback = 'certificate_import.errors.unexpected.body'.tr();
+    if (error is DioException) {
+      final body = error.response?.data;
+      final code = CertificateImportErrorCode.known(
+            body is Map ? body['code'] : null,
+          ) ??
+          CertificateImportErrorCode.known(
+            body is Map ? body['message'] : null,
+          );
+      final wrapped = error.error;
+      final noResponse = error.response == null;
+      final isTimeout = error.type == DioExceptionType.connectionTimeout ||
+          error.type == DioExceptionType.sendTimeout ||
+          error.type == DioExceptionType.receiveTimeout;
+      final networkCode = !noResponse
+          ? null
+          : isTimeout
+              ? CertificateImportErrorCode.timeout
+              : error.type == DioExceptionType.connectionError ||
+                      wrapped is ConnectionException
+                  ? CertificateImportErrorCode.network
+                  : null;
+      if (wrapped is AuthException && code == null) {
+        return AuthFailure(message: fallback, code: wrapped.code);
+      }
+      return ServerFailure(
+        message: fallback,
+        code: error.response?.statusCode,
+        errorCode: code ?? networkCode,
+      );
+    }
+    if (error is ServerException) {
+      return ServerFailure(
+        message: fallback,
+        code: error.code,
+        errorCode: CertificateImportErrorCode.known(error.errorCode) ??
+            CertificateImportErrorCode.known(error.message),
+      );
+    }
+    if (error is AuthException) {
+      return AuthFailure(message: fallback, code: error.code);
+    }
+    if (error is ConnectionException) {
+      return ServerFailure(
+        message: fallback,
+        errorCode: CertificateImportErrorCode.network,
+      );
+    }
+    return UnexpectedFailure(message: fallback);
   }
 }

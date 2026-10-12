@@ -35,9 +35,6 @@ class CertificateImportItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final isHonor = item.type == CertificateImportItemType.honor;
-    final confidence = item.ocrConfidence == null
-        ? null
-        : '${(item.ocrConfidence! * 100).round()}% OCR';
     final isRejected = item.isRejected || item.rejectionReason != null;
     final statusLabel = isRejected
         ? 'certificate_import.item.rejected'.tr()
@@ -67,14 +64,6 @@ class CertificateImportItemCard extends StatelessWidget {
                         ? SacBadgeVariant.secondary
                         : SacBadgeVariant.accent,
               ),
-              const Spacer(),
-              if (confidence != null)
-                Text(
-                  confidence,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: c.textTertiary,
-                      ),
-                ),
             ],
           ),
           const SizedBox(height: 12),
@@ -150,15 +139,8 @@ class CertificateImportItemCard extends StatelessWidget {
 
   String _subtitle() {
     final date = item.completedAt ?? item.detectedDate;
-    final formattedDate = date == null
+    return date == null
         ? 'certificate_import.proof.date_pending'.tr()
         : DateFormat('dd/MM/yyyy').format(date);
-    final catalogId = item.type == CertificateImportItemType.honor
-        ? item.honorId
-        : item.classId;
-    return 'certificate_import.item.catalog_meta'.tr(namedArgs: {
-      'id': '${catalogId ?? 'certificate_import.item.catalog_pending'.tr()}',
-      'date': formattedDate,
-    });
   }
 }

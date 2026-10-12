@@ -9,7 +9,10 @@ import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../domain/entities/certificate_import_payloads.dart';
 import '../../domain/entities/certificate_import_batch.dart';
@@ -17,11 +20,13 @@ import '../../domain/entities/certificate_import_item.dart';
 import '../../domain/usecases/add_certificate_import_item.dart';
 import '../../domain/usecases/remove_certificate_import_item.dart';
 import '../../domain/usecases/update_certificate_import_item.dart';
+import '../error/certificate_import_error_mapper.dart';
 import '../providers/certificate_import_providers.dart';
 import '../widgets/certificate_import_back_button.dart';
 import '../widgets/certificate_import_item_card.dart';
 import '../widgets/certificate_import_proof_card.dart';
 import '../widgets/certificate_import_item_editor_sheet.dart';
+import '../widgets/import_load_error_scaffold.dart';
 
 class CertificateImportReviewRouteView extends ConsumerWidget {
   const CertificateImportReviewRouteView({super.key, required this.batchId});
@@ -32,30 +37,12 @@ class CertificateImportReviewRouteView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final batchAsync = ref.watch(certificateImportBatchProvider(batchId));
     return batchAsync.when(
-      loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (error, _) => Scaffold(
-        extendBodyBehindAppBar: true,
-        appBar: SacTopBar(
-            title: 'certificate_import.review.title'.tr(),
-            leading: const CertificateImportBackButton(
-              fallbackLocation: RouteNames.certificateImportUpload,
-            ),
-            frosted: true),
-        body: SacFrostedVeil(
-          child: Builder(
-            builder: (context) => Padding(
-              padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
-              child: Center(
-                child: Text(
-                  'certificate_import.review.load_error'.tr(
-                    namedArgs: {'error': '$error'},
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
+      loading: () => const Scaffold(body: Center(child: SacLoading())),
+      error: (_, __) => ImportLoadErrorScaffold(
+        title: 'certificate_import.review.title'.tr(),
+        bodyKey: 'certificate_import.review.load_error',
+        fallbackLocation: RouteNames.certificateImportUpload,
+        onRetry: () => ref.invalidate(certificateImportBatchProvider(batchId)),
       ),
       data: (batch) => CertificateImportReviewView(
         initialBatch: batch,
@@ -78,7 +65,7 @@ class CertificateImportReviewRouteView extends ConsumerWidget {
                       payload: payload,
                     ),
                   );
-          result.fold((failure) => throw Exception(failure.message), (_) {});
+          result.fold((failure) => throw failure, (_) {});
         },
         onAddItem: (item) async {
           final payload = CertificateImportItemUpdatePayload(
@@ -98,7 +85,7 @@ class CertificateImportReviewRouteView extends ConsumerWidget {
                 ),
               );
           return result.fold(
-            (failure) => throw Exception(failure.message),
+            (failure) => throw failure,
             (created) => created,
           );
         },
@@ -110,14 +97,14 @@ class CertificateImportReviewRouteView extends ConsumerWidget {
                       itemId: item.id,
                     ),
                   );
-          result.fold((failure) => throw Exception(failure.message), (_) {});
+          result.fold((failure) => throw failure, (_) {});
         },
         onSubmitBatch: () async {
           final result = await ref
               .read(submitCertificateImportBatchProvider)
               .call(batch.id);
           result.fold(
-            (failure) => throw Exception(failure.message),
+            (failure) => throw failure,
             (_) => context.go(RouteNames.certificateImportStatusPath(batch.id)),
           );
         },
@@ -217,11 +204,7 @@ class _CertificateImportReviewViewState
                               style: TextStyle(color: c.textSecondary)),
                           const SizedBox(height: 2),
                           Text(
-                            '${(_honorCount == 1 ? 'certificate_import.review.honor_one' : 'certificate_import.review.honor_other').tr(namedArgs: {
-                                  'count': '$_honorCount'
-                                })} ${'certificate_import.review.and'.tr()} ${(_classCount == 1 ? 'certificate_import.review.class_one' : 'certificate_import.review.class_other').tr(namedArgs: {
-                                  'count': '$_classCount'
-                                })}',
+                            _summary(),
                             style: Theme.of(context)
                                 .textTheme
                                 .displaySmall
@@ -229,14 +212,6 @@ class _CertificateImportReviewViewState
                                   color: c.text,
                                   fontWeight: FontWeight.w700,
                                 ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'certificate_import.review.independent_hint'.tr(),
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: c.textSecondary,
-                                    ),
                           ),
                           if (widget.initialBatch.files.isNotEmpty) ...[
                             const SizedBox(height: 8),
@@ -456,17 +431,64 @@ class _CertificateImportReviewViewState
     );
   }
 
+  /// "3 especialidades y 1 clase": only names the types that have rows.
+  String _summary() {
+    final parts = <String>[
+      if (_honorCount > 0)
+        (_honorCount == 1
+                ? 'certificate_import.review.honor_one'
+                : 'certificate_import.review.honor_other')
+            .tr(namedArgs: {'count': '$_honorCount'}),
+      if (_classCount > 0)
+        (_classCount == 1
+                ? 'certificate_import.review.class_one'
+                : 'certificate_import.review.class_other')
+            .tr(namedArgs: {'count': '$_classCount'}),
+    ];
+    if (parts.isEmpty) return 'certificate_import.review.no_rows'.tr();
+    return parts.join(' ${'certificate_import.review.and'.tr()} ');
+  }
+
   Future<void> _removeItem(CertificateImportItem item) async {
-    await widget.onRemoveItem?.call(item);
-    setState(() {
-      _items = _items.where((current) => current.id != item.id).toList();
-    });
+    final isHonor = item.type == CertificateImportItemType.honor;
+    final confirmed = await SacDialog.show(
+      context,
+      title: (isHonor
+              ? 'certificate_import.review.remove_honor_title'
+              : 'certificate_import.review.remove_class_title')
+          .tr(),
+      content: 'certificate_import.review.remove_body'.tr(),
+      confirmLabel: 'certificate_import.item.remove'.tr(),
+      confirmIsDestructive: true,
+    );
+    if (confirmed != true || !mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await widget.onRemoveItem?.call(item);
+      if (!mounted) return;
+      setState(() {
+        _items = _items.where((current) => current.id != item.id).toList();
+      });
+    } catch (error) {
+      SacSnackBar.showMessenger(
+        messenger,
+        CertificateImportErrorMapper.message(error),
+        isError: true,
+      );
+    }
   }
 
   Future<void> _submit() async {
+    final messenger = ScaffoldMessenger.of(context);
     setState(() => _submitting = true);
     try {
       await widget.onSubmitBatch?.call();
+    } catch (error) {
+      SacSnackBar.showMessenger(
+        messenger,
+        CertificateImportErrorMapper.message(error),
+        isError: true,
+      );
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

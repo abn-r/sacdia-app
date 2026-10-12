@@ -12,12 +12,14 @@ import 'package:sacdia_app/core/config/router.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_batch.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_file.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_item.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_payloads.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_review_view.dart';
+import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_import_item_editor_sheet.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_status_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_upload_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_import_proof_card.dart';
@@ -39,6 +41,13 @@ Widget _wrap(Widget child) => EasyLocalization(
         ),
       ),
     );
+
+/// Phone-sized surface so cards below the hero are not hidden by the dock.
+void _phoneSurface(WidgetTester tester) {
+  tester.view.physicalSize = const Size(390, 844);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+}
 
 Future<void> _pump(WidgetTester tester, Widget child) async {
   await tester.pumpWidget(_wrap(child));
@@ -133,15 +142,16 @@ void main() {
 
     final pdfMessages = <String, String>{
       'CERTIFICATE_IMPORT_PDF_TOO_MANY_PAGES':
-          'El PDF tiene más de 5 páginas. Divide el documento o extrae hasta 5 páginas y vuelve a subirlo.',
+          'Divide el documento o guarda solo las páginas del certificado (hasta 5) y vuelve a subirlo.',
       'CERTIFICATE_IMPORT_PDF_ENCRYPTED':
-          'El PDF está protegido. Quita la contraseña o la protección y vuelve a subirlo.',
+          'Quita la contraseña o la protección del archivo y vuelve a subirlo.',
       'CERTIFICATE_IMPORT_PDF_INVALID':
-          'No se pudo leer el PDF. Expórtalo de nuevo como PDF y vuelve a subirlo.',
+          'Vuelve a guardarlo como PDF desde la app donde lo tienes y súbelo otra vez.',
     };
     for (final entry in pdfMessages.entries) {
       testWidgets('localizes ${entry.key} without exposing technical details',
           (tester) async {
+        _phoneSurface(tester);
         await _pump(
           tester,
           CertificateImportUploadView(
@@ -157,26 +167,26 @@ void main() {
         );
         await _choose(tester, 'Elegir archivo');
         await tester.pump();
-        await tester.tap(find.text('Subir comprobante'));
+        await tester.tap(find.text('Leer comprobante'));
         await tester.pumpAndSettle();
         expect(find.text(entry.value), findsOneWidget);
         expect(find.textContaining(entry.key), findsNothing);
         expect(find.textContaining('/private/internal.pdf'), findsNothing);
-        expect(find.text('comprobante.pdf'), findsOneWidget);
         final upload = tester.widget<SacButton>(
-          find.widgetWithText(SacButton, 'Subir comprobante'),
+          find.widgetWithText(SacButton, 'Leer comprobante'),
         );
         expect(upload.onPressed, isNotNull);
       });
     }
 
-    testWidgets('preserves unknown friendly failure messages', (tester) async {
+    testWidgets('never shows unknown failure text from the backend',
+        (tester) async {
+      _phoneSurface(tester);
       await _pump(
         tester,
         CertificateImportUploadView(
           onSubmitProofs: (_) async => throw const ServerFailure(
-            message:
-                'El almacenamiento no está disponible. Inténtalo más tarde.',
+            message: 'ECONNRESET at /srv/api/upload.ts:42',
           ),
           onPickFile: () async => const CertificateImportLocalProof(
             localPath: '/tmp/proof.pdf',
@@ -188,12 +198,70 @@ void main() {
       );
       await _choose(tester, 'Elegir archivo');
       await tester.pump();
-      await tester.tap(find.text('Subir comprobante'));
+      await tester.tap(find.text('Leer comprobante'));
       await tester.pumpAndSettle();
-      expect(
-          find.text(
-              'El almacenamiento no está disponible. Inténtalo más tarde.'),
+      expect(find.text('Algo salió mal'), findsOneWidget);
+      expect(find.text('No pudimos subir tu comprobante. Inténtalo de nuevo.'),
           findsOneWidget);
+      expect(find.textContaining('ECONNRESET'), findsNothing);
+    });
+
+    testWidgets('PDF_BUSY shows the busy card and retry runs the submit again',
+        (tester) async {
+      _phoneSurface(tester);
+      var calls = 0;
+      await _pump(
+        tester,
+        CertificateImportUploadView(
+          onSubmitProofs: (_) async {
+            calls++;
+            throw const ServerFailure(
+              message: 'CERTIFICATE_IMPORT_PDF_BUSY',
+              code: 429,
+            );
+          },
+          onPickFile: () async =>
+              _proof(name: 'acta.pdf', mimeType: 'application/pdf'),
+        ),
+      );
+      await _choose(tester, 'Elegir archivo');
+      await tester.tap(find.text('Leer comprobante'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Hay mucha demanda en este momento'), findsOneWidget);
+      expect(find.textContaining('CERTIFICATE_IMPORT'), findsNothing);
+      expect(calls, 1);
+
+      await tester.tap(find.text('Reintentar'));
+      await tester.pumpAndSettle();
+      expect(calls, 2);
+    });
+
+    testWidgets(
+        'offline shows the no-connection card and keeps the submit enabled',
+        (tester) async {
+      _phoneSurface(tester);
+      await _pump(
+        tester,
+        CertificateImportUploadView(
+          onSubmitProofs: (_) async => throw const ServerFailure(
+            message: 'x',
+            errorCode: 'NETWORK',
+          ),
+          onPickFile: () async => _proof(),
+        ),
+      );
+      await _choose(tester, 'Elegir archivo');
+      await tester.tap(find.text('Leer comprobante'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('No hay conexión'), findsOneWidget);
+      expect(find.textContaining('Tu archivo sigue aquí'), findsOneWidget);
+      // The file stays selected: submitting again is still possible.
+      final submit = tester.widget<SacButton>(
+        find.widgetWithText(SacButton, 'Leer comprobante'),
+      );
+      expect(submit.onPressed, isNotNull);
     });
 
     testWidgets('disables upload until a proof file is selected',
@@ -212,15 +280,15 @@ void main() {
         ),
       );
 
-      expect(find.text('Subir comprobante'), findsOneWidget);
+      expect(find.text('Leer comprobante'), findsOneWidget);
       expect(find.text('Agregar comprobante'), findsOneWidget);
 
       final initialUpload = tester.widget<SacButton>(
-        find.widgetWithText(SacButton, 'Subir comprobante'),
+        find.widgetWithText(SacButton, 'Leer comprobante'),
       );
       expect(initialUpload.onPressed, isNull);
 
-      await tester.tap(find.text('Subir comprobante'));
+      await tester.tap(find.text('Leer comprobante'));
       await tester.pump();
       expect(uploadCalls, 0);
 
@@ -230,7 +298,7 @@ void main() {
       expect(find.text('Comprobante seleccionado'), findsOneWidget);
       expect(find.text('comprobante.jpg'), findsOneWidget);
 
-      await tester.tap(find.text('Subir comprobante'));
+      await tester.tap(find.text('Leer comprobante'));
       await tester.pump();
 
       expect(uploadCalls, 1);
@@ -253,7 +321,7 @@ void main() {
 
       expect(find.text('Comprobante seleccionado'), findsNothing);
       var upload = tester.widget<SacButton>(
-        find.widgetWithText(SacButton, 'Subir comprobante'),
+        find.widgetWithText(SacButton, 'Leer comprobante'),
       );
       expect(upload.onPressed, isNull);
 
@@ -262,11 +330,11 @@ void main() {
 
       expect(find.text('Comprobante seleccionado'), findsNothing);
       upload = tester.widget<SacButton>(
-        find.widgetWithText(SacButton, 'Subir comprobante'),
+        find.widgetWithText(SacButton, 'Leer comprobante'),
       );
       expect(upload.onPressed, isNull);
 
-      await tester.tap(find.text('Subir comprobante'));
+      await tester.tap(find.text('Leer comprobante'));
       await tester.pump();
       expect(uploadCalls, 0);
     });
@@ -362,7 +430,7 @@ void main() {
         );
         expect(find.text('Comprobante seleccionado'), findsNothing);
         final upload = tester.widget<SacButton>(
-          find.widgetWithText(SacButton, 'Subir comprobante'),
+          find.widgetWithText(SacButton, 'Leer comprobante'),
         );
         expect(upload.onPressed, isNull);
       });
@@ -382,7 +450,8 @@ void main() {
         await _choose(tester, picker);
 
         expect(
-            find.text('El archivo supera los 10 MiB. Elige uno más liviano.'),
+            find.text(
+                'El archivo pesa más de 10 MB. Elige uno más liviano o toma la foto de nuevo.'),
             findsOneWidget);
         expect(find.text('Comprobante seleccionado'), findsNothing);
       });
@@ -437,7 +506,7 @@ void main() {
         ),
       );
       await _choose(tester, 'Elegir archivo');
-      await tester.tap(find.text('Subir comprobante'));
+      await tester.tap(find.text('Leer comprobante'));
       await tester.pump();
 
       expect(find.text('Subiendo tu comprobante…'), findsOneWidget);
@@ -450,7 +519,7 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(find.widgetWithText(SacButton, 'Subir comprobante'), findsNothing);
+      expect(find.widgetWithText(SacButton, 'Leer comprobante'), findsNothing);
       final choose = tester.widget<SacButton>(
         find.widgetWithText(SacButton, 'Agregar comprobante'),
       );
@@ -477,7 +546,7 @@ void main() {
       await tester.pump();
       await tester.pump();
       expect(find.byType(SacLoadingSmall), findsNothing);
-      expect(find.text('Subir comprobante'), findsOneWidget);
+      expect(find.text('Leer comprobante'), findsOneWidget);
     });
 
     testWidgets('uses the static dots variant under Reduced Motion',
@@ -495,7 +564,7 @@ void main() {
         ),
       );
       await _choose(tester, 'Elegir archivo');
-      await tester.tap(find.text('Subir comprobante'));
+      await tester.tap(find.text('Leer comprobante'));
       await tester.pump();
 
       expect(find.text('Subiendo tu comprobante…'), findsOneWidget);
@@ -533,8 +602,11 @@ void main() {
       );
 
       expect(find.text('1 especialidad y 1 clase'), findsOneWidget);
-      expect(find.text('HONOR'), findsOneWidget);
-      expect(find.text('CLASE'), findsOneWidget);
+      expect(find.text('Especialidad'), findsOneWidget);
+      expect(find.text('Clase'), findsOneWidget);
+      expect(find.textContaining('% OCR'), findsNothing);
+      expect(find.textContaining('Catálogo'), findsNothing);
+      expect(find.textContaining('Amigo y Explorador'), findsNothing);
       expect(find.text('Primeros Auxilios'), findsOneWidget);
       expect(find.text('Amigo'), findsOneWidget);
 
@@ -570,7 +642,7 @@ void main() {
         inputWithLabel('Fecha completada'),
         '2026-04-12',
       );
-      await tester.tap(find.text('Guardar corrección'));
+      await tester.tap(find.text('Guardar'));
       await tester.pumpAndSettle();
 
       expect(updated?.honorId, 10);
@@ -582,6 +654,133 @@ void main() {
       expect(submit.onPressed, isNotNull);
     });
   });
+
+  group('CertificateImportReviewView errors', () {
+    testWidgets('asks before removing and keeps the row when it fails',
+        (tester) async {
+      var removeCalls = 0;
+      await _pump(
+        tester,
+        CertificateImportReviewView(
+          initialBatch: _batch(),
+          onRemoveItem: (_) async {
+            removeCalls++;
+            throw const ServerFailure(message: 'x', errorCode: 'NETWORK');
+          },
+        ),
+      );
+
+      await tester.tap(find.text('Quitar').first);
+      await tester.pumpAndSettle();
+      expect(find.text('¿Quitar esta especialidad?'), findsOneWidget);
+
+      // Cancelling does not call the API.
+      await tester.tap(find.text('Cancelar'));
+      await tester.pumpAndSettle();
+      expect(removeCalls, 0);
+
+      await tester.tap(find.text('Quitar').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.descendant(
+        of: find.byType(SacDialog),
+        matching: find.text('Quitar'),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(removeCalls, 1);
+      expect(find.text('Primeros Auxilios'), findsOneWidget);
+      expect(find.text('Revisa tu conexión a internet e inténtalo de nuevo.'),
+          findsOneWidget);
+    });
+
+    testWidgets('shows a mapped message when submit fails and re-enables it',
+        (tester) async {
+      await _pump(
+        tester,
+        CertificateImportReviewView(
+          initialBatch: _batch(complete: true),
+          onSubmitBatch: () async => throw const ServerFailure(
+            message: 'stack trace /srv/api',
+            code: 500,
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Enviar a revisión'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('No pudimos completar la acción. Inténtalo de nuevo.'),
+          findsOneWidget);
+      expect(find.textContaining('/srv/api'), findsNothing);
+      final submit = tester.widget<SacButton>(
+        find.widgetWithText(SacButton, 'Enviar a revisión'),
+      );
+      expect(submit.isLoading, isFalse);
+      expect(submit.onPressed, isNotNull);
+    });
+
+    testWidgets('summary only names the types that have rows', (tester) async {
+      await _pump(
+        tester,
+        CertificateImportReviewView(
+          initialBatch: CertificateImportBatch(
+            id: 'batch-1',
+            status: 'DRAFT',
+            items: [_batch().items.first],
+          ),
+        ),
+      );
+      expect(find.text('1 especialidad'), findsOneWidget);
+      expect(find.textContaining('0 clases'), findsNothing);
+    });
+  });
+
+  for (final reduced in [false, true]) {
+    group(
+        'CertificateImportItemEditorSheet save errors'
+        '${reduced ? ' (reduced motion)' : ''}', () {
+      testWidgets('stops loading and shows the mapped error when onSave fails',
+          (tester) async {
+        if (reduced) {
+          tester.platformDispatcher.accessibilityFeaturesTestValue =
+              const FakeAccessibilityFeatures(disableAnimations: true);
+          addTearDown(
+              tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+        }
+        var calls = 0;
+        await _pump(
+          tester,
+          Scaffold(
+            body: CertificateImportItemEditorSheet(
+              item: _batch().items.first,
+              onSave: (_) async {
+                calls++;
+                throw const ServerFailure(message: 'raw', errorCode: 'TIMEOUT');
+              },
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Guardar'));
+        await tester.pumpAndSettle();
+
+        expect(calls, 1);
+        expect(find.text('Revisa tu conexión e inténtalo de nuevo.'),
+            findsOneWidget);
+        expect(find.textContaining('raw'), findsNothing);
+        final save = tester.widget<SacButton>(
+          find.widgetWithText(SacButton, 'Guardar'),
+        );
+        expect(save.isLoading, isFalse);
+        expect(save.onPressed, isNotNull);
+
+        // The same sheet can retry; the old error clears on the next attempt.
+        await tester.tap(find.text('Guardar'));
+        await tester.pumpAndSettle();
+        expect(calls, 2);
+      });
+    });
+  }
 
   group('CertificateImportStatusView', () {
     testWidgets('shows rejected correction and resubmit affordance',

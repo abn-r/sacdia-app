@@ -5,6 +5,8 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 
 import '../../domain/entities/certificate_import_item.dart';
+import '../error/certificate_import_error_mapper.dart';
+import 'import_error_banner.dart';
 
 class CertificateImportItemEditorSheet extends StatefulWidget {
   const CertificateImportItemEditorSheet({
@@ -30,6 +32,7 @@ class _CertificateImportItemEditorSheetState
   late final TextEditingController _catalogController;
   late final TextEditingController _dateController;
   bool _saving = false;
+  String? _error;
 
   @override
   void initState() {
@@ -128,6 +131,7 @@ class _CertificateImportItemEditorSheetState
                 hint: 'certificate_import.editor.date_hint'.tr(),
               ),
               const SizedBox(height: 18),
+              ImportErrorBanner(message: _error),
               SacButton.primary(
                 text: 'certificate_import.editor.save'.tr(),
                 isLoading: _saving,
@@ -163,9 +167,22 @@ class _CertificateImportItemEditorSheetState
       appliedEntityId: widget.item.appliedEntityId,
     );
 
-    setState(() => _saving = true);
-    await widget.onSave(updated);
-    if (mounted) Navigator.of(context).pop();
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      await widget.onSave(updated);
+      if (mounted) Navigator.of(context).pop();
+    } catch (error) {
+      // Keep the sheet open so the user can retry without losing the edits.
+      if (mounted) {
+        setState(() {
+          _saving = false;
+          _error = CertificateImportErrorMapper.message(error);
+        });
+      }
+    }
   }
 
   bool _isComplete(

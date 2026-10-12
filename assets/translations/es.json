@@ -567,7 +567,7 @@
     "evidence": {
       "my_honor_title": "Mi especialidad",
       "error_load": "Error al cargar",
-      "not_found": "Honor no encontrado",
+      "not_found": "Especialidad no encontrada",
       "sent_review": "Enviada a revisión",
       "pick_camera": "Tomar foto",
       "pick_gallery": "Elegir de galería",
@@ -645,8 +645,8 @@
       "stat_completed": "Completadas",
       "empty_title": "No tienes especialidades",
       "empty_subtitle": "Inscríbete en el catálogo",
-      "empty_in_progress": "No tienes honores en progreso",
-      "empty_completed": "Aún no has completado honores",
+      "empty_in_progress": "No tienes especialidades en progreso",
+      "empty_completed": "Aún no has completado especialidades",
       "error_load": "Error al cargar especialidades",
       "retry": "Reintentar",
       "stats_error": "No se pudieron cargar las estadísticas",
@@ -1275,7 +1275,7 @@
       "label_dropped_members": "Bajas",
       "label_notes": "Notas",
       "section_administration": "Administración",
-      "section_honors": "Enseñanzas y honores",
+      "section_honors": "Enseñanzas y especialidades",
       "section_activities": "Actividades",
       "section_finances": "Finanzas",
       "section_mission": "Actividad misionera",
@@ -1285,8 +1285,8 @@
       "parent_meetings": "Reuniones de padres",
       "youth_council_attendance": "Consejo de jóvenes",
       "church_board_attendance": "Junta de iglesia",
-      "honors_started": "Honores iniciados",
-      "honors_completed": "Honores completados",
+      "honors_started": "Especialidades iniciadas",
+      "honors_completed": "Especialidades completadas",
       "income": "Ingresos del mes",
       "expenses": "Egresos del mes",
       "month_balance": "Saldo del mes",
@@ -1318,7 +1318,7 @@
       "empty_title": "No hay informes generados",
       "empty_subtitle": "Los informes aparecerán aquí cuando el sistema los genere.",
       "hero_title": "Prepara el informe mensual",
-      "hero_subtitle": "Completa los datos manuales de {month} {year}. El sistema sumará automáticamente miembros, actividades, honores y finanzas.",
+      "hero_subtitle": "Completa los datos manuales de {month} {year}. El sistema sumará automáticamente miembros, actividades, especialidades y finanzas.",
       "prepare_report": "Preparar informe",
       "preparing": "Preparando…",
       "prepare_error": "No se pudo preparar el informe",
@@ -1536,7 +1536,7 @@
     },
     "nav": {
       "evidence_title": "Revisión de Evidencias",
-      "evidence_subtitle": "Aprobar o rechazar carpetas, clases y honores",
+      "evidence_subtitle": "Aprobar o rechazar carpetas, clases y especialidades",
       "clubs_title": "Clubes y secciones",
       "clubs_subtitle": "Ver clubes y secciones bajo tu coordinación",
       "camporees_title": "Aprobaciones de Camporees",
@@ -1607,7 +1607,7 @@
         "filter_all": "Todos",
         "filter_folders": "Carpetas",
         "filter_classes": "Clases",
-        "filter_honors": "Honores",
+        "filter_honors": "Especialidades",
         "access_restricted": "Acceso restringido",
         "access_restricted_msg": "Solo coordinadores y administradores pueden acceder a esta sección.",
         "error_load": "Error al cargar evidencias",
@@ -1693,7 +1693,7 @@
     "evidence_type": {
       "folder": "Carpeta",
       "class_type": "Clase",
-      "honor": "Honor"
+      "honor": "Especialidad"
     },
     "clubs": {
       "title": "Clubes asignados",
@@ -4593,57 +4593,125 @@
   },
   "certificate_import": {
     "upload": {
-      "pdf_too_many_pages": "El PDF tiene más de 5 páginas. Divide el documento o extrae hasta 5 páginas y vuelve a subirlo.",
-      "pdf_encrypted": "El PDF está protegido. Quita la contraseña o la protección y vuelve a subirlo.",
-      "pdf_invalid": "No se pudo leer el PDF. Expórtalo de nuevo como PDF y vuelve a subirlo.",
       "title": "Carga por certificado",
-      "hint": "PDF de hasta 5 páginas o imágenes JPEG, PNG y WebP, máximo 10 MiB. Un documento por carga. Puedes acreditar clases en cualquier orden, sin exigir secuencia curricular. Completa los datos a mano antes de enviar.",
-      "submit": "Subir comprobante",
+      "hint": "PDF de hasta 5 páginas o foto JPEG, PNG o WebP. Máximo 10 MB. Un comprobante por carga.",
+      "submit": "Leer comprobante",
       "camera": "Tomar foto",
       "file": "Elegir archivo",
       "choose": "Agregar comprobante",
       "source_title": "¿Cómo quieres agregarlo?",
-      "camera_sub": "Usa la cámara para fotografiar el documento",
+      "camera_sub": "Apoya el documento en una superficie plana y con buena luz",
       "gallery": "Elegir de la galería",
-      "gallery_sub": "Fotos JPEG, PNG o WebP de tu carrete",
+      "gallery_sub": "Fotos JPEG, PNG o WebP",
       "file_sub": "PDF o imagen guardados en tu dispositivo",
       "uploading": "Subiendo tu comprobante…",
       "reading": "Leyendo tu comprobante…",
       "unsupported_type": "Formato no admitido. Usa un PDF o una imagen JPEG, PNG o WebP.",
-      "too_large": "El archivo supera los 10 MiB. Elige uno más liviano.",
+      "too_large": "El archivo pesa más de 10 MB. Elige uno más liviano o toma la foto de nuevo.",
       "picker_error": "No se pudo abrir el selector de comprobantes.",
       "no_submit": "No hay un proceso configurado para enviar comprobantes.",
       "hero_title": "Carga tu comprobante",
-      "hero_body": "Subimos el archivo de forma segura. Luego completas el expediente a mano: revisa nombre, clase o especialidad y fecha antes de enviar.",
+      "hero_body": "Leemos tu certificado y te proponemos las especialidades y clases. Tú las revisas antes de enviarlas a tu Campo Local.",
       "selected_one": "Comprobante seleccionado",
       "selected_other": "{count} comprobantes seleccionados"
     },
+    "errors": {
+      "retry": "Reintentar",
+      "change_file": "Cambiar archivo",
+      "choose_other": "Elegir otro archivo",
+      "choose_other_short": "Elegir otro",
+      "load_error_title": "No pudimos cargar tu comprobante",
+      "local_file": {
+        "title": "No podemos usar este archivo"
+      },
+      "offline": {
+        "title": "No hay conexión",
+        "body": "Revisa tu conexión a internet e inténtalo de nuevo."
+      },
+      "offline_upload": {
+        "body": "Revisa tu conexión a internet. Tu archivo sigue aquí, no tienes que elegirlo de nuevo."
+      },
+      "timeout": {
+        "title": "La conexión tardó demasiado",
+        "body": "Revisa tu conexión e inténtalo de nuevo."
+      },
+      "pdf_pages": {
+        "title": "El PDF tiene más de 5 páginas",
+        "body": "Divide el documento o guarda solo las páginas del certificado (hasta 5) y vuelve a subirlo."
+      },
+      "pdf_encrypted": {
+        "title": "El PDF está protegido",
+        "body": "Quita la contraseña o la protección del archivo y vuelve a subirlo."
+      },
+      "pdf_invalid": {
+        "title": "No pudimos abrir el PDF",
+        "body": "Vuelve a guardarlo como PDF desde la app donde lo tienes y súbelo otra vez."
+      },
+      "pdf_busy": {
+        "title": "Hay mucha demanda en este momento",
+        "body": "Estamos revisando otros archivos. Espera unos segundos y vuelve a intentarlo."
+      },
+      "type": {
+        "title": "No pudimos leer este tipo de archivo",
+        "body": "Usa un PDF o una imagen JPEG, PNG o WebP."
+      },
+      "too_large": {
+        "title": "El archivo es demasiado grande",
+        "body": "El archivo pesa más de 10 MB. Elige uno más liviano o toma la foto de nuevo."
+      },
+      "not_confirmed": {
+        "title": "Tu comprobante todavía se está procesando",
+        "body": "Espera unos segundos e inténtalo de nuevo."
+      },
+      "ocr_off": {
+        "title": "La lectura automática no está disponible ahora",
+        "body": "Puedes agregar tus especialidades y clases tú mismo mirando tu comprobante."
+      },
+      "ocr_quota": {
+        "title": "Llegamos al límite de lecturas por ahora",
+        "body": "Inténtalo más tarde o agrega tus especialidades y clases tú mismo mirando tu comprobante."
+      },
+      "ocr_failed": {
+        "title": "No pudimos leer tu comprobante",
+        "body": "Algo falló al leerlo. Puedes volver a intentarlo o agregarlas tú mismo mirando tu comprobante."
+      },
+      "unexpected": {
+        "title": "Algo salió mal",
+        "body": "No pudimos completar la acción. Inténtalo de nuevo."
+      },
+      "unexpected_upload": {
+        "body": "No pudimos subir tu comprobante. Inténtalo de nuevo."
+      }
+    },
     "review": {
       "title": "Revisa los datos",
-      "load_error": "No pudimos cargar el lote: {error}",
+      "load_error": "Revisa tu conexión e inténtalo de nuevo.",
       "found": "Encontramos",
       "honor_one": "{count} especialidad",
       "honor_other": "{count} especialidades",
       "class_one": "{count} clase",
       "class_other": "{count} clases",
       "and": "y",
-      "independent_hint": "Puedes cargar Amigo y Explorador por separado, en cualquier orden, sin exigir Compañero.",
       "view_proof": "Ver comprobante",
       "gm01_replace": "Si se aprueba Guía Mayor (GM-01), sustituye la inscripción actual. No se conservan dos registros.",
       "institutional": "Guía Mayor Avanzado e Instructor van a revisión institucional. Aprobar esa solicitud no registra una clase ni crea inscripción.",
       "period_pending": "pendiente de periodo administrativo",
       "filter_all": "Todas {count}",
       "filter_ready": "Listas {count}",
-      "filter_missing": "Falta dato {count}",
+      "filter_missing": "Por completar {count}",
       "empty_filter": "No hay filas para este filtro.",
-      "add_row": "Agregar fila",
+      "add_row": "Agregar especialidad o clase",
       "submit": "Enviar a revisión",
       "ready_dock": "{count} listas",
-      "missing_dock": "{count} con datos faltantes"
+      "missing_dock": "{count} con datos faltantes",
+      "no_rows": "No hay filas todavía",
+      "remove_honor_title": "¿Quitar esta especialidad?",
+      "remove_class_title": "¿Quitar esta clase?",
+      "remove_body": "No se enviará a revisión. Puedes volver a agregarla después."
     },
     "status": {
       "title": "Estado del envío",
-      "load_error": "No pudimos cargar el estado: {error}",
+      "load_error": "Revisa tu conexión e inténtalo de nuevo.",
       "corrections_title": "Correcciones pendientes",
       "in_review_title": "En revisión",
       "corrections_body": "Hay correcciones pendientes",
@@ -4654,17 +4722,15 @@
       "period_pending": "pendiente de periodo administrativo"
     },
     "item": {
-      "honor": "HONOR",
-      "class": "CLASE",
-      "rejected": "RECHAZADO",
-      "ready": "LISTO",
-      "missing": "FALTA DATO",
+      "honor": "Especialidad",
+      "class": "Clase",
+      "rejected": "Rechazada",
+      "ready": "Lista",
+      "missing": "Por completar",
       "unnamed": "Sin nombre detectado",
       "fix_resubmit": "Corregir y reenviar",
       "fix": "Corregir",
       "remove": "Quitar",
-      "catalog_meta": "Catálogo: {id} · {date}",
-      "catalog_pending": "pendiente",
       "period_pending": "pendiente de periodo administrativo",
       "gm01_replace": "Si se aprueba, sustituye la inscripción actual de Guía Mayor.",
       "institutional": "Revisión institucional: aprobar no crea inscripción."
@@ -4672,13 +4738,13 @@
     "editor": {
       "title": "Corregir fila",
       "add_title": "Agregar fila",
-      "honor": "Honor",
+      "honor": "Especialidad",
       "class": "Clase",
       "name": "Nombre detectado",
       "catalog_id": "ID catálogo",
       "completed_at": "Fecha completada",
       "date_hint": "AAAA-MM-DD",
-      "save": "Guardar corrección"
+      "save": "Guardar"
     },
     "proof": {
       "title": "Registro importado",

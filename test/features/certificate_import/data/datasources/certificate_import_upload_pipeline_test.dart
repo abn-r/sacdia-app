@@ -17,9 +17,10 @@ class _ConnectedNetworkInfo implements NetworkInfo {
 }
 
 class _RecordingAdapter implements HttpClientAdapter {
-  _RecordingAdapter({this.confirmError});
+  _RecordingAdapter({this.confirmError, this.confirmStatus = 400});
 
   final Map<String, dynamic>? confirmError;
+  final int confirmStatus;
   final List<RequestOptions> requests = [];
   final List<String?> bodies = [];
 
@@ -80,7 +81,9 @@ class _RecordingAdapter implements HttpClientAdapter {
     }
 
     if (method == 'POST' && path.endsWith('/files/file-1/confirm')) {
-      if (confirmError != null) return _json(confirmError!, status: 400);
+      if (confirmError != null) {
+        return _json(confirmError!, status: confirmStatus);
+      }
       return _json({
         'status': 'success',
         'data': {
@@ -182,7 +185,12 @@ void main() {
           );
           result.fold((failure) {
             expect(failure, isA<ServerFailure>());
-            expect(failure.message, errorCode);
+            final isKnown = errorCode.startsWith('CERTIFICATE_IMPORT_PDF_');
+            // The code travels in errorCode; message is app copy, never the
+            // backend text or the parser detail.
+            expect(failure.errorCode, isKnown ? errorCode : isNull);
+            expect(failure.message, isNot(contains(errorCode)));
+            expect(failure.message, isNot(contains('/private/input.pdf')));
             expect(failure.code, 400);
           }, (_) => fail('PDF rejection must not produce a confirmed batch'));
           expect(apiAdapter.requests.map((r) => r.method),
@@ -190,6 +198,46 @@ void main() {
         });
       }
     }
+  }
+
+  for (final withInterceptor in [true, false]) {
+    test('maps confirm 429 PDF_BUSY (interceptor: $withInterceptor)', () async {
+      final temp = await File(
+        '${Directory.systemTemp.path}/sacdia_busy_${DateTime.now().microsecondsSinceEpoch}.pdf',
+      ).writeAsBytes([37, 80, 68, 70]);
+      addTearDown(() => temp.delete());
+      final apiAdapter = _RecordingAdapter(
+        confirmStatus: 429,
+        confirmError: {
+          'status': 'error',
+          'statusCode': 429,
+          'message': 'CERTIFICATE_IMPORT_PDF_BUSY',
+        },
+      );
+      final apiDio = Dio(BaseOptions(responseType: ResponseType.json))
+        ..httpClientAdapter = apiAdapter;
+      if (withInterceptor) apiDio.interceptors.add(ErrorInterceptor());
+      final repository = CertificateImportRepositoryImpl(
+        remoteDataSource: CertificateImportRemoteDataSourceImpl(
+          dio: apiDio,
+          baseUrl: 'http://localhost:3000/api/v1',
+          uploadDio: Dio()..httpClientAdapter = _RecordingAdapter(),
+        ),
+        networkInfo: _ConnectedNetworkInfo(),
+      );
+      final result = await repository.uploadLocalProof(
+        CertificateImportLocalProof(
+          localPath: temp.path,
+          fileName: 'cert.pdf',
+          mimeType: 'application/pdf',
+          fileSize: 4,
+        ),
+      );
+      result.fold((failure) {
+        expect(failure.errorCode, 'CERTIFICATE_IMPORT_PDF_BUSY');
+        expect(failure.code, 429);
+      }, (_) => fail('a busy queue must not produce a confirmed batch'));
+    });
   }
 
   test(
