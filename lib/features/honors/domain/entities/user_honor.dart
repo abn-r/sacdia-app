@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:sacdia_app/core/widgets/instructor_selection.dart';
 
+import 'instructor_proposal.dart';
+
 enum HonorCompletionMode { undecided, inApp, external }
 
 extension HonorCompletionModeApi on HonorCompletionMode {
@@ -65,6 +67,16 @@ class UserHonor extends Equatable {
   /// when there is none (or the API did not send it).
   final InstructorSelection? instructor;
 
+  /// The member's proposal of another instructor on an approved honor (D11).
+  /// Null means "no proposal" when [supportsInstructorProposal], and "unknown"
+  /// otherwise.
+  final InstructorProposal? instructorProposal;
+
+  /// Whether the API sent the `instructor_proposal` key at all (even as
+  /// `null`). Without it (backend without proposals) the app does not offer
+  /// to propose an instructor.
+  final bool supportsInstructorProposal;
+
   // Validation audit fields
   final DateTime? submittedAt;
   final String? validatedById;
@@ -97,6 +109,8 @@ class UserHonor extends Equatable {
     required this.date,
     this.completedAt,
     this.instructor,
+    this.instructorProposal,
+    this.supportsInstructorProposal = false,
     this.submittedAt,
     this.validatedById,
     this.validatedByName,
@@ -181,6 +195,8 @@ class UserHonor extends Equatable {
         date,
         completedAt,
         instructor,
+        instructorProposal,
+        supportsInstructorProposal,
         submittedAt,
         validatedById,
         validatedByName,

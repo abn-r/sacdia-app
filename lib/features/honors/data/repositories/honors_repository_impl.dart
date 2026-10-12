@@ -6,13 +6,16 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/network/cancel_token_adapter.dart';
+import '../../../../core/widgets/instructor_selection.dart';
 import '../../domain/entities/honor.dart';
 import '../../domain/entities/honor_category.dart';
 import '../../domain/entities/honor_group.dart';
 import '../../domain/entities/honor_requirement.dart';
+import '../../domain/entities/instructor_proposal.dart';
 import '../../domain/entities/requirement_evidence.dart';
 import '../../domain/entities/user_honor.dart';
 import '../../domain/entities/user_honor_requirement_progress.dart';
+import '../../domain/entities/user_honor_update.dart';
 import '../../domain/repositories/honors_repository.dart';
 import '../../domain/usecases/register_user_honor.dart';
 import '../datasources/honors_remote_data_source.dart';
@@ -148,6 +151,44 @@ class HonorsRepositoryImpl implements HonorsRepository {
       final userHonorModel =
           await remoteDataSource.updateUserHonor(userId, honorId, data);
       return Right(userHonorModel.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(
+          message: e.message, code: e.code, errorCode: e.errorCode));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, InstructorProposal>> proposeHonorInstructor(
+    String userId,
+    int honorId,
+    InstructorSelection instructor,
+  ) async {
+    try {
+      return Right(await remoteDataSource.proposeHonorInstructor(
+        userId,
+        honorId,
+        honorInstructorProposalBody(instructor),
+      ));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(
+          message: e.message, code: e.code, errorCode: e.errorCode));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> cancelHonorInstructorProposal(
+      String userId, int honorId) async {
+    try {
+      await remoteDataSource.cancelHonorInstructorProposal(userId, honorId);
+      return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(
           message: e.message, code: e.code, errorCode: e.errorCode));

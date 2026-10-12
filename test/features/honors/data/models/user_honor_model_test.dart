@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/widgets/instructor_selection.dart';
+import 'package:sacdia_app/features/honors/domain/entities/instructor_proposal.dart';
 import 'package:sacdia_app/features/honors/data/models/user_honor_model.dart';
 
 Map<String, dynamic> _json([Map<String, dynamic> extra = const {}]) => {
@@ -143,6 +144,123 @@ void main() {
       expect(model.completedAt, DateTime(2026, 9, 30));
       expect(
           model.instructor, const InstructorSelection.external('Juan López'));
+    });
+  });
+
+  group('instructor_proposal (D11)', () {
+    Map<String, dynamic> proposal([Map<String, dynamic> extra = const {}]) => {
+          'proposal_id': 'p-1',
+          'status': 'PENDING',
+          'instructor': {
+            'kind': 'USER',
+            'user_id': 'u-ana',
+            'display_name': 'Ana Gómez',
+            'photo_url': 'https://example.com/ana.jpg',
+          },
+          'created_at': '2026-10-12T15:04:00Z',
+          ...extra,
+        };
+
+    test('absent key: not supported, no proposal', () {
+      final model = UserHonorModel.fromJson(_json());
+      expect(model.supportsInstructorProposal, isFalse);
+      expect(model.instructorProposal, isNull);
+    });
+
+    test('null: supported, "no proposal"', () {
+      final model =
+          UserHonorModel.fromJson(_json({'instructor_proposal': null}));
+      expect(model.supportsInstructorProposal, isTrue);
+      expect(model.instructorProposal, isNull);
+      expect(model.toEntity().supportsInstructorProposal, isTrue);
+    });
+
+    test('a pending proposal with a person', () {
+      final p =
+          UserHonorModel.fromJson(_json({'instructor_proposal': proposal()}))
+              .toEntity()
+              .instructorProposal!;
+      expect(p.proposalId, 'p-1');
+      expect(p.status, InstructorProposalStatus.pending);
+      expect(p.isPending, isTrue);
+      expect(p.instructor, isNotNull);
+      expect(p.instructor!.userId, 'u-ana');
+      expect(p.instructor!.photoUrl, 'https://example.com/ana.jpg');
+      expect(p.createdAt, DateTime.utc(2026, 10, 12, 15, 4));
+      expect(p.rejectionReason, isNull);
+      expect(p.reviewedAt, isNull);
+    });
+
+    test('a rejected proposal with a typed name, a reason and reviewed_at', () {
+      final p = UserHonorModel.fromJson(_json({
+        'instructor_proposal': proposal({
+          'status': 'rejected',
+          'instructor': {'kind': 'EXTERNAL', 'display_name': 'Juan López'},
+          'rejection_reason': '  No es del Campo Local ',
+          'reviewed_at': '2026-10-13T10:00:00Z',
+        }),
+      })).instructorProposal!;
+      expect(p.isRejected, isTrue);
+      expect(p.instructor, const InstructorSelection.external('Juan López'));
+      expect(p.rejectionReason, 'No es del Campo Local');
+      expect(p.reviewedAt, DateTime.utc(2026, 10, 13, 10));
+    });
+
+    test('every status the API may send, and unknown ones', () {
+      for (final (raw, expected) in [
+        ('PENDING', InstructorProposalStatus.pending),
+        ('APPROVED', InstructorProposalStatus.approved),
+        ('REJECTED', InstructorProposalStatus.rejected),
+        ('WITHDRAWN', InstructorProposalStatus.withdrawn),
+        ('CANCELLED', InstructorProposalStatus.withdrawn),
+        ('???', InstructorProposalStatus.unknown),
+      ]) {
+        final p = UserHonorModel.fromJson(
+          _json({
+            'instructor_proposal': proposal({'status': raw})
+          }),
+        ).instructorProposal!;
+        expect(p.status, expected, reason: raw);
+      }
+    });
+
+    test('a sparse or odd block is tolerated, never a crash', () {
+      final sparse = UserHonorModel.fromJson(
+          _json({'instructor_proposal': <String, dynamic>{}}));
+      expect(
+          sparse.instructorProposal?.status, InstructorProposalStatus.unknown);
+      expect(sparse.instructorProposal?.instructor, isNull);
+      for (final block in <Object?>[
+        'oops',
+        42,
+        proposal({'instructor': 'x'}),
+        proposal({'created_at': 'not a date'}),
+      ]) {
+        final model =
+            UserHonorModel.fromJson(_json({'instructor_proposal': block}));
+        expect(model.supportsInstructorProposal, isTrue, reason: '$block');
+      }
+      expect(
+        UserHonorModel.fromJson(_json({'instructor_proposal': 'oops'}))
+            .instructorProposal,
+        isNull,
+      );
+      expect(
+        UserHonorModel.fromJson(
+          _json({
+            'instructor_proposal': proposal({'created_at': 'nope'})
+          }),
+        ).instructorProposal!.createdAt,
+        isNull,
+      );
+    });
+
+    test('copyWith keeps it', () {
+      final model =
+          UserHonorModel.fromJson(_json({'instructor_proposal': proposal()}))
+              .copyWith(validationStatus: 'APPROVED');
+      expect(model.instructorProposal?.proposalId, 'p-1');
+      expect(model.supportsInstructorProposal, isTrue);
     });
   });
 }

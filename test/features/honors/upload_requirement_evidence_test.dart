@@ -14,6 +14,8 @@ import 'package:sacdia_app/features/honors/domain/entities/user_honor_requiremen
 import 'package:sacdia_app/features/honors/domain/repositories/honors_repository.dart';
 import 'package:sacdia_app/features/honors/domain/usecases/register_user_honor.dart';
 import 'package:sacdia_app/features/honors/domain/usecases/upload_requirement_evidence.dart';
+import 'package:sacdia_app/features/honors/domain/entities/instructor_proposal.dart';
+import 'package:sacdia_app/core/widgets/instructor_selection.dart';
 
 // ── Stub repository ───────────────────────────────────────────────────────────
 
@@ -95,6 +97,21 @@ class _StubHonorsRepository implements HonorsRepository {
           {required String userId,
           required int honorId,
           required HonorCompletionMode completionMode}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Either<Failure, InstructorProposal>> proposeHonorInstructor(
+    String userId,
+    int honorId,
+    InstructorSelection instructor,
+  ) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Either<Failure, void>> cancelHonorInstructorProposal(
+    String userId,
+    int honorId,
+  ) =>
       throw UnimplementedError();
 
   @override

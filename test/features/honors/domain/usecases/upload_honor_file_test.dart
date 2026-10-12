@@ -14,6 +14,8 @@ import 'package:sacdia_app/features/honors/domain/entities/user_honor_requiremen
 import 'package:sacdia_app/features/honors/domain/repositories/honors_repository.dart';
 import 'package:sacdia_app/features/honors/domain/usecases/register_user_honor.dart';
 import 'package:sacdia_app/features/honors/domain/usecases/upload_honor_file.dart';
+import 'package:sacdia_app/features/honors/domain/entities/instructor_proposal.dart';
+import 'package:sacdia_app/core/widgets/instructor_selection.dart';
 
 class _FakeHonorsRepository implements HonorsRepository {
   String? capturedUserId;
@@ -51,6 +53,21 @@ class _FakeHonorsRepository implements HonorsRepository {
   Future<Either<Failure, void>> deleteRequirementEvidence(
           String userId, int honorId, int requirementId, int evidenceId) =>
       throw UnimplementedError();
+  @override
+  Future<Either<Failure, InstructorProposal>> proposeHonorInstructor(
+    String userId,
+    int honorId,
+    InstructorSelection instructor,
+  ) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Either<Failure, void>> cancelHonorInstructorProposal(
+    String userId,
+    int honorId,
+  ) =>
+      throw UnimplementedError();
+
   @override
   Future<Either<Failure, void>> deleteUserHonor(String userId, int honorId) =>
       throw UnimplementedError();

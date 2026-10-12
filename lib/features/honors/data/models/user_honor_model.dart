@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:sacdia_app/core/widgets/instructor_selection.dart';
+import '../../domain/entities/instructor_proposal.dart';
 import '../../domain/entities/user_honor.dart';
+import 'instructor_proposal_model.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../../core/utils/json_helpers.dart';
 
@@ -72,6 +74,8 @@ class UserHonorModel extends Equatable {
   final DateTime date;
   final DateTime? completedAt;
   final InstructorSelection? instructor;
+  final InstructorProposal? instructorProposal;
+  final bool supportsInstructorProposal;
 
   // Validation audit fields
   final DateTime? submittedAt;
@@ -105,6 +109,8 @@ class UserHonorModel extends Equatable {
     required this.date,
     this.completedAt,
     this.instructor,
+    this.instructorProposal,
+    this.supportsInstructorProposal = false,
     this.submittedAt,
     this.validatedById,
     this.validatedByName,
@@ -206,6 +212,8 @@ class UserHonorModel extends Equatable {
       date: date,
       completedAt: _parseDay(json['completed_at']),
       instructor: _parseInstructor(json),
+      instructorProposal: parseInstructorProposal(json['instructor_proposal']),
+      supportsInstructorProposal: json.containsKey('instructor_proposal'),
       submittedAt: submittedAt,
       validatedById: safeStringOrNull(json['validated_by_id']),
       validatedByName: safeStringOrNull(json['validated_by_name']) ??
@@ -269,6 +277,8 @@ class UserHonorModel extends Equatable {
       date: date,
       completedAt: completedAt,
       instructor: instructor,
+      instructorProposal: instructorProposal,
+      supportsInstructorProposal: supportsInstructorProposal,
       submittedAt: submittedAt,
       validatedById: validatedById,
       validatedByName: validatedByName,
@@ -301,6 +311,8 @@ class UserHonorModel extends Equatable {
     DateTime? date,
     DateTime? completedAt,
     InstructorSelection? instructor,
+    InstructorProposal? instructorProposal,
+    bool? supportsInstructorProposal,
     DateTime? submittedAt,
     String? validatedById,
     String? validatedByName,
@@ -330,6 +342,9 @@ class UserHonorModel extends Equatable {
       date: date ?? this.date,
       completedAt: completedAt ?? this.completedAt,
       instructor: instructor ?? this.instructor,
+      instructorProposal: instructorProposal ?? this.instructorProposal,
+      supportsInstructorProposal:
+          supportsInstructorProposal ?? this.supportsInstructorProposal,
       submittedAt: submittedAt ?? this.submittedAt,
       validatedById: validatedById ?? this.validatedById,
       validatedByName: validatedByName ?? this.validatedByName,
@@ -362,6 +377,8 @@ class UserHonorModel extends Equatable {
         date,
         completedAt,
         instructor,
+        instructorProposal,
+        supportsInstructorProposal,
         submittedAt,
         validatedById,
         validatedByName,
