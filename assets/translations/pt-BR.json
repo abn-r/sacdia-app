@@ -5037,5 +5037,31 @@
         "dismiss": "Entendi"
       }
     }
+  },
+  "instructor": {
+    "title": "Instrutor ou instrutora",
+    "add_hint": "Adicionar instrutor (opcional)",
+    "search_hint": "Buscar pelo nome",
+    "scope_note": "Pessoas do seu campo local",
+    "type_min": "Digite pelo menos 3 letras",
+    "keep_typing": "Continue digitando o nome",
+    "use_as_name": "Usar “{name}” como nome",
+    "use_as_name_hint": "Para instrutores de outro campo local ou que não estão no SACDIA",
+    "local_field_person": "Pessoa do seu campo local",
+    "unverified": "Nome digitado · não verificado",
+    "help": "Seu campo local revisa esta informação. Não avisamos a pessoa.",
+    "remove": "Remover",
+    "no_results": "Não encontramos ninguém com “{query}” no seu campo local",
+    "no_results_short": "Sem resultados",
+    "results_one": "{count} pessoa encontrada",
+    "results_other": "{count} pessoas encontradas",
+    "search_error": "Não foi possível buscar. Verifique sua conexão",
+    "rate_limited": "Você está buscando rápido demais. Aguarde alguns segundos e tente de novo.",
+    "retry": "Tentar novamente",
+    "error_invalid": "Esta pessoa não está disponível. Escolha outra ou digite o nome",
+    "error_self": "Você não pode ser seu próprio instrutor",
+    "error_generic": "Não foi possível salvar o instrutor. Tente novamente",
+    "semantics_user": "Instrutor: {name}, pessoa do seu campo local",
+    "semantics_external": "Instrutor: {name}, nome digitado, não verificado"
   }
 }

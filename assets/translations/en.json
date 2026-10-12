@@ -5039,5 +5039,31 @@
         "dismiss": "Got it"
       }
     }
+  },
+  "instructor": {
+    "title": "Instructor",
+    "add_hint": "Add instructor (optional)",
+    "search_hint": "Search by name",
+    "scope_note": "People from your Local Field",
+    "type_min": "Type at least 3 letters",
+    "keep_typing": "Keep typing the name",
+    "use_as_name": "Use “{name}” as a name",
+    "use_as_name_hint": "For instructors from another Local Field or not on SACDIA",
+    "local_field_person": "Person from your Local Field",
+    "unverified": "Typed name · not verified",
+    "help": "Your Local Field reviews this. We do not notify the person.",
+    "remove": "Remove",
+    "no_results": "We found no one named “{query}” in your Local Field",
+    "no_results_short": "No results",
+    "results_one": "{count} person found",
+    "results_other": "{count} people found",
+    "search_error": "We could not search. Check your connection",
+    "rate_limited": "You are searching too fast. Wait a few seconds and try again.",
+    "retry": "Try again",
+    "error_invalid": "This person is not available. Choose someone else or type their name",
+    "error_self": "You cannot be your own instructor",
+    "error_generic": "We could not save the instructor. Try again",
+    "semantics_user": "Instructor: {name}, person from your Local Field",
+    "semantics_external": "Instructor: {name}, typed name, not verified"
   }
 }

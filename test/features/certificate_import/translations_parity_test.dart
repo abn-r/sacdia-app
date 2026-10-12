@@ -29,6 +29,23 @@ void main() {
     }
   });
 
+  test('the shared instructor copy has the same keys in all four languages',
+      () {
+    Map<String, dynamic> section(String lang) {
+      final json = jsonDecode(
+        File('assets/translations/$lang.json').readAsStringSync(),
+      ) as Map<String, dynamic>;
+      return json['instructor'] as Map<String, dynamic>;
+    }
+
+    final es = _keys(section('es'));
+    for (final lang in ['en', 'fr', 'pt-BR']) {
+      final other = _keys(section(lang));
+      expect(other.difference(es), isEmpty, reason: 'extra keys in $lang');
+      expect(es.difference(other), isEmpty, reason: 'missing keys in $lang');
+    }
+  });
+
   test('the Spanish copy says Especialidad, never Honor', () {
     final json = jsonDecode(
       File('assets/translations/es.json').readAsStringSync(),
@@ -43,6 +60,7 @@ void main() {
     }
 
     walk(json['certificate_import']);
+    walk(json['instructor']);
     expect(values.where((v) => v.toLowerCase().contains('honor')), isEmpty);
   });
 }

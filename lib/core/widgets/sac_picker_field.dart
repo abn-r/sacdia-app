@@ -27,6 +27,9 @@ class SacPickerField extends StatelessWidget {
   /// Short stamp next to the value, such as "Sugerida".
   final String? badge;
   final String? errorText;
+
+  /// Replaces the spoken "label: value" when the field says more than that.
+  final String? semanticsLabel;
   final VoidCallback? onTap;
   final bool enabled;
   final bool isLoading;
@@ -41,6 +44,7 @@ class SacPickerField extends StatelessWidget {
     this.leading,
     this.badge,
     this.errorText,
+    this.semanticsLabel,
     this.onTap,
     this.enabled = true,
     this.isLoading = false,
@@ -72,8 +76,11 @@ class SacPickerField extends StatelessWidget {
         Semantics(
           button: true,
           enabled: enabled && !isLoading,
-          label: hasValue ? '$label: $selectedName' : '$label: $hint',
+          label: semanticsLabel ??
+              (hasValue ? '$label: $selectedName' : '$label: $hint'),
           excludeSemantics: true,
+          // excludeSemantics drops the gesture's own tap action: keep it.
+          onTap: (enabled && !isLoading) ? onTap : null,
           child: GestureDetector(
             onTap: (enabled && !isLoading) ? onTap : null,
             child: AnimatedContainer(

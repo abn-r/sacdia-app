@@ -39,6 +39,10 @@ class ApiEndpoints {
   // ── Honors ────────────────────────────────────────────────────────────────
   static const String honors = '/honors';
 
+  // ── Instructors ───────────────────────────────────────────────────────────
+  /// Search people of the caller's Local Field to name as an instructor.
+  static const String instructorCandidates = '/instructor-candidates';
+
   // ── Achievements ──────────────────────────────────────────────────────────
   static const String achievements = '/achievements';
 
