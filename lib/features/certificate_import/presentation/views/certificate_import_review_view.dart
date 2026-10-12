@@ -75,13 +75,13 @@ class CertificateImportReviewRouteView extends ConsumerWidget {
           return result.fold((failure) => throw failure, (next) => next);
         },
         onChooseOtherFile: () => context.go(RouteNames.certificateImportUpload),
-        onUpdateItem: (item) async {
+        onUpdateItem: (item, previous) async {
           final result =
               await ref.read(updateCertificateImportItemProvider).call(
                     UpdateCertificateImportItemParams(
                       batchId: batch.id,
                       itemId: item.id,
-                      payload: _payload(item),
+                      payload: _payload(item, previous: previous),
                     ),
                   );
           return result.fold((failure) => throw failure, (saved) => saved);
@@ -119,24 +119,10 @@ class CertificateImportReviewRouteView extends ConsumerWidget {
   }
 
   static CertificateImportItemUpdatePayload _payload(
-    CertificateImportItem item,
-  ) {
-    return CertificateImportItemUpdatePayload(
-      itemType:
-          item.type == CertificateImportItemType.honor ? 'HONOR' : 'CLASS',
-      honorId: item.honorId,
-      classId: item.classId,
-      detectedName: item.detectedName,
-      completedAt: _apiDate(item.completedAt),
-      markAsReady: item.status == CertificateImportItemStatus.ready,
-      clubTypeId: item.classRef?.clubTypeId,
-    );
-  }
-
-  static String? _apiDate(DateTime? date) {
-    if (date == null) return null;
-    return '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-  }
+    CertificateImportItem item, {
+    CertificateImportItem? previous,
+  }) =>
+      CertificateImportItemUpdatePayload.fromItem(item, previous: previous);
 }
 
 class CertificateImportReviewView extends StatefulWidget {
@@ -159,8 +145,10 @@ class CertificateImportReviewView extends StatefulWidget {
   final String? proofLocalPath;
 
   /// Returns the row as the API saved it (with its catalog names).
-  final Future<CertificateImportItem> Function(CertificateImportItem item)?
-      onUpdateItem;
+  final Future<CertificateImportItem> Function(
+    CertificateImportItem item,
+    CertificateImportItem previous,
+  )? onUpdateItem;
   final Future<CertificateImportItem> Function(CertificateImportItem draft)?
       onAddItem;
   final Future<void> Function(CertificateImportItem item)? onRemoveItem;
@@ -659,7 +647,7 @@ class _CertificateImportReviewViewState
               _removeItem(item);
             },
       onSave: (updated) async {
-        final saved = await widget.onUpdateItem?.call(updated) ?? updated;
+        final saved = await widget.onUpdateItem?.call(updated, item) ?? updated;
         _edits++;
         if (!mounted) return;
         setState(() {

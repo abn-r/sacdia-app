@@ -12,6 +12,8 @@ import 'package:sacdia_app/features/honors/presentation/providers/honors_provide
 import 'package:sacdia_app/providers/catalogs_provider.dart';
 import 'package:sacdia_app/shared/models/catalogs/club_type_model.dart';
 
+import '../../../support/instructor_fakes.dart';
+
 const clubTypes = [
   ClubTypeModel(clubTypeId: 1, name: 'Conquistadores'),
   ClubTypeModel(clubTypeId: 2, name: 'Aventureros'),
@@ -79,9 +81,11 @@ class FakeGetHonors extends Fake implements GetHonors {
 /// Catalog providers the editor reads, without touching the network.
 List<Override> catalogOverrides({
   FakeGetHonors? honors,
+  FakeInstructorSearch? instructors,
   Future<List<CertificateImportClassOption>> Function(int clubTypeId)? classes,
 }) {
   return [
+    (instructors ?? FakeInstructorSearch()).override,
     clubTypesProvider.overrideWith((ref) async => clubTypes),
     honorCategoriesProvider.overrideWith((ref) async => categories),
     getHonorsProvider.overrideWithValue(honors ?? FakeGetHonors()),

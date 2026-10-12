@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/constants/certificate_dates.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
+import 'package:sacdia_app/core/widgets/instructor_picker.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_picker_field.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
@@ -590,6 +591,183 @@ void main() {
       await tester.tap(find.text('Quitar de la lista'));
       expect(removed, 1);
     });
+  });
+
+  group('instructor (optional)', () {
+    CertificateImportItem completeRow({CertificateImportInstructorRef? by}) =>
+        CertificateImportItem(
+          id: 'row-1',
+          batchId: 'batch-1',
+          type: CertificateImportItemType.honor,
+          honorId: 10,
+          honor: _firstAidRef,
+          detectedName: 'Primeros Auxilios',
+          completedAt: DateTime(2023, 3, 12),
+          status: CertificateImportItemStatus.ready,
+          instructor: by,
+        );
+
+    const byAna = CertificateImportInstructorRef(
+      isUser: true,
+      userId: '11111111-1111-4111-8111-111111111111',
+      displayName: 'Ana Gómez',
+      photoUrl: 'https://r2.example/signed-photo.jpg',
+    );
+
+    Future<void> search(WidgetTester tester, String text) async {
+      await tester.enterText(
+        find.descendant(
+          of: find.byType(InstructorPicker),
+          matching: find.byType(TextField),
+        ),
+        text,
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('is offered on a honor, with the help text, and not on a class',
+        (tester) async {
+      await _open(tester, completeRow(), _Saved());
+      expect(find.text('Instructor o instructora'), findsOneWidget);
+      expect(find.text('Agregar instructor (opcional)'), findsOneWidget);
+      expect(
+        find.text('Tu Campo Local revisa este dato. No avisamos a la persona.'),
+        findsOneWidget,
+      );
+
+      await tester.pumpWidget(const SizedBox());
+      await _open(
+        tester,
+        _classRow(
+          classId: 3,
+          classRef: const CertificateImportClassRef(
+              id: 3, name: 'Explorador', clubTypeId: 1),
+          completedAt: DateTime(2022, 11, 20),
+        ),
+        _Saved(),
+      );
+      expect(find.text('Instructor o instructora'), findsNothing);
+    });
+
+    testWidgets('does not count for "Falta" and the row is ready without it',
+        (tester) async {
+      final saved = _Saved();
+      await _open(tester, completeRow(), saved);
+
+      expect(find.textContaining('Falta:'), findsNothing);
+      await _save(tester);
+
+      expect(saved.item!.status, CertificateImportItemStatus.ready);
+      expect(saved.item!.instructor, isNull);
+    });
+
+    testWidgets('a person of the Local Field is saved with the user id',
+        (tester) async {
+      final saved = _Saved();
+      await _open(tester, completeRow(), saved);
+
+      await tester.tap(find.text('Agregar instructor (opcional)'));
+      await tester.pumpAndSettle();
+      await search(tester, 'Ana');
+      await tester.tap(find.text('Ana Gómez'));
+      await tester.pumpAndSettle();
+      await _save(tester);
+
+      final instructor = saved.item!.instructor!;
+      expect(instructor.isUser, isTrue);
+      expect(instructor.userId, '11111111-1111-4111-8111-111111111111');
+      expect(instructor.displayName, 'Ana Gómez');
+    });
+
+    testWidgets('a typed name is saved as an external instructor',
+        (tester) async {
+      final saved = _Saved();
+      await _open(tester, completeRow(), saved);
+
+      await tester.tap(find.text('Agregar instructor (opcional)'));
+      await tester.pumpAndSettle();
+      await search(tester, 'Juan López');
+      await tester.tap(find.text('Usar «Juan López» como nombre'));
+      await tester.pumpAndSettle();
+      expect(find.text('Nombre escrito · no verificado'), findsOneWidget);
+      await _save(tester);
+
+      final instructor = saved.item!.instructor!;
+      expect(instructor.isUser, isFalse);
+      expect(instructor.userId, isNull);
+      expect(instructor.displayName, 'Juan López');
+    });
+
+    testWidgets('an instructor already on the row is shown and kept as is',
+        (tester) async {
+      final saved = _Saved();
+      await _open(tester, completeRow(by: byAna), saved);
+
+      expect(find.text('Ana Gómez'), findsOneWidget);
+      expect(find.text('Persona de tu Campo Local'), findsOneWidget);
+      await _save(tester);
+
+      // Same reference: the caller can tell nothing changed.
+      expect(saved.item!.instructor, same(byAna));
+    });
+
+    testWidgets('removing it saves the row without an instructor',
+        (tester) async {
+      final saved = _Saved();
+      await _open(tester, completeRow(by: byAna), saved);
+
+      await tester.tap(find.widgetWithText(SacButton, 'Quitar'));
+      await tester.pumpAndSettle();
+      expect(find.text('Agregar instructor (opcional)'), findsOneWidget);
+      await _save(tester);
+
+      expect(saved.item!.instructor, isNull);
+    });
+
+    testWidgets('switching the row to a class clears the instructor',
+        (tester) async {
+      final saved = _Saved();
+      await _open(tester, completeRow(by: byAna), saved);
+
+      await tester.tap(find.text('¿Es una clase?'));
+      await tester.pumpAndSettle();
+      expect(find.text('Instructor o instructora'), findsNothing);
+      await tester.tap(find.text('Conquistadores'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Explorador').last);
+      await tester.pumpAndSettle();
+      await _save(tester);
+
+      expect(saved.item!.type, CertificateImportItemType.clazz);
+      expect(saved.item!.instructor, isNull);
+    });
+
+    for (final (code, message) in [
+      (
+        'HONOR_INSTRUCTOR_INVALID',
+        'Esta persona no está disponible. Elige a otra o escribe su nombre',
+      ),
+      ('HONOR_INSTRUCTOR_SELF', 'No puedes ser tu propio instructor'),
+    ]) {
+      testWidgets('$code lands on the instructor field, not the banner',
+          (tester) async {
+        final saved = _Saved()
+          ..failWith = ServerFailure(message: 'x', errorCode: code);
+        await _open(tester, completeRow(by: byAna), saved);
+
+        await _save(tester);
+
+        expect(find.text(message), findsOneWidget);
+        expect(find.byType(CertificateImportItemEditorSheet), findsOneWidget);
+        expect(find.textContaining(code), findsNothing);
+
+        // Choosing someone else clears the error.
+        await tester.tap(find.widgetWithText(SacButton, 'Quitar'));
+        await tester.pumpAndSettle();
+        expect(find.text(message), findsNothing);
+      });
+    }
   });
 
   testWidgets('SacPickerField shows empty, filled, error and loading',
