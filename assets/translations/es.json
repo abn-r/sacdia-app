@@ -4687,6 +4687,22 @@
       },
       "unexpected_upload": {
         "body": "No pudimos subir tu comprobante. Inténtalo de nuevo."
+      },
+      "date_old": {
+        "title": "Fecha fuera de rango",
+        "body": "La fecha no puede ser anterior a 1960"
+      },
+      "date_future": {
+        "title": "Fecha fuera de rango",
+        "body": "La fecha no puede ser futura"
+      },
+      "date_invalid": {
+        "title": "Fecha no válida",
+        "body": "La fecha no es válida. Elige otra."
+      },
+      "class_mismatch": {
+        "title": "La clase no coincide",
+        "body": "Esa clase no corresponde al tipo de club. Elígela de nuevo."
       }
     },
     "steps": {
@@ -4776,16 +4792,41 @@
       "view_proof_page": "Ver en tu comprobante · pág. {page}"
     },
     "editor": {
-      "title": "Corregir fila",
-      "add_title": "Agregar fila",
+      "add_title": "Agregar especialidad o clase",
       "honor": "Especialidad",
       "class": "Clase",
-      "name": "Nombre detectado",
-      "catalog_id": "ID catálogo",
-      "completed_at": "Fecha completada",
-      "date_hint": "AAAA-MM-DD",
       "save": "Guardar",
-      "remove": "Quitar de la lista"
+      "remove": "Quitar de la lista",
+      "title_honor": "Corregir especialidad",
+      "title_class": "Corregir clase",
+      "read_in_proof": "Leído en tu comprobante",
+      "fix_text": "Corregir texto",
+      "manual_name": "Nombre como aparece en tu comprobante (opcional)",
+      "switch_to_class": "¿Es una clase?",
+      "category": "Categoría",
+      "category_hint": "Cualquier categoría",
+      "honor_hint": "Elige la especialidad",
+      "honor_category_mismatch": "Elige una especialidad de {category}",
+      "suggested": "Sugerida",
+      "date_honor": "Fecha en que la completaste",
+      "date_class": "Fecha de investidura",
+      "date_required": "Elige la fecha",
+      "date_review": "Revisa la fecha",
+      "date_unreadable": "Revisa la fecha. Lo que leímos no es una fecha válida",
+      "date_read": "Leída",
+      "club_type": "Tipo de club",
+      "class_field": "Clase",
+      "pick_club_type": "Elige primero el tipo de club.",
+      "class_order_hint": "Puedes acreditar {class} aunque no tengas {previous} registrado.",
+      "missing_line": "Falta: {fields}",
+      "field_honor": "especialidad",
+      "field_class": "clase",
+      "field_date": "fecha",
+      "field_type": "tipo",
+      "field_name": "nombre",
+      "discard_title": "¿Descartar los cambios?",
+      "discard_confirm": "Descartar",
+      "discard_keep": "Seguir editando"
     },
     "viewer": {
       "title": "Tu comprobante",
@@ -4809,6 +4850,16 @@
       "date_pending": "Fecha pendiente",
       "applied": "Comprobante ligado al registro {id}",
       "gm01_replaced": "Esta aprobación ya sustituyó la inscripción de Guía Mayor. Queda un solo registro."
+    },
+    "picker": {
+      "honor_title": "Elige la especialidad",
+      "category_title": "Categoría",
+      "search_hint": "Buscar por nombre",
+      "all_categories": "Todas",
+      "type_to_search": "Escribe al menos 2 letras o elige una categoría.",
+      "no_results": "No encontramos «{query}»",
+      "no_results_in": "No encontramos «{query}» en {category}",
+      "search_all": "Buscar en todas las categorías"
     }
   },
   "master_honors": {

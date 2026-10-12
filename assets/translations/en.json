@@ -4687,6 +4687,22 @@
       },
       "unexpected_upload": {
         "body": "We couldn't upload your receipt. Try again."
+      },
+      "date_old": {
+        "title": "Date out of range",
+        "body": "The date cannot be earlier than 1960"
+      },
+      "date_future": {
+        "title": "Date out of range",
+        "body": "The date cannot be in the future"
+      },
+      "date_invalid": {
+        "title": "Invalid date",
+        "body": "The date is not valid. Pick another one."
+      },
+      "class_mismatch": {
+        "title": "The class does not match",
+        "body": "That class does not belong to the club type. Pick it again."
       }
     },
     "steps": {
@@ -4776,16 +4792,41 @@
       "view_proof_page": "See in your receipt · p. {page}"
     },
     "editor": {
-      "title": "Edit row",
-      "add_title": "Add row",
+      "add_title": "Add honor or class",
       "honor": "Honor",
       "class": "Class",
-      "name": "Detected name",
-      "catalog_id": "Catalog ID",
-      "completed_at": "Completion date",
-      "date_hint": "YYYY-MM-DD",
       "save": "Save",
-      "remove": "Remove from the list"
+      "remove": "Remove from the list",
+      "title_honor": "Fix honor",
+      "title_class": "Fix class",
+      "read_in_proof": "Read in your receipt",
+      "fix_text": "Fix text",
+      "manual_name": "Name as it appears on your receipt (optional)",
+      "switch_to_class": "Is it a class?",
+      "category": "Category",
+      "category_hint": "Any category",
+      "honor_hint": "Pick the honor",
+      "honor_category_mismatch": "Pick a honor from {category}",
+      "suggested": "Suggested",
+      "date_honor": "Date you completed it",
+      "date_class": "Investiture date",
+      "date_required": "Pick the date",
+      "date_review": "Check the date",
+      "date_unreadable": "Check the date. What we read is not a valid date",
+      "date_read": "Read",
+      "club_type": "Club type",
+      "class_field": "Class",
+      "pick_club_type": "Pick the club type first.",
+      "class_order_hint": "You can credit {class} even if you have no {previous} on record.",
+      "missing_line": "Missing: {fields}",
+      "field_honor": "honor",
+      "field_class": "class",
+      "field_date": "date",
+      "field_type": "type",
+      "field_name": "name",
+      "discard_title": "Discard your changes?",
+      "discard_confirm": "Discard",
+      "discard_keep": "Keep editing"
     },
     "viewer": {
       "title": "Your proof",
@@ -4809,6 +4850,16 @@
       "date_pending": "Date pending",
       "applied": "Receipt linked to record {id}",
       "gm01_replaced": "This approval already replaced the Guide Major enrollment. One record remains."
+    },
+    "picker": {
+      "honor_title": "Pick the honor",
+      "category_title": "Category",
+      "search_hint": "Search by name",
+      "all_categories": "All",
+      "type_to_search": "Type at least 2 letters or pick a category.",
+      "no_results": "We found no “{query}”",
+      "no_results_in": "We found no “{query}” in {category}",
+      "search_all": "Search all categories"
     }
   },
   "master_honors": {

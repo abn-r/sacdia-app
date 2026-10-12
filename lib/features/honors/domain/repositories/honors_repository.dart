@@ -23,6 +23,7 @@ abstract class HonorsRepository {
     int? categoryId,
     int? clubTypeId,
     int? skillLevel,
+    String? search,
     RequestCancelToken? cancelToken,
   });
 

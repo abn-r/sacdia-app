@@ -4685,6 +4685,22 @@
       },
       "unexpected_upload": {
         "body": "Impossible d’envoyer votre justificatif. Réessayez."
+      },
+      "date_old": {
+        "title": "Date hors limites",
+        "body": "La date ne peut pas être antérieure à 1960"
+      },
+      "date_future": {
+        "title": "Date hors limites",
+        "body": "La date ne peut pas être dans le futur"
+      },
+      "date_invalid": {
+        "title": "Date non valide",
+        "body": "La date n’est pas valide. Choisissez-en une autre."
+      },
+      "class_mismatch": {
+        "title": "La classe ne correspond pas",
+        "body": "Cette classe n’appartient pas à ce type de club. Choisissez-la à nouveau."
       }
     },
     "steps": {
@@ -4774,16 +4790,41 @@
       "view_proof_page": "Voir dans votre justificatif · p. {page}"
     },
     "editor": {
-      "title": "Corriger la ligne",
-      "add_title": "Ajouter une ligne",
+      "add_title": "Ajouter une spécialité ou une classe",
       "honor": "Spécialité",
       "class": "Classe",
-      "name": "Nom détecté",
-      "catalog_id": "ID catalogue",
-      "completed_at": "Date de fin",
-      "date_hint": "AAAA-MM-JJ",
       "save": "Enregistrer",
-      "remove": "Retirer de la liste"
+      "remove": "Retirer de la liste",
+      "title_honor": "Corriger la spécialité",
+      "title_class": "Corriger la classe",
+      "read_in_proof": "Lu sur votre justificatif",
+      "fix_text": "Corriger le texte",
+      "manual_name": "Nom tel qu’il apparaît sur votre justificatif (facultatif)",
+      "switch_to_class": "Est-ce une classe ?",
+      "category": "Catégorie",
+      "category_hint": "Toutes catégories",
+      "honor_hint": "Choisissez la spécialité",
+      "honor_category_mismatch": "Choisissez une spécialité de {category}",
+      "suggested": "Suggérée",
+      "date_honor": "Date à laquelle vous l’avez terminée",
+      "date_class": "Date d’investiture",
+      "date_required": "Choisissez la date",
+      "date_review": "Vérifiez la date",
+      "date_unreadable": "Vérifiez la date. Ce que nous avons lu n’est pas une date valide",
+      "date_read": "Lue",
+      "club_type": "Type de club",
+      "class_field": "Classe",
+      "pick_club_type": "Choisissez d’abord le type de club.",
+      "class_order_hint": "Vous pouvez valider {class} même sans {previous} enregistrée.",
+      "missing_line": "Manque : {fields}",
+      "field_honor": "spécialité",
+      "field_class": "classe",
+      "field_date": "date",
+      "field_type": "type",
+      "field_name": "nom",
+      "discard_title": "Abandonner les modifications ?",
+      "discard_confirm": "Abandonner",
+      "discard_keep": "Continuer à modifier"
     },
     "viewer": {
       "title": "Votre justificatif",
@@ -4807,6 +4848,16 @@
       "date_pending": "Date en attente",
       "applied": "Justificatif lié à l’enregistrement {id}",
       "gm01_replaced": "Cette approbation a déjà remplacé l’inscription de Guide majeur. Il ne reste qu’un enregistrement."
+    },
+    "picker": {
+      "honor_title": "Choisissez la spécialité",
+      "category_title": "Catégorie",
+      "search_hint": "Rechercher par nom",
+      "all_categories": "Toutes",
+      "type_to_search": "Saisissez au moins 2 lettres ou choisissez une catégorie.",
+      "no_results": "Aucun résultat pour « {query} »",
+      "no_results_in": "Aucun résultat pour « {query} » dans {category}",
+      "search_all": "Chercher dans toutes les catégories"
     }
   },
   "master_honors": {

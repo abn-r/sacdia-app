@@ -7,6 +7,7 @@ import '../../../../core/network/network_info.dart';
 import '../../../../core/usecases/cancellation_token.dart';
 import '../../domain/entities/certificate_import_batch.dart';
 import '../../domain/entities/certificate_import_batch_list.dart';
+import '../../domain/entities/certificate_import_class_option.dart';
 import '../../domain/entities/certificate_import_error_code.dart';
 import '../../domain/entities/certificate_import_institutional_request.dart';
 import '../../domain/entities/certificate_import_item.dart';
@@ -142,6 +143,19 @@ class CertificateImportRepositoryImpl implements CertificateImportRepository {
         batchId: batchId,
         itemId: itemId,
         payload: payload,
+      ),
+    );
+  }
+
+  @override
+  Future<Either<Failure, List<CertificateImportClassOption>>> getClassCatalog({
+    required int clubTypeId,
+    RequestCancelToken? cancelToken,
+  }) {
+    return _guard(
+      () => remoteDataSource.getClassCatalog(
+        clubTypeId: clubTypeId,
+        cancelToken: cancelToken is CancelToken ? cancelToken : null,
       ),
     );
   }

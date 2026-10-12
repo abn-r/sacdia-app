@@ -6,11 +6,13 @@ import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/repositories/certificate_import_repository_impl.dart';
 import '../../domain/entities/certificate_import_batch.dart';
 import '../../domain/entities/certificate_import_batch_list.dart';
+import '../../domain/entities/certificate_import_class_option.dart';
 import '../../domain/entities/certificate_import_institutional_request.dart';
 import '../../domain/repositories/certificate_import_repository.dart';
 import '../../domain/usecases/add_certificate_import_item.dart';
 import '../../domain/usecases/create_certificate_import_batch.dart';
 import '../../domain/usecases/get_certificate_import_batch.dart';
+import '../../domain/usecases/get_certificate_import_class_catalog.dart';
 import '../../domain/usecases/list_certificate_import_batches.dart';
 import '../../domain/usecases/list_certificate_import_institutional_requests.dart';
 import '../../domain/usecases/process_certificate_import_ocr.dart';
@@ -115,6 +117,24 @@ final certificateImportBatchProvider = FutureProvider.autoDispose
     (failure) => throw failure,
     (batch) => batch,
   );
+});
+
+final getCertificateImportClassCatalogProvider =
+    Provider<GetCertificateImportClassCatalog>((ref) {
+  return GetCertificateImportClassCatalog(
+      ref.read(certificateImportRepositoryProvider));
+});
+
+/// Classes of one club type for the row editor; cached while the editor is
+/// open and retried by invalidating it.
+final certificateImportClassCatalogProvider = FutureProvider.autoDispose
+    .family<List<CertificateImportClassOption>, int>((ref, clubTypeId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await ref
+      .read(getCertificateImportClassCatalogProvider)
+      .call(clubTypeId, cancelToken: cancelToken);
+  return result.fold((failure) => throw failure, (classes) => classes);
 });
 
 final certificateImportBatchListProvider = FutureProvider.autoDispose

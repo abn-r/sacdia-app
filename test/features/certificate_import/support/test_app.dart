@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
@@ -27,8 +28,19 @@ Future<void> initTestLocalization() async {
 
 /// [child] in a Spanish app. With [proofRoutes] the app has a router whose
 /// proof route prints `PROOF <fileId> p<page>`, so tests can assert where a
-/// "see in your proof" button navigates.
-Widget wrapTestApp(Widget child, {bool proofRoutes = false}) {
+/// "see in your proof" button navigates. [overrides] feed Riverpod.
+Widget wrapTestApp(
+  Widget child, {
+  bool proofRoutes = false,
+  List<Override> overrides = const [],
+}) {
+  return ProviderScope(
+    overrides: overrides,
+    child: _localized(child, proofRoutes),
+  );
+}
+
+Widget _localized(Widget child, bool proofRoutes) {
   return EasyLocalization(
     supportedLocales: const [Locale('es')],
     path: 'assets/translations',

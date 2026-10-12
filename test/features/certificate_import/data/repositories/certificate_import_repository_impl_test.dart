@@ -4,6 +4,7 @@ import 'package:sacdia_app/core/errors/exceptions.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/network/network_info.dart';
 import 'package:dio/dio.dart';
+import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_class_option.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_payloads.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_upload_session.dart';
 import 'package:sacdia_app/features/certificate_import/data/models/certificate_import_batch_list_model.dart';
@@ -91,6 +92,15 @@ class _RemoteDataSource implements CertificateImportRemoteDataSource {
         page: 1,
         limit: 20,
       );
+
+  @override
+  Future<List<CertificateImportClassOption>> getClassCatalog({
+    required int clubTypeId,
+    CancelToken? cancelToken,
+  }) async {
+    if (error != null) throw error!;
+    return [CertificateImportClassOption(id: 3, name: 'Explorador')];
+  }
 
   @override
   Future<CertificateImportBatchModel> getBatch(
@@ -294,6 +304,22 @@ void failureMappingTests() {
         (await _failureFor(ConnectionException(message: 'offline'))).errorCode,
         'NETWORK',
       );
+    });
+
+    test('keeps the new date and club type codes from the 400 body', () async {
+      for (final code in [
+        'CERTIFICATE_IMPORT_DATE_TOO_OLD',
+        'CERTIFICATE_IMPORT_DATE_IN_FUTURE',
+        'CERTIFICATE_IMPORT_DATE_INVALID',
+        'CERTIFICATE_IMPORT_CLASS_CLUB_TYPE_MISMATCH',
+      ]) {
+        final failure = await _failureFor(_dio(
+          DioExceptionType.badResponse,
+          status: 400,
+          body: {'code': code, 'message': 'Bad Request'},
+        ));
+        expect(failure.errorCode, code);
+      }
     });
 
     test('drops unknown backend text instead of passing it on', () async {

@@ -13,7 +13,6 @@ import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
-import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
@@ -130,6 +129,7 @@ class CertificateImportReviewRouteView extends ConsumerWidget {
       detectedName: item.detectedName,
       completedAt: _apiDate(item.completedAt),
       markAsReady: item.status == CertificateImportItemStatus.ready,
+      clubTypeId: item.classRef?.clubTypeId,
     );
   }
 
@@ -559,14 +559,20 @@ class _CertificateImportReviewViewState
               item: item,
               onEdit: () => _openEditor(item),
               onViewProof: target == null ? null : () => _openProof(item),
-              proofPage: target != null && target.page == item.sourcePage
-                  ? target.page
-                  : null,
+              proofPage: _proofPage(item),
             ),
           ),
         ),
       ),
     );
+  }
+
+  /// Page to name on the proof button; only when the row has a known one.
+  int? _proofPage(CertificateImportItem item) {
+    final target = CertificateProofTarget.resolve(_batch.files, item: item);
+    return target != null && target.page == item.sourcePage
+        ? target.page
+        : null;
   }
 
   void _openProof(CertificateImportItem item) {
@@ -606,68 +612,62 @@ class _CertificateImportReviewViewState
     final draft = CertificateImportItem(
       id: 'new',
       batchId: _batch.id,
-      type: CertificateImportItemType.clazz,
+      type: CertificateImportItemType.honor,
       status: CertificateImportItemStatus.needsReview,
     );
-    await showSacSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (context) => CertificateImportItemEditorSheet(
-        item: draft,
-        titleKey: 'certificate_import.editor.add_title',
-        onSave: (updated) async {
-          if (widget.onAddItem == null) return;
-          final created = await widget.onAddItem!(updated);
-          _edits++;
-          if (!mounted) return;
-          setState(() {
-            _items = [..._items, created];
-            _arriving.add(created.id);
-            _filter = 'all';
-            _markEntrance();
-          });
-          _later(SacMotion.standard, () => _arriving.remove(created.id));
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            final rowContext = _rowKeys[created.id]?.currentContext;
-            if (rowContext == null || !mounted) return;
-            Scrollable.ensureVisible(
-              rowContext,
-              duration: SacMotion.reduceMotionOf(rowContext)
-                  ? Duration.zero
-                  : SacMotion.modal,
-              curve: SacMotion.easeInOut,
-            );
-          });
-        },
-      ),
+    await showCertificateImportItemEditor(
+      context,
+      item: draft,
+      isNew: true,
+      onSave: (updated) async {
+        if (widget.onAddItem == null) return;
+        final created = await widget.onAddItem!(updated);
+        _edits++;
+        if (!mounted) return;
+        setState(() {
+          _items = [..._items, created];
+          _arriving.add(created.id);
+          _filter = 'all';
+          _markEntrance();
+        });
+        _later(SacMotion.standard, () => _arriving.remove(created.id));
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final rowContext = _rowKeys[created.id]?.currentContext;
+          if (rowContext == null || !mounted) return;
+          Scrollable.ensureVisible(
+            rowContext,
+            duration: SacMotion.reduceMotionOf(rowContext)
+                ? Duration.zero
+                : SacMotion.modal,
+            curve: SacMotion.easeInOut,
+          );
+        });
+      },
     );
   }
 
   Future<void> _openEditor(CertificateImportItem item) async {
-    await showSacSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (sheetContext) => CertificateImportItemEditorSheet(
-        item: item,
-        onRemove: widget.onRemoveItem == null
-            ? null
-            : () {
-                Navigator.of(sheetContext).pop();
-                _removeItem(item);
-              },
-        onSave: (updated) async {
-          final saved = await widget.onUpdateItem?.call(updated) ?? updated;
-          _edits++;
-          if (!mounted) return;
-          setState(() {
-            _items = _items
-                .map((current) => current.id == saved.id ? saved : current)
-                .toList(growable: false);
-          });
-        },
-      ),
+    await showCertificateImportItemEditor(
+      context,
+      item: item,
+      onViewProof: _batch.files.isEmpty ? null : () => _openProof(item),
+      proofPage: _proofPage(item),
+      onRemove: widget.onRemoveItem == null
+          ? null
+          : () {
+              Navigator.of(context).pop();
+              _removeItem(item);
+            },
+      onSave: (updated) async {
+        final saved = await widget.onUpdateItem?.call(updated) ?? updated;
+        _edits++;
+        if (!mounted) return;
+        setState(() {
+          _items = _items
+              .map((current) => current.id == saved.id ? saved : current)
+              .toList(growable: false);
+        });
+      },
     );
   }
 
