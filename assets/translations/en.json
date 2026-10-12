@@ -619,7 +619,14 @@
       "mode_guard_title": "This flow is not active",
       "mode_guard_in_app": "This honor is being completed inside the app. Use the requirements screen.",
       "mode_guard_undecided": "First choose how you want to complete this honor.",
-      "mode_guard_back": "Back"
+      "mode_guard_back": "Back",
+      "completion_date_title": "Completion date",
+      "completion_date_required": "Required to submit for review",
+      "submit_needs_date": "Pick the completion date to submit for review",
+      "date_too_old": "The date cannot be before 1960",
+      "date_future": "The date cannot be in the future",
+      "date_save_error": "We could not save the date. Try again",
+      "status_changed": "This honor changed status. We refreshed the screen."
     },
     "completion": {
       "title": "Honor Complete",
@@ -5064,6 +5071,7 @@
     "error_self": "You cannot be your own instructor",
     "error_generic": "We could not save the instructor. Try again",
     "semantics_user": "Instructor: {name}, person from your Local Field",
-    "semantics_external": "Instructor: {name}, typed name, not verified"
+    "semantics_external": "Instructor: {name}, typed name, not verified",
+    "none_registered": "No instructor on record"
   }
 }

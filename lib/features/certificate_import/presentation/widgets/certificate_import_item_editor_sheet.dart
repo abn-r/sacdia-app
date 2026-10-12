@@ -20,7 +20,6 @@ import 'package:sacdia_app/providers/catalogs_provider.dart';
 
 import '../../domain/entities/certificate_import_class_option.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
-import '../../domain/entities/certificate_import_date_rule.dart';
 import '../../domain/entities/certificate_import_item.dart';
 import '../error/certificate_import_error_mapper.dart';
 import 'detected_text_quote.dart';

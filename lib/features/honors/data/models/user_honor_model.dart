@@ -1,9 +1,13 @@
 import 'package:equatable/equatable.dart';
+import 'package:sacdia_app/core/widgets/instructor_selection.dart';
 import '../../domain/entities/user_honor.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../../core/utils/json_helpers.dart';
 
 const String _tag = 'UserHonorModel';
+
+String _isoDay(DateTime d) =>
+    '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
 const String _honorImagesBase =
     'https://sacdia-files.s3.us-east-1.amazonaws.com/Especialidades/';
@@ -12,6 +16,45 @@ String? _buildImageUrl(String? raw) {
   if (raw == null || raw.isEmpty) return null;
   if (raw.startsWith('http')) return raw;
   return '$_honorImagesBase$raw';
+}
+
+/// `yyyy-mm-dd` (or an ISO timestamp starting with it) as that calendar day,
+/// without the time-zone shift of parsing a UTC midnight.
+DateTime? _parseDay(Object? raw) {
+  final match = RegExp(r'^(\d{4})-(\d{2})-(\d{2})').firstMatch('${raw ?? ''}');
+  if (match == null) return null;
+  return DateTime(
+    int.parse(match.group(1)!),
+    int.parse(match.group(2)!),
+    int.parse(match.group(3)!),
+  );
+}
+
+/// The `instructor` block (`kind` USER | EXTERNAL). Tolerant: anything that
+/// cannot be read is "no instructor". Lists carry no `photo_url`.
+InstructorSelection? _parseInstructor(Map<String, dynamic> json) {
+  final block = json['instructor'];
+  if (block is Map) {
+    final name = safeStringOrNull(block['display_name'])?.trim();
+    if (name == null || name.isEmpty) return null;
+    final kind = safeStringOrNull(block['kind'])?.toUpperCase();
+    final userId = safeStringOrNull(block['user_id']);
+    if (kind == 'USER' && userId != null) {
+      return InstructorSelection.user(
+        id: userId,
+        displayName: name,
+        photoUrl: safeStringOrNull(block['photo_url']),
+      );
+    }
+    if (kind == 'EXTERNAL') return InstructorSelection.external(name);
+    return null;
+  }
+  // Older responses: only the raw column with the typed name.
+  final typed = safeStringOrNull(json['instructor_name'])?.trim();
+  if (typed != null && typed.isNotEmpty) {
+    return InstructorSelection.external(typed);
+  }
+  return null;
 }
 
 /// Modelo de especialidad de usuario para la capa de datos
@@ -27,6 +70,8 @@ class UserHonorModel extends Equatable {
   final List<String> images;
   final String? document;
   final DateTime date;
+  final DateTime? completedAt;
+  final InstructorSelection? instructor;
 
   // Validation audit fields
   final DateTime? submittedAt;
@@ -58,6 +103,8 @@ class UserHonorModel extends Equatable {
     this.images = const [],
     this.document,
     required this.date,
+    this.completedAt,
+    this.instructor,
     this.submittedAt,
     this.validatedById,
     this.validatedByName,
@@ -157,6 +204,8 @@ class UserHonorModel extends Equatable {
       images: images,
       document: safeStringOrNull(json['document']),
       date: date,
+      completedAt: _parseDay(json['completed_at']),
+      instructor: _parseInstructor(json),
       submittedAt: submittedAt,
       validatedById: safeStringOrNull(json['validated_by_id']),
       validatedByName: safeStringOrNull(json['validated_by_name']) ??
@@ -191,6 +240,7 @@ class UserHonorModel extends Equatable {
       'images': images,
       'document': document,
       'date': date.toIso8601String(),
+      'completed_at': completedAt == null ? null : _isoDay(completedAt!),
       'submitted_at': submittedAt?.toIso8601String(),
       'validated_by_id': validatedById,
       'validated_by_name': validatedByName,
@@ -217,6 +267,8 @@ class UserHonorModel extends Equatable {
       images: images,
       document: document,
       date: date,
+      completedAt: completedAt,
+      instructor: instructor,
       submittedAt: submittedAt,
       validatedById: validatedById,
       validatedByName: validatedByName,
@@ -247,6 +299,8 @@ class UserHonorModel extends Equatable {
     List<String>? images,
     String? document,
     DateTime? date,
+    DateTime? completedAt,
+    InstructorSelection? instructor,
     DateTime? submittedAt,
     String? validatedById,
     String? validatedByName,
@@ -274,6 +328,8 @@ class UserHonorModel extends Equatable {
       images: images ?? this.images,
       document: document ?? this.document,
       date: date ?? this.date,
+      completedAt: completedAt ?? this.completedAt,
+      instructor: instructor ?? this.instructor,
       submittedAt: submittedAt ?? this.submittedAt,
       validatedById: validatedById ?? this.validatedById,
       validatedByName: validatedByName ?? this.validatedByName,
@@ -304,6 +360,8 @@ class UserHonorModel extends Equatable {
         images,
         document,
         date,
+        completedAt,
+        instructor,
         submittedAt,
         validatedById,
         validatedByName,

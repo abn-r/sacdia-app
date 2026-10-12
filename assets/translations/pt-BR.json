@@ -619,7 +619,14 @@
       "mode_guard_title": "Este fluxo não está ativo",
       "mode_guard_in_app": "Esta especialidade está sendo concluída dentro do app. Use a tela de requisitos.",
       "mode_guard_undecided": "Primeiro escolha como quer concluir esta especialidade.",
-      "mode_guard_back": "Voltar"
+      "mode_guard_back": "Voltar",
+      "completion_date_title": "Data de conclusão",
+      "completion_date_required": "Obrigatória para enviar para revisão",
+      "submit_needs_date": "Escolha a data de conclusão para enviar para revisão",
+      "date_too_old": "A data não pode ser anterior a 1960",
+      "date_future": "A data não pode ser futura",
+      "date_save_error": "Não foi possível salvar a data. Tente novamente",
+      "status_changed": "Esta especialidade mudou de status. Atualizamos a tela."
     },
     "completion": {
       "title": "Especialidade Concluída",
@@ -5062,6 +5069,7 @@
     "error_self": "Você não pode ser seu próprio instrutor",
     "error_generic": "Não foi possível salvar o instrutor. Tente novamente",
     "semantics_user": "Instrutor: {name}, pessoa do seu campo local",
-    "semantics_external": "Instrutor: {name}, nome digitado, não verificado"
+    "semantics_external": "Instrutor: {name}, nome digitado, não verificado",
+    "none_registered": "Nenhum instrutor registrado"
   }
 }

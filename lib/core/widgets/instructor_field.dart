@@ -23,6 +23,8 @@ class InstructorField extends StatelessWidget {
     this.errorText,
     this.enabled = true,
     this.showHelp = true,
+    this.readOnly = false,
+    this.isLoading = false,
   });
 
   final InstructorSelection selection;
@@ -32,6 +34,13 @@ class InstructorField extends StatelessWidget {
 
   /// "Tu Campo Local revisa este dato. No avisamos a la persona." (D8).
   final bool showHelp;
+
+  /// Shows who was declared without letting the member change it. Empty says
+  /// "Sin instructor registrado". Hides the help text and "Quitar".
+  final bool readOnly;
+
+  /// A save is in flight: the field cannot be tapped.
+  final bool isLoading;
 
   Future<void> _pick(BuildContext context) async {
     final picked = await InstructorPicker.show(context);
@@ -64,7 +73,9 @@ class InstructorField extends StatelessWidget {
       children: [
         SacPickerField(
           label: label,
-          hint: 'instructor.add_hint'.tr(),
+          hint:
+              (readOnly ? 'instructor.none_registered' : 'instructor.add_hint')
+                  .tr(),
           icon: selection.isExternal
               ? HugeIcons.strokeRoundedUserEdit01
               : HugeIcons.strokeRoundedUserAdd01,
@@ -79,10 +90,11 @@ class InstructorField extends StatelessWidget {
               : null,
           errorText: errorText,
           semanticsLabel: spoken,
-          enabled: enabled,
+          enabled: enabled && !readOnly,
+          isLoading: isLoading,
           onTap: () => _pick(context),
         ),
-        if (!selection.isNone && enabled)
+        if (!selection.isNone && enabled && !readOnly)
           Align(
             alignment: Alignment.centerLeft,
             child: SacButton.ghost(
@@ -91,7 +103,7 @@ class InstructorField extends StatelessWidget {
               onPressed: () => onChanged(const InstructorSelection.none()),
             ),
           ),
-        if (showHelp)
+        if (showHelp && !readOnly)
           Padding(
             padding: const EdgeInsets.only(top: 6, left: 4),
             child: Text(

@@ -38,6 +38,7 @@ import '../../domain/entities/user_honor.dart';
 import '../providers/honors_providers.dart';
 import '../theme/honor_category_palette.dart';
 import '../widgets/honor_badge_image.dart';
+import '../widgets/honor_completion_details.dart';
 import '../widgets/honor_signed_evidence_image.dart';
 
 /// Evidence & progress screen for an enrolled honor in EXTERNAL mode.
@@ -76,8 +77,9 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
     final userHonorsAsync = ref.watch(userHonorsProvider);
     final honorsAsync = ref.watch(allHonorsProvider);
 
-    // Show loading while userHonorsProvider is still fetching
-    if (userHonorsAsync.isLoading) {
+    // Show loading only the first time: a refresh (after saving the instructor
+    // or the date) keeps the screen, and the cards, where they are.
+    if (userHonorsAsync.isLoading && !userHonorsAsync.hasValue) {
       return const Scaffold(body: Center(child: SacLoading()));
     }
 
@@ -174,6 +176,9 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
   }
 
   Future<void> _submitForReview(UserHonor userHonor) async {
+    // The completion date is mandatory in the app (the API still allows
+    // old versions to send without it).
+    if (userHonor.completedAt == null) return;
     final success = await ref.read(submitValidationProvider.notifier).submit(
           entityType: ValidationEntityType.honor,
           entityId: userHonor.id, // user_honor_id, NOT honor_id
@@ -758,6 +763,10 @@ class _EvidenceBody extends StatelessWidget {
                                 reason: userHonor.rejectionReason,
                               ),
                             ],
+                            const SizedBox(height: 16),
+                            HonorInstructorCard(userHonor: userHonor),
+                            const SizedBox(height: 16),
+                            HonorCompletionDateCard(userHonor: userHonor),
                           ],
                         ),
                       ),
@@ -769,6 +778,8 @@ class _EvidenceBody extends StatelessWidget {
                 _EvidenceSubmitBar(
                   categoryColor: categoryColor,
                   categoryPaintColor: categoryPaintColor,
+                  // Mandatory in the app: no completion date, no submit.
+                  hasCompletionDate: userHonor.completedAt != null,
                   onSubmit: onSubmit,
                 ),
             ],
@@ -1551,11 +1562,13 @@ class _RejectionCard extends StatelessWidget {
 class _EvidenceSubmitBar extends ConsumerWidget {
   final Color categoryColor;
   final Color categoryPaintColor;
+  final bool hasCompletionDate;
   final VoidCallback onSubmit;
 
   const _EvidenceSubmitBar({
     required this.categoryColor,
     required this.categoryPaintColor,
+    required this.hasCompletionDate,
     required this.onSubmit,
   });
 
@@ -1582,14 +1595,37 @@ class _EvidenceSubmitBar extends ConsumerWidget {
           ),
         ],
       ),
-      child: SacButton.primary(
-        text: 'honors.evidence.cta_send'.tr(),
-        icon: HugeIcons.strokeRoundedSent,
-        isLoading: submitState.isLoading,
-        backgroundColor: categoryColor,
-        textColor: onCategoryPaintColor(categoryColor, onNearWhite: c.text),
-        borderColor: nearWhiteFill ? categoryPaintColor : null,
-        onPressed: submitState.isLoading ? null : onSubmit,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (!hasCompletionDate)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Semantics(
+                liveRegion: true,
+                child: Text(
+                  'honors.evidence.submit_needs_date'.tr(),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(color: c.textSecondary),
+                ),
+              ),
+            ),
+          SacButton.primary(
+            text: 'honors.evidence.cta_send'.tr(),
+            icon: HugeIcons.strokeRoundedSent,
+            isLoading: submitState.isLoading,
+            isEnabled: hasCompletionDate,
+            backgroundColor: categoryColor,
+            textColor: onCategoryPaintColor(categoryColor, onNearWhite: c.text),
+            borderColor: nearWhiteFill ? categoryPaintColor : null,
+            onPressed:
+                submitState.isLoading || !hasCompletionDate ? null : onSubmit,
+          ),
+        ],
       ),
     );
   }

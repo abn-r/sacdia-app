@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_date_rule.dart';
+import 'package:sacdia_app/core/constants/certificate_dates.dart';
 
 void main() {
   final now = DateTime(2026, 10, 12, 18, 30);
