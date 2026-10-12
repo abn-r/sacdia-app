@@ -97,6 +97,11 @@ abstract final class CertificateImportErrorMapper {
     );
   }
 
+  /// Copy for a bare business code, such as the batch `ocr_error_code`.
+  static CertificateImportErrorInfo mapCode(String? code) => map(
+        code == null ? null : ServerFailure(message: '', errorCode: code),
+      );
+
   /// Translated one-liner for snack bars and inline messages.
   static String message(
     Object? error, {
