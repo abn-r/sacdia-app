@@ -1,6 +1,7 @@
 export '../../domain/entities/certificate_import_item.dart';
 
 import 'package:equatable/equatable.dart';
+import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/utils/json_helpers.dart';
 import '../../domain/entities/certificate_import_item.dart';
 
@@ -25,6 +26,8 @@ class CertificateImportItemModel extends Equatable {
   final CertificateImportHonorRef? honor;
   final CertificateImportClassRef? classRef;
   final CertificateImportInstructorRef? instructor;
+  final bool active;
+  final int revision;
 
   const CertificateImportItemModel({
     required this.id,
@@ -47,6 +50,8 @@ class CertificateImportItemModel extends Equatable {
     this.honor,
     this.classRef,
     this.instructor,
+    this.active = true,
+    this.revision = 0,
   });
 
   factory CertificateImportItemModel.fromJson(Map<String, dynamic> json) {
@@ -81,6 +86,9 @@ class CertificateImportItemModel extends Equatable {
       honor: _parseHonor(json['honor']),
       classRef: _parseClass(nestedClass),
       instructor: _parseInstructor(json['instructor']),
+      // Both are tolerant: an API without them means an active, unsaved row.
+      active: json['active'] is bool ? json['active'] as bool : true,
+      revision: _positive(json['revision']) ?? 0,
     );
   }
 
@@ -188,6 +196,8 @@ class CertificateImportItemModel extends Equatable {
         'applied_entity_id': appliedEntityId,
         'source_page': sourcePage,
         'source_file_id': sourceFileId,
+        'active': active,
+        'revision': revision,
       };
 
   CertificateImportItem toEntity() => CertificateImportItem(
@@ -211,12 +221,15 @@ class CertificateImportItemModel extends Equatable {
         honor: honor,
         classRef: classRef,
         instructor: instructor,
+        active: active,
+        revision: revision,
       );
 
-  static DateTime? _parseDate(dynamic value) {
-    final raw = safeStringOrNull(value);
-    return raw == null ? null : DateTime.tryParse(raw);
-  }
+  /// `completed_at` and `detected_date` are calendar days. Read them as that
+  /// day, not as a UTC instant: `2021-10-15T00:00:00.000Z` shown in local
+  /// time (America/Mexico_City) would become 14 Oct.
+  static DateTime? _parseDate(dynamic value) =>
+      SacDateFormatter.tryParseCalendarDate(safeStringOrNull(value));
 
   static String? _formatDate(DateTime? value) => value?.toIso8601String();
 
@@ -248,5 +261,7 @@ class CertificateImportItemModel extends Equatable {
         honor,
         classRef,
         instructor,
+        active,
+        revision,
       ];
 }

@@ -769,6 +769,74 @@ void main() {
     });
   });
 
+  group('CertificateImportStatusView removed rows', () {
+    CertificateImportItem row(
+      String id, {
+      required CertificateImportItemStatus status,
+      bool active = true,
+    }) =>
+        CertificateImportItem(
+          id: id,
+          type: CertificateImportItemType.honor,
+          honorId: 10,
+          detectedName: 'Nudos',
+          completedAt: DateTime(2026, 4, 12),
+          status: status,
+          active: active,
+        );
+
+    testWidgets('does not count the rows the member removed as pending',
+        (tester) async {
+      // Three removed rows and two sent: nothing is pending.
+      await _pump(
+        tester,
+        CertificateImportStatusView(
+          batch: CertificateImportBatch(
+            id: 'batch-1',
+            status: 'SUBMITTED',
+            items: [
+              row('a', status: CertificateImportItemStatus.submitted),
+              row('b', status: CertificateImportItemStatus.submitted),
+              for (final id in ['x', 'y', 'z'])
+                row(id,
+                    status: CertificateImportItemStatus.needsReview,
+                    active: false),
+            ],
+          ),
+        ),
+      );
+
+      expect(
+        find.text('Aprobadas: 0 · Rechazadas: 0 · Pendientes: 0'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a removed rejected row does not ask for corrections',
+        (tester) async {
+      await _pump(
+        tester,
+        CertificateImportStatusView(
+          batch: CertificateImportBatch(
+            id: 'batch-1',
+            status: 'SUBMITTED',
+            items: [
+              row('a', status: CertificateImportItemStatus.approved),
+              row('r',
+                  status: CertificateImportItemStatus.rejected, active: false),
+            ],
+          ),
+        ),
+      );
+
+      expect(find.text('Hay correcciones pendientes'), findsNothing);
+      expect(
+        find.text('Aprobadas: 1 · Rechazadas: 0 · Pendientes: 0'),
+        findsOneWidget,
+      );
+    });
+  });
+
   group('CertificateImportProofCard', () {
     testWidgets('renders simplified imported proof from item props',
         (tester) async {

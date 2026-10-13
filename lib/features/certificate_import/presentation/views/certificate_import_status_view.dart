@@ -96,14 +96,15 @@ class CertificateImportStatusView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final rejected = batch.items
+    final items = batch.activeItems;
+    final rejected = items
         .where((item) => item.isRejected || item.rejectionReason != null)
         .toList();
-    final pending = batch.items
+    final pending = items
         .where((item) =>
             !item.isRejected && item.rejectionReason == null && !item.isReady)
         .length;
-    final approved = batch.items
+    final approved = items
         .where((item) => item.status == CertificateImportItemStatus.approved)
         .length;
 
@@ -156,7 +157,7 @@ class CertificateImportStatusView extends StatelessWidget {
                             color: c.textSecondary,
                           ),
                     ),
-                    if (batch.items.any((item) => item.isGuiaMayorBase)) ...[
+                    if (items.any((item) => item.isGuiaMayorBase)) ...[
                       const SizedBox(height: 10),
                       Text(
                         'certificate_import.status.gm01_replace'.tr(),
@@ -165,7 +166,7 @@ class CertificateImportStatusView extends StatelessWidget {
                             ),
                       ),
                     ],
-                    if (batch.items
+                    if (items
                         .any((item) => item.isInstitutionalClass)) ...[
                       const SizedBox(height: 10),
                       Text(
@@ -175,7 +176,7 @@ class CertificateImportStatusView extends StatelessWidget {
                             ),
                       ),
                     ],
-                    if (batch.items
+                    if (items
                         .any((item) => item.isPendingAdministrativePeriod)) ...[
                       const SizedBox(height: 10),
                       Text(

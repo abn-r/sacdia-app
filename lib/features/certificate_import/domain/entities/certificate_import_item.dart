@@ -51,6 +51,15 @@ class CertificateImportItem extends Equatable {
   final CertificateImportClassRef? classRef;
   final CertificateImportInstructorRef? instructor;
 
+  /// False for a row the member removed from the list. The API keeps it, so
+  /// it can still come back inside `items`; no view may count or list it.
+  /// A payload without the field means active (R6).
+  final bool active;
+
+  /// Times the row was saved. 0 is a row nobody has edited since the reading;
+  /// above 0 the member saved it, so the date was seen and confirmed.
+  final int revision;
+
   const CertificateImportItem({
     required this.id,
     this.batchId,
@@ -72,6 +81,8 @@ class CertificateImportItem extends Equatable {
     this.honor,
     this.classRef,
     this.instructor,
+    this.active = true,
+    this.revision = 0,
   });
 
   /// Everything the row still needs, in the order the member should see it.
@@ -98,8 +109,14 @@ class CertificateImportItem extends Equatable {
           : classRef?.name) ??
       (detectedName?.trim().isEmpty ?? true ? null : detectedName!.trim());
 
-  /// True when the date confidence is known and under [kDateReviewThreshold].
+  /// True when the OCR date confidence is known and under
+  /// [kDateReviewThreshold] and the member has not saved the row yet.
+  ///
+  /// Saving needs a date, and the editor shows it with this same notice, so a
+  /// row saved by the member (`revision` above 0) counts as confirmed. The
+  /// confidence itself never changes: it describes what the OCR read.
   bool get needsDateReview {
+    if (revision > 0) return false;
     final raw = fieldConfidence?['date'];
     return raw is num && raw < kDateReviewThreshold;
   }
@@ -161,5 +178,7 @@ class CertificateImportItem extends Equatable {
         honor,
         classRef,
         instructor,
+        active,
+        revision,
       ];
 }

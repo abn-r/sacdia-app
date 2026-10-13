@@ -37,6 +37,18 @@ void main() {
       'CERTIFICATE_IMPORT_DATE_INVALID': CertificateImportErrorKind.dateInvalid,
       'CERTIFICATE_IMPORT_CLASS_CLUB_TYPE_MISMATCH':
           CertificateImportErrorKind.classClubTypeMismatch,
+      'CERTIFICATE_IMPORT_DATE_REQUIRED':
+          CertificateImportErrorKind.dateRequired,
+      'CERTIFICATE_IMPORT_BIRTHDAY_REQUIRED':
+          CertificateImportErrorKind.birthdayRequired,
+      'CERTIFICATE_IMPORT_CLASS_MINIMUM_AGE_REQUIRED':
+          CertificateImportErrorKind.classMinimumAgeRequired,
+      'CERTIFICATE_IMPORT_YEAR_NOT_FOUND':
+          CertificateImportErrorKind.yearNotFound,
+      'CERTIFICATE_IMPORT_YEAR_AMBIGUOUS':
+          CertificateImportErrorKind.yearNotFound,
+      'CERTIFICATE_IMPORT_AGE_BELOW_MINIMUM':
+          CertificateImportErrorKind.ageBelowMinimum,
       'NETWORK': CertificateImportErrorKind.offline,
       'TIMEOUT': CertificateImportErrorKind.timeout,
     };
@@ -56,6 +68,19 @@ void main() {
             _kind(ServerFailure(message: entry.key, code: 400)), entry.value);
       });
     }
+
+    test('only the missing birthday points to the profile', () {
+      CertificateImportErrorAction actionOf(String code) =>
+          CertificateImportErrorMapper.map(
+            ServerFailure(message: 'x', errorCode: code),
+          ).action;
+      expect(actionOf('CERTIFICATE_IMPORT_BIRTHDAY_REQUIRED'),
+          CertificateImportErrorAction.completeProfile);
+      expect(actionOf('CERTIFICATE_IMPORT_AGE_BELOW_MINIMUM'),
+          CertificateImportErrorAction.none);
+      expect(actionOf('CERTIFICATE_IMPORT_YEAR_AMBIGUOUS'),
+          CertificateImportErrorAction.none);
+    });
 
     test('PDF_BUSY (HTTP 429) is retryable and keeps the busy copy', () {
       final info = CertificateImportErrorMapper.map(

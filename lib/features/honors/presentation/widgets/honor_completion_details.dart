@@ -253,6 +253,8 @@ class _HonorCompletionDateCardState
                 label: title,
                 value: date,
                 enabled: _editable && !_saving,
+                // Approved or in review: the date is frozen, nothing to open.
+                showChevron: _editable,
                 onTap: _pick,
               ),
             ),

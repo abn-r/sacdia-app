@@ -21,6 +21,16 @@ abstract final class CertificateImportErrorCode {
   static const dateInvalid = 'CERTIFICATE_IMPORT_DATE_INVALID';
   static const classClubTypeMismatch =
       'CERTIFICATE_IMPORT_CLASS_CLUB_TYPE_MISMATCH';
+
+  // Historical age gate of a class row (assertClassCertificateHistoricalAge).
+  static const dateRequired = 'CERTIFICATE_IMPORT_DATE_REQUIRED';
+  static const birthdayRequired = 'CERTIFICATE_IMPORT_BIRTHDAY_REQUIRED';
+  static const classMinimumAgeRequired =
+      'CERTIFICATE_IMPORT_CLASS_MINIMUM_AGE_REQUIRED';
+  static const yearNotFound = 'CERTIFICATE_IMPORT_YEAR_NOT_FOUND';
+  static const yearAmbiguous = 'CERTIFICATE_IMPORT_YEAR_AMBIGUOUS';
+  static const ageBelowMinimum = 'CERTIFICATE_IMPORT_AGE_BELOW_MINIMUM';
+
   static const honorInstructorNotAllowed =
       'CERTIFICATE_IMPORT_HONOR_INSTRUCTOR_NOT_ALLOWED';
   static const batchNotDeletable = 'CERTIFICATE_IMPORT_BATCH_NOT_DELETABLE';
@@ -47,6 +57,12 @@ abstract final class CertificateImportErrorCode {
     dateInFuture,
     dateInvalid,
     classClubTypeMismatch,
+    dateRequired,
+    birthdayRequired,
+    classMinimumAgeRequired,
+    yearNotFound,
+    yearAmbiguous,
+    ageBelowMinimum,
     honorInstructorNotAllowed,
     ...InstructorErrorCode.all,
     batchNotDeletable,

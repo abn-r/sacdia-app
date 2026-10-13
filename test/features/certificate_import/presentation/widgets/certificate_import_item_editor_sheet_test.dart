@@ -84,6 +84,7 @@ Future<void> _open(
   VoidCallback? onRemove,
   VoidCallback? onViewProof,
   int? proofPage,
+  VoidCallback? onOpenProfile,
 }) async {
   phoneSurface(tester, height: 2400);
   await tester.pumpWidget(wrapTestApp(
@@ -100,6 +101,7 @@ Future<void> _open(
                 onViewProof: onViewProof,
                 proofPage: proofPage,
                 isNew: isNew,
+                onOpenProfile: onOpenProfile,
                 clock: () => _today,
               ),
             ),
@@ -529,6 +531,93 @@ void main() {
             'Esa clase no corresponde al tipo de club. Elígela de nuevo.'),
         findsOneWidget,
       );
+    });
+
+    group('class age gate', () {
+      final row = _classRow(
+        classId: 3,
+        classRef: const CertificateImportClassRef(
+          id: 3,
+          name: 'Explorador',
+          clubTypeId: 1,
+        ),
+        completedAt: DateTime(2022, 11, 20),
+      );
+      ServerFailure code(String c) => ServerFailure(message: 'x', errorCode: c);
+
+      testWidgets('a missing date lands on the date field', (tester) async {
+        await failing(tester, code('CERTIFICATE_IMPORT_DATE_REQUIRED'),
+            row: row);
+        expect(find.text('Elige la fecha de esta clase para validar tu edad.'),
+            findsOneWidget);
+        expect(find.text('No pudimos completar la acción. Inténtalo de nuevo.'),
+            findsNothing);
+      });
+
+      for (final c in [
+        'CERTIFICATE_IMPORT_YEAR_NOT_FOUND',
+        'CERTIFICATE_IMPORT_YEAR_AMBIGUOUS',
+      ]) {
+        testWidgets('$c lands on the date field', (tester) async {
+          await failing(tester, code(c), row: row);
+          expect(
+            find.text(
+                'No encontramos el año eclesiástico de esa fecha. Revisa la fecha.'),
+            findsOneWidget,
+          );
+        });
+      }
+
+      testWidgets('an age below the minimum lands on the class',
+          (tester) async {
+        await failing(tester, code('CERTIFICATE_IMPORT_AGE_BELOW_MINIMUM'),
+            row: row);
+        expect(
+          find.text(
+              'Según tu fecha de nacimiento no tenías la edad mínima para esta clase en esa fecha.'),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('a class without minimum age lands on the class',
+          (tester) async {
+        await failing(
+            tester, code('CERTIFICATE_IMPORT_CLASS_MINIMUM_AGE_REQUIRED'),
+            row: row);
+        expect(
+          find.text(
+              'Esta clase no tiene una edad mínima definida. Elige otra clase o contacta a soporte.'),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('a missing birthday says so and offers the profile',
+          (tester) async {
+        var opened = 0;
+        final saved = _Saved()
+          ..failWith = code('CERTIFICATE_IMPORT_BIRTHDAY_REQUIRED');
+        await _open(tester, row, saved, onOpenProfile: () => opened++);
+        await _save(tester);
+
+        expect(
+          find.text(
+              'Agrega tu fecha de nacimiento en tu perfil para validar la edad de esta clase.'),
+          findsOneWidget,
+        );
+        expect(find.byType(CertificateImportItemEditorSheet), findsOneWidget);
+        await tester.tap(find.widgetWithText(SacButton, 'Ir a mi perfil'));
+        await tester.pumpAndSettle();
+        expect(opened, 1);
+      });
+
+      testWidgets('the class error clears on the next save', (tester) async {
+        final saved = await failing(
+            tester, code('CERTIFICATE_IMPORT_AGE_BELOW_MINIMUM'),
+            row: row);
+        saved.failWith = null;
+        await _save(tester);
+        expect(find.byType(CertificateImportItemEditorSheet), findsNothing);
+      });
     });
 
     for (final reduced in [false, true]) {

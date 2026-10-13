@@ -428,6 +428,9 @@ class ActivityDatePickerField extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onClear;
 
+  /// The trailing chevron says "tap to change". Read-only callers hide it.
+  final bool showChevron;
+
   const ActivityDatePickerField({
     super.key,
     required this.label,
@@ -435,6 +438,7 @@ class ActivityDatePickerField extends StatelessWidget {
     required this.enabled,
     this.onTap,
     this.onClear,
+    this.showChevron = true,
   });
 
   @override
@@ -508,7 +512,7 @@ class ActivityDatePickerField extends StatelessWidget {
                       color: c.textSecondary,
                     ),
                   )
-                else
+                else if (showChevron)
                   HugeIcon(
                     icon: HugeIcons.strokeRoundedArrowRight01,
                     size: 22,

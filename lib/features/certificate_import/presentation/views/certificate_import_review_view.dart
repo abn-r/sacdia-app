@@ -196,7 +196,7 @@ class _CertificateImportReviewViewState
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _batch = widget.initialBatch;
-    _items = List.of(_batch.items);
+    _items = List.of(_batch.activeItems);
     _markEntrance();
     _syncPolling();
   }
@@ -275,7 +275,7 @@ class _CertificateImportReviewViewState
   void _applyBatch(CertificateImportBatch next) {
     setState(() {
       _batch = next;
-      _items = List.of(next.items);
+      _items = List.of(next.activeItems);
       _markEntrance();
     });
     _syncPolling();

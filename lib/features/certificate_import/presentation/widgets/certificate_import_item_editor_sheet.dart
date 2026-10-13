@@ -4,6 +4,7 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/constants/certificate_dates.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/instructor_field.dart';
@@ -15,6 +16,7 @@ import 'package:sacdia_app/core/widgets/sac_picker_field.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
+import 'package:sacdia_app/features/profile/presentation/views/edit_profile_view.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/honor_badge_image.dart';
 import 'package:sacdia_app/providers/catalogs_provider.dart';
 
@@ -43,6 +45,7 @@ class CertificateImportItemEditorSheet extends ConsumerStatefulWidget {
     this.proofPage,
     this.isNew = false,
     this.clock,
+    this.onOpenProfile,
   });
 
   final CertificateImportItem item;
@@ -62,6 +65,10 @@ class CertificateImportItemEditorSheet extends ConsumerStatefulWidget {
 
   /// "Today" for the date rule; tests inject it.
   final DateTime Function()? clock;
+
+  /// Opens the profile editor (birthday). Defaults to pushing it over the
+  /// sheet, so the member's edits stay here while they go.
+  final VoidCallback? onOpenProfile;
 
   @override
   ConsumerState<CertificateImportItemEditorSheet> createState() =>
@@ -107,6 +114,7 @@ class _CertificateImportItemEditorSheetState
   String? _dateError;
   String? _instructorError;
   String? _banner;
+  bool _bannerGoesToProfile = false;
 
   DateTime get _today => (widget.clock ?? DateTime.now)();
 
@@ -167,11 +175,17 @@ class _CertificateImportItemEditorSheetState
         change();
         _dirty = true;
         _banner = null;
+        _bannerGoesToProfile = false;
       });
 
   bool get _isHonor => _type == CertificateImportItemType.honor;
 
-  CertificateImportItem _make(CertificateImportItemStatus status) {
+  /// [saving] is the row the member is saving: one more revision, so the
+  /// "Revisa la fecha" notice (shown while editing) goes away for good.
+  CertificateImportItem _make(
+    CertificateImportItemStatus status, {
+    bool saving = false,
+  }) {
     final item = widget.item;
     final catalogName = _isHonor ? _honor?.name : _class?.name;
     final typed = _name.text.trim();
@@ -212,6 +226,8 @@ class _CertificateImportItemEditorSheetState
               clubTypeName: clubName,
             ),
       instructor: _isHonor ? _instructorRef(item) : null,
+      active: item.active,
+      revision: saving ? item.revision + 1 : item.revision,
     );
   }
 
@@ -373,7 +389,9 @@ class _CertificateImportItemEditorSheetState
     }
     setState(() {
       _saving = true;
+      _classError = null;
       _banner = null;
+      _bannerGoesToProfile = false;
     });
     final complete = _draft.isComplete;
     try {
@@ -382,6 +400,7 @@ class _CertificateImportItemEditorSheetState
           complete
               ? CertificateImportItemStatus.ready
               : CertificateImportItemStatus.needsReview,
+          saving: true,
         ),
       );
       if (!mounted) return;
@@ -399,9 +418,18 @@ class _CertificateImportItemEditorSheetState
           case CertificateImportErrorKind.dateTooOld:
           case CertificateImportErrorKind.dateInFuture:
           case CertificateImportErrorKind.dateInvalid:
+          case CertificateImportErrorKind.dateRequired:
+          case CertificateImportErrorKind.yearNotFound:
             _dateError = info.body;
           case CertificateImportErrorKind.classClubTypeMismatch:
+          case CertificateImportErrorKind.classMinimumAgeRequired:
+          case CertificateImportErrorKind.ageBelowMinimum:
             _classError = info.body;
+          case CertificateImportErrorKind.birthdayRequired:
+            // Nothing in this sheet fixes it: point to the profile.
+            _banner = info.body;
+            _bannerGoesToProfile =
+                info.action == CertificateImportErrorAction.completeProfile;
           default:
             // HONOR_INSTRUCTOR_* belong on the instructor field.
             final code = error is Failure ? error.errorCode : null;
@@ -424,6 +452,24 @@ class _CertificateImportItemEditorSheetState
       if (key != null) {
         _showFieldError(key, _dateError ?? _classError ?? _instructorError!);
       }
+    }
+  }
+
+  Future<void> _openProfile() async {
+    final open = widget.onOpenProfile;
+    if (open != null) {
+      open();
+      return;
+    }
+    await Navigator.of(context).push<void>(
+      SacSharedAxisRoute(builder: (_) => const EditProfileView()),
+    );
+    // Back from the profile: the member can save again.
+    if (mounted) {
+      setState(() {
+        _banner = null;
+        _bannerGoesToProfile = false;
+      });
     }
   }
 
@@ -584,7 +630,13 @@ class _CertificateImportItemEditorSheetState
                               ?.copyWith(color: c.textSecondary),
                         ),
                       ),
-                    ImportErrorBanner(message: _banner),
+                    ImportErrorBanner(
+                      message: _banner,
+                      actionLabel: _bannerGoesToProfile
+                          ? 'certificate_import.errors.complete_profile'.tr()
+                          : null,
+                      onAction: _bannerGoesToProfile ? _openProfile : null,
+                    ),
                     SacButton.primary(
                       text: 'certificate_import.editor.save'.tr(),
                       isLoading: _saving,

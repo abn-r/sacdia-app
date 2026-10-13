@@ -2,16 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 
 /// Inline error that appears above an action without closing its container.
 ///
 /// Enters with [SacMotion.standard] and leaves with [SacMotion.reducedFade]
 /// (asymmetric, ease-out). Reduced Motion keeps the fade and drops the resize.
 class ImportErrorBanner extends StatelessWidget {
-  const ImportErrorBanner({super.key, required this.message});
+  const ImportErrorBanner({
+    super.key,
+    required this.message,
+    this.actionLabel,
+    this.onAction,
+  });
 
   /// Translated text to show, or `null` to hide the banner.
   final String? message;
+
+  /// Optional link under the message ("Ir a mi perfil").
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
@@ -36,12 +46,25 @@ class ImportErrorBanner extends StatelessWidget {
                   color: c.error.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                 ),
-                child: Text(
-                  text,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: c.error,
-                        fontWeight: FontWeight.w600,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      text,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: c.error,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                    if (actionLabel != null && onAction != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: SacButton.ghost(
+                          text: actionLabel!,
+                          onPressed: onAction,
+                        ),
                       ),
+                  ],
                 ),
               ),
             ),

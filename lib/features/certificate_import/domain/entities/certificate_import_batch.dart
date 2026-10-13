@@ -41,9 +41,15 @@ class CertificateImportBatch extends Equatable {
     this.ocrErrorCode,
   });
 
-  int get readyCount => items.where((item) => item.isReady).length;
-  int get needsReviewCount => items.where((item) => item.needsReview).length;
-  int get rejectedCount => items.where((item) => item.isRejected).length;
+  /// Rows the member still has. The API also sends the ones they removed
+  /// (`active: false`); every count and list must go through this.
+  List<CertificateImportItem> get activeItems =>
+      items.where((item) => item.active).toList(growable: false);
+
+  int get readyCount => activeItems.where((item) => item.isReady).length;
+  int get needsReviewCount =>
+      activeItems.where((item) => item.needsReview).length;
+  int get rejectedCount => activeItems.where((item) => item.isRejected).length;
 
   @override
   List<Object?> get props => [

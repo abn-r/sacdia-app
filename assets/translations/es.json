@@ -582,6 +582,7 @@
       "open_error": "No se pudo abrir el archivo",
       "section_title": "Evidencia",
       "general_section_title": "Evidencias generales",
+      "file_unavailable": "No pudimos abrir este archivo. Inténtalo más tarde.",
       "empty_first": "Sube tu primera evidencia",
       "empty_subtitle": "Fotos, imágenes o documentos PDF",
       "general_empty_first": "Evidencias generales",
@@ -4734,7 +4735,28 @@
       "class_mismatch": {
         "title": "La clase no coincide",
         "body": "Esa clase no corresponde al tipo de club. Elígela de nuevo."
-      }
+      },
+      "age_date_required": {
+        "title": "Falta la fecha",
+        "body": "Elige la fecha de esta clase para validar tu edad."
+      },
+      "age_birthday": {
+        "title": "Falta tu fecha de nacimiento",
+        "body": "Agrega tu fecha de nacimiento en tu perfil para validar la edad de esta clase."
+      },
+      "age_class_unset": {
+        "title": "No podemos validar esta clase",
+        "body": "Esta clase no tiene una edad mínima definida. Elige otra clase o contacta a soporte."
+      },
+      "age_year": {
+        "title": "Año eclesiástico no encontrado",
+        "body": "No encontramos el año eclesiástico de esa fecha. Revisa la fecha."
+      },
+      "age_below_minimum": {
+        "title": "Edad mínima no cumplida",
+        "body": "Según tu fecha de nacimiento no tenías la edad mínima para esta clase en esa fecha."
+      },
+      "complete_profile": "Ir a mi perfil"
     },
     "steps": {
       "upload": "Subir",
@@ -4890,7 +4912,8 @@
       "type_to_search": "Escribe al menos 2 letras o elige una categoría.",
       "no_results": "No encontramos «{query}»",
       "no_results_in": "No encontramos «{query}» en {category}",
-      "search_all": "Buscar en todas las categorías"
+      "search_all": "Buscar en todas las categorías",
+      "search_word": "Buscar «{word}»"
     }
   },
   "master_honors": {
