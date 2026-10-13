@@ -32,11 +32,16 @@ class HonorPickerSheet extends ConsumerStatefulWidget {
     this.initialQuery = '',
     this.initialCategoryId,
     this.debounce = const Duration(milliseconds: 300),
+    this.blurGrace = const Duration(milliseconds: 800),
   });
 
   final String initialQuery;
   final int? initialCategoryId;
   final Duration debounce;
+
+  /// How long after the app loses or regains focus a dismissal from outside
+  /// the sheet (barrier tap, back) is ignored. See [_HonorPickerSheetState].
+  final Duration blurGrace;
 
   /// Opens the sheet; returns the chosen honor or null when dismissed.
   static Future<Honor?> show(
@@ -59,7 +64,8 @@ class HonorPickerSheet extends ConsumerStatefulWidget {
   ConsumerState<HonorPickerSheet> createState() => _HonorPickerSheetState();
 }
 
-class _HonorPickerSheetState extends ConsumerState<HonorPickerSheet> {
+class _HonorPickerSheetState extends ConsumerState<HonorPickerSheet>
+    with WidgetsBindingObserver {
   static const _minChars = 2;
   static const _maxChars = 60;
 
@@ -72,14 +78,42 @@ class _HonorPickerSheetState extends ConsumerState<HonorPickerSheet> {
   Object? _error;
   bool _loading = false;
 
+  /// True while the app is (or just was) out of focus: the iOS paste prompt,
+  /// the share sheet or a call all make the app go inactive. The touch that
+  /// answers them can reach the modal barrier once the app is back, and the
+  /// barrier would close the sheet with the member's search in it.
+  bool _blurred = false;
+  Timer? _blurTimer;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _blurTimer?.cancel();
+    if (state == AppLifecycleState.resumed) {
+      // Keep ignoring outside taps for a moment after coming back.
+      _blurTimer = Timer(widget.blurGrace, () => _blurred = false);
+    } else {
+      _blurred = true;
+    }
+  }
+
+  /// Barrier tap or system back. The close button, a drag and choosing a row
+  /// pop the route directly and are never held back.
+  void _onDismissRequested(bool didPop, Object? result) {
+    if (didPop || _blurred || !mounted) return;
+    Navigator.of(context).pop();
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _blurTimer?.cancel();
     _debounce?.cancel();
     _cancel?.cancel();
     _controller.dispose();
@@ -136,85 +170,88 @@ class _HonorPickerSheetState extends ConsumerState<HonorPickerSheet> {
     final c = context.sac;
     final categories = ref.watch(honorCategoriesProvider).valueOrNull ??
         const <HonorCategory>[];
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.sizeOf(context).height * 0.92,
-      ),
-      child: Padding(
-        padding:
-            EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SacSheetHeader(
-              title: 'certificate_import.picker.honor_title'.tr(),
-              showClose: true,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: TextField(
-                controller: _controller,
-                autofocus: true,
-                textInputAction: TextInputAction.search,
-                onChanged: _onChanged,
-                decoration: InputDecoration(
-                  hintText: 'certificate_import.picker.search_hint'.tr(),
-                  prefixIcon: const Padding(
-                    padding: EdgeInsets.all(12),
-                    child: HugeIcon(
-                      icon: HugeIcons.strokeRoundedSearch01,
-                      size: 20,
+    return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: _onDismissRequested,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(context).height * 0.92,
+          ),
+          child: Padding(
+            padding: EdgeInsets.only(
+                bottom: MediaQuery.viewInsetsOf(context).bottom),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SacSheetHeader(
+                  title: 'certificate_import.picker.honor_title'.tr(),
+                  showClose: true,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: TextField(
+                    controller: _controller,
+                    autofocus: true,
+                    textInputAction: TextInputAction.search,
+                    onChanged: _onChanged,
+                    decoration: InputDecoration(
+                      hintText: 'certificate_import.picker.search_hint'.tr(),
+                      prefixIcon: const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedSearch01,
+                          size: 20,
+                        ),
+                      ),
+                      suffixIcon: _controller.text.isEmpty
+                          ? null
+                          : IconButton(
+                              tooltip: MaterialLocalizations.of(context)
+                                  .deleteButtonTooltip,
+                              icon: const HugeIcon(
+                                icon: HugeIcons.strokeRoundedCancel01,
+                                size: 20,
+                              ),
+                              onPressed: () {
+                                _controller.clear();
+                                _onChanged('');
+                              },
+                            ),
                     ),
                   ),
-                  suffixIcon: _controller.text.isEmpty
-                      ? null
-                      : IconButton(
-                          tooltip: MaterialLocalizations.of(context)
-                              .deleteButtonTooltip,
-                          icon: const HugeIcon(
-                            icon: HugeIcons.strokeRoundedCancel01,
-                            size: 20,
+                ),
+                if (categories.isNotEmpty)
+                  SizedBox(
+                    height: 52,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 4),
+                      children: [
+                        for (final category in [null, ...categories]) ...[
+                          HonorCategoryChip(
+                            label: category?.name ??
+                                'certificate_import.picker.all_categories'.tr(),
+                            isSelected: _categoryId == category?.id,
+                            activeColor: category == null
+                                ? null
+                                : getCategoryColor(
+                                    categoryId: category.id,
+                                    categoryName: category.name,
+                                  ),
+                            onTap: () => _pickCategory(category?.id),
                           ),
-                          onPressed: () {
-                            _controller.clear();
-                            _onChanged('');
-                          },
-                        ),
-                ),
-              ),
+                          const SizedBox(width: 8),
+                        ],
+                      ],
+                    ),
+                  ),
+                Divider(height: 1, color: c.border),
+                Flexible(child: _body(context, categories)),
+              ],
             ),
-            if (categories.isNotEmpty)
-              SizedBox(
-                height: 52,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  children: [
-                    for (final category in [null, ...categories]) ...[
-                      HonorCategoryChip(
-                        label: category?.name ??
-                            'certificate_import.picker.all_categories'.tr(),
-                        isSelected: _categoryId == category?.id,
-                        activeColor: category == null
-                            ? null
-                            : getCategoryColor(
-                                categoryId: category.id,
-                                categoryName: category.name,
-                              ),
-                        onTap: () => _pickCategory(category?.id),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                  ],
-                ),
-              ),
-            Divider(height: 1, color: c.border),
-            Flexible(child: _body(context, categories)),
-          ],
-        ),
-      ),
-    );
+          ),
+        ));
   }
 
   Widget _body(BuildContext context, List<HonorCategory> categories) {

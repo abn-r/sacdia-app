@@ -52,6 +52,100 @@ void main() {
     expect(find.text('Nudos'), findsOneWidget);
   });
 
+  group('losing the app focus', () {
+    void lifecycle(WidgetTester tester, AppLifecycleState state) =>
+        tester.binding.handleAppLifecycleStateChanged(state);
+
+    bool pickerOpen() => find.byType(HonorPickerSheet).evaluate().isNotEmpty;
+
+    testWidgets('inactive / resumed (iOS paste prompt) keeps the sheet open',
+        (tester) async {
+      final honors = FakeGetHonors();
+      await _openPicker(tester, honors, query: 'Natacion principiante');
+
+      for (final state in [
+        AppLifecycleState.inactive,
+        AppLifecycleState.hidden,
+        AppLifecycleState.paused,
+        AppLifecycleState.hidden,
+        AppLifecycleState.inactive,
+        AppLifecycleState.resumed,
+      ]) {
+        lifecycle(tester, state);
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      expect(pickerOpen(), isTrue);
+      expect(find.text('Natacion principiante'), findsOneWidget);
+      expect(find.text('Primeros Auxilios'), findsOneWidget);
+    });
+
+    testWidgets('a stray tap on the barrier around the blur does not close it',
+        (tester) async {
+      await _openPicker(tester, FakeGetHonors());
+      const outsideTheSheet = Offset(20, 20);
+
+      lifecycle(tester, AppLifecycleState.inactive);
+      await tester.pump();
+      await tester.tapAt(outsideTheSheet);
+      await tester.pumpAndSettle();
+      expect(pickerOpen(), isTrue);
+
+      lifecycle(tester, AppLifecycleState.resumed);
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.tapAt(outsideTheSheet);
+      await tester.pumpAndSettle();
+      expect(pickerOpen(), isTrue);
+    });
+
+    testWidgets('tapping outside still closes it once the app is steady',
+        (tester) async {
+      await _openPicker(tester, FakeGetHonors());
+
+      lifecycle(tester, AppLifecycleState.inactive);
+      lifecycle(tester, AppLifecycleState.resumed);
+      await tester.pump(const Duration(seconds: 1));
+      await tester.tapAt(const Offset(20, 20));
+      await tester.pumpAndSettle();
+      expect(pickerOpen(), isFalse);
+    });
+
+    testWidgets('the close button and choosing a row work as before',
+        (tester) async {
+      await _openPicker(tester, FakeGetHonors());
+      await tester.tap(find.text('Nudos'));
+      await tester.pumpAndSettle();
+      expect(pickerOpen(), isFalse);
+
+      await tester.tap(find.text('abrir'));
+      await tester.pumpAndSettle();
+      expect(pickerOpen(), isTrue);
+      await tester.tap(find.byTooltip('Cerrar'));
+      await tester.pumpAndSettle();
+      expect(pickerOpen(), isFalse);
+    });
+
+    testWidgets('the debounce still sends one search after a blur',
+        (tester) async {
+      final honors = FakeGetHonors();
+      await _openPicker(tester, honors);
+      honors.calls.clear();
+
+      lifecycle(tester, AppLifecycleState.inactive);
+      lifecycle(tester, AppLifecycleState.resumed);
+      await tester.enterText(find.byType(TextField), 'Nu');
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.enterText(find.byType(TextField), 'Nudo');
+      await tester.pump(const Duration(milliseconds: 299));
+      expect(honors.calls, isEmpty);
+      await tester.pump(const Duration(milliseconds: 1));
+      await tester.pumpAndSettle();
+      expect(honors.calls.map((c) => c.search), ['Nudo']);
+    });
+  });
+
   testWidgets('debounces typing by 300 ms and sends one search',
       (tester) async {
     final honors = FakeGetHonors();
