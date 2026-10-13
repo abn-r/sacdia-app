@@ -51,6 +51,11 @@ class CertificateImportItem extends Equatable {
   final CertificateImportClassRef? classRef;
   final CertificateImportInstructorRef? instructor;
 
+  /// False for a row the member removed from the list. The API keeps it, so
+  /// it can still come back inside `items`; no view may count or list it.
+  /// A payload without the field means active (R6).
+  final bool active;
+
   /// Times the row was saved. 0 is a row nobody has edited since the reading;
   /// above 0 the member saved it, so the date was seen and confirmed.
   final int revision;
@@ -76,6 +81,7 @@ class CertificateImportItem extends Equatable {
     this.honor,
     this.classRef,
     this.instructor,
+    this.active = true,
     this.revision = 0,
   });
 
@@ -172,6 +178,7 @@ class CertificateImportItem extends Equatable {
         honor,
         classRef,
         instructor,
+        active,
         revision,
       ];
 }

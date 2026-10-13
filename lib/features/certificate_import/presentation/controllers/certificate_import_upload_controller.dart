@@ -223,7 +223,7 @@ class CertificateImportUploadController {
       if (latest.hasOcrState) {
         final state = latest.ocrState;
         if (state == null || state.isTerminal) return;
-      } else if (latest.items.isNotEmpty ||
+      } else if (latest.activeItems.isNotEmpty ||
           legacyPolls >= CertificateImportWait.legacyPolls) {
         return;
       }

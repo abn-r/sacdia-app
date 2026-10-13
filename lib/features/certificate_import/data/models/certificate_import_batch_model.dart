@@ -70,11 +70,9 @@ class CertificateImportBatchModel extends Equatable {
     );
   }
 
-  int get readyCount => items.where((item) => item.toEntity().isReady).length;
-  int get needsReviewCount =>
-      items.where((item) => item.toEntity().needsReview).length;
-  int get rejectedCount =>
-      items.where((item) => item.toEntity().isRejected).length;
+  int get readyCount => toEntity().readyCount;
+  int get needsReviewCount => toEntity().needsReviewCount;
+  int get rejectedCount => toEntity().rejectedCount;
 
   Map<String, dynamic> toJson() => {
         'batch_id': id,

@@ -4,7 +4,7 @@ import 'package:sacdia_app/features/certificate_import/data/models/certificate_i
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_ocr_state.dart';
 
 void main() {
-  group('CertificateImportItemModel revision', () {
+  group('CertificateImportItemModel active and revision', () {
     CertificateImportItemModel parse(Map<String, dynamic> extra) =>
         CertificateImportItemModel.fromJson({
           'item_id': 'item-1',
@@ -12,18 +12,24 @@ void main() {
           ...extra,
         });
 
-    test('an API without it means a row nobody has saved', () {
-      expect(parse({}).revision, 0);
+    test('an API without them means an active row nobody has saved', () {
+      final item = parse({});
+      expect(item.active, isTrue);
+      expect(item.revision, 0);
     });
 
-    test('reads the revision', () {
-      final item = parse({'revision': 3});
+    test('reads a removed row and the revision', () {
+      final item = parse({'active': false, 'revision': 3});
+      expect(item.active, isFalse);
       expect(item.revision, 3);
+      expect(item.toEntity().active, isFalse);
       expect(item.toEntity().revision, 3);
     });
 
-    test('garbage reads as 0', () {
-      expect(parse({'revision': -2}).revision, 0);
+    test('garbage reads as the defaults', () {
+      final item = parse({'active': 'no', 'revision': -2});
+      expect(item.active, isTrue);
+      expect(item.revision, 0);
     });
 
     test('the date notice goes away once the member saved the row', () {
@@ -36,6 +42,34 @@ void main() {
       }).toEntity();
       expect(read.needsDateReview, isTrue);
       expect(saved.needsDateReview, isFalse);
+    });
+
+    test('a batch ignores removed rows in lists and counts', () {
+      final batch = CertificateImportBatchModel.fromJson({
+        'batch_id': 'b',
+        'status': 'SUBMITTED',
+        'items': [
+          {'item_id': 'a', 'item_type': 'HONOR', 'status': 'SUBMITTED'},
+          {'item_id': 'b', 'item_type': 'HONOR', 'status': 'SUBMITTED'},
+          {
+            'item_id': 'c',
+            'item_type': 'HONOR',
+            'status': 'NEEDS_REVIEW',
+            'active': false,
+          },
+          {
+            'item_id': 'd',
+            'item_type': 'CLASS',
+            'status': 'NEEDS_REVIEW',
+            'active': false,
+          },
+        ],
+      });
+      final entity = batch.toEntity();
+      expect(entity.activeItems.map((i) => i.id), ['a', 'b']);
+      expect(batch.readyCount, 2);
+      expect(batch.needsReviewCount, 0);
+      expect(entity.needsReviewCount, 0);
     });
   });
 

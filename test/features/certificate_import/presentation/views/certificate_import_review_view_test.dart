@@ -12,6 +12,7 @@ import 'package:sacdia_app/features/certificate_import/domain/entities/certifica
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_ocr_state.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_review_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_import_item_editor_sheet.dart';
+import 'package:sacdia_app/features/certificate_import/presentation/widgets/import_review_empty.dart';
 
 import '../../support/catalog_fakes.dart';
 import '../../support/test_app.dart';
@@ -41,6 +42,7 @@ CertificateImportItem _honor(
   CertificateImportInstructorRef? instructor,
   String? sourceFileId,
   int? sourcePage,
+  bool active = true,
   int revision = 0,
 }) =>
     CertificateImportItem(
@@ -62,6 +64,7 @@ CertificateImportItem _honor(
       instructor: instructor,
       sourceFileId: sourceFileId,
       sourcePage: sourcePage,
+      active: active,
       revision: revision,
       status: complete
           ? CertificateImportItemStatus.ready
@@ -88,6 +91,19 @@ CertificateImportItem _class(String id, {bool complete = true}) =>
           ? CertificateImportItemStatus.ready
           : CertificateImportItemStatus.needsReview,
     );
+
+extension on CertificateImportItem {
+  CertificateImportItem copyActive(bool value) => CertificateImportItem(
+        id: id,
+        type: type,
+        classId: classId,
+        classRef: classRef,
+        detectedName: detectedName,
+        completedAt: completedAt,
+        status: status,
+        active: value,
+      );
+}
 
 CertificateImportBatch _batch(
   List<CertificateImportItem> items, {
@@ -305,6 +321,40 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Falta la fecha'), findsOneWidget);
       expect(find.text('Lista'), findsNothing);
+    });
+  });
+
+  group('removed rows', () {
+    testWidgets('are neither listed nor counted', (tester) async {
+      await _show(
+        tester,
+        _batch([
+          _honor('h1'),
+          _honor('gone', active: false, complete: false),
+          _class('c1'),
+          _class('c-gone', complete: false).copyActive(false),
+        ]),
+      );
+
+      expect(find.text('1 especialidad y 1 clase'), findsOneWidget);
+      expect(find.text('ESPECIALIDADES · 1'), findsOneWidget);
+      expect(find.text('CLASES · 1'), findsOneWidget);
+      expect(find.text('2 de 2 listas'), findsOneWidget);
+      expect(find.text('Enviar a revisión'), findsOneWidget);
+      final chips =
+          tester.widgetList<SacFilterChip>(find.byType(SacFilterChip));
+      expect(chips.map((chip) => (chip.label, chip.count)),
+          [('Todas', 2), ('Listas', 2)]);
+    });
+
+    testWidgets('a batch with only removed rows shows the empty state',
+        (tester) async {
+      await _show(
+        tester,
+        _batch([_honor('gone', active: false)]),
+      );
+      expect(find.text('Enviar a revisión'), findsNothing);
+      expect(find.byType(ImportReviewEmpty), findsOneWidget);
     });
   });
 

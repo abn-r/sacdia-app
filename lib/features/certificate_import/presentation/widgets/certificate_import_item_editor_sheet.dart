@@ -226,6 +226,7 @@ class _CertificateImportItemEditorSheetState
               clubTypeName: clubName,
             ),
       instructor: _isHonor ? _instructorRef(item) : null,
+      active: item.active,
       revision: saving ? item.revision + 1 : item.revision,
     );
   }
