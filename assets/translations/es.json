@@ -4911,7 +4911,8 @@
       "type_to_search": "Escribe al menos 2 letras o elige una categoría.",
       "no_results": "No encontramos «{query}»",
       "no_results_in": "No encontramos «{query}» en {category}",
-      "search_all": "Buscar en todas las categorías"
+      "search_all": "Buscar en todas las categorías",
+      "search_word": "Buscar «{word}»"
     }
   },
   "master_honors": {

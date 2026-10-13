@@ -6,6 +6,8 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_item.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_import_item_editor_sheet.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/widgets/honor_picker_sheet.dart';
+import 'package:sacdia_app/features/honors/domain/entities/honor.dart';
+import 'package:sacdia_app/features/honors/domain/usecases/get_honors.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/honor_category_chip.dart';
 
 import '../../support/catalog_fakes.dart';
@@ -41,6 +43,102 @@ Future<void> _openPicker(
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(initTestLocalization);
+
+  group('firstSignificantWord', () {
+    test('skips articles and prepositions', () {
+      expect(firstSignificantWord('Natacion principiante'), 'Natacion');
+      expect(firstSignificantWord('de la Natación avanzada'), 'Natación');
+      expect(firstSignificantWord('  los   nudos  '), 'nudos');
+    });
+
+    test('strips punctuation around the word', () {
+      expect(firstSignificantWord('"Primeros" Auxilios,'), 'Primeros');
+      expect(firstSignificantWord('(Nudos) básicos'), 'Nudos');
+    });
+
+    test('falls back to a short word, then to nothing', () {
+      expect(firstSignificantWord('de la'), 'de');
+      expect(firstSignificantWord('y'), isNull);
+      expect(firstSignificantWord('   '), isNull);
+    });
+  });
+
+  group('empty result for the preloaded phrase', () {
+    const swimming = Honor(
+      id: 20,
+      name: 'Natación principiante I',
+      categoryId: 7,
+      categoryName: 'Naturaleza',
+    );
+
+    // An old backend: it only matches a single word.
+    Either<Failure, List<Honor>> oldBackend(GetHonorsParams p) =>
+        p.search == 'Natacion' ? const Right([swimming]) : const Right([]);
+
+    testWidgets('offers the first word and replaces the whole search',
+        (tester) async {
+      final honors = FakeGetHonors(oldBackend);
+      await _openPicker(tester, honors, query: 'Natacion principiante');
+
+      expect(
+          find.text('No encontramos «Natacion principiante»'), findsOneWidget);
+      expect(find.text('Buscar «Natacion»'), findsOneWidget);
+
+      await tester.tap(find.text('Buscar «Natacion»'));
+      await tester.pumpAndSettle();
+
+      expect(honors.calls.last.search, 'Natacion');
+      expect(find.text('Natacion principiante'), findsNothing);
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        'Natacion',
+      );
+      expect(find.text('Natación principiante I'), findsOneWidget);
+      expect(find.text('Buscar «Natacion»'), findsNothing);
+    });
+
+    testWidgets('the empty state follows the new query, never the phrase',
+        (tester) async {
+      final honors = FakeGetHonors((_) => const Right([]));
+      await _openPicker(tester, honors, query: 'Natacion principiante');
+
+      await tester.tap(find.text('Buscar «Natacion»'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('No encontramos «Natacion»'), findsOneWidget);
+      expect(find.textContaining('principiante'), findsNothing);
+      // The word is now the whole query: nothing left to shorten.
+      expect(find.textContaining('Buscar «'), findsNothing);
+    });
+
+    testWidgets('a single word has no shortcut', (tester) async {
+      final honors = FakeGetHonors((_) => const Right([]));
+      await _openPicker(tester, honors, query: 'zzz');
+      expect(find.text('No encontramos «zzz»'), findsOneWidget);
+      expect(find.textContaining('Buscar «'), findsNothing);
+    });
+
+    testWidgets('with a category it also offers every category',
+        (tester) async {
+      final honors = FakeGetHonors((p) =>
+          p.categoryId == null && p.search == 'Natacion'
+              ? const Right([swimming])
+              : const Right([]));
+      await _openPicker(tester, honors,
+          query: 'Natacion principiante', categoryId: 3);
+
+      expect(find.text('Buscar «Natacion»'), findsOneWidget);
+      expect(find.text('Buscar en todas las categorías'), findsOneWidget);
+    });
+
+    testWidgets('works when the backend already searches by tokens',
+        (tester) async {
+      final honors = FakeGetHonors((p) => const Right([swimming]));
+      await _openPicker(tester, honors, query: 'Natacion principiante');
+      expect(find.text('Natación principiante I'), findsOneWidget);
+      expect(find.textContaining('Buscar «'), findsNothing);
+    });
+  });
 
   testWidgets('starts searching with what the OCR read', (tester) async {
     final honors = FakeGetHonors();

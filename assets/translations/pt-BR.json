@@ -4909,7 +4909,8 @@
       "type_to_search": "Digite pelo menos 2 letras ou escolha uma categoria.",
       "no_results": "Não encontramos «{query}»",
       "no_results_in": "Não encontramos «{query}» em {category}",
-      "search_all": "Buscar em todas as categorias"
+      "search_all": "Buscar em todas as categorias",
+      "search_word": "Buscar «{word}»"
     }
   },
   "master_honors": {

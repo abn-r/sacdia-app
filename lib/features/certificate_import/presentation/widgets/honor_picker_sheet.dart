@@ -20,6 +20,34 @@ import 'package:sacdia_app/features/honors/presentation/widgets/honor_category_c
 
 import '../error/certificate_import_error_mapper.dart';
 
+/// Words that carry no meaning on their own in an honor name.
+const _stopWords = {
+  'de', 'del', 'la', 'las', 'el', 'los', 'y', 'e', 'o', 'en', 'con', 'para', //
+  'un', 'una', 'al', 'por',
+};
+
+/// First word of [query] worth searching alone: letters or digits, at least 3
+/// of them, not an article or a preposition. Falls back to the first word of
+/// 2 or more characters. `null` when there is none.
+@visibleForTesting
+String? firstSignificantWord(String query) {
+  final words = query
+      .split(RegExp(r'[\s,;:.\-–—/()]+'))
+      .map((w) => w.replaceAll(
+          RegExp(r'^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$', unicode: true), ''))
+      .where((w) => w.isNotEmpty)
+      .toList();
+  for (final word in words) {
+    if (word.length >= 3 && !_stopWords.contains(word.toLowerCase())) {
+      return word;
+    }
+  }
+  for (final word in words) {
+    if (word.length >= 2) return word;
+  }
+  return null;
+}
+
 /// Honor search sheet: the search box starts with the name the OCR read, so
 /// results show up before typing. Category chips narrow the list.
 ///
@@ -160,6 +188,16 @@ class _HonorPickerSheetState extends ConsumerState<HonorPickerSheet>
     });
   }
 
+  /// Replaces the whole search (box and query) with [word] and searches now.
+  void _searchWord(String word) {
+    _debounce?.cancel();
+    _controller.value = TextEditingValue(
+      text: word,
+      selection: TextSelection.collapsed(offset: word.length),
+    );
+    _load();
+  }
+
   void _pickCategory(int? id) {
     setState(() => _categoryId = id);
     _load();
@@ -257,7 +295,7 @@ class _HonorPickerSheetState extends ConsumerState<HonorPickerSheet>
   Widget _body(BuildContext context, List<HonorCategory> categories) {
     final c = context.sac;
     final theme = Theme.of(context).textTheme;
-    Widget message(String text, {Widget? action}) => Padding(
+    Widget message(String text, {List<Widget> actions = const []}) => Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -265,7 +303,7 @@ class _HonorPickerSheetState extends ConsumerState<HonorPickerSheet>
               Text(text,
                   textAlign: TextAlign.center,
                   style: theme.bodyMedium?.copyWith(color: c.textSecondary)),
-              if (action != null) action,
+              ...actions,
             ],
           ),
         );
@@ -273,10 +311,12 @@ class _HonorPickerSheetState extends ConsumerState<HonorPickerSheet>
     if (_error != null) {
       return message(
         CertificateImportErrorMapper.message(_error),
-        action: SacButton.ghost(
-          text: 'certificate_import.errors.retry'.tr(),
-          onPressed: _load,
-        ),
+        actions: [
+          SacButton.ghost(
+            text: 'certificate_import.errors.retry'.tr(),
+            onPressed: _load,
+          ),
+        ],
       );
     }
     if (!_canQuery) {
@@ -296,17 +336,30 @@ class _HonorPickerSheetState extends ConsumerState<HonorPickerSheet>
           .map((cat) => cat.name)
           .firstOrNull;
       final query = _search ?? '';
+      final word = firstSignificantWord(query);
+      final shortcut = word != null && word.toLowerCase() != query.toLowerCase()
+          ? word
+          : null;
       return message(
         (category == null
                 ? 'certificate_import.picker.no_results'
                 : 'certificate_import.picker.no_results_in')
             .tr(namedArgs: {'query': query, 'category': category ?? ''}),
-        action: category == null
-            ? null
-            : SacButton.ghost(
-                text: 'certificate_import.picker.search_all'.tr(),
-                onPressed: () => _pickCategory(null),
-              ),
+        actions: [
+          // The OCR phrase is often too long ("Natacion principiante"): offer
+          // its first meaningful word, replacing the whole search.
+          if (shortcut != null)
+            SacButton.ghost(
+              text: 'certificate_import.picker.search_word'
+                  .tr(namedArgs: {'word': shortcut}),
+              onPressed: () => _searchWord(shortcut),
+            ),
+          if (category != null)
+            SacButton.ghost(
+              text: 'certificate_import.picker.search_all'.tr(),
+              onPressed: () => _pickCategory(null),
+            ),
+        ],
       );
     }
     return ListView.builder(
