@@ -37,6 +37,7 @@ import '../../domain/entities/honor.dart';
 import '../../domain/entities/user_honor.dart';
 import '../providers/honors_providers.dart';
 import '../theme/honor_category_palette.dart';
+import '../utils/evidence_url.dart';
 import '../widgets/honor_badge_image.dart';
 import '../widgets/honor_completion_details.dart';
 import '../widgets/honor_signed_evidence_image.dart';
@@ -569,9 +570,16 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
     List<String> imageUrls,
     int initialIndex,
   ) {
-    final lower = url.toLowerCase();
-    final isPdf = lower.endsWith('.pdf') || lower.contains('/pdf');
-    if (isPdf) {
+    if (!isFetchableEvidenceUrl(url)) {
+      // An unsigned storage key: there is no file the app can open.
+      SacSnackBar.show(
+        context,
+        'honors.evidence.file_unavailable'.tr(),
+        isError: true,
+      );
+      return;
+    }
+    if (isPdfEvidenceUrl(url)) {
       SacPdfViewer.show(
         context,
         pdfSource: url,
@@ -1264,10 +1272,10 @@ class _EvidenceGrid extends StatelessWidget {
           canDelete: canDelete,
           onDelete: () => onDeleteEvidence(imageUrl),
           onTap: () {
-            final carouselImages = images.where((url) {
-              final lower = url.toLowerCase();
-              return !lower.endsWith('.pdf') && !lower.contains('/pdf');
-            }).toList();
+            final carouselImages = images
+                .where((url) =>
+                    !isPdfEvidenceUrl(url) && isFetchableEvidenceUrl(url))
+                .toList();
             final initialIndex = carouselImages.indexOf(imageUrl);
             onViewEvidence(
               imageUrl,
@@ -1369,9 +1377,11 @@ class _EvidenceThumbnail extends StatelessWidget {
     required this.onTap,
   });
 
-  bool get _isPdf =>
-      imageUrl.toLowerCase().endsWith('.pdf') ||
-      imageUrl.toLowerCase().contains('/pdf');
+  bool get _isPdf => isPdfEvidenceUrl(imageUrl);
+
+  /// A raw storage key cannot be downloaded: show a calm placeholder instead
+  /// of a broken image.
+  bool get _isUnavailable => !isFetchableEvidenceUrl(imageUrl);
 
   @override
   Widget build(BuildContext context) {
@@ -1420,6 +1430,17 @@ class _EvidenceThumbnail extends StatelessWidget {
                   ],
                 ),
               )
+            else if (_isUnavailable)
+              Builder(
+                builder: (context) => Container(
+                  color: context.sac.surfaceVariant,
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedFile01,
+                    color: context.sac.textTertiary,
+                    size: 24,
+                  ),
+                ),
+              )
             else
               HonorSignedEvidenceImage(
                 imageUrl: imageUrl,
@@ -1450,7 +1471,7 @@ class _EvidenceThumbnail extends StatelessWidget {
               ),
 
             // Green checkmark overlay for images
-            if (!_isPdf)
+            if (!_isPdf && !_isUnavailable)
               Positioned(
                 top: 4,
                 right: 4,

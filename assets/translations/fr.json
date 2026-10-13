@@ -582,6 +582,7 @@
       "open_error": "Impossible d'ouvrir le fichier",
       "section_title": "Preuve",
       "general_section_title": "Preuves générales",
+      "file_unavailable": "Impossible d'ouvrir ce fichier. Réessaie plus tard.",
       "empty_first": "Téléversez votre première preuve",
       "empty_subtitle": "Photos, images ou documents PDF",
       "general_empty_first": "Preuves générales",

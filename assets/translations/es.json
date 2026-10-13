@@ -582,6 +582,7 @@
       "open_error": "No se pudo abrir el archivo",
       "section_title": "Evidencia",
       "general_section_title": "Evidencias generales",
+      "file_unavailable": "No pudimos abrir este archivo. Inténtalo más tarde.",
       "empty_first": "Sube tu primera evidencia",
       "empty_subtitle": "Fotos, imágenes o documentos PDF",
       "general_empty_first": "Evidencias generales",

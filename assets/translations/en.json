@@ -582,6 +582,7 @@
       "open_error": "Could not open the file",
       "section_title": "Evidence",
       "general_section_title": "General evidence",
+      "file_unavailable": "We could not open this file. Try again later.",
       "empty_first": "Upload your first evidence",
       "empty_subtitle": "Photos, images or PDF documents",
       "general_empty_first": "General evidence",

@@ -8,6 +8,7 @@ import 'package:sacdia_app/features/honors/domain/entities/honor.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/honors/presentation/views/honor_evidence_view.dart';
+import 'package:sacdia_app/features/honors/presentation/widgets/honor_signed_evidence_image.dart';
 
 /// No translations on purpose: the assertions below read the raw keys. The
 /// scope is only there because the date field asks for the locale.
@@ -161,6 +162,83 @@ void main() {
       find.byType(SacPdfViewer, skipOffstage: false),
       findsOneWidget,
     );
+  });
+
+  group('general evidence files', () {
+    const signedPdf =
+        'https://files.example.com/batches/b1/sealed/f1.pdf?X-Amz-Signature=abc&X-Amz-Expires=3600';
+
+    testWidgets('a presigned PDF (query after .pdf) shows a PDF tile, not an image',
+        (tester) async {
+      await pumpEvidence(
+        tester,
+        userHonor(validationStatus: 'APPROVED', images: const [signedPdf]),
+      );
+
+      expect(find.text('PDF'), findsOneWidget);
+      expect(find.byType(HonorSignedEvidenceImage), findsNothing);
+    });
+
+    testWidgets('tapping a presigned PDF opens the in-app PDF viewer',
+        (tester) async {
+      await pumpEvidence(
+        tester,
+        userHonor(validationStatus: 'APPROVED', images: const [signedPdf]),
+      );
+
+      await tester.tap(find.text('PDF'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+
+      final viewer = tester.widget<SacPdfViewer>(
+        find.byType(SacPdfViewer, skipOffstage: false),
+      );
+      expect(viewer.pdfSource, signedPdf);
+    });
+
+    testWidgets('a photo still uses the image widget', (tester) async {
+      await pumpEvidence(
+        tester,
+        userHonor(
+          validationStatus: 'APPROVED',
+          images: const ['https://files.example.com/p.jpg?X-Amz-Signature=a'],
+        ),
+      );
+
+      expect(find.byType(HonorSignedEvidenceImage), findsOneWidget);
+      expect(find.text('PDF'), findsNothing);
+    });
+
+    testWidgets('an unsigned storage key gets a placeholder, not a broken image',
+        (tester) async {
+      await pumpEvidence(
+        tester,
+        userHonor(
+          validationStatus: 'APPROVED',
+          images: const ['batches/b1/sealed/f1.webp'],
+        ),
+      );
+
+      expect(find.byType(HonorSignedEvidenceImage), findsNothing);
+      expect(find.byType(SacPdfViewer, skipOffstage: false), findsNothing);
+    });
+
+    testWidgets('an unsigned PDF key does not open the viewer', (tester) async {
+      await pumpEvidence(
+        tester,
+        userHonor(
+          validationStatus: 'APPROVED',
+          images: const ['batches/b1/sealed/f1.pdf'],
+        ),
+      );
+
+      await tester.tap(find.text('PDF'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+
+      expect(find.byType(SacPdfViewer, skipOffstage: false), findsNothing);
+      expect(find.text('honors.evidence.file_unavailable'), findsOneWidget);
+    });
   });
 
   testWidgets('pending review hides edit actions and submit CTA',
