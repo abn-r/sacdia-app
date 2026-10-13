@@ -4732,7 +4732,28 @@
       "class_mismatch": {
         "title": "La classe ne correspond pas",
         "body": "Cette classe n’appartient pas à ce type de club. Choisissez-la à nouveau."
-      }
+      },
+      "age_date_required": {
+        "title": "Date manquante",
+        "body": "Choisis la date de cette classe pour vérifier ton âge."
+      },
+      "age_birthday": {
+        "title": "Ta date de naissance est manquante",
+        "body": "Ajoute ta date de naissance dans ton profil pour vérifier ton âge pour cette classe."
+      },
+      "age_class_unset": {
+        "title": "Nous ne pouvons pas valider cette classe",
+        "body": "Cette classe n'a pas d'âge minimum défini. Choisis une autre classe ou contacte le support."
+      },
+      "age_year": {
+        "title": "Année ecclésiastique introuvable",
+        "body": "Nous n'avons pas trouvé l'année ecclésiastique de cette date. Vérifie la date."
+      },
+      "age_below_minimum": {
+        "title": "Âge minimum non atteint",
+        "body": "D'après ta date de naissance, tu n'avais pas l'âge minimum pour cette classe à cette date."
+      },
+      "complete_profile": "Aller à mon profil"
     },
     "steps": {
       "upload": "Envoyer",

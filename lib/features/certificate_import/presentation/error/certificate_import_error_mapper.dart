@@ -25,11 +25,27 @@ enum CertificateImportErrorKind {
   dateInFuture,
   dateInvalid,
   classClubTypeMismatch,
+
+  /// Class row: the historical age gate has nothing to work with.
+  dateRequired,
+  birthdayRequired,
+  classMinimumAgeRequired,
+
+  /// The date falls in no ecclesiastical year, or in more than one.
+  yearNotFound,
+  ageBelowMinimum,
   unknown,
 }
 
 /// What the user can do about it.
-enum CertificateImportErrorAction { retry, chooseOtherFile, none }
+enum CertificateImportErrorAction {
+  retry,
+  chooseOtherFile,
+
+  /// The member can fix it in their profile (birthday).
+  completeProfile,
+  none,
+}
 
 /// Where the error is shown, to pick the right wording.
 enum CertificateImportErrorContext { general, upload }
@@ -60,6 +76,7 @@ abstract final class CertificateImportErrorMapper {
   static const _retry = CertificateImportErrorAction.retry;
   static const _other = CertificateImportErrorAction.chooseOtherFile;
   static const _none = CertificateImportErrorAction.none;
+  static const _profile = CertificateImportErrorAction.completeProfile;
 
   /// Copy slug and user action per kind.
   static const _specs =
@@ -80,6 +97,14 @@ abstract final class CertificateImportErrorMapper {
     CertificateImportErrorKind.dateInFuture: ('date_future', _none),
     CertificateImportErrorKind.dateInvalid: ('date_invalid', _none),
     CertificateImportErrorKind.classClubTypeMismatch: ('class_mismatch', _none),
+    CertificateImportErrorKind.dateRequired: ('age_date_required', _none),
+    CertificateImportErrorKind.birthdayRequired: ('age_birthday', _profile),
+    CertificateImportErrorKind.classMinimumAgeRequired: (
+      'age_class_unset',
+      _none,
+    ),
+    CertificateImportErrorKind.yearNotFound: ('age_year', _none),
+    CertificateImportErrorKind.ageBelowMinimum: ('age_below_minimum', _none),
     CertificateImportErrorKind.unknown: ('unexpected', _retry),
   };
 
@@ -178,6 +203,17 @@ abstract final class CertificateImportErrorMapper {
         return CertificateImportErrorKind.dateInvalid;
       case CertificateImportErrorCode.classClubTypeMismatch:
         return CertificateImportErrorKind.classClubTypeMismatch;
+      case CertificateImportErrorCode.dateRequired:
+        return CertificateImportErrorKind.dateRequired;
+      case CertificateImportErrorCode.birthdayRequired:
+        return CertificateImportErrorKind.birthdayRequired;
+      case CertificateImportErrorCode.classMinimumAgeRequired:
+        return CertificateImportErrorKind.classMinimumAgeRequired;
+      case CertificateImportErrorCode.yearNotFound:
+      case CertificateImportErrorCode.yearAmbiguous:
+        return CertificateImportErrorKind.yearNotFound;
+      case CertificateImportErrorCode.ageBelowMinimum:
+        return CertificateImportErrorKind.ageBelowMinimum;
       case CertificateImportErrorCode.network:
         return CertificateImportErrorKind.offline;
       case CertificateImportErrorCode.timeout:

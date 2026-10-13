@@ -4734,7 +4734,28 @@
       "class_mismatch": {
         "title": "The class does not match",
         "body": "That class does not belong to the club type. Pick it again."
-      }
+      },
+      "age_date_required": {
+        "title": "Date missing",
+        "body": "Pick the date of this class so we can check your age."
+      },
+      "age_birthday": {
+        "title": "Your birth date is missing",
+        "body": "Add your birth date to your profile so we can check your age for this class."
+      },
+      "age_class_unset": {
+        "title": "We cannot validate this class",
+        "body": "This class has no minimum age set. Pick another class or contact support."
+      },
+      "age_year": {
+        "title": "Church year not found",
+        "body": "We could not find the church year for that date. Check the date."
+      },
+      "age_below_minimum": {
+        "title": "Minimum age not met",
+        "body": "Based on your birth date, you did not meet the minimum age for this class on that date."
+      },
+      "complete_profile": "Go to my profile"
     },
     "steps": {
       "upload": "Upload",
