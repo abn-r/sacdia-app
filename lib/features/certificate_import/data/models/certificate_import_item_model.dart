@@ -1,6 +1,7 @@
 export '../../domain/entities/certificate_import_item.dart';
 
 import 'package:equatable/equatable.dart';
+import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/utils/json_helpers.dart';
 import '../../domain/entities/certificate_import_item.dart';
 
@@ -213,10 +214,11 @@ class CertificateImportItemModel extends Equatable {
         instructor: instructor,
       );
 
-  static DateTime? _parseDate(dynamic value) {
-    final raw = safeStringOrNull(value);
-    return raw == null ? null : DateTime.tryParse(raw);
-  }
+  /// `completed_at` and `detected_date` are calendar days. Read them as that
+  /// day, not as a UTC instant: `2021-10-15T00:00:00.000Z` shown in local
+  /// time (America/Mexico_City) would become 14 Oct.
+  static DateTime? _parseDate(dynamic value) =>
+      SacDateFormatter.tryParseCalendarDate(safeStringOrNull(value));
 
   static String? _formatDate(DateTime? value) => value?.toIso8601String();
 

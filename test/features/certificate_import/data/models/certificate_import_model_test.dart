@@ -1,8 +1,43 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/certificate_import/data/models/certificate_import_batch_model.dart';
+import 'package:sacdia_app/features/certificate_import/data/models/certificate_import_item_model.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_ocr_state.dart';
 
 void main() {
+  group('CertificateImportItemModel calendar dates', () {
+    CertificateImportItemModel parse(Map<String, dynamic> extra) =>
+        CertificateImportItemModel.fromJson({
+          'item_id': 'item-1',
+          'item_type': 'HONOR',
+          ...extra,
+        });
+
+    test('reads a plain YYYY-MM-DD as that calendar day', () {
+      final item = parse({'completed_at': '2021-10-15'});
+      expect(item.completedAt, DateTime(2021, 10, 15));
+      expect(item.completedAt!.isUtc, isFalse);
+    });
+
+    test('a UTC midnight timestamp keeps its day (negative-offset zones)', () {
+      // 2021-10-15T00:00Z is 14 Oct 18:00 in America/Mexico_City; the row
+      // editor must still show 15 Oct, so the value is built as a local day.
+      final item = parse({
+        'completed_at': '2021-10-15T00:00:00.000Z',
+        'detected_date': '2024-03-12T00:00:00.000Z',
+      });
+      expect(item.completedAt, DateTime(2021, 10, 15));
+      expect(item.detectedDate, DateTime(2024, 3, 12));
+      expect(item.completedAt!.toLocal().day, 15);
+      expect(item.detectedDate!.toLocal().day, 12);
+    });
+
+    test('missing or unreadable dates are null', () {
+      final item = parse({'completed_at': null, 'detected_date': 'nope'});
+      expect(item.completedAt, isNull);
+      expect(item.detectedDate, isNull);
+    });
+  });
+
   group('CertificateImportBatchModel', () {
     test('parses a batch with mixed honor and class rows', () {
       final model = CertificateImportBatchModel.fromJson({
