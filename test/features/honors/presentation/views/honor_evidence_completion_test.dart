@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,6 +8,7 @@ import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/widgets/instructor_picker.dart';
 import 'package:sacdia_app/core/widgets/instructor_selection.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/features/activities/presentation/widgets/activity_form_widgets.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 import 'package:sacdia_app/features/honors/domain/repositories/honors_repository.dart';
@@ -359,6 +361,39 @@ void main() {
 
       expect(repo.patches, hasLength(1));
     });
+  });
+
+  group('the date card chevron', () {
+    Finder chevron() => find.descendant(
+          of: find.byType(ActivityDatePickerField),
+          matching: find.byWidgetPredicate(
+            (w) =>
+                w is HugeIcon && w.icon == HugeIcons.strokeRoundedArrowRight01,
+          ),
+        );
+
+    testWidgets('shows while the date can be changed', (tester) async {
+      await _pump(
+        tester,
+        _FakeHonorsRepository(completedAt: DateTime(2026, 9, 30)),
+      );
+      expect(chevron(), findsOneWidget);
+    });
+
+    for (final status in ['APPROVED', 'PENDING_REVIEW']) {
+      testWidgets('is gone once the honor is $status (read-only)',
+          (tester) async {
+        await _pump(
+          tester,
+          _FakeHonorsRepository(
+            status: status,
+            completedAt: DateTime(2026, 9, 30),
+          ),
+        );
+        expect(find.text(_shown(DateTime(2026, 9, 30))), findsOneWidget);
+        expect(chevron(), findsNothing);
+      });
+    }
   });
 
   group('read-only once it is not in progress or rejected', () {
