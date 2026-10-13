@@ -4,6 +4,41 @@ import 'package:sacdia_app/features/certificate_import/data/models/certificate_i
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_ocr_state.dart';
 
 void main() {
+  group('CertificateImportItemModel revision', () {
+    CertificateImportItemModel parse(Map<String, dynamic> extra) =>
+        CertificateImportItemModel.fromJson({
+          'item_id': 'item-1',
+          'item_type': 'HONOR',
+          ...extra,
+        });
+
+    test('an API without it means a row nobody has saved', () {
+      expect(parse({}).revision, 0);
+    });
+
+    test('reads the revision', () {
+      final item = parse({'revision': 3});
+      expect(item.revision, 3);
+      expect(item.toEntity().revision, 3);
+    });
+
+    test('garbage reads as 0', () {
+      expect(parse({'revision': -2}).revision, 0);
+    });
+
+    test('the date notice goes away once the member saved the row', () {
+      final read = parse({
+        'field_confidence': {'date': 0.5},
+      }).toEntity();
+      final saved = parse({
+        'field_confidence': {'date': 0.5},
+        'revision': 1,
+      }).toEntity();
+      expect(read.needsDateReview, isTrue);
+      expect(saved.needsDateReview, isFalse);
+    });
+  });
+
   group('CertificateImportItemModel calendar dates', () {
     CertificateImportItemModel parse(Map<String, dynamic> extra) =>
         CertificateImportItemModel.fromJson({

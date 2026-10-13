@@ -41,6 +41,7 @@ CertificateImportItem _honor(
   CertificateImportInstructorRef? instructor,
   String? sourceFileId,
   int? sourcePage,
+  int revision = 0,
 }) =>
     CertificateImportItem(
       id: id,
@@ -61,6 +62,7 @@ CertificateImportItem _honor(
       instructor: instructor,
       sourceFileId: sourceFileId,
       sourcePage: sourcePage,
+      revision: revision,
       status: complete
           ? CertificateImportItemStatus.ready
           : CertificateImportItemStatus.needsReview,
@@ -220,6 +222,43 @@ void main() {
             !_honor('c').needsDateReview,
         isTrue,
       );
+    });
+
+    testWidgets('hides the date notice on a row the member already saved',
+        (tester) async {
+      await _show(
+        tester,
+        _batch([
+          _honor('read', dateConfidence: 0.5),
+          _honor('saved', dateConfidence: 0.5, revision: 1),
+        ]),
+      );
+      expect(find.text('Revisa la fecha'), findsOneWidget);
+    });
+
+    testWidgets('saving a row in the editor clears its date notice',
+        (tester) async {
+      final saved = <CertificateImportItem>[];
+      await _show(
+        tester,
+        _batch([_honor('low', dateConfidence: 0.5)]),
+        onUpdateItem: (item, _) async {
+          saved.add(item);
+          return item;
+        },
+      );
+      expect(find.text('Revisa la fecha'), findsOneWidget);
+
+      await tester.tap(find.text('Primeros Auxilios').first);
+      await tester.pumpAndSettle();
+      // The editor still warns while the member reviews the date.
+      expect(find.text('Revisa la fecha'), findsNWidgets(2));
+
+      await tester.tap(find.widgetWithText(SacButton, 'Guardar'));
+      await tester.pumpAndSettle();
+
+      expect(saved.single.revision, 1);
+      expect(find.text('Revisa la fecha'), findsNothing);
     });
 
     testWidgets('shows the instructor next to the date', (tester) async {

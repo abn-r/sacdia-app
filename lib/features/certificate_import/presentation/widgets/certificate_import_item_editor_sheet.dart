@@ -180,7 +180,12 @@ class _CertificateImportItemEditorSheetState
 
   bool get _isHonor => _type == CertificateImportItemType.honor;
 
-  CertificateImportItem _make(CertificateImportItemStatus status) {
+  /// [saving] is the row the member is saving: one more revision, so the
+  /// "Revisa la fecha" notice (shown while editing) goes away for good.
+  CertificateImportItem _make(
+    CertificateImportItemStatus status, {
+    bool saving = false,
+  }) {
     final item = widget.item;
     final catalogName = _isHonor ? _honor?.name : _class?.name;
     final typed = _name.text.trim();
@@ -221,6 +226,7 @@ class _CertificateImportItemEditorSheetState
               clubTypeName: clubName,
             ),
       instructor: _isHonor ? _instructorRef(item) : null,
+      revision: saving ? item.revision + 1 : item.revision,
     );
   }
 
@@ -393,6 +399,7 @@ class _CertificateImportItemEditorSheetState
           complete
               ? CertificateImportItemStatus.ready
               : CertificateImportItemStatus.needsReview,
+          saving: true,
         ),
       );
       if (!mounted) return;

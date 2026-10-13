@@ -26,6 +26,7 @@ class CertificateImportItemModel extends Equatable {
   final CertificateImportHonorRef? honor;
   final CertificateImportClassRef? classRef;
   final CertificateImportInstructorRef? instructor;
+  final int revision;
 
   const CertificateImportItemModel({
     required this.id,
@@ -48,6 +49,7 @@ class CertificateImportItemModel extends Equatable {
     this.honor,
     this.classRef,
     this.instructor,
+    this.revision = 0,
   });
 
   factory CertificateImportItemModel.fromJson(Map<String, dynamic> json) {
@@ -82,6 +84,8 @@ class CertificateImportItemModel extends Equatable {
       honor: _parseHonor(json['honor']),
       classRef: _parseClass(nestedClass),
       instructor: _parseInstructor(json['instructor']),
+      // Tolerant: an API without it means a row nobody has saved.
+      revision: _positive(json['revision']) ?? 0,
     );
   }
 
@@ -189,6 +193,7 @@ class CertificateImportItemModel extends Equatable {
         'applied_entity_id': appliedEntityId,
         'source_page': sourcePage,
         'source_file_id': sourceFileId,
+        'revision': revision,
       };
 
   CertificateImportItem toEntity() => CertificateImportItem(
@@ -212,6 +217,7 @@ class CertificateImportItemModel extends Equatable {
         honor: honor,
         classRef: classRef,
         instructor: instructor,
+        revision: revision,
       );
 
   /// `completed_at` and `detected_date` are calendar days. Read them as that
@@ -250,5 +256,6 @@ class CertificateImportItemModel extends Equatable {
         honor,
         classRef,
         instructor,
+        revision,
       ];
 }
