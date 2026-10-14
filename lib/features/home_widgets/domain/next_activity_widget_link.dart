@@ -1,7 +1,7 @@
 /// Esquema que el widget usa para abrir la app.
 ///
 /// El query `homeWidget` hace que el plugin de iOS entregue el toque a Flutter
-/// en lugar de tratarlo como un deep link de OAuth.
+/// en lugar de tratarlo como un deep link genérico.
 const String nextActivityWidgetScheme = 'io.sacdia.app';
 
 Uri nextActivityWidgetLaunchUri(int activityId) {

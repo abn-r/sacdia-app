@@ -126,8 +126,8 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final user = await remoteDataSource.signInWithGoogle();
       return Right(user);
-    } on core_exceptions.OAuthFlowInitiatedException catch (e) {
-      return Left(OAuthFlowInitiatedFailure(provider: e.provider));
+    } on core_exceptions.SocialSignInCancelledException {
+      return Left(SocialSignInCancelledFailure());
     } on core_exceptions.AuthException catch (e) {
       return Left(AuthFailure(message: e.message, code: e.code));
     } catch (e) {
@@ -140,26 +140,8 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final user = await remoteDataSource.signInWithApple();
       return Right(user);
-    } on core_exceptions.OAuthFlowInitiatedException catch (e) {
-      return Left(OAuthFlowInitiatedFailure(provider: e.provider));
-    } on core_exceptions.AuthException catch (e) {
-      return Left(AuthFailure(message: e.message, code: e.code));
-    } catch (e) {
-      return Left(ServerFailure(message: e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, UserEntity>> handleOAuthCallback({
-    required String sessionToken,
-    required String provider,
-  }) async {
-    try {
-      final user = await remoteDataSource.handleOAuthCallback(
-        sessionToken: sessionToken,
-        provider: provider,
-      );
-      return Right(user);
+    } on core_exceptions.SocialSignInCancelledException {
+      return Left(SocialSignInCancelledFailure());
     } on core_exceptions.AuthException catch (e) {
       return Left(AuthFailure(message: e.message, code: e.code));
     } catch (e) {

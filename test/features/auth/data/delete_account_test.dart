@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/core/auth/social_auth_client.dart';
+import 'package:sacdia_app/core/auth/social_credential.dart';
 import 'package:sacdia_app/core/constants/app_constants.dart';
 import 'package:sacdia_app/core/errors/exceptions.dart';
 import 'package:sacdia_app/core/storage/secure_storage.dart';
@@ -34,6 +36,13 @@ class _FakeSecureStorage implements SecureStorage {
 
   @override
   Future<Map<String, String>> readAll() async => Map.unmodifiable(_store);
+}
+
+class _NoSocialAuth implements SocialAuthClient {
+  @override
+  Future<SocialCredential?> signIn(SocialProvider provider) async => null;
+  @override
+  bool supports(SocialProvider provider) => false;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -100,6 +109,7 @@ void main() {
         dio: dio,
         baseUrl: 'http://localhost:3000',
         secureStorage: storage,
+        socialAuth: _NoSocialAuth(),
       );
 
       expect(
@@ -131,6 +141,7 @@ void main() {
         dio: dio,
         baseUrl: 'http://localhost:3000',
         secureStorage: storage,
+        socialAuth: _NoSocialAuth(),
       );
 
       // Should not throw.
@@ -150,6 +161,7 @@ void main() {
         dio: dio,
         baseUrl: 'http://localhost:3000',
         secureStorage: storage,
+        socialAuth: _NoSocialAuth(),
       );
 
       await dataSource.resetPassword('admin@example.com');

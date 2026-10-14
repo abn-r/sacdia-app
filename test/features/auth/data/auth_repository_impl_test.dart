@@ -33,13 +33,6 @@ class _FakeAuthRemoteDataSource implements AuthRemoteDataSource {
   }
 
   @override
-  Future<UserModel> handleOAuthCallback({
-    required String sessionToken,
-    required String provider,
-  }) =>
-      throw UnimplementedError();
-
-  @override
   Future<bool> hasLocalToken() => throw UnimplementedError();
 
   @override
@@ -55,8 +48,11 @@ class _FakeAuthRemoteDataSource implements AuthRemoteDataSource {
   }) =>
       throw UnimplementedError();
 
+  Future<UserModel> Function()? signInWithGoogleHandler;
+
   @override
-  Future<UserModel> signInWithGoogle() => throw UnimplementedError();
+  Future<UserModel> signInWithGoogle() =>
+      signInWithGoogleHandler?.call() ?? (throw UnimplementedError());
 
   @override
   Future<void> signOut() => throw UnimplementedError();
@@ -129,6 +125,27 @@ void main() {
         (_) => fail('Expected NetworkFailure'),
       );
       expect(remoteDataSource.getCurrentUserCalls, 1);
+    });
+  });
+
+  group('signInWithGoogle', () {
+    test('maps a cancel to SocialSignInCancelledFailure', () async {
+      final ds = _FakeAuthRemoteDataSource(
+        getCurrentUserHandler: () async => null,
+      )..signInWithGoogleHandler =
+          () async => throw core_exceptions.SocialSignInCancelledException();
+      final repo = AuthRepositoryImpl(
+        remoteDataSource: ds,
+        networkInfo: _FakeNetworkInfo(true),
+      );
+
+      final result = await repo.signInWithGoogle();
+
+      expect(result.isLeft(), isTrue);
+      result.fold(
+        (f) => expect(f, isA<SocialSignInCancelledFailure>()),
+        (_) => fail('expected Left'),
+      );
     });
   });
 }

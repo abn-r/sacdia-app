@@ -66,8 +66,6 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
         message: exception.message,
         stackTrace: exception.stackTrace,
       );
-    } else if (exception is OAuthFlowInitiatedException) {
-      failure = OAuthFlowInitiatedFailure(provider: exception.provider);
     } else {
       failure = UnexpectedFailure(
         message: exception.message,

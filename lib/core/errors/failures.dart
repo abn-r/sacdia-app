@@ -98,21 +98,8 @@ class UnexpectedFailure extends Failure {
   });
 }
 
-/// Señal (no un error real) que indica que el flujo OAuth fue iniciado.
-/// La UI debe mostrar un estado informativo, no un error.
-class OAuthFlowInitiatedFailure extends Failure {
-  /// Nombre del proveedor OAuth ("Google", "Apple", etc.).
-  final String provider;
-
-  OAuthFlowInitiatedFailure({
-    required this.provider,
-  }) : super(
-          message: tr(
-            'errors.oauth_redirecting',
-            namedArgs: {'provider': provider},
-          ),
-        );
-
-  @override
-  List<Object?> get props => [...super.props, provider];
+/// El usuario canceló la hoja nativa de Google/Apple. No se muestra error.
+class SocialSignInCancelledFailure extends Failure {
+  SocialSignInCancelledFailure()
+      : super(message: tr('errors.social_signin_cancelled'));
 }
