@@ -4653,6 +4653,15 @@
       "skip_wait": "Continue without waiting",
       "cancel": "Cancel"
     },
+    "recent": {
+      "title": "Your recent submissions",
+      "draft": "Draft",
+      "in_review": "In review",
+      "corrections": "Needs correction",
+      "partial": "Partially approved",
+      "approved": "Approved",
+      "items": "Rows: {count}"
+    },
     "errors": {
       "retry": "Try again",
       "change_file": "Change file",
