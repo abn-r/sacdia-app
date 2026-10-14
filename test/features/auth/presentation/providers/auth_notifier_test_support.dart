@@ -2,11 +2,13 @@ import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sacdia_app/core/auth/social_credential.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/notifications/push_notification_provider.dart';
 import 'package:sacdia_app/core/notifications/push_notification_service.dart';
 import 'package:sacdia_app/core/storage/secure_storage.dart';
 import 'package:sacdia_app/core/usecases/cancellation_token.dart';
+import 'package:sacdia_app/features/auth/domain/entities/delete_account_reauth.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
@@ -55,7 +57,11 @@ class FakeAuthRepository implements AuthRepository {
       const Right(null);
 
   @override
-  Future<Either<Failure, void>> deleteAccount(String password) =>
+  Future<Either<Failure, void>> deleteAccount(DeleteAccountReauth reauth) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Either<Failure, List<SocialProvider>>> getConnectedProviders() =>
       throw UnimplementedError();
 
   @override

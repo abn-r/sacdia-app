@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/auth/social_auth_client.dart';
@@ -9,6 +7,8 @@ import 'package:sacdia_app/core/errors/exceptions.dart';
 import 'package:sacdia_app/core/storage/secure_storage.dart';
 import 'package:sacdia_app/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:sacdia_app/features/auth/data/models/user_model.dart';
+
+import '../../../support/http_adapters.dart';
 
 class _FakeSecureStorage implements SecureStorage {
   final _store = <String, String>{};
@@ -41,52 +41,6 @@ class _FakeSocialAuthClient implements SocialAuthClient {
 
   @override
   bool supports(SocialProvider provider) => true;
-}
-
-/// Adaptador Dio que responde JSON (anidado) con un status fijo.
-class _JsonAdapter implements HttpClientAdapter {
-  _JsonAdapter(this.statusCode, this.body);
-
-  final int statusCode;
-  final Object body;
-  RequestOptions? lastRequest;
-
-  @override
-  Future<ResponseBody> fetch(
-    RequestOptions options,
-    Stream<List<int>>? _,
-    Future<void>? __,
-  ) async {
-    lastRequest = options;
-    return ResponseBody.fromString(
-      jsonEncode(body),
-      statusCode,
-      headers: {
-        Headers.contentTypeHeader: [Headers.jsonContentType],
-      },
-    );
-  }
-
-  @override
-  void close({bool force = false}) {}
-}
-
-/// Adaptador Dio que falla sin respuesta (timeout / sin conexión).
-class _ErrorAdapter implements HttpClientAdapter {
-  _ErrorAdapter(this.build);
-
-  final DioException Function(RequestOptions options) build;
-
-  @override
-  Future<ResponseBody> fetch(
-    RequestOptions options,
-    Stream<List<int>>? _,
-    Future<void>? __,
-  ) async =>
-      throw build(options);
-
-  @override
-  void close({bool force = false}) {}
 }
 
 const _credential = SocialCredential(
@@ -147,7 +101,7 @@ void main() {
   test(
     'posts the credential to /auth/oauth/apple/token and persists the session',
     () async {
-      final adapter = _JsonAdapter(201, _successBody);
+      final adapter = JsonAdapter(201, _successBody);
       dio.httpClientAdapter = adapter;
       final social = _FakeSocialAuthClient(_credential);
 
@@ -174,7 +128,7 @@ void main() {
   );
 
   test('uses the google route for Google', () async {
-    final adapter = _JsonAdapter(201, _successBody);
+    final adapter = JsonAdapter(201, _successBody);
     dio.httpClientAdapter = adapter;
     const google = SocialCredential(
       provider: SocialProvider.google,
@@ -191,7 +145,7 @@ void main() {
   test(
     'throws SocialSignInCancelledException and makes no request on cancel',
     () async {
-      final adapter = _JsonAdapter(201, _successBody);
+      final adapter = JsonAdapter(201, _successBody);
       dio.httpClientAdapter = adapter;
 
       await expectLater(
@@ -229,7 +183,7 @@ void main() {
   test('maps AUTH_INVALID_TOKEN (401) to the generic localized failure',
       () async {
     dio.httpClientAdapter =
-        _JsonAdapter(401, errorBody(401, 'AUTH_INVALID_TOKEN'));
+        JsonAdapter(401, errorBody(401, 'AUTH_INVALID_TOKEN'));
 
     await expectMappedError(
       () => build(_FakeSocialAuthClient(_credential)).signInWithApple(),
@@ -240,7 +194,7 @@ void main() {
 
   test('maps AUTH_OAUTH_EMAIL_UNVERIFIED to the unverified message', () async {
     dio.httpClientAdapter =
-        _JsonAdapter(401, errorBody(401, 'AUTH_OAUTH_EMAIL_UNVERIFIED'));
+        JsonAdapter(401, errorBody(401, 'AUTH_OAUTH_EMAIL_UNVERIFIED'));
 
     await expectMappedError(
       () => build(_FakeSocialAuthClient(_credential)).signInWithApple(),
@@ -252,7 +206,7 @@ void main() {
   test('maps AUTH_OAUTH_PROVIDER_ALREADY_LINKED (409) to already_linked',
       () async {
     dio.httpClientAdapter =
-        _JsonAdapter(409, errorBody(409, 'AUTH_OAUTH_PROVIDER_ALREADY_LINKED'));
+        JsonAdapter(409, errorBody(409, 'AUTH_OAUTH_PROVIDER_ALREADY_LINKED'));
 
     await expectMappedError(
       () => build(_FakeSocialAuthClient(_credential)).signInWithApple(),
@@ -263,7 +217,7 @@ void main() {
 
   test('maps a 503 to provider_unavailable', () async {
     dio.httpClientAdapter =
-        _JsonAdapter(503, errorBody(503, 'AUTH_OAUTH_PROVIDER_UNAVAILABLE'));
+        JsonAdapter(503, errorBody(503, 'AUTH_OAUTH_PROVIDER_UNAVAILABLE'));
 
     await expectMappedError(
       () => build(_FakeSocialAuthClient(_credential)).signInWithApple(),
@@ -273,7 +227,7 @@ void main() {
   });
 
   test('maps a 500 without a code to provider_unavailable', () async {
-    dio.httpClientAdapter = _JsonAdapter(500, {'message': 'Internal error'});
+    dio.httpClientAdapter = JsonAdapter(500, {'message': 'Internal error'});
 
     await expectMappedError(
       () => build(_FakeSocialAuthClient(_credential)).signInWithGoogle(),
@@ -283,7 +237,7 @@ void main() {
   });
 
   test('maps a 429 to too_many_attempts', () async {
-    dio.httpClientAdapter = _JsonAdapter(429, {
+    dio.httpClientAdapter = JsonAdapter(429, {
       'statusCode': 429,
       'message': 'ThrottlerException: Too Many Requests',
     });
@@ -296,7 +250,7 @@ void main() {
   });
 
   test('maps any other status to the generic localized failure', () async {
-    dio.httpClientAdapter = _JsonAdapter(400, errorBody(400, 'SOMETHING_ELSE'));
+    dio.httpClientAdapter = JsonAdapter(400, errorBody(400, 'SOMETHING_ELSE'));
 
     await expectMappedError(
       () => build(_FakeSocialAuthClient(_credential)).signInWithApple(),
@@ -306,7 +260,7 @@ void main() {
   });
 
   test('uses the interceptor message when there is no response', () async {
-    dio.httpClientAdapter = _ErrorAdapter(
+    dio.httpClientAdapter = ErrorAdapter(
       (options) => DioException(
         requestOptions: options,
         type: DioExceptionType.connectionTimeout,
@@ -322,7 +276,7 @@ void main() {
 
   test('falls back to common.error_network on a bare connection error',
       () async {
-    dio.httpClientAdapter = _ErrorAdapter(
+    dio.httpClientAdapter = ErrorAdapter(
       (options) => DioException(
         requestOptions: options,
         type: DioExceptionType.connectionError,

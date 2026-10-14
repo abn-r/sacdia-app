@@ -380,7 +380,8 @@
     "social_signin_failed": "Could not sign in with {provider}. Try again.",
     "social_signin_unverified": "We could not verify your {provider} account.",
     "social_signin_already_linked": "Your account is already linked to a different {provider} account. Sign in with your email and password.",
-    "social_signin_provider_unavailable": "{provider} is not available right now. Try again in a few minutes."
+    "social_signin_provider_unavailable": "{provider} is not available right now. Try again in a few minutes.",
+    "delete_account_social_reauth_failed": "We couldn't confirm your identity with {provider}. Try again."
   },
   "honors": {
     "errors": {
@@ -3636,6 +3637,10 @@
       "delete_account_enter_password": "Enter your current password to continue.",
       "field_password_hint": "Password",
       "delete_account_error_no_password": "Enter your password.",
+      "delete_account_or_confirm_with": "Or confirm with your linked account:",
+      "delete_account_confirm_google": "Confirm with Google",
+      "delete_account_confirm_apple": "Confirm with Apple",
+      "delete_account_error_no_reauth": "Enter your password or confirm with your linked account.",
       "deleting_account": "Deleting account...",
       "account_deleted": "Your account was deleted successfully.",
       "theme_title": "Theme",

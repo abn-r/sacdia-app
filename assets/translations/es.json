@@ -380,7 +380,8 @@
     "social_signin_failed": "No se pudo iniciar sesión con {provider}. Intenta de nuevo.",
     "social_signin_unverified": "No pudimos verificar tu cuenta de {provider}.",
     "social_signin_already_linked": "Tu cuenta ya está vinculada a otra cuenta de {provider}. Inicia sesión con tu correo y contraseña.",
-    "social_signin_provider_unavailable": "{provider} no está disponible en este momento. Intenta de nuevo en unos minutos."
+    "social_signin_provider_unavailable": "{provider} no está disponible en este momento. Intenta de nuevo en unos minutos.",
+    "delete_account_social_reauth_failed": "No pudimos confirmar tu identidad con {provider}. Intenta de nuevo."
   },
   "honors": {
     "errors": {
@@ -3636,6 +3637,10 @@
       "delete_account_enter_password": "Ingresa tu contraseña actual para continuar.",
       "field_password_hint": "Contraseña",
       "delete_account_error_no_password": "Ingresa tu contraseña.",
+      "delete_account_or_confirm_with": "O confirma con tu cuenta vinculada:",
+      "delete_account_confirm_google": "Confirmar con Google",
+      "delete_account_confirm_apple": "Confirmar con Apple",
+      "delete_account_error_no_reauth": "Ingresa tu contraseña o confirma con tu cuenta vinculada.",
       "deleting_account": "Eliminando cuenta...",
       "account_deleted": "Tu cuenta fue eliminada correctamente.",
       "theme_title": "Tema",

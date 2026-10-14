@@ -6,6 +6,9 @@ import 'package:sacdia_app/core/constants/app_constants.dart';
 import 'package:sacdia_app/core/errors/exceptions.dart';
 import 'package:sacdia_app/core/storage/secure_storage.dart';
 import 'package:sacdia_app/features/auth/data/datasources/auth_remote_data_source.dart';
+import 'package:sacdia_app/features/auth/domain/entities/delete_account_reauth.dart';
+
+import '../../../support/http_adapters.dart';
 
 // ── Fakes ─────────────────────────────────────────────────────────────────────
 
@@ -82,6 +85,14 @@ class MockAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
+const _googleReauth = SocialReauth(
+  SocialCredential(
+    provider: SocialProvider.google,
+    idToken: 'g-token',
+    nonce: 'n-1',
+  ),
+);
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 void main() {
@@ -113,7 +124,7 @@ void main() {
       );
 
       expect(
-        () => dataSource.deleteAccount('wrong-password'),
+        () => dataSource.deleteAccount(const PasswordReauth('wrong-password')),
         throwsA(
           predicate(
             (e) => e is AuthException && e.code == 401,
@@ -145,11 +156,242 @@ void main() {
       );
 
       // Should not throw.
-      await dataSource.deleteAccount('correct-password');
+      await dataSource.deleteAccount(const PasswordReauth('correct-password'));
 
       // Token must be cleared after successful deletion.
       final tokenAfter = await storage.read(AppConstants.tokenKey);
       expect(tokenAfter, isNull);
+    });
+  });
+
+  group('deleteAccount — re-auth body', () {
+    AuthRemoteDataSourceImpl build() => AuthRemoteDataSourceImpl(
+          dio: dio,
+          baseUrl: 'http://localhost:3000',
+          secureStorage: storage,
+          socialAuth: _NoSocialAuth(),
+        );
+
+    test('sends only the password for a password re-auth', () async {
+      await storage.write(AppConstants.tokenKey, 'my-jwt-token');
+      final adapter = _adapterReturning(204);
+      dio.httpClientAdapter = adapter;
+
+      await build().deleteAccount(const PasswordReauth('correct-password'));
+
+      expect(adapter.lastRequest?.method, 'DELETE');
+      expect(adapter.lastRequest?.data, {'password': 'correct-password'});
+    });
+
+    test('sends provider, idToken and nonce for a social re-auth', () async {
+      await storage.write(AppConstants.tokenKey, 'my-jwt-token');
+      final adapter = _adapterReturning(204);
+      dio.httpClientAdapter = adapter;
+
+      await build().deleteAccount(_googleReauth);
+
+      expect(adapter.lastRequest?.method, 'DELETE');
+      expect(adapter.lastRequest?.uri.path, '/auth/me');
+      expect(adapter.lastRequest?.data, {
+        'provider': 'google',
+        'idToken': 'g-token',
+        'nonce': 'n-1',
+      });
+      expect(await storage.read(AppConstants.tokenKey), isNull);
+    });
+  });
+
+  group('deleteAccount — error mapping by code and status', () {
+    setUp(() async {
+      await storage.write(AppConstants.tokenKey, 'my-jwt-token');
+    });
+
+    AuthRemoteDataSourceImpl build() => AuthRemoteDataSourceImpl(
+          dio: dio,
+          baseUrl: 'http://localhost:3000',
+          secureStorage: storage,
+          socialAuth: _NoSocialAuth(),
+        );
+
+    Map<String, dynamic> errorBody(int status, String code) => {
+          'status': 'error',
+          'statusCode': status,
+          'code': code,
+          'message': 'texto crudo del backend',
+        };
+
+    Future<void> expectMapped(
+      DeleteAccountReauth reauth, {
+      required String message,
+      int? code,
+    }) async {
+      await expectLater(
+        build().deleteAccount(reauth),
+        throwsA(
+          predicate(
+            (e) => e is AuthException && e.message == message && e.code == code,
+            'AuthException($message, $code)',
+          ),
+        ),
+      );
+      // Los tokens solo se limpian con un 204.
+      expect(await storage.read(AppConstants.tokenKey), 'my-jwt-token');
+      expect(storage.deletedKeys.contains(AppConstants.tokenKey), isFalse);
+    }
+
+    test('AUTH_INVALID_PASSWORD maps to wrong_password', () async {
+      dio.httpClientAdapter =
+          JsonAdapter(401, errorBody(401, 'AUTH_INVALID_PASSWORD'));
+
+      await expectMapped(
+        const PasswordReauth('nope'),
+        message: 'errors.wrong_password',
+        code: 401,
+      );
+    });
+
+    test('AUTH_INVALID_TOKEN on a social re-auth maps to social_reauth_failed',
+        () async {
+      dio.httpClientAdapter =
+          JsonAdapter(401, errorBody(401, 'AUTH_INVALID_TOKEN'));
+
+      await expectMapped(
+        _googleReauth,
+        message: 'errors.delete_account_social_reauth_failed',
+        code: 401,
+      );
+    });
+
+    test('AUTH_INVALID_TOKEN on a password re-auth maps to wrong_password',
+        () async {
+      dio.httpClientAdapter =
+          JsonAdapter(401, errorBody(401, 'AUTH_INVALID_TOKEN'));
+
+      await expectMapped(
+        const PasswordReauth('nope'),
+        message: 'errors.wrong_password',
+        code: 401,
+      );
+    });
+
+    test('a 429 maps to too_many_attempts', () async {
+      dio.httpClientAdapter = JsonAdapter(429, {
+        'statusCode': 429,
+        'message': 'ThrottlerException: Too Many Requests',
+      });
+
+      await expectMapped(
+        _googleReauth,
+        message: 'errors.too_many_attempts',
+        code: 429,
+      );
+    });
+
+    test('AUTH_OAUTH_PROVIDER_UNAVAILABLE maps to provider_unavailable',
+        () async {
+      dio.httpClientAdapter =
+          JsonAdapter(503, errorBody(503, 'AUTH_OAUTH_PROVIDER_UNAVAILABLE'));
+
+      await expectMapped(
+        _googleReauth,
+        message: 'errors.social_signin_provider_unavailable',
+        code: 503,
+      );
+    });
+
+    test('a masked 5xx on a social re-auth maps to provider_unavailable',
+        () async {
+      dio.httpClientAdapter = JsonAdapter(500, {'message': 'Internal error'});
+
+      await expectMapped(
+        _googleReauth,
+        message: 'errors.social_signin_provider_unavailable',
+        code: 500,
+      );
+    });
+
+    test('a 5xx on a password re-auth maps to the generic delete error',
+        () async {
+      dio.httpClientAdapter = JsonAdapter(500, {'message': 'Internal error'});
+
+      await expectMapped(
+        const PasswordReauth('pw'),
+        message: 'errors.delete_account',
+        code: 500,
+      );
+    });
+
+    test('AUTH_ACCOUNT_NOT_FOUND maps to the generic delete error', () async {
+      dio.httpClientAdapter =
+          JsonAdapter(404, errorBody(404, 'AUTH_ACCOUNT_NOT_FOUND'));
+
+      await expectMapped(
+        const PasswordReauth('pw'),
+        message: 'errors.delete_account',
+        code: 404,
+      );
+    });
+
+    test('uses the interceptor message when there is no response', () async {
+      dio.httpClientAdapter = ErrorAdapter(
+        (options) => DioException(
+          requestOptions: options,
+          type: DioExceptionType.connectionTimeout,
+          error: ConnectionException(message: 'Tiempo agotado'),
+        ),
+      );
+
+      await expectMapped(_googleReauth, message: 'Tiempo agotado');
+    });
+
+    test('falls back to common.error_network on a bare connection error',
+        () async {
+      dio.httpClientAdapter = ErrorAdapter(
+        (options) => DioException(
+          requestOptions: options,
+          type: DioExceptionType.connectionError,
+        ),
+      );
+
+      await expectMapped(
+        const PasswordReauth('pw'),
+        message: 'common.error_network',
+      );
+    });
+  });
+
+  group('getConnectedProviders', () {
+    AuthRemoteDataSourceImpl build() => AuthRemoteDataSourceImpl(
+          dio: dio,
+          baseUrl: 'http://localhost:3000',
+          secureStorage: storage,
+          socialAuth: _NoSocialAuth(),
+        );
+
+    test('returns the provider list from GET /auth/oauth/providers', () async {
+      await storage.write(AppConstants.tokenKey, 'my-jwt-token');
+      final adapter = JsonAdapter(200, {
+        'status': 'success',
+        'data': ['google', 'apple'],
+      });
+      dio.httpClientAdapter = adapter;
+
+      expect(
+        await build().getConnectedProviders(),
+        [SocialProvider.google, SocialProvider.apple],
+      );
+      expect(adapter.lastRequest?.method, 'GET');
+      expect(adapter.lastRequest?.uri.path, '/auth/oauth/providers');
+    });
+
+    test('ignores unknown provider names', () async {
+      await storage.write(AppConstants.tokenKey, 'my-jwt-token');
+      dio.httpClientAdapter = JsonAdapter(200, {
+        'status': 'success',
+        'data': ['apple', 'github'],
+      });
+
+      expect(await build().getConnectedProviders(), [SocialProvider.apple]);
     });
   });
 

@@ -10,6 +10,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/storage/secure_storage.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../../domain/entities/delete_account_reauth.dart';
 import '../models/user_model.dart';
 
 /// Interfaz para la fuente de datos remota de autenticación
@@ -70,7 +71,10 @@ abstract class AuthRemoteDataSource {
   ///
   /// Lanza [AuthException] con código 401/403 si la contraseña es incorrecta,
   /// o 429 si se supera el rate limit.
-  Future<void> deleteAccount(String password);
+  Future<void> deleteAccount(DeleteAccountReauth reauth);
+
+  /// Proveedores sociales vinculados a la cuenta (`GET /auth/oauth/providers`).
+  Future<List<SocialProvider>> getConnectedProviders();
 }
 
 /// Implementación de la fuente de datos remota con Dio para API personalizada
@@ -845,7 +849,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<void> deleteAccount(String password) async {
+  Future<void> deleteAccount(DeleteAccountReauth reauth) async {
     try {
       final token = await _secureStorage.read(AppConstants.tokenKey);
       if (token == null) {
@@ -854,7 +858,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       await _dio.delete(
         '$_baseUrl${ApiEndpoints.auth}/me',
-        data: {'password': password},
+        data: reauth.toBody(),
         options: Options(
           headers: {'Authorization': 'Bearer $token'},
           // Solo 200/204 son éxito. 4xx lanza DioException → catch maneja 401.
@@ -868,24 +872,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await _clearAllPersistentData();
     } on DioException catch (e) {
       final status = e.response?.statusCode;
-      final serverMsg = e.response?.data is Map
-          ? e.response!.data['message'] as String?
-          : null;
-
-      if (status == 401 || status == 403) {
-        throw AuthException(
-          message: serverMsg ?? tr('errors.wrong_password'),
-          code: status,
-        );
-      }
-      if (status == 429) {
-        throw AuthException(
-          message: tr('errors.too_many_attempts'),
-          code: 429,
-        );
-      }
+      final data = e.response?.data;
+      final errorCode = data is Map ? data['code'] as String? : null;
+      AppLogger.w('Borrado de cuenta rechazado: $status ($errorCode)',
+          tag: _tag);
       throw AuthException(
-        message: serverMsg ?? tr('errors.delete_account'),
+        message: _deleteAccountErrorMessage(e, reauth, status, errorCode),
         code: status,
       );
     } on AuthException {
@@ -895,6 +887,71 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         message: tr('errors.unexpected', namedArgs: {'details': '$e'}),
       );
     }
+  }
+
+  /// Mensaje localizado para un fallo de `DELETE /auth/me`. Se decide por
+  /// `code` del backend y por el status, nunca por su `message` (solo en
+  /// español, y enmascarado en 5xx).
+  String _deleteAccountErrorMessage(
+    DioException e,
+    DeleteAccountReauth reauth,
+    int? status,
+    String? errorCode,
+  ) {
+    final provider = switch (reauth) {
+      SocialReauth(:final credential) => credential.provider,
+      PasswordReauth() => null,
+    };
+    final args = provider == null
+        ? const <String, String>{}
+        : {'provider': _providerLabel(provider)};
+
+    if (e.response == null) {
+      // Timeout / sin conexión: el ErrorInterceptor ya dejó un mensaje
+      // localizado en `e.error`.
+      final inner = e.error;
+      if (inner is AppException && inner.message.isNotEmpty) {
+        return inner.message;
+      }
+      return tr('common.error_network');
+    }
+
+    if (status == 429) return tr('errors.too_many_attempts');
+
+    // Reautenticación rechazada: contraseña incorrecta o idToken inválido /
+    // identidad no vinculada a esta cuenta. Un 401/403 sin `code` se trata igual.
+    final rejected = errorCode == 'AUTH_INVALID_PASSWORD' ||
+        errorCode == 'AUTH_INVALID_TOKEN' ||
+        (errorCode == null && (status == 401 || status == 403));
+    if (rejected) {
+      return provider == null
+          ? tr('errors.wrong_password')
+          : tr('errors.delete_account_social_reauth_failed', namedArgs: args);
+    }
+
+    final unavailable = errorCode == 'AUTH_OAUTH_PROVIDER_UNAVAILABLE' ||
+        (status != null && status >= 500);
+    if (unavailable && provider != null) {
+      return tr('errors.social_signin_provider_unavailable', namedArgs: args);
+    }
+    return tr('errors.delete_account');
+  }
+
+  @override
+  Future<List<SocialProvider>> getConnectedProviders() async {
+    final token = await _secureStorage.read(AppConstants.tokenKey);
+    if (token == null) {
+      throw AuthException(message: tr('errors.no_active_session'));
+    }
+    final response = await _dio.get(
+      '$_baseUrl${ApiEndpoints.auth}/oauth/providers',
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
+    final names = (response.data['data'] as List?)?.cast<String>() ?? const [];
+    return [
+      for (final p in SocialProvider.values)
+        if (names.contains(p.wireName)) p,
+    ];
   }
 
   @override

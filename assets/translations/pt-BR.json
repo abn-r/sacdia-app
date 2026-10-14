@@ -380,7 +380,8 @@
     "social_signin_failed": "Não foi possível entrar com {provider}. Tente novamente.",
     "social_signin_unverified": "Não conseguimos verificar sua conta {provider}.",
     "social_signin_already_linked": "Sua conta já está vinculada a outra conta {provider}. Entre com seu e-mail e senha.",
-    "social_signin_provider_unavailable": "{provider} não está disponível no momento. Tente novamente em alguns minutos."
+    "social_signin_provider_unavailable": "{provider} não está disponível no momento. Tente novamente em alguns minutos.",
+    "delete_account_social_reauth_failed": "Não foi possível confirmar sua identidade com {provider}. Tente novamente."
   },
   "honors": {
     "errors": {
@@ -3635,6 +3636,10 @@
       "delete_account_enter_password": "Informe sua senha atual para continuar.",
       "field_password_hint": "Senha",
       "delete_account_error_no_password": "Informe sua senha.",
+      "delete_account_or_confirm_with": "Ou confirme com sua conta vinculada:",
+      "delete_account_confirm_google": "Confirmar com Google",
+      "delete_account_confirm_apple": "Confirmar com Apple",
+      "delete_account_error_no_reauth": "Digite sua senha ou confirme com sua conta vinculada.",
       "deleting_account": "Excluindo conta...",
       "account_deleted": "Sua conta foi excluída com sucesso.",
       "theme_title": "Tema",

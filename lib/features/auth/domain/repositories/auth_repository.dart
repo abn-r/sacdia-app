@@ -1,5 +1,7 @@
 import 'package:dartz/dartz.dart';
+import '../../../../core/auth/social_credential.dart';
 import '../../../../core/errors/failures.dart';
+import '../entities/delete_account_reauth.dart';
 import '../entities/user_entity.dart';
 
 /// Interfaz del repositorio de autenticación para la capa de dominio
@@ -54,7 +56,11 @@ abstract class AuthRepository {
 
   /// Elimina permanentemente la cuenta del usuario autenticado.
   ///
-  /// Requiere la contraseña actual para verificación server-side.
+  /// Requiere reautenticación server-side: la contraseña actual o un idToken
+  /// fresco del proveedor social ([DeleteAccountReauth]).
   /// El backend aplica cascada: revoca sesiones, borra PII, archiva audit log.
-  Future<Either<Failure, void>> deleteAccount(String password);
+  Future<Either<Failure, void>> deleteAccount(DeleteAccountReauth reauth);
+
+  /// Proveedores sociales vinculados a la cuenta del usuario autenticado.
+  Future<Either<Failure, List<SocialProvider>>> getConnectedProviders();
 }

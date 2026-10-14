@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
-import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -22,12 +21,14 @@ import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/widgets/zarza_roja_credit.dart';
 import '../../../../core/utils/icon_helper.dart';
+import '../../../auth/domain/entities/delete_account_reauth.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/notification_preferences_providers.dart';
 import '../widgets/accent_picker_sheet.dart';
+import '../widgets/delete_account_confirm_dialog.dart';
 import '../widgets/setting_tile.dart';
 import '../../../qr/presentation/views/qr_scanner_view.dart';
 import '../../../accessibility/presentation/widgets/accessibility_settings_section.dart';
@@ -372,15 +373,22 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
 
     if (firstConfirmed != true || !mounted) return;
 
-    final password = await SacDialog.present<String>(
+    // Proveedores vinculados para ofrecer la confirmación sin contraseña.
+    // El diálogo muestra solo los que este dispositivo soporta.
+    final providers =
+        await ref.read(authNotifierProvider.notifier).connectedProviders();
+    if (!mounted) return;
+
+    final reauth = await SacDialog.present<DeleteAccountReauth>(
       context,
       barrierDismissible: false,
-      builder: (_) => _DeleteAccountConfirmDialog(
+      builder: (_) => DeleteAccountConfirmDialog(
         confirmationWord: deleteConfirmationWord,
+        connectedProviders: providers,
       ),
     );
 
-    if (password == null || password.isEmpty || !mounted) return;
+    if (reauth == null || !mounted) return;
 
     SacSnackBar.show(
       context,
@@ -397,7 +405,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     );
 
     final error =
-        await ref.read(authNotifierProvider.notifier).deleteAccount(password);
+        await ref.read(authNotifierProvider.notifier).deleteAccount(reauth);
 
     if (!mounted) return;
 
@@ -1157,121 +1165,6 @@ class _ScaleFadeInState extends State<_ScaleFadeIn>
         ),
       ),
       child: widget.child,
-    );
-  }
-}
-
-class _DeleteAccountConfirmDialog extends StatefulWidget {
-  const _DeleteAccountConfirmDialog({required this.confirmationWord});
-
-  final String confirmationWord;
-
-  @override
-  State<_DeleteAccountConfirmDialog> createState() =>
-      _DeleteAccountConfirmDialogState();
-}
-
-class _DeleteAccountConfirmDialogState
-    extends State<_DeleteAccountConfirmDialog> {
-  late final TextEditingController _confirmCtrl;
-  late final TextEditingController _passwordCtrl;
-  String? _fieldError;
-
-  @override
-  void initState() {
-    super.initState();
-    _confirmCtrl = TextEditingController();
-    _passwordCtrl = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _confirmCtrl.dispose();
-    _passwordCtrl.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    if (_confirmCtrl.text.trim() != widget.confirmationWord.toUpperCase()) {
-      setState(() {
-        _fieldError = 'profile.settings.delete_account_error_type_wrong'.tr(
-          namedArgs: {'word': widget.confirmationWord},
-        );
-      });
-      return;
-    }
-    if (_passwordCtrl.text.trim().isEmpty) {
-      setState(() {
-        _fieldError = 'profile.settings.delete_account_error_no_password'.tr();
-      });
-      return;
-    }
-    Navigator.of(context).pop(_passwordCtrl.text.trim());
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return SacDialog(
-      title: 'profile.settings.delete_account_second_title'.tr(),
-      icon: HugeIcons.strokeRoundedAlert02,
-      iconColor: AppColors.error,
-      iconBackgroundColor: AppColors.errorLight,
-      content: 'profile.settings.delete_account_write_eliminate'.tr(
-        namedArgs: {'word': widget.confirmationWord},
-      ),
-      body: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SacTextField(
-            controller: _confirmCtrl,
-            hint: widget.confirmationWord,
-            textCapitalization: TextCapitalization.characters,
-            inputFormatters: [
-              TextInputFormatter.withFunction(
-                (old, val) => val.copyWith(
-                  text: val.text.toUpperCase(),
-                  selection: val.selection,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'profile.settings.delete_account_enter_password'.tr(),
-            style: TextStyle(fontSize: 14, color: c.textSecondary),
-          ),
-          const SizedBox(height: 8),
-          SacTextField(
-            controller: _passwordCtrl,
-            hint: 'profile.settings.field_password_hint'.tr(),
-            obscureText: true,
-            textInputAction: TextInputAction.done,
-            onSubmitted: (_) => _submit(),
-          ),
-          if (_fieldError != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              _fieldError!,
-              style: const TextStyle(color: AppColors.error, fontSize: 13),
-            ),
-          ],
-        ],
-      ),
-      actions: [
-        SacDialogAction(
-          label: 'common.cancel'.tr(),
-          onPressed: () => Navigator.of(context).pop(),
-          style: SacDialogActionStyle.cancel,
-        ),
-        SacDialogAction(
-          label: 'profile.settings.delete_account_tile'.tr(),
-          onPressed: _submit,
-          style: SacDialogActionStyle.destructive,
-        ),
-      ],
     );
   }
 }

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/auth/social_auth_provider.dart';
+import '../../../../core/auth/social_credential.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -13,6 +14,7 @@ import '../../../../providers/storage_provider.dart';
 import '../../data/datasources/auth_remote_data_source.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/authorization_snapshot.dart';
+import '../../domain/entities/delete_account_reauth.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/usecases/get_current_user.dart';
@@ -677,11 +679,11 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   ///
   /// Flujo:
   ///  1. Desregistra el token FCM del backend (best-effort).
-  ///  2. Llama DELETE /auth/me con la contraseña.
+  ///  2. Llama DELETE /auth/me con la reautenticación (contraseña o proveedor).
   ///  3. En éxito limpia todo el storage local y pone state = null.
   ///
   /// Retorna null en éxito o un mensaje de error localizado.
-  Future<String?> deleteAccount(String password) async {
+  Future<String?> deleteAccount(DeleteAccountReauth reauth) async {
     AppLogger.i('Iniciando eliminación de cuenta', tag: _tag);
 
     // Confirmación biométrica antes de cualquier efecto destructivo
@@ -707,8 +709,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
           tag: _tag, error: e);
     }
 
-    final result =
-        await ref.read(authRepositoryProvider).deleteAccount(password);
+    final result = await ref.read(authRepositoryProvider).deleteAccount(reauth);
 
     return result.fold<Future<String?>>(
       (failure) async {
@@ -744,6 +745,14 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         return null;
       },
     );
+  }
+
+  /// Proveedores sociales vinculados, para ofrecer la confirmación sin
+  /// contraseña al borrar la cuenta. Lista vacía si la consulta falla.
+  Future<List<SocialProvider>> connectedProviders() async {
+    final result =
+        await ref.read(authRepositoryProvider).getConnectedProviders();
+    return result.fold((_) => const [], (list) => list);
   }
 
   /// Called by AuthInterceptor when the refresh token is dead.
