@@ -100,12 +100,16 @@ class CertificateImportStatusView extends StatelessWidget {
     final rejected = items
         .where((item) => item.isRejected || item.rejectionReason != null)
         .toList();
-    final pending = items
-        .where((item) =>
-            !item.isRejected && item.rejectionReason == null && !item.isReady)
-        .length;
     final approved = items
         .where((item) => item.status == CertificateImportItemStatus.approved)
+        .length;
+    // Every other row the member kept is still waiting for a decision. A row
+    // that was just sent (`submitted`) counts too: before, only rows that
+    // were not sent yet did, so a fully sent batch read "Pendientes: 0".
+    final pending = items
+        .where((item) =>
+            item.status != CertificateImportItemStatus.approved &&
+            !rejected.contains(item))
         .length;
 
     return Scaffold(
@@ -166,8 +170,7 @@ class CertificateImportStatusView extends StatelessWidget {
                             ),
                       ),
                     ],
-                    if (items
-                        .any((item) => item.isInstitutionalClass)) ...[
+                    if (items.any((item) => item.isInstitutionalClass)) ...[
                       const SizedBox(height: 10),
                       Text(
                         'certificate_import.status.institutional'.tr(),

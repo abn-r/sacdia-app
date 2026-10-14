@@ -4651,6 +4651,15 @@
       "skip_wait": "Continuar sem esperar",
       "cancel": "Cancelar"
     },
+    "recent": {
+      "title": "Seus envios recentes",
+      "draft": "Rascunho",
+      "in_review": "Em revisão",
+      "corrections": "Correção",
+      "partial": "Parcialmente aprovado",
+      "approved": "Aprovado",
+      "items": "Linhas: {count}"
+    },
     "errors": {
       "retry": "Tentar novamente",
       "change_file": "Trocar arquivo",

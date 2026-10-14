@@ -787,7 +787,7 @@ void main() {
 
     testWidgets('does not count the rows the member removed as pending',
         (tester) async {
-      // Three removed rows and two sent: nothing is pending.
+      // Three removed rows and two sent: only the two sent wait for review.
       await _pump(
         tester,
         CertificateImportStatusView(
@@ -807,7 +807,32 @@ void main() {
       );
 
       expect(
-        find.text('Aprobadas: 0 · Rechazadas: 0 · Pendientes: 0'),
+        find.text('Aprobadas: 0 · Rechazadas: 0 · Pendientes: 2'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('counts approved, rejected and the rest as pending',
+        (tester) async {
+      await _pump(
+        tester,
+        CertificateImportStatusView(
+          batch: CertificateImportBatch(
+            id: 'batch-1',
+            status: 'SUBMITTED',
+            items: [
+              row('a', status: CertificateImportItemStatus.approved),
+              row('r', status: CertificateImportItemStatus.rejected),
+              row('s', status: CertificateImportItemStatus.submitted),
+              row('t', status: CertificateImportItemStatus.resubmitted),
+              row('n', status: CertificateImportItemStatus.needsReview),
+            ],
+          ),
+        ),
+      );
+
+      expect(
+        find.text('Aprobadas: 1 · Rechazadas: 1 · Pendientes: 3'),
         findsOneWidget,
       );
     });

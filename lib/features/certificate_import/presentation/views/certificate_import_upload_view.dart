@@ -30,6 +30,7 @@ import '../controllers/certificate_import_upload_controller.dart';
 import '../error/certificate_import_error_mapper.dart';
 import '../providers/certificate_import_providers.dart';
 import '../widgets/certificate_import_back_button.dart';
+import '../widgets/import_recent_batches.dart';
 import '../widgets/import_status_card.dart';
 import '../widgets/import_steps.dart';
 
@@ -164,6 +165,8 @@ class _CertificateImportUploadRouteViewState
         duration: const Duration(seconds: 6),
       );
     }
+    // The new draft belongs in the recent list when the member comes back.
+    ref.invalidate(certificateImportBatchListProvider);
     // The just-uploaded file lets the review thumbnail and viewer work offline.
     context.push(
       RouteNames.certificateImportReviewPath(outcome.batchId),
@@ -183,6 +186,7 @@ class _CertificateImportUploadRouteViewState
       onPickCamera: CertificateImportUploadRouteView._pickCameraProof,
       onPickGallery: CertificateImportUploadRouteView._pickGalleryProof,
       onPickFile: CertificateImportUploadRouteView._pickFileProof,
+      recentBatches: const ImportRecentBatches(),
     );
   }
 }
@@ -199,6 +203,7 @@ class CertificateImportUploadView extends StatefulWidget {
     this.slow,
     this.onCancel,
     this.onSkipWait,
+    this.recentBatches,
   });
 
   final CertificateImportSubmit? onSubmitProofs;
@@ -220,6 +225,10 @@ class CertificateImportUploadView extends StatefulWidget {
 
   /// Leaves the wait and opens the review ("Seguir sin esperar").
   final VoidCallback? onSkipWait;
+
+  /// The member's earlier batches, below the upload hint. Comes from the
+  /// route so this view stays free of providers.
+  final Widget? recentBatches;
 
   @override
   State<CertificateImportUploadView> createState() =>
@@ -303,6 +312,7 @@ class _CertificateImportUploadViewState
                         child: _SelectedProofCard(proof: _selectedProof!),
                       ),
                     ],
+                    if (widget.recentBatches != null) widget.recentBatches!,
                   ],
                 ),
               ),
