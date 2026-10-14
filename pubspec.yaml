@@ -78,6 +78,11 @@ dependencies:
   local_auth_android: ^1.0.56
   local_auth_darwin: ^1.6.1
 
+  # Login social nativo (idToken → POST /auth/oauth/:provider/token)
+  google_sign_in: ^7.2.0
+  sign_in_with_apple: ^8.1.0   # 8.2.0 requiere Flutter 3.44
+  crypto: ^3.0.6               # SHA-256 del nonce (Google y Apple)
+
   # Security — Android FLAG_SECURE + iOS app-switcher blur
   secure_application: ^4.1.0
 

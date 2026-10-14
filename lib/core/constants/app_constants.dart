@@ -6,6 +6,13 @@ class AppConstants {
 
   // API
   static const String apiBaseUrlDefineKey = 'API_BASE_URL';
+  static const String googleServerClientIdDefineKey = 'GOOGLE_SERVER_CLIENT_ID';
+
+  /// Client ID **Web** de Google Cloud. Es la `aud` del idToken que valida el
+  /// backend (`GOOGLE_OAUTH_AUDIENCES`). Sin él, el botón de Google se oculta.
+  /// Pasar con `--dart-define=GOOGLE_SERVER_CLIENT_ID=...apps.googleusercontent.com`.
+  static const String googleServerClientId =
+      String.fromEnvironment(googleServerClientIdDefineKey);
 
   /// Fallback SOLO para debug/profile. Los builds de release exigen
   /// `--dart-define=API_BASE_URL=https://...` y fallan al arrancar si falta.
