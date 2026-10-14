@@ -168,7 +168,8 @@ void main() {
     const signedPdf =
         'https://files.example.com/batches/b1/sealed/f1.pdf?X-Amz-Signature=abc&X-Amz-Expires=3600';
 
-    testWidgets('a presigned PDF (query after .pdf) shows a PDF tile, not an image',
+    testWidgets(
+        'a presigned PDF (query after .pdf) shows a PDF tile, not an image',
         (tester) async {
       await pumpEvidence(
         tester,
@@ -209,7 +210,8 @@ void main() {
       expect(find.text('PDF'), findsNothing);
     });
 
-    testWidgets('an unsigned storage key gets a placeholder, not a broken image',
+    testWidgets(
+        'an unsigned storage key gets a placeholder, not a broken image',
         (tester) async {
       await pumpEvidence(
         tester,
