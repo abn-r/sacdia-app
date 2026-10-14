@@ -105,9 +105,8 @@ void main() {
         (_, next) => transitions.add(next),
       );
 
-      final pending = container
-          .read(authNotifierProvider.notifier)
-          .signInWithGoogle();
+      final pending =
+          container.read(authNotifierProvider.notifier).signInWithGoogle();
       await Future<void>.delayed(Duration.zero);
 
       // El router manda a /splash mientras el auth está en loading, así que
