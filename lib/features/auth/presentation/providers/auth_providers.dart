@@ -540,7 +540,9 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     UseCase<UserEntity, NoParams> useCase,
   ) async {
     AppLogger.i('Login social iniciado: $provider', tag: _tag);
-    state = const AsyncValue.loading();
+    // No se pasa por AsyncLoading: el router manda a /splash mientras el auth
+    // carga, lo que desmontaría LoginView detrás de la hoja nativa. El botón
+    // muestra su propio estado de carga.
 
     final result = await useCase(const NoParams());
 
@@ -548,7 +550,6 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       (failure) {
         if (failure is SocialSignInCancelledFailure) {
           AppLogger.i('Login social cancelado: $provider', tag: _tag);
-          state = const AsyncValue.data(null);
           return SocialSignInResult.cancelled;
         }
         final errorMessage = failure is AuthFailure

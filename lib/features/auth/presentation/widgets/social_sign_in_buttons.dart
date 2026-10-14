@@ -14,18 +14,29 @@ import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.d
 /// Apple solo aparece en iOS; Google solo cuando hay
 /// `GOOGLE_SERVER_CLIENT_ID` (ver `AppConstants.googleServerClientId`).
 /// Si ninguno está disponible, no se renderiza nada.
-class SocialSignInButtons extends ConsumerWidget {
+class SocialSignInButtons extends ConsumerStatefulWidget {
   const SocialSignInButtons({super.key, required this.enabled});
 
   final bool enabled;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SocialSignInButtons> createState() =>
+      _SocialSignInButtonsState();
+}
+
+class _SocialSignInButtonsState extends ConsumerState<SocialSignInButtons> {
+  /// Proveedor con la hoja nativa abierta. El estado global de auth no pasa
+  /// por loading durante el login social (desmontaría esta pantalla), así que
+  /// el estado de carga y el guard de doble toque viven aquí.
+  SocialProvider? _busyProvider;
+
+  @override
+  Widget build(BuildContext context) {
     final client = ref.watch(socialAuthClientProvider);
     final providers = SocialProvider.values.where(client.supports).toList();
     if (providers.isEmpty) return const SizedBox.shrink();
 
-    final isLoading = ref.watch(authNotifierProvider).isLoading;
+    final isBusy = _busyProvider != null;
     final c = context.sac;
     final divider = Theme.of(context).dividerColor;
 
@@ -52,8 +63,9 @@ class SocialSignInButtons extends ConsumerWidget {
         for (final provider in providers) ...[
           _SocialButton(
             provider: provider,
-            enabled: enabled && !isLoading,
-            onPressed: () => _signIn(ref, provider),
+            enabled: widget.enabled && !isBusy,
+            isLoading: _busyProvider == provider,
+            onPressed: () => _signIn(provider),
           ),
           const SizedBox(height: 12),
         ],
@@ -61,12 +73,18 @@ class SocialSignInButtons extends ConsumerWidget {
     );
   }
 
-  Future<void> _signIn(WidgetRef ref, SocialProvider provider) {
-    final notifier = ref.read(authNotifierProvider.notifier);
-    return switch (provider) {
-      SocialProvider.google => notifier.signInWithGoogle(),
-      SocialProvider.apple => notifier.signInWithApple(),
-    };
+  Future<void> _signIn(SocialProvider provider) async {
+    if (_busyProvider != null) return;
+    setState(() => _busyProvider = provider);
+    try {
+      final notifier = ref.read(authNotifierProvider.notifier);
+      await switch (provider) {
+        SocialProvider.google => notifier.signInWithGoogle(),
+        SocialProvider.apple => notifier.signInWithApple(),
+      };
+    } finally {
+      if (mounted) setState(() => _busyProvider = null);
+    }
   }
 }
 
@@ -74,11 +92,13 @@ class _SocialButton extends StatelessWidget {
   const _SocialButton({
     required this.provider,
     required this.enabled,
+    required this.isLoading,
     required this.onPressed,
   });
 
   final SocialProvider provider;
   final bool enabled;
+  final bool isLoading;
   final VoidCallback onPressed;
 
   @override
@@ -112,6 +132,7 @@ class _SocialButton extends StatelessWidget {
       fullWidth: true,
       borderRadius: AppTheme.radiusFull,
       isEnabled: enabled,
+      isLoading: isLoading,
       onPressed: onPressed,
       icon: icon,
     );

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,12 +10,18 @@ import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.d
 import 'auth_notifier_test_support.dart';
 
 class _SocialRepo extends FakeAuthRepository {
-  _SocialRepo(this.googleResult);
+  _SocialRepo(this.googleResult, {this.gate});
 
   final Either<Failure, UserEntity> googleResult;
 
+  /// Si se pasa, el login queda pendiente hasta que se complete.
+  final Completer<void>? gate;
+
   @override
-  Future<Either<Failure, UserEntity>> signInWithGoogle() async => googleResult;
+  Future<Either<Failure, UserEntity>> signInWithGoogle() async {
+    await gate?.future;
+    return googleResult;
+  }
 }
 
 void main() {
@@ -79,5 +87,59 @@ void main() {
       container.read(authNotifierProvider).error,
       'No pudimos verificar tu cuenta de Google',
     );
+  });
+
+  test(
+    'never enters AsyncLoading while the native sheet is pending',
+    () async {
+      final gate = Completer<void>();
+      final container = await buildAuthContainer(
+        repo: _SocialRepo(const Right(user), gate: gate),
+      );
+      addTearDown(container.dispose);
+      await container.read(authNotifierProvider.future);
+
+      final transitions = <AsyncValue<UserEntity?>>[];
+      container.listen<AsyncValue<UserEntity?>>(
+        authNotifierProvider,
+        (_, next) => transitions.add(next),
+      );
+
+      final pending = container
+          .read(authNotifierProvider.notifier)
+          .signInWithGoogle();
+      await Future<void>.delayed(Duration.zero);
+
+      // El router manda a /splash mientras el auth está en loading, así que
+      // la pantalla de login no puede quedar en loading detrás de la hoja.
+      expect(container.read(authNotifierProvider).isLoading, isFalse);
+      expect(transitions, isEmpty);
+
+      gate.complete();
+      await pending;
+
+      expect(transitions.any((t) => t.isLoading), isFalse);
+      expect(container.read(authNotifierProvider).value?.id, 'user-1');
+    },
+  );
+
+  test('cancel keeps the previous state untouched and never loads', () async {
+    final container = await buildAuthContainer(
+      repo: _SocialRepo(Left(SocialSignInCancelledFailure())),
+    );
+    addTearDown(container.dispose);
+    await container.read(authNotifierProvider.future);
+    final before = container.read(authNotifierProvider);
+
+    final transitions = <AsyncValue<UserEntity?>>[];
+    container.listen<AsyncValue<UserEntity?>>(
+      authNotifierProvider,
+      (_, next) => transitions.add(next),
+    );
+
+    await container.read(authNotifierProvider.notifier).signInWithGoogle();
+
+    expect(transitions, isEmpty);
+    expect(container.read(authNotifierProvider), same(before));
   });
 }
