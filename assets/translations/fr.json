@@ -224,8 +224,6 @@
     "errors": {
       "sign_in_failed": "Erreur de connexion",
       "sign_up_failed": "Erreur d'inscription",
-      "sign_in_google_failed": "Erreur de connexion Google",
-      "sign_in_apple_failed": "Erreur de connexion Apple",
       "change_password_failed": "Erreur lors du changement de mot de passe",
       "delete_account_failed": "Erreur lors de la suppression du compte",
       "sign_out_failed": "Erreur lors de la déconnexion",

@@ -224,8 +224,6 @@
     "errors": {
       "sign_in_failed": "Sign in failed",
       "sign_up_failed": "Registration failed",
-      "sign_in_google_failed": "Google sign in failed",
-      "sign_in_apple_failed": "Apple sign in failed",
       "change_password_failed": "Password change failed",
       "delete_account_failed": "Account deletion failed",
       "sign_out_failed": "Sign out failed",

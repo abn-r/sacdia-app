@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:google_sign_in/google_sign_in.dart';
@@ -75,6 +76,13 @@ class NativeSocialAuthClient implements SocialAuthClient {
       );
       final account = await GoogleSignIn.instance.authenticate();
       final idToken = account.authentication.idToken;
+      // Solo se necesita el token: no se deja al usuario de Google en la
+      // sesión del SDK (keychain). Best-effort, sin bloquear el login.
+      unawaited(
+        GoogleSignIn.instance.signOut().catchError((Object e) {
+          AppLogger.w('Google signOut falló', tag: _tag, error: e);
+        }),
+      );
       if (idToken == null || idToken.isEmpty) {
         throw SocialAuthException(SocialProvider.google, 'no idToken returned');
       }
@@ -133,6 +141,11 @@ class NativeSocialAuthClient implements SocialAuthClient {
       }
       AppLogger.w('Apple sign-in falló: ${e.code} ${e.message}', tag: _tag);
       throw SocialAuthException(SocialProvider.apple, e.message);
+    } on SignInWithAppleException catch (e) {
+      // NotSupported, Credentials y Unknown (PlatformException) no son
+      // SignInWithAppleAuthorizationException.
+      AppLogger.w('Apple sign-in falló: $e', tag: _tag, error: e);
+      throw SocialAuthException(SocialProvider.apple, e.toString());
     }
   }
 }

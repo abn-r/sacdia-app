@@ -224,8 +224,6 @@
     "errors": {
       "sign_in_failed": "Error al iniciar sesión",
       "sign_up_failed": "Error al registrar usuario",
-      "sign_in_google_failed": "Error al iniciar con Google",
-      "sign_in_apple_failed": "Error al iniciar con Apple",
       "change_password_failed": "Error al cambiar la contraseña",
       "delete_account_failed": "Error al eliminar la cuenta",
       "sign_out_failed": "Error al cerrar sesión",
