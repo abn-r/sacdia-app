@@ -189,6 +189,9 @@
     "password_hint_login": "Tu contraseña",
     "no_account": "¿No tienes cuenta? ",
     "register_link": "Regístrate",
+    "or_continue_with": "o continúa con",
+    "continue_with_google": "Continuar con Google",
+    "continue_with_apple": "Continuar con Apple",
     "forgot_password_error": "Error inesperado. Intenta de nuevo.",
     "forgot_password_title": "Recuperar contraseña",
     "forgot_password_description": "Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.",
@@ -221,8 +224,6 @@
     "errors": {
       "sign_in_failed": "Error al iniciar sesión",
       "sign_up_failed": "Error al registrar usuario",
-      "sign_in_google_failed": "Error al iniciar con Google",
-      "sign_in_apple_failed": "Error al iniciar con Apple",
       "change_password_failed": "Error al cambiar la contraseña",
       "delete_account_failed": "Error al eliminar la cuenta",
       "sign_out_failed": "Error al cerrar sesión",
@@ -358,21 +359,14 @@
     "missing_user_id": "No se recibió ID de usuario",
     "no_active_session": "No hay sesión activa",
     "refresh_user_failed": "No se pudo obtener el usuario actualizado",
-    "google_browser_open": "No se pudo abrir el navegador para autenticación con Google",
-    "google_signin_failed": "Error al iniciar sesión con Google. Intente de nuevo.",
-    "apple_browser_open": "No se pudo abrir el navegador para autenticación con Apple",
-    "apple_signin_failed": "Error al iniciar sesión con Apple. Intente de nuevo.",
-    "oauth_url_missing": "El servidor no devolvió URL para OAuth de {provider}",
     "too_many_attempts": "Demasiados intentos. Intente más tarde.",
     "unexpected": "Error inesperado: {details}",
     "update_password": "Error al actualizar contraseña",
-    "get_oauth_url": "Error al obtener URL de {provider}",
     "switch_context": "Error al cambiar contexto",
     "delete_account": "Error al eliminar la cuenta",
     "check_completion_status": "Error al verificar estado de completitud",
     "register_failed": "Error en el registro",
     "password_reset_sent": "Si el correo existe, recibirás un enlace de recuperación",
-    "oauth_callback_failed": "Error al procesar el inicio de sesión con {provider}",
     "wrong_password": "Contraseña incorrecta",
     "invalid_user_response": "La respuesta del servidor no contiene un ID de usuario válido",
     "user_not_authenticated": "Usuario no autenticado",
@@ -382,7 +376,12 @@
     "connection_error": "Error de conexión. Compruebe su red.",
     "no_internet": "No hay conexión a Internet",
     "ssl_invalid": "Certificado SSL no válido",
-    "oauth_redirecting": "Redirigiendo a {provider}. Completa el proceso en el navegador."
+    "social_signin_cancelled": "Inicio de sesión cancelado",
+    "social_signin_failed": "No se pudo iniciar sesión con {provider}. Intenta de nuevo.",
+    "social_signin_unverified": "No pudimos verificar tu cuenta de {provider}.",
+    "social_signin_already_linked": "Tu cuenta ya está vinculada a otra cuenta de {provider}. Inicia sesión con tu correo y contraseña.",
+    "social_signin_provider_unavailable": "{provider} no está disponible en este momento. Intenta de nuevo en unos minutos.",
+    "delete_account_social_reauth_failed": "No pudimos confirmar tu identidad con {provider}. Intenta de nuevo."
   },
   "honors": {
     "errors": {
@@ -3638,6 +3637,10 @@
       "delete_account_enter_password": "Ingresa tu contraseña actual para continuar.",
       "field_password_hint": "Contraseña",
       "delete_account_error_no_password": "Ingresa tu contraseña.",
+      "delete_account_or_confirm_with": "O confirma con tu cuenta vinculada:",
+      "delete_account_confirm_google": "Confirmar con Google",
+      "delete_account_confirm_apple": "Confirmar con Apple",
+      "delete_account_error_no_reauth": "Ingresa tu contraseña o confirma con tu cuenta vinculada.",
       "deleting_account": "Eliminando cuenta...",
       "account_deleted": "Tu cuenta fue eliminada correctamente.",
       "theme_title": "Tema",
@@ -4055,9 +4058,6 @@
     },
     "camporee_members": {
       "default_name": "Camporee"
-    },
-    "oauth_callback": {
-      "completing_signin": "Completando inicio de sesión..."
     }
   },
   "home": {

@@ -210,6 +210,33 @@ class PushNotificationService {
     }
   }
 
+  /// Limpieza solo local del registro push, sin llamar al backend. Para cuando
+  /// la cuenta acaba de borrarse: la cascada del servidor ya desactivó sus
+  /// tokens FCM y la sesión ya no existe, así que un `DELETE` fallaría con 401
+  /// y dispararía el cierre de sesión del interceptor a mitad de la UI.
+  ///
+  /// Borra el token/id guardados, cancela las suscripciones y pide a Firebase
+  /// que invalide el token del dispositivo (best-effort).
+  Future<void> clearLocalRegistration() async {
+    try {
+      await _secureStorage.delete(key: _tokenPrefKey);
+      await _secureStorage.delete(key: _tokenIdPrefKey);
+    } catch (e) {
+      AppLogger.w('Error al borrar el token FCM local', tag: _tag, error: e);
+    }
+    await _cancelSubscriptions();
+    try {
+      // Network call to FCM: bounded so a stalled connection can't hold the
+      // "deleting account" UI after the backend already confirmed it.
+      await FirebaseMessaging.instance
+          .deleteToken()
+          .timeout(const Duration(seconds: 3));
+    } catch (e) {
+      AppLogger.w('Error al invalidar el token FCM del dispositivo',
+          tag: _tag, error: e);
+    }
+  }
+
   /// Cancels all active stream subscriptions and releases resources.
   ///
   /// Call this on logout so listeners accumulated across sessions are cleaned up.

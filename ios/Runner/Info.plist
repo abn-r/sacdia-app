@@ -30,9 +30,17 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>io.sacdia.app</string>
+				<!-- REVERSED_CLIENT_ID del client ID iOS de Google Cloud. Debe
+				     coincidir con --dart-define=GOOGLE_IOS_CLIENT_ID (el client ID
+				     se entrega en runtime; este scheme recibe el callback). -->
+				<string>com.googleusercontent.apps.REPLACE_WITH_IOS_CLIENT_ID</string>
 			</array>
 		</dict>
 	</array>
+	<!-- El client ID real llega en runtime desde GOOGLE_IOS_CLIENT_ID; este
+	     valor es un placeholder y debe ser el mismo client ID. -->
+	<key>GIDClientID</key>
+	<string>REPLACE_WITH_IOS_CLIENT_ID.apps.googleusercontent.com</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>FlutterDeepLinkingEnabled</key>

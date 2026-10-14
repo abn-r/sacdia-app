@@ -189,6 +189,9 @@
     "password_hint_login": "Sua senha",
     "no_account": "Não tem conta? ",
     "register_link": "Cadastre-se",
+    "or_continue_with": "ou continue com",
+    "continue_with_google": "Continuar com Google",
+    "continue_with_apple": "Continuar com Apple",
     "forgot_password_error": "Erro inesperado. Tente novamente.",
     "forgot_password_title": "Recuperar senha",
     "forgot_password_description": "Digite seu e-mail e enviaremos um link para redefinir sua senha.",
@@ -221,8 +224,6 @@
     "errors": {
       "sign_in_failed": "Erro ao entrar",
       "sign_up_failed": "Erro ao registrar usuário",
-      "sign_in_google_failed": "Erro ao entrar com Google",
-      "sign_in_apple_failed": "Erro ao entrar com Apple",
       "change_password_failed": "Erro ao alterar senha",
       "delete_account_failed": "Erro ao excluir conta",
       "sign_out_failed": "Erro ao sair",
@@ -358,21 +359,14 @@
     "missing_user_id": "ID de usuário não recebido",
     "no_active_session": "Não há sessão ativa",
     "refresh_user_failed": "Não foi possível obter o usuário atualizado",
-    "google_browser_open": "Não foi possível abrir o navegador para autenticação com Google",
-    "google_signin_failed": "Erro ao entrar com Google. Tente novamente.",
-    "apple_browser_open": "Não foi possível abrir o navegador para autenticação com Apple",
-    "apple_signin_failed": "Erro ao entrar com Apple. Tente novamente.",
-    "oauth_url_missing": "O servidor não retornou URL para OAuth de {provider}",
     "too_many_attempts": "Muitas tentativas. Tente mais tarde.",
     "unexpected": "Erro inesperado: {details}",
     "update_password": "Erro ao atualizar senha",
-    "get_oauth_url": "Erro ao obter URL de {provider}",
     "switch_context": "Erro ao trocar contexto",
     "delete_account": "Erro ao excluir a conta",
     "check_completion_status": "Erro ao verificar status de conclusão",
     "register_failed": "Erro no cadastro",
     "password_reset_sent": "Se o e-mail existir, você receberá um link de recuperação",
-    "oauth_callback_failed": "Erro ao processar retorno de autenticação com {provider}",
     "wrong_password": "Senha incorreta",
     "invalid_user_response": "A resposta do servidor não contém um ID de usuário válido",
     "user_not_authenticated": "Usuário não autenticado",
@@ -382,7 +376,12 @@
     "connection_error": "Erro de conexão. Verifique sua rede.",
     "no_internet": "Sem conexão com a Internet",
     "ssl_invalid": "Certificado SSL inválido",
-    "oauth_redirecting": "Redirecionando para {provider}. Conclua o processo no navegador."
+    "social_signin_cancelled": "Login cancelado",
+    "social_signin_failed": "Não foi possível entrar com {provider}. Tente novamente.",
+    "social_signin_unverified": "Não conseguimos verificar sua conta {provider}.",
+    "social_signin_already_linked": "Sua conta já está vinculada a outra conta {provider}. Entre com seu e-mail e senha.",
+    "social_signin_provider_unavailable": "{provider} não está disponível no momento. Tente novamente em alguns minutos.",
+    "delete_account_social_reauth_failed": "Não foi possível confirmar sua identidade com {provider}. Tente novamente."
   },
   "honors": {
     "errors": {
@@ -3637,6 +3636,10 @@
       "delete_account_enter_password": "Informe sua senha atual para continuar.",
       "field_password_hint": "Senha",
       "delete_account_error_no_password": "Informe sua senha.",
+      "delete_account_or_confirm_with": "Ou confirme com sua conta vinculada:",
+      "delete_account_confirm_google": "Confirmar com Google",
+      "delete_account_confirm_apple": "Confirmar com Apple",
+      "delete_account_error_no_reauth": "Digite sua senha ou confirme com sua conta vinculada.",
       "deleting_account": "Excluindo conta...",
       "account_deleted": "Sua conta foi excluída com sucesso.",
       "theme_title": "Tema",
@@ -4053,9 +4056,6 @@
     },
     "camporee_members": {
       "default_name": "Camporee"
-    },
-    "oauth_callback": {
-      "completing_signin": "Concluindo login..."
     }
   },
   "home": {

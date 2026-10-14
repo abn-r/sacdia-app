@@ -127,6 +127,18 @@ class AuthInterceptor extends QueuedInterceptor {
       return handler.next(err);
     }
 
+    // Reautenticación rechazada (p. ej. `DELETE /auth/me` con contraseña o
+    // idToken inválido): es un fallo de dominio, la sesión sigue vigente.
+    // Refrescar y reintentar gastaría otro intento del límite horario y, si el
+    // refresh falla, cerraría la sesión desde dentro del diálogo.
+    if (_isReauthRejection(err)) {
+      AppLogger.d(
+        '401 de reautenticación (${err.requestOptions.path}), omitiendo refresh',
+        tag: _tag,
+      );
+      return handler.next(err);
+    }
+
     // Si esta petición ya fue reintentada, no entrar en bucle.
     final isRetry = err.requestOptions.extra[_retryAfterRefreshKey] == true;
     if (isRetry) {
@@ -198,6 +210,20 @@ class AuthInterceptor extends QueuedInterceptor {
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────────────
+
+  /// `code` del backend que indica una reautenticación fallida, no una sesión
+  /// expirada.
+  static const _reauthRejectionCodes = <String>{
+    'AUTH_INVALID_PASSWORD',
+    'AUTH_INVALID_TOKEN',
+  };
+
+  static bool _isReauthRejection(DioException err) {
+    final data = err.response?.data;
+    if (data is! Map) return false;
+    final code = data['code'];
+    return code is String && _reauthRejectionCodes.contains(code);
+  }
 
   /// Realiza el refresh usando el refresh token almacenado.
   /// Guarda los nuevos tokens si el servidor responde con éxito.

@@ -189,6 +189,9 @@
     "password_hint_login": "Votre mot de passe",
     "no_account": "Vous n'avez pas de compte ? ",
     "register_link": "Inscrivez-vous",
+    "or_continue_with": "ou continuer avec",
+    "continue_with_google": "Continuer avec Google",
+    "continue_with_apple": "Continuer avec Apple",
     "forgot_password_error": "Erreur inattendue. Veuillez réessayer.",
     "forgot_password_title": "Réinitialiser le mot de passe",
     "forgot_password_description": "Saisissez votre adresse e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe.",
@@ -221,8 +224,6 @@
     "errors": {
       "sign_in_failed": "Erreur de connexion",
       "sign_up_failed": "Erreur d'inscription",
-      "sign_in_google_failed": "Erreur de connexion Google",
-      "sign_in_apple_failed": "Erreur de connexion Apple",
       "change_password_failed": "Erreur lors du changement de mot de passe",
       "delete_account_failed": "Erreur lors de la suppression du compte",
       "sign_out_failed": "Erreur lors de la déconnexion",
@@ -358,21 +359,14 @@
     "missing_user_id": "Identifiant d'utilisateur non reçu",
     "no_active_session": "Aucune session active",
     "refresh_user_failed": "Impossible de récupérer l'utilisateur mis à jour",
-    "google_browser_open": "Impossible d'ouvrir le navigateur pour l'authentification Google",
-    "google_signin_failed": "Erreur lors de la connexion avec Google. Réessayez.",
-    "apple_browser_open": "Impossible d'ouvrir le navigateur pour l'authentification Apple",
-    "apple_signin_failed": "Erreur lors de la connexion avec Apple. Réessayez.",
-    "oauth_url_missing": "Le serveur n'a pas renvoyé d'URL OAuth pour {provider}",
     "too_many_attempts": "Trop de tentatives. Réessayez plus tard.",
     "unexpected": "Erreur inattendue : {details}",
     "update_password": "Erreur lors de la mise à jour du mot de passe",
-    "get_oauth_url": "Erreur lors de l’obtention de l’URL de {provider}",
     "switch_context": "Erreur lors du changement de contexte",
     "delete_account": "Erreur lors de la suppression du compte",
     "check_completion_status": "Erreur lors de la vérification du statut de complétion",
     "register_failed": "Erreur lors de l'inscription",
     "password_reset_sent": "Si l'adresse e-mail existe, vous recevrez un lien de récupération",
-    "oauth_callback_failed": "Erreur lors du traitement du retour d'authentification {provider}",
     "wrong_password": "Mot de passe incorrect",
     "invalid_user_response": "La réponse du serveur ne contient pas d'identifiant utilisateur valide",
     "user_not_authenticated": "Utilisateur non authentifié",
@@ -382,7 +376,12 @@
     "connection_error": "Erreur de connexion. Vérifiez votre réseau.",
     "no_internet": "Pas de connexion Internet",
     "ssl_invalid": "Certificat SSL invalide",
-    "oauth_redirecting": "Redirection vers {provider}. Terminez le processus dans votre navigateur."
+    "social_signin_cancelled": "Connexion annulée",
+    "social_signin_failed": "Impossible de se connecter avec {provider}. Réessayez.",
+    "social_signin_unverified": "Nous n'avons pas pu vérifier votre compte {provider}.",
+    "social_signin_already_linked": "Votre compte est déjà lié à un autre compte {provider}. Connectez-vous avec votre e-mail et votre mot de passe.",
+    "social_signin_provider_unavailable": "{provider} n'est pas disponible pour le moment. Réessayez dans quelques minutes.",
+    "delete_account_social_reauth_failed": "Impossible de confirmer votre identité avec {provider}. Réessayez."
   },
   "honors": {
     "errors": {
@@ -3637,6 +3636,10 @@
       "delete_account_enter_password": "Saisissez votre mot de passe actuel pour continuer.",
       "field_password_hint": "Mot de passe",
       "delete_account_error_no_password": "Saisissez votre mot de passe.",
+      "delete_account_or_confirm_with": "Ou confirmez avec votre compte lié :",
+      "delete_account_confirm_google": "Confirmer avec Google",
+      "delete_account_confirm_apple": "Confirmer avec Apple",
+      "delete_account_error_no_reauth": "Saisissez votre mot de passe ou confirmez avec votre compte lié.",
       "deleting_account": "Suppression du compte…",
       "account_deleted": "Votre compte a été supprimé avec succès.",
       "theme_title": "Thème",
@@ -4053,9 +4056,6 @@
     },
     "camporee_members": {
       "default_name": "Camporée"
-    },
-    "oauth_callback": {
-      "completing_signin": "Finalisation de la connexion..."
     }
   },
   "home": {

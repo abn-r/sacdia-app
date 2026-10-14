@@ -1,17 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../constants/app_constants.dart';
-import '../errors/exceptions.dart';
 import '../utils/app_logger.dart';
 
 /// Servicio de autenticación que reemplaza supabase_auth.dart.
 ///
 /// Responsabilidades:
 /// - Almacenar / leer / borrar tokens en [FlutterSecureStorage].
-/// - Iniciar el flujo OAuth abriendo el URL devuelto por el backend.
 /// - Exponer un stream de cambios de estado de autenticación.
 ///
 /// Este servicio NO contacta directamente a Better Auth; toda la
@@ -138,61 +135,6 @@ class AppAuthService {
       AppLogger.w('Token encontrado pero expirado', tag: _tag);
     }
     return !expired;
-  }
-
-  // ── OAuth ───────────────────────────────────────────────────────────────────
-
-  /// Inicia el flujo OAuth abriendo la URL proporcionada en el navegador del
-  /// sistema.
-  ///
-  /// El caller debe obtener primero la URL llamando a
-  /// `GET /auth/oauth/{provider}` en el backend (que devuelve el redirect URL
-  /// de Better Auth) y pasarla aquí.
-  ///
-  /// El resultado de la autenticación llega de forma asíncrona vía deep link:
-  /// el backend redirige a `io.sacdia.app://auth/callback?session_token=...`
-  /// y el router lo intercepta para llamar a [handleOAuthCallback].
-  ///
-  /// Lanza [OAuthFlowInitiatedException] para señalizar que el navegador fue
-  /// abierto (no es un error real).
-  Future<void> initiateOAuth(String oauthUrl) async {
-    final uri = Uri.parse(oauthUrl);
-    AppLogger.i('Abriendo OAuth URL: $oauthUrl', tag: _tag);
-
-    final launched = await launchUrl(
-      uri,
-      mode: LaunchMode.platformDefault,
-    );
-
-    if (!launched) {
-      throw AuthException(
-        message: 'No se pudo abrir el navegador para autenticación OAuth',
-      );
-    }
-  }
-
-  /// Procesa el callback OAuth recibido por deep link.
-  ///
-  /// Según el nuevo contrato del backend (Better Auth / Option C):
-  /// - El deep link trae `session_token` (token opaco de BA) y `provider`.
-  /// - El caller envía `POST /auth/oauth/callback` con `{ session_token, provider }`.
-  /// - El backend responde con el JWT HS256 interno de SACDIA.
-  ///
-  /// Este método solo persiste los tokens; la llamada HTTP la realiza
-  /// [AuthRemoteDataSourceImpl.handleOAuthCallback].
-  Future<void> persistOAuthTokens({
-    required String accessToken,
-    String? sessionToken,
-    int? expiresAt,
-    String? tokenType,
-  }) async {
-    await storeTokens(
-      accessToken: accessToken,
-      sessionToken: sessionToken,
-      expiresAt: expiresAt,
-      tokenType: tokenType,
-    );
-    AppLogger.i('Tokens OAuth persistidos', tag: _tag);
   }
 
   // ── Lifecycle ───────────────────────────────────────────────────────────────

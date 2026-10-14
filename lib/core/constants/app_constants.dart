@@ -6,6 +6,23 @@ class AppConstants {
 
   // API
   static const String apiBaseUrlDefineKey = 'API_BASE_URL';
+  static const String googleServerClientIdDefineKey = 'GOOGLE_SERVER_CLIENT_ID';
+
+  /// Client ID **Web** de Google Cloud. Es la `aud` del idToken que valida el
+  /// backend (`GOOGLE_OAUTH_AUDIENCES`). Sin él, el botón de Google se oculta.
+  /// Pasar con `--dart-define=GOOGLE_SERVER_CLIENT_ID=...apps.googleusercontent.com`.
+  static const String googleServerClientId =
+      String.fromEnvironment(googleServerClientIdDefineKey);
+
+  static const String googleIosClientIdDefineKey = 'GOOGLE_IOS_CLIENT_ID';
+
+  /// Client ID **iOS** de Google Cloud. google_sign_in_ios solo construye su
+  /// configuración (y por tanto solo respeta `serverClientId`) si recibe el
+  /// client ID en runtime o `GoogleService-Info.plist` trae `CLIENT_ID`; el
+  /// plist es local y no lo trae. En iOS, sin él el botón de Google se oculta.
+  /// Pasar con `--dart-define=GOOGLE_IOS_CLIENT_ID=...apps.googleusercontent.com`.
+  static const String googleIosClientId =
+      String.fromEnvironment(googleIosClientIdDefineKey);
 
   /// Fallback SOLO para debug/profile. Los builds de release exigen
   /// `--dart-define=API_BASE_URL=https://...` y fallan al arrancar si falta.

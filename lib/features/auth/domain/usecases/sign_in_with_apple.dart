@@ -4,7 +4,7 @@ import '../../../../core/usecases/usecase.dart';
 import '../entities/user_entity.dart';
 import '../repositories/auth_repository.dart';
 
-/// Caso de uso para iniciar sesión con Apple OAuth
+/// Caso de uso para iniciar sesión con Apple (SDK nativo)
 class SignInWithApple implements UseCase<UserEntity, NoParams> {
   final AuthRepository repository;
 

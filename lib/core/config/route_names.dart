@@ -73,9 +73,6 @@ class RouteNames {
   static const String transferRequests = '/transfers';
   static const String transferRequestDetailRoute = '/transfer/:requestId';
 
-  // OAuth callback deep link (io.sacdia.app://auth/callback)
-  static const String authCallback = '/auth/callback';
-
   // Investidura por autorización
   static const String sectionInvestiture = '/home/investiture';
   static const String sectionInvestitureHistory = '/home/investiture/history';

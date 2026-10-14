@@ -5,6 +5,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../core/auth/social_auth_provider.dart';
+import '../../../../core/auth/social_credential.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -12,6 +14,7 @@ import '../../../../providers/storage_provider.dart';
 import '../../data/datasources/auth_remote_data_source.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/authorization_snapshot.dart';
+import '../../domain/entities/delete_account_reauth.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/usecases/get_current_user.dart';
@@ -48,6 +51,7 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
       dio: dio,
       baseUrl: baseUrl,
       secureStorage: secureStorage,
+      socialAuth: ref.read(socialAuthClientProvider),
     ),
     networkInfo: networkInfo,
   );
@@ -100,12 +104,12 @@ final resetPasswordRequestProvider = Provider<ResetPasswordRequest>((ref) {
   return ResetPasswordRequest(ref.read(authRepositoryProvider));
 });
 
-/// Provider para el caso de uso de OAuth con Google
+/// Provider para el caso de uso de login nativo con Google
 final signInWithGoogleProvider = Provider<SignInWithGoogle>((ref) {
   return SignInWithGoogle(ref.read(authRepositoryProvider));
 });
 
-/// Provider para el caso de uso de OAuth con Apple
+/// Provider para el caso de uso de login nativo con Apple
 final signInWithAppleProvider = Provider<SignInWithApple>((ref) {
   return SignInWithApple(ref.read(authRepositoryProvider));
 });
@@ -181,18 +185,6 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   @override
   Future<UserEntity?> build() async {
     final repository = ref.read(authRepositoryProvider);
-
-    // ── OAuth deep-link callback handler ──────────────────────────────────────
-    //
-    // Con Better Auth / Option C el flujo OAuth es:
-    //   1. App llama GET /auth/oauth/{provider} → obtiene redirect URL.
-    //   2. App abre URL en sistema browser.
-    //   3. Backend autentica y redirige a io.sacdia.app://auth/callback
-    //      con `session_token` y `provider` como query params.
-    //   4. El router intercepta el deep link y llama a
-    //      AuthNotifier.processOAuthDeepLink(sessionToken, provider).
-    //
-    // No hay listener de Supabase aquí — el deep link lo maneja el router.
 
     AppLogger.i('Verificando token local', tag: _tag);
     final hasToken = await repository.hasLocalToken();
@@ -537,108 +529,58 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     );
   }
 
-  /// Procesa el callback OAuth recibido por deep link.
-  ///
-  /// Llamar desde el router cuando se intercepta
-  /// `io.sacdia.app://auth/callback?session_token=...&provider=...`.
-  ///
-  /// Internamente llama a [AuthRepository.handleOAuthCallback] que envía
-  /// `POST /auth/oauth/callback` al backend y recibe el JWT HS256 de SACDIA.
-  Future<void> processOAuthDeepLink({
-    required String sessionToken,
-    required String provider,
-  }) async {
-    AppLogger.i('OAuth deep link recibido — provider: $provider', tag: _tag);
+  /// Login con Google (SDK nativo).
+  Future<SocialSignInResult> signInWithGoogle() =>
+      _signInSocial('google', ref.read(signInWithGoogleProvider));
 
-    if (state.valueOrNull != null) {
-      AppLogger.i('Ya hay sesión activa, ignorando deep link', tag: _tag);
-      return;
+  /// Login con Apple (SDK nativo, solo iOS).
+  Future<SocialSignInResult> signInWithApple() =>
+      _signInSocial('apple', ref.read(signInWithAppleProvider));
+
+  Future<SocialSignInResult> _signInSocial(
+    String provider,
+    UseCase<UserEntity, NoParams> useCase,
+  ) async {
+    AppLogger.i('Login social iniciado: $provider', tag: _tag);
+    // No se pasa por AsyncLoading: el router manda a /splash mientras el auth
+    // carga, lo que desmontaría LoginView detrás de la hoja nativa. El botón
+    // muestra su propio estado de carga.
+    // Un error previo (banner del login) se limpia al empezar un nuevo intento;
+    // pasar a data(null) no dispara el redirect a /splash.
+    if (state is AsyncError) {
+      state = const AsyncValue.data(null);
     }
 
-    final repository = ref.read(authRepositoryProvider);
-    final result = await repository.handleOAuthCallback(
-      sessionToken: sessionToken,
-      provider: provider,
-    );
+    final result = await useCase(const NoParams());
 
-    result.fold(
+    return result.fold(
       (failure) {
-        AppLogger.e(
-          'Error al procesar OAuth callback: ${failure.message}',
-          tag: _tag,
-        );
-        state = AsyncValue.error(failure.message, StackTrace.current);
+        if (failure is SocialSignInCancelledFailure) {
+          AppLogger.i('Login social cancelado: $provider', tag: _tag);
+          return SocialSignInResult.cancelled;
+        }
+        final errorMessage = failure is AuthFailure
+            ? failure.message
+            : 'errors.social_signin_failed'.tr(
+                namedArgs: {
+                  'provider': provider == 'apple' ? 'Apple' : 'Google'
+                },
+              );
+        AppLogger.w('Login social $provider falló: $errorMessage', tag: _tag);
+        state = AsyncValue.error(errorMessage, StackTrace.current);
+        return SocialSignInResult.failed;
       },
       (user) {
-        AppLogger.i('OAuth completado', tag: _tag);
+        AppLogger.i('Login social exitoso: $provider', tag: _tag);
+        ref
+            .read(sharedPreferencesProvider)
+            .setBool('user_manually_logged_out', false);
         _cacheUser(user);
-        state = AsyncValue.data(user);
-        // Register FCM token after OAuth login (fire-and-forget).
+        // Mismos efectos que signIn(): FCM y badge de notificaciones.
         ref.read(pushNotificationServiceProvider).initialize();
         ref.read(unreadNotificationsCountProvider.notifier).refresh();
-      },
-    );
-  }
-
-  /// Inicia el flujo OAuth con Google.
-  ///
-  /// Abre el navegador del sistema. El resultado llega de forma asíncrona
-  /// a través del deep link. Retorna true si el navegador fue lanzado,
-  /// false si hubo un error real (no el flujo normal de redirect).
-  Future<OAuthLaunchResult> signInWithGoogle() async {
-    AppLogger.i('OAuth Google iniciado', tag: _tag);
-    state = const AsyncValue.loading();
-
-    final result = await ref.read(signInWithGoogleProvider)(NoParams());
-
-    return result.fold(
-      (failure) {
-        if (failure is OAuthFlowInitiatedFailure) {
-          // El navegador fue lanzado. Resetear loading sin error.
-          state = const AsyncValue.data(null);
-          return OAuthLaunchResult.launched;
-        }
-        final errorMessage = failure is AuthFailure
-            ? failure.message
-            : 'auth.errors.sign_in_google_failed'.tr();
-        AppLogger.w('OAuth Google error: $errorMessage', tag: _tag);
-        state = AsyncValue.error(errorMessage, StackTrace.current);
-        return OAuthLaunchResult.failed;
-      },
-      (user) {
-        _cacheUser(user);
         state = AsyncValue.data(user);
-        return OAuthLaunchResult.launched;
-      },
-    );
-  }
-
-  /// Inicia el flujo OAuth con Apple.
-  ///
-  /// Misma semántica que [signInWithGoogle].
-  Future<OAuthLaunchResult> signInWithApple() async {
-    AppLogger.i('OAuth Apple iniciado', tag: _tag);
-    state = const AsyncValue.loading();
-
-    final result = await ref.read(signInWithAppleProvider)(NoParams());
-
-    return result.fold(
-      (failure) {
-        if (failure is OAuthFlowInitiatedFailure) {
-          state = const AsyncValue.data(null);
-          return OAuthLaunchResult.launched;
-        }
-        final errorMessage = failure is AuthFailure
-            ? failure.message
-            : 'auth.errors.sign_in_apple_failed'.tr();
-        AppLogger.w('OAuth Apple error: $errorMessage', tag: _tag);
-        state = AsyncValue.error(errorMessage, StackTrace.current);
-        return OAuthLaunchResult.failed;
-      },
-      (user) {
-        _cacheUser(user);
-        state = AsyncValue.data(user);
-        return OAuthLaunchResult.launched;
+        return SocialSignInResult.success;
       },
     );
   }
@@ -736,12 +678,12 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   /// Elimina permanentemente la cuenta del usuario autenticado.
   ///
   /// Flujo:
-  ///  1. Desregistra el token FCM del backend (best-effort).
-  ///  2. Llama DELETE /auth/me con la contraseña.
-  ///  3. En éxito limpia todo el storage local y pone state = null.
+  ///  1. Llama DELETE /auth/me con la reautenticación (contraseña o proveedor).
+  ///  2. En éxito limpia FCM y todo el storage local y pone state = null.
+  ///     En fallo no toca nada: el usuario sigue con sesión y push activo.
   ///
   /// Retorna null en éxito o un mensaje de error localizado.
-  Future<String?> deleteAccount(String password) async {
+  Future<String?> deleteAccount(DeleteAccountReauth reauth) async {
     AppLogger.i('Iniciando eliminación de cuenta', tag: _tag);
 
     // Confirmación biométrica antes de cualquier efecto destructivo
@@ -755,20 +697,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       return 'auth.errors.operation_cancelled'.tr();
     }
 
-    // Desregistrar FCM antes de borrar la sesión (el interceptor aún puede
-    // adjuntar el Bearer header porque los tokens aún existen).
-    try {
-      final pushService = ref.read(pushNotificationServiceProvider);
-      await pushService.unregisterToken();
-      await pushService.dispose();
-    } catch (e) {
-      // Non-critical: el backend también cascada los FCM tokens al borrar cuenta.
-      AppLogger.w('Error al desregistrar FCM antes de delete account',
-          tag: _tag, error: e);
-    }
-
-    final result =
-        await ref.read(authRepositoryProvider).deleteAccount(password);
+    final result = await ref.read(authRepositoryProvider).deleteAccount(reauth);
 
     return result.fold<Future<String?>>(
       (failure) async {
@@ -780,6 +709,20 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       },
       (_) async {
         AppLogger.i('Cuenta eliminada correctamente', tag: _tag);
+
+        // Solo en éxito: si el borrado falla el usuario sigue con sesión y
+        // debe conservar las notificaciones push. El backend ya desactivó sus
+        // tokens FCM en la cascada y los tokens de sesión ya se borraron, así
+        // que solo se limpia el registro local: llamar al backend aquí daría
+        // 401 y el interceptor expiraría la sesión a mitad de la UI.
+        try {
+          await ref
+              .read(pushNotificationServiceProvider)
+              .clearLocalRegistration();
+        } catch (e) {
+          AppLogger.w('Error al limpiar FCM tras delete account',
+              tag: _tag, error: e);
+        }
 
         // Limpiar estado local (el datasource ya limpió tokens en deleteAccount).
         final prefs = ref.read(sharedPreferencesProvider);
@@ -804,6 +747,14 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         return null;
       },
     );
+  }
+
+  /// Proveedores sociales vinculados, para ofrecer la confirmación sin
+  /// contraseña al borrar la cuenta. Lista vacía si la consulta falla.
+  Future<List<SocialProvider>> connectedProviders() async {
+    final result =
+        await ref.read(authRepositoryProvider).getConnectedProviders();
+    return result.fold((_) => const [], (list) => list);
   }
 
   /// Called by AuthInterceptor when the refresh token is dead.
@@ -893,6 +844,11 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   }
 }
 
+/// `true` mientras hay un login social en curso (hoja nativa abierta o POST al
+/// backend). El estado global de auth no pasa por loading en ese tiempo, así
+/// que el login por correo lo consulta para no competir con él.
+final socialSignInInFlightProvider = StateProvider<bool>((ref) => false);
+
 /// Provider para NetworkInfo
 final networkInfoProvider = Provider<NetworkInfo>((ref) {
   return NetworkInfoImpl();
@@ -904,11 +860,14 @@ final authNotifierProvider =
   return AuthNotifier();
 });
 
-/// Resultado de intentar lanzar un flujo OAuth.
-enum OAuthLaunchResult {
-  /// El navegador fue abierto y el flujo está en curso.
-  launched,
+/// Resultado de un intento de login social desde la UI.
+enum SocialSignInResult {
+  /// Sesión iniciada; el router redirige según `postRegisterComplete`.
+  success,
 
-  /// Ocurrió un error antes de poder abrir el navegador.
+  /// El usuario cerró la hoja nativa. No se muestra nada.
+  cancelled,
+
+  /// Error real; el mensaje queda en `authNotifierProvider.error`.
   failed,
 }
