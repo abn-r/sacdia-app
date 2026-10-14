@@ -947,7 +947,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       '$_baseUrl${ApiEndpoints.auth}/oauth/providers',
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
-    final names = (response.data['data'] as List?)?.cast<String>() ?? const [];
+    // El endpoint devuelve el arreglo sin envoltorio (`["google","apple"]`);
+    // se acepta también `{ data: [...] }` por si el backend lo envuelve.
+    final raw = response.data;
+    final list = raw is List ? raw : (raw is Map ? raw['data'] : null);
+    final names = list is List ? list.whereType<String>().toSet() : <String>{};
     return [
       for (final p in SocialProvider.values)
         if (names.contains(p.wireName)) p,

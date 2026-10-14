@@ -370,10 +370,7 @@ void main() {
 
     test('returns the provider list from GET /auth/oauth/providers', () async {
       await storage.write(AppConstants.tokenKey, 'my-jwt-token');
-      final adapter = JsonAdapter(200, {
-        'status': 'success',
-        'data': ['google', 'apple'],
-      });
+      final adapter = JsonAdapter(200, ['google', 'apple']);
       dio.httpClientAdapter = adapter;
 
       expect(
@@ -386,12 +383,26 @@ void main() {
 
     test('ignores unknown provider names', () async {
       await storage.write(AppConstants.tokenKey, 'my-jwt-token');
-      dio.httpClientAdapter = JsonAdapter(200, {
-        'status': 'success',
-        'data': ['apple', 'github'],
-      });
+      dio.httpClientAdapter = JsonAdapter(200, ['apple', 'github']);
 
       expect(await build().getConnectedProviders(), [SocialProvider.apple]);
+    });
+
+    test('also accepts the list wrapped in {status, data}', () async {
+      await storage.write(AppConstants.tokenKey, 'my-jwt-token');
+      dio.httpClientAdapter = JsonAdapter(200, {
+        'status': 'success',
+        'data': ['google'],
+      });
+
+      expect(await build().getConnectedProviders(), [SocialProvider.google]);
+    });
+
+    test('returns an empty list for an unexpected body', () async {
+      await storage.write(AppConstants.tokenKey, 'my-jwt-token');
+      dio.httpClientAdapter = JsonAdapter(200, {'status': 'success'});
+
+      expect(await build().getConnectedProviders(), isEmpty);
     });
   });
 
