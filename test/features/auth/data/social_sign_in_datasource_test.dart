@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/constants/app_constants.dart';
 import 'package:sacdia_app/core/errors/exceptions.dart';
 import 'package:sacdia_app/core/storage/secure_storage.dart';
 import 'package:sacdia_app/features/auth/data/datasources/auth_remote_data_source.dart';
+import 'package:sacdia_app/features/auth/data/models/user_model.dart';
 
 class _FakeSecureStorage implements SecureStorage {
   final _store = <String, String>{};
@@ -65,6 +66,24 @@ class _JsonAdapter implements HttpClientAdapter {
       },
     );
   }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+/// Adaptador Dio que falla sin respuesta (timeout / sin conexión).
+class _ErrorAdapter implements HttpClientAdapter {
+  _ErrorAdapter(this.build);
+
+  final DioException Function(RequestOptions options) build;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<List<int>>? _,
+    Future<void>? __,
+  ) async =>
+      throw build(options);
 
   @override
   void close({bool force = false}) {}
@@ -184,26 +203,136 @@ void main() {
     },
   );
 
-  test('maps a 401 to AuthException with the server message', () async {
-    dio.httpClientAdapter = _JsonAdapter(401, {
-      'status': 'error',
-      'statusCode': 401,
-      'code': 'AUTH_INVALID_TOKEN',
-      'message': 'Token inválido o expirado',
-    });
-
+  Future<void> expectMappedError(
+    Future<UserModel> Function() call, {
+    required String message,
+    int? code,
+  }) async {
     await expectLater(
-      build(_FakeSocialAuthClient(_credential)).signInWithApple(),
+      call(),
       throwsA(
         predicate(
-          (e) =>
-              e is AuthException &&
-              e.message == 'Token inválido o expirado' &&
-              e.code == 401,
+          (e) => e is AuthException && e.message == message && e.code == code,
         ),
       ),
     );
     expect(await storage.read(AppConstants.tokenKey), isNull);
+  }
+
+  Map<String, dynamic> errorBody(int status, String code) => {
+        'status': 'error',
+        'statusCode': status,
+        'code': code,
+        'message': 'texto crudo del backend',
+      };
+
+  test('maps AUTH_INVALID_TOKEN (401) to the generic localized failure',
+      () async {
+    dio.httpClientAdapter =
+        _JsonAdapter(401, errorBody(401, 'AUTH_INVALID_TOKEN'));
+
+    await expectMappedError(
+      () => build(_FakeSocialAuthClient(_credential)).signInWithApple(),
+      message: 'errors.social_signin_failed',
+      code: 401,
+    );
+  });
+
+  test('maps AUTH_OAUTH_EMAIL_UNVERIFIED to the unverified message', () async {
+    dio.httpClientAdapter =
+        _JsonAdapter(401, errorBody(401, 'AUTH_OAUTH_EMAIL_UNVERIFIED'));
+
+    await expectMappedError(
+      () => build(_FakeSocialAuthClient(_credential)).signInWithApple(),
+      message: 'errors.social_signin_unverified',
+      code: 401,
+    );
+  });
+
+  test('maps AUTH_OAUTH_PROVIDER_ALREADY_LINKED (409) to already_linked',
+      () async {
+    dio.httpClientAdapter =
+        _JsonAdapter(409, errorBody(409, 'AUTH_OAUTH_PROVIDER_ALREADY_LINKED'));
+
+    await expectMappedError(
+      () => build(_FakeSocialAuthClient(_credential)).signInWithApple(),
+      message: 'errors.social_signin_already_linked',
+      code: 409,
+    );
+  });
+
+  test('maps a 503 to provider_unavailable', () async {
+    dio.httpClientAdapter =
+        _JsonAdapter(503, errorBody(503, 'AUTH_OAUTH_PROVIDER_UNAVAILABLE'));
+
+    await expectMappedError(
+      () => build(_FakeSocialAuthClient(_credential)).signInWithApple(),
+      message: 'errors.social_signin_provider_unavailable',
+      code: 503,
+    );
+  });
+
+  test('maps a 500 without a code to provider_unavailable', () async {
+    dio.httpClientAdapter = _JsonAdapter(500, {'message': 'Internal error'});
+
+    await expectMappedError(
+      () => build(_FakeSocialAuthClient(_credential)).signInWithGoogle(),
+      message: 'errors.social_signin_provider_unavailable',
+      code: 500,
+    );
+  });
+
+  test('maps a 429 to too_many_attempts', () async {
+    dio.httpClientAdapter = _JsonAdapter(429, {
+      'statusCode': 429,
+      'message': 'ThrottlerException: Too Many Requests',
+    });
+
+    await expectMappedError(
+      () => build(_FakeSocialAuthClient(_credential)).signInWithApple(),
+      message: 'errors.too_many_attempts',
+      code: 429,
+    );
+  });
+
+  test('maps any other status to the generic localized failure', () async {
+    dio.httpClientAdapter = _JsonAdapter(400, errorBody(400, 'SOMETHING_ELSE'));
+
+    await expectMappedError(
+      () => build(_FakeSocialAuthClient(_credential)).signInWithApple(),
+      message: 'errors.social_signin_failed',
+      code: 400,
+    );
+  });
+
+  test('uses the interceptor message when there is no response', () async {
+    dio.httpClientAdapter = _ErrorAdapter(
+      (options) => DioException(
+        requestOptions: options,
+        type: DioExceptionType.connectionTimeout,
+        error: ConnectionException(message: 'Tiempo agotado'),
+      ),
+    );
+
+    await expectMappedError(
+      () => build(_FakeSocialAuthClient(_credential)).signInWithApple(),
+      message: 'Tiempo agotado',
+    );
+  });
+
+  test('falls back to common.error_network on a bare connection error',
+      () async {
+    dio.httpClientAdapter = _ErrorAdapter(
+      (options) => DioException(
+        requestOptions: options,
+        type: DioExceptionType.connectionError,
+      ),
+    );
+
+    await expectMappedError(
+      () => build(_FakeSocialAuthClient(_credential)).signInWithApple(),
+      message: 'common.error_network',
+    );
   });
 
   test('maps an SDK failure to AuthException', () async {

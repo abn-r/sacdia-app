@@ -759,20 +759,53 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       return user;
     } on DioException catch (e) {
       final status = e.response?.statusCode;
-      final serverMessage = e.response?.data is Map
-          ? e.response!.data['message'] as String?
-          : null;
-      AppLogger.w('Login social ${provider.wireName} rechazado: $status',
+      final data = e.response?.data;
+      final errorCode = data is Map ? data['code'] as String? : null;
+      AppLogger.w(
+          'Login social ${provider.wireName} rechazado: $status ($errorCode)',
           tag: _tag);
       throw AuthException(
-        message: serverMessage ??
-            (status == 401
-                ? tr('errors.social_signin_unverified',
-                    namedArgs: {'provider': _providerLabel(provider)})
-                : tr('common.error_network')),
+        message: _socialErrorMessage(e, provider, status, errorCode),
         code: status,
       );
     }
+  }
+
+  /// Mensaje localizado para un fallo de `/auth/oauth/:provider/token`.
+  /// Se decide por `code` del backend y por el status, nunca por su `message`
+  /// (llega sin localizar, o enmascarado en 5xx).
+  String _socialErrorMessage(
+    DioException e,
+    SocialProvider provider,
+    int? status,
+    String? errorCode,
+  ) {
+    final args = {'provider': _providerLabel(provider)};
+
+    if (e.response == null) {
+      // Timeout / sin conexión: el ErrorInterceptor ya dejó un mensaje
+      // localizado en `e.error`.
+      final inner = e.error;
+      if (inner is AppException && inner.message.isNotEmpty) {
+        return inner.message;
+      }
+      return tr('common.error_network');
+    }
+
+    if (status == 429) return tr('errors.too_many_attempts');
+
+    switch (errorCode) {
+      case 'AUTH_OAUTH_EMAIL_UNVERIFIED':
+        return tr('errors.social_signin_unverified', namedArgs: args);
+      case 'AUTH_OAUTH_PROVIDER_ALREADY_LINKED':
+        return tr('errors.social_signin_already_linked', namedArgs: args);
+      case 'AUTH_OAUTH_PROVIDER_UNAVAILABLE':
+        return tr('errors.social_signin_provider_unavailable', namedArgs: args);
+    }
+    if (status != null && status >= 500) {
+      return tr('errors.social_signin_provider_unavailable', namedArgs: args);
+    }
+    return tr('errors.social_signin_failed', namedArgs: args);
   }
 
   static String _providerLabel(SocialProvider provider) => switch (provider) {

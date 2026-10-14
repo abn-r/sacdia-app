@@ -380,7 +380,9 @@
     "ssl_invalid": "Certificado SSL no válido",
     "social_signin_cancelled": "Inicio de sesión cancelado",
     "social_signin_failed": "No se pudo iniciar sesión con {provider}. Intenta de nuevo.",
-    "social_signin_unverified": "No pudimos verificar tu cuenta de {provider}."
+    "social_signin_unverified": "No pudimos verificar tu cuenta de {provider}.",
+    "social_signin_already_linked": "Tu cuenta ya está vinculada a otra cuenta de {provider}. Inicia sesión con tu correo y contraseña.",
+    "social_signin_provider_unavailable": "{provider} no está disponible en este momento. Intenta de nuevo en unos minutos."
   },
   "honors": {
     "errors": {

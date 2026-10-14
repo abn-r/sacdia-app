@@ -380,7 +380,9 @@
     "ssl_invalid": "Certificat SSL invalide",
     "social_signin_cancelled": "Connexion annulée",
     "social_signin_failed": "Impossible de se connecter avec {provider}. Réessayez.",
-    "social_signin_unverified": "Nous n'avons pas pu vérifier votre compte {provider}."
+    "social_signin_unverified": "Nous n'avons pas pu vérifier votre compte {provider}.",
+    "social_signin_already_linked": "Votre compte est déjà lié à un autre compte {provider}. Connectez-vous avec votre e-mail et votre mot de passe.",
+    "social_signin_provider_unavailable": "{provider} n'est pas disponible pour le moment. Réessayez dans quelques minutes."
   },
   "honors": {
     "errors": {
