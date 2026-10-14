@@ -712,12 +712,13 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
 
         // Solo en éxito: si el borrado falla el usuario sigue con sesión y
         // debe conservar las notificaciones push. El backend ya desactivó sus
-        // tokens FCM en la cascada; esto limpia el registro local y cancela
-        // los listeners (best-effort, el DELETE puede fallar sin sesión).
+        // tokens FCM en la cascada y los tokens de sesión ya se borraron, así
+        // que solo se limpia el registro local: llamar al backend aquí daría
+        // 401 y el interceptor expiraría la sesión a mitad de la UI.
         try {
-          final pushService = ref.read(pushNotificationServiceProvider);
-          await pushService.unregisterToken();
-          await pushService.dispose();
+          await ref
+              .read(pushNotificationServiceProvider)
+              .clearLocalRegistration();
         } catch (e) {
           AppLogger.w('Error al limpiar FCM tras delete account',
               tag: _tag, error: e);

@@ -111,18 +111,27 @@ void main() {
         .read(authNotifierProvider.notifier)
         .deleteAccount(const PasswordReauth('bad'));
 
-    expect(pushOf(container).unregisterCalls, 0);
-    expect(pushOf(container).disposeCalls, 0);
+    final push = pushOf(container);
+    expect(push.clearLocalCalls, 0);
+    expect(push.unregisterCalls, 0);
+    expect(push.disposeCalls, 0);
   });
 
-  test('a successful deletion unregisters and disposes push', () async {
-    final container = await build(_DeleteRepo());
+  test(
+    'a successful deletion clears push locally without calling the backend',
+    () async {
+      final container = await build(_DeleteRepo());
 
-    await container
-        .read(authNotifierProvider.notifier)
-        .deleteAccount(socialReauth);
+      final error = await container
+          .read(authNotifierProvider.notifier)
+          .deleteAccount(socialReauth);
 
-    expect(pushOf(container).unregisterCalls, 1);
-    expect(pushOf(container).disposeCalls, 1);
-  });
+      expect(error, isNull);
+      final push = pushOf(container);
+      expect(push.clearLocalCalls, 1);
+      // unregisterToken() hace un DELETE al backend; sin sesión daría 401 y
+      // expiraría la sesión a mitad de la UI.
+      expect(push.unregisterCalls, 0);
+    },
+  );
 }

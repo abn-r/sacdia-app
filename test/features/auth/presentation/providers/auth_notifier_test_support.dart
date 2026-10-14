@@ -150,6 +150,10 @@ class FakePushNotificationService extends PushNotificationService {
 
   int unregisterCalls = 0;
   int disposeCalls = 0;
+  int clearLocalCalls = 0;
+
+  @override
+  Future<void> clearLocalRegistration() async => clearLocalCalls++;
 
   @override
   Future<void> unregisterToken() async => unregisterCalls++;
