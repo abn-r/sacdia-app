@@ -7,5 +7,6 @@ import 'social_auth_client.dart';
 final socialAuthClientProvider = Provider<SocialAuthClient>((ref) {
   return NativeSocialAuthClient(
     googleServerClientId: AppConstants.googleServerClientId,
+    googleIosClientId: AppConstants.googleIosClientId,
   );
 });

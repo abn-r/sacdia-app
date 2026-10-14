@@ -29,16 +29,21 @@ class SocialAuthException implements Exception {
 }
 
 class NativeSocialAuthClient implements SocialAuthClient {
-  NativeSocialAuthClient({required String googleServerClientId})
-      : _googleServerClientId = googleServerClientId;
+  NativeSocialAuthClient({
+    required String googleServerClientId,
+    String googleIosClientId = '',
+  })  : _googleServerClientId = googleServerClientId,
+        _googleIosClientId = googleIosClientId;
 
   static const _tag = 'SocialAuth';
 
   final String _googleServerClientId;
+  final String _googleIosClientId;
 
   @override
   bool supports(SocialProvider provider) => switch (provider) {
-        SocialProvider.google => _googleServerClientId.isNotEmpty,
+        SocialProvider.google => _googleServerClientId.isNotEmpty &&
+            (!Platform.isIOS || _googleIosClientId.isNotEmpty),
         SocialProvider.apple => Platform.isIOS,
       };
 
@@ -62,6 +67,9 @@ class NativeSocialAuthClient implements SocialAuthClient {
       // contra sha256Hex(nonce): por eso se entrega el hash al SDK y se
       // devuelve el nonce en claro en la credencial.
       await GoogleSignIn.instance.initialize(
+        // En iOS el plugin solo arma su configuración con un clientId en
+        // runtime (el GoogleService-Info.plist local no trae CLIENT_ID).
+        clientId: Platform.isIOS ? _googleIosClientId : null,
         serverClientId: _googleServerClientId,
         nonce: sha256Hex(nonce),
       );
