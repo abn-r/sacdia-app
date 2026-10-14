@@ -543,6 +543,11 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     // No se pasa por AsyncLoading: el router manda a /splash mientras el auth
     // carga, lo que desmontaría LoginView detrás de la hoja nativa. El botón
     // muestra su propio estado de carga.
+    // Un error previo (banner del login) se limpia al empezar un nuevo intento;
+    // pasar a data(null) no dispara el redirect a /splash.
+    if (state is AsyncError) {
+      state = const AsyncValue.data(null);
+    }
 
     final result = await useCase(const NoParams());
 

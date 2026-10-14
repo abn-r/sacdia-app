@@ -141,4 +141,29 @@ void main() {
     expect(transitions, isEmpty);
     expect(container.read(authNotifierProvider), same(before));
   });
+
+  test('cancel after an earlier error clears the stale error', () async {
+    final container = await buildAuthContainer(
+      repo: _SocialRepo(Left(SocialSignInCancelledFailure())),
+    );
+    addTearDown(container.dispose);
+    await container.read(authNotifierProvider.future);
+    final notifier = container.read(authNotifierProvider.notifier);
+    notifier.state = AsyncValue.error('error previo', StackTrace.current);
+    expect(container.read(authNotifierProvider), isA<AsyncError>());
+
+    final transitions = <AsyncValue<UserEntity?>>[];
+    container.listen<AsyncValue<UserEntity?>>(
+      authNotifierProvider,
+      (_, next) => transitions.add(next),
+    );
+
+    final result = await notifier.signInWithGoogle();
+
+    expect(result, SocialSignInResult.cancelled);
+    expect(container.read(authNotifierProvider), isA<AsyncData<UserEntity?>>());
+    expect(container.read(authNotifierProvider).value, isNull);
+    // Nunca pasa por loading (el router mandaría a /splash).
+    expect(transitions.any((t) => t.isLoading), isFalse);
+  });
 }
