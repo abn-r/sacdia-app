@@ -110,7 +110,11 @@ class _LoginViewState extends ConsumerState<LoginView> {
   }
 
   Future<void> _signIn() async {
-    if (_isCoolingDown || ref.read(authNotifierProvider).isLoading) return;
+    if (_isCoolingDown ||
+        ref.read(authNotifierProvider).isLoading ||
+        ref.read(socialSignInInFlightProvider)) {
+      return;
+    }
     final formState = _formKey.currentState;
     if (formState == null || !formState.validate()) return;
 
@@ -135,6 +139,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
     final isLoading = authState.isLoading;
+    final socialInFlight = ref.watch(socialSignInInFlightProvider);
     final errorMessage = authState.hasError
         ? (authState.error?.toString() ?? 'auth.login_error'.tr())
         : null;
@@ -352,7 +357,8 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                       backgroundColor: AppColors.loginBrandBlue,
                                       borderRadius: AppTheme.radiusFull,
                                       isLoading: isLoading,
-                                      isEnabled: !_isCoolingDown,
+                                      isEnabled:
+                                          !_isCoolingDown && !socialInFlight,
                                       onPressed: _signIn,
                                     ),
                                     SocialSignInButtons(
@@ -404,7 +410,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
             TextFieldTapRegion(
               child: _LoginKeyboardBar(
                 canGoNext: _emailFocus.hasFocus,
-                canSubmit: !_isCoolingDown && !isLoading,
+                canSubmit: !_isCoolingDown && !isLoading && !socialInFlight,
                 onNext: _focusPassword,
                 onSubmit: _submitFromKeyboard,
                 onHide: _hideKeyboard,

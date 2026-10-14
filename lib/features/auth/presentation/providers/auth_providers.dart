@@ -828,6 +828,11 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   }
 }
 
+/// `true` mientras hay un login social en curso (hoja nativa abierta o POST al
+/// backend). El estado global de auth no pasa por loading en ese tiempo, así
+/// que el login por correo lo consulta para no competir con él.
+final socialSignInInFlightProvider = StateProvider<bool>((ref) => false);
+
 /// Provider para NetworkInfo
 final networkInfoProvider = Provider<NetworkInfo>((ref) {
   return NetworkInfoImpl();

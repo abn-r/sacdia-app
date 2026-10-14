@@ -76,6 +76,11 @@ class _SocialSignInButtonsState extends ConsumerState<SocialSignInButtons> {
   Future<void> _signIn(SocialProvider provider) async {
     if (_busyProvider != null) return;
     setState(() => _busyProvider = provider);
+    // El login por correo consulta este flag: el estado global de auth no pasa
+    // por loading durante el login social. Se captura el notifier antes del
+    // await porque `ref` ya no es válido si el widget se desmonta.
+    final inFlight = ref.read(socialSignInInFlightProvider.notifier);
+    inFlight.state = true;
     try {
       final notifier = ref.read(authNotifierProvider.notifier);
       await switch (provider) {
@@ -83,6 +88,7 @@ class _SocialSignInButtonsState extends ConsumerState<SocialSignInButtons> {
         SocialProvider.apple => notifier.signInWithApple(),
       };
     } finally {
+      inFlight.state = false;
       if (mounted) setState(() => _busyProvider = null);
     }
   }

@@ -102,12 +102,18 @@ void main() {
     expect(notifier.googleCalls, 1);
     expect(notifier.appleCalls, 0);
 
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SocialSignInButtons)),
+    );
+    expect(container.read(socialSignInInFlightProvider), isTrue);
+
     final buttons = tester.widgetList<SacButton>(find.byType(SacButton));
     expect(buttons.map((b) => b.isLoading), [true, false]);
     expect(buttons.map((b) => b.isEnabled), [false, false]);
 
     notifier.googleGate.complete(SocialSignInResult.cancelled);
     await tester.pump();
+    expect(container.read(socialSignInInFlightProvider), isFalse);
 
     final after = tester.widgetList<SacButton>(find.byType(SacButton));
     expect(after.map((b) => b.isLoading), [false, false]);
