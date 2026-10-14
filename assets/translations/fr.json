@@ -189,6 +189,9 @@
     "password_hint_login": "Votre mot de passe",
     "no_account": "Vous n'avez pas de compte ? ",
     "register_link": "Inscrivez-vous",
+    "or_continue_with": "ou continuer avec",
+    "continue_with_google": "Continuer avec Google",
+    "continue_with_apple": "Continuer avec Apple",
     "forgot_password_error": "Erreur inattendue. Veuillez réessayer.",
     "forgot_password_title": "Réinitialiser le mot de passe",
     "forgot_password_description": "Saisissez votre adresse e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe.",
@@ -358,21 +361,14 @@
     "missing_user_id": "Identifiant d'utilisateur non reçu",
     "no_active_session": "Aucune session active",
     "refresh_user_failed": "Impossible de récupérer l'utilisateur mis à jour",
-    "google_browser_open": "Impossible d'ouvrir le navigateur pour l'authentification Google",
-    "google_signin_failed": "Erreur lors de la connexion avec Google. Réessayez.",
-    "apple_browser_open": "Impossible d'ouvrir le navigateur pour l'authentification Apple",
-    "apple_signin_failed": "Erreur lors de la connexion avec Apple. Réessayez.",
-    "oauth_url_missing": "Le serveur n'a pas renvoyé d'URL OAuth pour {provider}",
     "too_many_attempts": "Trop de tentatives. Réessayez plus tard.",
     "unexpected": "Erreur inattendue : {details}",
     "update_password": "Erreur lors de la mise à jour du mot de passe",
-    "get_oauth_url": "Erreur lors de l’obtention de l’URL de {provider}",
     "switch_context": "Erreur lors du changement de contexte",
     "delete_account": "Erreur lors de la suppression du compte",
     "check_completion_status": "Erreur lors de la vérification du statut de complétion",
     "register_failed": "Erreur lors de l'inscription",
     "password_reset_sent": "Si l'adresse e-mail existe, vous recevrez un lien de récupération",
-    "oauth_callback_failed": "Erreur lors du traitement du retour d'authentification {provider}",
     "wrong_password": "Mot de passe incorrect",
     "invalid_user_response": "La réponse du serveur ne contient pas d'identifiant utilisateur valide",
     "user_not_authenticated": "Utilisateur non authentifié",
@@ -382,7 +378,9 @@
     "connection_error": "Erreur de connexion. Vérifiez votre réseau.",
     "no_internet": "Pas de connexion Internet",
     "ssl_invalid": "Certificat SSL invalide",
-    "oauth_redirecting": "Redirection vers {provider}. Terminez le processus dans votre navigateur."
+    "social_signin_cancelled": "Connexion annulée",
+    "social_signin_failed": "Impossible de se connecter avec {provider}. Réessayez.",
+    "social_signin_unverified": "Nous n'avons pas pu vérifier votre compte {provider}."
   },
   "honors": {
     "errors": {
@@ -4053,9 +4051,6 @@
     },
     "camporee_members": {
       "default_name": "Camporée"
-    },
-    "oauth_callback": {
-      "completing_signin": "Finalisation de la connexion..."
     }
   },
   "home": {

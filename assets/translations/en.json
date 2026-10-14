@@ -189,6 +189,9 @@
     "password_hint_login": "Your password",
     "no_account": "Don't have an account? ",
     "register_link": "Sign up",
+    "or_continue_with": "or continue with",
+    "continue_with_google": "Continue with Google",
+    "continue_with_apple": "Continue with Apple",
     "forgot_password_error": "Unexpected error. Please try again.",
     "forgot_password_title": "Reset password",
     "forgot_password_description": "Enter your email and we will send you a link to reset your password.",
@@ -358,21 +361,14 @@
     "missing_user_id": "User ID was not received",
     "no_active_session": "No active session",
     "refresh_user_failed": "Could not fetch the updated user",
-    "google_browser_open": "Could not open the browser for Google authentication",
-    "google_signin_failed": "Error signing in with Google. Please try again.",
-    "apple_browser_open": "Could not open the browser for Apple authentication",
-    "apple_signin_failed": "Error signing in with Apple. Please try again.",
-    "oauth_url_missing": "The server did not return an OAuth URL for {provider}",
     "too_many_attempts": "Too many attempts. Please try again later.",
     "unexpected": "Unexpected error: {details}",
     "update_password": "Error updating password",
-    "get_oauth_url": "Error getting {provider} URL",
     "switch_context": "Error switching context",
     "delete_account": "Error deleting account",
     "check_completion_status": "Error checking completion status",
     "register_failed": "Registration error",
     "password_reset_sent": "If the email exists, you will receive a recovery link",
-    "oauth_callback_failed": "Error processing {provider} sign-in callback",
     "wrong_password": "Incorrect password",
     "invalid_user_response": "The server response does not contain a valid user ID",
     "user_not_authenticated": "User not authenticated",
@@ -382,7 +378,9 @@
     "connection_error": "Connection error. Check your network.",
     "no_internet": "No internet connection",
     "ssl_invalid": "Invalid SSL certificate",
-    "oauth_redirecting": "Redirecting to {provider}. Complete the process in your browser."
+    "social_signin_cancelled": "Sign-in cancelled",
+    "social_signin_failed": "Could not sign in with {provider}. Try again.",
+    "social_signin_unverified": "We could not verify your {provider} account."
   },
   "honors": {
     "errors": {
@@ -4055,9 +4053,6 @@
     },
     "camporee_members": {
       "default_name": "Camporee"
-    },
-    "oauth_callback": {
-      "completing_signin": "Completing sign in..."
     }
   },
   "home": {

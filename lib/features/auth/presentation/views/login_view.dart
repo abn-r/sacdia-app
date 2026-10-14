@@ -23,6 +23,7 @@ import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.d
 import 'package:sacdia_app/features/auth/presentation/widgets/auth_sky_wash.dart';
 import 'package:sacdia_app/features/auth/presentation/widgets/login_club_constellation.dart';
 import 'package:sacdia_app/features/auth/presentation/widgets/sac_brand_mark.dart';
+import 'package:sacdia_app/features/auth/presentation/widgets/social_sign_in_buttons.dart';
 
 /// Vista de login.
 ///
@@ -353,6 +354,9 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                       isLoading: isLoading,
                                       isEnabled: !_isCoolingDown,
                                       onPressed: _signIn,
+                                    ),
+                                    SocialSignInButtons(
+                                      enabled: !_isCoolingDown,
                                     ),
                                     const SizedBox(height: 28),
                                     Center(

@@ -335,7 +335,10 @@ class _SacButtonState extends State<SacButton> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         if (widget.icon != null) ...[
-          buildIcon(widget.icon, size: _iconSize, color: color),
+          if (widget.icon is Widget)
+            widget.icon as Widget
+          else
+            buildIcon(widget.icon, size: _iconSize, color: color),
           SizedBox(width: widget.spaceBetween),
         ],
         widget.fullWidth ? Flexible(child: label) : label,
