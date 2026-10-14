@@ -226,7 +226,11 @@ class PushNotificationService {
     }
     await _cancelSubscriptions();
     try {
-      await FirebaseMessaging.instance.deleteToken();
+      // Network call to FCM: bounded so a stalled connection can't hold the
+      // "deleting account" UI after the backend already confirmed it.
+      await FirebaseMessaging.instance
+          .deleteToken()
+          .timeout(const Duration(seconds: 3));
     } catch (e) {
       AppLogger.w('Error al invalidar el token FCM del dispositivo',
           tag: _tag, error: e);
