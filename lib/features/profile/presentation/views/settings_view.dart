@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sacdia_app/core/auth/club_role_names.dart';
+import 'package:sacdia_app/core/auth/social_credential.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
@@ -375,9 +376,30 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
 
     // Proveedores vinculados para ofrecer la confirmación sin contraseña.
     // El diálogo muestra solo los que este dispositivo soporta.
-    final providers =
-        await ref.read(authNotifierProvider.notifier).connectedProviders();
+    // La consulta puede tardar con mala red: se muestra progreso y se limita
+    // a 10 s; si no responde, se sigue solo con la contraseña.
+    SacSnackBar.show(
+      context,
+      'common.loading'.tr(),
+      duration: const Duration(seconds: 15),
+      leading: const SizedBox(
+        width: 16,
+        height: 16,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: Colors.white,
+        ),
+      ),
+    );
+    final List<SocialProvider> providers = await ref
+        .read(authNotifierProvider.notifier)
+        .connectedProviders()
+        .timeout(
+          const Duration(seconds: 10),
+          onTimeout: () => const <SocialProvider>[],
+        );
     if (!mounted) return;
+    SacSnackBar.hide(context);
 
     final reauth = await SacDialog.present<DeleteAccountReauth>(
       context,

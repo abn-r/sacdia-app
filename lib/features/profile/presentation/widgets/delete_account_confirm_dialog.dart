@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/auth/social_auth_provider.dart';
 import 'package:sacdia_app/core/auth/social_credential.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/utils/app_logger.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
@@ -78,8 +79,10 @@ class _DeleteAccountConfirmDialogState
 
   void _submit(List<SocialProvider> providers) {
     if (_busy || !_confirmationTyped()) return;
-    final password = _passwordCtrl.text.trim();
-    if (password.isEmpty) {
+    // Solo se valida que no esté vacía: la contraseña se envía tal cual, sin
+    // recortar, porque puede llevar espacios al inicio o al final.
+    final password = _passwordCtrl.text;
+    if (password.trim().isEmpty) {
       setState(() {
         _fieldError = providers.isEmpty
             ? 'profile.settings.delete_account_error_no_password'.tr()
@@ -103,15 +106,28 @@ class _DeleteAccountConfirmDialogState
       if (!mounted || credential == null) return;
       Navigator.of(context).pop(SocialReauth(credential));
     } on SocialAuthException {
-      if (!mounted) return;
-      setState(() {
-        _fieldError = 'errors.social_signin_failed'.tr(
-          namedArgs: {'provider': _label(provider)},
-        );
-      });
+      _showSignInFailed(provider);
+    } catch (e) {
+      // Errores de plataforma inesperados: no deben dejar el diálogo bloqueado
+      // ni sin mensaje.
+      AppLogger.w(
+        'Confirmación con ${provider.wireName} falló',
+        tag: 'DeleteAccountDialog',
+        error: e,
+      );
+      _showSignInFailed(provider);
     } finally {
       if (mounted) setState(() => _busyProvider = null);
     }
+  }
+
+  void _showSignInFailed(SocialProvider provider) {
+    if (!mounted) return;
+    setState(() {
+      _fieldError = 'errors.social_signin_failed'.tr(
+        namedArgs: {'provider': _label(provider)},
+      );
+    });
   }
 
   static String _label(SocialProvider provider) => switch (provider) {

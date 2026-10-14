@@ -332,6 +332,16 @@ void main() {
       );
     });
 
+    test('a non-string code in the body does not crash the mapping', () async {
+      dio.httpClientAdapter = JsonAdapter(400, {'code': 123, 'message': 'x'});
+
+      await expectMapped(
+        const PasswordReauth('pw'),
+        message: 'errors.delete_account',
+        code: 400,
+      );
+    });
+
     test('uses the interceptor message when there is no response', () async {
       dio.httpClientAdapter = ErrorAdapter(
         (options) => DioException(

@@ -206,6 +206,38 @@ void main() {
     expect(_button(tester, _googleLabel).isEnabled, isTrue);
   });
 
+  testWidgets('an unexpected error shows the failure message and recovers', (
+    tester,
+  ) async {
+    final client = _FakeSocialAuthClient({SocialProvider.google})
+      ..error = StateError('platform exploded');
+    final result = await _open(tester, client);
+
+    await _typeWord(tester);
+    await tester.tap(find.text(_googleLabel));
+    await tester.pumpAndSettle();
+
+    expect(result.popped, isFalse);
+    expect(find.text('errors.social_signin_failed'), findsOneWidget);
+    expect(_button(tester, _googleLabel).isEnabled, isTrue);
+  });
+
+  testWidgets('a whitespace-only password counts as empty', (tester) async {
+    final client = _FakeSocialAuthClient({});
+    final result = await _open(tester, client);
+
+    await _typeWord(tester);
+    await tester.enterText(find.byType(TextFormField).last, '   ');
+    await tester.tap(find.text(_deleteLabel));
+    await tester.pumpAndSettle();
+
+    expect(result.popped, isFalse);
+    expect(
+      find.text('profile.settings.delete_account_error_no_password'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('blocks double taps and the destructive action while busy', (
     tester,
   ) async {
@@ -240,7 +272,8 @@ void main() {
     expect(result.value, isA<SocialReauth>());
   });
 
-  testWidgets('the password path pops PasswordReauth', (tester) async {
+  testWidgets('the password path pops PasswordReauth untrimmed',
+      (tester) async {
     final client = _FakeSocialAuthClient({SocialProvider.google});
     final result = await _open(tester, client);
 
@@ -250,7 +283,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(result.value, isA<PasswordReauth>());
-    expect((result.value as PasswordReauth).password, 's3cret');
+    // La contraseña se envía tal como se escribió (puede llevar espacios).
+    expect((result.value as PasswordReauth).password, ' s3cret ');
     expect(client.requested, isEmpty);
   });
 

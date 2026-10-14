@@ -764,7 +764,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } on DioException catch (e) {
       final status = e.response?.statusCode;
       final data = e.response?.data;
-      final errorCode = data is Map ? data['code'] as String? : null;
+      final errorCode =
+          data is Map && data['code'] is String ? data['code'] as String : null;
       AppLogger.w(
           'Login social ${provider.wireName} rechazado: $status ($errorCode)',
           tag: _tag);
@@ -873,7 +874,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } on DioException catch (e) {
       final status = e.response?.statusCode;
       final data = e.response?.data;
-      final errorCode = data is Map ? data['code'] as String? : null;
+      final errorCode =
+          data is Map && data['code'] is String ? data['code'] as String : null;
       AppLogger.w('Borrado de cuenta rechazado: $status ($errorCode)',
           tag: _tag);
       throw AuthException(
