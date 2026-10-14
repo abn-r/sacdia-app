@@ -4765,6 +4765,10 @@
         "title": "Minimum age not met",
         "body": "Based on your birth date, you did not meet the minimum age for this class on that date."
       },
+      "item_not_rejected": {
+        "title": "Row already resubmitted",
+        "body": "This row was already resubmitted."
+      },
       "complete_profile": "Go to my profile"
     },
     "steps": {
@@ -4826,6 +4830,7 @@
       "corrections_body": "There are pending corrections",
       "in_review_body": "Your local field is reviewing this submission.",
       "counts": "Approved: {approved} · Rejected: {rejected} · Pending: {pending}",
+      "resubmitted": "Row resubmitted for review.",
       "gm01_replace": "An approved Guide Major replaces the current enrollment; two are not kept.",
       "institutional": "Advanced Guide Major and Instructor: the institutional decision is not a registered class.",
       "period_pending": "pending an administrative period"
@@ -4833,6 +4838,7 @@
     "item": {
       "honor": "Honor",
       "class": "Class",
+      "resubmitted": "Resubmitted",
       "rejected": "Rejected",
       "ready": "Ready",
       "unnamed": "No name detected",
@@ -4859,6 +4865,8 @@
       "class": "Class",
       "save": "Save",
       "remove": "Remove from the list",
+      "resubmit": "Resubmit",
+      "rejection_title": "Reason for rejection",
       "title_honor": "Fix honor",
       "title_class": "Fix class",
       "read_in_proof": "Read in your receipt",

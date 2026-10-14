@@ -4765,6 +4765,10 @@
         "title": "Edad mínima no cumplida",
         "body": "Según tu fecha de nacimiento no tenías la edad mínima para esta clase en esa fecha."
       },
+      "item_not_rejected": {
+        "title": "Esta fila ya fue reenviada",
+        "body": "Esta fila ya fue reenviada."
+      },
       "complete_profile": "Ir a mi perfil"
     },
     "steps": {
@@ -4826,6 +4830,7 @@
       "corrections_body": "Hay correcciones pendientes",
       "in_review_body": "Tu Campo Local está revisando este envío.",
       "counts": "Aprobadas: {approved} · Rechazadas: {rejected} · Pendientes: {pending}",
+      "resubmitted": "Fila reenviada a revisión.",
       "gm01_replace": "Guía Mayor aprobado sustituye la inscripción actual; no se conservan dos.",
       "institutional": "Guía Mayor Avanzado e Instructor: la decisión institucional no es «clase registrada».",
       "period_pending": "pendiente de periodo administrativo"
@@ -4833,6 +4838,7 @@
     "item": {
       "honor": "Especialidad",
       "class": "Clase",
+      "resubmitted": "Reenviada",
       "rejected": "Rechazada",
       "ready": "Lista",
       "unnamed": "Sin nombre detectado",
@@ -4859,6 +4865,8 @@
       "class": "Clase",
       "save": "Guardar",
       "remove": "Quitar de la lista",
+      "resubmit": "Reenviar",
+      "rejection_title": "Motivo del rechazo",
       "title_honor": "Corregir especialidad",
       "title_class": "Corregir clase",
       "read_in_proof": "Leído en tu comprobante",

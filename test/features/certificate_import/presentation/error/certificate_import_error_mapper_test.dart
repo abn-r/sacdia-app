@@ -49,6 +49,8 @@ void main() {
           CertificateImportErrorKind.yearNotFound,
       'CERTIFICATE_IMPORT_AGE_BELOW_MINIMUM':
           CertificateImportErrorKind.ageBelowMinimum,
+      'CERTIFICATE_IMPORT_ITEM_NOT_REJECTED':
+          CertificateImportErrorKind.itemNotRejected,
       'NETWORK': CertificateImportErrorKind.offline,
       'TIMEOUT': CertificateImportErrorKind.timeout,
     };
@@ -80,6 +82,16 @@ void main() {
           CertificateImportErrorAction.none);
       expect(actionOf('CERTIFICATE_IMPORT_YEAR_AMBIGUOUS'),
           CertificateImportErrorAction.none);
+    });
+
+    test('a resubmit of a row no longer rejected has its own copy', () {
+      final info = CertificateImportErrorMapper.map(const ServerFailure(
+        message: 'CERTIFICATE_IMPORT_ITEM_NOT_REJECTED',
+        code: 400,
+      ));
+      expect(info.kind, CertificateImportErrorKind.itemNotRejected);
+      expect(info.action, CertificateImportErrorAction.none);
+      expect(info.body, 'certificate_import.errors.item_not_rejected.body');
     });
 
     test('PDF_BUSY (HTTP 429) is retryable and keeps the busy copy', () {

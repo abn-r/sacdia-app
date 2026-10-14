@@ -106,10 +106,12 @@ class CertificateImportItemUpdatePayload {
   /// Body for saving [item]. [previous] is the row before the edit: the
   /// instructor only goes out when it changed, so an unchanged one is not
   /// checked again (and cannot block an unrelated edit if that person stopped
-  /// being eligible). Classes never send one.
+  /// being eligible). Classes never send one. [markAsReady] overrides the
+  /// default (ready rows only): a resubmit always sends `true`.
   factory CertificateImportItemUpdatePayload.fromItem(
     CertificateImportItem item, {
     CertificateImportItem? previous,
+    bool? markAsReady,
   }) {
     final isHonor = item.type == CertificateImportItemType.honor;
     final instructor = isHonor ? item.instructor : null;
@@ -120,7 +122,8 @@ class CertificateImportItemUpdatePayload {
       classId: item.classId,
       detectedName: item.detectedName,
       completedAt: _apiDate(item.completedAt),
-      markAsReady: item.status == CertificateImportItemStatus.ready,
+      markAsReady:
+          markAsReady ?? item.status == CertificateImportItemStatus.ready,
       clubTypeId: item.classRef?.clubTypeId,
       instructorUserId:
           changed && instructor?.isUser == true ? instructor!.userId : null,

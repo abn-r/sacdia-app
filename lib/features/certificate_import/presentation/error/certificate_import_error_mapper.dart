@@ -34,6 +34,9 @@ enum CertificateImportErrorKind {
   /// The date falls in no ecclesiastical year, or in more than one.
   yearNotFound,
   ageBelowMinimum,
+
+  /// Resubmit of a row that already left the rejected state.
+  itemNotRejected,
   unknown,
 }
 
@@ -105,6 +108,7 @@ abstract final class CertificateImportErrorMapper {
     ),
     CertificateImportErrorKind.yearNotFound: ('age_year', _none),
     CertificateImportErrorKind.ageBelowMinimum: ('age_below_minimum', _none),
+    CertificateImportErrorKind.itemNotRejected: ('item_not_rejected', _none),
     CertificateImportErrorKind.unknown: ('unexpected', _retry),
   };
 
@@ -214,6 +218,8 @@ abstract final class CertificateImportErrorMapper {
         return CertificateImportErrorKind.yearNotFound;
       case CertificateImportErrorCode.ageBelowMinimum:
         return CertificateImportErrorKind.ageBelowMinimum;
+      case CertificateImportErrorCode.itemNotRejected:
+        return CertificateImportErrorKind.itemNotRejected;
       case CertificateImportErrorCode.network:
         return CertificateImportErrorKind.offline;
       case CertificateImportErrorCode.timeout:

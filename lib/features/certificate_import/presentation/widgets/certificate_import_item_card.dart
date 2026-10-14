@@ -169,8 +169,12 @@ class CertificateImportItemCard extends StatelessWidget {
 
   String? get _clubTypeName => item.classRef?.clubTypeName;
 
+  bool get _isResubmitted =>
+      !_isRejected && item.status == CertificateImportItemStatus.resubmitted;
+
   String get _statusLabel {
     if (_isRejected) return 'certificate_import.item.rejected'.tr();
+    if (_isResubmitted) return 'certificate_import.item.resubmitted'.tr();
     final missing = item.missing;
     if (missing.isEmpty) return 'certificate_import.item.ready'.tr();
     if (missing.length > 1) {
@@ -194,6 +198,8 @@ class CertificateImportItemCard extends StatelessWidget {
   Widget _statusBadge() {
     final label = _statusLabel;
     if (_isRejected) return SacBadge.error(label: label);
+    // Resent and waiting for the reviewer: not "ready", not done.
+    if (_isResubmitted) return SacBadge.warning(label: label);
     return item.isComplete
         ? SacBadge.success(label: label)
         : SacBadge.warning(label: label);
