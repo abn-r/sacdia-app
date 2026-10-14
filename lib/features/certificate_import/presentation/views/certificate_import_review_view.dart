@@ -111,7 +111,14 @@ class CertificateImportReviewRouteView extends ConsumerWidget {
               .call(batch.id);
           result.fold(
             (failure) => throw failure,
-            (_) => context.go(RouteNames.certificateImportStatusPath(batch.id)),
+            (_) {
+              // The status screen reads the same provider this screen loaded
+              // before the member removed rows: drop the cached batch so it
+              // counts what was really sent. The entry list shows its status.
+              ref.invalidate(certificateImportBatchProvider(batch.id));
+              ref.invalidate(certificateImportBatchListProvider);
+              context.go(RouteNames.certificateImportStatusPath(batch.id));
+            },
           );
         },
       ),
