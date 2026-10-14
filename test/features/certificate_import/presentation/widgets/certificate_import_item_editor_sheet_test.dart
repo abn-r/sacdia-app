@@ -85,8 +85,9 @@ Future<void> _open(
   VoidCallback? onViewProof,
   int? proofPage,
   VoidCallback? onOpenProfile,
+  double height = 2400,
 }) async {
-  phoneSurface(tester, height: 2400);
+  phoneSurface(tester, height: height);
   await tester.pumpWidget(wrapTestApp(
     Builder(
       builder: (context) => Scaffold(
@@ -508,6 +509,53 @@ void main() {
       );
       expect(find.text('La fecha no puede ser futura'), findsOneWidget);
     });
+
+    // Short screen: the class list pushes the date field out of the scroll
+    // area, so the error under it must be scrolled into view or tapping Guardar
+    // looks like it did nothing.
+    for (final reduced in [false, true]) {
+      testWidgets(
+          'a year-not-found error is scrolled into view on a short screen'
+          '${reduced ? ' (reduced motion)' : ''}', (tester) async {
+        if (reduced) reduceMotion(tester);
+        final saved = _Saved()
+          ..failWith = const ServerFailure(
+            message: 'x',
+            errorCode: 'CERTIFICATE_IMPORT_YEAR_NOT_FOUND',
+          );
+        await _open(
+          tester,
+          _classRow(
+            classId: 3,
+            classRef: const CertificateImportClassRef(
+              id: 3,
+              name: 'Explorador',
+              clubTypeId: 1,
+            ),
+            completedAt: DateTime(1961, 5, 1),
+          ),
+          saved,
+          height: 520,
+        );
+        await _save(tester);
+        // Let the deferred scroll run (AnimatedSize wait + scroll animation).
+        await tester.pump(const Duration(milliseconds: 600));
+        await tester.pumpAndSettle();
+
+        const message =
+            'No encontramos el año eclesiástico de esa fecha. Revisa la fecha.';
+        expect(find.text(message), findsOneWidget);
+        final viewport = tester.getRect(find
+            .descendant(
+              of: find.byType(CertificateImportItemEditorSheet),
+              matching: find.byType(SingleChildScrollView),
+            )
+            .first);
+        final error = tester.getRect(find.text(message));
+        expect(error.top, greaterThanOrEqualTo(viewport.top));
+        expect(error.bottom, lessThanOrEqualTo(viewport.bottom));
+      });
+    }
 
     testWidgets('a club type mismatch lands on the class list', (tester) async {
       await failing(

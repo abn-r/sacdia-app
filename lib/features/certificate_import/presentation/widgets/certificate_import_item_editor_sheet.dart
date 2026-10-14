@@ -367,16 +367,26 @@ class _CertificateImportItemEditorSheetState
       message,
       Directionality.of(context),
     );
+    _scrollToField(key);
+  }
+
+  /// Brings [key] into the scroll area once the error text under it has been
+  /// laid out. Scrolling in the same frame as `setState` runs before the
+  /// message exists, so a field at the bottom of the list stayed off-screen.
+  Future<void> _scrollToField(GlobalKey key) async {
+    final reduce = SacMotion.reduceMotionOf(context);
+    await WidgetsBinding.instance.endOfFrame;
+    // The editor grows new notices in with an AnimatedSize: wait for it, or
+    // the scroll extent does not include the message yet.
+    if (!reduce) await Future<void>.delayed(SacMotion.standard);
     final target = key.currentContext;
-    if (target != null) {
-      Scrollable.ensureVisible(
-        target,
-        alignment: 0.1,
-        duration:
-            SacMotion.reduceMotionOf(context) ? Duration.zero : SacMotion.modal,
-        curve: SacMotion.easeInOut,
-      );
-    }
+    if (target == null || !target.mounted) return;
+    Scrollable.ensureVisible(
+      target,
+      alignment: 0.1,
+      duration: reduce ? Duration.zero : SacMotion.modal,
+      curve: SacMotion.easeInOut,
+    );
   }
 
   Future<void> _save() async {
@@ -389,6 +399,7 @@ class _CertificateImportItemEditorSheetState
     }
     setState(() {
       _saving = true;
+      _dateError = null;
       _classError = null;
       _banner = null;
       _bannerGoesToProfile = false;
@@ -740,7 +751,8 @@ class _CertificateImportItemEditorSheetState
         ),
       ),
       const SizedBox(height: 16),
-      _dateField(honor: false),
+      // The key lets a date error (year not found, date required) scroll here.
+      KeyedSubtree(key: _dateKey, child: _dateField(honor: false)),
       const SizedBox(height: 16),
     ];
   }
