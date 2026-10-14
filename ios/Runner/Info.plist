@@ -30,9 +30,13 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>io.sacdia.app</string>
+				<!-- REVERSED_CLIENT_ID del client ID iOS de Google Cloud -->
+				<string>com.googleusercontent.apps.REPLACE_WITH_IOS_CLIENT_ID</string>
 			</array>
 		</dict>
 	</array>
+	<key>GIDClientID</key>
+	<string>REPLACE_WITH_IOS_CLIENT_ID.apps.googleusercontent.com</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>FlutterDeepLinkingEnabled</key>
