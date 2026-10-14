@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/auth/social_credential.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
+import 'package:sacdia_app/core/notifications/push_notification_provider.dart';
 import 'package:sacdia_app/features/auth/domain/entities/delete_account_reauth.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 
@@ -94,5 +95,34 @@ void main() {
       await container.read(authNotifierProvider.notifier).connectedProviders(),
       isEmpty,
     );
+  });
+
+  FakePushNotificationService pushOf(ProviderContainer container) =>
+      container.read(pushNotificationServiceProvider)
+          as FakePushNotificationService;
+
+  test('a failed deletion keeps push registration untouched', () async {
+    final repo = _DeleteRepo(
+      deleteResult: const Left(AuthFailure(message: 'Contraseña incorrecta')),
+    );
+    final container = await build(repo);
+
+    await container
+        .read(authNotifierProvider.notifier)
+        .deleteAccount(const PasswordReauth('bad'));
+
+    expect(pushOf(container).unregisterCalls, 0);
+    expect(pushOf(container).disposeCalls, 0);
+  });
+
+  test('a successful deletion unregisters and disposes push', () async {
+    final container = await build(_DeleteRepo());
+
+    await container
+        .read(authNotifierProvider.notifier)
+        .deleteAccount(socialReauth);
+
+    expect(pushOf(container).unregisterCalls, 1);
+    expect(pushOf(container).disposeCalls, 1);
   });
 }

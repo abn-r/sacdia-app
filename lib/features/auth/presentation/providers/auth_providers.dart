@@ -678,9 +678,9 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   /// Elimina permanentemente la cuenta del usuario autenticado.
   ///
   /// Flujo:
-  ///  1. Desregistra el token FCM del backend (best-effort).
-  ///  2. Llama DELETE /auth/me con la reautenticación (contraseña o proveedor).
-  ///  3. En éxito limpia todo el storage local y pone state = null.
+  ///  1. Llama DELETE /auth/me con la reautenticación (contraseña o proveedor).
+  ///  2. En éxito limpia FCM y todo el storage local y pone state = null.
+  ///     En fallo no toca nada: el usuario sigue con sesión y push activo.
   ///
   /// Retorna null en éxito o un mensaje de error localizado.
   Future<String?> deleteAccount(DeleteAccountReauth reauth) async {
@@ -697,18 +697,6 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       return 'auth.errors.operation_cancelled'.tr();
     }
 
-    // Desregistrar FCM antes de borrar la sesión (el interceptor aún puede
-    // adjuntar el Bearer header porque los tokens aún existen).
-    try {
-      final pushService = ref.read(pushNotificationServiceProvider);
-      await pushService.unregisterToken();
-      await pushService.dispose();
-    } catch (e) {
-      // Non-critical: el backend también cascada los FCM tokens al borrar cuenta.
-      AppLogger.w('Error al desregistrar FCM antes de delete account',
-          tag: _tag, error: e);
-    }
-
     final result = await ref.read(authRepositoryProvider).deleteAccount(reauth);
 
     return result.fold<Future<String?>>(
@@ -721,6 +709,19 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       },
       (_) async {
         AppLogger.i('Cuenta eliminada correctamente', tag: _tag);
+
+        // Solo en éxito: si el borrado falla el usuario sigue con sesión y
+        // debe conservar las notificaciones push. El backend ya desactivó sus
+        // tokens FCM en la cascada; esto limpia el registro local y cancela
+        // los listeners (best-effort, el DELETE puede fallar sin sesión).
+        try {
+          final pushService = ref.read(pushNotificationServiceProvider);
+          await pushService.unregisterToken();
+          await pushService.dispose();
+        } catch (e) {
+          AppLogger.w('Error al limpiar FCM tras delete account',
+              tag: _tag, error: e);
+        }
 
         // Limpiar estado local (el datasource ya limpió tokens en deleteAccount).
         final prefs = ref.read(sharedPreferencesProvider);

@@ -148,11 +148,14 @@ class FakePushNotificationService extends PushNotificationService {
   @override
   Future<void> initialize() async {}
 
-  @override
-  Future<void> unregisterToken() async {}
+  int unregisterCalls = 0;
+  int disposeCalls = 0;
 
   @override
-  Future<void> dispose() async {}
+  Future<void> unregisterToken() async => unregisterCalls++;
+
+  @override
+  Future<void> dispose() async => disposeCalls++;
 }
 
 /// Arma un `ProviderContainer` con el repositorio y los colaboradores
