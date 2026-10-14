@@ -4763,6 +4763,10 @@
         "title": "Âge minimum non atteint",
         "body": "D'après ta date de naissance, tu n'avais pas l'âge minimum pour cette classe à cette date."
       },
+      "item_not_rejected": {
+        "title": "Ligne déjà renvoyée",
+        "body": "Cette ligne a déjà été renvoyée."
+      },
       "complete_profile": "Aller à mon profil"
     },
     "steps": {
@@ -4824,6 +4828,7 @@
       "corrections_body": "Des corrections sont en attente",
       "in_review_body": "Votre champ local examine cet envoi.",
       "counts": "Approuvées : {approved} · Rejetées : {rejected} · En attente : {pending}",
+      "resubmitted": "Ligne renvoyée pour révision.",
       "gm01_replace": "Un Guide majeur approuvé remplace l’inscription actuelle ; deux enregistrements ne sont pas conservés.",
       "institutional": "Guide majeur avancé et Instructeur : la décision institutionnelle n’est pas une classe enregistrée.",
       "period_pending": "en attente de période administrative"
@@ -4831,6 +4836,7 @@
     "item": {
       "honor": "Spécialité",
       "class": "Classe",
+      "resubmitted": "Renvoyée",
       "rejected": "Rejetée",
       "ready": "Prête",
       "unnamed": "Aucun nom détecté",
@@ -4857,6 +4863,8 @@
       "class": "Classe",
       "save": "Enregistrer",
       "remove": "Retirer de la liste",
+      "resubmit": "Renvoyer",
+      "rejection_title": "Motif du refus",
       "title_honor": "Corriger la spécialité",
       "title_class": "Corriger la classe",
       "read_in_proof": "Lu sur votre justificatif",

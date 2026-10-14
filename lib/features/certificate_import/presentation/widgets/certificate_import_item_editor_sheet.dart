@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/constants/certificate_dates.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/instructor_field.dart';
 import 'package:sacdia_app/core/widgets/instructor_selection.dart';
@@ -35,6 +36,10 @@ import 'import_error_banner.dart';
 ///
 /// "Guardar" is always enabled: an incomplete row saves as a draft and the
 /// line above the button says what is missing.
+///
+/// With [resubmit] the sheet fixes a row the reviewer rejected: the reason
+/// shows at the top, the primary action is "Reenviar" (enabled once the row is
+/// complete) and the row cannot be removed.
 class CertificateImportItemEditorSheet extends ConsumerStatefulWidget {
   const CertificateImportItemEditorSheet({
     super.key,
@@ -44,6 +49,7 @@ class CertificateImportItemEditorSheet extends ConsumerStatefulWidget {
     this.onViewProof,
     this.proofPage,
     this.isNew = false,
+    this.resubmit = false,
     this.clock,
     this.onOpenProfile,
   });
@@ -62,6 +68,10 @@ class CertificateImportItemEditorSheet extends ConsumerStatefulWidget {
 
   /// A row being added by hand: type chips, no quote.
   final bool isNew;
+
+  /// Fixing a rejected row: shows the rejection reason, the action reads
+  /// "Reenviar" and [onRemove] is ignored.
+  final bool resubmit;
 
   /// "Today" for the date rule; tests inject it.
   final DateTime Function()? clock;
@@ -390,6 +400,7 @@ class _CertificateImportItemEditorSheetState
   }
 
   Future<void> _save() async {
+    if (_saving) return;
     final issue = CertificateDateRule.check(_date, now: _today);
     if (issue != null) {
       final message = _dateMessage(issue);
@@ -500,6 +511,15 @@ class _CertificateImportItemEditorSheetState
 
   // ── build ──────────────────────────────────────────────────────────────
 
+  /// The reviewer's reason, as the status card shows it.
+  String? _rejectionText(CertificateImportItem item) {
+    if (item.isPendingAdministrativePeriod) {
+      return 'certificate_import.item.period_pending'.tr();
+    }
+    final reason = item.rejectionReason?.trim();
+    return reason == null || reason.isEmpty ? null : reason;
+  }
+
   String _missingLine(CertificateImportItem draft) {
     // The name fills itself from the catalog choice: only say it when it is
     // the one thing left.
@@ -538,10 +558,15 @@ class _CertificateImportItemEditorSheetState
                 : 'certificate_import.editor.title_class')
             .tr();
     final read = item.detectedName?.trim() ?? '';
+    final rejection = widget.resubmit ? _rejectionText(item) : null;
 
     final fields = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (rejection != null) ...[
+          _RejectionNotice(reason: rejection),
+          const SizedBox(height: 16),
+        ],
         if (_typeIsOpen) ...[
           Row(
             children: [
@@ -649,11 +674,20 @@ class _CertificateImportItemEditorSheetState
                       onAction: _bannerGoesToProfile ? _openProfile : null,
                     ),
                     SacButton.primary(
-                      text: 'certificate_import.editor.save'.tr(),
+                      text: (widget.resubmit
+                              ? 'certificate_import.editor.resubmit'
+                              : 'certificate_import.editor.save')
+                          .tr(),
                       isLoading: _saving,
-                      onPressed: _saving ? null : _save,
+                      // A resubmitted row is validated like a ready one, so
+                      // it only goes out complete; the line above says what
+                      // is missing.
+                      onPressed:
+                          _saving || (widget.resubmit && !draft.isComplete)
+                              ? null
+                              : _save,
                     ),
-                    if (widget.onRemove != null)
+                    if (widget.onRemove != null && !widget.resubmit)
                       SacButton.ghost(
                         text: 'certificate_import.editor.remove'.tr(),
                         onPressed: _saving ? null : widget.onRemove,
@@ -778,6 +812,7 @@ Future<void> showCertificateImportItemEditor(
   VoidCallback? onViewProof,
   int? proofPage,
   bool isNew = false,
+  bool resubmit = false,
 }) {
   return showSacSheet<void>(
     context: context,
@@ -790,6 +825,51 @@ Future<void> showCertificateImportItemEditor(
       onViewProof: onViewProof,
       proofPage: proofPage,
       isNew: isNew,
+      resubmit: resubmit,
     ),
   );
+}
+
+/// The reviewer's reason for rejecting the row, above the fields.
+class _RejectionNotice extends StatelessWidget {
+  const _RejectionNotice({required this.reason});
+
+  final String reason;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final theme = Theme.of(context).textTheme;
+    return Semantics(
+      container: true,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: c.error.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'certificate_import.editor.rejection_title'.tr(),
+              style: theme.labelMedium?.copyWith(
+                color: c.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              reason,
+              style: theme.bodyMedium?.copyWith(
+                color: c.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

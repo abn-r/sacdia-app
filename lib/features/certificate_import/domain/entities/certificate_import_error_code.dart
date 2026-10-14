@@ -33,6 +33,8 @@ abstract final class CertificateImportErrorCode {
 
   static const honorInstructorNotAllowed =
       'CERTIFICATE_IMPORT_HONOR_INSTRUCTOR_NOT_ALLOWED';
+  /// Resubmit of a row that is no longer rejected (already resent).
+  static const itemNotRejected = 'CERTIFICATE_IMPORT_ITEM_NOT_REJECTED';
   static const batchNotDeletable = 'CERTIFICATE_IMPORT_BATCH_NOT_DELETABLE';
   static const ocrInProgress = 'CERTIFICATE_IMPORT_OCR_IN_PROGRESS';
 
@@ -65,6 +67,7 @@ abstract final class CertificateImportErrorCode {
     ageBelowMinimum,
     honorInstructorNotAllowed,
     ...InstructorErrorCode.all,
+    itemNotRejected,
     batchNotDeletable,
     ocrInProgress,
     network,
