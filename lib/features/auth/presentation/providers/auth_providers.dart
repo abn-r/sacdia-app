@@ -267,6 +267,9 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
               authorization: cachedAuthorization,
               postRegisterComplete:
                   prefs.getBool('cached_post_register_complete') ?? false,
+              // Server is the truth; never cache pending. Offline restore
+              // cannot know the legal status, so it stays false.
+              legalAcceptancePending: false,
             );
           }
           AppLogger.i('Sin caché, redirigiendo a login', tag: _tag);
@@ -480,9 +483,32 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       lastSignInAt: current.lastSignInAt,
       createdAt: current.createdAt,
       postRegisterComplete: true,
+      legalAcceptancePending: current.legalAcceptancePending,
     );
     state = AsyncValue.data(updatedUser);
     _cacheUser(updatedUser);
+  }
+
+  /// Clears the legal-acceptance gate in the in-memory auth state after the
+  /// backend confirmed the current versions were accepted, so the router
+  /// leaves the gate without a full /auth/me refresh.
+  void markLegalAccepted() {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    final updatedUser = UserEntity(
+      id: current.id,
+      email: current.email,
+      name: current.name,
+      avatar: current.avatar,
+      birthday: current.birthday,
+      metadata: current.metadata,
+      authorization: current.authorization,
+      lastSignInAt: current.lastSignInAt,
+      createdAt: current.createdAt,
+      postRegisterComplete: current.postRegisterComplete,
+      legalAcceptancePending: false,
+    );
+    state = AsyncValue.data(updatedUser);
   }
 
   void markPostRegisterIncomplete() {
@@ -498,6 +524,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       lastSignInAt: current.lastSignInAt,
       createdAt: current.createdAt,
       postRegisterComplete: false,
+      legalAcceptancePending: current.legalAcceptancePending,
     );
     state = AsyncValue.data(updatedUser);
     _cacheUser(updatedUser);

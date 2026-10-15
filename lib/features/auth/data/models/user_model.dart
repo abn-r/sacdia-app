@@ -16,6 +16,7 @@ class UserModel extends UserEntity {
     super.lastSignInAt,
     super.createdAt,
     super.postRegisterComplete,
+    super.legalAcceptancePending,
   });
 
   /// Crea un UserModel a partir de la respuesta de la API personalizada
@@ -42,6 +43,7 @@ class UserModel extends UserEntity {
       lastSignInAt: _parseDateTime(data['last_sign_in_at']) ?? DateTime.now(),
       createdAt: _parseDateTime(data['created_at']) ?? DateTime.now(),
       postRegisterComplete: postRegisterComplete,
+      legalAcceptancePending: _parseLegalPending(data['legal']),
     );
   }
 
@@ -60,6 +62,11 @@ class UserModel extends UserEntity {
       'postRegisterComplete': postRegisterComplete,
     };
   }
+
+  /// `data.legal.requires_acceptance == true`. Un bloque ausente o malformado
+  /// cuenta como no pendiente.
+  static bool _parseLegalPending(dynamic value) =>
+      value is Map && value['requires_acceptance'] == true;
 
   /// Método estático para parsear fechas de forma segura
   static DateTime? _parseDateTime(dynamic value) {
@@ -253,6 +260,7 @@ class UserModel extends UserEntity {
     DateTime? lastSignInAt,
     DateTime? createdAt,
     bool? postRegisterComplete,
+    bool? legalAcceptancePending,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -265,6 +273,8 @@ class UserModel extends UserEntity {
       lastSignInAt: lastSignInAt ?? this.lastSignInAt,
       createdAt: createdAt ?? this.createdAt,
       postRegisterComplete: postRegisterComplete ?? this.postRegisterComplete,
+      legalAcceptancePending:
+          legalAcceptancePending ?? this.legalAcceptancePending,
     );
   }
 }
