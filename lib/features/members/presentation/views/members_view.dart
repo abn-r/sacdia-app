@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -13,7 +14,6 @@ import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
-import 'package:sacdia_app/core/widgets/sac_filter_chip.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
@@ -513,6 +513,17 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
     BuildContext context,
     JoinRequest request,
   ) async {
+    // Rejecting is final for the applicant, so a stray tap must not do it.
+    final confirmed = await SacDialog.show(
+      context,
+      title: 'members.view.reject_confirm_title'.tr(),
+      content: tr('members.view.reject_confirm_body',
+          namedArgs: {'name': request.fullName}),
+      confirmLabel: 'members.view.reject_confirm_action'.tr(),
+      confirmIsDestructive: true,
+    );
+    if (confirmed != true || !mounted) return;
+
     setState(() => _processingIds.add(request.assignmentId));
     try {
       final success = await ref
@@ -716,43 +727,8 @@ class _JoinRequestSearchBarState extends State<_JoinRequestSearchBar> {
           ),
         ),
 
-        const SizedBox(height: 8),
-
-        // Status filter chips
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              SacFilterChip(
-                label: 'members.view.all_status'.tr(),
-                selected: filters.statusFilter == null,
-                onTap: () => widget
-                    .onFiltersChanged(filters.copyWith(clearStatus: true)),
-              ),
-              const SizedBox(width: 6),
-              SacFilterChip(
-                label: 'members.view.pending_status'.tr(),
-                selected: filters.statusFilter == JoinRequestStatus.pending,
-                onTap: () => widget.onFiltersChanged(
-                    filters.copyWith(statusFilter: JoinRequestStatus.pending)),
-              ),
-              const SizedBox(width: 6),
-              SacFilterChip(
-                label: 'members.view.approved_status'.tr(),
-                selected: filters.statusFilter == JoinRequestStatus.approved,
-                onTap: () => widget.onFiltersChanged(
-                    filters.copyWith(statusFilter: JoinRequestStatus.approved)),
-              ),
-              const SizedBox(width: 6),
-              SacFilterChip(
-                label: 'members.view.rejected_status'.tr(),
-                selected: filters.statusFilter == JoinRequestStatus.rejected,
-                onTap: () => widget.onFiltersChanged(
-                    filters.copyWith(statusFilter: JoinRequestStatus.rejected)),
-              ),
-            ],
-          ),
-        ),
+        // No status chips: GET membership-requests only returns pending
+        // requests, so approved/rejected filters were always empty.
       ],
     );
   }
