@@ -698,19 +698,8 @@ class _ExportCard extends StatelessWidget {
                   ],
                 ],
 
-                if (export.status == DataExportStatus.failed &&
-                    export.failureReason != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    export.failureReason!,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppColors.error.withValues(alpha: 0.8),
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ] else if (export.status == DataExportStatus.failed) ...[
+                // failure_reason is a raw server error, not user copy.
+                if (export.status == DataExportStatus.failed) ...[
                   const SizedBox(height: 2),
                   Text(
                     'profile.data_export.ui.error_generating'.tr(),

@@ -178,7 +178,7 @@ class _ActiveSessionsViewState extends ConsumerState<ActiveSessionsView> {
             data: (sessions) => sessions.isEmpty
                 ? const _EmptyState()
                 : _SessionList(
-                    sessions: sessions,
+                    sessions: currentSessionFirst(sessions),
                     revokingIds: _revokingIds,
                     isRevokingAll: _revokingAll,
                     onRevoke: _handleRevoke,

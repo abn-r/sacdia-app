@@ -49,3 +49,11 @@ class ActiveSession extends Equatable {
         expiresAt,
       ];
 }
+
+/// Returns [sessions] with the current session first. The backend orders by
+/// creation date, so the current one can land anywhere; the rest keep their
+/// order.
+List<ActiveSession> currentSessionFirst(List<ActiveSession> sessions) => [
+      ...sessions.where((s) => s.isCurrent),
+      ...sessions.where((s) => !s.isCurrent),
+    ];
