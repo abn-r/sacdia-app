@@ -22,6 +22,7 @@ import 'package:sacdia_app/providers/catalogs_provider.dart';
 
 import '../../domain/entities/activity.dart';
 import '../providers/activities_providers.dart';
+import '../widgets/activity_audience_section.dart';
 import '../widgets/activity_form_widgets.dart';
 import 'location_picker_view.dart';
 import '../../../members/presentation/providers/members_providers.dart';
@@ -88,6 +89,10 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
   bool _isJoint = false;
   Set<int> _selectedSectionIds = {};
 
+  // ── Público ───────────────────────────────────────────────────────────────
+  late String _audience;
+  late Set<int> _selectedClassIds;
+
   @override
   void initState() {
     super.initState();
@@ -118,6 +123,25 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
     if (a.isJoint && a.instances != null) {
       _selectedSectionIds = a.instances!.map((i) => i.clubSectionId).toSet();
     }
+
+    _audience = a.audience;
+    _selectedClassIds = _originalClassIds;
+  }
+
+  Set<int> get _originalClassIds {
+    final a = widget.activity;
+    return a.audienceClasses.isNotEmpty
+        ? a.audienceClasses.map((c) => c.classId).toSet()
+        : {...?a.classes};
+  }
+
+  /// True when the audience picker differs from what the activity had.
+  bool get _audienceChanged {
+    if (_audience != widget.activity.audience) return true;
+    if (_audience != 'classes') return false;
+    final original = _originalClassIds;
+    return original.length != _selectedClassIds.length ||
+        !original.containsAll(_selectedClassIds);
   }
 
   @override
@@ -254,6 +278,11 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
       return;
     }
 
+    if (_audience == 'classes' && _selectedClassIds.isEmpty) {
+      _showError('activities.form.audience_classes_required'.tr());
+      return;
+    }
+
     final a = widget.activity;
     final clearFields = <String>{};
 
@@ -303,6 +332,10 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
       linkMeet: newLinkMeet,
       clearFields: clearFields,
       clubSectionIds: clubSectionIds,
+      audience: _audienceChanged ? _audience : null,
+      classes: _audienceChanged && _audience == 'classes'
+          ? _selectedClassIds.toList()
+          : null,
     );
 
     if (!mounted) return;
@@ -539,6 +572,21 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
                     _JointActivityReadOnlyBadge(activity: widget.activity),
                     const SizedBox(height: 24),
                   ],
+
+                  ActivityAudienceSection(
+                    sections: ref
+                            .watch(clubSectionsForActivityProvider)
+                            .valueOrNull ??
+                        const [],
+                    ownSectionId: widget.activity.clubSectionId,
+                    isJoint: _isJoint,
+                    selectedSectionIds: _selectedSectionIds,
+                    audience: _audience,
+                    selectedClassIds: _selectedClassIds,
+                    onAudience: (value) => setState(() => _audience = value),
+                    onClasses: (ids) => setState(() => _selectedClassIds = ids),
+                  ),
+                  const SizedBox(height: 24),
 
                   // ── Sección: Lugar y tiempo ───────────────────────────────
                   ActivitySectionHeader(

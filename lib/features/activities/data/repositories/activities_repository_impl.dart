@@ -151,6 +151,8 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
     Set<String> clearFields = const {},
     List<int>? clubSectionIds,
     String? image,
+    String? audience,
+    List<int>? classes,
   }) async {
     try {
       final activityModel = await remoteDataSource.updateActivity(
@@ -170,6 +172,8 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
         clearFields: clearFields,
         clubSectionIds: clubSectionIds,
         image: image,
+        audience: audience,
+        classes: classes,
       );
       return Right(activityModel.toEntity());
     } on ServerException catch (e) {

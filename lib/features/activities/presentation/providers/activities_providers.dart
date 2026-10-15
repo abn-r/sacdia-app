@@ -355,6 +355,8 @@ class UpdateActivityNotifier extends AutoDisposeNotifier<UpdateActivityState> {
     Set<String> clearFields = const {},
     List<int>? clubSectionIds,
     String? image,
+    String? audience,
+    List<int>? classes,
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
@@ -376,6 +378,8 @@ class UpdateActivityNotifier extends AutoDisposeNotifier<UpdateActivityState> {
       clearFields: clearFields,
       clubSectionIds: clubSectionIds,
       image: image,
+      audience: audience,
+      classes: classes,
     );
 
     return result.fold(

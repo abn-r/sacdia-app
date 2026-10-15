@@ -111,7 +111,9 @@ class _FakeActivitiesRepository implements ActivitiesRepository {
           bool? active,
           Set<String> clearFields = const {},
           List<int>? clubSectionIds,
-          String? image}) =>
+          String? image,
+          String? audience,
+          List<int>? classes}) =>
       throw UnimplementedError();
 }
 

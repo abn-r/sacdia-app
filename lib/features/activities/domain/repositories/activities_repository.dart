@@ -50,6 +50,8 @@ abstract class ActivitiesRepository {
     Set<String> clearFields = const {},
     List<int>? clubSectionIds,
     String? image,
+    String? audience,
+    List<int>? classes,
   });
 
   /// Elimina (desactiva) una actividad

@@ -45,6 +45,8 @@ abstract class ActivitiesRemoteDataSource {
     Set<String> clearFields = const {},
     List<int>? clubSectionIds,
     String? image,
+    String? audience,
+    List<int>? classes,
   });
   Future<void> deleteActivity(int activityId);
   Future<List<AttendanceModel>> getActivityAttendance(
@@ -287,6 +289,8 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
     Set<String> clearFields = const {},
     List<int>? clubSectionIds,
     String? image,
+    String? audience,
+    List<int>? classes,
   }) async {
     try {
       AppLogger.i('Actualizando actividad: $activityId', tag: _tag);
@@ -305,6 +309,10 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
       if (linkMeet != null) data['link_meet'] = linkMeet;
       if (active != null) data['active'] = active;
       if (image != null) data['image'] = image;
+      if (audience != null) {
+        data['audience'] = audience;
+        if (audience == 'classes') data['classes'] = classes ?? const <int>[];
+      }
 
       // Campos explícitamente nulos (el backend usa undefined-check, necesitamos la clave presente)
       for (final field in clearFields) {
