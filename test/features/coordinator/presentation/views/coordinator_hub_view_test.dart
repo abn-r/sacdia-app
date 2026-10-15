@@ -27,7 +27,7 @@ class _FakeAuthNotifier extends AuthNotifier {
 }
 
 const _sla = SlaDashboard(
-  investiture: SlaStat(pending: 35, avgDays: 0, overdue: 0),
+  investiture: SlaStat(pending: 35, avgDays: 0, overdue: 4),
   evidence: SlaStat(pending: 6, avgDays: 0, overdue: 2),
   camporee: SlaStat(pending: 0, avgDays: 0, overdue: 1),
   throughput: [],
@@ -54,7 +54,8 @@ Future<void> _pumpHub(WidgetTester tester) async {
 }
 
 void main() {
-  testWidgets('shows evidence, sections and overdue summary cards',
+  testWidgets(
+      'shows evidence, sections and overdue (without investiture) cards',
       (tester) async {
     await _pumpHub(tester);
 
@@ -63,6 +64,8 @@ void main() {
     expect(find.text('coordinator.summary.overdue'.tr()), findsOneWidget);
     expect(find.text('6'), findsOneWidget);
     expect(find.text('3'), findsOneWidget);
+    // 4 investiture overdue items must not be added (would read 7).
+    expect(find.text('7'), findsNothing);
   });
 
   testWidgets('does not show the retired investiture summary card',

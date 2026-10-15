@@ -72,6 +72,12 @@ class SlaDashboard extends Equatable {
   int get totalOverdue =>
       investiture.overdue + evidence.overdue + camporee.overdue;
 
+  /// Vencidos de los procesos que hoy atiende la coordinación (evidencias y
+  /// camporees). Excluye la investidura: desde el apagado de la vía anterior
+  /// la autoriza el pastor o el Campo y `investiture` solo cuenta estados
+  /// retirados.
+  int get coordinatorOverdue => evidence.overdue + camporee.overdue;
+
   @override
   List<Object?> get props =>
       [investiture, evidence, camporee, throughput, pipeline];

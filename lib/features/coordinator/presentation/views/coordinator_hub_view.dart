@@ -274,7 +274,7 @@ class _SummaryRow extends StatelessWidget {
         const SizedBox(height: 10),
         _SummaryTile(
           label: 'coordinator.summary.overdue'.tr(),
-          count: sla.totalOverdue,
+          count: sla.coordinatorOverdue,
           color: AppColors.error,
           icon: HugeIcons.strokeRoundedAlert02,
         ),
