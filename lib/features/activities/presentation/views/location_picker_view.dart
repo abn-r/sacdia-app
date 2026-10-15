@@ -20,6 +20,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/activities/data/datasources/nominatim_remote_data_source.dart';
 import 'package:sacdia_app/features/activities/domain/entities/location_search_result.dart';
 import 'package:sacdia_app/features/activities/presentation/providers/location_search_providers.dart';
+import 'package:sacdia_app/features/club/presentation/providers/club_providers.dart';
 
 /// Resultado devuelto por [LocationPickerView] al confirmar una ubicación.
 class LocationPickerResult {
@@ -60,8 +61,9 @@ class LocationPickerResult {
 ///
 /// Usa Google Maps SDK (requiere API Key configurada en Android y iOS).
 class LocationPickerView extends ConsumerStatefulWidget {
-  /// Ubicación inicial del mapa. Si es null, usa la ubicación del usuario
-  /// o la ubicación por defecto definida en [MapsConstants] (Ciudad de México).
+  /// Ubicación inicial del mapa. Si es null, usa la ubicación del usuario;
+  /// sin permiso de ubicación cae a las coordenadas de la sección de club
+  /// actual y, solo si no las tiene, a [MapsConstants] (Ciudad de México).
   final LatLng? initialLocation;
 
   const LocationPickerView({super.key, this.initialLocation});
@@ -87,8 +89,12 @@ class _LocationPickerViewState extends ConsumerState<LocationPickerView> {
   void initState() {
     super.initState();
     _resolvedAddress = '';
+    final section = ref.read(currentClubSectionProvider).valueOrNull;
     _currentCenter = widget.initialLocation ??
-        const LatLng(MapsConstants.defaultLat, MapsConstants.defaultLong);
+        locationPickerFallbackCenter(
+          clubLat: section?.lat,
+          clubLong: section?.long,
+        );
 
     if (widget.initialLocation == null) {
       _moveToUserLocation();
@@ -97,8 +103,23 @@ class _LocationPickerViewState extends ConsumerState<LocationPickerView> {
     }
   }
 
+  /// Re-centers on the club section once it loads, if it wasn't cached yet.
+  Future<void> _centerOnClubSection() async {
+    final section = await ref.read(currentClubSectionProvider.future);
+    final clubCenter = locationPickerFallbackCenter(
+      clubLat: section?.lat,
+      clubLong: section?.long,
+    );
+    if (!mounted || clubCenter == _currentCenter) return;
+    setState(() => _currentCenter = clubCenter);
+    final controller = await _mapCompleter.future;
+    controller.moveCamera(CameraUpdate.newLatLng(clubCenter));
+  }
+
   Future<void> _moveToUserLocation() async {
     try {
+      await _centerOnClubSection().catchError((_) {});
+      if (!mounted) return;
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
@@ -1045,4 +1066,18 @@ class _SearchStatusMessage extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Map center when there is no explicit or user location: the club section's
+/// coordinates when it has them, otherwise [MapsConstants]' default.
+@visibleForTesting
+LatLng locationPickerFallbackCenter({double? clubLat, double? clubLong}) {
+  if (clubLat != null &&
+      clubLong != null &&
+      !(clubLat == 0 && clubLong == 0) &&
+      clubLat.abs() <= 90 &&
+      clubLong.abs() <= 180) {
+    return LatLng(clubLat, clubLong);
+  }
+  return const LatLng(MapsConstants.defaultLat, MapsConstants.defaultLong);
 }
