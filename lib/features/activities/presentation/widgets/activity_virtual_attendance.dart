@@ -14,6 +14,7 @@ import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../domain/entities/activity_rsvp.dart';
 import '../providers/activities_providers.dart';
+import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
 
 /// Virtual activities: members mark intention. Staff confirms real attendance
 /// among every section member.
@@ -440,10 +441,13 @@ class _VirtualAttendanceSheetState
                         onChanged: (value) => setState(() => _query = value),
                         decoration: InputDecoration(
                           hintText: 'activities.widgets.rsvp_search'.tr(),
-                          prefixIcon: const HugeIcon(
+                          // HugeIcon stretches to the 48px prefix slot unless
+                          // the slot centers it at a fixed size.
+                          prefixIcon: FixedInputIconSlot(
                             icon: HugeIcons.strokeRoundedSearch01,
-                            size: 20,
+                            color: context.sac.textSecondary,
                           ),
+                          prefixIconConstraints: FixedInputIconSlot.constraints,
                           isDense: true,
                         ),
                       ),
