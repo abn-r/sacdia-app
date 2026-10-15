@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
+import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
@@ -104,7 +105,7 @@ class AnnualContinuationsBody extends ConsumerWidget {
           return _EmptyView();
         }
 
-        final period = state.periodLabel ?? '';
+        final period = state.periodLabel;
 
         return Column(
           children: [
@@ -143,10 +144,12 @@ class AnnualContinuationsBody extends ConsumerWidget {
             Padding(
               padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 24),
               child: SacButton.primary(
-                text: tr(
-                  'members.continuations.submit_button',
-                  namedArgs: {'period': period},
-                ),
+                text: period == null
+                    ? tr('members.continuations.submit_button_no_period')
+                    : tr(
+                        'members.continuations.submit_button',
+                        namedArgs: {'period': period},
+                      ),
                 icon: HugeIcons.strokeRoundedCheckmarkCircle01,
                 isEnabled: state.enrollableItems.isNotEmpty &&
                     state.selectedIds.isNotEmpty,
@@ -207,7 +210,8 @@ class _ContinuationItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final blocked = item.isBlocked;
-    final role = (item.currentRole ?? '').trim();
+    // `current_role` llega como slug (`deputy-director`); se muestra traducido.
+    final role = RoleUtils.translate((item.currentRole ?? '').trim());
     final blockedDetail = blocked ? _blockedLabel(item) : null;
     final metaParts = <String>[
       if (role.isNotEmpty)

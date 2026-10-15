@@ -2470,6 +2470,7 @@
       "already_continued": "Ya inscrito",
       "blocked": "No elegible",
       "submit_button": "Inscribir para {period}",
+      "submit_button_no_period": "Inscribir seleccionados",
       "success": "{count} inscrito(s)",
       "success_partial": "{enrolled} inscrito(s). {blocked} bloqueado(s). {failed} con error.",
       "empty_title": "Nadie pendiente de inscripción",

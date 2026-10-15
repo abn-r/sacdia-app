@@ -70,8 +70,11 @@ void main() {
         userId: 'user-returned-from-cq-uuid',
         name: 'Luis Pérez Soto',
         baseSectionId: 301,
-        ecclesiasticalYearId: 2026,
+        // Internal DB id: must never leak into the UI as the period.
+        ecclesiasticalYearId: 1,
+        ecclesiasticalYearName: '2026',
         annualStatus: 'not_enrolled',
+        currentRole: 'deputy-director',
         eligibility: 'eligible',
         suggestedClass: SuggestedClass(status: 'resolved', classId: 42),
       );
@@ -109,6 +112,56 @@ void main() {
       expect(find.text('Miembros no inscritos'), findsWidgets);
       expect(find.text('Luis Pérez Soto'), findsOneWidget);
       expect(find.text('Inscribir para 2026'), findsOneWidget);
+      expect(find.text('Inscribir para 1'), findsNothing);
+      expect(find.textContaining('Subdirector'), findsOneWidget);
+      expect(find.textContaining('deputy-director'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'enroll action falls back to a generic label when the year name is missing',
+    (tester) async {
+      const legacy = AnnualContinuation(
+        userId: 'user-legacy',
+        name: 'Ana Ruiz',
+        baseSectionId: 301,
+        ecclesiasticalYearId: 1,
+        annualStatus: 'not_enrolled',
+        eligibility: 'eligible',
+      );
+
+      await tester.pumpWidget(
+        EasyLocalization(
+          supportedLocales: const [Locale('es')],
+          path: 'assets/translations',
+          fallbackLocale: const Locale('es'),
+          assetLoader: _TestAssetLoader(translations),
+          child: Builder(
+            builder: (context) => ProviderScope(
+              overrides: [
+                annualContinuationsNotifierProvider.overrideWith(
+                  () => _FakeContinuationsNotifier(
+                    AnnualContinuationsState(
+                      items: const [legacy],
+                      selectedIds: {'user-legacy'},
+                    ),
+                  ),
+                ),
+              ],
+              child: MaterialApp(
+                locale: context.locale,
+                localizationsDelegates: context.localizationDelegates,
+                supportedLocales: context.supportedLocales,
+                home: const AnnualContinuationsView(),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Inscribir seleccionados'), findsOneWidget);
+      expect(find.text('Inscribir para 1'), findsNothing);
     },
   );
 }

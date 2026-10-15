@@ -15,6 +15,7 @@ void main() {
         'name': 'Luis Pérez Soto',
         'base_section_id': 301,
         'ecclesiastical_year_id': 2026,
+        'ecclesiastical_year_name': '2026',
         'annual_status': 'not_enrolled',
         'current_role': null,
         'eligibility': 'eligible',
@@ -26,6 +27,7 @@ void main() {
       expect(item.name, 'Luis Pérez Soto');
       expect(item.baseSectionId, 301);
       expect(item.ecclesiasticalYearId, 2026);
+      expect(item.ecclesiasticalYearName, '2026');
       expect(item.annualStatus, 'not_enrolled');
       expect(item.eligibility, 'eligible');
       expect(item.blockedReason, isNull);

@@ -2469,6 +2469,7 @@
       "already_continued": "Déjà inscrit",
       "blocked": "Non éligible",
       "submit_button": "Inscrire pour {period}",
+      "submit_button_no_period": "Inscrire la sélection",
       "success": "{count} inscrit(s)",
       "success_partial": "{enrolled} inscrit(s). {blocked} bloqué(s). {failed} en erreur.",
       "empty_title": "Personne en attente d'inscription",

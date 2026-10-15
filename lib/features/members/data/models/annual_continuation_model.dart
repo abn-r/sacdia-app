@@ -35,6 +35,7 @@ class AnnualContinuationModel extends AnnualContinuation {
     required super.name,
     required super.baseSectionId,
     required super.ecclesiasticalYearId,
+    super.ecclesiasticalYearName,
     required super.annualStatus,
     super.currentRole,
     required super.eligibility,
@@ -52,6 +53,7 @@ class AnnualContinuationModel extends AnnualContinuation {
       baseSectionId: int.tryParse(json['base_section_id']?.toString() ?? '') ?? 0,
       ecclesiasticalYearId:
           int.tryParse(json['ecclesiastical_year_id']?.toString() ?? '') ?? 0,
+      ecclesiasticalYearName: _nonEmpty(json['ecclesiastical_year_name']),
       annualStatus: json['annual_status']?.toString() ?? 'not_enrolled',
       currentRole: json['current_role']?.toString(),
       eligibility: json['eligibility']?.toString() ?? 'eligible',
@@ -65,10 +67,16 @@ class AnnualContinuationModel extends AnnualContinuation {
         name: name,
         baseSectionId: baseSectionId,
         ecclesiasticalYearId: ecclesiasticalYearId,
+        ecclesiasticalYearName: ecclesiasticalYearName,
         annualStatus: annualStatus,
         currentRole: currentRole,
         eligibility: eligibility,
         blockedReason: blockedReason,
         suggestedClass: suggestedClass,
       );
+}
+
+String? _nonEmpty(dynamic value) {
+  final text = value?.toString().trim();
+  return (text == null || text.isEmpty) ? null : text;
 }

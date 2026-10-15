@@ -32,6 +32,9 @@ class AnnualContinuation extends Equatable {
   final String name;
   final int baseSectionId;
   final int ecclesiasticalYearId;
+
+  /// Etiqueta legible del año ("2025-2026" / "2026"). El id es interno.
+  final String? ecclesiasticalYearName;
   final String annualStatus;
   final String? currentRole;
   final String eligibility;
@@ -43,6 +46,7 @@ class AnnualContinuation extends Equatable {
     required this.name,
     required this.baseSectionId,
     required this.ecclesiasticalYearId,
+    this.ecclesiasticalYearName,
     required this.annualStatus,
     this.currentRole,
     required this.eligibility,
@@ -58,6 +62,7 @@ class AnnualContinuation extends Equatable {
         name,
         baseSectionId,
         ecclesiasticalYearId,
+        ecclesiasticalYearName,
         annualStatus,
         currentRole,
         eligibility,

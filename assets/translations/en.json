@@ -2470,6 +2470,7 @@
       "already_continued": "Already enrolled",
       "blocked": "Not eligible",
       "submit_button": "Enroll for {period}",
+      "submit_button_no_period": "Enroll selected",
       "success": "{count} enrolled",
       "success_partial": "{enrolled} enrolled. {blocked} blocked. {failed} failed.",
       "empty_title": "No one pending enrollment",

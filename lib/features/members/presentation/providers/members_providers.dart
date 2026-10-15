@@ -673,8 +673,11 @@ class AnnualContinuationsState {
       items.where((m) => !m.isBlocked).toList();
 
   String? get periodLabel {
-    if (items.isEmpty) return null;
-    return items.first.ecclesiasticalYearId.toString();
+    for (final item in items) {
+      final name = item.ecclesiasticalYearName;
+      if (name != null && name.isNotEmpty) return name;
+    }
+    return null;
   }
 }
 
