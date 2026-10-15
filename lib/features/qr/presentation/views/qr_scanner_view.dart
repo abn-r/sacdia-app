@@ -4,6 +4,7 @@ import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../domain/entities/qr_scan_result.dart';
@@ -108,15 +109,117 @@ class _QrScannerViewState extends ConsumerState<QrScannerView> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          MobileScanner(controller: _controller, onDetect: _onDetect),
-          const _ScanOverlay(),
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 32,
-            child: _HintCard(activityId: widget.activityId),
+          MobileScanner(
+            controller: _controller,
+            onDetect: _onDetect,
+            errorBuilder: (context, error) => QrCameraErrorView(
+              errorCode: error.errorCode,
+              onRetry: () => _controller.start(),
+            ),
+          ),
+          // Hide the viewfinder frame and hint while the camera is unusable.
+          ValueListenableBuilder<MobileScannerState>(
+            valueListenable: _controller,
+            builder: (context, state, _) {
+              if (state.error != null) return const SizedBox.shrink();
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  const _ScanOverlay(),
+                  Positioned(
+                    left: 16,
+                    right: 16,
+                    bottom: 32,
+                    child: _HintCard(activityId: widget.activityId),
+                  ),
+                ],
+              );
+            },
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Shown in place of the camera preview when the scanner cannot start.
+///
+/// Permission denied gets an "Abrir ajustes" CTA, because once the OS has
+/// denied camera access the app can no longer prompt again.
+class QrCameraErrorView extends StatelessWidget {
+  const QrCameraErrorView({
+    super.key,
+    required this.errorCode,
+    required this.onRetry,
+    this.onOpenSettings = openAppSettings,
+  });
+
+  final MobileScannerErrorCode errorCode;
+  final VoidCallback onRetry;
+  final Future<bool> Function() onOpenSettings;
+
+  @override
+  Widget build(BuildContext context) {
+    final denied = errorCode == MobileScannerErrorCode.permissionDenied;
+    final textTheme = Theme.of(context).textTheme;
+
+    return ColoredBox(
+      color: Colors.black,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              HugeIcon(
+                icon: denied
+                    ? HugeIcons.strokeRoundedCameraOff01
+                    : HugeIcons.strokeRoundedCamera01,
+                color: Colors.white,
+                size: 40,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                (denied
+                        ? 'qr.camera.permission_denied_title'
+                        : 'qr.camera.unavailable_title')
+                    .tr(),
+                textAlign: TextAlign.center,
+                style: textTheme.titleMedium?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                (denied
+                        ? 'qr.camera.permission_denied_body'
+                        : 'qr.camera.unavailable_body')
+                    .tr(),
+                textAlign: TextAlign.center,
+                style: textTheme.bodyMedium?.copyWith(color: Colors.white70),
+              ),
+              const SizedBox(height: 24),
+              if (denied) ...[
+                SacButton(
+                  text: 'qr.camera.open_settings'.tr(),
+                  variant: SacButtonVariant.primary,
+                  fullWidth: false,
+                  onPressed: () => onOpenSettings(),
+                ),
+                const SizedBox(height: 8),
+              ],
+              SacButton(
+                text: 'common.retry'.tr(),
+                variant: denied
+                    ? SacButtonVariant.secondary
+                    : SacButtonVariant.primary,
+                fullWidth: false,
+                onPressed: onRetry,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -250,6 +250,13 @@
     "scan_error_title": "Could not validate QR",
     "torch_tooltip": "Torch",
     "switch_camera_tooltip": "Switch camera",
+    "camera": {
+      "permission_denied_title": "No camera access",
+      "permission_denied_body": "Allow camera access in Settings to scan QR codes.",
+      "unavailable_title": "Couldn't start the camera",
+      "unavailable_body": "Make sure no other app is using it and try again.",
+      "open_settings": "Open settings"
+    },
     "generation_error_title": "Could not generate QR",
     "idle_hint": "Rotates when you tap the button",
     "errors": {

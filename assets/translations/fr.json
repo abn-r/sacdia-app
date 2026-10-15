@@ -250,6 +250,13 @@
     "scan_error_title": "Impossible de valider le QR",
     "torch_tooltip": "Torche",
     "switch_camera_tooltip": "Changer de caméra",
+    "camera": {
+      "permission_denied_title": "Pas d'accès à la caméra",
+      "permission_denied_body": "Autorisez l'accès à la caméra dans les Réglages pour scanner les codes QR.",
+      "unavailable_title": "Impossible de démarrer la caméra",
+      "unavailable_body": "Vérifiez qu'aucune autre app ne l'utilise et réessayez.",
+      "open_settings": "Ouvrir les réglages"
+    },
     "generation_error_title": "Impossible de générer le QR",
     "idle_hint": "Il est renouvelé lorsque vous appuyez sur le bouton",
     "errors": {

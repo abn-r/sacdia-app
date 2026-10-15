@@ -250,6 +250,13 @@
     "scan_error_title": "Não foi possível validar o QR",
     "torch_tooltip": "Lanterna",
     "switch_camera_tooltip": "Alternar câmera",
+    "camera": {
+      "permission_denied_title": "Sem acesso à câmera",
+      "permission_denied_body": "Permita o acesso à câmera nos Ajustes para ler códigos QR.",
+      "unavailable_title": "Não foi possível iniciar a câmera",
+      "unavailable_body": "Verifique se nenhum outro app está usando a câmera e tente novamente.",
+      "open_settings": "Abrir ajustes"
+    },
     "generation_error_title": "Não foi possível gerar o QR",
     "idle_hint": "É rotacionado ao tocar no botão",
     "errors": {
