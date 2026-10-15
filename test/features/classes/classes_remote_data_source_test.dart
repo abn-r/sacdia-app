@@ -464,6 +464,63 @@ void main() {
       expect(result.last.userStatus, isNull);
     });
 
+    test('getUserClasses drops superseded (inactive) enrollments', () async {
+      final dio = Dio();
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            handler.resolve(
+              Response<List<dynamic>>(
+                requestOptions: options,
+                statusCode: 200,
+                data: [
+                  // Superseded class re-selection: never the current class.
+                  {
+                    'enrollment_id': 4,
+                    'investiture_status': 'IN_PROGRESS',
+                    'active': false,
+                    'enrollment_date': '2026-04-16T22:03:32.027Z',
+                    'classes': {'class_id': 6, 'name': 'Guía'},
+                  },
+                  {
+                    'enrollment_id': 2,
+                    'investiture_status': 'INVESTIDO',
+                    'active': true,
+                    'enrollment_date': '2026-04-02T00:02:58.996Z',
+                    'classes': {'class_id': 13, 'name': 'Guía Mayor'},
+                  },
+                  // Inactive but invested: the achievement stays visible.
+                  {
+                    'enrollment_id': 1,
+                    'investiture_status': 'INVESTIDO',
+                    'active': false,
+                    'classes': {'class_id': 5, 'name': 'Explorador'},
+                  },
+                  // Legacy payload without the flag counts as active.
+                  {
+                    'enrollment_id': 9,
+                    'investiture_status': 'IN_PROGRESS',
+                    'classes': {'class_id': 7, 'name': 'Amigo'},
+                  },
+                ],
+              ),
+            );
+          },
+        ),
+      );
+
+      final dataSource = ClassesRemoteDataSourceImpl(
+        dio: dio,
+        baseUrl: 'https://api.test/api/v1',
+      );
+
+      final result = await dataSource.getUserClasses('user-1');
+
+      expect(result.map((c) => c.enrollmentId), [2, 1, 9]);
+      expect(result.first.name, 'Guía Mayor');
+      expect(result.first.investitureStatus, 'INVESTIDO');
+    });
+
     test('maps CLASS_PREREQUISITE_NOT_MET enroll error to friendly message',
         () async {
       final dio = Dio();

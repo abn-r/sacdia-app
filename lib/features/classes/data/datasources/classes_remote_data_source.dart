@@ -335,6 +335,16 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
 
   // ── GET /users/:userId/classes ──────────────────────────────────────────────
 
+  /// Current-class canon (same as `GET /dashboard/summary`): an enrollment
+  /// with `active: false` was superseded when the class was re-selected, so it
+  /// is never the current class. It is dropped unless it was already invested
+  /// (an achievement stays visible). Rows without the flag count as active.
+  static bool _isVisibleEnrollment(Map<String, dynamic> enrollment) {
+    if (enrollment['active'] != false) return true;
+    final status = enrollment['investiture_status']?.toString().toUpperCase();
+    return status == 'INVESTIDO';
+  }
+
   @override
   Future<List<ClassModel>> getUserClasses(String userId,
       {CancelToken? cancelToken}) async {
@@ -346,8 +356,10 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final List<dynamic> data = response.data as List<dynamic>;
-        return data.map((enrollment) {
-          final e = enrollment as Map<String, dynamic>;
+        return data
+            .cast<Map<String, dynamic>>()
+            .where(_isVisibleEnrollment)
+            .map((e) {
           // El backend retorna inscripciones:
           // [{ enrollment_id, investiture_status, overall_progress, classes: {...} }]
           // Mezclamos los campos de enrollment sobre el JSON de clase para que
