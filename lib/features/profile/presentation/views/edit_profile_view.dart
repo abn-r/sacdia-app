@@ -865,7 +865,8 @@ class _DatePickerField extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       date != null
-                          ? DateFormat('yyyy-MM-dd').format(date!)
+                          ? DateFormat.yMMMd(context.locale.toString())
+                              .format(date!)
                           : tr('profile.edit.date_placeholder'),
                       style: TextStyle(
                         fontSize: 15,
