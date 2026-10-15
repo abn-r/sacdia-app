@@ -228,7 +228,32 @@
       "delete_account_failed": "Erreur lors de la suppression du compte",
       "sign_out_failed": "Erreur lors de la déconnexion",
       "operation_cancelled": "Opération annulée"
+    },
+    "legal": {
+      "consent_prefix": "J'ai lu et j'accepte les ",
+      "terms_link": "Conditions générales",
+      "and": " et l'",
+      "privacy_link": "Avis de confidentialité",
+      "login_notice_prefix": "En continuant, vous acceptez les ",
+      "load_error": "Impossible de charger les documents juridiques.",
+      "retry": "Réessayer",
+      "open_failed": "Impossible d'ouvrir le document. Veuillez réessayer.",
+      "consent_semantics": "Accepter les Conditions générales et l'Avis de confidentialité"
     }
+  },
+  "legal_gate": {
+    "title": "Conditions et confidentialité",
+    "body": "Pour utiliser SACDIA, vous devez accepter les documents en vigueur.",
+    "document_terms": "Conditions générales",
+    "document_privacy": "Avis de confidentialité",
+    "version_label": "Version {version}",
+    "read_document": "Lire",
+    "accept_button": "Accepter et continuer",
+    "sign_out": "Se déconnecter",
+    "load_error": "Impossible de charger les documents juridiques.",
+    "retry": "Réessayer",
+    "accept_error": "Impossible d'enregistrer votre acceptation. Veuillez réessayer.",
+    "version_changed": "Les documents juridiques ont été mis à jour. Veuillez consulter et accepter la version en vigueur."
   },
   "qr": {
     "my_credential": "Ma carte QR",

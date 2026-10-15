@@ -228,7 +228,32 @@
       "delete_account_failed": "Erro ao excluir conta",
       "sign_out_failed": "Erro ao sair",
       "operation_cancelled": "Operação cancelada"
+    },
+    "legal": {
+      "consent_prefix": "Li e aceito os ",
+      "terms_link": "Termos e Condições",
+      "and": " e o ",
+      "privacy_link": "Aviso de Privacidade",
+      "login_notice_prefix": "Ao continuar, você aceita os ",
+      "load_error": "Não foi possível carregar os documentos legais.",
+      "retry": "Tentar novamente",
+      "open_failed": "Não foi possível abrir o documento. Tente novamente.",
+      "consent_semantics": "Aceitar os Termos e Condições e o Aviso de Privacidade"
     }
+  },
+  "legal_gate": {
+    "title": "Termos e privacidade",
+    "body": "Para usar o SACDIA, você precisa aceitar os documentos vigentes.",
+    "document_terms": "Termos e Condições",
+    "document_privacy": "Aviso de Privacidade",
+    "version_label": "Versão {version}",
+    "read_document": "Ler",
+    "accept_button": "Aceitar e continuar",
+    "sign_out": "Sair",
+    "load_error": "Não foi possível carregar os documentos legais.",
+    "retry": "Tentar novamente",
+    "accept_error": "Não foi possível registrar seu aceite. Tente novamente.",
+    "version_changed": "Os documentos legais foram atualizados. Revise e aceite a versão vigente."
   },
   "qr": {
     "my_credential": "Minha credencial QR",
