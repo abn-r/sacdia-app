@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor_category.dart';
@@ -382,6 +383,14 @@ void main() {
 
     expect(find.text('honors.work_mode.confirm_title'), findsOneWidget);
     expect(recorder.callCount, 0);
+    // Choosing a mode is positive: the confirm button must not look destructive.
+    final confirmButton = tester.widget<SacButton>(
+      find.ancestor(
+        of: find.text('common.confirm'),
+        matching: find.byType(SacButton),
+      ),
+    );
+    expect(confirmButton.variant, SacButtonVariant.success);
 
     await tester.tap(find.text('core.dialog.cancel'));
     await tester.pumpAndSettle();

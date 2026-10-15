@@ -428,6 +428,7 @@
     },
     "detail": {
       "requirements_count": "{count} exigences",
+      "requirements_count_with_points": "{count} exigences · {points} points",
       "requirements_loading": "Chargement des exigences ...",
       "skill_level_with": "Niveau : {level}",
       "skill_level_general": "Niveau : Général",
@@ -539,9 +540,19 @@
       "confirm_in_app_message": "Vous allez compléter cette spécialité dans l'appli. Ce mode sera enregistré et envoyé au système.",
       "confirm_external_message": "Vous allez compléter cette spécialité hors de l'appli. Ce mode sera enregistré et envoyé au système."
     },
+    "abandon": {
+      "menu_tooltip": "Plus d'options",
+      "action": "Abandonner la spécialité",
+      "confirm_title": "Abandonner la spécialité ?",
+      "confirm_message": "Vous arrêterez de travailler sur {name} et elle n'apparaîtra plus sur votre profil. Si vous vous réinscrivez, vous devrez choisir à nouveau le mode de travail et téléverser vos preuves.",
+      "confirm_cta": "Abandonner",
+      "success": "Vous avez abandonné la spécialité",
+      "error": "Impossible d'abandonner la spécialité",
+      "no_session": "Aucune session active"
+    },
     "requirements": {
       "header_subtitle": "Exigences",
-      "progress_text": "{completed} sur {total} complétés",
+      "progress_text": "{completed} sur {total} points complétés",
       "save_button": "Enregistrer les modifications",
       "success_saved": "Progression enregistrée avec succès",
       "unsaved_title": "Modifications non enregistrées",

@@ -611,6 +611,53 @@ final honorCompletionModeActionsNotifierProvider = AsyncNotifierProvider
   HonorCompletionModeActionsNotifier.new,
 );
 
+// ── Abandon honor actions ───────────────────────────────────────────────────
+
+/// Leaves an enrolled honor (`DELETE /users/:userId/honors/:honorId`).
+///
+/// The backend only deactivates the enrollment and rejects honors that are
+/// under review or already approved, so callers gate the action with
+/// [UserHonor.canAbandon].
+class HonorAbandonActionsNotifier extends AutoDisposeAsyncNotifier<void> {
+  @override
+  Future<void> build() async {}
+
+  Future<bool> abandon({
+    required String userId,
+    required int honorId,
+  }) async {
+    state = const AsyncValue.loading();
+
+    final result = await ref
+        .read(honorsRepositoryProvider)
+        .deleteUserHonor(userId, honorId);
+
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return false;
+      },
+      (_) {
+        // A stale work-mode override would keep the honor looking enrolled.
+        ref.read(honorCompletionModeOverrideProvider.notifier).update(
+              (overrides) => {...overrides}..remove(honorId),
+            );
+        state = const AsyncValue.data(null);
+        ref.invalidate(userHonorsProvider);
+        ref.invalidate(userHonorForHonorProvider(honorId));
+        ref.invalidate(userHonorProgressProvider(honorId));
+        ref.invalidate(honorEnrollmentNotifierProvider);
+        return true;
+      },
+    );
+  }
+}
+
+final honorAbandonActionsNotifierProvider =
+    AsyncNotifierProvider.autoDispose<HonorAbandonActionsNotifier, void>(
+  HonorAbandonActionsNotifier.new,
+);
+
 // ── Registration Notifier ────────────────────────────────────────────────────
 
 /// Estado del formulario de registro de especialidad

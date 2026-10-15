@@ -160,6 +160,10 @@ class UserHonor extends Equatable {
   /// Whether the honor is currently under review (read-only for member).
   bool get isUnderReview => validationStatus.toUpperCase() == 'PENDING_REVIEW';
 
+  /// Whether the member can leave this honor. The backend rejects abandoning
+  /// honors that are under review or already approved.
+  bool get canAbandon => !isCompleted && !isUnderReview;
+
   /// Whether there is evidence uploaded.
   bool get hasEvidence =>
       images.isNotEmpty || (document != null && document!.isNotEmpty);

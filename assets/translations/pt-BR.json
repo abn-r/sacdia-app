@@ -428,6 +428,7 @@
     },
     "detail": {
       "requirements_count": "{count} requisitos",
+      "requirements_count_with_points": "{count} requisitos · {points} pontos",
       "requirements_loading": "Carregando requisitos...",
       "skill_level_with": "Nível: {level}",
       "skill_level_general": "Nível: Geral",
@@ -539,9 +540,19 @@
       "confirm_in_app_message": "Você vai concluir esta especialidade dentro do app. Este modo será salvo e enviado ao sistema.",
       "confirm_external_message": "Você vai concluir esta especialidade fora do app. Este modo será salvo e enviado ao sistema."
     },
+    "abandon": {
+      "menu_tooltip": "Mais opções",
+      "action": "Abandonar especialidade",
+      "confirm_title": "Abandonar especialidade?",
+      "confirm_message": "Você deixará de trabalhar em {name} e ela não aparecerá mais no seu perfil. Se você se inscrever novamente, terá que escolher o modo de trabalho e enviar suas evidências outra vez.",
+      "confirm_cta": "Abandonar",
+      "success": "Você abandonou a especialidade",
+      "error": "Não foi possível abandonar a especialidade",
+      "no_session": "Nenhuma sessão ativa"
+    },
     "requirements": {
       "header_subtitle": "Requisitos",
-      "progress_text": "{completed} de {total} concluídos",
+      "progress_text": "{completed} de {total} pontos concluídos",
       "save_button": "Salvar alterações",
       "success_saved": "Progresso salvo com sucesso",
       "unsaved_title": "Alterações não salvas",

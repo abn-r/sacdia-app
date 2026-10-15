@@ -38,6 +38,7 @@ import '../../domain/entities/user_honor.dart';
 import '../providers/honors_providers.dart';
 import '../theme/honor_category_palette.dart';
 import '../utils/evidence_url.dart';
+import '../widgets/honor_abandon_menu_button.dart';
 import '../widgets/honor_badge_image.dart';
 import '../widgets/honor_completion_details.dart';
 import '../widgets/honor_signed_evidence_image.dart';
@@ -721,12 +722,14 @@ class _EvidenceBody extends StatelessWidget {
             context.pop();
           },
           actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: Center(
-                child: _EvidenceStatusBadge(userHonor: userHonor),
-              ),
-            ),
+            Center(child: _EvidenceStatusBadge(userHonor: userHonor)),
+            if (userHonor.canAbandon)
+              HonorAbandonMenuButton(
+                userHonor: userHonor,
+                honorName: honorName,
+              )
+            else
+              const SizedBox(width: 12),
           ],
           frosted: true),
       body: SacFrostedVeil(

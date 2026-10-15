@@ -22,7 +22,9 @@ import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor_requirement_progress.dart';
 import 'package:sacdia_app/features/honors/presentation/theme/honor_category_palette.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
+import 'package:sacdia_app/features/honors/presentation/utils/honor_requirement_counts.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/choice_group_header.dart';
+import 'package:sacdia_app/features/honors/presentation/widgets/honor_abandon_menu_button.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/requirement_tree_item.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
@@ -58,7 +60,11 @@ class _RequirementState {
   }
 }
 
-SacTopBar _requirementsTopBar(BuildContext context, String honorName) {
+SacTopBar _requirementsTopBar(
+  BuildContext context,
+  String honorName, {
+  UserHonor? userHonor,
+}) {
   return SacTopBar(
       title: honorName,
       subtitle: 'honors.requirements.header_subtitle'.tr(),
@@ -66,6 +72,10 @@ SacTopBar _requirementsTopBar(BuildContext context, String honorName) {
         HapticFeedback.lightImpact();
         Navigator.of(context).maybePop();
       },
+      actions: [
+        if (userHonor != null)
+          HonorAbandonMenuButton(userHonor: userHonor, honorName: honorName),
+      ],
       frosted: true);
 }
 
@@ -183,16 +193,6 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
       if (currentResponse != snap.textResponse) return true;
     }
     return false;
-  }
-
-  /// Count all requirements including children (for the denominator).
-  int _countTotal(List<HonorRequirement> requirements) {
-    int count = 0;
-    for (final req in requirements) {
-      count++;
-      count += req.children.length;
-    }
-    return count;
   }
 
   /// Count completed across all requirements including children.
@@ -528,7 +528,11 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
       child: Scaffold(
         extendBodyBehindAppBar: true,
         backgroundColor: context.sac.background,
-        appBar: _requirementsTopBar(context, widget.honorName),
+        appBar: _requirementsTopBar(
+          context,
+          widget.honorName,
+          userHonor: userHonor,
+        ),
         body: SacFrostedVeil(
           child: Builder(
             builder: (context) => Column(
@@ -563,7 +567,7 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
                           };
 
                           final totalAll = _localState.isNotEmpty
-                              ? _countTotal(requirements)
+                              ? countRequirementPoints(requirements)
                               : progressList.length;
                           final completedAll = _localState.isNotEmpty
                               ? _countCompletedAll(requirements)

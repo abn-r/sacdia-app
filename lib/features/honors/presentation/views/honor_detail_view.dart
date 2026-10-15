@@ -29,7 +29,9 @@ import '../../domain/entities/requirement_evidence.dart';
 import '../../domain/entities/user_honor_requirement_progress.dart';
 import '../theme/honor_category_palette.dart';
 import '../providers/honors_providers.dart';
+import '../utils/honor_requirement_counts.dart';
 import '../utils/honor_work_navigation.dart';
+import '../widgets/honor_abandon_menu_button.dart';
 import '../widgets/honor_badge_image.dart';
 import '../widgets/honor_signed_evidence_image.dart';
 import '../widgets/honor_work_mode_selector.dart';
@@ -659,11 +661,29 @@ class _HonorDetailContent extends ConsumerWidget {
     BuildContext context,
     HonorCompletionMode mode,
   ) async {
-    final result = await SacDialog.show(
+    // Choosing a work mode is a positive step, so it uses the success action
+    // instead of the coral confirm button that reads as destructive.
+    final result = await SacDialog.present<bool>(
       context,
-      title: 'honors.work_mode.confirm_title'.tr(),
-      content: _completionModeConfirmationMessageKey(mode).tr(),
-      confirmLabel: 'common.confirm'.tr(),
+      builder: (dialogContext) => SacDialog(
+        title: 'honors.work_mode.confirm_title'.tr(),
+        content: _completionModeConfirmationMessageKey(mode).tr(),
+        icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+        iconColor: AppColors.success,
+        iconBackgroundColor: AppColors.success.withValues(alpha: 0.12),
+        actions: [
+          SacDialogAction(
+            label: tr('core.dialog.cancel'),
+            style: SacDialogActionStyle.cancel,
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+          ),
+          SacDialogAction(
+            label: 'common.confirm'.tr(),
+            style: SacDialogActionStyle.success,
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+          ),
+        ],
+      ),
     );
 
     return result ?? false;
@@ -1103,6 +1123,15 @@ class _UndecidedWorkModeDetailState extends State<_UndecidedWorkModeDetail> {
             HapticFeedback.lightImpact();
             context.pop();
           },
+          actions: [
+            // Abandoning here keeps the user on the detail, which falls back
+            // to the catalog view once the enrollment disappears.
+            HonorAbandonMenuButton(
+              userHonor: widget.userHonor,
+              honorName: widget.honor.name,
+              popOnSuccess: false,
+            ),
+          ],
           frosted: true),
       body: SacFrostedVeil(
         child: Builder(
@@ -2736,8 +2765,20 @@ class _JourneyPreviewCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final requirementsAsync = ref.watch(honorRequirementsProvider(honorId));
-    final requirementsCount = requirementsAsync.maybeWhen(
-      data: (reqs) => reqs.length,
+    final requirementsLabel = requirementsAsync.maybeWhen(
+      data: (reqs) {
+        final count = reqs.length;
+        final points = countRequirementPoints(reqs);
+        // Sub-items are checked one by one in the checklist, so surface the
+        // same point total here when it differs from the requirement count.
+        if (points == count) {
+          return 'honors.detail.requirements_count'
+              .tr(namedArgs: {'count': '$count'});
+        }
+        return 'honors.detail.requirements_count_with_points'.tr(
+          namedArgs: {'count': '$count', 'points': '$points'},
+        );
+      },
       orElse: () => null,
     );
     final hasMaterial =
@@ -2752,10 +2793,8 @@ class _JourneyPreviewCard extends ConsumerWidget {
           _PreviewRow(
             icon: HugeIcons.strokeRoundedTaskEdit01,
             iconColor: categoryColor,
-            label: requirementsCount != null
-                ? 'honors.detail.requirements_count'
-                    .tr(namedArgs: {'count': '$requirementsCount'})
-                : 'honors.detail.requirements_loading'.tr(),
+            label:
+                requirementsLabel ?? 'honors.detail.requirements_loading'.tr(),
           ),
           if (hasMaterial) ...[
             _CardDivider(),
