@@ -1576,7 +1576,6 @@
       "dashboard_subtitle": "KPIs y métricas SLA en tiempo real"
     },
     "summary": {
-      "investitures": "Investiduras",
       "evidence": "Evidencias",
       "sections": "Secciones",
       "camporees": "Camporees",
@@ -1687,14 +1686,6 @@
         "access_restricted_msg": "Solo coordinadores y administradores pueden acceder a esta sección.",
         "error_load": "Error al cargar el dashboard",
         "retry": "Reintentar"
-      },
-      "pipeline": {
-        "title": "Pipeline de revisión",
-        "no_data": "Sin datos de pipeline",
-        "throughput_title": "Throughput semanal",
-        "throughput_no_data": "Sin datos de throughput",
-        "legend_approved": "Aprobados",
-        "legend_rejected": "Rechazados"
       },
       "stat": {
         "pending": "Pendientes",

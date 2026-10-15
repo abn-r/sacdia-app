@@ -1576,7 +1576,6 @@
       "dashboard_subtitle": "Real-time KPIs and SLA metrics"
     },
     "summary": {
-      "investitures": "Investitures",
       "evidence": "Evidence",
       "sections": "Sections",
       "camporees": "Camporees",
@@ -1687,14 +1686,6 @@
         "access_restricted_msg": "Only coordinators and administrators can access this section.",
         "error_load": "Error loading dashboard",
         "retry": "Retry"
-      },
-      "pipeline": {
-        "title": "Review pipeline",
-        "no_data": "No pipeline data",
-        "throughput_title": "Weekly throughput",
-        "throughput_no_data": "No throughput data",
-        "legend_approved": "Approved",
-        "legend_rejected": "Rejected"
       },
       "stat": {
         "pending": "Pending",

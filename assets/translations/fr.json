@@ -1576,7 +1576,6 @@
       "dashboard_subtitle": "KPIs et métriques SLA en temps réel"
     },
     "summary": {
-      "investitures": "Investitures",
       "evidence": "Preuves",
       "sections": "Sections",
       "camporees": "Camporées",
@@ -1687,14 +1686,6 @@
         "access_restricted_msg": "Seuls les coordinateurs et administrateurs peuvent accéder à cette section.",
         "error_load": "Erreur lors du chargement du tableau de bord",
         "retry": "Réessayer"
-      },
-      "pipeline": {
-        "title": "Pipeline de révision",
-        "no_data": "Aucune donnée de pipeline",
-        "throughput_title": "Débit hebdomadaire",
-        "throughput_no_data": "Aucune donnée de débit",
-        "legend_approved": "Approuvés",
-        "legend_rejected": "Rejetés"
       },
       "stat": {
         "pending": "En attente",

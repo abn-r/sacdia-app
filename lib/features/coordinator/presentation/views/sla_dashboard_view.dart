@@ -12,15 +12,15 @@ import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../providers/coordinator_providers.dart';
 import '../widgets/sla_stat_card.dart';
-import '../widgets/sla_pipeline_chart.dart';
 
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 /// Dashboard SLA operativo del coordinador.
 ///
-/// Muestra KPIs de investiduras y evidencias, pipeline de revisión y
-/// throughput semanal. Camporee no forma parte de la superficie móvil de
-/// coordinación.
+/// Muestra el KPI de evidencias pendientes. Investiduras, su pipeline y el
+/// throughput semanal no se muestran: salen de la vía de investidura
+/// retirada (fase 8), que hoy autoriza el pastor o el Campo. Camporee no
+/// forma parte de la superficie móvil de coordinación.
 /// Se auto-refresca cada 60 segundos.
 class SLADashboardView extends ConsumerStatefulWidget {
   const SLADashboardView({super.key});
@@ -102,47 +102,11 @@ class _SLADashboardViewState extends ConsumerState<SLADashboardView> {
 
                       // ── KPI cards ──────────────────────────────────────────
                       SlaStatCard(
-                        title: 'coordinator.summary.investitures'.tr(),
-                        stat: sla.investiture,
-                        accentColor: SacAccent.of(context).color,
-                        icon: HugeIcons.strokeRoundedAward01,
-                      ),
-                      const SizedBox(height: 10),
-                      SlaStatCard(
                         title: 'coordinator.summary.evidence'.tr(),
                         stat: sla.evidence,
                         accentColor: AppColors.accent,
                         icon: HugeIcons.strokeRoundedFolder01,
                       ),
-
-                      const SizedBox(height: 24),
-
-                      // ── Pipeline ───────────────────────────────────────────
-                      if (sla.pipeline.isNotEmpty) ...[
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: c.surface,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: c.border),
-                          ),
-                          child: SlaPipelineChart(stages: sla.pipeline),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-
-                      // ── Throughput ─────────────────────────────────────────
-                      if (sla.throughput.isNotEmpty) ...[
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: c.surface,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: c.border),
-                          ),
-                          child: SlaThroughputChart(data: sla.throughput),
-                        ),
-                      ],
 
                       // ── Auto-refresh note ──────────────────────────────────
                       const SizedBox(height: 16),
