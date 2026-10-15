@@ -344,7 +344,10 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
         cancelToken: cancelToken,
       );
 
-      return response.data['required'] as bool;
+      final required = _extractMap(response.data)['required'];
+      if (required is bool) return required;
+      throw Exception(tr(
+          'post_registration.personal_info.errors.verify_legal_representative'));
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
       throw Exception(
@@ -363,8 +366,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
         data: representative.toJson(),
       );
 
-      return LegalRepresentativeModel.fromJson(
-          response.data as Map<String, dynamic>);
+      return LegalRepresentativeModel.fromJson(_extractMap(response.data));
     } on DioException catch (e) {
       throw Exception(
           '${tr('post_registration.personal_info.errors.create_legal_representative')}: ${e.message}');
@@ -411,8 +413,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
         data: representative.toJson(),
       );
 
-      return LegalRepresentativeModel.fromJson(
-          response.data as Map<String, dynamic>);
+      return LegalRepresentativeModel.fromJson(_extractMap(response.data));
     } on DioException catch (e) {
       throw Exception(
           '${tr('post_registration.personal_info.errors.update_legal_representative')}: ${e.message}');
