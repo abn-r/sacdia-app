@@ -1736,7 +1736,8 @@
       "error_load": "Error al cargar clubes",
       "error_load_subtitle": "No pudimos cargar tus clubes. Revisa tu conexión e intenta de nuevo.",
       "field_id_label": "Campo local #{id}",
-      "sections_label": "{count} secciones"
+      "sections_label_one": "{count} sección",
+      "sections_label_other": "{count} secciones"
     }
   },
   "classes": {

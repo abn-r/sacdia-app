@@ -1736,7 +1736,8 @@
       "error_load": "Erreur lors du chargement des clubs",
       "error_load_subtitle": "Impossible de charger vos clubs. Vérifiez votre connexion et réessayez.",
       "field_id_label": "Champ local #{id}",
-      "sections_label": "{count} sections"
+      "sections_label_one": "{count} section",
+      "sections_label_other": "{count} sections"
     }
   },
   "classes": {

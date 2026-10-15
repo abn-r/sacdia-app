@@ -1736,7 +1736,8 @@
       "error_load": "Error loading clubs",
       "error_load_subtitle": "We could not load your clubs. Check your connection and try again.",
       "field_id_label": "Local field #{id}",
-      "sections_label": "{count} sections"
+      "sections_label_one": "{count} section",
+      "sections_label_other": "{count} sections"
     }
   },
   "classes": {

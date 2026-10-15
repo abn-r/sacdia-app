@@ -19,6 +19,7 @@ import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/coordinator_club.dart';
+import 'package:sacdia_app/features/coordinator/domain/entities/coordinator_scope.dart';
 import 'package:sacdia_app/features/coordinator/presentation/providers/coordinator_providers.dart';
 import 'package:sacdia_app/features/coordinator/presentation/views/coordinator_clubs_list_view.dart';
 import 'package:sacdia_app/features/notifications/presentation/providers/unread_notifications_count_provider.dart';
@@ -206,6 +207,37 @@ void main() {
       // Both clubs appear in the list
       expect(find.text('Club Conquistadores Norte'), findsOneWidget);
       expect(find.text('Club Aventureros Sur'), findsOneWidget);
+    });
+
+    testWidgets('uses the singular section label for one section',
+        (tester) async {
+      await _pumpView(
+        tester,
+        clubsState: const AsyncData([
+          CoordinatorClub(
+            id: 3,
+            name: 'Club Una Sección',
+            localFieldId: 10,
+            sections: [
+              CoordinatorSectionScope(
+                clubSectionId: 7,
+                clubTypeId: 2,
+                name: 'Conquistadores',
+              ),
+            ],
+          ),
+        ]),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('coordinator.clubs.sections_label_one'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('coordinator.clubs.sections_label_other'),
+        findsNothing,
+      );
     });
 
     testWidgets('should show a back button to leave the clubs list',

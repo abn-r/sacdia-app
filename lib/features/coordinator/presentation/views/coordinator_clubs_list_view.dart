@@ -313,7 +313,7 @@ class _ClubCard extends StatelessWidget {
                       ],
                       if (sectionSummary.isNotEmpty)
                         Text(
-                          '${'coordinator.clubs.sections_label'.tr(namedArgs: {
+                          '${(club.sectionCount == 1 ? 'coordinator.clubs.sections_label_one' : 'coordinator.clubs.sections_label_other').tr(namedArgs: {
                                 'count': '${club.sectionCount}',
                               })}: $sectionSummary',
                           style: TextStyle(
