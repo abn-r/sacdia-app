@@ -3,10 +3,12 @@ import 'dart:io';
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/cancellation_token.dart';
+import '../../../../core/widgets/instructor_selection.dart';
 import '../entities/honor.dart';
 import '../entities/honor_category.dart';
 import '../entities/honor_group.dart';
 import '../entities/honor_requirement.dart';
+import '../entities/instructor_proposal.dart';
 import '../entities/requirement_evidence.dart';
 import '../entities/user_honor.dart';
 import '../entities/user_honor_requirement_progress.dart';
@@ -23,6 +25,7 @@ abstract class HonorsRepository {
     int? categoryId,
     int? clubTypeId,
     int? skillLevel,
+    String? search,
     RequestCancelToken? cancelToken,
   });
 
@@ -55,6 +58,18 @@ abstract class HonorsRepository {
     required int honorId,
     required HonorCompletionMode completionMode,
   });
+
+  /// Propone otro instructor en una especialidad ya aprobada (D11). Reemplaza
+  /// una propuesta pendiente; el Campo Local decide.
+  Future<Either<Failure, InstructorProposal>> proposeHonorInstructor(
+    String userId,
+    int honorId,
+    InstructorSelection instructor,
+  );
+
+  /// Retira la propuesta de instructor pendiente.
+  Future<Either<Failure, void>> cancelHonorInstructorProposal(
+      String userId, int honorId);
 
   /// Elimina la inscripción de un usuario en una especialidad
   Future<Either<Failure, void>> deleteUserHonor(String userId, int honorId);

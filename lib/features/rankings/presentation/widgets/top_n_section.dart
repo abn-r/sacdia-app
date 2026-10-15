@@ -114,7 +114,8 @@ class _TopNRow extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 2),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color: isCurrentUser ? SacAccent.of(context).surface : Colors.transparent,
+        color:
+            isCurrentUser ? SacAccent.of(context).surface : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(

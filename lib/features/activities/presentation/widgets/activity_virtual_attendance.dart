@@ -440,7 +440,10 @@ class _VirtualAttendanceSheetState
                         onChanged: (value) => setState(() => _query = value),
                         decoration: InputDecoration(
                           hintText: 'activities.widgets.rsvp_search'.tr(),
-                          prefixIcon: const Icon(Icons.search),
+                          prefixIcon: const HugeIcon(
+                            icon: HugeIcons.strokeRoundedSearch01,
+                            size: 20,
+                          ),
                           isDense: true,
                         ),
                       ),

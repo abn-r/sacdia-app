@@ -212,78 +212,79 @@ class _JudgeScoreEntryViewState extends ConsumerState<JudgeScoreEntryView> {
                   );
                 }
                 return rubricsAsync.when(
-              data: (sheet) {
-                final rubrics = sheet.rubrics;
-                _syncControllers(rubrics);
-                if (rubrics.isEmpty) {
-                  return _EmptyRubrics(
+                  data: (sheet) {
+                    final rubrics = sheet.rubrics;
+                    _syncControllers(rubrics);
+                    if (rubrics.isEmpty) {
+                      return _EmptyRubrics(
+                        onRetry: () => ref.invalidate(
+                            camporeeEventRubricsProvider(widget.eventId)),
+                      );
+                    }
+
+                    final rawTotal = _total(rubrics);
+                    final officialTotal = sheet.officialTotal(rawTotal);
+                    final maxTotal = rubrics.fold<double>(
+                      0,
+                      (sum, rubric) => sum + rubric.maxPoints,
+                    );
+
+                    return Column(
+                      children: [
+                        Expanded(
+                          child: ListView(
+                            padding: SacTopBar.paddingBelowBar(context,
+                                const EdgeInsets.fromLTRB(16, 8, 16, 16)),
+                            children: [
+                              _ScoreIdentityCard(
+                                title: title,
+                                clubLabel: clubLabel,
+                              ),
+                              const SizedBox(height: 14),
+                              for (var i = 0; i < rubrics.length; i++) ...[
+                                StaggeredListItem(
+                                  index: i,
+                                  child: _RubricScoreCard(
+                                    rubric: rubrics[i],
+                                    controller:
+                                        _pointControllers[rubrics[i].rubricId]!,
+                                    awarded: _pointsFor(rubrics[i].rubricId),
+                                    onChanged: (_) => setState(() {}),
+                                    onStep: (delta) =>
+                                        _adjustPoints(rubrics[i], delta),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                              ],
+                              SacTextField(
+                                controller: _notesController,
+                                label: 'camporees.judge.notes_label'.tr(),
+                                maxLines: 4,
+                              ),
+                            ],
+                          ),
+                        ),
+                        _ScoreSubmitBar(
+                          total: formatCamporeeScoreNumber(officialTotal),
+                          maxTotal: formatCamporeeScoreNumber(maxTotal),
+                          minPoints: sheet.minPoints > 0
+                              ? formatCamporeeScoreNumber(sheet.minPoints)
+                              : null,
+                          isLoading: submitState.isLoading,
+                          onSubmit: submitState.isLoading
+                              ? null
+                              : () => _submit(rubrics),
+                        ),
+                      ],
+                    );
+                  },
+                  loading: () => const Center(child: SacLoading()),
+                  error: (error, _) => _ErrorRubrics(
+                    message: error.toString().replaceFirst('Exception: ', ''),
                     onRetry: () => ref.invalidate(
                         camporeeEventRubricsProvider(widget.eventId)),
-                  );
-                }
-
-                final rawTotal = _total(rubrics);
-                final officialTotal = sheet.officialTotal(rawTotal);
-                final maxTotal = rubrics.fold<double>(
-                  0,
-                  (sum, rubric) => sum + rubric.maxPoints,
+                  ),
                 );
-
-                return Column(
-                  children: [
-                    Expanded(
-                      child: ListView(
-                        padding: SacTopBar.paddingBelowBar(
-                            context, const EdgeInsets.fromLTRB(16, 8, 16, 16)),
-                        children: [
-                          _ScoreIdentityCard(
-                            title: title,
-                            clubLabel: clubLabel,
-                          ),
-                          const SizedBox(height: 14),
-                          for (var i = 0; i < rubrics.length; i++) ...[
-                            StaggeredListItem(
-                              index: i,
-                              child: _RubricScoreCard(
-                                rubric: rubrics[i],
-                                controller:
-                                    _pointControllers[rubrics[i].rubricId]!,
-                                awarded: _pointsFor(rubrics[i].rubricId),
-                                onChanged: (_) => setState(() {}),
-                                onStep: (delta) =>
-                                    _adjustPoints(rubrics[i], delta),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                          ],
-                          SacTextField(
-                            controller: _notesController,
-                            label: 'camporees.judge.notes_label'.tr(),
-                            maxLines: 4,
-                          ),
-                        ],
-                      ),
-                    ),
-                    _ScoreSubmitBar(
-                      total: formatCamporeeScoreNumber(officialTotal),
-                      maxTotal: formatCamporeeScoreNumber(maxTotal),
-                      minPoints: sheet.minPoints > 0
-                          ? formatCamporeeScoreNumber(sheet.minPoints)
-                          : null,
-                      isLoading: submitState.isLoading,
-                      onSubmit:
-                          submitState.isLoading ? null : () => _submit(rubrics),
-                    ),
-                  ],
-                );
-              },
-              loading: () => const Center(child: SacLoading()),
-              error: (error, _) => _ErrorRubrics(
-                message: error.toString().replaceFirst('Exception: ', ''),
-                onRetry: () => ref
-                    .invalidate(camporeeEventRubricsProvider(widget.eventId)),
-              ),
-            );
               },
             ),
           ),

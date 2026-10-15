@@ -116,7 +116,8 @@ class _CertificationGridItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final uc = userCertification;
     final isComplete = uc.completionStatus.toLowerCase() == 'completed';
-    final color = isComplete ? AppColors.secondary : SacAccent.of(context).color;
+    final color =
+        isComplete ? AppColors.secondary : SacAccent.of(context).color;
     final progress = uc.progressPercentage.round();
 
     return Column(

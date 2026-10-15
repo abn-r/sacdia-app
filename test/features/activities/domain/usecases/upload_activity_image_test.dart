@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/usecases/cancellation_token.dart';
 import 'package:sacdia_app/features/activities/domain/entities/activity.dart';
 import 'package:sacdia_app/features/activities/domain/entities/activity_club_section.dart';
+import 'package:sacdia_app/features/activities/domain/entities/activity_rsvp.dart';
 import 'package:sacdia_app/features/activities/domain/entities/attendance.dart';
 import 'package:sacdia_app/features/activities/domain/repositories/activities_repository.dart';
 import 'package:sacdia_app/features/activities/domain/usecases/upload_activity_image.dart';
@@ -28,6 +29,17 @@ class _FakeActivitiesRepository implements ActivitiesRepository {
   }
 
   @override
+  Future<Either<Failure, MyActivityRsvp>> getMyRsvp(int activityId) =>
+      throw UnimplementedError();
+  @override
+  Future<Either<Failure, String>> setMyRsvp(int activityId, String status) =>
+      throw UnimplementedError();
+  @override
+  Future<Either<Failure, List<AttendanceRosterMember>>> getAttendanceRoster(
+    int activityId,
+  ) =>
+      throw UnimplementedError();
+  @override
   Future<Either<Failure, Activity>> createActivity(
           {required int clubId, required CreateActivityRequest request}) =>
       throw UnimplementedError();
@@ -45,9 +57,7 @@ class _FakeActivitiesRepository implements ActivitiesRepository {
       throw UnimplementedError();
   @override
   Future<Either<Failure, List<Activity>>> getClubActivities(int clubId,
-          {int? clubTypeId,
-          int? seriesId,
-          RequestCancelToken? cancelToken}) =>
+          {int? clubTypeId, int? seriesId, RequestCancelToken? cancelToken}) =>
       throw UnimplementedError();
 
   @override

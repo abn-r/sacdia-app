@@ -2,11 +2,20 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/core/auth/social_auth_client.dart';
+import 'package:sacdia_app/core/auth/social_credential.dart';
 import 'package:sacdia_app/core/constants/app_constants.dart';
 import 'package:sacdia_app/core/errors/exceptions.dart';
 import 'package:sacdia_app/core/storage/secure_storage.dart';
 import 'package:sacdia_app/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+class _NoSocialAuth implements SocialAuthClient {
+  @override
+  Future<SocialCredential?> signIn(SocialProvider provider) async => null;
+  @override
+  bool supports(SocialProvider provider) => false;
+}
 
 class _FakeSecureStorage implements SecureStorage {
   final _store = <String, String>{};
@@ -126,6 +135,7 @@ void main() {
       dio: dio,
       baseUrl: 'http://localhost:3000/api/v1',
       secureStorage: storage,
+      socialAuth: _NoSocialAuth(),
     );
 
     final user = await dataSource.getCurrentUser();
@@ -153,6 +163,7 @@ void main() {
       dio: dio,
       baseUrl: 'http://localhost:3000/api/v1',
       secureStorage: storage,
+      socialAuth: _NoSocialAuth(),
     );
 
     expect(

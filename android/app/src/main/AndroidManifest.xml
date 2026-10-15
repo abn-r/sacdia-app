@@ -56,26 +56,6 @@
             <intent-filter>
                 <action android:name="es.antonborri.home_widget.action.LAUNCH" />
             </intent-filter>
-            <!-- Verified App Link for OAuth callback (preferred) -->
-            <!-- REQUIRED: Publish assetlinks.json at:
-                   https://sacdia-backend.onrender.com/.well-known/assetlinks.json
-                 with the app's SHA-256 release certificate fingerprint before this filter
-                 can be auto-verified by Android.
-                 Test with: adb shell pm get-app-links -user cur com.sacdia.app
-                 (NOTE: real adb command uses two hyphens before user; XML comments cannot contain double-hyphens)
-                 See: https://developer.android.com/training/app-links/verify-android-applinks -->
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="https"
-                    android:host="sacdia-backend.onrender.com"
-                    android:pathPrefix="/api/auth/callback" />
-            </intent-filter>
-            <!-- Custom URL scheme (io.sacdia.app://) removed — App Links (HTTPS) filter above
-                 with android:autoVerify="true" handles OAuth callbacks securely.
-                 Custom schemes are interceptable by any app and offer no origin verification. -->
         </activity>
         <receiver
             android:name=".NextActivityWidgetProvider"

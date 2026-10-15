@@ -18,7 +18,10 @@ class _FakeAuthNotifier extends AuthNotifier {
   Future<UserEntity?> build() async => _user;
 }
 
-UserEntity _userWithPermissions(List<String> permissions) {
+UserEntity _userWithPermissions(
+  List<String> permissions, {
+  String roleName = 'counselor',
+}) {
   const activeAssignmentId = 'assignment-1';
 
   return UserEntity(
@@ -27,10 +30,10 @@ UserEntity _userWithPermissions(List<String> permissions) {
     authorization: AuthorizationSnapshot(
       effectivePermissions: permissions,
       activeAssignmentId: activeAssignmentId,
-      clubAssignments: const [
+      clubAssignments: [
         AuthorizationGrant(
           assignmentId: activeAssignmentId,
-          roleName: 'counselor',
+          roleName: roleName,
           clubId: 1,
           sectionId: 2,
           status: 'active',
@@ -220,5 +223,94 @@ void main() {
             find.text('dashboard.quick_access.camporee_judge'), findsNothing);
       },
     );
+
+    for (final role in ['director', 'secretary', 'secretary-treasurer']) {
+      testWidgets('shows the investiture shortcut to $role', (tester) async {
+        await _pumpQuickAccessGrid(
+          tester,
+          _userWithPermissions(const ['reports:read'], roleName: role),
+        );
+        expect(find.text('dashboard.quick_access.investiture'), findsOne);
+      });
+    }
+
+    for (final role in ['counselor', 'deputy-director', 'treasurer']) {
+      testWidgets('hides the investiture shortcut from $role', (tester) async {
+        await _pumpQuickAccessGrid(
+          tester,
+          _userWithPermissions(const ['reports:read'], roleName: role),
+        );
+        expect(find.text('dashboard.quick_access.investiture'), findsNothing);
+      });
+    }
+  });
+
+  group('QuickAccessGrid authorizer shortcut', () {
+    UserEntity globalUser(String role) => UserEntity(
+          id: 'user-1',
+          email: 'user@example.com',
+          authorization: AuthorizationSnapshot(
+            effectivePermissions: const ['reports:read'],
+            globalGrants: [AuthorizationGrant(roleName: role)],
+          ),
+        );
+
+    for (final role in ['pastor', 'director-lf', 'assistant-lf']) {
+      testWidgets('shows the authorizations shortcut to $role', (tester) async {
+        await _pumpQuickAccessGrid(tester, globalUser(role));
+        expect(find.text('dashboard.quick_access.authorizations'), findsOne);
+      });
+    }
+
+    for (final role in ['coordinator', 'director-union']) {
+      testWidgets('hides the authorizations shortcut from $role',
+          (tester) async {
+        await _pumpQuickAccessGrid(tester, globalUser(role));
+        expect(
+            find.text('dashboard.quick_access.authorizations'), findsNothing);
+      });
+    }
+
+    testWidgets('hides both investiture shortcuts from a super-admin only',
+        (tester) async {
+      await _pumpQuickAccessGrid(tester, globalUser('super-admin'));
+      expect(find.text('dashboard.quick_access.authorizations'), findsNothing);
+      expect(find.text('dashboard.quick_access.investiture'), findsNothing);
+    });
+
+    testWidgets('a super-admin who is also a section director keeps his tile',
+        (tester) async {
+      await _pumpQuickAccessGrid(
+        tester,
+        UserEntity(
+          id: 'user-1',
+          email: 'user@example.com',
+          authorization: AuthorizationSnapshot(
+            effectivePermissions: const ['reports:read'],
+            globalGrants: const [AuthorizationGrant(roleName: 'super-admin')],
+            activeAssignmentId: 'a1',
+            clubAssignments: const [
+              AuthorizationGrant(
+                assignmentId: 'a1',
+                roleName: 'director',
+                clubId: 1,
+                sectionId: 2,
+                status: 'active',
+              ),
+            ],
+          ),
+        ),
+      );
+      expect(find.text('dashboard.quick_access.investiture'), findsOne);
+      expect(find.text('dashboard.quick_access.authorizations'), findsNothing);
+    });
+
+    testWidgets('hides it from a plain club counselor', (tester) async {
+      await _pumpQuickAccessGrid(
+        tester,
+        _userWithPermissions(const ['reports:read']),
+      );
+      expect(find.text('dashboard.quick_access.authorizations'), findsNothing);
+    });
   });
 }

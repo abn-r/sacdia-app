@@ -1,5 +1,7 @@
 import 'package:dartz/dartz.dart';
+import '../../../../core/auth/social_credential.dart';
 import '../../../../core/errors/failures.dart';
+import '../entities/delete_account_reauth.dart';
 import '../entities/user_entity.dart';
 
 /// Interfaz del repositorio de autenticación para la capa de dominio
@@ -35,10 +37,12 @@ abstract class AuthRepository {
   Future<Either<Failure, UserEntity>> updatePassword(
       String currentPassword, String newPassword);
 
-  /// Inicia sesión con Google OAuth
+  /// Inicia sesión con Google (SDK nativo). Devuelve [SocialSignInCancelledFailure]
+  /// si el usuario cancela.
   Future<Either<Failure, UserEntity>> signInWithGoogle();
 
-  /// Inicia sesión con Apple OAuth
+  /// Inicia sesión con Apple (SDK nativo). Devuelve [SocialSignInCancelledFailure]
+  /// si el usuario cancela.
   Future<Either<Failure, UserEntity>> signInWithApple();
 
   /// Obtiene el estado de completitud del post-registro
@@ -50,19 +54,13 @@ abstract class AuthRepository {
   /// Cambia el contexto activo de autorización del usuario.
   Future<Either<Failure, void>> switchContext(String assignmentId);
 
-  /// Procesa el callback OAuth: envía el session_token opaco de Better Auth
-  /// al backend (`POST /auth/oauth/callback`) y recibe el JWT HS256 de SACDIA.
-  ///
-  /// Llamar desde [AuthNotifier.processOAuthDeepLink] al interceptar el deep link
-  /// `io.sacdia.app://auth/callback?session_token=...&provider=...`.
-  Future<Either<Failure, UserEntity>> handleOAuthCallback({
-    required String sessionToken,
-    required String provider,
-  });
-
   /// Elimina permanentemente la cuenta del usuario autenticado.
   ///
-  /// Requiere la contraseña actual para verificación server-side.
+  /// Requiere reautenticación server-side: la contraseña actual o un idToken
+  /// fresco del proveedor social ([DeleteAccountReauth]).
   /// El backend aplica cascada: revoca sesiones, borra PII, archiva audit log.
-  Future<Either<Failure, void>> deleteAccount(String password);
+  Future<Either<Failure, void>> deleteAccount(DeleteAccountReauth reauth);
+
+  /// Proveedores sociales vinculados a la cuenta del usuario autenticado.
+  Future<Either<Failure, List<SocialProvider>>> getConnectedProviders();
 }

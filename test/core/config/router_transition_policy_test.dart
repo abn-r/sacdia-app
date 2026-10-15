@@ -108,6 +108,7 @@ void main() {
         RouteNames.homeResources,
         RouteNames.homeReports,
         RouteNames.homeClubRankings,
+        RouteNames.sectionInvestiture,
       };
 
       for (final path in quickAccessDestinations) {

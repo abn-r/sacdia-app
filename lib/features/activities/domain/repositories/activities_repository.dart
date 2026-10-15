@@ -97,7 +97,8 @@ abstract class ActivitiesRepository {
     required CreateActivityRequest request,
   });
 
-  Future<Either<Failure, ActivitySeriesSummary>> getActivitySeries(int seriesId);
+  Future<Either<Failure, ActivitySeriesSummary>> getActivitySeries(
+      int seriesId);
 
   Future<Either<Failure, int>> cancelFutureActivitySeries(int seriesId);
 

@@ -1,26 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../domain/entities/certificate_import_item.dart';
-import '../providers/certificate_import_providers.dart';
-
-class CertificateImportProofArgs {
-  const CertificateImportProofArgs({
-    this.item,
-    this.batchId,
-    this.fileId,
-  });
-
-  final CertificateImportItem? item;
-  final String? batchId;
-  final String? fileId;
-}
 
 class CertificateImportProofCard extends StatelessWidget {
   const CertificateImportProofCard({super.key, required this.item});
@@ -103,80 +87,6 @@ class CertificateImportProofCard extends StatelessWidget {
           ],
         ],
       ),
-    );
-  }
-}
-
-class CertificateImportSignedProof extends ConsumerStatefulWidget {
-  const CertificateImportSignedProof({
-    super.key,
-    required this.batchId,
-    required this.fileId,
-  });
-
-  final String batchId;
-  final String fileId;
-
-  @override
-  ConsumerState<CertificateImportSignedProof> createState() =>
-      _CertificateImportSignedProofState();
-}
-
-class _CertificateImportSignedProofState
-    extends ConsumerState<CertificateImportSignedProof> {
-  String? _error;
-
-  Future<void> _open() async {
-    final result = await ref.read(signedCertificateImportDownloadProvider).call(
-          batchId: widget.batchId,
-          fileId: widget.fileId,
-        );
-    if (!mounted) return;
-    await result.fold(
-      (failure) async {
-        setState(() => _error = failure.message);
-      },
-      (url) async {
-        final uri = Uri.tryParse(url);
-        if (uri == null || uri.scheme != 'https') {
-          setState(
-            () => _error = 'certificate_import.proof.unavailable'.tr(),
-          );
-          return;
-        }
-        final opened =
-            await launchUrl(uri, mode: LaunchMode.externalApplication);
-        if (!opened && mounted) {
-          setState(
-            () => _error = 'certificate_import.proof.unavailable'.tr(),
-          );
-        }
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SacPressable(
-          listenOnly: true,
-          child: TextButton(
-            style: const ButtonStyle(enableFeedback: false),
-            onPressed: _open,
-            child: Text('certificate_import.proof.open'.tr()),
-          ),
-        ),
-        if (_error != null)
-          Text(
-            _error!,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: c.error,
-                ),
-          ),
-      ],
     );
   }
 }

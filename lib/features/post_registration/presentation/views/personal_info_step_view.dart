@@ -246,7 +246,8 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                   ),
                   value: formState.baptized,
                   activeTrackColor: SacAccent.of(context).light,
-                  thumbColor: WidgetStatePropertyAll(SacAccent.of(context).color),
+                  thumbColor:
+                      WidgetStatePropertyAll(SacAccent.of(context).color),
                   contentPadding: EdgeInsets.zero,
                   onChanged: (value) {
                     ref.read(personalInfoFormProvider.notifier).state =
@@ -826,10 +827,12 @@ class _GenderChip extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? SacAccent.of(context).light : context.sac.surface,
+            color:
+                isSelected ? SacAccent.of(context).light : context.sac.surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isSelected ? SacAccent.of(context).color : context.sac.border,
+              color:
+                  isSelected ? SacAccent.of(context).color : context.sac.border,
               width: isSelected ? 2 : 1,
             ),
           ),
@@ -839,8 +842,9 @@ class _GenderChip extends StatelessWidget {
               buildIcon(
                 icon,
                 size: 20,
-                color:
-                    isSelected ? SacAccent.of(context).color : context.sac.textSecondary,
+                color: isSelected
+                    ? SacAccent.of(context).color
+                    : context.sac.textSecondary,
               ),
               const SizedBox(width: 8),
               Text(
@@ -893,8 +897,9 @@ class _DatePickerCard extends StatelessWidget {
             child: buildIcon(
               icon,
               size: 20,
-              color:
-                  date != null ? SacAccent.of(context).color : context.sac.textTertiary,
+              color: date != null
+                  ? SacAccent.of(context).color
+                  : context.sac.textTertiary,
             ),
           ),
           const SizedBox(width: 12),

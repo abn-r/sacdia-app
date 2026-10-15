@@ -47,8 +47,7 @@ class RankingEmptyState extends StatelessWidget {
       icon: config.icon,
       title: config.title,
       body: config.body,
-      actionLabel:
-          retry != null ? tr('rankings.empty_state.retry') : null,
+      actionLabel: retry != null ? tr('rankings.empty_state.retry') : null,
       onAction: retry,
       actionIcon: HugeIcons.strokeRoundedRefresh,
     );

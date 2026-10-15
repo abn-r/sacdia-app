@@ -52,6 +52,6 @@ flutter test
 
 ## Documentación
 
-- Contexto para agentes: `CLAUDE.md` y `AI-CONTEXT.md`
+- Contexto para agentes: `AGENTS.md` y `CLAUDE.md`
 - Sistema de diseño: `DESIGN-SYSTEM.md`
 - Docs del monorepo: `../docs/` (API, base de datos, features)

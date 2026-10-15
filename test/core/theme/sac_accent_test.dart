@@ -12,17 +12,19 @@ void main() {
 
   test('catalog includes coral, clubs and every class', () {
     final ids = SacAccent.catalog.map((accent) => accent.id).toSet();
-    expect(ids, containsAll([
-      'brand.coral',
-      'club.aventureros',
-      'club.conquistadores',
-      'club.guias',
-      'class.lambs',
-      'class.friend',
-      'class.master_guide',
-      'class.advanced_guide',
-      'class.instructor_guide',
-    ]));
+    expect(
+        ids,
+        containsAll([
+          'brand.coral',
+          'club.aventureros',
+          'club.conquistadores',
+          'club.guias',
+          'class.lambs',
+          'class.friend',
+          'class.master_guide',
+          'class.advanced_guide',
+          'class.instructor_guide',
+        ]));
     expect(
       SacAccent.catalog
           .where((accent) => accent.family == AccentFamily.classLevel)

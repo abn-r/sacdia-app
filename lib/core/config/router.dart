@@ -9,7 +9,6 @@ import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/analytics/posthog_analytics.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
-import 'package:sacdia_app/core/utils/app_logger.dart';
 import 'package:sacdia_app/features/activities/presentation/views/activities_list_view.dart';
 import 'package:sacdia_app/features/activities/presentation/views/activity_detail_view.dart';
 import 'package:sacdia_app/features/certifications/presentation/views/certifications_list_view.dart';
@@ -17,14 +16,15 @@ import 'package:sacdia_app/features/certifications/presentation/views/certificat
 import 'package:sacdia_app/features/certifications/presentation/views/certification_progress_view.dart';
 import 'package:sacdia_app/features/certifications/presentation/views/requirement_detail_view.dart';
 import 'package:sacdia_app/features/certifications/presentation/views/certification_closeout_view.dart';
-import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_item.dart';
-import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_processing_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_review_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_status_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_upload_view.dart';
-import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_import_proof_card.dart';
-import 'package:sacdia_app/features/investiture/presentation/views/investiture_pending_list_view.dart';
-import 'package:sacdia_app/features/investiture/presentation/views/investiture_history_view.dart';
+import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_proof_viewer.dart';
+import 'package:sacdia_app/features/investiture_requests/presentation/views/authorizer_request_detail_view.dart';
+import 'package:sacdia_app/features/investiture_requests/presentation/views/authorizer_requests_view.dart';
+import 'package:sacdia_app/features/investiture_requests/presentation/views/own_investiture_view.dart';
+import 'package:sacdia_app/features/investiture_requests/presentation/views/section_investiture_history_view.dart';
+import 'package:sacdia_app/features/investiture_requests/presentation/views/section_investiture_view.dart';
 import 'package:sacdia_app/features/evidence_folder/presentation/views/evidence_folder_view.dart';
 import 'package:sacdia_app/features/club/presentation/providers/club_providers.dart';
 import 'package:sacdia_app/features/club/presentation/views/club_detail_view.dart';
@@ -116,6 +116,7 @@ import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/core/authorization/access_subject.dart';
 import 'package:sacdia_app/core/authorization/screen_catalog.dart';
+import 'pastor_route_access.dart';
 import 'route_names.dart';
 import 'package:sacdia_app/core/widgets/sac_nav_icon.dart';
 import 'package:sacdia_app/core/widgets/sac_shell_nav.dart';
@@ -185,17 +186,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         RouteNames.login,
         RouteNames.register,
         RouteNames.forgotPassword,
-        RouteNames.authCallback,
       ];
 
       final isPublicRoute = publicRoutes.contains(currentPath);
 
       // Mientras el AuthNotifier está resolviendo el estado inicial,
       // quedarse en splash para que no haya redirects prematuros.
-      // Excepción: /auth/callback debe permanecer para procesar el token OAuth.
       if (isLoading) {
-        if (currentPath == RouteNames.splash ||
-            currentPath == RouteNames.authCallback) {
+        if (currentPath == RouteNames.splash) {
           return null;
         }
         return RouteNames.splash;
@@ -261,7 +259,9 @@ final routerProvider = Provider<GoRouter>((ref) {
             welcomeCarouselSeen: ref.read(welcomeCarouselSeenProvider),
           );
         }
-        if (!user.postRegisterComplete) return RouteNames.postRegistration;
+        if (userNeedsPostRegistration(user)) {
+          return RouteNames.postRegistration;
+        }
         return RouteNames.homeDashboard;
       }
 
@@ -270,23 +270,32 @@ final routerProvider = Provider<GoRouter>((ref) {
         return isPublicRoute ? null : RouteNames.login;
       }
 
+      // El pastor sin club no tiene datos de club que completar: no pasa por
+      // el post-registro (la app solo le muestra «Autorizaciones» y su perfil).
+      final needsPostRegistration = userNeedsPostRegistration(user);
+
       // Usuario autenticado en ruta pública → destino home compartido.
       if (isPublicRoute) {
-        if (!user.postRegisterComplete) return RouteNames.postRegistration;
+        if (needsPostRegistration) return RouteNames.postRegistration;
         return RouteNames.homeDashboard;
       }
 
       // Usuario autenticado con post-registro incompleto fuera de la ruta de post-registro
-      if (!user.postRegisterComplete &&
-          currentPath != RouteNames.postRegistration) {
+      if (needsPostRegistration && currentPath != RouteNames.postRegistration) {
         return RouteNames.postRegistration;
       }
 
-      // Usuario autenticado con post-registro completo en la ruta de post-registro
+      // Usuario sin nada pendiente en la ruta de post-registro
       // (e.g., navigated back somehow) → redirigir al home compartido.
-      if (user.postRegisterComplete &&
+      if (!needsPostRegistration &&
           currentPath == RouteNames.postRegistration) {
         return RouteNames.homeDashboard;
+      }
+
+      // El pastor sin club solo ve «Autorizaciones» y su perfil: cualquier otra
+      // ruta (también por enlace profundo) vuelve al listado de autorizaciones.
+      if (isPastorWithoutClub(user) && !isPastorAllowedPath(currentPath)) {
+        return RouteNames.investitureAuthorize;
       }
 
       return null;
@@ -460,6 +469,22 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: RouteNames.homeMaterials,
                 pageBuilder: (context, state) =>
                     _sharedAxisBuild(context, state, const CatalogView()),
+              ),
+              GoRoute(
+                path: RouteNames.sectionInvestiture,
+                pageBuilder: (context, state) => _sharedAxisBuild(
+                  context,
+                  state,
+                  const SectionInvestitureView(),
+                ),
+              ),
+              GoRoute(
+                path: RouteNames.sectionInvestitureHistory,
+                pageBuilder: (context, state) => _sharedAxisBuild(
+                  context,
+                  state,
+                  const SectionInvestitureHistoryView(),
+                ),
               ),
               GoRoute(
                 path: RouteNames.homeReports,
@@ -727,26 +752,33 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // Lista de investiduras pendientes (coordinador/admin)
+      // Estado de investidura de la propia persona (investidura por autorización)
       GoRoute(
-        path: RouteNames.investiturePendingList,
+        path: RouteNames.ownInvestiture,
         pageBuilder: (context, state) => _sharedAxisBuild(
           context,
           state,
-          const InvestiturePendingListView(),
+          const OwnInvestitureView(),
         ),
       ),
 
-      // Historial de investidura de un enrollment
+      // Autorizador de investiduras (pastor, director-lf, assistant-lf).
       GoRoute(
-        path: RouteNames.investitureHistory,
+        path: RouteNames.investitureAuthorize,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          const AuthorizerRequestsView(),
+        ),
+      ),
+      GoRoute(
+        path: RouteNames.investitureAuthorizeDetail,
         pageBuilder: (context, state) {
-          final enrollmentIdStr = state.pathParameters['enrollmentId']!;
-          final enrollmentId = int.tryParse(enrollmentIdStr) ?? 0;
+          final requestId = state.pathParameters['requestId']!;
           return _sharedAxisBuild(
             context,
             state,
-            InvestitureHistoryView(enrollmentId: enrollmentId),
+            AuthorizerRequestDetailView(requestId: requestId),
           );
         },
       ),
@@ -766,24 +798,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
-        path: RouteNames.certificateImportProcessing,
-        pageBuilder: (context, state) {
-          final batchId = state.pathParameters['batchId']!;
-          return _sharedAxisBuild(
-            context,
-            state,
-            CertificateImportProcessingRouteView(batchId: batchId),
-          );
-        },
-      ),
-      GoRoute(
         path: RouteNames.certificateImportReview,
         pageBuilder: (context, state) {
           final batchId = state.pathParameters['batchId']!;
           return _sharedAxisBuild(
             context,
             state,
-            CertificateImportReviewRouteView(batchId: batchId),
+            CertificateImportReviewRouteView(
+              batchId: batchId,
+              localPath: state.extra is String ? state.extra as String : null,
+            ),
           );
         },
       ),
@@ -799,35 +823,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
+        // Keyed by batch and file, never by item: it must open without rows.
         path: RouteNames.certificateImportProof,
         pageBuilder: (context, state) {
-          final extra = state.extra;
-          final args = extra is CertificateImportProofArgs ? extra : null;
-          final item = extra is CertificateImportItem ? extra : args?.item;
-          return _sharedAxisBuild(
-            context,
-            state,
-            Scaffold(
-              appBar: SacTopBar(
-                title: 'certificate_import.proof.title'.tr(),
-              ),
-              body: Padding(
-                padding: const EdgeInsets.all(16),
-                child: item == null
-                    ? Text('certificate_import.proof.missing'.tr())
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CertificateImportProofCard(item: item),
-                          if (args?.batchId != null && args?.fileId != null)
-                            CertificateImportSignedProof(
-                              batchId: args!.batchId!,
-                              fileId: args.fileId!,
-                            ),
-                        ],
-                      ),
-              ),
-            ),
+          return fadeThroughPage<void>(
+            key: state.pageKey,
+            fullscreenDialog: true,
+            child: CertificateProofViewer.fromRouteState(state),
           );
         },
       ),
@@ -1375,32 +1377,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
-
-      // OAuth callback deep link — io.sacdia.app://auth/callback?session_token=...&provider=...
-      //
-      // GoRouter intercepts the deep link automatically because:
-      //   - iOS: FlutterDeepLinkingEnabled = true in Info.plist
-      //   - Android: intent-filter with scheme io.sacdia.app in AndroidManifest.xml
-      //
-      // The route extracts session_token and provider from query params, calls
-      // AuthNotifier.processOAuthDeepLink, and shows a loading screen while
-      // the token exchange with the backend completes. The redirect callback
-      // above handles the subsequent navigation once auth state updates.
-      GoRoute(
-        path: RouteNames.authCallback,
-        pageBuilder: (context, state) {
-          final sessionToken = state.uri.queryParameters['session_token'] ?? '';
-          final provider = state.uri.queryParameters['provider'] ?? '';
-          return _sharedAxisBuild(
-            context,
-            state,
-            _OAuthCallbackScreen(
-              sessionToken: sessionToken,
-              provider: provider,
-            ),
-          );
-        },
-      ),
     ],
   );
 
@@ -1481,12 +1457,30 @@ const List<_NavItemConfig> _navItemsConfig = [
   ),
 ];
 
+/// Navegación del pastor sin club: solo «Autorizaciones» (su inicio) y el
+/// perfil. El resto de las pestañas pertenece a un miembro de club.
+const List<_NavItemConfig> _pastorNavItems = [
+  _NavItemConfig(
+    branchIndex: 0,
+    route: RouteNames.homeDashboard,
+    icon: HugeIcons.strokeRoundedMedal01,
+    labelKey: 'router.nav.authorizations',
+  ),
+  _NavItemConfig(
+    branchIndex: 3,
+    route: RouteNames.homeProfile,
+    icon: HugeIcons.strokeRoundedUser,
+    labelKey: 'router.nav.profile',
+  ),
+];
+
 List<_NavItemConfig> _filterNavItems(
   List<_NavItemConfig> items,
   UserEntity? user,
   AuthorizationSnapshot? authorization,
 ) {
   if (authorization == null) return items;
+  if (isPastorWithoutClub(user)) return _pastorNavItems;
   final subject = subjectFromUser(user);
 
   return items.where((item) {
@@ -1495,6 +1489,21 @@ List<_NavItemConfig> _filterNavItems(
     if (!canAccessClubOperationalSurface(user)) return false;
     return canViewScreen(subject, screenId);
   }).toList();
+}
+
+/// Pestañas de la barra principal para [user] (ruta y clave de traducción).
+@visibleForTesting
+List<({String route, String labelKey})> shellNavItemsForTesting(
+  UserEntity? user,
+) {
+  return [
+    for (final item in _filterNavItems(
+      _navItemsConfig,
+      user,
+      user?.authorization,
+    ))
+      (route: item.route, labelKey: item.labelKey),
+  ];
 }
 
 // ── Main shell — adaptive navigation ─────────────────────────────────────────
@@ -1637,94 +1646,6 @@ class _EvidenceFolderShell extends ConsumerWidget {
         }
         return EvidenceFolderView(clubSectionId: section.id.toString());
       },
-    );
-  }
-}
-
-/// Pantalla de procesamiento del callback OAuth.
-///
-/// Muestra un loading mientras llama a [AuthNotifier.processOAuthDeepLink].
-/// Al completar (éxito o fallo) navega a splash para que el redirect
-/// normal tome el control y lleve al usuario a home o login.
-///
-/// El flujo completo:
-///   io.sacdia.app://auth/callback?session_token=xxx&provider=google
-///   → GoRouter intercepta → _OAuthCallbackScreen construida con params
-///   → llama processOAuthDeepLink → auth state actualizado
-///   → router.refresh() llama al redirect → navega a home o login
-class _OAuthCallbackScreen extends ConsumerStatefulWidget {
-  final String sessionToken;
-  final String provider;
-
-  const _OAuthCallbackScreen({
-    required this.sessionToken,
-    required this.provider,
-  });
-
-  @override
-  ConsumerState<_OAuthCallbackScreen> createState() =>
-      _OAuthCallbackScreenState();
-}
-
-class _OAuthCallbackScreenState extends ConsumerState<_OAuthCallbackScreen> {
-  static const _tag = 'OAuthCallbackScreen';
-
-  @override
-  void initState() {
-    super.initState();
-    // Diferir la llamada hasta después del primer frame para evitar
-    // modificar el árbol de providers durante el build del router.
-    WidgetsBinding.instance.addPostFrameCallback((_) => _processCallback());
-  }
-
-  Future<void> _processCallback() async {
-    const validProviders = ['google', 'apple'];
-
-    if (widget.sessionToken.isEmpty ||
-        widget.provider.isEmpty ||
-        !validProviders.contains(widget.provider.toLowerCase())) {
-      AppLogger.w(
-        'OAuth callback recibido con parámetros inválidos — '
-        'session_token="${widget.sessionToken.isEmpty ? "(vacío)" : "(presente)"}" '
-        'provider="${widget.provider}"',
-        tag: _tag,
-      );
-      // Navegar a login para que el usuario vea el error en contexto.
-      if (mounted) context.go(RouteNames.login);
-      return;
-    }
-
-    AppLogger.i(
-      'Procesando OAuth callback — provider: ${widget.provider}',
-      tag: _tag,
-    );
-
-    await ref.read(authNotifierProvider.notifier).processOAuthDeepLink(
-          sessionToken: widget.sessionToken,
-          provider: widget.provider,
-        );
-
-    // El authNotifierProvider.notifier ya actualiza el estado. El listener
-    // en routerProvider llama router.refresh() que ejecuta el redirect.
-    // No es necesario navegar manualmente aquí.
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            LoadingAnimationWidget.waveDots(color: SacAccent.of(context).color, size: 30),
-            const SizedBox(height: 24),
-            Text(
-              tr('router.oauth_callback.completing_signin'),
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

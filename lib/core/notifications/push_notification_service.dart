@@ -19,6 +19,7 @@ import '../realtime/realtime_ref.dart';
 import '../theme/sac_colors.dart';
 import '../utils/app_logger.dart';
 import '../../features/achievements/presentation/providers/achievements_providers.dart';
+import '../../features/investiture_requests/presentation/utils/investiture_notification_routes.dart';
 import '../../features/master_honors/presentation/providers/master_honor_modal_queue_provider.dart';
 import '../../features/master_honors/presentation/providers/master_honors_providers.dart';
 import '../../features/master_honors/presentation/widgets/master_honor_change_modal.dart';
@@ -206,6 +207,33 @@ class PushNotificationService {
           tag: _tag, error: e);
       await _secureStorage.delete(key: _tokenPrefKey);
       await _secureStorage.delete(key: _tokenIdPrefKey);
+    }
+  }
+
+  /// Limpieza solo local del registro push, sin llamar al backend. Para cuando
+  /// la cuenta acaba de borrarse: la cascada del servidor ya desactivó sus
+  /// tokens FCM y la sesión ya no existe, así que un `DELETE` fallaría con 401
+  /// y dispararía el cierre de sesión del interceptor a mitad de la UI.
+  ///
+  /// Borra el token/id guardados, cancela las suscripciones y pide a Firebase
+  /// que invalide el token del dispositivo (best-effort).
+  Future<void> clearLocalRegistration() async {
+    try {
+      await _secureStorage.delete(key: _tokenPrefKey);
+      await _secureStorage.delete(key: _tokenIdPrefKey);
+    } catch (e) {
+      AppLogger.w('Error al borrar el token FCM local', tag: _tag, error: e);
+    }
+    await _cancelSubscriptions();
+    try {
+      // Network call to FCM: bounded so a stalled connection can't hold the
+      // "deleting account" UI after the backend already confirmed it.
+      await FirebaseMessaging.instance
+          .deleteToken()
+          .timeout(const Duration(seconds: 3));
+    } catch (e) {
+      AppLogger.w('Error al invalidar el token FCM del dispositivo',
+          tag: _tag, error: e);
     }
   }
 
@@ -457,6 +485,11 @@ class PushNotificationService {
   @visibleForTesting
   void handleForegroundMessageForTesting(RemoteMessage message) {
     _handleForegroundMessage(message);
+  }
+
+  @visibleForTesting
+  void handleNotificationTapForTesting(RemoteMessage message) {
+    _handleNotificationTap(message);
   }
 
   @visibleForTesting
@@ -803,7 +836,6 @@ class PushNotificationService {
     RouteNames.homeAchievements,
     // Other top-level destinations
     RouteNames.transferRequests,
-    RouteNames.investiturePendingList,
     RouteNames.notificationsInbox,
     RouteNames.roleAssignments,
     RouteNames.coordinator,
@@ -820,6 +852,7 @@ class PushNotificationService {
     'member_of_month_director',
     'achievement_unlocked',
     'master_honor_changed',
+    'investiture_result',
   };
 
   /// RegExp patterns for routes that carry path parameters.
@@ -973,6 +1006,13 @@ class PushNotificationService {
         return;
       case 'master_honor_changed':
         _pushRoute(_masterHonorsNotificationRoute());
+        return;
+
+      case 'investiture_result':
+        // Payload: { type, audience: 'person' | 'board', requestId, sectionId,
+        // classId? }. La persona puede no traer classId (filas viejas): en ese
+        // caso va a su lista de investiduras.
+        _pushRoute(investitureResultPushRoute(data));
         return;
 
       default:

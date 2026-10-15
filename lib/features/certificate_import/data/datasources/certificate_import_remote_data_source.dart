@@ -1,24 +1,35 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
+import '../../domain/entities/certificate_import_class_option.dart';
 import '../models/certificate_import_batch_list_model.dart';
+import '../models/certificate_import_class_option_model.dart';
 import '../models/certificate_import_batch_model.dart';
 import '../models/certificate_import_file_model.dart';
 import '../models/certificate_import_institutional_request_model.dart';
 import '../models/certificate_import_item_model.dart';
 import '../models/certificate_import_presign_ticket_model.dart';
+import '../../domain/entities/certificate_import_error_code.dart';
 import '../../domain/entities/certificate_import_payloads.dart';
+import '../../domain/entities/certificate_import_upload_session.dart';
 
 abstract class CertificateImportRemoteDataSource {
   Future<CertificateImportBatchModel> createBatch({
     List<CertificateImportFilePayload> files = const [],
+    CancelToken? cancelToken,
   });
 
   /// Create draft → presign → PUT to R2 (no API Authorization) → confirm.
+  ///
+  /// Each stage records its result in [session], so calling it again with the
+  /// same session resumes at the first unfinished stage: after a failed
+  /// `confirm` (for example `PDF_BUSY`) only `confirm` is repeated.
   Future<CertificateImportBatchModel> uploadLocalProof(
     CertificateImportLocalProof proof, {
+    CertificateImportUploadSession? session,
     void Function(double progress)? onProgress,
     CancelToken? cancelToken,
   });
@@ -28,6 +39,7 @@ abstract class CertificateImportRemoteDataSource {
     required String fileName,
     required String mimeType,
     required int fileSize,
+    CancelToken? cancelToken,
   });
 
   Future<void> uploadToSignedUrl({
@@ -42,6 +54,7 @@ abstract class CertificateImportRemoteDataSource {
   Future<CertificateImportFileModel> confirmFile({
     required String batchId,
     required String fileId,
+    CancelToken? cancelToken,
   });
 
   Future<CertificateImportBatchListModel> listBatches({
@@ -51,7 +64,14 @@ abstract class CertificateImportRemoteDataSource {
 
   Future<CertificateImportBatchModel> processOcr(String batchId);
 
-  Future<CertificateImportBatchModel> getBatch(String batchId);
+  /// Deletes a DRAFT batch. 404 (not found or not yours) and 409 (not
+  /// deletable, reading in progress) arrive as exceptions with their status.
+  Future<void> deleteBatch(String batchId);
+
+  Future<CertificateImportBatchModel> getBatch(
+    String batchId, {
+    CancelToken? cancelToken,
+  });
 
   /// Signed download of the sealed proof. Rejects anything that is not https.
   Future<String> signedDownloadUrl({
@@ -81,6 +101,13 @@ abstract class CertificateImportRemoteDataSource {
     required String batchId,
     required String itemId,
     required CertificateImportItemUpdatePayload payload,
+  });
+
+  /// Classes the member can pick for a club type, including withdrawn and
+  /// institutional ones (not limited to the current year's availability).
+  Future<List<CertificateImportClassOption>> getClassCatalog({
+    required int clubTypeId,
+    CancelToken? cancelToken,
   });
 
   /// Ready against GET /api/v1/certificate-import-institutional-requests.
@@ -114,6 +141,7 @@ class CertificateImportRemoteDataSourceImpl
   @override
   Future<CertificateImportBatchModel> createBatch({
     List<CertificateImportFilePayload> files = const [],
+    CancelToken? cancelToken,
   }) async {
     final remoteFiles = files.where((file) => file.isRemoteUrl).toList();
     final response = await _dio.post(
@@ -121,6 +149,7 @@ class CertificateImportRemoteDataSourceImpl
       data: {
         'files': remoteFiles.map((file) => file.toJson()).toList(),
       },
+      cancelToken: cancelToken,
     );
     return CertificateImportBatchModel.fromJson(_data(response));
   }
@@ -128,26 +157,45 @@ class CertificateImportRemoteDataSourceImpl
   @override
   Future<CertificateImportBatchModel> uploadLocalProof(
     CertificateImportLocalProof proof, {
+    CertificateImportUploadSession? session,
     void Function(double progress)? onProgress,
     CancelToken? cancelToken,
   }) async {
-    final batch = await createBatch(files: const []);
-    final ticket = await presignFile(
-      batchId: batch.id,
-      fileName: proof.fileName,
-      mimeType: proof.mimeType,
-      fileSize: proof.fileSize,
-    );
-    await uploadToSignedUrl(
-      uploadUrl: ticket.uploadUrl,
-      localPath: proof.localPath,
-      mimeType: proof.mimeType,
-      requiredHeaders: ticket.requiredHeaders,
-      onProgress: onProgress,
+    final state = session ?? CertificateImportUploadSession();
+    final batchId = state.batchId ??=
+        (await createBatch(files: const [], cancelToken: cancelToken)).id;
+    if (!state.uploaded) {
+      final ticket = state.ticket ??= (await presignFile(
+        batchId: batchId,
+        fileName: proof.fileName,
+        mimeType: proof.mimeType,
+        fileSize: proof.fileSize,
+        cancelToken: cancelToken,
+      ))
+          .toEntity();
+      try {
+        await uploadToSignedUrl(
+          uploadUrl: ticket.uploadUrl,
+          localPath: proof.localPath,
+          mimeType: proof.mimeType,
+          requiredHeaders: ticket.requiredHeaders,
+          onProgress: onProgress,
+          cancelToken: cancelToken,
+        );
+      } catch (_) {
+        // The signed URL may be spent or expired: presign again next time,
+        // on the same batch.
+        state.ticket = null;
+        rethrow;
+      }
+      state.uploaded = true;
+    }
+    await confirmFile(
+      batchId: batchId,
+      fileId: state.fileId!,
       cancelToken: cancelToken,
     );
-    await confirmFile(batchId: batch.id, fileId: ticket.fileId);
-    return getBatch(batch.id);
+    return getBatch(batchId, cancelToken: cancelToken);
   }
 
   @override
@@ -156,6 +204,7 @@ class CertificateImportRemoteDataSourceImpl
     required String fileName,
     required String mimeType,
     required int fileSize,
+    CancelToken? cancelToken,
   }) async {
     final response = await _dio.post(
       '$_endpoint/$batchId/files/presign',
@@ -164,6 +213,7 @@ class CertificateImportRemoteDataSourceImpl
         'mime_type': mimeType,
         'file_size': fileSize,
       },
+      cancelToken: cancelToken,
     );
     return CertificateImportPresignTicketModel.fromJson(_data(response));
   }
@@ -206,9 +256,11 @@ class CertificateImportRemoteDataSourceImpl
   Future<CertificateImportFileModel> confirmFile({
     required String batchId,
     required String fileId,
+    CancelToken? cancelToken,
   }) async {
     final response = await _dio.post(
       '$_endpoint/$batchId/files/$fileId/confirm',
+      cancelToken: cancelToken,
     );
     return CertificateImportFileModel.fromJson(_data(response));
   }
@@ -232,8 +284,29 @@ class CertificateImportRemoteDataSourceImpl
   }
 
   @override
-  Future<CertificateImportBatchModel> getBatch(String batchId) async {
-    final response = await _dio.get('$_endpoint/$batchId');
+  Future<void> deleteBatch(String batchId) async {
+    final response = await _dio.delete('$_endpoint/$batchId');
+    final status = response.statusCode;
+    if (status == 200 || status == 204) return;
+    final body = response.data;
+    throw ServerException(
+      message: 'certificate_import.errors.unexpected.body'.tr(),
+      code: status,
+      errorCode: CertificateImportErrorCode.known(
+        body is Map ? (body['code'] ?? body['message']) : null,
+      ),
+    );
+  }
+
+  @override
+  Future<CertificateImportBatchModel> getBatch(
+    String batchId, {
+    CancelToken? cancelToken,
+  }) async {
+    final response = await _dio.get(
+      '$_endpoint/$batchId',
+      cancelToken: cancelToken,
+    );
     return CertificateImportBatchModel.fromJson(_data(response));
   }
 
@@ -248,7 +321,8 @@ class CertificateImportRemoteDataSourceImpl
     final url = _data(response)['download_url'];
     if (url is! String || !url.startsWith('https://')) {
       throw ServerException(
-        message: 'CERTIFICATE_IMPORT_FILE_NOT_CONFIRMED',
+        message: 'certificate_import.errors.not_confirmed.body'.tr(),
+        errorCode: CertificateImportErrorCode.fileNotConfirmed,
       );
     }
     return url;
@@ -276,7 +350,7 @@ class CertificateImportRemoteDataSourceImpl
         response.statusCode != 201 &&
         response.statusCode != 204) {
       throw ServerException(
-        message: 'Error al quitar la fila del expediente',
+        message: 'certificate_import.errors.unexpected.body'.tr(),
         code: response.statusCode,
       );
     }
@@ -329,10 +403,35 @@ class CertificateImportRemoteDataSourceImpl
     );
   }
 
+  @override
+  Future<List<CertificateImportClassOption>> getClassCatalog({
+    required int clubTypeId,
+    CancelToken? cancelToken,
+  }) async {
+    final response = await _dio.get(
+      '$_endpoint/catalog/classes',
+      queryParameters: {'clubTypeId': clubTypeId},
+      cancelToken: cancelToken,
+    );
+    final body = response.data;
+    final data = body is Map ? body['data'] : body;
+    if (response.statusCode != 200 || data is! List) {
+      throw ServerException(
+        message: 'certificate_import.errors.unexpected.body'.tr(),
+        code: response.statusCode,
+      );
+    }
+    return data
+        .whereType<Map<String, dynamic>>()
+        .map(CertificateImportClassOptionModel.fromJson)
+        .whereType<CertificateImportClassOption>()
+        .toList(growable: false);
+  }
+
   Map<String, dynamic> _data(Response<dynamic> response) {
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw ServerException(
-        message: 'Error al comunicarse con carga por certificado',
+        message: 'certificate_import.errors.unexpected.body'.tr(),
         code: response.statusCode,
       );
     }
@@ -346,6 +445,7 @@ class CertificateImportRemoteDataSourceImpl
     }
 
     throw ServerException(
-        message: 'Respuesta inválida de carga por certificado');
+      message: 'certificate_import.errors.unexpected.body'.tr(),
+    );
   }
 }

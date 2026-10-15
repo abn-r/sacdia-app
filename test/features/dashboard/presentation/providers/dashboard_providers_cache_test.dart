@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:dartz/dartz.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -178,6 +179,22 @@ Map<String, dynamic> _summaryJson(DashboardSummary summary) {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  // The dashboard publishes the next activity to the home-screen widget.
+  setUp(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('home_widget'),
+      (_) async => true,
+    );
+  });
+
+  tearDown(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(const MethodChannel('home_widget'), null);
+  });
+
   group('Dashboard summary cache', () {
     test('returns cached summary within TTL without immediate refresh',
         () async {
@@ -409,8 +426,7 @@ void main() {
       String? clubName;
       for (var i = 0; i < 20 && clubName != 'Fresh'; i++) {
         await Future<void>.delayed(Duration.zero);
-        clubName =
-            container.read(dashboardNotifierProvider).value?.clubName;
+        clubName = container.read(dashboardNotifierProvider).value?.clubName;
       }
 
       expect(clubName, equals('Fresh'));

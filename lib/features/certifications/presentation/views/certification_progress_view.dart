@@ -218,8 +218,9 @@ class _GlobalProgressCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: (isComplete ? AppColors.secondary : SacAccent.of(context).color)
-                .withValues(alpha: 0.3),
+            color:
+                (isComplete ? AppColors.secondary : SacAccent.of(context).color)
+                    .withValues(alpha: 0.3),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -374,8 +375,9 @@ class _ModuleProgressSectionState
                     height: 40,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color:
-                          isComplete ? AppColors.secondary : SacAccent.of(context).color,
+                      color: isComplete
+                          ? AppColors.secondary
+                          : SacAccent.of(context).color,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: SacStateSwap(

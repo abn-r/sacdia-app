@@ -100,7 +100,9 @@ class ModuleExpansionTile extends StatelessWidget {
               value: progress,
               minHeight: 4,
               backgroundColor: context.sac.borderLight,
-              color: isComplete ? AppColors.secondary : SacAccent.of(context).color,
+              color: isComplete
+                  ? AppColors.secondary
+                  : SacAccent.of(context).color,
             ),
           ),
           children: [

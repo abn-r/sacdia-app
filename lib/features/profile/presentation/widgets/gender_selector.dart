@@ -130,10 +130,12 @@ class _GenderChip extends StatelessWidget {
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
-              color: selected ? SacAccent.of(context).light : context.sac.surface,
+              color:
+                  selected ? SacAccent.of(context).light : context.sac.surface,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: selected ? SacAccent.of(context).color : context.sac.border,
+                color:
+                    selected ? SacAccent.of(context).color : context.sac.border,
                 width: selected ? 2 : 1,
               ),
             ),
@@ -143,8 +145,9 @@ class _GenderChip extends StatelessWidget {
                 HugeIcon(
                   icon: gender.icon,
                   size: 28,
-                  color:
-                      selected ? SacAccent.of(context).color : context.sac.textSecondary,
+                  color: selected
+                      ? SacAccent.of(context).color
+                      : context.sac.textSecondary,
                 ),
                 const SizedBox(height: 8),
                 Text(

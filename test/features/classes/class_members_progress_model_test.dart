@@ -23,8 +23,8 @@ void main() {
     });
 
     test('parses true when field is true', () {
-      final model =
-          ClassMemberProgressModel.fromJson(_baseJson(crossTypeEnrollment: true));
+      final model = ClassMemberProgressModel.fromJson(
+          _baseJson(crossTypeEnrollment: true));
       expect(model.crossTypeEnrollment, isTrue);
     });
 
@@ -35,8 +35,8 @@ void main() {
     });
 
     test('stays false when field is a non-true value (e.g. null)', () {
-      final model =
-          ClassMemberProgressModel.fromJson(_baseJson(crossTypeEnrollment: null));
+      final model = ClassMemberProgressModel.fromJson(
+          _baseJson(crossTypeEnrollment: null));
       expect(model.crossTypeEnrollment, isFalse);
     });
 

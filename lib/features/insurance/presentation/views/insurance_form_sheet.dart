@@ -369,8 +369,9 @@ class _InsuranceTypeSelector extends StatelessWidget {
               duration: const Duration(milliseconds: 150),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
-                color:
-                    isSelected ? SacAccent.of(context).surface : Colors.transparent,
+                color: isSelected
+                    ? SacAccent.of(context).surface
+                    : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isSelected
@@ -706,7 +707,8 @@ class _ExistingFileTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: SacAccent.of(context).surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SacAccent.of(context).color.withValues(alpha: 0.3)),
+        border: Border.all(
+            color: SacAccent.of(context).color.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [

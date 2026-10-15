@@ -12,6 +12,7 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_picker_field.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 
 import '../views/location_picker_view.dart';
@@ -129,10 +130,12 @@ class _TimePickerSheetState extends State<_TimePickerSheet> {
                   child: Container(
                     height: 44,
                     decoration: BoxDecoration(
-                      color: SacAccent.of(context).color.withValues(alpha: 0.12),
+                      color:
+                          SacAccent.of(context).color.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                       border: Border.all(
-                        color: SacAccent.of(context).color.withValues(alpha: 0.3),
+                        color:
+                            SacAccent.of(context).color.withValues(alpha: 0.3),
                       ),
                     ),
                   ),
@@ -242,7 +245,8 @@ class ActivitySectionHeader extends StatelessWidget {
             color: SacAccent.of(context).light,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: HugeIcon(icon: icon, size: 16, color: SacAccent.of(context).color),
+          child: HugeIcon(
+              icon: icon, size: 16, color: SacAccent.of(context).color),
         ),
         const SizedBox(width: 10),
         Text(
@@ -265,108 +269,10 @@ class ActivitySectionHeader extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// Campo de formulario tappable que abre un bottom sheet picker.
-class ActivityPickerField extends StatelessWidget {
-  final String label;
-  final String hint;
-  final HugeIconData icon;
-  final String? selectedName;
-  final VoidCallback? onTap;
-  final bool enabled;
-  final bool isLoading;
-
-  const ActivityPickerField({
-    super.key,
-    required this.label,
-    required this.hint,
-    required this.icon,
-    this.selectedName,
-    this.onTap,
-    this.enabled = true,
-    this.isLoading = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final theme = Theme.of(context);
-    final hasValue = selectedName != null;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 6),
-        GestureDetector(
-          onTap: (enabled && !isLoading) ? onTap : null,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            decoration: BoxDecoration(
-              color: enabled ? c.surface : c.surfaceVariant,
-              boxShadow: [
-                BoxShadow(
-                  color: c.shadow,
-                  offset: const Offset(0, 3),
-                  blurRadius: 20,
-                ),
-              ],
-              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-              border: Border.all(
-                color: hasValue
-                    ? SacAccent.of(context).color.withValues(alpha: 0.4)
-                    : c.border,
-                width: hasValue ? 1.5 : 1.0,
-              ),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-            child: Row(
-              children: [
-                HugeIcon(
-                  icon: icon,
-                  size: 20,
-                  color: hasValue ? SacAccent.of(context).color : c.textSecondary,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: isLoading
-                      ? SizedBox(
-                          height: 20,
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: c.textSecondary,
-                              ),
-                            ),
-                          ),
-                        )
-                      : Text(
-                          hasValue ? selectedName! : hint,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: hasValue ? c.text : c.textTertiary,
-                          ),
-                        ),
-                ),
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedArrowDown01,
-                  size: 22,
-                  color: enabled ? c.textSecondary : c.textTertiary,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
+///
+/// Promovido a `core/widgets/sac_picker_field.dart`; este alias conserva los
+/// call sites de actividades.
+typedef ActivityPickerField = SacPickerField;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Campo tappable de selección de ubicación
@@ -422,7 +328,9 @@ class ActivityLocationPickerField extends StatelessWidget {
                   ? Border.all(color: theme.colorScheme.error, width: 1.5)
                   : hasResult
                       ? Border.all(
-                          color: SacAccent.of(context).color.withValues(alpha: 0.4),
+                          color: SacAccent.of(context)
+                              .color
+                              .withValues(alpha: 0.4),
                           width: 1.5,
                         )
                       : null,
@@ -438,7 +346,9 @@ class ActivityLocationPickerField extends StatelessWidget {
                         ? HugeIcons.strokeRoundedLocation01
                         : HugeIcons.strokeRoundedLocation03,
                     size: 20,
-                    color: hasResult ? SacAccent.of(context).color : c.textSecondary,
+                    color: hasResult
+                        ? SacAccent.of(context).color
+                        : c.textSecondary,
                   ),
                 ),
                 Expanded(
@@ -518,6 +428,9 @@ class ActivityDatePickerField extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onClear;
 
+  /// The trailing chevron says "tap to change". Read-only callers hide it.
+  final bool showChevron;
+
   const ActivityDatePickerField({
     super.key,
     required this.label,
@@ -525,6 +438,7 @@ class ActivityDatePickerField extends StatelessWidget {
     required this.enabled,
     this.onTap,
     this.onClear,
+    this.showChevron = true,
   });
 
   @override
@@ -574,7 +488,8 @@ class ActivityDatePickerField extends StatelessWidget {
                 HugeIcon(
                   icon: HugeIcons.strokeRoundedCalendar01,
                   size: 20,
-                  color: hasValue ? SacAccent.of(context).color : c.textSecondary,
+                  color:
+                      hasValue ? SacAccent.of(context).color : c.textSecondary,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -597,7 +512,7 @@ class ActivityDatePickerField extends StatelessWidget {
                       color: c.textSecondary,
                     ),
                   )
-                else
+                else if (showChevron)
                   HugeIcon(
                     icon: HugeIcons.strokeRoundedArrowRight01,
                     size: 22,
@@ -667,7 +582,8 @@ class ActivitySegmentedSelector<T> extends StatelessWidget {
                     color: isSelected ? SacAccent.of(context).color : c.surface,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: isSelected ? SacAccent.of(context).color : c.border,
+                      color:
+                          isSelected ? SacAccent.of(context).color : c.border,
                     ),
                     boxShadow: [
                       BoxShadow(

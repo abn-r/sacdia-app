@@ -159,8 +159,7 @@ class _SacProgressRingState extends State<SacProgressRing>
                   painter: _ProgressRingPainter(
                     progress: animatedProgress,
                     strokeWidth: widget.strokeWidth,
-                    progressColor:
-                        widget.color ?? SacAccent.of(context).color,
+                    progressColor: widget.color ?? SacAccent.of(context).color,
                     trackColor: widget.trackColor ?? context.sac.borderLight,
                   ),
                 ),

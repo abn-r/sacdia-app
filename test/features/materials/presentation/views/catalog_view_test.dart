@@ -143,8 +143,7 @@ void main() {
       expect(find.text('Pañoleta'), findsOneWidget);
     });
 
-    testWidgets(
-        'should filter catalog by category id instead of slug',
+    testWidgets('should filter catalog by category id instead of slug',
         (tester) async {
       await pumpCatalog(tester);
       await tester.pump();

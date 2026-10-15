@@ -218,7 +218,8 @@ void main() {
       final boundary = tester.renderObject<RenderRepaintBoundary>(
         find.byKey(const Key('badge-boundary')),
       );
-      final image = await tester.runAsync(() => boundary.toImage(pixelRatio: 1));
+      final image =
+          await tester.runAsync(() => boundary.toImage(pixelRatio: 1));
       final bytes = await tester.runAsync(
         () => image!.toByteData(format: ui.ImageByteFormat.rawRgba),
       );

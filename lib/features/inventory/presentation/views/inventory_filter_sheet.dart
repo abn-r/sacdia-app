@@ -197,7 +197,8 @@ class _SortChip extends StatelessWidget {
               : context.sac.surfaceVariant,
           borderRadius: BorderRadius.circular(AppTheme.radiusFull),
           border: Border.all(
-            color: isSelected ? SacAccent.of(context).color : context.sac.border,
+            color:
+                isSelected ? SacAccent.of(context).color : context.sac.border,
             width: isSelected ? 1.5 : 1,
           ),
         ),
@@ -217,8 +218,9 @@ class _SortChip extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color:
-                    isSelected ? SacAccent.of(context).color : context.sac.textSecondary,
+                color: isSelected
+                    ? SacAccent.of(context).color
+                    : context.sac.textSecondary,
               ),
             ),
           ],

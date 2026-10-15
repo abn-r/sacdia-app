@@ -21,9 +21,8 @@ class ProfileQuietAddChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = label ?? 'common.add'.tr();
-    final tone = SacAccent.of(context)
-        .forBrightness(Theme.of(context).brightness)
-        .color;
+    final tone =
+        SacAccent.of(context).forBrightness(Theme.of(context).brightness).color;
 
     return SacPressable(
       semanticLabel: semanticLabel ?? text,

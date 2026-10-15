@@ -6,11 +6,14 @@ import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/repositories/certificate_import_repository_impl.dart';
 import '../../domain/entities/certificate_import_batch.dart';
 import '../../domain/entities/certificate_import_batch_list.dart';
+import '../../domain/entities/certificate_import_class_option.dart';
 import '../../domain/entities/certificate_import_institutional_request.dart';
 import '../../domain/repositories/certificate_import_repository.dart';
 import '../../domain/usecases/add_certificate_import_item.dart';
 import '../../domain/usecases/create_certificate_import_batch.dart';
+import '../../domain/usecases/delete_certificate_import_batch.dart';
 import '../../domain/usecases/get_certificate_import_batch.dart';
+import '../../domain/usecases/get_certificate_import_class_catalog.dart';
 import '../../domain/usecases/list_certificate_import_batches.dart';
 import '../../domain/usecases/list_certificate_import_institutional_requests.dart';
 import '../../domain/usecases/process_certificate_import_ocr.dart';
@@ -19,7 +22,6 @@ import '../../domain/usecases/remove_certificate_import_item.dart';
 import '../../domain/usecases/resubmit_certificate_import_item.dart';
 import '../../domain/usecases/submit_certificate_import_batch.dart';
 import '../../domain/usecases/update_certificate_import_item.dart';
-import '../../domain/usecases/upload_certificate_import_proof.dart';
 
 final certificateImportRemoteDataSourceProvider =
     Provider<CertificateImportRemoteDataSource>((ref) {
@@ -43,9 +45,9 @@ final createCertificateImportBatchProvider =
       ref.read(certificateImportRepositoryProvider));
 });
 
-final uploadCertificateImportProofProvider =
-    Provider<UploadCertificateImportProof>((ref) {
-  return UploadCertificateImportProof(
+final deleteCertificateImportBatchProvider =
+    Provider<DeleteCertificateImportBatch>((ref) {
+  return DeleteCertificateImportBatch(
       ref.read(certificateImportRepositoryProvider));
 });
 
@@ -119,9 +121,27 @@ final certificateImportBatchProvider = FutureProvider.autoDispose
       .call(batchId, cancelToken: cancelToken);
 
   return result.fold(
-    (failure) => throw Exception(failure.message),
+    (failure) => throw failure,
     (batch) => batch,
   );
+});
+
+final getCertificateImportClassCatalogProvider =
+    Provider<GetCertificateImportClassCatalog>((ref) {
+  return GetCertificateImportClassCatalog(
+      ref.read(certificateImportRepositoryProvider));
+});
+
+/// Classes of one club type for the row editor; cached while the editor is
+/// open and retried by invalidating it.
+final certificateImportClassCatalogProvider = FutureProvider.autoDispose
+    .family<List<CertificateImportClassOption>, int>((ref, clubTypeId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await ref
+      .read(getCertificateImportClassCatalogProvider)
+      .call(clubTypeId, cancelToken: cancelToken);
+  return result.fold((failure) => throw failure, (classes) => classes);
 });
 
 final certificateImportBatchListProvider = FutureProvider.autoDispose
@@ -132,7 +152,7 @@ final certificateImportBatchListProvider = FutureProvider.autoDispose
         limit: args.limit,
       );
   return result.fold(
-    (failure) => throw Exception(failure.message),
+    (failure) => throw failure,
     (list) => list,
   );
 });
@@ -147,7 +167,7 @@ final certificateImportInstitutionalRequestsProvider = FutureProvider
             limit: args.limit,
           );
   return result.fold(
-    (failure) => throw Exception(failure.message),
+    (failure) => throw failure,
     (list) => list,
   );
 });

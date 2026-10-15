@@ -76,8 +76,7 @@ void main() {
       expect(tapped, isTrue);
     });
 
-    testWidgets(
-        'should hide evidence CTA when requirement does not require it',
+    testWidgets('should hide evidence CTA when requirement does not require it',
         (tester) async {
       await tester.pumpWidget(
         wrap(

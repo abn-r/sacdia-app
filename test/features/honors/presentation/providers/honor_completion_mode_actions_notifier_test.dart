@@ -15,6 +15,8 @@ import 'package:sacdia_app/features/honors/domain/entities/user_honor_requiremen
 import 'package:sacdia_app/features/honors/domain/repositories/honors_repository.dart';
 import 'package:sacdia_app/features/honors/domain/usecases/register_user_honor.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
+import 'package:sacdia_app/features/honors/domain/entities/instructor_proposal.dart';
+import 'package:sacdia_app/core/widgets/instructor_selection.dart';
 
 class _StaleCompletionModeRepository implements HonorsRepository {
   int callCount = 0;
@@ -51,6 +53,7 @@ class _StaleCompletionModeRepository implements HonorsRepository {
     int? categoryId,
     int? clubTypeId,
     int? skillLevel,
+    String? search,
     RequestCancelToken? cancelToken,
   }) =>
       throw UnimplementedError();
@@ -88,6 +91,21 @@ class _StaleCompletionModeRepository implements HonorsRepository {
     String userId,
     int honorId,
     Map<String, dynamic> data,
+  ) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Either<Failure, InstructorProposal>> proposeHonorInstructor(
+    String userId,
+    int honorId,
+    InstructorSelection instructor,
+  ) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Either<Failure, void>> cancelHonorInstructorProposal(
+    String userId,
+    int honorId,
   ) =>
       throw UnimplementedError();
 

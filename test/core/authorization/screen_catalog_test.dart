@@ -58,8 +58,62 @@ void main() {
     });
 
     test('unknown screen is deny', () {
-      final subject = subjectFromUser(_user(permissions: ['users:read_detail']));
+      final subject =
+          subjectFromUser(_user(permissions: ['users:read_detail']));
       expect(canViewScreen(subject, 'does-not-exist'), isFalse);
+    });
+  });
+
+  group('investiture screens', () {
+    test('app-section-investiture opens for the investiture board only', () {
+      for (final role in ['director', 'secretary', 'secretary-treasurer']) {
+        expect(
+          canViewScreen(
+              subjectFromUser(_user(roles: [role])), 'app-section-investiture'),
+          isTrue,
+          reason: role,
+        );
+      }
+      for (final role in ['deputy-director', 'counselor', 'treasurer']) {
+        expect(
+          canViewScreen(
+              subjectFromUser(_user(roles: [role])), 'app-section-investiture'),
+          isFalse,
+          reason: role,
+        );
+      }
+      expect(
+        canViewScreen(subjectFromUser(_user()), 'app-section-investiture'),
+        isFalse,
+      );
+    });
+
+    test(
+        'app-investiture-authorizer opens for pastor, director-lf, assistant-lf',
+        () {
+      for (final role in ['pastor', 'director-lf', 'assistant-lf']) {
+        expect(
+          canViewScreen(subjectFromUser(_user(roles: [role])),
+              'app-investiture-authorizer'),
+          isTrue,
+          reason: role,
+        );
+      }
+      for (final role in [
+        'director',
+        'secretary',
+        'counselor',
+        'user',
+        'director-union',
+        'admin',
+      ]) {
+        expect(
+          canViewScreen(subjectFromUser(_user(roles: [role])),
+              'app-investiture-authorizer'),
+          isFalse,
+          reason: role,
+        );
+      }
     });
   });
 

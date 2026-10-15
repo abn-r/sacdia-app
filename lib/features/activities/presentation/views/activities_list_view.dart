@@ -677,7 +677,8 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                           boxShadow: isChronologicalView
                               ? [
                                   BoxShadow(
-                                    color: SacAccent.of(context).color
+                                    color: SacAccent.of(context)
+                                        .color
                                         .withValues(alpha: 0.3),
                                     blurRadius: 8,
                                     offset: const Offset(0, 3),
@@ -790,7 +791,9 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                                     ),
                                                     decoration: BoxDecoration(
                                                       color: isSelected
-                                                          ? SacAccent.of(context).color
+                                                          ? SacAccent.of(
+                                                                  context)
+                                                              .color
                                                           : isToday
                                                               ? AppColors
                                                                   .primaryLight
@@ -802,10 +805,12 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                                       border: Border.all(
                                                         color: isToday &&
                                                                 !isSelected
-                                                            ? SacAccent.of(context).color
+                                                            ? SacAccent.of(
+                                                                    context)
+                                                                .color
                                                                 .withValues(
-                                                                alpha: 0.35,
-                                                              )
+                                                                  alpha: 0.35,
+                                                                )
                                                             : Colors
                                                                 .transparent,
                                                         width: 1.5,
@@ -914,15 +919,17 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                               width: 44,
                                               height: 44,
                                               child: Material(
-                                                color: SacAccent.of(context).light,
+                                                color:
+                                                    SacAccent.of(context).light,
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
                                                       BorderRadius.circular(12),
                                                   side: BorderSide(
-                                                    color: SacAccent.of(context).color
+                                                    color: SacAccent.of(context)
+                                                        .color
                                                         .withValues(
-                                                      alpha: 0.25,
-                                                    ),
+                                                          alpha: 0.25,
+                                                        ),
                                                   ),
                                                 ),
                                                 child: SacInkWell(
@@ -935,7 +942,9 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                                       icon: HugeIcons
                                                           .strokeRoundedCalendar02,
                                                       size: 20,
-                                                      color: SacAccent.of(context).color,
+                                                      color:
+                                                          SacAccent.of(context)
+                                                              .color,
                                                     ),
                                                   ),
                                                 ),
@@ -957,7 +966,9 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                                     width: 60,
                                                     height: 44,
                                                     child: Material(
-                                                      color: SacAccent.of(context).color,
+                                                      color:
+                                                          SacAccent.of(context)
+                                                              .color,
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                         22,

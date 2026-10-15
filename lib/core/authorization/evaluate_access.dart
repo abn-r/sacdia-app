@@ -15,7 +15,8 @@ class CapabilityGate {
   });
 }
 
-String _normalizePermission(String permission) => permission.trim().toLowerCase();
+String _normalizePermission(String permission) =>
+    permission.trim().toLowerCase();
 
 /// Same rules as `sacdia-admin/src/lib/auth/screen-catalog/evaluate.ts`.
 bool evaluateAccess(AccessSubject subject, CapabilityGate access) {
@@ -29,12 +30,12 @@ bool evaluateAccess(AccessSubject subject, CapabilityGate access) {
   final permissionsOk = permissions.isEmpty ||
       (access.requireAll
           ? permissions.every(
-              (permission) =>
-                  subject.permissions.contains(_normalizePermission(permission)),
+              (permission) => subject.permissions
+                  .contains(_normalizePermission(permission)),
             )
           : permissions.any(
-              (permission) =>
-                  subject.permissions.contains(_normalizePermission(permission)),
+              (permission) => subject.permissions
+                  .contains(_normalizePermission(permission)),
             ));
 
   if (!permissionsOk) return false;

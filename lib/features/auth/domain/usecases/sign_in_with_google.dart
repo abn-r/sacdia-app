@@ -4,7 +4,7 @@ import '../../../../core/usecases/usecase.dart';
 import '../entities/user_entity.dart';
 import '../repositories/auth_repository.dart';
 
-/// Caso de uso para iniciar sesión con Google OAuth
+/// Caso de uso para iniciar sesión con Google (SDK nativo)
 class SignInWithGoogle implements UseCase<UserEntity, NoParams> {
   final AuthRepository repository;
 

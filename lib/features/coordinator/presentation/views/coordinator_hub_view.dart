@@ -137,16 +137,6 @@ class CoordinatorHubView extends ConsumerWidget {
                   const SizedBox(height: 12),
 
                   _NavCard(
-                    icon: HugeIcons.strokeRoundedAward01,
-                    color: SacAccent.of(context).color,
-                    title: 'coordinator.nav.investitures_title'.tr(),
-                    subtitle: 'coordinator.nav.investitures_subtitle'.tr(),
-                    onTap: () =>
-                        context.push(RouteNames.investiturePendingList),
-                  ),
-                  const SizedBox(height: 10),
-
-                  _NavCard(
                     icon: HugeIcons.strokeRoundedFolder01,
                     color: AppColors.accent,
                     title: 'coordinator.nav.evidence_title'.tr(),

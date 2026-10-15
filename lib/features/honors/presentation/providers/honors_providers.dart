@@ -4,6 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../../core/errors/failures.dart';
+import '../../../../core/widgets/instructor_selection.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../../providers/json_file_cache_provider.dart';
 import '../../../../core/storage/cache_first.dart';
@@ -17,13 +19,16 @@ import '../../domain/entities/honor_category.dart';
 import '../../domain/entities/honor_group.dart';
 import '../../domain/entities/honor_requirement.dart';
 import '../../domain/entities/user_honor.dart';
+import '../../domain/entities/user_honor_update.dart';
 import '../../domain/entities/user_honor_requirement_progress.dart';
 import '../../domain/repositories/honors_repository.dart';
+import '../../domain/usecases/cancel_honor_instructor_proposal.dart';
 import '../../domain/usecases/get_honor_categories.dart';
 import '../../domain/usecases/get_honor_requirements.dart';
 import '../../domain/usecases/get_honors.dart';
 import '../../domain/usecases/get_user_honor_progress.dart';
 import '../../domain/usecases/get_user_honors.dart';
+import '../../domain/usecases/propose_honor_instructor.dart';
 import '../../domain/usecases/register_user_honor.dart';
 import '../../domain/usecases/start_honor.dart';
 import '../../domain/usecases/update_requirement_progress.dart';
@@ -71,6 +76,16 @@ final getUserHonorsProvider = Provider<GetUserHonors>((ref) {
 /// Provider para el caso de uso de iniciar especialidad
 final startHonorProvider = Provider<StartHonor>((ref) {
   return StartHonor(ref.read(honorsRepositoryProvider));
+});
+
+/// Casos de uso de la propuesta de instructor en una especialidad aprobada.
+final proposeHonorInstructorProvider = Provider<ProposeHonorInstructor>((ref) {
+  return ProposeHonorInstructor(ref.read(honorsRepositoryProvider));
+});
+
+final cancelHonorInstructorProposalProvider =
+    Provider<CancelHonorInstructorProposal>((ref) {
+  return CancelHonorInstructorProposal(ref.read(honorsRepositoryProvider));
 });
 
 /// Provider para el caso de uso de registrar especialidad completa
@@ -332,6 +347,42 @@ class HonorEvidenceActionsNotifier extends AutoDisposeAsyncNotifier<void> {
     ref.invalidate(userHonorForHonorProvider(honorId));
   }
 
+  /// Saves the instructor (the whole choice, `none` removes it).
+  ///
+  /// Does not touch [state]: the card shows its own progress. On success the
+  /// list is refreshed. Returns null when saved, or why it was not.
+  Future<Failure?> saveInstructor({
+    required String userId,
+    required int honorId,
+    required InstructorSelection instructor,
+  }) =>
+      _patch(userId, honorId, honorInstructorPatch(instructor));
+
+  /// Saves the day the member finished the honor.
+  Future<Failure?> saveCompletedAt({
+    required String userId,
+    required int honorId,
+    required DateTime completedAt,
+  }) =>
+      _patch(userId, honorId, honorCompletedAtPatch(completedAt));
+
+  Future<Failure?> _patch(
+    String userId,
+    int honorId,
+    Map<String, dynamic> data,
+  ) async {
+    final result = await ref
+        .read(honorsRepositoryProvider)
+        .updateUserHonor(userId, honorId, data);
+    return result.fold(
+      (failure) => failure,
+      (_) {
+        invalidateHonorEvidence(honorId);
+        return null;
+      },
+    );
+  }
+
   Future<bool> deleteEvidenceFile({
     required String userId,
     required UserHonor userHonor,
@@ -366,6 +417,63 @@ class HonorEvidenceActionsNotifier extends AutoDisposeAsyncNotifier<void> {
 final honorEvidenceActionsNotifierProvider =
     AsyncNotifierProvider.autoDispose<HonorEvidenceActionsNotifier, void>(
   HonorEvidenceActionsNotifier.new,
+);
+
+// ── Instructor proposal on an approved honor (D11) ─────────────────────────
+
+/// Proposes or withdraws the instructor of an approved honor. Never touches
+/// [state]: the card shows its own progress. It does not use the `PATCH`.
+///
+/// On success it waits for the refreshed list, so the card swaps straight to
+/// the new state. Both methods return null when done, or why they were not.
+class InstructorProposalActionsNotifier extends AutoDisposeAsyncNotifier<void> {
+  @override
+  Future<void> build() async {}
+
+  Future<Failure?> propose({
+    required String userId,
+    required int honorId,
+    required InstructorSelection instructor,
+  }) async {
+    final result = await ref.read(proposeHonorInstructorProvider)(
+      ProposeHonorInstructorParams(
+        userId: userId,
+        honorId: honorId,
+        instructor: instructor,
+      ),
+    );
+    return _done(result.fold((f) => f, (_) => null));
+  }
+
+  Future<Failure?> cancel({
+    required String userId,
+    required int honorId,
+  }) async {
+    final result = await ref.read(cancelHonorInstructorProposalProvider)(
+      CancelHonorInstructorProposalParams(userId: userId, honorId: honorId),
+    );
+    return _done(result.fold((f) => f, (_) => null));
+  }
+
+  /// Re-reads the list (the honor or the proposal changed elsewhere).
+  Future<void> refresh() async {
+    ref.invalidate(userHonorsProvider);
+    try {
+      await ref.read(userHonorsProvider.future);
+    } catch (_) {
+      // The screen shows its own load error if the refresh fails.
+    }
+  }
+
+  Future<Failure?> _done(Failure? failure) async {
+    if (failure == null) await refresh();
+    return failure;
+  }
+}
+
+final instructorProposalActionsNotifierProvider =
+    AutoDisposeAsyncNotifierProvider<InstructorProposalActionsNotifier, void>(
+  InstructorProposalActionsNotifier.new,
 );
 
 // ── Requirement evidence actions ───────────────────────────────────────────
@@ -444,6 +552,10 @@ UserHonor _userHonorWithCompletionMode(
     honorCategoryName: userHonor.honorCategoryName,
     honorCategoryId: userHonor.honorCategoryId,
     honorSkillLevel: userHonor.honorSkillLevel,
+    completedAt: userHonor.completedAt,
+    instructor: userHonor.instructor,
+    instructorProposal: userHonor.instructorProposal,
+    supportsInstructorProposal: userHonor.supportsInstructorProposal,
   );
 }
 

@@ -15,7 +15,22 @@ import '../models/honor_group_model.dart';
 import '../models/honor_requirement_model.dart';
 import '../models/requirement_evidence_model.dart';
 import '../models/user_honor_requirement_progress_model.dart';
+import '../../domain/entities/instructor_proposal.dart';
+import '../models/instructor_proposal_model.dart';
 import '../models/user_honor_model.dart';
+
+/// Business code of an error body (`HONOR_INSTRUCTOR_INVALID`): in `code`, or
+/// in `message` on the legacy BadRequest envelope. Other messages are not
+/// codes and are ignored.
+String? _businessCode(Object? body) {
+  if (body is! Map) return null;
+  final pattern = RegExp(r'^[A-Z][A-Z0-9_]{3,}$');
+  for (final key in ['code', 'message']) {
+    final value = body[key];
+    if (value is String && pattern.hasMatch(value)) return value;
+  }
+  return null;
+}
 
 List<Map<String, dynamic>> _flattenRequirementProgressItems(
     List<dynamic> items) {
@@ -50,6 +65,7 @@ abstract class HonorsRemoteDataSource {
       {int? categoryId,
       int? clubTypeId,
       int? skillLevel,
+      String? search,
       CancelToken? cancelToken});
   Future<HonorModel> getHonorById(int honorId, {CancelToken? cancelToken});
   Future<List<UserHonorModel>> getUserHonors(String userId,
@@ -65,6 +81,15 @@ abstract class HonorsRemoteDataSource {
     required HonorCompletionMode completionMode,
   });
   Future<void> deleteUserHonor(String userId, int honorId);
+
+  /// POST /users/:userId/honors/:honorId/instructor-proposal (D11). Replaces
+  /// a pending proposal. [body] is `{instructorUserId}` or `{instructorName}`.
+  Future<InstructorProposal> proposeHonorInstructor(
+      String userId, int honorId, Map<String, dynamic> body);
+
+  /// DELETE /users/:userId/honors/:honorId/instructor-proposal: withdraws the
+  /// pending proposal.
+  Future<void> cancelHonorInstructorProposal(String userId, int honorId);
   Future<UserHonorModel> registerUserHonor(RegisterUserHonorParams params);
   Future<List<HonorGroupModel>> getHonorsGroupedByCategory(
       {CancelToken? cancelToken});
@@ -211,12 +236,16 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       {int? categoryId,
       int? clubTypeId,
       int? skillLevel,
+      String? search,
       CancelToken? cancelToken}) async {
     try {
       final baseParams = <String>['limit=100'];
       if (categoryId != null) baseParams.add('categoryId=$categoryId');
       if (clubTypeId != null) baseParams.add('clubTypeId=$clubTypeId');
       if (skillLevel != null) baseParams.add('skillLevel=$skillLevel');
+      if (search != null) {
+        baseParams.add('search=${Uri.encodeQueryComponent(search)}');
+      }
 
       final allHonors = <HonorModel>[];
       int page = 1;
@@ -401,7 +430,8 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       if (e is DioException) {
         throw ServerException(
             message: e.message ?? tr('common.error_network'),
-            code: e.response?.statusCode);
+            code: e.response?.statusCode,
+            errorCode: _businessCode(e.response?.data));
       }
       if (e is ServerException || e is AuthException) rethrow;
       throw ServerException(message: e.toString());
@@ -417,6 +447,51 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     return updateUserHonor(userId, honorId, {
       'completionMode': completionMode.apiValue,
     });
+  }
+
+  @override
+  Future<InstructorProposal> proposeHonorInstructor(
+      String userId, int honorId, Map<String, dynamic> body) async {
+    try {
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.users}/$userId/honors/$honorId/instructor-proposal',
+        data: body,
+      );
+      final data = response.data;
+      // Tolerant: the proposal may come bare or inside `data`.
+      final proposal = parseInstructorProposal(
+            data is Map && data['data'] is Map ? data['data'] : data,
+          ) ??
+          const InstructorProposal(status: InstructorProposalStatus.pending);
+      return proposal;
+    } catch (e) {
+      AppLogger.e('Error en proposeHonorInstructor', tag: _tag, error: e);
+      throw _proposalException(e);
+    }
+  }
+
+  @override
+  Future<void> cancelHonorInstructorProposal(String userId, int honorId) async {
+    try {
+      await _dio.delete(
+        '$_baseUrl${ApiEndpoints.users}/$userId/honors/$honorId/instructor-proposal',
+      );
+    } catch (e) {
+      AppLogger.e('Error en cancelHonorInstructorProposal',
+          tag: _tag, error: e);
+      throw _proposalException(e);
+    }
+  }
+
+  Object _proposalException(Object e) {
+    if (e is DioException) {
+      return ServerException(
+          message: e.message ?? tr('common.error_network'),
+          code: e.response?.statusCode,
+          errorCode: _businessCode(e.response?.data));
+    }
+    if (e is ServerException || e is AuthException) return e;
+    return ServerException(message: e.toString());
   }
 
   @override

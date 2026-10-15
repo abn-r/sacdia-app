@@ -20,7 +20,7 @@ enum _ClassState {
   /// El usuario está inscrito pero aún no fue investido (en progreso).
   inProgress,
 
-  /// El usuario fue investido o alcanzó ≥ 80 % de progreso.
+  /// El usuario fue investido (estado `INVESTIDO`).
   invested,
 }
 
@@ -109,10 +109,10 @@ class ClassStatusCircles extends ConsumerWidget {
   _ClassState _resolveState(ProgressiveClass? enrolled) {
     if (enrolled == null) return _ClassState.notEnrolled;
 
+    // Solo el estado INVESTIDO marca la clase como investida: un avance alto
+    // no es una investidura (la autorización la da el Campo, no el progreso).
     final status = enrolled.investitureStatus?.toUpperCase();
-    final progress = enrolled.overallProgress ?? 0;
-
-    if (status == 'INVESTIDO' || progress >= 80) return _ClassState.invested;
+    if (status == 'INVESTIDO') return _ClassState.invested;
 
     return _ClassState.inProgress;
   }

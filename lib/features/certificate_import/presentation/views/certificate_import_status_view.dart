@@ -5,15 +5,20 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
 import '../../domain/entities/certificate_import_payloads.dart';
 import '../../domain/entities/certificate_import_batch.dart';
 import '../../domain/entities/certificate_import_item.dart';
 import '../../domain/usecases/resubmit_certificate_import_item.dart';
+import '../error/certificate_import_error_mapper.dart';
 import '../providers/certificate_import_providers.dart';
 import '../widgets/certificate_import_back_button.dart';
 import '../widgets/certificate_import_item_card.dart';
+import '../widgets/certificate_import_item_editor_sheet.dart';
+import '../widgets/import_load_error_scaffold.dart';
 
 class CertificateImportStatusRouteView extends ConsumerWidget {
   const CertificateImportStatusRouteView({super.key, required this.batchId});
@@ -24,59 +29,48 @@ class CertificateImportStatusRouteView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final batchAsync = ref.watch(certificateImportBatchProvider(batchId));
     return batchAsync.when(
-      loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (error, _) => Scaffold(
-          extendBodyBehindAppBar: true,
-          appBar: SacTopBar(
-              title: 'certificate_import.status.title'.tr(),
-              leading: const CertificateImportBackButton(
-                fallbackLocation: RouteNames.certificateImportUpload,
-              ),
-              frosted: true),
-          body: SacFrostedVeil(
-            child: Builder(
-              builder: (context) => Padding(
-                padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
-                child: Center(
-                  child: Text(
-                    'certificate_import.status.load_error'.tr(
-                      namedArgs: {'error': '$error'},
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          )),
+      loading: () => const Scaffold(body: Center(child: SacLoading())),
+      error: (_, __) => ImportLoadErrorScaffold(
+        title: 'certificate_import.status.title'.tr(),
+        bodyKey: 'certificate_import.status.load_error',
+        fallbackLocation: RouteNames.certificateImportUpload,
+        onRetry: () => ref.invalidate(certificateImportBatchProvider(batchId)),
+      ),
       data: (batch) => CertificateImportStatusView(
         batch: batch,
-        onResubmitItem: (item) async {
+        onResubmitItem: (item, previous) async {
           final result =
               await ref.read(resubmitCertificateImportItemProvider).call(
                     ResubmitCertificateImportItemParams(
                       batchId: batch.id,
                       itemId: item.id,
-                      payload: CertificateImportItemUpdatePayload(
-                        itemType: item.type == CertificateImportItemType.honor
-                            ? 'HONOR'
-                            : 'CLASS',
-                        honorId: item.honorId,
-                        classId: item.classId,
-                        detectedName: item.detectedName,
-                        completedAt: _apiDate(item.completedAt),
+                      payload: CertificateImportItemUpdatePayload.fromItem(
+                        item,
+                        previous: previous,
                         markAsReady: true,
                       ),
                     ),
                   );
-          result.fold((failure) => throw Exception(failure.message), (_) {});
+          // The row left the rejected state either way (resent now, or
+          // already resent): reload so the card, counters and status match.
+          void refresh() {
+            ref.invalidate(certificateImportBatchProvider(batch.id));
+            ref.invalidate(certificateImportBatchListProvider);
+          }
+
+          result.fold(
+            (failure) {
+              if (CertificateImportErrorMapper.kindOf(failure) ==
+                  CertificateImportErrorKind.itemNotRejected) {
+                refresh();
+              }
+              throw failure;
+            },
+            (_) => refresh(),
+          );
         },
       ),
     );
-  }
-
-  static String? _apiDate(DateTime? date) {
-    if (date == null) return null;
-    return '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 }
 
@@ -88,20 +82,71 @@ class CertificateImportStatusView extends StatelessWidget {
   });
 
   final CertificateImportBatch batch;
-  final Future<void> Function(CertificateImportItem item)? onResubmitItem;
+
+  /// Sends the corrected [updated] row; [previous] is the rejected one. Throws
+  /// the failure when the API refuses, so the editor can show it.
+  final Future<void> Function(
+    CertificateImportItem updated,
+    CertificateImportItem previous,
+  )? onResubmitItem;
+
+  /// "Corregir y reenviar": opens the row editor on the rejected [item] and
+  /// resubmits what the member fixed. The editor stays open on errors.
+  Future<void> _openResubmitEditor(
+    BuildContext context,
+    CertificateImportItem item,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    await showCertificateImportItemEditor(
+      context,
+      item: item,
+      resubmit: true,
+      onSave: (updated) async {
+        try {
+          await onResubmitItem?.call(updated, item);
+          SacSnackBar.showMessenger(
+            messenger,
+            'certificate_import.status.resubmitted'.tr(),
+          );
+        } catch (error) {
+          if (CertificateImportErrorMapper.kindOf(error) !=
+              CertificateImportErrorKind.itemNotRejected) {
+            rethrow;
+          }
+          // Nothing left to fix here: say so and let the sheet close.
+          SacSnackBar.showMessenger(
+            messenger,
+            CertificateImportErrorMapper.message(error),
+            isError: true,
+          );
+        }
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final rejected = batch.items
+    final items = batch.activeItems;
+    final rejected = items
         .where((item) => item.isRejected || item.rejectionReason != null)
         .toList();
-    final pending = batch.items
+    // Rows already resent stay visible, now as "Reenviada".
+    final resubmitted = items
         .where((item) =>
-            !item.isRejected && item.rejectionReason == null && !item.isReady)
-        .length;
-    final approved = batch.items
+            item.status == CertificateImportItemStatus.resubmitted &&
+            !rejected.contains(item))
+        .toList();
+    final approved = items
         .where((item) => item.status == CertificateImportItemStatus.approved)
+        .length;
+    // Every other row the member kept is still waiting for a decision. A row
+    // that was just sent (`submitted`) counts too: before, only rows that
+    // were not sent yet did, so a fully sent batch read "Pendientes: 0".
+    final pending = items
+        .where((item) =>
+            item.status != CertificateImportItemStatus.approved &&
+            !rejected.contains(item))
         .length;
 
     return Scaffold(
@@ -153,7 +198,7 @@ class CertificateImportStatusView extends StatelessWidget {
                             color: c.textSecondary,
                           ),
                     ),
-                    if (batch.items.any((item) => item.isGuiaMayorBase)) ...[
+                    if (items.any((item) => item.isGuiaMayorBase)) ...[
                       const SizedBox(height: 10),
                       Text(
                         'certificate_import.status.gm01_replace'.tr(),
@@ -162,8 +207,7 @@ class CertificateImportStatusView extends StatelessWidget {
                             ),
                       ),
                     ],
-                    if (batch.items
-                        .any((item) => item.isInstitutionalClass)) ...[
+                    if (items.any((item) => item.isInstitutionalClass)) ...[
                       const SizedBox(height: 10),
                       Text(
                         'certificate_import.status.institutional'.tr(),
@@ -172,7 +216,7 @@ class CertificateImportStatusView extends StatelessWidget {
                             ),
                       ),
                     ],
-                    if (batch.items
+                    if (items
                         .any((item) => item.isPendingAdministrativePeriod)) ...[
                       const SizedBox(height: 10),
                       Text(
@@ -189,8 +233,12 @@ class CertificateImportStatusView extends StatelessWidget {
               for (final item in rejected) ...[
                 CertificateImportItemCard(
                   item: item,
-                  onResubmit: () => onResubmitItem?.call(item),
+                  onResubmit: () => _openResubmitEditor(context, item),
                 ),
+                const SizedBox(height: 12),
+              ],
+              for (final item in resubmitted) ...[
+                CertificateImportItemCard(item: item),
                 const SizedBox(height: 12),
               ],
             ],

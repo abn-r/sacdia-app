@@ -524,10 +524,11 @@ class CreateActivitySeriesNotifier
     required int clubId,
     required CreateActivityRequest request,
   }) async {
-    final result = await ref.read(activitiesRepositoryProvider).previewActivitySeries(
-          clubId: clubId,
-          request: request,
-        );
+    final result =
+        await ref.read(activitiesRepositoryProvider).previewActivitySeries(
+              clubId: clubId,
+              request: request,
+            );
     return result.fold(
       (failure) {
         state = state.copyWith(
@@ -552,10 +553,11 @@ class CreateActivitySeriesNotifier
     required CreateActivityRequest request,
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
-    final result = await ref.read(activitiesRepositoryProvider).createActivitySeries(
-          clubId: clubId,
-          request: request,
-        );
+    final result =
+        await ref.read(activitiesRepositoryProvider).createActivitySeries(
+              clubId: clubId,
+              request: request,
+            );
     return result.fold(
       (failure) {
         state = state.copyWith(isLoading: false, errorMessage: failure.message);
@@ -600,10 +602,11 @@ class ActivitySeriesActionsNotifier extends AutoDisposeAsyncNotifier<void> {
 
   Future<int?> extend({required int seriesId, required String until}) async {
     state = const AsyncValue.loading();
-    final result = await ref.read(activitiesRepositoryProvider).extendActivitySeries(
-          seriesId: seriesId,
-          until: until,
-        );
+    final result =
+        await ref.read(activitiesRepositoryProvider).extendActivitySeries(
+              seriesId: seriesId,
+              until: until,
+            );
     return result.fold(
       (failure) {
         state = AsyncValue.error(failure.message, StackTrace.current);
@@ -623,4 +626,3 @@ final activitySeriesActionsProvider =
     AsyncNotifierProvider.autoDispose<ActivitySeriesActionsNotifier, void>(
   ActivitySeriesActionsNotifier.new,
 );
-

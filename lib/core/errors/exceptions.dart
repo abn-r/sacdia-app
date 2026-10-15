@@ -4,11 +4,16 @@ import 'package:easy_localization/easy_localization.dart';
 class AppException implements Exception {
   final String message;
   final int? code;
+
+  /// Código de negocio del backend (p. ej. `INVESTITURE_REQUEST_FORBIDDEN`),
+  /// distinto de [code], que es el estado HTTP.
+  final String? errorCode;
   final StackTrace? stackTrace;
 
   AppException({
     required this.message,
     this.code,
+    this.errorCode,
     this.stackTrace,
   });
 
@@ -21,6 +26,7 @@ class ServerException extends AppException {
   ServerException({
     required super.message,
     super.code,
+    super.errorCode,
     super.stackTrace,
   });
 }
@@ -46,6 +52,7 @@ class AuthException extends AppException {
   AuthException({
     required super.message,
     super.code,
+    super.errorCode,
     super.stackTrace,
   });
 }
@@ -70,18 +77,9 @@ class NotFoundException extends AppException {
   });
 }
 
-/// Señal (no un error real) que indica que el flujo OAuth fue iniciado
-/// correctamente. El resultado de la autenticación llegará de forma
-/// asíncrona a través del deep link y [authStateChanges].
-class OAuthFlowInitiatedException extends AppException {
-  /// Nombre del proveedor OAuth ("Google", "Apple", etc.).
-  final String provider;
-
-  OAuthFlowInitiatedException({required this.provider})
-      : super(
-          message: tr(
-            'errors.oauth_redirecting',
-            namedArgs: {'provider': provider},
-          ),
-        );
+/// El usuario cerró la hoja nativa de Google/Apple sin completar el login.
+/// No es un error: la UI vuelve al login sin mensaje.
+class SocialSignInCancelledException extends AppException {
+  SocialSignInCancelledException()
+      : super(message: tr('errors.social_signin_cancelled'));
 }

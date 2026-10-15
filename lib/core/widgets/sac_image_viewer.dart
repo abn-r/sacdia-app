@@ -11,7 +11,9 @@ import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
@@ -19,15 +21,43 @@ import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 ///
 /// Se abre como ruta fullscreenDialog para cubrir toda la pantalla
 /// incluyendo el bottom navigation bar del shell.
+///
+/// Cada fuente puede ser una URL http/https o una ruta local absoluta
+/// (empieza con '/'), que se pinta sin red.
 class SacImageViewer extends StatefulWidget {
   final List<String> imageUrls;
   final int initialIndex;
   final String? title;
 
+  /// Muestra la accion de guardar/compartir. Desactivala en documentos sellados.
+  final bool allowShare;
+
+  /// Etiqueta de `Hero` para volar desde la miniatura. Se ignora con Reduced Motion.
+  final String? heroTag;
+
+  /// false pinta las URL con `NetworkImage` (solo memoria). Usalo con URL
+  /// firmadas, que caducan y no deben persistirse en disco.
+  final bool cacheNetwork;
+
+  /// Etiqueta semantica de la imagen.
+  final String? semanticLabel;
+
+  /// Acciones extra de la barra, despues de compartir.
+  final List<Widget> actions;
+
+  /// Reemplaza el estado de error, para que quien llama ofrezca su reintento.
+  final WidgetBuilder? errorBuilder;
+
   const SacImageViewer({
     super.key,
     required String imageUrl,
     this.title,
+    this.allowShare = true,
+    this.heroTag,
+    this.cacheNetwork = true,
+    this.semanticLabel,
+    this.actions = const [],
+    this.errorBuilder,
   })  : imageUrls = const [],
         initialIndex = 0,
         _singleImageUrl = imageUrl;
@@ -37,6 +67,12 @@ class SacImageViewer extends StatefulWidget {
     required this.imageUrls,
     this.initialIndex = 0,
     this.title,
+    this.allowShare = true,
+    this.heroTag,
+    this.cacheNetwork = true,
+    this.semanticLabel,
+    this.actions = const [],
+    this.errorBuilder,
   }) : _singleImageUrl = null;
 
   final String? _singleImageUrl;
@@ -82,6 +118,21 @@ class _SacImageViewerState extends State<SacImageViewer> {
   List<String> get _imageUrls => widget._effectiveImageUrls;
   bool get _hasMultipleImages => _imageUrls.length > 1;
 
+  static bool _isLocal(String source) => source.startsWith('/');
+
+  ImageProvider _providerFor(String source) {
+    if (_isLocal(source)) return FileImage(File(source));
+    return widget.cacheNetwork
+        ? CachedNetworkImageProvider(source)
+        : NetworkImage(source);
+  }
+
+  /// Un toque doble alterna entre ajustada y a pantalla completa.
+  static PhotoViewScaleState _toggleZoom(PhotoViewScaleState state) =>
+      state == PhotoViewScaleState.initial
+          ? PhotoViewScaleState.covering
+          : PhotoViewScaleState.initial;
+
   @override
   void initState() {
     super.initState();
@@ -110,6 +161,7 @@ class _SacImageViewerState extends State<SacImageViewer> {
             listenOnly: true,
             child: IconButton(
               enableFeedback: false,
+              tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
               icon: const HugeIcon(
                 icon: HugeIcons.strokeRoundedCancel01,
                 color: Colors.white,
@@ -118,28 +170,30 @@ class _SacImageViewerState extends State<SacImageViewer> {
             ),
           ),
           actions: [
-            SacPressable(
-              listenOnly: true,
-              child: IconButton(
-                enableFeedback: false,
-                key: _saveButtonKey,
-                tooltip: 'common.save'.tr(),
-                onPressed: _isSharing ? null : _shareCurrentImage,
-                icon: _isSharing
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
+            if (widget.allowShare)
+              SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  key: _saveButtonKey,
+                  tooltip: 'common.save'.tr(),
+                  onPressed: _isSharing ? null : _shareCurrentImage,
+                  icon: _isSharing
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const HugeIcon(
+                          icon: HugeIcons.strokeRoundedDownload01,
                           color: Colors.white,
                         ),
-                      )
-                    : const HugeIcon(
-                        icon: HugeIcons.strokeRoundedDownload01,
-                        color: Colors.white,
-                      ),
+                ),
               ),
-            ),
+            ...widget.actions,
           ],
         ),
         body: Stack(
@@ -150,14 +204,20 @@ class _SacImageViewerState extends State<SacImageViewer> {
               backgroundDecoration: const BoxDecoration(color: Colors.black),
               onPageChanged: (index) => setState(() => _currentIndex = index),
               builder: (context, index) => PhotoViewGalleryPageOptions(
-                imageProvider: CachedNetworkImageProvider(_imageUrls[index]),
+                imageProvider: _providerFor(_imageUrls[index]),
                 minScale: PhotoViewComputedScale.contained,
                 maxScale: PhotoViewComputedScale.covered * 3,
+                scaleStateCycle: _toggleZoom,
+                semanticLabel: widget.semanticLabel,
+                heroAttributes:
+                    widget.heroTag == null || SacMotion.reduceMotionOf(context)
+                        ? null
+                        : PhotoViewHeroAttributes(tag: widget.heroTag!),
                 errorBuilder: (context, error, stackTrace) =>
-                    _buildErrorState(),
+                    widget.errorBuilder?.call(context) ?? _buildErrorState(),
               ),
               loadingBuilder: (context, event) => const Center(
-                child: CircularProgressIndicator(color: Colors.white),
+                child: SacLoading(color: Colors.white),
               ),
             ),
             if (_hasMultipleImages) _buildPageIndicator(),
@@ -180,10 +240,14 @@ class _SacImageViewerState extends State<SacImageViewer> {
         fallback:
             'sacdia_evidence_${DateTime.now().millisecondsSinceEpoch}.jpg',
       );
-      final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/$fileName');
-
-      await Dio().download(imageUrl, file.path);
+      final File file;
+      if (_isLocal(imageUrl)) {
+        file = File(imageUrl);
+      } else {
+        final tempDir = await getTemporaryDirectory();
+        file = File('${tempDir.path}/$fileName');
+        await Dio().download(imageUrl, file.path);
+      }
 
       if (!mounted) return;
       await Share.shareXFiles(
@@ -227,7 +291,10 @@ class _SacImageViewerState extends State<SacImageViewer> {
         children: List.generate(_imageUrls.length, (index) {
           final selected = index == _currentIndex;
           return AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
+            duration: SacMotion.reduceMotionOf(context)
+                ? Duration.zero
+                : SacMotion.switcher,
+            curve: SacMotion.easeInOut,
             margin: const EdgeInsets.symmetric(horizontal: 3),
             width: selected ? 18 : 7,
             height: 7,

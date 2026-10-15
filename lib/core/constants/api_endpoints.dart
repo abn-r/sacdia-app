@@ -39,6 +39,10 @@ class ApiEndpoints {
   // ── Honors ────────────────────────────────────────────────────────────────
   static const String honors = '/honors';
 
+  // ── Instructors ───────────────────────────────────────────────────────────
+  /// Search people of the caller's Local Field to name as an instructor.
+  static const String instructorCandidates = '/instructor-candidates';
+
   // ── Achievements ──────────────────────────────────────────────────────────
   static const String achievements = '/achievements';
 
@@ -65,9 +69,6 @@ class ApiEndpoints {
   // ── Annual Continuations ──────────────────────────────────────────────────
   /// Appended to `$clubSections/$sectionId` for the annual continuation list.
   static const String annualContinuations = '/annual-continuations';
-
-  // ── Investiture ───────────────────────────────────────────────────────────
-  static const String investiture = '/investiture';
 
   // ── Validation ────────────────────────────────────────────────────────────
   static const String validation = '/validation';

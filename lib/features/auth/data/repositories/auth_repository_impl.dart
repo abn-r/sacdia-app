@@ -1,8 +1,10 @@
 import 'package:dartz/dartz.dart';
 
+import '../../../../core/auth/social_credential.dart';
 import '../../../../core/errors/exceptions.dart' as core_exceptions;
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../domain/entities/delete_account_reauth.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_data_source.dart';
@@ -126,8 +128,8 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final user = await remoteDataSource.signInWithGoogle();
       return Right(user);
-    } on core_exceptions.OAuthFlowInitiatedException catch (e) {
-      return Left(OAuthFlowInitiatedFailure(provider: e.provider));
+    } on core_exceptions.SocialSignInCancelledException {
+      return Left(SocialSignInCancelledFailure());
     } on core_exceptions.AuthException catch (e) {
       return Left(AuthFailure(message: e.message, code: e.code));
     } catch (e) {
@@ -140,26 +142,8 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final user = await remoteDataSource.signInWithApple();
       return Right(user);
-    } on core_exceptions.OAuthFlowInitiatedException catch (e) {
-      return Left(OAuthFlowInitiatedFailure(provider: e.provider));
-    } on core_exceptions.AuthException catch (e) {
-      return Left(AuthFailure(message: e.message, code: e.code));
-    } catch (e) {
-      return Left(ServerFailure(message: e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, UserEntity>> handleOAuthCallback({
-    required String sessionToken,
-    required String provider,
-  }) async {
-    try {
-      final user = await remoteDataSource.handleOAuthCallback(
-        sessionToken: sessionToken,
-        provider: provider,
-      );
-      return Right(user);
+    } on core_exceptions.SocialSignInCancelledException {
+      return Left(SocialSignInCancelledFailure());
     } on core_exceptions.AuthException catch (e) {
       return Left(AuthFailure(message: e.message, code: e.code));
     } catch (e) {
@@ -197,10 +181,22 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, void>> deleteAccount(String password) async {
+  Future<Either<Failure, void>> deleteAccount(
+      DeleteAccountReauth reauth) async {
     try {
-      await remoteDataSource.deleteAccount(password);
+      await remoteDataSource.deleteAccount(reauth);
       return const Right(null);
+    } on core_exceptions.AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<SocialProvider>>> getConnectedProviders() async {
+    try {
+      return Right(await remoteDataSource.getConnectedProviders());
     } on core_exceptions.AuthException catch (e) {
       return Left(AuthFailure(message: e.message, code: e.code));
     } catch (e) {

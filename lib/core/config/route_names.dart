@@ -73,24 +73,26 @@ class RouteNames {
   static const String transferRequests = '/transfers';
   static const String transferRequestDetailRoute = '/transfer/:requestId';
 
-  // OAuth callback deep link (io.sacdia.app://auth/callback)
-  static const String authCallback = '/auth/callback';
+  // Investidura por autorización
+  static const String sectionInvestiture = '/home/investiture';
+  static const String sectionInvestitureHistory = '/home/investiture/history';
+  static const String ownInvestiture = '/investiture/mine';
 
-  // Investidura
-  static const String investiturePendingList = '/investiture/pending';
-  static const String investitureHistory =
-      '/investiture/enrollment/:enrollmentId/history';
+  // Autorizador de investiduras (pastor, director-lf, assistant-lf). La ruta
+  // del listado coincide con la del catálogo de pantallas del panel
+  // (`app-investiture-authorizer`).
+  static const String investitureAuthorize = '/investiture/authorize';
+  static const String investitureAuthorizeDetail =
+      '/investiture/authorize/:requestId';
 
   // Carga masiva por comprobante/certificado OCR
   static const String certificateImportUpload = '/certificate-import';
-  static const String certificateImportProcessing =
-      '/certificate-import/:batchId/processing';
   static const String certificateImportReview =
       '/certificate-import/:batchId/review';
   static const String certificateImportStatus =
       '/certificate-import/:batchId/status';
   static const String certificateImportProof =
-      '/certificate-import/item/:itemId/proof';
+      '/certificate-import/:batchId/proof/:fileId';
 
   // Helpers para paths con parámetros
   static String clubDetailPath(String clubId) => '/club/$clubId';
@@ -107,6 +109,9 @@ class RouteNames {
     final query = Uri(queryParameters: queryParameters).query;
     return query.isEmpty ? '/class/$classId' : '/class/$classId?$query';
   }
+
+  static String investitureAuthorizeDetailPath(String requestId) =>
+      '/investiture/authorize/${Uri.encodeComponent(requestId)}';
 
   static String honorDetailPath(String honorId) => '/honor/$honorId';
   static String activityDetailPath(int activityId) => '/activity/$activityId';
@@ -135,16 +140,17 @@ class RouteNames {
     return '$base&name=${Uri.encodeComponent(certificationName)}';
   }
 
-  static String investitureHistoryPath(String enrollmentId) =>
-      '/investiture/enrollment/$enrollmentId/history';
-  static String certificateImportProcessingPath(String batchId) =>
-      '/certificate-import/$batchId/processing';
   static String certificateImportReviewPath(String batchId) =>
       '/certificate-import/$batchId/review';
   static String certificateImportStatusPath(String batchId) =>
       '/certificate-import/$batchId/status';
-  static String certificateImportProofPath(String itemId) =>
-      '/certificate-import/item/$itemId/proof';
+  static String certificateImportProofPath(
+    String batchId,
+    String fileId, {
+    int page = 1,
+  }) =>
+      '/certificate-import/$batchId/proof/$fileId'
+      '${page > 1 ? '?page=$page' : ''}';
 
   // Camporees helpers
   static String camporeeDetailPath(String camporeeId) =>

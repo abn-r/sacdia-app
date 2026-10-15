@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'certificate_import_file.dart';
 import 'certificate_import_item.dart';
+import 'certificate_import_ocr_state.dart';
 
 class CertificateImportBatch extends Equatable {
   final String id;
@@ -13,6 +14,18 @@ class CertificateImportBatch extends Equatable {
   final DateTime? createdAt;
   final DateTime? modifiedAt;
 
+  /// Reading state reported by the API. `null` with [hasOcrState] means OCR
+  /// was never requested for this batch.
+  final CertificateImportOcrState? ocrState;
+
+  /// False when the API did not send `ocr_state` at all (backend without
+  /// the field): callers fall back to checking whether rows arrived.
+  final bool hasOcrState;
+
+  /// `CERTIFICATE_IMPORT_*` code explaining a `failed` reading, when the API
+  /// sends one. Never shown raw: the error mapper turns it into copy.
+  final String? ocrErrorCode;
+
   const CertificateImportBatch({
     required this.id,
     required this.status,
@@ -23,11 +36,20 @@ class CertificateImportBatch extends Equatable {
     this.reviewedAt,
     this.createdAt,
     this.modifiedAt,
+    this.ocrState,
+    this.hasOcrState = false,
+    this.ocrErrorCode,
   });
 
-  int get readyCount => items.where((item) => item.isReady).length;
-  int get needsReviewCount => items.where((item) => item.needsReview).length;
-  int get rejectedCount => items.where((item) => item.isRejected).length;
+  /// Rows the member still has. The API also sends the ones they removed
+  /// (`active: false`); every count and list must go through this.
+  List<CertificateImportItem> get activeItems =>
+      items.where((item) => item.active).toList(growable: false);
+
+  int get readyCount => activeItems.where((item) => item.isReady).length;
+  int get needsReviewCount =>
+      activeItems.where((item) => item.needsReview).length;
+  int get rejectedCount => activeItems.where((item) => item.isRejected).length;
 
   @override
   List<Object?> get props => [
@@ -40,5 +62,8 @@ class CertificateImportBatch extends Equatable {
         reviewedAt,
         createdAt,
         modifiedAt,
+        ocrState,
+        hasOcrState,
+        ocrErrorCode,
       ];
 }

@@ -71,14 +71,14 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
 
   // SACDIA Scout Vibrante palette + festive extras
   List<Color> get _palette => [
-    SacAccent.of(context).color,
-    AppColors.secondary,
-    AppColors.accent,
-    Color(0xFFF43F5E), // rose
-    Color(0xFF8B5CF6), // violet
-    Color(0xFF06B6D4), // cyan
-    Colors.white,
-  ];
+        SacAccent.of(context).color,
+        AppColors.secondary,
+        AppColors.accent,
+        Color(0xFFF43F5E), // rose
+        Color(0xFF8B5CF6), // violet
+        Color(0xFF06B6D4), // cyan
+        Colors.white,
+      ];
 
   @override
   void initState() {

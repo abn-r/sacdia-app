@@ -202,12 +202,14 @@ class SacDialog extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: iconBackgroundColor ??
-                                  SacAccent.of(context).light
+                                  SacAccent.of(context)
+                                      .light
                                       .withValues(alpha: 0.65),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: (iconColor ?? SacAccent.of(context).color)
-                                    .withValues(alpha: 0.12),
+                                color:
+                                    (iconColor ?? SacAccent.of(context).color)
+                                        .withValues(alpha: 0.12),
                               ),
                             ),
                             child: Text(

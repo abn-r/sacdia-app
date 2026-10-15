@@ -595,7 +595,8 @@ class _EmptyCamporeesState extends ConsumerWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final top = SacTopBar.frostedInset(context);
-          final height = (constraints.maxHeight - top).clamp(0.0, double.infinity);
+          final height =
+              (constraints.maxHeight - top).clamp(0.0, double.infinity);
           return ListView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.only(top: top),

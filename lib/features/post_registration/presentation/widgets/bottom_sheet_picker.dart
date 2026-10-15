@@ -445,7 +445,9 @@ class _PickerLogo extends StatelessWidget {
         errorBuilder: (_, __, ___) => HugeIcon(
           icon: fallbackIcon,
           size: 20,
-          color: isSelected ? SacAccent.of(context).color : context.sac.textSecondary,
+          color: isSelected
+              ? SacAccent.of(context).color
+              : context.sac.textSecondary,
         ),
       ),
     );

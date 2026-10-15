@@ -68,17 +68,19 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
                 color: c.textTertiary,
                 iconSize: 20,
               ),
+              suffixIconConstraints: FixedInputIconSlot.constraints,
               suffixIcon: filters.searchQuery.isNotEmpty
                   ? GestureDetector(
+                      behavior: HitTestBehavior.opaque,
                       onTap: () {
                         _searchController.clear();
                         ref.read(memberFiltersProvider.notifier).state =
                             filters.copyWith(searchQuery: '');
                       },
-                      child: HugeIcon(
+                      child: FixedInputIconSlot(
                         icon: HugeIcons.strokeRoundedCancel01,
                         color: c.textTertiary,
-                        size: 18,
+                        iconSize: 18,
                       ),
                     )
                   : null,
@@ -213,6 +215,8 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
   ) async {
     final selected = await showSacSheet<String>(
       context: context,
+      // Sobre la bottom nav del shell, no detrás.
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       // El arrastre lo controla la hoja: así la lista la hace crecer.
@@ -237,6 +241,8 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
   ) async {
     final selected = await showSacSheet<String>(
       context: context,
+      // Sobre la bottom nav del shell, no detrás.
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       enableDrag: false,
@@ -259,6 +265,8 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
   ) async {
     final selected = await showSacSheet<bool>(
       context: context,
+      // Sobre la bottom nav del shell, no detrás.
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       builder: (_) => _EnrollmentPickerSheet(current: current),
     );

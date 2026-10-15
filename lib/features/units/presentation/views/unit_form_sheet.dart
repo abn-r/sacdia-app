@@ -584,7 +584,8 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                                             'units.form.add_member_button'
                                                 .tr()),
                                         style: (TextButton.styleFrom(
-                                          foregroundColor: SacAccent.of(context).color,
+                                          foregroundColor:
+                                              SacAccent.of(context).color,
                                           padding: const EdgeInsets.symmetric(
                                               horizontal: 12, vertical: 6),
                                         )).copyWith(enableFeedback: false),
@@ -787,7 +788,9 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                           title: Text(
                             m.fullName,
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color: isSelected ? SacAccent.of(context).color : c.text,
+                              color: isSelected
+                                  ? SacAccent.of(context).color
+                                  : c.text,
                               fontWeight: isSelected
                                   ? FontWeight.w600
                                   : FontWeight.w400,
@@ -1018,7 +1021,9 @@ class _MultiMemberPickerSheetState extends State<_MultiMemberPickerSheet> {
                           title: Text(
                             m.fullName,
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color: isSelected ? SacAccent.of(context).color : c.text,
+                              color: isSelected
+                                  ? SacAccent.of(context).color
+                                  : c.text,
                               fontWeight: isSelected
                                   ? FontWeight.w600
                                   : FontWeight.w400,

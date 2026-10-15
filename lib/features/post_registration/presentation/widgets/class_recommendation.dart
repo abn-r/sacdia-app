@@ -35,7 +35,8 @@ class ClassRecommendation extends ConsumerWidget {
           decoration: BoxDecoration(
             color: SacAccent.of(context).light,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: SacAccent.of(context).color.withValues(alpha: 0.3)),
+            border: Border.all(
+                color: SacAccent.of(context).color.withValues(alpha: 0.3)),
           ),
           child: Row(
             children: [

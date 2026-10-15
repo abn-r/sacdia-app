@@ -7,7 +7,8 @@ import 'package:sacdia_app/providers/storage_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  test('unauthenticated splash lands on welcome until the carousel is seen', () {
+  test('unauthenticated splash lands on welcome until the carousel is seen',
+      () {
     expect(
       unauthenticatedSplashTarget(welcomeCarouselSeen: false),
       RouteNames.welcome,

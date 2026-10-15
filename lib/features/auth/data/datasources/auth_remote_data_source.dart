@@ -2,13 +2,15 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/auth/social_auth_client.dart';
+import '../../../../core/auth/social_credential.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/storage/secure_storage.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../../domain/entities/delete_account_reauth.dart';
 import '../models/user_model.dart';
 
 /// Interfaz para la fuente de datos remota de autenticación
@@ -43,10 +45,12 @@ abstract class AuthRemoteDataSource {
   /// Actualiza la contraseña del usuario
   Future<UserModel> updatePassword(String currentPassword, String newPassword);
 
-  /// Inicia sesión con Google OAuth
+  /// Login nativo con Google: abre la hoja del SDK y envía el idToken al
+  /// backend. Lanza [SocialSignInCancelledException] si el usuario cancela.
   Future<UserModel> signInWithGoogle();
 
-  /// Inicia sesión con Apple OAuth
+  /// Login nativo con Apple: abre la hoja del SDK y envía el idToken al
+  /// backend. Lanza [SocialSignInCancelledException] si el usuario cancela.
   Future<UserModel> signInWithApple();
 
   /// Obtiene el estado de completitud del post-registro
@@ -59,15 +63,6 @@ abstract class AuthRemoteDataSource {
   /// Llama a PATCH /auth/me/context con el assignment_id indicado.
   Future<void> switchContext(String assignmentId);
 
-  /// Procesa el callback OAuth enviando el session token opaco de Better Auth
-  /// al backend, que devuelve el JWT HS256 interno de SACDIA.
-  ///
-  /// Llama a `POST /auth/oauth/callback` con `{ session_token, provider }`.
-  Future<UserModel> handleOAuthCallback({
-    required String sessionToken,
-    required String provider,
-  });
-
   /// Elimina la cuenta del usuario autenticado.
   ///
   /// Llama a `DELETE /auth/me` con `{ password }`.
@@ -76,7 +71,10 @@ abstract class AuthRemoteDataSource {
   ///
   /// Lanza [AuthException] con código 401/403 si la contraseña es incorrecta,
   /// o 429 si se supera el rate limit.
-  Future<void> deleteAccount(String password);
+  Future<void> deleteAccount(DeleteAccountReauth reauth);
+
+  /// Proveedores sociales vinculados a la cuenta (`GET /auth/oauth/providers`).
+  Future<List<SocialProvider>> getConnectedProviders();
 }
 
 /// Implementación de la fuente de datos remota con Dio para API personalizada
@@ -85,6 +83,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final String _baseUrl;
   final StreamController<bool> _authStateController;
   final SecureStorage _secureStorage;
+  final SocialAuthClient _socialAuth;
 
   static const _tag = 'AuthDS';
   bool _attemptedContextAutoActivation = false;
@@ -93,9 +92,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required Dio dio,
     required String baseUrl,
     required SecureStorage secureStorage,
+    required SocialAuthClient socialAuth,
   })  : _dio = dio,
         _baseUrl = baseUrl,
         _secureStorage = secureStorage,
+        _socialAuth = socialAuth,
         _authStateController = StreamController<bool>.broadcast() {
     _checkInitialAuthState();
   }
@@ -133,6 +134,46 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await _secureStorage.write(AppConstants.tokenTypeKey, tokenType);
     }
     _authStateController.add(true);
+  }
+
+  /// Persiste los tokens y arma el [UserModel] a partir de `data` de
+  /// `/auth/login` y `/auth/oauth/:provider/token` (misma forma).
+  Future<UserModel> _persistSessionAndBuildUser(
+    Map<String, dynamic>? responseData, {
+    String fallbackEmail = '',
+  }) async {
+    if (responseData == null) {
+      throw AuthException(message: tr('errors.invalid_response'));
+    }
+
+    final token = responseData['accessToken'] as String?;
+    if (token == null) {
+      throw AuthException(message: tr('errors.missing_token'));
+    }
+
+    await _saveToken(
+      token,
+      refreshToken: responseData['refreshToken'] as String?,
+      expiresAt: responseData['expiresAt'] as int?,
+      tokenType: responseData['tokenType'] as String?,
+    );
+
+    final userData = responseData['user'] as Map<String, dynamic>?;
+    final userId = userData?['id'] as String?;
+    if (userId == null) {
+      throw AuthException(message: tr('errors.missing_user_id'));
+    }
+
+    final needsPostRegistration =
+        responseData['needsPostRegistration'] as bool? ?? true;
+
+    return UserModel(
+      id: userId,
+      email: userData?['email'] as String? ?? fallbackEmail,
+      name: userData?['name'] as String? ?? '',
+      avatar: userData?['image'] as String? ?? userData?['avatar'] as String?,
+      postRegisterComplete: !needsPostRegistration,
+    );
   }
 
   Future<void> _clearToken() async {
@@ -428,43 +469,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
             message: response.data['message'] ?? tr('errors.auth_failed'));
       }
 
-      final responseData = response.data['data'] as Map<String, dynamic>?;
-      if (responseData == null) {
-        throw AuthException(message: tr('errors.invalid_response'));
-      }
-
-      final token = responseData['accessToken'] as String?;
-      if (token == null) {
-        throw AuthException(message: tr('errors.missing_token'));
-      }
-
-      final refreshToken = responseData['refreshToken'] as String?;
-      final expiresAt = responseData['expiresAt'] as int?;
-      final tokenType = responseData['tokenType'] as String?;
-      await _saveToken(
-        token,
-        refreshToken: refreshToken,
-        expiresAt: expiresAt,
-        tokenType: tokenType,
+      final user = await _persistSessionAndBuildUser(
+        response.data['data'] as Map<String, dynamic>?,
+        fallbackEmail: email,
       );
-
-      final userData = responseData['user'] as Map<String, dynamic>?;
-      final userId = userData?['id'] as String?;
-      if (userId == null) {
-        throw AuthException(message: tr('errors.missing_user_id'));
-      }
-
-      final needsPostRegistration =
-          responseData['needsPostRegistration'] as bool? ?? true;
-
       AppLogger.i('Login exitoso', tag: _tag);
-      return UserModel(
-        id: userId,
-        email: userData?['email'] as String? ?? email,
-        name: userData?['name'] as String? ?? '',
-        avatar: userData?['image'] as String? ?? userData?['avatar'] as String?,
-        postRegisterComplete: !needsPostRegistration,
-      );
+      return user;
     } catch (e) {
       AppLogger.e('Error en login', tag: _tag, error: e);
       if (e is DioException) {
@@ -700,188 +710,113 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
-  // ── OAuth ─────────────────────────────────────────────────────────────────────
+  // ── Login social nativo ──────────────────────────────────────────────────────
   //
-  // Flujo OAuth con Better Auth / Option C:
-  //   1. App llama GET /auth/oauth/{provider} → backend devuelve redirect URL.
-  //   2. App abre la URL en el navegador del sistema via url_launcher.
-  //   3. Usuario autoriza → Better Auth redirige a io.sacdia.app://auth/callback
-  //      con `session_token` (BA opaque token) y `provider` como query params.
-  //   4. Router intercepta el deep link → llama a AuthNotifier.processOAuthDeepLink.
-  //   5. AuthNotifier llama a handleOAuthCallback → POST /auth/oauth/callback
-  //      → backend devuelve JWT HS256 de SACDIA.
-  //
-  // Prerequisitos de configuración (fuera de este archivo):
-  //   - ios/Runner/Info.plist: CFBundleURLSchemes → "io.sacdia.app"
-  //   - android/app/src/main/AndroidManifest.xml: intent-filter con scheme
-  //   - Better Auth config: redirectURLs incluye io.sacdia.app://auth/callback
+  //   1. SocialAuthClient abre la hoja nativa y devuelve idToken + nonce.
+  //   2. POST /auth/oauth/{provider}/token con SocialTokenSignInDto.
+  //   3. El backend verifica el token, crea o vincula el usuario y devuelve
+  //      la misma sesión que /auth/login.
 
   @override
-  Future<UserModel> signInWithGoogle() async {
-    try {
-      AppLogger.i('Iniciando OAuth con Google', tag: _tag);
-
-      // 1. Obtener el redirect URL del backend
-      final response =
-          await _dio.get('$_baseUrl${ApiEndpoints.auth}/oauth/google');
-      final redirectUrl = _extractOAuthUrl(response, 'Google');
-
-      // 2. Abrir en navegador del sistema
-      final launched = await launchUrl(
-        Uri.parse(redirectUrl),
-        mode: LaunchMode.platformDefault,
-      );
-
-      if (!launched) {
-        throw AuthException(
-          message: tr('errors.google_browser_open'),
-        );
-      }
-
-      // El resultado llega de forma asíncrona a través del deep link.
-      throw OAuthFlowInitiatedException(provider: 'Google');
-    } on OAuthFlowInitiatedException {
-      rethrow;
-    } on AuthException {
-      rethrow;
-    } catch (e) {
-      AppLogger.e('Error iniciando OAuth Google', tag: _tag, error: e);
-      throw AuthException(
-        message: tr('errors.google_signin_failed'),
-      );
-    }
-  }
+  Future<UserModel> signInWithGoogle() =>
+      _signInWithProvider(SocialProvider.google);
 
   @override
-  Future<UserModel> signInWithApple() async {
+  Future<UserModel> signInWithApple() =>
+      _signInWithProvider(SocialProvider.apple);
+
+  Future<UserModel> _signInWithProvider(SocialProvider provider) async {
+    AppLogger.i('Login social iniciado: ${provider.wireName}', tag: _tag);
+
+    final SocialCredential? credential;
     try {
-      AppLogger.i('Iniciando OAuth con Apple', tag: _tag);
-
-      // 1. Obtener el redirect URL del backend
-      final response =
-          await _dio.get('$_baseUrl${ApiEndpoints.auth}/oauth/apple');
-      final redirectUrl = _extractOAuthUrl(response, 'Apple');
-
-      // 2. Abrir en navegador del sistema
-      final launched = await launchUrl(
-        Uri.parse(redirectUrl),
-        mode: LaunchMode.platformDefault,
-      );
-
-      if (!launched) {
-        throw AuthException(
-          message: tr('errors.apple_browser_open'),
-        );
-      }
-
-      throw OAuthFlowInitiatedException(provider: 'Apple');
-    } on OAuthFlowInitiatedException {
-      rethrow;
-    } on AuthException {
-      rethrow;
-    } catch (e) {
-      AppLogger.e('Error iniciando OAuth Apple', tag: _tag, error: e);
+      credential = await _socialAuth.signIn(provider);
+    } on SocialAuthException catch (e) {
+      AppLogger.w('SDK de ${provider.wireName} falló: ${e.message}', tag: _tag);
       throw AuthException(
-        message: tr('errors.apple_signin_failed'),
+        message: tr('errors.social_signin_failed',
+            namedArgs: {'provider': _providerLabel(provider)}),
       );
     }
-  }
-
-  /// Extrae el redirect URL del response del endpoint GET /auth/oauth/{provider}.
-  String _extractOAuthUrl(dynamic response, String provider) {
-    if (response.statusCode != 200 && response.statusCode != 201) {
-      throw AuthException(
-        message: response.data?['message'] ??
-            tr('errors.get_oauth_url', namedArgs: {'provider': provider}),
-      );
+    if (credential == null) {
+      throw SocialSignInCancelledException();
     }
-    final data = response.data;
-    final url = (data is Map<String, dynamic>)
-        ? (data['url'] as String? ?? data['data']?['url'] as String?)
-        : null;
-    if (url == null || url.isEmpty) {
-      throw AuthException(
-        message:
-            tr('errors.oauth_url_missing', namedArgs: {'provider': provider}),
-      );
-    }
-    return url;
-  }
 
-  // ── OAuth Callback ────────────────────────────────────────────────────────────
-  //
-  // Llamado desde AuthNotifier.processOAuthDeepLink cuando el router intercepta
-  // io.sacdia.app://auth/callback?session_token=...&provider=...
-  //
-  // El backend recibe el session_token opaco de Better Auth, lo valida,
-  // y devuelve el JWT HS256 interno de SACDIA.
-
-  @override
-  Future<UserModel> handleOAuthCallback({
-    required String sessionToken,
-    required String provider,
-  }) async {
     try {
-      AppLogger.i('Procesando OAuth callback con backend SACDIA', tag: _tag);
-
       final response = await _dio.post(
-        '$_baseUrl${ApiEndpoints.auth}/oauth/callback',
-        data: {
-          'session_token': sessionToken,
-          'provider': provider,
-        },
+        '$_baseUrl${ApiEndpoints.auth}/oauth/${provider.wireName}/token',
+        data: credential.toSignInBody(),
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw AuthException(
-          message:
-              response.data?['message'] ?? tr('errors.oauth_callback_failed'),
+          message: response.data?['message'] ??
+              tr('errors.social_signin_failed',
+                  namedArgs: {'provider': _providerLabel(provider)}),
         );
       }
 
-      final responseData = response.data['data'] as Map<String, dynamic>?;
-      if (responseData == null) {
-        throw AuthException(message: tr('errors.invalid_response'));
-      }
-
-      final token = responseData['accessToken'] as String?;
-      if (token == null) {
-        throw AuthException(message: tr('errors.missing_token'));
-      }
-
-      await _saveToken(
-        token,
-        refreshToken: responseData['refreshToken'] as String?,
-        expiresAt: responseData['expiresAt'] as int?,
-        tokenType: responseData['tokenType'] as String?,
+      final user = await _persistSessionAndBuildUser(
+        response.data['data'] as Map<String, dynamic>?,
       );
-
-      final userData = responseData['user'] as Map<String, dynamic>?;
-      final userId = userData?['id'] as String?;
-      if (userId == null) {
-        throw AuthException(message: tr('errors.missing_user_id'));
-      }
-
-      final needsPostRegistration =
-          responseData['needsPostRegistration'] as bool? ?? true;
-
-      AppLogger.i('OAuth callback procesado exitosamente', tag: _tag);
-      return UserModel(
-        id: userId,
-        email: userData?['email'] as String? ?? '',
-        name: userData?['name'] as String? ?? '',
-        avatar: userData?['image'] as String? ?? userData?['avatar'] as String?,
-        postRegisterComplete: !needsPostRegistration,
+      AppLogger.i('Login social exitoso: ${provider.wireName}', tag: _tag);
+      return user;
+    } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      final data = e.response?.data;
+      final errorCode =
+          data is Map && data['code'] is String ? data['code'] as String : null;
+      AppLogger.w(
+          'Login social ${provider.wireName} rechazado: $status ($errorCode)',
+          tag: _tag);
+      throw AuthException(
+        message: _socialErrorMessage(e, provider, status, errorCode),
+        code: status,
       );
-    } catch (e) {
-      AppLogger.e('Error en OAuth callback', tag: _tag, error: e);
-      if (e is DioException) {
-        throw AuthException(message: e.message ?? tr('common.error_network'));
-      }
-      if (e is AuthException) rethrow;
-      throw AuthException(message: e.toString());
     }
   }
+
+  /// Mensaje localizado para un fallo de `/auth/oauth/:provider/token`.
+  /// Se decide por `code` del backend y por el status, nunca por su `message`
+  /// (llega sin localizar, o enmascarado en 5xx).
+  String _socialErrorMessage(
+    DioException e,
+    SocialProvider provider,
+    int? status,
+    String? errorCode,
+  ) {
+    final args = {'provider': _providerLabel(provider)};
+
+    if (e.response == null) {
+      // Timeout / sin conexión: el ErrorInterceptor ya dejó un mensaje
+      // localizado en `e.error`.
+      final inner = e.error;
+      if (inner is AppException && inner.message.isNotEmpty) {
+        return inner.message;
+      }
+      return tr('common.error_network');
+    }
+
+    if (status == 429) return tr('errors.too_many_attempts');
+
+    switch (errorCode) {
+      case 'AUTH_OAUTH_EMAIL_UNVERIFIED':
+        return tr('errors.social_signin_unverified', namedArgs: args);
+      case 'AUTH_OAUTH_PROVIDER_ALREADY_LINKED':
+        return tr('errors.social_signin_already_linked', namedArgs: args);
+      case 'AUTH_OAUTH_PROVIDER_UNAVAILABLE':
+        return tr('errors.social_signin_provider_unavailable', namedArgs: args);
+    }
+    if (status != null && status >= 500) {
+      return tr('errors.social_signin_provider_unavailable', namedArgs: args);
+    }
+    return tr('errors.social_signin_failed', namedArgs: args);
+  }
+
+  static String _providerLabel(SocialProvider provider) => switch (provider) {
+        SocialProvider.google => 'Google',
+        SocialProvider.apple => 'Apple',
+      };
 
   @override
   Future<bool> hasLocalToken() async {
@@ -915,7 +850,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<void> deleteAccount(String password) async {
+  Future<void> deleteAccount(DeleteAccountReauth reauth) async {
     try {
       final token = await _secureStorage.read(AppConstants.tokenKey);
       if (token == null) {
@@ -924,7 +859,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       await _dio.delete(
         '$_baseUrl${ApiEndpoints.auth}/me',
-        data: {'password': password},
+        data: reauth.toBody(),
         options: Options(
           headers: {'Authorization': 'Bearer $token'},
           // Solo 200/204 son éxito. 4xx lanza DioException → catch maneja 401.
@@ -938,24 +873,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await _clearAllPersistentData();
     } on DioException catch (e) {
       final status = e.response?.statusCode;
-      final serverMsg = e.response?.data is Map
-          ? e.response!.data['message'] as String?
-          : null;
-
-      if (status == 401 || status == 403) {
-        throw AuthException(
-          message: serverMsg ?? tr('errors.wrong_password'),
-          code: status,
-        );
-      }
-      if (status == 429) {
-        throw AuthException(
-          message: tr('errors.too_many_attempts'),
-          code: 429,
-        );
-      }
+      final data = e.response?.data;
+      final errorCode =
+          data is Map && data['code'] is String ? data['code'] as String : null;
+      AppLogger.w('Borrado de cuenta rechazado: $status ($errorCode)',
+          tag: _tag);
       throw AuthException(
-        message: serverMsg ?? tr('errors.delete_account'),
+        message: _deleteAccountErrorMessage(e, reauth, status, errorCode),
         code: status,
       );
     } on AuthException {
@@ -965,6 +889,75 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         message: tr('errors.unexpected', namedArgs: {'details': '$e'}),
       );
     }
+  }
+
+  /// Mensaje localizado para un fallo de `DELETE /auth/me`. Se decide por
+  /// `code` del backend y por el status, nunca por su `message` (solo en
+  /// español, y enmascarado en 5xx).
+  String _deleteAccountErrorMessage(
+    DioException e,
+    DeleteAccountReauth reauth,
+    int? status,
+    String? errorCode,
+  ) {
+    final provider = switch (reauth) {
+      SocialReauth(:final credential) => credential.provider,
+      PasswordReauth() => null,
+    };
+    final args = provider == null
+        ? const <String, String>{}
+        : {'provider': _providerLabel(provider)};
+
+    if (e.response == null) {
+      // Timeout / sin conexión: el ErrorInterceptor ya dejó un mensaje
+      // localizado en `e.error`.
+      final inner = e.error;
+      if (inner is AppException && inner.message.isNotEmpty) {
+        return inner.message;
+      }
+      return tr('common.error_network');
+    }
+
+    if (status == 429) return tr('errors.too_many_attempts');
+
+    // Reautenticación rechazada: contraseña incorrecta o idToken inválido /
+    // identidad no vinculada a esta cuenta. Un 401/403 sin `code` se trata igual.
+    final rejected = errorCode == 'AUTH_INVALID_PASSWORD' ||
+        errorCode == 'AUTH_INVALID_TOKEN' ||
+        (errorCode == null && (status == 401 || status == 403));
+    if (rejected) {
+      return provider == null
+          ? tr('errors.wrong_password')
+          : tr('errors.delete_account_social_reauth_failed', namedArgs: args);
+    }
+
+    final unavailable = errorCode == 'AUTH_OAUTH_PROVIDER_UNAVAILABLE' ||
+        (status != null && status >= 500);
+    if (unavailable && provider != null) {
+      return tr('errors.social_signin_provider_unavailable', namedArgs: args);
+    }
+    return tr('errors.delete_account');
+  }
+
+  @override
+  Future<List<SocialProvider>> getConnectedProviders() async {
+    final token = await _secureStorage.read(AppConstants.tokenKey);
+    if (token == null) {
+      throw AuthException(message: tr('errors.no_active_session'));
+    }
+    final response = await _dio.get(
+      '$_baseUrl${ApiEndpoints.auth}/oauth/providers',
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
+    // El endpoint devuelve el arreglo sin envoltorio (`["google","apple"]`);
+    // se acepta también `{ data: [...] }` por si el backend lo envuelve.
+    final raw = response.data;
+    final list = raw is List ? raw : (raw is Map ? raw['data'] : null);
+    final names = list is List ? list.whereType<String>().toSet() : <String>{};
+    return [
+      for (final p in SocialProvider.values)
+        if (names.contains(p.wireName)) p,
+    ];
   }
 
   @override

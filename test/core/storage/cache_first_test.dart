@@ -141,7 +141,8 @@ void main() {
     expect(classes.single.prerequisites.single.name, 'Pionero');
 
     final group = HonorGroup(
-      category: const HonorCategory(id: 4, name: 'Naturaleza', description: 'd'),
+      category:
+          const HonorCategory(id: 4, name: 'Naturaleza', description: 'd'),
       honors: const [
         Honor(
           id: 8,

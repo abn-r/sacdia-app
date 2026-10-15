@@ -5,16 +5,20 @@ import 'package:equatable/equatable.dart';
 abstract class Failure extends Equatable implements Exception {
   final String message;
   final int? code;
+
+  /// Código de negocio del backend, distinto de [code] (estado HTTP).
+  final String? errorCode;
   final StackTrace? stackTrace;
 
   const Failure({
     required this.message,
     this.code,
+    this.errorCode,
     this.stackTrace,
   });
 
   @override
-  List<Object?> get props => [message, code, stackTrace];
+  List<Object?> get props => [message, code, errorCode, stackTrace];
 }
 
 // Fallos específicos del servidor
@@ -22,6 +26,7 @@ class ServerFailure extends Failure {
   const ServerFailure({
     required super.message,
     super.code,
+    super.errorCode,
     super.stackTrace,
   });
 }
@@ -57,6 +62,7 @@ class AuthFailure extends Failure {
   const AuthFailure({
     required super.message,
     super.code,
+    super.errorCode,
     super.stackTrace,
   });
 }
@@ -92,21 +98,8 @@ class UnexpectedFailure extends Failure {
   });
 }
 
-/// Señal (no un error real) que indica que el flujo OAuth fue iniciado.
-/// La UI debe mostrar un estado informativo, no un error.
-class OAuthFlowInitiatedFailure extends Failure {
-  /// Nombre del proveedor OAuth ("Google", "Apple", etc.).
-  final String provider;
-
-  OAuthFlowInitiatedFailure({
-    required this.provider,
-  }) : super(
-          message: tr(
-            'errors.oauth_redirecting',
-            namedArgs: {'provider': provider},
-          ),
-        );
-
-  @override
-  List<Object?> get props => [...super.props, provider];
+/// El usuario canceló la hoja nativa de Google/Apple. No se muestra error.
+class SocialSignInCancelledFailure extends Failure {
+  SocialSignInCancelledFailure()
+      : super(message: tr('errors.social_signin_cancelled'));
 }

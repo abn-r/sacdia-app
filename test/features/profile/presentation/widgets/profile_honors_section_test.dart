@@ -69,7 +69,8 @@ void main() {
         honor(name: 'Perros', validationStatus: 'REJECTED'),
       ]);
 
-      expect(find.text('profile.honors_section.status_enrolled'), findsOneWidget);
+      expect(
+          find.text('profile.honors_section.status_enrolled'), findsOneWidget);
       expect(
         find.text('profile.honors_section.status_in_progress'),
         findsOneWidget,
