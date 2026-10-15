@@ -138,7 +138,7 @@ void main() {
       );
 
       expect(
-          find.text('Todavía no tenés distritos asignados.'), findsOneWidget);
+          find.text('Todavía no tienes distritos asignados.'), findsOneWidget);
       expect(find.text('Pedí al Campo que te asigne.'), findsOneWidget);
       expect(find.text('No pudimos cargar las autorizaciones'), findsNothing);
       expect(find.text('Reintentar'), findsNothing);

@@ -79,7 +79,7 @@ void main() {
 
   testWidgets('shows an empty state without entries', (tester) async {
     await _pump(tester, FakeInvestitureRequestsRepository());
-    expect(find.text('Todavía no tenés investiduras'), findsOneWidget);
+    expect(find.text('Todavía no tienes investiduras'), findsOneWidget);
   });
 
   testWidgets('shows a retry state when loading fails', (tester) async {

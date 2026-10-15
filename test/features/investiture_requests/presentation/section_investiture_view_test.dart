@@ -222,7 +222,7 @@ void main() {
       await pumpApp(tester, const SectionInvestitureView(),
           overrides: _overrides(repo));
 
-      expect(find.textContaining('Podés presentar hasta el'), findsOneWidget);
+      expect(find.textContaining('Puedes presentar hasta el'), findsOneWidget);
     });
 
     testWidgets('presents two eligible people with the chosen date',
