@@ -221,7 +221,7 @@ class _EvidenceList extends ConsumerWidget {
               is403
                   ? 'coordinator.evidence_review.list.access_restricted_msg'
                       .tr()
-                  : msg,
+                  : 'coordinator.evidence_review.list.error_load_subtitle'.tr(),
               style: TextStyle(fontSize: 14, color: c.textSecondary),
               textAlign: TextAlign.center,
             ),

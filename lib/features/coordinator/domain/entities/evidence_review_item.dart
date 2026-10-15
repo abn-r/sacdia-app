@@ -121,6 +121,9 @@ class EvidenceReviewItem extends Equatable {
   final bool memberIsDeleted;
   final String? memberPhotoUrl;
   final String? context;
+
+  /// Club y sección de club del miembro (no la sección del programa).
+  final String? clubSectionLabel;
   final DateTime submittedAt;
   final int fileCount;
   final List<EvidenceFile> files;
@@ -134,6 +137,7 @@ class EvidenceReviewItem extends Equatable {
     this.memberIsDeleted = false,
     this.memberPhotoUrl,
     this.context,
+    this.clubSectionLabel,
     required this.submittedAt,
     required this.fileCount,
     this.files = const [],
@@ -152,6 +156,7 @@ class EvidenceReviewItem extends Equatable {
         memberIsDeleted,
         memberPhotoUrl,
         context,
+        clubSectionLabel,
         submittedAt,
         fileCount,
         files,

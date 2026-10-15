@@ -1613,6 +1613,7 @@
         "access_restricted": "Acceso restringido",
         "access_restricted_msg": "Solo coordinadores y administradores pueden acceder a esta sección.",
         "error_load": "Error al cargar evidencias",
+        "error_load_subtitle": "No pudimos cargar las evidencias pendientes. Revisa tu conexión e inténtalo de nuevo.",
         "retry": "Reintentar"
       },
       "detail": {

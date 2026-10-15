@@ -1613,6 +1613,7 @@
         "access_restricted": "Access restricted",
         "access_restricted_msg": "Only coordinators and administrators can access this section.",
         "error_load": "Error loading evidence",
+        "error_load_subtitle": "We couldn't load the pending evidence. Check your connection and try again.",
         "retry": "Retry"
       },
       "detail": {

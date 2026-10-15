@@ -1613,6 +1613,7 @@
         "access_restricted": "Acesso restrito",
         "access_restricted_msg": "Somente coordenadores e administradores podem acessar esta seção.",
         "error_load": "Erro ao carregar evidências",
+        "error_load_subtitle": "Não foi possível carregar as evidências pendentes. Verifique sua conexão e tente novamente.",
         "retry": "Tentar novamente"
       },
       "detail": {

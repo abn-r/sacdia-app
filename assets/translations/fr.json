@@ -1613,6 +1613,7 @@
         "access_restricted": "Accès restreint",
         "access_restricted_msg": "Seuls les coordinateurs et administrateurs peuvent accéder à cette section.",
         "error_load": "Erreur lors du chargement des preuves",
+        "error_load_subtitle": "Impossible de charger les preuves en attente. Vérifiez votre connexion et réessayez.",
         "retry": "Réessayer"
       },
       "detail": {

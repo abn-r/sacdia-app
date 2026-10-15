@@ -91,6 +91,18 @@ class EvidenceReviewCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
+                    if (item.clubSectionLabel != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        item.clubSectionLabel!,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: c.textTertiary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                     const SizedBox(height: 6),
                     Row(
                       children: [
