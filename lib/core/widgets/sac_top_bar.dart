@@ -67,6 +67,29 @@ class SacTopBar extends StatelessWidget implements PreferredSizeWidget {
     return padding.copyWith(top: padding.top + frostedInset(context));
   }
 
+  /// Desplaza el scroll que contiene a [target] hasta que quede visible justo
+  /// debajo de la barra esmerilada. `Scrollable.ensureVisible` con un
+  /// `alignment` fijo lo deja tapado: el cuerpo se dibuja detrás de la barra.
+  ///
+  /// [target] tiene que estar debajo del [Scaffold] de la barra.
+  static Future<void> revealBelowBar(
+    BuildContext target, {
+    Duration duration = Duration.zero,
+    Curve curve = Curves.ease,
+  }) {
+    final viewport = Scrollable.maybeOf(target)?.position.viewportDimension;
+    final inset = frostedInset(target) + 12;
+    final alignment = (viewport == null || viewport <= 0)
+        ? 0.0
+        : (inset / viewport).clamp(0.0, 0.5);
+    return Scrollable.ensureVisible(
+      target,
+      alignment: alignment,
+      duration: duration,
+      curve: curve,
+    );
+  }
+
   double get _toolbarHeight =>
       subtitle == null ? compactHeight : subtitleHeight;
 

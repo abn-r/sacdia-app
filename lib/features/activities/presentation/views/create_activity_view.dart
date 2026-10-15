@@ -59,6 +59,7 @@ class CreateActivityView extends ConsumerStatefulWidget {
 
 class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
   final _formKey = GlobalKey<FormState>();
+  final _nameFieldKey = GlobalKey();
 
   // Controladores de texto
   final _nameController = TextEditingController();
@@ -298,13 +299,31 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
     setState(() => _pickedImageFile = picked);
   }
 
+  /// Scrolls the name field (the only validated text field) into view so
+  /// its error is visible even when the user submitted from the bottom.
+  void _revealNameField() {
+    final ctx = _nameFieldKey.currentContext;
+    if (ctx == null) return;
+    SacTopBar.revealBelowBar(
+      ctx,
+      duration: SacMotion.reduceMotionOf(context)
+          ? Duration.zero
+          : SacMotion.standard,
+      curve: SacMotion.easeInOut,
+    );
+  }
+
   Future<void> _handleSave() async {
     // Marcar ubicación como tocada para mostrar error si falta
     setState(() => _locationTouched = true);
 
     // Validar formulario
     final formState = _formKey.currentState;
-    if (formState == null || !formState.validate()) return;
+    if (formState == null) return;
+    if (!formState.validate()) {
+      _revealNameField();
+      return;
+    }
 
     if (_selectedLocation == null) {
       _showError('activities.form.error_no_location'.tr());
@@ -501,355 +520,361 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
         child: Builder(
           builder: (context) => Form(
             key: _formKey,
-            child: ListView(
+            // SingleChildScrollView + Column (not ListView): a lazy ListView
+            // disposes off-screen fields, so validate() would skip them.
+            child: SingleChildScrollView(
               padding:
                   SacTopBar.paddingBelowBar(context, const EdgeInsets.all(20)),
-              children: [
-                // ── Sección: Información general ──────────────────────────
-                ActivitySectionHeader(
-                  icon: HugeIcons.strokeRoundedInformationCircle,
-                  label: 'activities.form.section_general'.tr(),
-                ),
-                const SizedBox(height: 12),
-
-                // Nombre *
-                SacTextField(
-                  controller: _nameController,
-                  label: 'activities.form.name_label'.tr(),
-                  hint: 'activities.form.name_hint'.tr(),
-                  prefixIcon: HugeIcons.strokeRoundedCalendar01,
-                  textCapitalization: TextCapitalization.sentences,
-                  enabled: !isLoading,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'activities.form.name_required'.tr();
-                    }
-                    if (value.trim().length < 3) {
-                      return 'activities.form.name_min_length'.tr();
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Descripción (opcional)
-                SacTextField(
-                  controller: _descriptionController,
-                  label: 'activities.form.description_label'.tr(),
-                  hint: 'activities.form.description_hint'.tr(),
-                  prefixIcon: HugeIcons.strokeRoundedNote,
-                  maxLines: 3,
-                  enabled: !isLoading,
-                  textCapitalization: TextCapitalization.sentences,
-                ),
-                const SizedBox(height: 16),
-
-                // Tipo de actividad
-                ActivityPickerField(
-                  label: 'activities.form.type_label'.tr(),
-                  hint: activityTypesAsync.isLoading
-                      ? 'activities.form.type_loading'.tr()
-                      : 'activities.form.type_hint'.tr(),
-                  icon: HugeIcons.strokeRoundedLabel,
-                  selectedName: _selectedActivityTypeName,
-                  enabled: !isLoading &&
-                      !activityTypesAsync.isLoading &&
-                      activityTypeItems.isNotEmpty,
-                  isLoading: activityTypesAsync.isLoading,
-                  onTap: () async {
-                    if (activityTypeItems.isEmpty) return;
-                    final selected = await showPickerSheet(
-                      context: context,
-                      title: 'activities.form.type_picker_title'.tr(),
-                      items: activityTypeItems,
-                      selectedId: _selectedActivityType,
-                      icon: HugeIcons.strokeRoundedLabel,
-                    );
-                    if (selected != null && mounted) {
-                      setState(() {
-                        _selectedActivityType = selected;
-                        _selectedActivityTypeName = activityTypeItems
-                            .firstWhere((i) => i.id == selected)
-                            .name;
-                      });
-                    }
-                  },
-                ),
-                const SizedBox(height: 24),
-
-                // ── Sección: Actividad conjunta (solo directores) ─────────
-                if (isDirector) ...[
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // ── Sección: Información general ──────────────────────────
                   ActivitySectionHeader(
-                    icon: HugeIcons.strokeRoundedUserGroup,
-                    label: 'activities.form.section_joint'.tr(),
+                    icon: HugeIcons.strokeRoundedInformationCircle,
+                    label: 'activities.form.section_general'.tr(),
                   ),
-                  const SizedBox(height: 8),
-                  _JointActivityToggle(
-                    value: _isJoint,
+                  const SizedBox(height: 12),
+
+                  // Nombre *
+                  SacTextField(
+                    key: _nameFieldKey,
+                    controller: _nameController,
+                    label: 'activities.form.name_label'.tr(),
+                    hint: 'activities.form.name_hint'.tr(),
+                    prefixIcon: HugeIcons.strokeRoundedCalendar01,
+                    textCapitalization: TextCapitalization.sentences,
                     enabled: !isLoading,
-                    onChanged: (val) {
-                      setState(() {
-                        _isJoint = val;
-                        if (!val) {
-                          // Reset selection when disabling joint mode
-                          _selectedSectionIds = {};
-                        } else {
-                          // Pre-select own section
-                          _selectedSectionIds = {widget.clubSectionId};
-                        }
-                      });
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'activities.form.name_required'.tr();
+                      }
+                      if (value.trim().length < 3) {
+                        return 'activities.form.name_min_length'.tr();
+                      }
+                      return null;
                     },
                   ),
+                  const SizedBox(height: 16),
+
+                  // Descripción (opcional)
+                  SacTextField(
+                    controller: _descriptionController,
+                    label: 'activities.form.description_label'.tr(),
+                    hint: 'activities.form.description_hint'.tr(),
+                    prefixIcon: HugeIcons.strokeRoundedNote,
+                    maxLines: 3,
+                    enabled: !isLoading,
+                    textCapitalization: TextCapitalization.sentences,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Tipo de actividad
+                  ActivityPickerField(
+                    label: 'activities.form.type_label'.tr(),
+                    hint: activityTypesAsync.isLoading
+                        ? 'activities.form.type_loading'.tr()
+                        : 'activities.form.type_hint'.tr(),
+                    icon: HugeIcons.strokeRoundedLabel,
+                    selectedName: _selectedActivityTypeName,
+                    enabled: !isLoading &&
+                        !activityTypesAsync.isLoading &&
+                        activityTypeItems.isNotEmpty,
+                    isLoading: activityTypesAsync.isLoading,
+                    onTap: () async {
+                      if (activityTypeItems.isEmpty) return;
+                      final selected = await showPickerSheet(
+                        context: context,
+                        title: 'activities.form.type_picker_title'.tr(),
+                        items: activityTypeItems,
+                        selectedId: _selectedActivityType,
+                        icon: HugeIcons.strokeRoundedLabel,
+                      );
+                      if (selected != null && mounted) {
+                        setState(() {
+                          _selectedActivityType = selected;
+                          _selectedActivityTypeName = activityTypeItems
+                              .firstWhere((i) => i.id == selected)
+                              .name;
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  // ── Sección: Actividad conjunta (solo directores) ─────────
+                  if (isDirector) ...[
+                    ActivitySectionHeader(
+                      icon: HugeIcons.strokeRoundedUserGroup,
+                      label: 'activities.form.section_joint'.tr(),
+                    ),
+                    const SizedBox(height: 8),
+                    _JointActivityToggle(
+                      value: _isJoint,
+                      enabled: !isLoading,
+                      onChanged: (val) {
+                        setState(() {
+                          _isJoint = val;
+                          if (!val) {
+                            // Reset selection when disabling joint mode
+                            _selectedSectionIds = {};
+                          } else {
+                            // Pre-select own section
+                            _selectedSectionIds = {widget.clubSectionId};
+                          }
+                        });
+                      },
+                    ),
+                    AnimatedSize(
+                      duration: SacMotion.reduceMotionOf(context)
+                          ? Duration.zero
+                          : SacMotion.standard,
+                      curve: SacMotion.easeInOut,
+                      child: _isJoint
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 12),
+                                _SectionMultiPicker(
+                                  clubId: widget.clubId,
+                                  ownSectionId: widget.clubSectionId,
+                                  selectedIds: _selectedSectionIds,
+                                  enabled: !isLoading,
+                                  onChanged: (ids) =>
+                                      setState(() => _selectedSectionIds = ids),
+                                ),
+                                const SizedBox(height: 8),
+                              ],
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  ActivityAudienceSection(
+                    sections: sectionsAsync.valueOrNull ?? const [],
+                    ownSectionId: widget.clubSectionId,
+                    isJoint: _isJoint,
+                    selectedSectionIds: _selectedSectionIds,
+                    audience: _audience,
+                    selectedClassIds: _selectedClassIds,
+                    onAudience: (value) => setState(() => _audience = value),
+                    onClasses: (ids) => setState(() => _selectedClassIds = ids),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // ── Sección: Lugar y tiempo ───────────────────────────────
+                  ActivitySectionHeader(
+                    icon: HugeIcons.strokeRoundedLocation01,
+                    label: 'activities.form.section_place_time'.tr(),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Selector de ubicación (tappable — abre el mapa) *
+                  ActivityLocationPickerField(
+                    result: _selectedLocation,
+                    hasError: _locationTouched && _selectedLocation == null,
+                    enabled: !isLoading,
+                    onTap: isLoading ? null : _openLocationPicker,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Fecha de inicio
+                  ActivityDatePickerField(
+                    label: _repeat
+                        ? 'activities.series.first_date'.tr()
+                        : 'activities.form.date_label'.tr(),
+                    value: _activityDate,
+                    enabled: !isLoading,
+                    onTap: isLoading ? null : _pickActivityDate,
+                    onClear: _activityDate == null
+                        ? null
+                        : () => setState(() {
+                              _activityDate = null;
+                              _activityEndDate = null;
+                            }),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Hora
+                  SacTextField(
+                    controller: _timeController,
+                    label: 'activities.form.time_label'.tr(),
+                    hint: '09:00',
+                    prefixIcon: HugeIcons.strokeRoundedClock01,
+                    readOnly: true,
+                    enabled: !isLoading,
+                    onTap: isLoading ? null : _pickTime,
+                    suffix: SacPressable(
+                      listenOnly: true,
+                      child: IconButton(
+                        enableFeedback: false,
+                        icon: HugeIcon(
+                          icon: HugeIcons.strokeRoundedClock01,
+                          size: 18,
+                          color: SacAccent.of(context).color,
+                        ),
+                        onPressed: isLoading ? null : _pickTime,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Fecha de fin solo en una actividad suelta. En serie, el límite
+                  // es «Repetir hasta».
                   AnimatedSize(
                     duration: SacMotion.reduceMotionOf(context)
                         ? Duration.zero
                         : SacMotion.standard,
                     curve: SacMotion.easeInOut,
-                    child: _isJoint
-                        ? Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                    alignment: Alignment.topCenter,
+                    child: _repeat
+                        ? const SizedBox(width: double.infinity)
+                        : Column(
                             children: [
-                              const SizedBox(height: 12),
-                              _SectionMultiPicker(
-                                clubId: widget.clubId,
-                                ownSectionId: widget.clubSectionId,
-                                selectedIds: _selectedSectionIds,
-                                enabled: !isLoading,
-                                onChanged: (ids) =>
-                                    setState(() => _selectedSectionIds = ids),
+                              ActivityDatePickerField(
+                                label: 'activities.form.end_date_label'.tr(),
+                                value: _activityEndDate,
+                                enabled: !isLoading && _activityDate != null,
+                                onTap: (isLoading || _activityDate == null)
+                                    ? null
+                                    : _pickActivityEndDate,
+                                onClear: _activityEndDate == null
+                                    ? null
+                                    : () =>
+                                        setState(() => _activityEndDate = null),
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 24),
+                            ],
+                          ),
+                  ),
+
+                  ActivitySectionHeader(
+                    icon: HugeIcons.strokeRoundedRefresh,
+                    label: 'activities.series.section_title'.tr(),
+                  ),
+                  const SizedBox(height: 8),
+                  ActivitySeriesFormSection(
+                    enabled: !isLoading,
+                    repeat: _repeat,
+                    onRepeatChanged: (value) {
+                      setState(() {
+                        _repeat = value;
+                        _until ??= _yearEnd();
+                        if (value) _activityEndDate = null;
+                      });
+                      _schedulePreview();
+                    },
+                    kind: _repeatKind,
+                    onKindChanged: (value) {
+                      setState(() => _repeatKind = value);
+                      _schedulePreview();
+                    },
+                    weekday: _weekday,
+                    onWeekdayChanged: (value) {
+                      setState(() => _weekday = value);
+                      _schedulePreview();
+                    },
+                    intervalDays: _intervalDays,
+                    onIntervalDaysChanged: (value) {
+                      setState(() => _intervalDays = value);
+                      _schedulePreview();
+                    },
+                    until: _until,
+                    onPickUntil: isLoading ? null : _pickUntil,
+                    onClearUntil: () {
+                      setState(() => _until = null);
+                      _schedulePreview();
+                    },
+                    preview: _preview,
+                    previewLoading: _previewLoading,
+                    previewError: seriesState.previewError,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // ── Sección: Modalidad ────────────────────────────────────
+                  ActivitySectionHeader(
+                    icon: HugeIcons.strokeRoundedComputerVideoCall,
+                    label: 'activities.form.section_modality'.tr(),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Plataforma (presencial / virtual) — always visible
+                  ActivitySegmentedSelector<int>(
+                    label: 'activities.form.modality_label'.tr(),
+                    value: _selectedPlatform,
+                    options: [
+                      ActivitySegmentOption(
+                          value: 0,
+                          label: 'activities.form.modality_in_person'.tr()),
+                      ActivitySegmentOption(
+                          value: 1,
+                          label: 'activities.form.modality_virtual'.tr()),
+                    ],
+                    onChanged: isLoading
+                        ? null
+                        : (v) => setState(() {
+                              _selectedPlatform = v;
+                              // Reset image when switching to presencial
+                              if (v == 0) {
+                                _pickedImageFile = null;
+                                _imageController.clear();
+                              }
+                            }),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Virtual-only fields (animated in/out)
+                  AnimatedSize(
+                    duration: SacMotion.reduceMotionOf(context)
+                        ? Duration.zero
+                        : SacMotion.standard,
+                    curve: SacMotion.easeInOut,
+                    child: _selectedPlatform == 1
+                        ? Column(
+                            children: [
+                              // Link videoconferencia
+                              SacTextField(
+                                controller: _linkMeetController,
+                                label: 'activities.form.link_meet_label'.tr(),
+                                hint: 'activities.form.link_meet_hint'.tr(),
+                                prefixIcon:
+                                    HugeIcons.strokeRoundedComputerVideoCall,
+                                keyboardType: TextInputType.url,
+                                enabled: !isLoading,
+                              ),
+                              const SizedBox(height: 16),
+                              // Image picker
+                              ActivityImagePicker(
+                                localImagePath: _pickedImageFile?.path,
+                                isUploading: _isUploadingImage,
+                                enabled: !isLoading,
+                                onPickGallery: () =>
+                                    _pickAndUploadImage(ImageSource.gallery),
+                                onPickCamera: () =>
+                                    _pickAndUploadImage(ImageSource.camera),
+                              ),
+                              const SizedBox(height: 16),
                             ],
                           )
                         : const SizedBox.shrink(),
                   ),
-                  const SizedBox(height: 16),
-                ],
+                  const SizedBox(height: 8),
 
-                ActivityAudienceSection(
-                  sections: sectionsAsync.valueOrNull ?? const [],
-                  ownSectionId: widget.clubSectionId,
-                  isJoint: _isJoint,
-                  selectedSectionIds: _selectedSectionIds,
-                  audience: _audience,
-                  selectedClassIds: _selectedClassIds,
-                  onAudience: (value) => setState(() => _audience = value),
-                  onClasses: (ids) => setState(() => _selectedClassIds = ids),
-                ),
-                const SizedBox(height: 24),
-
-                // ── Sección: Lugar y tiempo ───────────────────────────────
-                ActivitySectionHeader(
-                  icon: HugeIcons.strokeRoundedLocation01,
-                  label: 'activities.form.section_place_time'.tr(),
-                ),
-                const SizedBox(height: 12),
-
-                // Selector de ubicación (tappable — abre el mapa) *
-                ActivityLocationPickerField(
-                  result: _selectedLocation,
-                  hasError: _locationTouched && _selectedLocation == null,
-                  enabled: !isLoading,
-                  onTap: isLoading ? null : _openLocationPicker,
-                ),
-                const SizedBox(height: 16),
-
-                // Fecha de inicio
-                ActivityDatePickerField(
-                  label: _repeat
-                      ? 'activities.series.first_date'.tr()
-                      : 'activities.form.date_label'.tr(),
-                  value: _activityDate,
-                  enabled: !isLoading,
-                  onTap: isLoading ? null : _pickActivityDate,
-                  onClear: _activityDate == null
-                      ? null
-                      : () => setState(() {
-                            _activityDate = null;
-                            _activityEndDate = null;
-                          }),
-                ),
-                const SizedBox(height: 16),
-
-                // Hora
-                SacTextField(
-                  controller: _timeController,
-                  label: 'activities.form.time_label'.tr(),
-                  hint: '09:00',
-                  prefixIcon: HugeIcons.strokeRoundedClock01,
-                  readOnly: true,
-                  enabled: !isLoading,
-                  onTap: isLoading ? null : _pickTime,
-                  suffix: SacPressable(
-                    listenOnly: true,
-                    child: IconButton(
-                      enableFeedback: false,
-                      icon: HugeIcon(
-                        icon: HugeIcons.strokeRoundedClock01,
-                        size: 18,
-                        color: SacAccent.of(context).color,
-                      ),
-                      onPressed: isLoading ? null : _pickTime,
-                    ),
+                  // ── Botón de guardar ──────────────────────────────────────
+                  SacButton.primary(
+                    text: _repeat
+                        ? 'activities.series.create_many'.tr(
+                            namedArgs: {'count': '${_preview?.count ?? 0}'},
+                          )
+                        : 'activities.create.save_button'.tr(),
+                    icon: HugeIcons.strokeRoundedCalendarAdd01,
+                    isLoading: isLoading,
+                    isEnabled: !isLoading,
+                    onPressed: _handleSave,
                   ),
-                ),
-                const SizedBox(height: 16),
-
-                // Fecha de fin solo en una actividad suelta. En serie, el límite
-                // es «Repetir hasta».
-                AnimatedSize(
-                  duration: SacMotion.reduceMotionOf(context)
-                      ? Duration.zero
-                      : SacMotion.standard,
-                  curve: SacMotion.easeInOut,
-                  alignment: Alignment.topCenter,
-                  child: _repeat
-                      ? const SizedBox(width: double.infinity)
-                      : Column(
-                          children: [
-                            ActivityDatePickerField(
-                              label: 'activities.form.end_date_label'.tr(),
-                              value: _activityEndDate,
-                              enabled: !isLoading && _activityDate != null,
-                              onTap: (isLoading || _activityDate == null)
-                                  ? null
-                                  : _pickActivityEndDate,
-                              onClear: _activityEndDate == null
-                                  ? null
-                                  : () =>
-                                      setState(() => _activityEndDate = null),
-                            ),
-                            const SizedBox(height: 24),
-                          ],
-                        ),
-                ),
-
-                ActivitySectionHeader(
-                  icon: HugeIcons.strokeRoundedRefresh,
-                  label: 'activities.series.section_title'.tr(),
-                ),
-                const SizedBox(height: 8),
-                ActivitySeriesFormSection(
-                  enabled: !isLoading,
-                  repeat: _repeat,
-                  onRepeatChanged: (value) {
-                    setState(() {
-                      _repeat = value;
-                      _until ??= _yearEnd();
-                      if (value) _activityEndDate = null;
-                    });
-                    _schedulePreview();
-                  },
-                  kind: _repeatKind,
-                  onKindChanged: (value) {
-                    setState(() => _repeatKind = value);
-                    _schedulePreview();
-                  },
-                  weekday: _weekday,
-                  onWeekdayChanged: (value) {
-                    setState(() => _weekday = value);
-                    _schedulePreview();
-                  },
-                  intervalDays: _intervalDays,
-                  onIntervalDaysChanged: (value) {
-                    setState(() => _intervalDays = value);
-                    _schedulePreview();
-                  },
-                  until: _until,
-                  onPickUntil: isLoading ? null : _pickUntil,
-                  onClearUntil: () {
-                    setState(() => _until = null);
-                    _schedulePreview();
-                  },
-                  preview: _preview,
-                  previewLoading: _previewLoading,
-                  previewError: seriesState.previewError,
-                ),
-                const SizedBox(height: 24),
-
-                // ── Sección: Modalidad ────────────────────────────────────
-                ActivitySectionHeader(
-                  icon: HugeIcons.strokeRoundedComputerVideoCall,
-                  label: 'activities.form.section_modality'.tr(),
-                ),
-                const SizedBox(height: 12),
-
-                // Plataforma (presencial / virtual) — always visible
-                ActivitySegmentedSelector<int>(
-                  label: 'activities.form.modality_label'.tr(),
-                  value: _selectedPlatform,
-                  options: [
-                    ActivitySegmentOption(
-                        value: 0,
-                        label: 'activities.form.modality_in_person'.tr()),
-                    ActivitySegmentOption(
-                        value: 1,
-                        label: 'activities.form.modality_virtual'.tr()),
-                  ],
-                  onChanged: isLoading
-                      ? null
-                      : (v) => setState(() {
-                            _selectedPlatform = v;
-                            // Reset image when switching to presencial
-                            if (v == 0) {
-                              _pickedImageFile = null;
-                              _imageController.clear();
-                            }
-                          }),
-                ),
-                const SizedBox(height: 16),
-
-                // Virtual-only fields (animated in/out)
-                AnimatedSize(
-                  duration: SacMotion.reduceMotionOf(context)
-                      ? Duration.zero
-                      : SacMotion.standard,
-                  curve: SacMotion.easeInOut,
-                  child: _selectedPlatform == 1
-                      ? Column(
-                          children: [
-                            // Link videoconferencia
-                            SacTextField(
-                              controller: _linkMeetController,
-                              label: 'activities.form.link_meet_label'.tr(),
-                              hint: 'activities.form.link_meet_hint'.tr(),
-                              prefixIcon:
-                                  HugeIcons.strokeRoundedComputerVideoCall,
-                              keyboardType: TextInputType.url,
-                              enabled: !isLoading,
-                            ),
-                            const SizedBox(height: 16),
-                            // Image picker
-                            ActivityImagePicker(
-                              localImagePath: _pickedImageFile?.path,
-                              isUploading: _isUploadingImage,
-                              enabled: !isLoading,
-                              onPickGallery: () =>
-                                  _pickAndUploadImage(ImageSource.gallery),
-                              onPickCamera: () =>
-                                  _pickAndUploadImage(ImageSource.camera),
-                            ),
-                            const SizedBox(height: 16),
-                          ],
-                        )
-                      : const SizedBox.shrink(),
-                ),
-                const SizedBox(height: 8),
-
-                // ── Botón de guardar ──────────────────────────────────────
-                SacButton.primary(
-                  text: _repeat
-                      ? 'activities.series.create_many'.tr(
-                          namedArgs: {'count': '${_preview?.count ?? 0}'},
-                        )
-                      : 'activities.create.save_button'.tr(),
-                  icon: HugeIcons.strokeRoundedCalendarAdd01,
-                  isLoading: isLoading,
-                  isEnabled: !isLoading,
-                  onPressed: _handleSave,
-                ),
-                const SizedBox(height: 32),
-              ],
+                  const SizedBox(height: 32),
+                ],
+              ),
             ),
           ),
         ),
