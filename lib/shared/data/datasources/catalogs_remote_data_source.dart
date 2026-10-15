@@ -213,12 +213,32 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
   @override
   Future<EcclesiasticalYearModel?> getCurrentEcclesiasticalYear(
       {CancelToken? cancelToken}) async {
+    // El listado ignora `?active=` y viene del más nuevo al más viejo, así
+    // que su primer elemento puede ser un año futuro. /current resuelve el
+    // año vigente por fecha en el backend.
     try {
-      final years =
-          await getEcclesiasticalYears(active: true, cancelToken: cancelToken);
-      return years.isNotEmpty ? years.first : null;
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.catalogs}/ecclesiastical-years/current',
+        cancelToken: cancelToken,
+      );
+      final data = response.data;
+      if (data is! Map<String, dynamic>) return null;
+      final payload = data['data'] is Map<String, dynamic>
+          ? data['data'] as Map<String, dynamic>
+          : data;
+      if (payload['ecclesiastical_year_id'] == null) return null;
+      return EcclesiasticalYearModel.fromJson(payload);
     } catch (e) {
       AppLogger.e('Error en getCurrentEcclesiasticalYear', tag: _tag, error: e);
+      if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
+        if (e.response?.statusCode == 404) return null;
+        throw ServerException(
+          message: e.response?.data?['message'] ??
+              e.message ??
+              tr('common.error_network'),
+        );
+      }
       rethrow;
     }
   }

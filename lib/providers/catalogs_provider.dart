@@ -250,17 +250,13 @@ final currentEcclesiasticalYearProvider =
     fromJson: EcclesiasticalYearModel.fromJson,
   );
 
-  if (cached != null && cached.isNotEmpty) {
-    return cached.first;
-  }
-
-  final cachedFromList = _readCachedList<EcclesiasticalYearModel>(
-    storage: storage,
-    cacheKey: _ecclesiasticalYearsCacheKey(true),
-    fromJson: EcclesiasticalYearModel.fromJson,
-  );
-  if (cachedFromList != null && cachedFromList.isNotEmpty) {
-    return cachedFromList.first;
+  // Un caché previo pudo guardar un año futuro (el listado `?active=true`
+  // no filtra en el backend). Solo se reutiliza si sigue vigente hoy.
+  final today = DateTime.now();
+  final cachedCurrent =
+      cached?.where((y) => isCurrentEcclesiasticalYear(y, today));
+  if (cachedCurrent != null && cachedCurrent.isNotEmpty) {
+    return cachedCurrent.first;
   }
 
   final value = await dataSource.getCurrentEcclesiasticalYear(
@@ -278,3 +274,14 @@ final currentEcclesiasticalYearProvider =
   );
   return value;
 });
+
+/// Un año eclesiástico es el vigente si está activo y [now] cae dentro de sus
+/// fechas (inclusive, por día).
+bool isCurrentEcclesiasticalYear(EcclesiasticalYearModel year, DateTime now) {
+  if (!year.active) return false;
+  final day = DateTime(now.year, now.month, now.day);
+  final start =
+      DateTime(year.startDate.year, year.startDate.month, year.startDate.day);
+  final end = DateTime(year.endDate.year, year.endDate.month, year.endDate.day);
+  return !day.isBefore(start) && !day.isAfter(end);
+}
