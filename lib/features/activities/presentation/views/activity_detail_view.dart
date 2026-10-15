@@ -677,6 +677,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                             const SizedBox(height: 24),
                             ActivityAttendeesSection(
                               attendees: activity.attendees ?? [],
+                              profiles: activity.attendeeProfiles,
                               emptyMessage: activity.platform == 1
                                   ? 'activities.widgets.rsvp_none_confirmed'
                                       .tr()

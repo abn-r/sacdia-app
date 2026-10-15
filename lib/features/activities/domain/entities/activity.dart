@@ -19,6 +19,34 @@ class ActivityAudienceClass extends Equatable {
   List<Object?> get props => [classId, name, assetCode, clubTypeId];
 }
 
+/// Datos para mostrar a un participante (nombre y foto) en el detalle.
+class ActivityAttendee extends Equatable {
+  final String userId;
+  final String name;
+  final String? paternalLastName;
+  final String? imageUrl;
+
+  const ActivityAttendee({
+    required this.userId,
+    required this.name,
+    this.paternalLastName,
+    this.imageUrl,
+  });
+
+  /// Up to two initials from the first name and paternal last name.
+  String get initials {
+    String first(String? value) {
+      final trimmed = value?.trim() ?? '';
+      return trimmed.isEmpty ? '' : trimmed.substring(0, 1).toUpperCase();
+    }
+
+    return '${first(name)}${first(paternalLastName)}';
+  }
+
+  @override
+  List<Object?> get props => [userId, name, paternalLastName, imageUrl];
+}
+
 /// Entidad de actividad del club del dominio
 class Activity extends Equatable {
   final int id;
@@ -43,6 +71,10 @@ class Activity extends Equatable {
   final DateTime? activityDate;
   final DateTime? activityEndDate;
   final List<String>? attendees;
+
+  /// Name/photo for entries of [attendees], in the same order. Ids without a
+  /// profile (deleted users, older backends) are simply missing here.
+  final List<ActivityAttendee> attendeeProfiles;
   final List<int>? classes;
   final String? additionalData;
   final String? creatorName;
@@ -84,6 +116,7 @@ class Activity extends Equatable {
     this.activityDate,
     this.activityEndDate,
     this.attendees,
+    this.attendeeProfiles = const [],
     this.classes,
     this.additionalData,
     this.creatorName,
@@ -131,6 +164,7 @@ class Activity extends Equatable {
         activityDate,
         activityEndDate,
         attendees,
+        attendeeProfiles,
         classes,
         additionalData,
         creatorName,

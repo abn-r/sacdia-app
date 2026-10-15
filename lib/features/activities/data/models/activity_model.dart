@@ -26,6 +26,7 @@ class ActivityModel extends Equatable {
   final DateTime? activityDate;
   final DateTime? activityEndDate;
   final List<String>? attendees;
+  final List<ActivityAttendee> attendeeProfiles;
   final List<int>? classes;
   final String? additionalData;
   final String? creatorName;
@@ -61,6 +62,7 @@ class ActivityModel extends Equatable {
     this.activityDate,
     this.activityEndDate,
     this.attendees,
+    this.attendeeProfiles = const [],
     this.classes,
     this.additionalData,
     this.creatorName,
@@ -116,6 +118,22 @@ class ActivityModel extends Equatable {
     final rawAttendees = json['attendees'];
     if (rawAttendees is List) {
       attendees = rawAttendees.map((e) => e.toString()).toList();
+    }
+
+    // Parse attendee display data (name + signed photo)
+    final attendeeProfiles = <ActivityAttendee>[];
+    final rawProfiles = json['attendee_profiles'];
+    if (rawProfiles is List) {
+      for (final raw in rawProfiles.whereType<Map>()) {
+        final userId = raw['user_id']?.toString();
+        if (userId == null || userId.isEmpty) continue;
+        attendeeProfiles.add(ActivityAttendee(
+          userId: userId,
+          name: raw['name']?.toString() ?? '',
+          paternalLastName: raw['paternal_last_name']?.toString(),
+          imageUrl: raw['user_image'] as String?,
+        ));
+      }
     }
 
     // Parse classes list
@@ -194,6 +212,7 @@ class ActivityModel extends Equatable {
       activityDate: _parseDateOnly(json['activity_date'] as String?),
       activityEndDate: _parseDateOnly(json['activity_end_date'] as String?),
       attendees: attendees,
+      attendeeProfiles: attendeeProfiles,
       classes: classes,
       additionalData: json['additional_data'] as String?,
       creatorName: creatorName,
@@ -257,6 +276,7 @@ class ActivityModel extends Equatable {
       activityDate: activityDate,
       activityEndDate: activityEndDate,
       attendees: attendees,
+      attendeeProfiles: attendeeProfiles,
       classes: classes,
       additionalData: additionalData,
       creatorName: creatorName,
@@ -291,6 +311,7 @@ class ActivityModel extends Equatable {
         activityDate,
         activityEndDate,
         attendees,
+        attendeeProfiles,
         classes,
         additionalData,
         creatorName,

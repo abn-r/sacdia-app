@@ -1,20 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
+
+import '../../domain/entities/activity.dart';
 
 /// Attendees section — read-only display of activity participants.
 ///
 /// Shows stacked circular avatars with warm, distinct colors for initials.
-/// The list comes from the `attendees` JSON field on the activity; users are
-/// auto-enrolled when the activity is created (no opt-in needed).
+/// The list comes from the `attendees` JSON field on the activity; display
+/// data (name/photo) comes from `attendee_profiles`. An id without a profile
+/// renders a neutral person icon — never characters of the raw user id.
 class ActivityAttendeesSection extends StatelessWidget {
   final List<String> attendees;
+  final List<ActivityAttendee> profiles;
   final String? emptyMessage;
 
   const ActivityAttendeesSection({
     super.key,
     required this.attendees,
+    this.profiles = const [],
     this.emptyMessage,
   });
 
@@ -99,7 +106,7 @@ class ActivityAttendeesSection extends StatelessWidget {
           )
         else
           _StackedAvatars(
-            attendees: attendees,
+            attendees: _resolve(),
             maxVisible: _maxVisible,
             warmPalette: _warmPalette,
             warmPaletteDark: _warmPaletteDark,
@@ -107,12 +114,17 @@ class ActivityAttendeesSection extends StatelessWidget {
       ],
     );
   }
+
+  List<ActivityAttendee?> _resolve() {
+    final byId = {for (final p in profiles) p.userId: p};
+    return [for (final id in attendees) byId[id]];
+  }
 }
 
 // ── _StackedAvatars ────────────────────────────────────────────────────────────
 
 class _StackedAvatars extends StatelessWidget {
-  final List<String> attendees;
+  final List<ActivityAttendee?> attendees;
   final int maxVisible;
   final List<Color> warmPalette;
   final List<Color> warmPaletteDark;
@@ -150,7 +162,7 @@ class _StackedAvatars extends StatelessWidget {
               left: i * (_avatarSize - _overlap),
               child: _AvatarCircle(
                 index: i,
-                userId: visible[i],
+                attendee: visible[i],
                 size: _avatarSize,
                 warmPalette: warmPalette,
                 warmPaletteDark: warmPaletteDark,
@@ -170,14 +182,14 @@ class _StackedAvatars extends StatelessWidget {
 
 class _AvatarCircle extends StatelessWidget {
   final int index;
-  final String userId;
+  final ActivityAttendee? attendee;
   final double size;
   final List<Color> warmPalette;
   final List<Color> warmPaletteDark;
 
   const _AvatarCircle({
     required this.index,
-    required this.userId,
+    required this.attendee,
     required this.size,
     required this.warmPalette,
     required this.warmPaletteDark,
@@ -189,27 +201,57 @@ class _AvatarCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: _bgColor(),
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          width: 2,
+    final imageUrl = attendee?.imageUrl;
+    final initials = attendee?.initials ?? '';
+
+    final Widget content;
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      content = ClipOval(
+        child: SacProfileImage(
+          imageUrl: imageUrl,
+          width: size,
+          height: size,
+          errorWidget: (_, __, ___) => _fallback(initials),
         ),
-      ),
-      child: Center(
-        child: Text(
-          userId.isNotEmpty ? userId[0].toUpperCase() : '?',
-          style: TextStyle(
-            fontSize: size * 0.38,
-            fontWeight: FontWeight.w700,
-            color: _textColor(),
+      );
+    } else {
+      content = _fallback(initials);
+    }
+
+    return Semantics(
+      label: attendee?.name,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: _bgColor(),
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            width: 2,
           ),
         ),
+        child: content,
       ),
+    );
+  }
+
+  Widget _fallback(String initials) {
+    return Center(
+      child: initials.isNotEmpty
+          ? Text(
+              initials,
+              style: TextStyle(
+                fontSize: size * 0.34,
+                fontWeight: FontWeight.w700,
+                color: _textColor(),
+              ),
+            )
+          : HugeIcon(
+              icon: HugeIcons.strokeRoundedUser,
+              size: size * 0.45,
+              color: _textColor(),
+            ),
     );
   }
 }
