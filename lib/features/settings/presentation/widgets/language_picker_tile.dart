@@ -127,7 +127,10 @@ class _LanguageFlagBadge extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
+            // Stretch: the stripes have no child, so without it they
+            // collapse to 0px tall and the badge renders blank.
             Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: colors
                   .map(
                     (color) => Expanded(
