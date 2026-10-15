@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -62,6 +64,9 @@ class _FakeLegalRepository implements LegalRepository {
   List<Either<Failure, LegalStatus>> statusQueue = [Right(_status())];
   Either<Failure, LegalStatus> acceptResult = Right(_status());
   int statusCalls = 0;
+
+  /// When set, [accept] stays pending until it completes (in-flight state).
+  Completer<void>? acceptGate;
   final List<({String terms, String privacy})> sent = [];
 
   @override
@@ -78,6 +83,7 @@ class _FakeLegalRepository implements LegalRepository {
     required String privacyVersion,
   }) async {
     sent.add((terms: termsVersion, privacy: privacyVersion));
+    await acceptGate?.future;
     return acceptResult;
   }
 
@@ -138,6 +144,12 @@ Finder get _acceptFinder =>
 
 SacButton _acceptButton(WidgetTester tester) =>
     tester.widget<SacButton>(_acceptFinder);
+
+// While submitting the button shows a spinner instead of its label, so it is
+// located by widget type + text field rather than by rendered text.
+Finder get _acceptByWidget => find.byWidgetPredicate(
+      (w) => w is SacButton && w.text == 'legal_gate.accept_button',
+    );
 
 void main() {
   testWidgets('is a blocking route (PopScope canPop false)', (tester) async {
@@ -271,5 +283,44 @@ void main() {
     expect(h.auth.accepted, 0);
     expect(find.text('legal_gate.accept_error'), findsOneWidget);
     expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isTrue);
+  });
+
+  testWidgets('while accept is in flight the form is locked until it resolves',
+      (tester) async {
+    final gate = Completer<void>();
+    final repo = _FakeLegalRepository()
+      ..acceptGate = gate
+      ..acceptResult = Right(_status(requiresAcceptance: false));
+    final h = await _pump(tester, repo);
+
+    await tester.tap(find.byType(Checkbox));
+    await tester.pump();
+    expect(tester.widget<SacButton>(_acceptByWidget).isEnabled, isTrue);
+
+    tester.widget<SacButton>(_acceptByWidget).onPressed!();
+    await tester.pump();
+    await tester.pump();
+
+    // In flight: request sent, nothing resolved yet.
+    expect(h.repo.sent, hasLength(1));
+    expect(h.auth.accepted, 0);
+    final inFlight = tester.widget<SacButton>(_acceptByWidget);
+    expect(inFlight.isEnabled, isFalse);
+    expect(inFlight.isLoading, isTrue);
+    expect(inFlight.onPressed, isNull);
+    final checkbox = tester.widget<Checkbox>(find.byType(Checkbox));
+    expect(checkbox.onChanged, isNull);
+
+    // A second tap while in flight must not send a second request.
+    await tester.tap(find.byType(Checkbox), warnIfMissed: false);
+    await tester.pump();
+    expect(h.repo.sent, hasLength(1));
+
+    gate.complete();
+    await tester.pump();
+    await tester.pump();
+
+    expect(h.repo.sent, hasLength(1));
+    expect(h.auth.accepted, 1);
   });
 }
