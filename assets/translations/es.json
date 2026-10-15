@@ -2578,7 +2578,10 @@
       "modules": "Módulos",
       "sections": "Secciones",
       "curriculum_meta": "{modules} módulos · {sections} secciones",
-      "sections_count": "{count} secciones",
+      "sections_count": {
+        "one": "{count} sección",
+        "other": "{count} secciones"
+      },
       "enrolled": "Estás inscrito",
       "enrolled_meta": "Inscrito · {percentage}%",
       "progress_percent": "Progreso: {percentage}%",

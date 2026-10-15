@@ -170,9 +170,8 @@ class _DetailBody extends ConsumerWidget {
                       ),
                       SacBadge(
                         icon: HugeIcons.strokeRoundedTaskDone01,
-                        label: 'certifications.detail.sections_count'.tr(
-                          namedArgs: {'count': '$sectionCount'},
-                        ),
+                        label: 'certifications.detail.sections_count'
+                            .plural(sectionCount, name: 'count'),
                       ),
                     ],
                   ),
@@ -428,9 +427,8 @@ class _ModuleRowState extends State<_ModuleRow>
           button: true,
           expanded: _expanded,
           label: widget.module.name,
-          hint: 'certifications.detail.sections_count'.tr(
-            namedArgs: {'count': '$sectionCount'},
-          ),
+          hint: 'certifications.detail.sections_count'
+              .plural(sectionCount, name: 'count'),
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTapDown: (_) => _setPressed(true),
@@ -491,9 +489,8 @@ class _ModuleRowState extends State<_ModuleRow>
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'certifications.detail.sections_count'.tr(
-                            namedArgs: {'count': '$sectionCount'},
-                          ),
+                          'certifications.detail.sections_count'
+                              .plural(sectionCount, name: 'count'),
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: _expanded

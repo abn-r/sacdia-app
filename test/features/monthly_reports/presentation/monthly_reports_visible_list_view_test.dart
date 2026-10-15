@@ -9,6 +9,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/features/enrollment/domain/entities/enrollment.dart';
 import 'package:sacdia_app/features/enrollment/presentation/providers/enrollment_providers.dart';
+import 'package:sacdia_app/features/members/presentation/providers/members_providers.dart';
 import 'package:sacdia_app/features/monthly_reports/domain/entities/monthly_report.dart';
 import 'package:sacdia_app/features/monthly_reports/presentation/providers/monthly_reports_providers.dart';
 import 'package:sacdia_app/features/monthly_reports/presentation/views/monthly_reports_visible_list_view.dart';
@@ -33,6 +34,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            // Sin contexto de club: el historial sale de la lista multi-club.
+            clubContextProvider.overrideWith((ref) async => null),
             currentEnrollmentProvider.overrideWith(
               (ref) async => const Enrollment(
                 id: 1,

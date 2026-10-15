@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../enrollment/presentation/providers/enrollment_providers.dart';
+import '../../../members/presentation/providers/members_providers.dart';
 import '../../data/datasources/monthly_reports_remote_data_source.dart';
 import '../../data/repositories/monthly_reports_repository_impl.dart';
 import '../../domain/entities/monthly_report.dart';
@@ -110,6 +112,34 @@ final visibleMonthlyReportsProvider =
   );
 });
 
+/// Historial de la pantalla Informes.
+///
+/// Con contexto de club (director, secretario…) son los informes de la
+/// inscripción de la sección activa, la misma que usa "Preparar informe".
+/// `admin/list` es multi-club: a un director que además coordina le traería
+/// informes de otras secciones. Solo sin contexto de club (coordinador o
+/// admin) se usa esa lista.
+final monthlyReportsHistoryProvider =
+    FutureProvider.autoDispose<List<VisibleMonthlyReport>>((ref) async {
+  final clubContext = await ref.watch(clubContextProvider.future);
+  if (clubContext == null) {
+    final page = await ref.watch(visibleMonthlyReportsProvider.future);
+    return page.items;
+  }
+
+  final enrollment = await ref.watch(currentEnrollmentProvider.future);
+  final enrollmentId = enrollment?.endpointId;
+  if (enrollmentId == null || enrollmentId == '0') return const [];
+
+  final reports =
+      await ref.watch(monthlyReportsByEnrollmentProvider(enrollmentId).future);
+  return reports.map(VisibleMonthlyReport.fromReport).toList()
+    ..sort((a, b) {
+      final byYear = b.year.compareTo(a.year);
+      return byYear != 0 ? byYear : b.month.compareTo(a.month);
+    });
+});
+
 /// Descarga el PDF de un informe mensual y devuelve la ruta local del archivo
 /// temporal. El token JWT se envía en el header Authorization — nunca en la URL.
 final monthlyReportPdfProvider =
@@ -201,6 +231,7 @@ class MonthlyReportMutationNotifier
       (report) {
         state = state.copyWith(isLoading: false, report: report);
         ref.invalidate(visibleMonthlyReportsProvider);
+        ref.invalidate(monthlyReportsByEnrollmentProvider);
         return report;
       },
     );
@@ -223,6 +254,7 @@ class MonthlyReportMutationNotifier
         state = state.copyWith(isLoading: false, report: report);
         ref.invalidate(monthlyReportDetailProvider(reportId));
         ref.invalidate(visibleMonthlyReportsProvider);
+        ref.invalidate(monthlyReportsByEnrollmentProvider);
         return true;
       },
     );

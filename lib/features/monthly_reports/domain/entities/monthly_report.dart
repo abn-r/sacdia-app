@@ -400,6 +400,22 @@ class VisibleMonthlyReport extends Equatable {
     this.memberCount,
   });
 
+  /// Fila del historial armada desde `GET /monthly-reports/enrollment/:id`.
+  factory VisibleMonthlyReport.fromReport(MonthlyReport report) {
+    return VisibleMonthlyReport(
+      id: report.id,
+      enrollmentId: report.enrollmentId,
+      month: report.month,
+      year: report.year,
+      status: report.status,
+      generatedAt: report.generatedAt,
+      submittedAt: report.submittedAt,
+      clubName: report.clubName,
+      clubType: report.clubType,
+      memberCount: report.totalMembers,
+    );
+  }
+
   MonthlyReportStatus get reportStatus {
     switch (status) {
       case 'generated':

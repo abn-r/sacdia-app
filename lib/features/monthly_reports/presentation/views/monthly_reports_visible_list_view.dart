@@ -23,9 +23,19 @@ import 'monthly_report_detail_view.dart';
 class MonthlyReportsVisibleListView extends ConsumerWidget {
   const MonthlyReportsVisibleListView({super.key});
 
+  Future<void> _refresh(WidgetRef ref) async {
+    ref.invalidate(visibleMonthlyReportsProvider);
+    ref.invalidate(monthlyReportsByEnrollmentProvider);
+    try {
+      await ref.read(monthlyReportsHistoryProvider.future);
+    } catch (_) {
+      // El error queda en el provider y la vista lo muestra.
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final reportsAsync = ref.watch(visibleMonthlyReportsProvider);
+    final reportsAsync = ref.watch(monthlyReportsHistoryProvider);
     final c = context.sac;
 
     return Scaffold(
@@ -41,18 +51,17 @@ class MonthlyReportsVisibleListView extends ConsumerWidget {
             loading: () => const MonthlyReportSkeletonList(),
             error: (e, _) => _ErrorBody(
               message: e.toString().replaceFirst('Exception: ', ''),
-              onRetry: () => ref.invalidate(visibleMonthlyReportsProvider),
+              onRetry: () => _refresh(ref),
             ),
-            data: (page) => RefreshIndicator(
+            data: (reports) => RefreshIndicator(
               color: SacAccent.of(context).color,
-              onRefresh: () async =>
-                  ref.invalidate(visibleMonthlyReportsProvider),
+              onRefresh: () => _refresh(ref),
               child: ListView(
                 padding: SacTopBar.paddingBelowBar(
                     context, const EdgeInsets.fromLTRB(20, 8, 20, 28)),
                 children: [
                   MonthlyReportEntrance(
-                      child: _NextActionBar(reports: page.items)),
+                      child: _NextActionBar(reports: reports)),
                   const SizedBox(height: 22),
                   MonthlyReportEntrance(
                     index: 1,
@@ -67,12 +76,12 @@ class MonthlyReportsVisibleListView extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  if (page.items.isEmpty)
+                  if (reports.isEmpty)
                     MonthlyReportEntrance(index: 2, child: _EmptyHistory(c: c))
                   else
                     MonthlyReportEntrance(
                       index: 2,
-                      child: _GroupedHistoryList(reports: page.items),
+                      child: _GroupedHistoryList(reports: reports),
                     ),
                 ],
               ),
