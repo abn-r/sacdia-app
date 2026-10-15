@@ -59,6 +59,18 @@ const Set<String> reportReadPermissions = {
   'reports:read',
 };
 
+/// Mirrors `@RequirePermissions('activities:update')` on
+/// `PATCH /activities/:activityId` (activities.controller.ts).
+const Set<String> activityUpdatePermissions = {
+  'activities:update',
+};
+
+/// Mirrors `@RequirePermissions('activities:delete')` on
+/// `DELETE /activities/:activityId` (activities.controller.ts).
+const Set<String> activityDeletePermissions = {
+  'activities:delete',
+};
+
 Set<String> _normalize(Iterable<dynamic> values) {
   return values
       .map((value) => value?.toString().trim().toLowerCase())
@@ -120,6 +132,14 @@ bool canViewSectionRankings(UserEntity? user) {
 
 bool canViewClubRankings(UserEntity? user) {
   return hasAnyPermission(user, clubRankingReadPermissions);
+}
+
+bool canUpdateActivities(UserEntity? user) {
+  return hasAnyPermission(user, activityUpdatePermissions);
+}
+
+bool canDeleteActivities(UserEntity? user) {
+  return hasAnyPermission(user, activityDeletePermissions);
 }
 
 bool _isDesignated(AuthorizationGrant grant) => grant.status == 'designated';

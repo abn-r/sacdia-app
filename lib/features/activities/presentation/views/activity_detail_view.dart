@@ -449,11 +449,13 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
   // ── AppBar action button (circular, white, with dark scrim) ─────────────────
 
   Widget _buildHeroAction({
+    Key? key,
     required BuildContext context,
     required Widget child,
     required VoidCallback? onPressed,
   }) {
     return GestureDetector(
+      key: key,
       onTap: onPressed,
       child: Container(
         width: 36,
@@ -501,6 +503,8 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
     final canScanAttendance = activityAsync.hasValue &&
         (hasAnyPermission(user, const {'attendance:manage'}) ||
             hasAnyRole(user, _attendanceScannerRoles));
+    final canEditActivity = canUpdateActivities(user);
+    final canDeleteActivity = canDeleteActivities(user);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
@@ -703,49 +707,55 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                     ),
                   ),
                 ),
-                Positioned(
-                  top: topPadding + 8,
-                  right: 12,
-                  child: Row(
-                    children: [
-                      _buildHeroAction(
-                        context: context,
-                        onPressed: deleteState.isLoading
-                            ? null
-                            : () => _navigateToEdit(activity),
-                        child: HugeIcon(
-                          icon: HugeIcons.strokeRoundedEdit02,
-                          size: 18,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      _buildHeroAction(
-                        context: context,
-                        onPressed:
-                            deleteState.isLoading ? null : _confirmDelete,
-                        child: SacStateSwap(
-                          child: deleteState.isLoading
-                              ? const SizedBox(
-                                  key: ValueKey('activity-delete-loading'),
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const HugeIcon(
-                                  key: ValueKey('activity-delete-idle'),
-                                  icon: HugeIcons.strokeRoundedDelete02,
-                                  color: Colors.white,
-                                  size: 18,
-                                ),
-                        ),
-                      ),
-                    ],
+                if (canEditActivity || canDeleteActivity)
+                  Positioned(
+                    top: topPadding + 8,
+                    right: 12,
+                    child: Row(
+                      children: [
+                        if (canEditActivity)
+                          _buildHeroAction(
+                            key: const ValueKey('activity-edit-action'),
+                            context: context,
+                            onPressed: deleteState.isLoading
+                                ? null
+                                : () => _navigateToEdit(activity),
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedEdit02,
+                              size: 18,
+                              color: Colors.white,
+                            ),
+                          ),
+                        if (canEditActivity && canDeleteActivity)
+                          const SizedBox(width: 8),
+                        if (canDeleteActivity)
+                          _buildHeroAction(
+                            key: const ValueKey('activity-delete-action'),
+                            context: context,
+                            onPressed:
+                                deleteState.isLoading ? null : _confirmDelete,
+                            child: SacStateSwap(
+                              child: deleteState.isLoading
+                                  ? const SizedBox(
+                                      key: ValueKey('activity-delete-loading'),
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const HugeIcon(
+                                      key: ValueKey('activity-delete-idle'),
+                                      icon: HugeIcons.strokeRoundedDelete02,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
               ],
             );
           },

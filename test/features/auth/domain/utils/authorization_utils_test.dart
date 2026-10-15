@@ -183,6 +183,42 @@ void main() {
     });
   });
 
+  // ── Activity management gates ────────────────────────────────────────────
+
+  group('activity management gates', () {
+    test('member without activity write permissions cannot edit or delete',
+        () {
+      final user = buildUser(
+        id: 'member',
+        permissions: const ['activities:read'],
+      );
+
+      expect(canUpdateActivities(user), isFalse);
+      expect(canDeleteActivities(user), isFalse);
+    });
+
+    test('update and delete are gated independently', () {
+      final editor = buildUser(
+        id: 'editor',
+        permissions: const ['activities:read', 'activities:update'],
+      );
+      final remover = buildUser(
+        id: 'remover',
+        permissions: const ['activities:read', 'activities:delete'],
+      );
+
+      expect(canUpdateActivities(editor), isTrue);
+      expect(canDeleteActivities(editor), isFalse);
+      expect(canUpdateActivities(remover), isFalse);
+      expect(canDeleteActivities(remover), isTrue);
+    });
+
+    test('null user cannot manage activities', () {
+      expect(canUpdateActivities(null), isFalse);
+      expect(canDeleteActivities(null), isFalse);
+    });
+  });
+
   // ── Inactive (ghost) status ──────────────────────────────────────────────
 
   group('AuthorizationGrant.isInactive', () {
