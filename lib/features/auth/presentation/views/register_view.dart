@@ -12,11 +12,41 @@ import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/utils/validators.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_legal_consent.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/auth/presentation/widgets/auth_sky_wash.dart';
 import 'package:sacdia_app/features/auth/presentation/widgets/sac_brand_mark.dart';
+import 'package:sacdia_app/features/legal/domain/entities/legal_document.dart';
+import 'package:sacdia_app/features/legal/presentation/providers/legal_providers.dart';
+
+/// Versiones y URLs de los documentos legales vigentes, listas para enviar.
+typedef _LegalSnapshot = ({
+  String termsVersion,
+  String privacyVersion,
+  String termsUrl,
+  String privacyUrl,
+});
+
+/// Extrae terms y privacy de [documents]; null si falta alguno (no se puede
+/// registrar evidencia sin las dos versiones).
+_LegalSnapshot? _legalSnapshot(List<LegalDocument>? documents) {
+  if (documents == null) return null;
+  LegalDocument? terms;
+  LegalDocument? privacy;
+  for (final doc in documents) {
+    if (doc.documentType == LegalDocumentTypes.terms) terms = doc;
+    if (doc.documentType == LegalDocumentTypes.privacy) privacy = doc;
+  }
+  if (terms == null || privacy == null) return null;
+  return (
+    termsVersion: terms.version,
+    privacyVersion: privacy.version,
+    termsUrl: terms.url,
+    privacyUrl: privacy.url,
+  );
+}
 
 /// Vista de registro.
 ///
@@ -39,6 +69,7 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
   final _confirmPasswordController = TextEditingController();
 
   bool _isButtonEnabled = false;
+  bool _acceptedLegal = false;
 
   @override
   void initState() {
@@ -89,9 +120,19 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
     );
   }
 
+  bool _canSubmit(_LegalSnapshot? legal) =>
+      _isButtonEnabled && _acceptedLegal && legal != null;
+
   Future<void> _signUp() async {
     final formState = _formKey.currentState;
     if (formState == null || !formState.validate()) return;
+
+    // Echo the versions the user actually saw (GET /legal/current), never
+    // app-side constants.
+    final legal = _legalSnapshot(
+      ref.read(currentLegalDocumentsProvider).valueOrNull,
+    );
+    if (legal == null || !_acceptedLegal) return;
 
     final success = await ref.read(authNotifierProvider.notifier).signUp(
           email: _emailController.text.trim(),
@@ -99,13 +140,20 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
           name: _nameController.text.trim(),
           paternalSurname: _paternalController.text.trim(),
           maternalSurname: _maternalController.text.trim(),
+          acceptedTermsVersion: legal.termsVersion,
+          acceptedPrivacyVersion: legal.privacyVersion,
         );
 
     if (success && mounted) {
       context.pop();
       SacSnackBar.show(context, 'auth.register_success'.tr(),
           backgroundColor: AppColors.secondary);
+      return;
     }
+    // On any failure re-fetch the current documents: a LEGAL_VERSION_MISMATCH
+    // means they changed while the form was open. The ref.listen in build()
+    // clears the checkbox when the versions differ.
+    ref.invalidate(currentLegalDocumentsProvider);
     // Error is surfaced via ref.watch in build().
   }
 
@@ -113,6 +161,25 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
     final isLoading = authState.isLoading;
+
+    // Reset the consent when the backend publishes different versions than
+    // the ones the user checked.
+    ref.listen<AsyncValue<List<LegalDocument>>>(currentLegalDocumentsProvider,
+        (previous, next) {
+      final before = _legalSnapshot(previous?.valueOrNull);
+      final after = _legalSnapshot(next.valueOrNull);
+      if (_acceptedLegal &&
+          before != null &&
+          after != null &&
+          (before.termsVersion != after.termsVersion ||
+              before.privacyVersion != after.privacyVersion)) {
+        setState(() => _acceptedLegal = false);
+      }
+    });
+    final legalAsync = ref.watch(currentLegalDocumentsProvider);
+    final legal = _legalSnapshot(legalAsync.valueOrNull);
+    final legalLoadFailed = legal == null && !legalAsync.isLoading;
+
     final errorMessage = authState.hasError
         ? (authState.error?.toString() ?? 'auth.register_error'.tr())
         : null;
@@ -267,8 +334,27 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                             validator: _validateConfirmPassword,
                             textInputAction: TextInputAction.done,
                             onSubmitted: (_) =>
-                                _isButtonEnabled ? _signUp() : null,
+                                _canSubmit(legal) ? _signUp() : null,
                           ),
+                          const SizedBox(height: 16),
+
+                          // Legal consent (evidence of acceptance)
+                          if (legal != null)
+                            SacLegalConsentCheckbox(
+                              value: _acceptedLegal,
+                              enabled: !isLoading,
+                              termsUrl: legal.termsUrl,
+                              privacyUrl: legal.privacyUrl,
+                              onChanged: (value) =>
+                                  setState(() => _acceptedLegal = value),
+                            )
+                          else if (legalLoadFailed)
+                            _LegalLoadError(
+                              onRetry: () =>
+                                  ref.invalidate(currentLegalDocumentsProvider),
+                            )
+                          else
+                            const SizedBox(height: 48),
                           const SizedBox(height: 24),
 
                           // Error message
@@ -310,8 +396,8 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                             backgroundColor: AppColors.loginBrandBlue,
                             borderRadius: AppTheme.radiusFull,
                             isLoading: isLoading,
-                            isEnabled: _isButtonEnabled,
-                            onPressed: _isButtonEnabled ? _signUp : null,
+                            isEnabled: _canSubmit(legal),
+                            onPressed: _canSubmit(legal) ? _signUp : null,
                           ),
                           const SizedBox(height: 24),
 
@@ -350,6 +436,39 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Error al cargar los documentos legales vigentes, con reintento. Mientras
+/// dure, el registro queda deshabilitado.
+class _LegalLoadError extends StatelessWidget {
+  final VoidCallback onRetry;
+
+  const _LegalLoadError({required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const HugeIcon(
+          icon: HugeIcons.strokeRoundedAlert02,
+          size: 20,
+          color: AppColors.errorDark,
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            'auth.legal.load_error'.tr(),
+            style: const TextStyle(color: AppColors.errorDark, fontSize: 14),
+          ),
+        ),
+        SacButton.ghost(
+          text: 'auth.legal.retry'.tr(),
+          textColor: AppColors.loginBrandBlueDark,
+          onPressed: onRetry,
+        ),
+      ],
     );
   }
 }

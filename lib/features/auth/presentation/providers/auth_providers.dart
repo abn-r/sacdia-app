@@ -440,6 +440,8 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     required String name,
     required String paternalSurname,
     required String maternalSurname,
+    required String acceptedTermsVersion,
+    required String acceptedPrivacyVersion,
   }) async {
     state = const AsyncValue.loading();
 
@@ -450,6 +452,8 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         name: name,
         paternalSurname: paternalSurname,
         maternalSurname: maternalSurname,
+        acceptedTermsVersion: acceptedTermsVersion,
+        acceptedPrivacyVersion: acceptedPrivacyVersion,
       ),
     );
 

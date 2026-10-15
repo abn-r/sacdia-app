@@ -10,6 +10,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
+import 'package:sacdia_app/core/constants/app_constants.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -18,6 +19,7 @@ import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/utils/validators.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_legal_consent.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/auth/presentation/widgets/auth_sky_wash.dart';
@@ -364,7 +366,15 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                     SocialSignInButtons(
                                       enabled: !_isCoolingDown,
                                     ),
-                                    const SizedBox(height: 28),
+                                    const SizedBox(height: 12),
+                                    // Static notice, not acceptance evidence:
+                                    // acceptance is recorded at register and
+                                    // by the legal gate.
+                                    const SacLegalNoticeText(
+                                      termsUrl: AppConstants.termsUrl,
+                                      privacyUrl: AppConstants.privacyPolicyUrl,
+                                    ),
+                                    const SizedBox(height: 16),
                                     Center(
                                       child: RichText(
                                         text: TextSpan(

@@ -34,6 +34,8 @@ abstract class AuthRemoteDataSource {
     required String name,
     required String paternalSurname,
     required String maternalSurname,
+    required String acceptedTermsVersion,
+    required String acceptedPrivacyVersion,
   });
 
   /// Cierra la sesión del usuario
@@ -499,6 +501,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String name,
     required String paternalSurname,
     required String maternalSurname,
+    required String acceptedTermsVersion,
+    required String acceptedPrivacyVersion,
   }) async {
     try {
       AppLogger.i('Registro iniciado', tag: _tag);
@@ -510,6 +514,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'name': name,
         'paternal_last_name': paternalSurname,
         'maternal_last_name': maternalSurname,
+        'accepted_terms_version': acceptedTermsVersion,
+        'accepted_privacy_version': acceptedPrivacyVersion,
       });
 
       if (response.statusCode != 200 && response.statusCode != 201) {
