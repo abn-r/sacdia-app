@@ -4,12 +4,14 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../domain/entities/notification_item.dart';
+import '../../domain/notification_action.dart';
 import '../../domain/notification_body_parser.dart';
 import '../../domain/notification_time.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -35,6 +37,7 @@ class NotificationCard extends ConsumerWidget {
       targetType: notification.targetType,
     );
     final parsedBody = parseNotificationBody(notification.body);
+    final action = notificationActionFor(notification.source);
 
     return showSacSheet<void>(
       context: context,
@@ -160,11 +163,28 @@ class NotificationCard extends ConsumerWidget {
                           ],
                         ),
                         const SizedBox(height: 18),
-                        SacButton.primary(
-                          text: 'notifications.inbox.detail_accept'.tr(),
-                          onPressed: () => Navigator.of(sheetContext).pop(),
-                          borderRadius: 16,
-                        ),
+                        if (action != null) ...[
+                          SacButton.primary(
+                            key: const ValueKey('notification-detail-action'),
+                            text: action.labelKey.tr(),
+                            onPressed: () {
+                              Navigator.of(sheetContext).pop();
+                              GoRouter.of(context).go(action.route);
+                            },
+                            borderRadius: 16,
+                          ),
+                          const SizedBox(height: 10),
+                          SacButton.outline(
+                            text: 'notifications.inbox.detail_accept'.tr(),
+                            onPressed: () => Navigator.of(sheetContext).pop(),
+                            borderRadius: 16,
+                          ),
+                        ] else
+                          SacButton.primary(
+                            text: 'notifications.inbox.detail_accept'.tr(),
+                            onPressed: () => Navigator.of(sheetContext).pop(),
+                            borderRadius: 16,
+                          ),
                       ],
                     ),
                   ),

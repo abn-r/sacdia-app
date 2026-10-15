@@ -3208,6 +3208,7 @@
       "detail_unread": "Non lue",
       "detail_sent_by": "Envoyée par",
       "detail_accept": "Accepter",
+      "detail_open_reports": "Aller aux rapports",
       "recognized_count": "{count} reconnus",
       "recognized_in": "{count} reconnus en {section}",
       "recognized_points": "{points} points",
