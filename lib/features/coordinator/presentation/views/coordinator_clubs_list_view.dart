@@ -87,8 +87,9 @@ class CoordinatorClubsListView extends ConsumerWidget {
                 Expanded(
                   child: clubsAsync.when(
                     loading: () => _ClubsLoadingSkeleton(hPad: hPad),
-                    error: (error, _) => _ClubsErrorState(
-                      message: error.toString(),
+                    // Raw exception text (e.g. backend guard codes) is not
+                    // user-facing; the error state shows a localized message.
+                    error: (_, __) => _ClubsErrorState(
                       onRetry: () =>
                           ref.invalidate(coordinatorClubsRawProvider),
                     ),
@@ -390,10 +391,9 @@ class _ClubsEmptyState extends StatelessWidget {
 // ── Error state ───────────────────────────────────────────────────────────────
 
 class _ClubsErrorState extends StatelessWidget {
-  final String message;
   final VoidCallback? onRetry;
 
-  const _ClubsErrorState({required this.message, this.onRetry});
+  const _ClubsErrorState({this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -420,7 +420,7 @@ class _ClubsErrorState extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              message,
+              'coordinator.clubs.error_load_subtitle'.tr(),
               style: TextStyle(fontSize: 13, color: c.textSecondary),
               textAlign: TextAlign.center,
             ),

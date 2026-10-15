@@ -179,6 +179,23 @@ void main() {
           isTrue);
     });
 
+    testWidgets('does not leak raw exception text in the error state',
+        (tester) async {
+      await _pumpView(
+        tester,
+        clubsState: AsyncError(
+          Exception('Configuración RBAC incorrecta en el handler'),
+          StackTrace.empty,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Exception'), findsNothing);
+      expect(find.textContaining('RBAC'), findsNothing);
+      expect(
+          find.text('coordinator.clubs.error_load_subtitle'), findsOneWidget);
+    });
+
     testWidgets('shows club cards when data is available', (tester) async {
       await _pumpView(
         tester,

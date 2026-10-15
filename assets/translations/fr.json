@@ -1703,6 +1703,7 @@
       "empty_title": "Aucun club assigné",
       "empty_subtitle": "Il n'y a aucun club ou section dans votre périmètre de coordination.",
       "error_load": "Erreur lors du chargement des clubs",
+      "error_load_subtitle": "Impossible de charger vos clubs. Vérifiez votre connexion et réessayez.",
       "field_id_label": "Champ local #{id}",
       "sections_label": "{count} sections"
     }

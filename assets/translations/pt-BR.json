@@ -1703,6 +1703,7 @@
       "empty_title": "Nenhum clube atribuído",
       "empty_subtitle": "Não há clubes ou seções dentro do seu escopo de coordenação.",
       "error_load": "Erro ao carregar clubes",
+      "error_load_subtitle": "Não foi possível carregar seus clubes. Verifique sua conexão e tente novamente.",
       "field_id_label": "Campo local #{id}",
       "sections_label": "{count} seções"
     }
