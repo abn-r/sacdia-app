@@ -104,11 +104,29 @@ class _LocationPickerViewState extends ConsumerState<LocationPickerView> {
   }
 
   /// Re-centers on the club section once it loads, if it wasn't cached yet.
+  /// Sections usually have no coordinates; then the parent club's are used.
   Future<void> _centerOnClubSection() async {
     final section = await ref.read(currentClubSectionProvider.future);
+    double? lat = section?.lat;
+    double? long = section?.long;
+    if ((lat == null || long == null) &&
+        section != null &&
+        section.mainClubId.isNotEmpty) {
+      // clubInfoProvider is autoDispose: without a listener it is disposed
+      // (and its request cancelled) before the future completes.
+      final provider = clubInfoProvider(section.mainClubId);
+      final subscription = ref.listenManual(provider, (_, __) {});
+      try {
+        final club = await ref.read(provider.future);
+        lat = club.lat;
+        long = club.long;
+      } finally {
+        subscription.close();
+      }
+    }
     final clubCenter = locationPickerFallbackCenter(
-      clubLat: section?.lat,
-      clubLong: section?.long,
+      clubLat: lat,
+      clubLong: long,
     );
     if (!mounted || clubCenter == _currentCenter) return;
     setState(() => _currentCenter = clubCenter);

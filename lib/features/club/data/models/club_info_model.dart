@@ -21,13 +21,26 @@ class ClubInfoModel extends ClubInfo {
     required super.id,
     required super.name,
     required super.active,
+    super.lat,
+    super.long,
   });
 
   factory ClubInfoModel.fromJson(Map<String, dynamic> json) {
+    // GET /clubs/:id trae `lat`/`long` vacíos y la ubicación en
+    // `coordinates: [lat, long]`.
+    final coordinates = json['coordinates'];
+    final coordLat = coordinates is List && coordinates.length >= 2
+        ? _parseDouble(coordinates[0])
+        : null;
+    final coordLong = coordinates is List && coordinates.length >= 2
+        ? _parseDouble(coordinates[1])
+        : null;
     return ClubInfoModel(
       id: (json['id'] ?? json['club_id'] ?? '').toString(),
       name: (json['name'] ?? json['club_name'] ?? '').toString(),
       active: json['active'] as bool? ?? true,
+      lat: _parseDouble(json['lat'] ?? json['latitude']) ?? coordLat,
+      long: _parseDouble(json['long'] ?? json['longitude']) ?? coordLong,
     );
   }
 
@@ -35,6 +48,8 @@ class ClubInfoModel extends ClubInfo {
         'id': id,
         'name': name,
         'active': active,
+        if (lat != null) 'lat': lat,
+        if (long != null) 'long': long,
       };
 }
 

@@ -11,14 +11,20 @@ class ClubInfo extends Equatable {
   /// ¿Club activo?
   final bool active;
 
+  /// Ubicación del club (puede faltar).
+  final double? lat;
+  final double? long;
+
   const ClubInfo({
     required this.id,
     required this.name,
     required this.active,
+    this.lat,
+    this.long,
   });
 
   @override
-  List<Object?> get props => [id, name, active];
+  List<Object?> get props => [id, name, active, lat, long];
 }
 
 /// Entidad de dominio para una sección de club
