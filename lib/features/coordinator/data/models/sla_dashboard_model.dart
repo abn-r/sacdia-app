@@ -44,7 +44,7 @@ class ThroughputPointModel extends Equatable {
 
   factory ThroughputPointModel.fromJson(Map<String, dynamic> json) {
     return ThroughputPointModel(
-      week: (json['week'] ?? json['period'] ?? '') as String,
+      week: (json['week'] ?? json['period'] ?? '').toString(),
       approved: (json['approved'] as num?)?.toInt() ?? 0,
       rejected: (json['rejected'] as num?)?.toInt() ?? 0,
     );
@@ -71,7 +71,12 @@ class PipelineStageModel extends Equatable {
 
   factory PipelineStageModel.fromJson(Map<String, dynamic> json) {
     return PipelineStageModel(
-      stage: (json['stage'] ?? json['name'] ?? '') as String,
+      stage: (json['stage'] ??
+              json['label'] ??
+              json['name'] ??
+              json['status'] ??
+              '')
+          .toString(),
       count: (json['count'] as num?)?.toInt() ?? 0,
     );
   }
@@ -100,31 +105,74 @@ class SlaDashboardModel extends Equatable {
     required this.pipeline,
   });
 
+  /// Acepta el contrato actual del backend (`SlaDashboardDto`:
+  /// `investiture.total_pending`, `validation.total_pending`,
+  /// `camporee.{clubs,members,payments}_pending`, `investiture.pipeline`)
+  /// y el formato legado con `{pending, avgDays, overdue}` por proceso.
   factory SlaDashboardModel.fromJson(Map<String, dynamic> json) {
-    final investitureJson =
-        (json['investiture'] as Map<String, dynamic>?) ?? {};
-    final evidenceJson = (json['evidence'] as Map<String, dynamic>?) ?? {};
-    final camporeeJson = (json['camporee'] as Map<String, dynamic>?) ?? {};
+    Map<String, dynamic> section(String key) {
+      final value = json[key];
+      return value is Map<String, dynamic> ? value : const {};
+    }
+
+    int count(Map<String, dynamic> source, String key) =>
+        (source[key] as num?)?.toInt() ?? 0;
+
+    final investitureJson = section('investiture');
+    final validationJson = section('validation');
+    final evidenceJson = section('evidence');
+    final camporeeJson = section('camporee');
+    final timingJson = section('timing');
+
+    final investiture = SlaStatModel(
+      pending: (investitureJson['pending'] as num?)?.toInt() ??
+          count(investitureJson, 'total_pending'),
+      avgDays: ((investitureJson['avgDays'] ??
+                  investitureJson['avg_days'] ??
+                  timingJson['avg_days_total']) as num?)
+              ?.toDouble() ??
+          0.0,
+      overdue: count(investitureJson, 'overdue'),
+    );
+
+    final evidence = evidenceJson.isNotEmpty
+        ? SlaStatModel.fromJson(evidenceJson)
+        : SlaStatModel(
+            pending: count(validationJson, 'total_pending'),
+            avgDays: 0.0,
+            overdue: 0,
+          );
+
+    final camporee = camporeeJson.containsKey('pending')
+        ? SlaStatModel.fromJson(camporeeJson)
+        : SlaStatModel(
+            pending: count(camporeeJson, 'clubs_pending') +
+                count(camporeeJson, 'members_pending') +
+                count(camporeeJson, 'payments_pending'),
+            avgDays: 0.0,
+            overdue: 0,
+          );
 
     final throughputRaw = json['throughput'];
     final throughput = throughputRaw is List
         ? throughputRaw
-            .map(
-                (e) => ThroughputPointModel.fromJson(e as Map<String, dynamic>))
+            .whereType<Map<String, dynamic>>()
+            .map(ThroughputPointModel.fromJson)
             .toList()
         : <ThroughputPointModel>[];
 
-    final pipelineRaw = json['pipeline'];
+    final pipelineRaw = json['pipeline'] ?? investitureJson['pipeline'];
     final pipeline = pipelineRaw is List
         ? pipelineRaw
-            .map((e) => PipelineStageModel.fromJson(e as Map<String, dynamic>))
+            .whereType<Map<String, dynamic>>()
+            .map(PipelineStageModel.fromJson)
             .toList()
         : <PipelineStageModel>[];
 
     return SlaDashboardModel(
-      investiture: SlaStatModel.fromJson(investitureJson),
-      evidence: SlaStatModel.fromJson(evidenceJson),
-      camporee: SlaStatModel.fromJson(camporeeJson),
+      investiture: investiture,
+      evidence: evidence,
+      camporee: camporee,
       throughput: throughput,
       pipeline: pipeline,
     );

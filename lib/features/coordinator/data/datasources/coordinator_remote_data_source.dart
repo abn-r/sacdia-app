@@ -278,9 +278,14 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
       );
 
       if (_isOk(response.statusCode)) {
-        final data = response.data is Map
-            ? response.data as Map<String, dynamic>
-            : (response.data['data'] as Map<String, dynamic>? ?? {});
+        // El backend responde `{ status, data: SlaDashboardDto }`; sin
+        // desempaquetar, todos los KPIs quedaban en 0.
+        final raw = response.data;
+        final data = raw is Map<String, dynamic>
+            ? (raw['data'] is Map<String, dynamic>
+                ? raw['data'] as Map<String, dynamic>
+                : raw)
+            : const <String, dynamic>{};
         return SlaDashboardModel.fromJson(data);
       }
       throw ServerException(
