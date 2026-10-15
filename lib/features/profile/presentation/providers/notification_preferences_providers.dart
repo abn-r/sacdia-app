@@ -84,7 +84,7 @@ class NotificationPreferencesNotifier
     }
 
     // Optimistic update — aplicar delta localmente de forma inmediata.
-    final optimistic = _applyDelta(previous, delta);
+    final optimistic = previous.applyDelta(delta);
     state = AsyncData(optimistic);
 
     final result = await ref
@@ -107,22 +107,6 @@ class NotificationPreferencesNotifier
         state = AsyncData(serverPrefs);
         return null;
       },
-    );
-  }
-
-  // ── Private helpers ──────────────────────────────────────────────────────────
-
-  NotificationPreferences _applyDelta(
-    NotificationPreferences current,
-    Map<String, bool> delta,
-  ) {
-    return current.copyWith(
-      master: delta['master'],
-      activities: delta['activities'],
-      achievements: delta['achievements'],
-      approvals: delta['approvals'],
-      invitations: delta['invitations'],
-      reminders: delta['reminders'],
     );
   }
 }

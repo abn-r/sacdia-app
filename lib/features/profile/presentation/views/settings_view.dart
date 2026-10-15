@@ -455,7 +455,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     // Preferencias de notificación — cargadas desde el servidor con fallback a caché.
     final notifPrefsAsync = ref.watch(notificationPreferencesProvider);
     final notifPrefs = notifPrefsAsync.valueOrNull;
-    final master = notifPrefs?.master ?? true;
+    // Derived from the categories, not `master`: the backend reports
+    // master=false as soon as any one category is off.
+    final master = notifPrefs?.anyCategoryEnabled ?? true;
 
     final c = context.sac;
 
