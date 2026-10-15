@@ -1554,7 +1554,8 @@
       "overdue": "En retard"
     },
     "scope": {
-      "assigned": "Vous avez {count} sections assignées pour la coordination.",
+      "assigned_one": "Vous avez {count} section assignée pour la coordination.",
+      "assigned_other": "Vous avez {count} sections assignées pour la coordination.",
       "empty": "Vous n'avez aucune section assignée comme coordinateur. Si vous êtes aussi directeur, vos fonctions de directeur restent visibles dans l'app."
     },
     "camporee_approvals": {

@@ -1554,7 +1554,8 @@
       "overdue": "Vencidos"
     },
     "scope": {
-      "assigned": "Tienes {count} secciones asignadas para coordinación.",
+      "assigned_one": "Tienes {count} sección asignada para coordinación.",
+      "assigned_other": "Tienes {count} secciones asignadas para coordinación.",
       "empty": "No tienes secciones asignadas como coordinador. Si también eres director, tus funciones de director siguen apareciendo en la app."
     },
     "camporee_approvals": {

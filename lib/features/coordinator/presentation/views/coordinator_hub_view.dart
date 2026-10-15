@@ -60,7 +60,10 @@ class CoordinatorHubView extends ConsumerWidget {
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [SacAccent.of(context).color, SacAccent.of(context).dark],
+                      colors: [
+                        SacAccent.of(context).color,
+                        SacAccent.of(context).dark
+                      ],
                     ),
                   ),
                   child: SafeArea(
@@ -218,7 +221,10 @@ class _ScopeBanner extends StatelessWidget {
           Expanded(
             child: Text(
               hasScope
-                  ? 'coordinator.scope.assigned'.tr(
+                  ? (scope.clubSectionIds.length == 1
+                          ? 'coordinator.scope.assigned_one'
+                          : 'coordinator.scope.assigned_other')
+                      .tr(
                       namedArgs: {
                         'count': scope.clubSectionIds.length.toString(),
                       },
