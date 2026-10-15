@@ -222,9 +222,8 @@ class _AllergiesSelectionViewState
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final key = _tileKeys[id];
         if (key?.currentContext != null) {
-          Scrollable.ensureVisible(
+          SacTopBar.revealBelowBar(
             key!.currentContext!,
-            alignment: 0.1,
             duration: const Duration(milliseconds: 240),
             curve: Curves.easeOut,
           );
@@ -422,7 +421,8 @@ class _AllergiesSelectionViewState
       _seedFromServer(updated);
 
       if (context.mounted) {
-        SacSnackBar.show(context, 'common.save'.tr(),
+        SacSnackBar.show(
+            context, 'post_registration.health.allergies.save_success'.tr(),
             backgroundColor: MedicoTokens.mint500);
         await Future.delayed(const Duration(milliseconds: 300));
         if (context.mounted) Navigator.of(context).pop();
@@ -876,6 +876,27 @@ class _RegisteredChipsSection extends StatelessWidget {
           _CompactSeverityEditor(
             selected: registeredSeverityFor(expanded.id),
             onChanged: (s) => onSeverityChange(expanded.id, s),
+          ),
+          const SizedBox(height: 4),
+          SacPressable(
+            listenOnly: true,
+            child: TextButton.icon(
+              onPressed: () => onRemove(expanded.id, expanded.name),
+              style: TextButton.styleFrom(
+                enableFeedback: false,
+                foregroundColor: MedicoTokens.coral600,
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                minimumSize: const Size(0, 40),
+              ),
+              icon: const HugeIcon(
+                icon: HugeIcons.strokeRoundedDelete02,
+                size: 18,
+                color: MedicoTokens.coral600,
+              ),
+              label: Text(
+                'post_registration.health.allergies.delete_dialog_title'.tr(),
+              ),
+            ),
           ),
         ],
       ],

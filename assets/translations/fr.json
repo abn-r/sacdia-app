@@ -1174,6 +1174,7 @@
         "delete_dialog_content": "Êtes-vous sûr de vouloir supprimer \"{name}\" ?",
         "delete_success": "Maladie supprimée",
         "delete_error": "Erreur lors de la suppression : {error}",
+        "save_success": "Maladies enregistrées",
         "load_error": "Erreur : {error}"
       },
       "medicines": {
@@ -1199,6 +1200,7 @@
         "delete_dialog_content": "Êtes-vous sûr de vouloir supprimer \"{name}\" ?",
         "delete_success": "Médicament supprimé",
         "delete_error": "Erreur lors de la suppression : {error}",
+        "save_success": "Médicaments enregistrés",
         "load_error": "Erreur : {error}"
       },
       "allergies": {
@@ -1224,6 +1226,7 @@
         "delete_dialog_content": "Êtes-vous sûr de vouloir supprimer \"{name}\" ?",
         "delete_success": "Allergie supprimée",
         "delete_error": "Erreur lors de la suppression : {error}",
+        "save_success": "Allergies enregistrées",
         "load_error": "Erreur : {error}"
       }
     },

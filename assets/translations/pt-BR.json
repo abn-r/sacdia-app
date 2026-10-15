@@ -1174,6 +1174,7 @@
         "delete_dialog_content": "Tem certeza de que deseja excluir \"{name}\"?",
         "delete_success": "Doença excluída",
         "delete_error": "Erro ao excluir: {error}",
+        "save_success": "Doenças salvas",
         "load_error": "Erro: {error}"
       },
       "medicines": {
@@ -1199,6 +1200,7 @@
         "delete_dialog_content": "Tem certeza de que deseja excluir \"{name}\"?",
         "delete_success": "Medicamento excluído",
         "delete_error": "Erro ao excluir: {error}",
+        "save_success": "Medicamentos salvos",
         "load_error": "Erro: {error}"
       },
       "allergies": {
@@ -1224,6 +1226,7 @@
         "delete_dialog_content": "Tem certeza de que deseja excluir \"{name}\"?",
         "delete_success": "Alergia excluída",
         "delete_error": "Erro ao excluir: {error}",
+        "save_success": "Alergias salvas",
         "load_error": "Erro: {error}"
       }
     },

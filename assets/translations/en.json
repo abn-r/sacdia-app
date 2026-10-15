@@ -1174,6 +1174,7 @@
         "delete_dialog_content": "Are you sure you want to delete \"{name}\"?",
         "delete_success": "Disease deleted",
         "delete_error": "Error deleting: {error}",
+        "save_success": "Diseases saved",
         "load_error": "Error: {error}"
       },
       "medicines": {
@@ -1199,6 +1200,7 @@
         "delete_dialog_content": "Are you sure you want to delete \"{name}\"?",
         "delete_success": "Medication deleted",
         "delete_error": "Error deleting: {error}",
+        "save_success": "Medications saved",
         "load_error": "Error: {error}"
       },
       "allergies": {
@@ -1224,6 +1226,7 @@
         "delete_dialog_content": "Are you sure you want to delete \"{name}\"?",
         "delete_success": "Allergy deleted",
         "delete_error": "Error deleting: {error}",
+        "save_success": "Allergies saved",
         "load_error": "Error: {error}"
       }
     },

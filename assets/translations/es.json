@@ -1174,6 +1174,7 @@
         "delete_dialog_content": "¿Estás seguro de que deseas eliminar \"{name}\"?",
         "delete_success": "Enfermedad eliminada",
         "delete_error": "Error al eliminar: {error}",
+        "save_success": "Enfermedades guardadas",
         "load_error": "Error: {error}"
       },
       "medicines": {
@@ -1199,6 +1200,7 @@
         "delete_dialog_content": "¿Estás seguro de que deseas eliminar \"{name}\"?",
         "delete_success": "Medicamento eliminado",
         "delete_error": "Error al eliminar: {error}",
+        "save_success": "Medicamentos guardados",
         "load_error": "Error: {error}"
       },
       "allergies": {
@@ -1224,6 +1226,7 @@
         "delete_dialog_content": "¿Estás seguro de que deseas eliminar \"{name}\"?",
         "delete_success": "Alergia eliminada",
         "delete_error": "Error al eliminar: {error}",
+        "save_success": "Alergias guardadas",
         "load_error": "Error: {error}"
       }
     },
