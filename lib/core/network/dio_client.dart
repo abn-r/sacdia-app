@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../constants/app_constants.dart';
 import 'interceptors/auth_interceptor.dart';
+import 'interceptors/client_user_agent_interceptor.dart';
 import 'interceptors/logger_interceptor.dart';
 import 'interceptors/error_interceptor.dart';
 
@@ -33,6 +34,7 @@ class DioClient {
     // AuthInterceptor recibe la instancia de Dio para poder reintentar
     // después de refrescar el token en caso de 401
     dio.interceptors.addAll([
+      ClientUserAgentInterceptor(),
       LoggerInterceptor(),
       // AuthInterceptor ANTES de ErrorInterceptor: Dio procesa onError en
       // orden forward (0→1→2→3), así AuthInterceptor intercepta el 401 y
