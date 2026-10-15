@@ -21,10 +21,14 @@ class RoadmapScreen extends StatefulWidget {
   final List<TrackData> tracks;
   final void Function(ClassItem)? onClassTap;
 
+  /// Si viene, el scroll admite pull-to-refresh.
+  final Future<void> Function()? onRefresh;
+
   const RoadmapScreen({
     super.key,
     required this.tracks,
     this.onClassTap,
+    this.onRefresh,
   });
 
   @override
@@ -80,6 +84,17 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
     }
   }
 
+  Widget _maybeRefreshable(Widget scrollable) {
+    final onRefresh = widget.onRefresh;
+    if (onRefresh == null) return scrollable;
+    // RefreshIndicator apila al hijo con constraints sueltas: sin el
+    // SizedBox.expand el viewport encoge al contenido y el gesto se pierde.
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: SizedBox.expand(child: scrollable),
+    );
+  }
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -128,19 +143,22 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
           children: [
             _LegendPills(),
             Expanded(
-              child: SingleChildScrollView(
-                controller: _scrollController,
-                child: Column(
-                  children: [
-                    for (final track in widget.tracks)
-                      _TrackSection(
-                        track: track,
-                        onClassTap: widget.onClassTap,
-                        currentClassId: currentClassId,
-                        currentNodeKey: _currentNodeKey,
-                      ),
-                    const SizedBox(height: 60),
-                  ],
+              child: _maybeRefreshable(
+                SingleChildScrollView(
+                  controller: _scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    children: [
+                      for (final track in widget.tracks)
+                        _TrackSection(
+                          track: track,
+                          onClassTap: widget.onClassTap,
+                          currentClassId: currentClassId,
+                          currentNodeKey: _currentNodeKey,
+                        ),
+                      const SizedBox(height: 60),
+                    ],
+                  ),
                 ),
               ),
             ),

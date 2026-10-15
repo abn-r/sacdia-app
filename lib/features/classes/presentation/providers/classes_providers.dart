@@ -177,6 +177,9 @@ final classesByClubTypeProvider = FutureProvider.autoDispose
 /// Usado en [EnrollPreviousClassSheet] para mostrar todas las clases disponibles
 /// del sistema (Aventureros, Conquistadores, Guías Mayores) ya que el usuario
 /// puede haber completado clases de cualquier categoría en el pasado.
+///
+/// El archivo pinta al instante y la primera lectura del proceso siempre
+/// revalida detrás: un catálogo viejo no puede quedarse en Mi Camino.
 final allClassesProvider =
     FutureProvider.autoDispose<List<ProgressiveClass>>((ref) async {
   ref.keepAlive();
@@ -187,7 +190,7 @@ final allClassesProvider =
     ref: ref,
     cache: ref.read(jsonFileCacheProvider),
     key: kAllClassesCacheKey,
-    refreshAfter: const Duration(hours: 24),
+    refreshAfter: Duration.zero,
     decode: decodeClassCache,
     encode: encodeClassCache,
     fetch: () async {

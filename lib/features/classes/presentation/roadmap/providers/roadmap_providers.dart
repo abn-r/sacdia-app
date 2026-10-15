@@ -41,3 +41,15 @@ final roadmapTracksProvider =
 
   return buildRoadmapTracks(catalog: catalog, enrolled: enrolled);
 });
+
+/// Pull-to-refresh de Mi Camino: catálogo y clases del usuario vuelven a la
+/// red (un invalidate dentro del proceso salta el archivo) y espera los tracks.
+Future<void> refreshRoadmap(WidgetRef ref) async {
+  ref.invalidate(allClassesProvider);
+  ref.invalidate(userClassesProvider);
+  try {
+    await ref.read(roadmapTracksProvider.future);
+  } catch (_) {
+    // El error queda en roadmapTracksProvider y la vista lo muestra.
+  }
+}

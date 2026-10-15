@@ -13,7 +13,6 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/classes/presentation/roadmap/theme/roadmap_tokens.dart';
 
-import '../../providers/classes_providers.dart';
 import '../../views/class_detail_with_progress_view.dart';
 import '../data/roadmap_data.dart';
 import '../providers/roadmap_providers.dart';
@@ -56,22 +55,29 @@ class RoadmapScreenConnected extends ConsumerWidget {
       loading: () => _LoadingState(c: c),
       error: (error, _) => _ErrorState(
         error: error,
-        onRetry: () {
-          // Invalidar también los providers subyacentes para forzar un
-          // nuevo fetch de red cuando el usuario toca "Reintentar".
-          ref.invalidate(allClassesProvider);
-          ref.invalidate(userClassesProvider);
-          ref.invalidate(roadmapTracksProvider);
-        },
+        onRetry: () => refreshRoadmap(ref),
         c: c,
       ),
       data: (tracks) {
         if (tracks.isEmpty) {
-          return _EmptyState(c: c);
+          return RefreshIndicator(
+            onRefresh: () => refreshRoadmap(ref),
+            child: LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: SizedBox(
+                  width: constraints.maxWidth,
+                  height: constraints.maxHeight,
+                  child: _EmptyState(c: c),
+                ),
+              ),
+            ),
+          );
         }
         return RoadmapScreen(
           tracks: tracks,
           onClassTap: (item) => _onClassTap(context, item),
+          onRefresh: () => refreshRoadmap(ref),
         );
       },
     );
