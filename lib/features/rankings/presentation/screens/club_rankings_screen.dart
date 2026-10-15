@@ -9,6 +9,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/animations/motion_tokens.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
+import '../../../../core/errors/failures.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -110,6 +111,17 @@ bool _canViewAnnualProgress(UserEntity? user) {
   return canViewClubRankings(user) || canViewSectionRankings(user);
 }
 
+const _kAnnualRankingConfigNotFound = 'ANNUAL_RANKING_CONFIG_NOT_FOUND';
+
+/// Sin configuración anual de ranking (404 del backend) no es un error de
+/// red: se muestra como "aún no configurado" y sin reintento.
+RankingEmptyReason annualRankingProgressErrorReason(Object error) {
+  if (error is Failure && error.errorCode == _kAnnualRankingConfigNotFound) {
+    return RankingEmptyReason.notConfigured;
+  }
+  return RankingEmptyReason.networkError;
+}
+
 class _AnnualRankingProgressBody extends ConsumerWidget {
   final int sectionId;
   final int yearId;
@@ -134,8 +146,8 @@ class _AnnualRankingProgressBody extends ConsumerWidget {
             ref.invalidate(annualRankingProgressProvider(params)),
       ),
       loading: () => RankingSkeleton.annualProgress(),
-      error: (_, __) => RankingEmptyState(
-        reason: RankingEmptyReason.networkError,
+      error: (error, __) => RankingEmptyState(
+        reason: annualRankingProgressErrorReason(error),
         onRetry: () => ref.invalidate(annualRankingProgressProvider(params)),
       ),
     );

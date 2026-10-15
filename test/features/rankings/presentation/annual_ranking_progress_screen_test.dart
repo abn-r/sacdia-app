@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/features/rankings/domain/entities/annual_ranking_progress.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/club_rankings_screen.dart';
+import 'package:sacdia_app/features/rankings/presentation/widgets/ranking_empty_state.dart';
 
 void main() {
   group('Annual ranking progress UI', () {
@@ -37,6 +39,61 @@ void main() {
         find.text('rankings.annual_progress.pending.status.pending_validation'),
         findsOneWidget,
       );
+    });
+  });
+
+  group('Annual ranking progress errors', () {
+    test('missing ranking config maps to not configured, not offline', () {
+      expect(
+        annualRankingProgressErrorReason(
+          const ServerFailure(
+            message: 'No existe una configuración anual de ranking',
+            code: 404,
+            errorCode: 'ANNUAL_RANKING_CONFIG_NOT_FOUND',
+          ),
+        ),
+        RankingEmptyReason.notConfigured,
+      );
+    });
+
+    test('network and other server failures keep the offline state', () {
+      expect(
+        annualRankingProgressErrorReason(
+          const NetworkFailure(message: 'Sin conexión a internet'),
+        ),
+        RankingEmptyReason.networkError,
+      );
+      expect(
+        annualRankingProgressErrorReason(
+          const ServerFailure(message: 'Error', code: 500),
+        ),
+        RankingEmptyReason.networkError,
+      );
+      expect(
+        annualRankingProgressErrorReason(Exception('boom')),
+        RankingEmptyReason.networkError,
+      );
+    });
+
+    testWidgets('not configured state shows its copy without retry',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: RankingEmptyState(reason: RankingEmptyReason.notConfigured),
+          ),
+        ),
+      );
+
+      expect(
+        find.text('rankings.empty_state.not_configured_title'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('rankings.empty_state.network_error_title'),
+        findsNothing,
+      );
+      expect(find.text('rankings.empty_state.retry'), findsNothing);
     });
   });
 }

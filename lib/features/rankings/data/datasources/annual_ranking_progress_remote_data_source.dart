@@ -80,6 +80,7 @@ class AnnualRankingProgressRemoteDataSourceImpl
       throw ServerException(
         message: _extractDioMessage(e),
         code: statusCode,
+        errorCode: _extractDioCode(e),
       );
     }
 
@@ -106,5 +107,12 @@ class AnnualRankingProgressRemoteDataSourceImpl
       );
     }
     return e.message ?? tr('common.error_network');
+  }
+
+  /// Código de negocio (`code`) del cuerpo de error, p.ej.
+  /// `ANNUAL_RANKING_CONFIG_NOT_FOUND`.
+  String? _extractDioCode(DioException e) {
+    final data = e.response?.data;
+    return data is Map ? data['code']?.toString() : null;
   }
 }

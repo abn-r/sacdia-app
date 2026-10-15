@@ -12,6 +12,9 @@ enum RankingEmptyReason {
   /// Datos aún no calculados.
   noData,
 
+  /// El campo local aún no configura el ranking anual para el año/tipo de club.
+  notConfigured,
+
   /// Error de red al cargar el ranking.
   networkError,
 
@@ -66,6 +69,12 @@ class RankingEmptyState extends StatelessWidget {
           icon: HugeIcons.strokeRoundedClock01,
           title: tr('rankings.empty_state.no_data_title'),
           body: tr('rankings.empty_state.no_data_subtitle'),
+        );
+      case RankingEmptyReason.notConfigured:
+        return _EmptyConfig(
+          icon: HugeIcons.strokeRoundedSettings02,
+          title: tr('rankings.empty_state.not_configured_title'),
+          body: tr('rankings.empty_state.not_configured_subtitle'),
         );
       case RankingEmptyReason.networkError:
         return _EmptyConfig(

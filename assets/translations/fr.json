@@ -4231,6 +4231,8 @@
       "unavailable_subtitle": "Votre directeur peut activer la visibilité du classement lorsqu'il sera prêt.",
       "no_data_title": "Pas encore de données",
       "no_data_subtitle": "Votre classement est calculé automatiquement. Revenez plus tard.",
+      "not_configured_title": "Classement pas encore configuré",
+      "not_configured_subtitle": "Votre champ local n'a pas encore configuré le classement annuel de cette année. Revenez plus tard.",
       "network_error_title": "Sans connexion",
       "network_error_subtitle": "Nous n'avons pas pu charger votre classement.",
       "no_members_title": "Pas encore de classements",

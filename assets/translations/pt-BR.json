@@ -4231,6 +4231,8 @@
       "unavailable_subtitle": "Seu diretor pode ativar a visibilidade do ranking quando estiver pronto.",
       "no_data_title": "Ainda não há dados",
       "no_data_subtitle": "Seu ranking é calculado automaticamente. Volte mais tarde.",
+      "not_configured_title": "Ranking ainda não configurado",
+      "not_configured_subtitle": "Seu campo local ainda não configurou o ranking anual deste ano. Volte mais tarde.",
       "network_error_title": "Sem conexão",
       "network_error_subtitle": "Não foi possível carregar seu ranking.",
       "no_members_title": "Ainda não há rankings",
