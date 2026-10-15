@@ -3949,7 +3949,8 @@
     },
     "bootstrap": {
       "unexpected_session_error": "Unexpected error verifying session",
-      "permissions_load_failed": "We could not load your permissions"
+      "permissions_load_failed": "We could not load your permissions",
+      "no_role_assigned": "Your account does not have a role yet. Ask your club director to assign one."
     },
     "dialog": {
       "cancel": "Cancel"

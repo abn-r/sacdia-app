@@ -72,19 +72,29 @@ class _SplashViewState extends ConsumerState<SplashView>
       loading: () => const SacLoading(color: AppColors.loginBrandBlue),
       error: (_, __) => _buildErrorWidget('auth.error_unexpected'.tr()),
       data: (state) => switch (state) {
-        AppBootstrapError(:final message) => _buildErrorWidget(message),
+        AppBootstrapError(:final message, :final kind) =>
+          _buildErrorWidget(message, kind: kind),
         _ => const SacLoading(color: AppColors.loginBrandBlue),
       },
     );
   }
 
-  Widget _buildErrorWidget(String message) {
+  Widget _buildErrorWidget(
+    String message, {
+    AppBootstrapErrorKind kind = AppBootstrapErrorKind.loadFailed,
+  }) {
+    // "No role yet" is an account state, not a failure: neutral icon/color.
+    final isNoRole = kind == AppBootstrapErrorKind.noRole;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         HugeIcon(
-          icon: HugeIcons.strokeRoundedAlert02,
-          color: Theme.of(context).colorScheme.error,
+          icon: isNoRole
+              ? HugeIcons.strokeRoundedUserLock01
+              : HugeIcons.strokeRoundedAlert02,
+          color: isNoRole
+              ? context.sac.textSecondary
+              : Theme.of(context).colorScheme.error,
           size: 40,
         ),
         const SizedBox(height: 12),

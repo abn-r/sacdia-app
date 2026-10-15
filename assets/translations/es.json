@@ -3949,7 +3949,8 @@
     },
     "bootstrap": {
       "unexpected_session_error": "Error inesperado al verificar sesión",
-      "permissions_load_failed": "No pudimos cargar tus permisos"
+      "permissions_load_failed": "No pudimos cargar tus permisos",
+      "no_role_assigned": "Tu cuenta todavía no tiene un rol asignado. Pide al director de tu club que te asigne uno."
     },
     "dialog": {
       "cancel": "Cancelar"

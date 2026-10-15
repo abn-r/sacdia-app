@@ -113,6 +113,9 @@ void main() {
         (state as AppBootstrapError).attemptCount,
         equals(3),
       );
+      // Snapshot loaded but empty → the account has no role; not a failure.
+      expect(state.kind, AppBootstrapErrorKind.noRole);
+      expect(state.message, 'core.bootstrap.no_role_assigned');
     }, timeout: const Timeout(Duration(seconds: 15)));
 
     test('returns AppBootstrapError when authorization is null after retries',
@@ -128,6 +131,12 @@ void main() {
 
       final state = await container.read(appBootstrapProvider.future);
       expect(state, isA<AppBootstrapError>());
+      // No snapshot at all → authorization was not loaded.
+      expect(
+        (state as AppBootstrapError).kind,
+        AppBootstrapErrorKind.loadFailed,
+      );
+      expect(state.message, 'core.bootstrap.permissions_load_failed');
     }, timeout: const Timeout(Duration(seconds: 15)));
 
     test('returns Ready when permissions present but no global grants',
@@ -165,6 +174,11 @@ void main() {
 
       final state = await container.read(appBootstrapProvider.future);
       expect(state, isA<AppBootstrapError>());
+      // Permissions without grants is inconsistent → treat as load failure.
+      expect(
+        (state as AppBootstrapError).kind,
+        AppBootstrapErrorKind.loadFailed,
+      );
     }, timeout: const Timeout(Duration(seconds: 15)));
 
     test('retry() succeeds when auth becomes valid', () async {

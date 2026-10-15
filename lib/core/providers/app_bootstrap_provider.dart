@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/auth/domain/entities/user_entity.dart';
@@ -46,11 +47,27 @@ class AppBootstrapReady extends AppBootstrapState {
   const AppBootstrapReady();
 }
 
+/// Why bootstrap could not reach [AppBootstrapReady].
+enum AppBootstrapErrorKind {
+  /// `/auth/me` did not deliver an authorization snapshot (network, cache
+  /// miss, unexpected payload). Retrying may fix it.
+  loadFailed,
+
+  /// `/auth/me` answered with an authorization snapshot that has no grants
+  /// and no permissions: the account simply has no role yet. Not a failure.
+  noRole,
+}
+
 /// Auto-retries exhausted — splash shows retry button.
 class AppBootstrapError extends AppBootstrapState {
   final String message;
   final int attemptCount;
-  const AppBootstrapError(this.message, this.attemptCount);
+  final AppBootstrapErrorKind kind;
+  const AppBootstrapError(
+    this.message,
+    this.attemptCount, {
+    this.kind = AppBootstrapErrorKind.loadFailed,
+  });
 }
 
 /// No authenticated user, or nuclear reset completed — redirect to login.
@@ -102,6 +119,7 @@ class AppBootstrapNotifier extends AsyncNotifier<AppBootstrapState> {
     }
 
     // Authorization incomplete — enter auto-retry loop.
+    UserEntity lastUser = user;
     _inRetryLoop = true;
     try {
       for (var attempt = 1; attempt <= _maxAutoRetries; attempt++) {
@@ -121,6 +139,7 @@ class AppBootstrapNotifier extends AsyncNotifier<AppBootstrapState> {
           continue; // Skip to next retry attempt
         }
 
+        if (freshUser != null) lastUser = freshUser;
         if (freshUser != null && _isValidAuthorization(freshUser)) {
           _autoRetryCount = 0;
           return const AppBootstrapReady();
@@ -131,10 +150,30 @@ class AppBootstrapNotifier extends AsyncNotifier<AppBootstrapState> {
     }
 
     AppLogger.w('Auto-retries exhausted', tag: _tag);
+    if (hasNoAssignedRole(lastUser)) {
+      return AppBootstrapError(
+        tr('core.bootstrap.no_role_assigned'),
+        _autoRetryCount,
+        kind: AppBootstrapErrorKind.noRole,
+      );
+    }
     return AppBootstrapError(
       tr('core.bootstrap.permissions_load_failed'),
       _autoRetryCount,
     );
+  }
+
+  /// True when `/auth/me` delivered an authorization snapshot that is empty:
+  /// no global roles, no club assignments and no permissions. A null snapshot
+  /// means it was not loaded (e.g. offline without cache) — that is a load
+  /// failure, not "no role".
+  @visibleForTesting
+  static bool hasNoAssignedRole(UserEntity user) {
+    final auth = user.authorization;
+    if (auth == null) return false;
+    return auth.globalGrants.isEmpty &&
+        auth.clubAssignments.isEmpty &&
+        auth.effectivePermissions.isEmpty;
   }
 
   /// Checks that the user has non-empty permissions and roles.

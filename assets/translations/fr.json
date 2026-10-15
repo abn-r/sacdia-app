@@ -3947,7 +3947,8 @@
     },
     "bootstrap": {
       "unexpected_session_error": "Erreur inattendue lors de la vérification de session",
-      "permissions_load_failed": "Impossible de charger vos autorisations"
+      "permissions_load_failed": "Impossible de charger vos autorisations",
+      "no_role_assigned": "Votre compte n'a pas encore de rôle. Demandez au directeur de votre club de vous en attribuer un."
     },
     "dialog": {
       "cancel": "Annuler"

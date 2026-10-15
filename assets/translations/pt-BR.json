@@ -3947,7 +3947,8 @@
     },
     "bootstrap": {
       "unexpected_session_error": "Erro inesperado ao verificar sessão",
-      "permissions_load_failed": "Não foi possível carregar suas permissões"
+      "permissions_load_failed": "Não foi possível carregar suas permissões",
+      "no_role_assigned": "Sua conta ainda não tem um cargo atribuído. Peça ao diretor do seu clube para atribuir um."
     },
     "dialog": {
       "cancel": "Cancelar"
