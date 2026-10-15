@@ -241,9 +241,9 @@ class _SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Replaced GridView(shrinkWrap: true) with Column+Row since the grid
-    // always renders exactly 4 bounded tiles inside a SliverChildListDelegate.
-    // Column layout is O(n) vs O(n²) for shrinkWrap.
+    // No investiture tile: since the legacy pipeline shutdown the district
+    // pastor or the field authorizes investitures, not the coordinator, and
+    // `sla.investiture` only counts retired enrollment statuses.
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -253,29 +253,13 @@ class _SummaryRow extends StatelessWidget {
             children: [
               Expanded(
                 child: _SummaryTile(
-                  label: 'coordinator.summary.investitures'.tr(),
-                  count: sla.investiture.pending,
-                  color: SacAccent.of(context).color,
-                  icon: HugeIcons.strokeRoundedAward01,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _SummaryTile(
                   label: 'coordinator.summary.evidence'.tr(),
                   count: sla.evidence.pending,
                   color: AppColors.accent,
                   icon: HugeIcons.strokeRoundedFolder01,
                 ),
               ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 10),
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+              const SizedBox(width: 10),
               Expanded(
                 child: _SummaryTile(
                   label: 'coordinator.summary.sections'.tr(),
@@ -284,17 +268,15 @@ class _SummaryRow extends StatelessWidget {
                   icon: HugeIcons.strokeRoundedBuilding04,
                 ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _SummaryTile(
-                  label: 'coordinator.summary.overdue'.tr(),
-                  count: sla.totalOverdue,
-                  color: AppColors.error,
-                  icon: HugeIcons.strokeRoundedAlert02,
-                ),
-              ),
             ],
           ),
+        ),
+        const SizedBox(height: 10),
+        _SummaryTile(
+          label: 'coordinator.summary.overdue'.tr(),
+          count: sla.totalOverdue,
+          color: AppColors.error,
+          icon: HugeIcons.strokeRoundedAlert02,
         ),
       ],
     );
