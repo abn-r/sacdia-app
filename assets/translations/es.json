@@ -3009,6 +3009,9 @@
       "description1": "La Carpeta Anual de Evidencias aún no ha sido creada para esta sección.",
       "description2": "Contacta a la administración del campo local para consultar el estatus.",
       "available_hint": "Ya hay una plantilla publicada. Crea la carpeta para comenzar a subir evidencias.",
+      "create_hint": "Crea la carpeta para comenzar a subir evidencias.",
+      "no_template_hint": "Aún no hay una plantilla publicada para {clubType} ({year}). Cuando tu campo local o unión la publique, podrás crear la carpeta aquí.",
+      "no_template_hint_generic": "Aún no hay una plantilla publicada para esta sección. Cuando tu campo local o unión la publique, podrás crear la carpeta aquí.",
       "create_action": "Crear carpeta",
       "creating": "Creando carpeta…",
       "create_success": "Carpeta creada. Ya puedes agregar evidencias."

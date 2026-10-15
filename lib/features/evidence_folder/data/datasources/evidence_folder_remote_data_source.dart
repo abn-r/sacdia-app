@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../../domain/entities/evidence_folder_template_availability.dart';
 import '../models/evidence_file_model.dart';
 import '../models/evidence_folder_model.dart';
 
@@ -21,6 +22,11 @@ abstract class EvidenceFolderRemoteDataSource {
   ///
   /// Usa el endpoint de UX por [clubSectionId] para no exponer UUIDs internos.
   Future<EvidenceFolderModel> createEvidenceFolder(String clubSectionId);
+
+  /// Consulta si hay una plantilla publicada que permita crear la carpeta
+  /// de la sección (tipo de club + año eclesiástico vigentes).
+  Future<EvidenceFolderTemplateAvailability> getTemplateAvailability(
+      String clubSectionId);
 
   /// Envía la carpeta completa a validación.
   ///
@@ -141,6 +147,34 @@ class EvidenceFolderRemoteDataSourceImpl
         if (folder != null) return folder;
       }
       AppLogger.e('Error en createEvidenceFolder', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /club-sections/:sectionId/annual-folder/template-availability ────
+
+  @override
+  Future<EvidenceFolderTemplateAvailability> getTemplateAvailability(
+      String clubSectionId) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.clubSections}/$clubSectionId/annual-folder/template-availability',
+      );
+
+      if (response.statusCode == 200) {
+        final body = response.data as Map<String, dynamic>;
+        final json = body.containsKey('data')
+            ? body['data'] as Map<String, dynamic>
+            : body;
+        return EvidenceFolderTemplateAvailability.fromJson(json);
+      }
+
+      throw ServerException(
+        message: tr('evidence_folder.errors.get_folder'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en getTemplateAvailability', tag: _tag, error: e);
       _rethrow(e);
     }
   }

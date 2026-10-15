@@ -3009,6 +3009,9 @@
       "description1": "The annual evidence folder has not yet been created for this section.",
       "description2": "Contact your local field administration to inquire about the status.",
       "available_hint": "A published template is available. Create the folder to start uploading evidence.",
+      "create_hint": "Create the folder to start uploading evidence.",
+      "no_template_hint": "There is no published template for {clubType} ({year}) yet. Once your local field or union publishes it, you can create the folder here.",
+      "no_template_hint_generic": "There is no published template for this section yet. Once your local field or union publishes it, you can create the folder here.",
       "create_action": "Create folder",
       "creating": "Creating folder…",
       "create_success": "Folder created. You can now add evidence."

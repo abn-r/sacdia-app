@@ -5,10 +5,17 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:dartz/dartz.dart' hide State;
+import 'package:sacdia_app/core/errors/failures.dart';
+import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
+import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:sacdia_app/features/evidence_folder/domain/entities/evidence_file.dart';
 import 'package:sacdia_app/features/evidence_folder/domain/entities/evidence_folder.dart';
+import 'package:sacdia_app/features/evidence_folder/domain/entities/evidence_folder_template_availability.dart';
+import 'package:sacdia_app/features/evidence_folder/domain/repositories/evidence_folder_repository.dart';
 import 'package:sacdia_app/features/evidence_folder/domain/entities/evidence_section.dart';
 import 'package:sacdia_app/features/evidence_folder/presentation/providers/evidence_folder_providers.dart';
 import 'package:sacdia_app/features/evidence_folder/presentation/views/evidence_folder_view.dart';
@@ -47,6 +54,7 @@ void main() {
     Future<EvidenceFolder?> Function(Ref ref)? loadFolder,
     double viewportWidth = 1200,
     double viewportHeight = 2000,
+    List<Override> overrides = const [],
   }) async {
     tester.view.physicalSize = Size(viewportWidth, viewportHeight);
     tester.view.devicePixelRatio = 1;
@@ -59,6 +67,7 @@ void main() {
           evidenceFolderProvider('2').overrideWith(
             loadFolder ?? (ref) async => folder ?? _evidenceFolderFixture,
           ),
+          ...overrides,
         ],
         child: EasyLocalization(
           supportedLocales: const [Locale('es')],
@@ -479,6 +488,126 @@ void main() {
       expect(find.text(section.name), findsNothing);
     }
   });
+
+  group('no folder yet', () {
+    Future<void> pumpNoFolder(
+      WidgetTester tester, {
+      required _FakeEvidenceFolderRepository repository,
+    }) {
+      return pumpEvidenceFolder(
+        tester,
+        loadFolder: (ref) async => null,
+        overrides: [
+          authNotifierProvider.overrideWith(() => _TestAuthNotifier(_editor)),
+          evidenceFolderRepositoryProvider.overrideWithValue(repository),
+        ],
+      );
+    }
+
+    testWidgets('hides create action when no template is published',
+        (tester) async {
+      await pumpNoFolder(
+        tester,
+        repository: _FakeEvidenceFolderRepository(
+          availability: const EvidenceFolderTemplateAvailability(
+            isAvailable: false,
+            clubTypeName: 'Guías Mayores',
+            yearLabel: '2025-2026',
+          ),
+        ),
+      );
+
+      expect(find.text('Crear carpeta'), findsNothing);
+      expect(
+        find.textContaining('Ya hay una plantilla publicada'),
+        findsNothing,
+      );
+      expect(
+        find.text(
+          'Aún no hay una plantilla publicada para Guías Mayores (2025-2026). '
+          'Cuando tu campo local o unión la publique, podrás crear la carpeta aquí.',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('offers create action when a template is published',
+        (tester) async {
+      await pumpNoFolder(
+        tester,
+        repository: _FakeEvidenceFolderRepository(
+          availability:
+              const EvidenceFolderTemplateAvailability(isAvailable: true),
+        ),
+      );
+
+      expect(find.text('Crear carpeta'), findsOneWidget);
+      expect(
+        find.textContaining('Ya hay una plantilla publicada'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('shows a create failure once, without a duplicate snackbar',
+        (tester) async {
+      const message = 'No se pudo crear la carpeta.';
+      await pumpNoFolder(
+        tester,
+        repository: _FakeEvidenceFolderRepository(
+          availability:
+              const EvidenceFolderTemplateAvailability(isAvailable: true),
+          createFailure: const ServerFailure(message: message),
+        ),
+      );
+
+      await tester.tap(find.text('Crear carpeta'));
+      await tester.pumpAndSettle();
+
+      expect(find.text(message), findsOneWidget);
+      expect(find.byType(SnackBar), findsNothing);
+    });
+  });
+}
+
+class _TestAuthNotifier extends AuthNotifier {
+  final UserEntity? user;
+
+  _TestAuthNotifier(this.user);
+
+  @override
+  Future<UserEntity?> build() async => user;
+}
+
+const _editor = UserEntity(
+  id: 'director-user',
+  email: 'director@example.com',
+  authorization: AuthorizationSnapshot(
+    effectivePermissions: ['evidence_folders:read', 'evidence_folders:update'],
+  ),
+);
+
+class _FakeEvidenceFolderRepository implements EvidenceFolderRepository {
+  final EvidenceFolderTemplateAvailability availability;
+  final Failure? createFailure;
+
+  _FakeEvidenceFolderRepository({
+    required this.availability,
+    this.createFailure,
+  });
+
+  @override
+  Future<Either<Failure, EvidenceFolderTemplateAvailability>>
+      getTemplateAvailability(String clubSectionId) async =>
+          Right(availability);
+
+  @override
+  Future<Either<Failure, EvidenceFolder>> createEvidenceFolder(
+    String clubSectionId,
+  ) async =>
+      Left(createFailure ?? const ServerFailure(message: 'unexpected'));
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }
 
 class _TestAssetLoader extends AssetLoader {

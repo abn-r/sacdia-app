@@ -3008,6 +3008,9 @@
       "description1": "Le dossier annuel de preuves n'a pas encore été créé pour cette section.",
       "description2": "Contactez l'administration du terrain local pour connaître le statut.",
       "available_hint": "Un modèle publié est disponible. Créez le dossier pour commencer à téléverser les preuves.",
+      "create_hint": "Créez le dossier pour commencer à téléverser des preuves.",
+      "no_template_hint": "Aucun modèle n’est encore publié pour {clubType} ({year}). Dès que votre champ local ou votre union le publiera, vous pourrez créer le dossier ici.",
+      "no_template_hint_generic": "Aucun modèle n’est encore publié pour cette section. Dès que votre champ local ou votre union le publiera, vous pourrez créer le dossier ici.",
       "create_action": "Créer le dossier",
       "creating": "Création du dossier…",
       "create_success": "Dossier créé. Vous pouvez maintenant ajouter des preuves."

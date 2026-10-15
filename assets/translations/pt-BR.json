@@ -3008,6 +3008,9 @@
       "description1": "A pasta anual de evidências ainda não foi criada para esta seção.",
       "description2": "Entre em contato com a administração do campo local para consultar o status.",
       "available_hint": "Há um modelo publicado disponível. Crie a pasta para começar a enviar evidências.",
+      "create_hint": "Crie a pasta para começar a enviar evidências.",
+      "no_template_hint": "Ainda não há um modelo publicado para {clubType} ({year}). Quando seu campo local ou união publicá-lo, você poderá criar a pasta aqui.",
+      "no_template_hint_generic": "Ainda não há um modelo publicado para esta seção. Quando seu campo local ou união publicá-lo, você poderá criar a pasta aqui.",
       "create_action": "Criar pasta",
       "creating": "Criando pasta…",
       "create_success": "Pasta criada. Você já pode adicionar evidências."

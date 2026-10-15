@@ -5,6 +5,7 @@ import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/usecases/cancellation_token.dart';
 import 'package:sacdia_app/features/evidence_folder/domain/entities/evidence_file.dart';
 import 'package:sacdia_app/features/evidence_folder/domain/entities/evidence_folder.dart';
+import 'package:sacdia_app/features/evidence_folder/domain/entities/evidence_folder_template_availability.dart';
 import 'package:sacdia_app/features/evidence_folder/domain/repositories/evidence_folder_repository.dart';
 import 'package:sacdia_app/features/evidence_folder/presentation/providers/evidence_folder_providers.dart';
 
@@ -25,6 +26,11 @@ class _CountingEvidenceFolderRepository implements EvidenceFolderRepository {
     String clubSectionId,
   ) =>
       throw UnimplementedError();
+
+  @override
+  Future<Either<Failure, EvidenceFolderTemplateAvailability>>
+      getTemplateAvailability(String clubSectionId) =>
+          throw UnimplementedError();
 
   @override
   Future<Either<Failure, void>> submitFolder(String folderId) =>

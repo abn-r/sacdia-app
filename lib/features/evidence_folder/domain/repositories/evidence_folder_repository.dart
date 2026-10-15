@@ -4,6 +4,7 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/evidence_folder.dart';
 import '../entities/evidence_file.dart';
+import '../entities/evidence_folder_template_availability.dart';
 
 /// Contrato del repositorio de Carpeta Anual de Evidencias.
 ///
@@ -23,6 +24,11 @@ abstract class EvidenceFolderRepository {
   /// Usa el endpoint por [clubSectionId] para que la app no pida UUIDs internos.
   Future<Either<Failure, EvidenceFolder>> createEvidenceFolder(
       String clubSectionId);
+
+  /// Indica si existe una plantilla publicada para crear la carpeta de la
+  /// sección, junto con el tipo de club y año para mensajes al usuario.
+  Future<Either<Failure, EvidenceFolderTemplateAvailability>>
+      getTemplateAvailability(String clubSectionId);
 
   /// Envía la carpeta completa a validación.
   ///

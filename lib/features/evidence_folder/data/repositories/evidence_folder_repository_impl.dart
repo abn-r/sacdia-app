@@ -7,6 +7,7 @@ import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/evidence_file.dart';
 import '../../domain/entities/evidence_folder.dart';
+import '../../domain/entities/evidence_folder_template_availability.dart';
 import '../../domain/repositories/evidence_folder_repository.dart';
 import '../datasources/evidence_folder_remote_data_source.dart';
 
@@ -51,6 +52,23 @@ class EvidenceFolderRepositoryImpl implements EvidenceFolderRepository {
     try {
       final model = await remoteDataSource.createEvidenceFolder(clubSectionId);
       return Right(model.toEntity());
+    } on NotFoundException catch (e) {
+      return Left(NotFoundFailure(message: e.message, code: e.code));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, EvidenceFolderTemplateAvailability>>
+      getTemplateAvailability(String clubSectionId) async {
+    try {
+      return Right(
+          await remoteDataSource.getTemplateAvailability(clubSectionId));
     } on NotFoundException catch (e) {
       return Left(NotFoundFailure(message: e.message, code: e.code));
     } on ServerException catch (e) {

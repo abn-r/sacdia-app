@@ -10,6 +10,7 @@ import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/datasources/evidence_folder_remote_data_source.dart';
 import '../../data/repositories/evidence_folder_repository_impl.dart';
 import '../../domain/entities/evidence_folder.dart';
+import '../../domain/entities/evidence_folder_template_availability.dart';
 import '../../domain/repositories/evidence_folder_repository.dart';
 import '../../domain/usecases/create_evidence_folder.dart';
 import '../../domain/usecases/delete_evidence_file.dart';
@@ -104,6 +105,19 @@ final evidenceFolderProvider = FutureProvider.autoDispose
   );
 });
 
+/// Disponibilidad de plantilla para crear la carpeta de una sección.
+///
+/// Retorna `null` si la consulta falla: la vista no bloquea la creación en
+/// ese caso y deja que el backend valide al crear.
+final evidenceFolderTemplateAvailabilityProvider = FutureProvider.autoDispose
+    .family<EvidenceFolderTemplateAvailability?, String>(
+        (ref, clubSectionId) async {
+  final result = await ref
+      .read(evidenceFolderRepositoryProvider)
+      .getTemplateAvailability(clubSectionId);
+  return result.fold((_) => null, (availability) => availability);
+});
+
 // ── Folder creation state ───────────────────────────────────────────────────
 
 /// Estado para crear/inicializar la carpeta de la sección activa.
@@ -126,6 +140,8 @@ class EvidenceFolderCreationNotifier
           isLoading: false,
           errorMessage: failure.message,
         );
+        // La plantilla pudo despublicarse entre la consulta y el intento.
+        ref.invalidate(evidenceFolderTemplateAvailabilityProvider(arg));
         return false;
       },
       (_) {

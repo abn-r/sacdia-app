@@ -450,19 +450,12 @@ class _NoFolderBody extends ConsumerWidget {
         .read(evidenceFolderCreationNotifierProvider(clubSectionId).notifier);
     final created = await notifier.createFolder();
 
-    if (!context.mounted) return;
+    // On failure the message is rendered inline under the description; a
+    // snackbar on top would show the same error twice.
+    if (!created || !context.mounted) return;
 
-    final creationState =
-        ref.read(evidenceFolderCreationNotifierProvider(clubSectionId));
-    if (created) {
-      SacSnackBar.show(context, 'evidence_folder.no_folder.create_success'.tr(),
-          backgroundColor: AppColors.secondary);
-      return;
-    }
-
-    final message = creationState.errorMessage ??
-        'evidence_folder.errors.create_folder'.tr();
-    SacSnackBar.show(context, message, isError: true);
+    SacSnackBar.show(context, 'evidence_folder.no_folder.create_success'.tr(),
+        backgroundColor: AppColors.secondary);
   }
 
   @override
@@ -472,6 +465,36 @@ class _NoFolderBody extends ConsumerWidget {
     final canCreate = hasAnyPermission(user, {'evidence_folders:update'});
     final creationState =
         ref.watch(evidenceFolderCreationNotifierProvider(clubSectionId));
+
+    // Only offer creation when a published template exists for the section's
+    // club type and year; otherwise POST fails with
+    // ANNUAL_FOLDER_TEMPLATE_NO_MATCH. A failed check (null) does not block
+    // the action — the backend still validates on create.
+    final availabilityAsync = canCreate
+        ? ref.watch(evidenceFolderTemplateAvailabilityProvider(clubSectionId))
+        : null;
+    final isCheckingTemplate = availabilityAsync?.isLoading ?? false;
+    final availability = availabilityAsync?.valueOrNull;
+    final templateMissing = availability != null && !availability.isAvailable;
+    final showCreate = canCreate && !isCheckingTemplate && !templateMissing;
+
+    final String? hint;
+    if (!canCreate) {
+      hint = 'evidence_folder.no_folder.description2'.tr();
+    } else if (isCheckingTemplate) {
+      hint = null;
+    } else if (templateMissing) {
+      final clubType = availability.clubTypeName;
+      final year = availability.yearLabel;
+      hint = clubType != null && year != null
+          ? 'evidence_folder.no_folder.no_template_hint'
+              .tr(namedArgs: {'clubType': clubType, 'year': year})
+          : 'evidence_folder.no_folder.no_template_hint_generic'.tr();
+    } else if (availability != null) {
+      hint = 'evidence_folder.no_folder.available_hint'.tr();
+    } else {
+      hint = 'evidence_folder.no_folder.create_hint'.tr();
+    }
 
     return Padding(
       padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
@@ -514,18 +537,21 @@ class _NoFolderBody extends ConsumerWidget {
                     ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 6),
-              Text(
-                canCreate
-                    ? 'evidence_folder.no_folder.available_hint'.tr()
-                    : 'evidence_folder.no_folder.description2'.tr(),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: c.textSecondary,
-                      height: 1.55,
-                    ),
-                textAlign: TextAlign.center,
-              ),
-              if (creationState.errorMessage != null) ...[
+              if (hint != null) ...[
+                const SizedBox(height: 6),
+                Text(
+                  hint,
+                  key: const ValueKey('evidence-folder-no-folder-hint'),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: c.textSecondary,
+                        height: 1.55,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+              // When the template turns out to be missing the hint already
+              // explains it; repeating the create error would duplicate it.
+              if (creationState.errorMessage != null && !templateMissing) ...[
                 const SizedBox(height: 12),
                 Text(
                   creationState.errorMessage!,
@@ -537,7 +563,15 @@ class _NoFolderBody extends ConsumerWidget {
                 ),
               ],
               const SizedBox(height: 32),
-              if (canCreate) ...[
+              if (isCheckingTemplate) ...[
+                const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                const SizedBox(height: 12),
+              ],
+              if (showCreate) ...[
                 SacButton.primary(
                   text: creationState.isLoading
                       ? 'evidence_folder.no_folder.creating'.tr()
