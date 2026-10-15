@@ -100,6 +100,7 @@ import '../../features/auth/presentation/views/login_view.dart';
 import '../../features/auth/presentation/views/register_view.dart';
 import '../../features/auth/presentation/views/splash_view.dart';
 import '../../features/auth/presentation/views/welcome_carousel_view.dart';
+import '../../features/legal/presentation/views/legal_acceptance_view.dart';
 import '../../features/post_registration/presentation/views/post_registration_shell.dart';
 import '../../features/dashboard/presentation/views/dashboard_view.dart';
 import '../../features/classes/presentation/views/classes_tabs_view.dart';
@@ -246,6 +247,22 @@ final routerProvider = Provider<GoRouter>((ref) {
         // AppBootstrapReady → fall through to normal routing
       }
 
+      // Legal acceptance gate: blocks everything (deep links, post-registration,
+      // pastor restriction) until the current Terms/Privacy are accepted. The
+      // gate returns null for itself (no loop) and is left only once
+      // `legalAcceptancePending` is false.
+      if (isLoggedIn && userNeedsLegalAcceptance(user)) {
+        return currentPath == RouteNames.legalAcceptance
+            ? null
+            : RouteNames.legalAcceptance;
+      }
+      if (currentPath == RouteNames.legalAcceptance) {
+        if (!isLoggedIn) return RouteNames.login;
+        return userNeedsPostRegistration(user)
+            ? RouteNames.postRegistration
+            : RouteNames.homeDashboard;
+      }
+
       // Splash es transitorio: una vez que la carga terminó, siempre salir.
       // T-15 / T-17: landing redirect only fires from splash (post-login entry).
       // Any other path (deep link, mid-session navigation) falls through
@@ -340,6 +357,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: RouteNames.postRegistration,
         pageBuilder: (context, state) =>
             _slideUpBuild(context, state, const PostRegistrationShell()),
+      ),
+
+      // Gate de aceptación legal (fuera del shell, no es ruta pública).
+      GoRoute(
+        path: RouteNames.legalAcceptance,
+        pageBuilder: (context, state) =>
+            _slideUpBuild(context, state, const LegalAcceptanceView()),
       ),
 
       // Shell con navegación adaptativa (bottom bar en phones, rail en tablets).
