@@ -216,6 +216,9 @@ bool isPastorWithoutClub(UserEntity? user) {
 bool userNeedsPostRegistration(UserEntity user) =>
     !user.postRegisterComplete && !isPastorWithoutClub(user);
 
+/// ¿Debe aceptar los documentos legales vigentes antes de usar la app?
+bool userNeedsLegalAcceptance(UserEntity user) => user.legalAcceptancePending;
+
 bool isUserOwner(UserEntity? user, String targetUserId) {
   final normalizedTarget = targetUserId.trim();
   if (user == null || normalizedTarget.isEmpty) {

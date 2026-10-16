@@ -15,6 +15,13 @@ class UserEntity extends Equatable {
   final DateTime? createdAt;
   final bool postRegisterComplete;
 
+  /// El servidor exige aceptar una versión vigente de Términos o Privacidad.
+  ///
+  /// Se deriva de `/auth/me` en cada carga y nunca se cachea. Debe formar parte
+  /// de `props`: si no, al limpiarse el flag el estado sería igual al anterior
+  /// y el router no se refrescaría.
+  final bool legalAcceptancePending;
+
   const UserEntity({
     required this.id,
     required this.email,
@@ -26,6 +33,7 @@ class UserEntity extends Equatable {
     this.lastSignInAt,
     this.createdAt,
     this.postRegisterComplete = false,
+    this.legalAcceptancePending = false,
   });
 
   @override
@@ -40,5 +48,6 @@ class UserEntity extends Equatable {
         lastSignInAt,
         createdAt,
         postRegisterComplete,
+        legalAcceptancePending,
       ];
 }

@@ -97,6 +97,8 @@ class FakeAuthRepository implements AuthRepository {
     required String name,
     required String paternalSurname,
     required String maternalSurname,
+    required String acceptedTermsVersion,
+    required String acceptedPrivacyVersion,
   }) =>
       throw UnimplementedError();
 

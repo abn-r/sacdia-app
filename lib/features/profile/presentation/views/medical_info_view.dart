@@ -401,7 +401,7 @@ class MedicalInfoView extends ConsumerWidget {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  '${rep.type} · ${rep.phone}',
+                                  '${rep.relationshipTypeName ?? ''} · ${rep.phone}',
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: m.textSecondary,

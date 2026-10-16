@@ -186,8 +186,7 @@ void main() {
   // ── Activity management gates ────────────────────────────────────────────
 
   group('activity management gates', () {
-    test('member without activity write permissions cannot edit or delete',
-        () {
+    test('member without activity write permissions cannot edit or delete', () {
       final user = buildUser(
         id: 'member',
         permissions: const ['activities:read'],
@@ -306,6 +305,20 @@ void main() {
         activeAssignmentId: id,
       );
       expect(membershipGrantForDisplay(snap), isNull);
+    });
+  });
+
+  group('userNeedsLegalAcceptance', () {
+    test('is true only while legalAcceptancePending is set', () {
+      const pending = UserEntity(
+        id: 'u',
+        email: 'u@example.com',
+        legalAcceptancePending: true,
+      );
+      const clear = UserEntity(id: 'u', email: 'u@example.com');
+
+      expect(userNeedsLegalAcceptance(pending), isTrue);
+      expect(userNeedsLegalAcceptance(clear), isFalse);
     });
   });
 }

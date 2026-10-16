@@ -45,16 +45,8 @@ class _LegalRepresentativeViewState
             _paternalSurnameController.text = rep.paternalSurname;
             _maternalSurnameController.text = rep.maternalSurname;
             _phoneController.text = rep.phone;
-            // Buscar el ID del tipo de relación que coincida con el nombre guardado
-            final typesAsync = ref.read(relationshipTypesProvider);
-            typesAsync.whenData((types) {
-              final match = types.where(
-                (t) => t.name.toLowerCase() == rep.type.toLowerCase(),
-              );
-              if (match.isNotEmpty && mounted) {
-                setState(() => _selectedTypeId = match.first.id);
-              }
-            });
+            _selectedTypeId =
+                rep.relationshipTypeId.isEmpty ? null : rep.relationshipTypeId;
           });
         }
       });
@@ -77,18 +69,15 @@ class _LegalRepresentativeViewState
     setState(() => _isLoading = true);
 
     try {
-      // Obtener el nombre del tipo seleccionado
-      final typesAsync = ref.read(relationshipTypesProvider);
-      final types = typesAsync.valueOrNull ?? [];
-      final selectedType = types.where((t) => t.id == _selectedTypeId);
-      final typeName = selectedType.isNotEmpty ? selectedType.first.name : '';
+      final typeId = _selectedTypeId;
+      if (typeId == null) return;
 
       final representative = LegalRepresentativeModel(
         name: _nameController.text.trim(),
         paternalSurname: _paternalSurnameController.text.trim(),
         maternalSurname: _maternalSurnameController.text.trim(),
         phone: _phoneController.text.trim(),
-        type: typeName,
+        relationshipTypeId: typeId,
       );
 
       await ref

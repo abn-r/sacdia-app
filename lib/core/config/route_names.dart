@@ -9,6 +9,7 @@ class RouteNames {
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
   static const String postRegistration = '/post-registration';
+  static const String legalAcceptance = '/legal-acceptance';
   static const String home = '/home';
   static const String dashboard = 'dashboard';
   static const String classes = 'classes';

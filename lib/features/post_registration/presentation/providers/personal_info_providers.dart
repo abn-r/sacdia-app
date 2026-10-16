@@ -689,10 +689,14 @@ final canCompleteStep2Provider = Provider.autoDispose<bool>((ref) {
   if (!hasContacts) return false;
 
   final requiresRepAsync = ref.watch(legalRepresentativeRequiredProvider);
-  final requiresRep = requiresRepAsync.maybeWhen(
-    data: (required) => required,
-    orElse: () => false,
-  );
+  // Fail-closed: mientras la verificación carga o falla, un menor no puede
+  // saltarse el representante legal.
+  final requiresRep = requiresRepAsync.valueOrNull;
+  if (requiresRepAsync.isLoading ||
+      requiresRepAsync.hasError ||
+      requiresRep == null) {
+    return false;
+  }
 
   if (requiresRep) {
     final repAsync = ref.watch(legalRepresentativeProvider);

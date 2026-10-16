@@ -67,6 +67,8 @@ class AuthRepositoryImpl implements AuthRepository {
     required String name,
     required String paternalSurname,
     required String maternalSurname,
+    required String acceptedTermsVersion,
+    required String acceptedPrivacyVersion,
   }) async {
     try {
       final user = await remoteDataSource.signUpWithEmailAndPassword(
@@ -75,6 +77,8 @@ class AuthRepositoryImpl implements AuthRepository {
         name: name,
         paternalSurname: paternalSurname,
         maternalSurname: maternalSurname,
+        acceptedTermsVersion: acceptedTermsVersion,
+        acceptedPrivacyVersion: acceptedPrivacyVersion,
       );
       return Right(user);
     } on core_exceptions.AuthException catch (e) {

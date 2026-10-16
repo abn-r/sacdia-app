@@ -19,6 +19,8 @@ class SignUp implements UseCase<UserEntity, SignUpParams> {
       name: params.name,
       paternalSurname: params.paternalSurname,
       maternalSurname: params.maternalSurname,
+      acceptedTermsVersion: params.acceptedTermsVersion,
+      acceptedPrivacyVersion: params.acceptedPrivacyVersion,
     );
   }
 }
@@ -31,15 +33,29 @@ class SignUpParams extends Equatable {
   final String paternalSurname;
   final String maternalSurname;
 
+  /// Versiones vigentes de los documentos legales que el usuario aceptó
+  /// (las que devolvió `GET /legal/current` al abrir el registro).
+  final String acceptedTermsVersion;
+  final String acceptedPrivacyVersion;
+
   const SignUpParams({
     required this.email,
     required this.password,
     required this.name,
     required this.paternalSurname,
     required this.maternalSurname,
+    required this.acceptedTermsVersion,
+    required this.acceptedPrivacyVersion,
   });
 
   @override
-  List<Object> get props =>
-      [email, password, name, paternalSurname, maternalSurname];
+  List<Object> get props => [
+        email,
+        password,
+        name,
+        paternalSurname,
+        maternalSurname,
+        acceptedTermsVersion,
+        acceptedPrivacyVersion,
+      ];
 }

@@ -228,7 +228,32 @@
       "delete_account_failed": "Account deletion failed",
       "sign_out_failed": "Sign out failed",
       "operation_cancelled": "Operation cancelled"
+    },
+    "legal": {
+      "consent_prefix": "I have read and accept the ",
+      "terms_link": "Terms and Conditions",
+      "and": " and the ",
+      "privacy_link": "Privacy Notice",
+      "login_notice_prefix": "By continuing, you accept the ",
+      "load_error": "We couldn't load the legal documents.",
+      "retry": "Retry",
+      "open_failed": "The document could not be opened. Please try again.",
+      "consent_semantics": "Accept the Terms and Conditions and the Privacy Notice"
     }
+  },
+  "legal_gate": {
+    "title": "Terms and privacy",
+    "body": "To use SACDIA you need to accept the current documents.",
+    "document_terms": "Terms and Conditions",
+    "document_privacy": "Privacy Notice",
+    "version_label": "Version {version}",
+    "read_document": "Read",
+    "accept_button": "Accept and continue",
+    "sign_out": "Sign out",
+    "load_error": "We couldn't load the legal documents.",
+    "retry": "Retry",
+    "accept_error": "Your acceptance could not be recorded. Please try again.",
+    "version_changed": "The legal documents have been updated. Please review and accept the current version."
   },
   "qr": {
     "my_credential": "My QR credential",

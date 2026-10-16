@@ -2,12 +2,18 @@ import 'package:equatable/equatable.dart';
 
 /// Modelo de representante legal
 class LegalRepresentativeModel extends Equatable {
-  final int? id;
+  /// UUID del registro (solo lectura; nunca se envía al backend).
+  final String? id;
   final String name;
   final String paternalSurname;
   final String maternalSurname;
   final String phone;
-  final String type; // padre, madre, tutor
+
+  /// UUID del tipo de relación (catálogo `relationship_types`).
+  final String relationshipTypeId;
+
+  /// Nombre del tipo de relación (solo lectura, viene en las respuestas).
+  final String? relationshipTypeName;
 
   const LegalRepresentativeModel({
     this.id,
@@ -15,41 +21,63 @@ class LegalRepresentativeModel extends Equatable {
     required this.paternalSurname,
     required this.maternalSurname,
     required this.phone,
-    required this.type,
+    required this.relationshipTypeId,
+    this.relationshipTypeName,
   });
 
-  /// Crea una instancia desde JSON
+  /// Crea una instancia desde el objeto `data` del backend.
+  ///
+  /// Si el representante es un usuario registrado, los datos personales se
+  /// toman de `representative_user` cuando faltan en la fila.
   factory LegalRepresentativeModel.fromJson(Map<String, dynamic> json) {
+    final repUser = json['representative_user'];
+    final user = repUser is Map<String, dynamic> ? repUser : const {};
+    final relType = json['relationship_types'];
+    final type = relType is Map<String, dynamic> ? relType : const {};
+
+    String text(dynamic primary, dynamic fallback) {
+      final value = primary ?? fallback;
+      return value is String ? value : '';
+    }
+
+    final typeId = json['relationship_type_id'] ?? type['relationship_type_id'];
+    final typeName = type['name'];
+
     return LegalRepresentativeModel(
-      id: json['id'] as int?,
-      name: json['name'] as String,
-      paternalSurname: json['paternal_surname'] as String,
-      maternalSurname: json['maternal_surname'] as String,
-      phone: json['phone'] as String,
-      type: json['type'] as String,
+      id: json['id']?.toString(),
+      name: text(json['name'], user['name']),
+      paternalSurname:
+          text(json['paternal_last_name'], user['paternal_last_name']),
+      maternalSurname:
+          text(json['maternal_last_name'], user['maternal_last_name']),
+      phone: text(json['phone'], null),
+      relationshipTypeId: typeId?.toString() ?? '',
+      relationshipTypeName: typeName is String ? typeName : null,
     );
   }
 
-  /// Convierte la instancia a JSON
+  /// Convierte la instancia al payload del DTO del backend.
+  ///
+  /// El backend usa `forbidNonWhitelisted`: solo se envían las claves del DTO.
   Map<String, dynamic> toJson() {
     return {
-      if (id != null) 'id': id,
       'name': name,
-      'paternal_surname': paternalSurname,
-      'maternal_surname': maternalSurname,
+      'paternal_last_name': paternalSurname,
+      if (maternalSurname.isNotEmpty) 'maternal_last_name': maternalSurname,
       'phone': phone,
-      'type': type,
+      'relationship_type_id': relationshipTypeId,
     };
   }
 
   /// Crea una copia con campos actualizados
   LegalRepresentativeModel copyWith({
-    int? id,
+    String? id,
     String? name,
     String? paternalSurname,
     String? maternalSurname,
     String? phone,
-    String? type,
+    String? relationshipTypeId,
+    String? relationshipTypeName,
   }) {
     return LegalRepresentativeModel(
       id: id ?? this.id,
@@ -57,7 +85,8 @@ class LegalRepresentativeModel extends Equatable {
       paternalSurname: paternalSurname ?? this.paternalSurname,
       maternalSurname: maternalSurname ?? this.maternalSurname,
       phone: phone ?? this.phone,
-      type: type ?? this.type,
+      relationshipTypeId: relationshipTypeId ?? this.relationshipTypeId,
+      relationshipTypeName: relationshipTypeName ?? this.relationshipTypeName,
     );
   }
 
@@ -65,6 +94,13 @@ class LegalRepresentativeModel extends Equatable {
   String get fullName => '$name $paternalSurname $maternalSurname';
 
   @override
-  List<Object?> get props =>
-      [id, name, paternalSurname, maternalSurname, phone, type];
+  List<Object?> get props => [
+        id,
+        name,
+        paternalSurname,
+        maternalSurname,
+        phone,
+        relationshipTypeId,
+        relationshipTypeName,
+      ];
 }

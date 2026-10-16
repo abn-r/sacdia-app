@@ -96,6 +96,9 @@ class ApiEndpoints {
   static const String dataExport = '/users/me/data-export';
   static const String dataExports = '/users/me/data-exports';
 
+  // ── Legal (Terms / Privacy acceptance) ────────────────────────────────────
+  static const String legal = '/legal';
+
   // ── Notifications ─────────────────────────────────────────────────────────
   static const String notifications = '/notifications';
 
