@@ -31,6 +31,11 @@ import 'member_profile_view.dart';
 import 'role_assignment_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 
+/// The mode the members screen shows. Without `club_members:approve` only
+/// the member list (mode 0) exists.
+int effectiveMembersMode(int mode, {required bool canApprove}) =>
+    canApprove ? mode : 0;
+
 /// Vista principal de Miembros.
 /// Modos: miembros, solicitudes, y no inscritos si hay `club_members:approve`.
 class MembersView extends ConsumerStatefulWidget {
@@ -68,12 +73,14 @@ class _MembersViewState extends ConsumerState<MembersView> {
     final pendingCount = ref.watch(pendingRequestsCountProvider);
     final isDirector = _canManageClubRoles(ref);
     final canContinue = _canManageContinuations(ref);
-    if (!canContinue && _mode == 2) {
+    // Requests and continuations both need club_members:approve; without it
+    // the API answers 403 and only the member list is left.
+    if (!canContinue && _mode != 0) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _mode == 2) setState(() => _mode = 0);
+        if (mounted && _mode != 0) setState(() => _mode = 0);
       });
     }
-    final mode = (!canContinue && _mode == 2) ? 0 : _mode;
+    final mode = effectiveMembersMode(_mode, canApprove: canContinue);
     final continuationsAsync =
         canContinue ? ref.watch(annualContinuationsNotifierProvider) : null;
     final pendingContinuations =
@@ -134,16 +141,18 @@ class _MembersViewState extends ConsumerState<MembersView> {
           builder: (context) => SafeArea(
             child: Column(
               children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: hPad, vertical: 8),
-                  child: MembersModeSwitcher(
-                    index: mode,
-                    onChanged: (next) => setState(() => _mode = next),
-                    showContinuations: canContinue,
-                    pendingRequests: pendingCount,
-                    pendingContinuations: pendingContinuations,
+                if (canContinue)
+                  Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: hPad, vertical: 8),
+                    child: MembersModeSwitcher(
+                      index: mode,
+                      onChanged: (next) => setState(() => _mode = next),
+                      showContinuations: canContinue,
+                      pendingRequests: pendingCount,
+                      pendingContinuations: pendingContinuations,
+                    ),
                   ),
-                ),
                 Expanded(
                   child: clubCtxAsync.when(
                     data: (ctx) {
@@ -156,12 +165,14 @@ class _MembersViewState extends ConsumerState<MembersView> {
                           isDirector: isDirector,
                           membersAsync: membersAsync,
                         ),
-                        _JoinRequestsTab(
-                          clubContext: ctx,
-                          isDirector: isDirector,
-                          membersAsync: membersAsync,
-                        ),
-                        if (canContinue) const AnnualContinuationsBody(),
+                        if (canContinue) ...[
+                          _JoinRequestsTab(
+                            clubContext: ctx,
+                            isDirector: isDirector,
+                            membersAsync: membersAsync,
+                          ),
+                          const AnnualContinuationsBody(),
+                        ],
                       ];
                       return Stack(
                         fit: StackFit.expand,
