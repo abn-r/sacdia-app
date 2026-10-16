@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sacdia_app/core/errors/failures.dart';
+import 'package:sacdia_app/features/enrollment/domain/entities/enrollment.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../enrollment/presentation/providers/enrollment_providers.dart';
@@ -127,7 +129,12 @@ final monthlyReportsHistoryProvider =
     return page.items;
   }
 
-  final enrollment = await ref.watch(currentEnrollmentProvider.future);
+  final Enrollment? enrollment;
+  try {
+    enrollment = await ref.watch(currentEnrollmentProvider.future);
+  } on Failure {
+    return const [];
+  }
   final enrollmentId = enrollment?.endpointId;
   if (enrollmentId == null || enrollmentId == '0') return const [];
 

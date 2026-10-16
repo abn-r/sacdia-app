@@ -59,16 +59,17 @@ final currentEnrollmentProvider = FutureProvider<Enrollment?>((ref) async {
     cancelToken: cancelToken,
   );
 
+  // 404 and 5xx are already absorbed in the datasource (returns null).
+  // Anything else (403 for roles that cannot read it, network) is an error,
+  // not "no enrollment": null makes the dashboard claim the club has not
+  // enrolled this year. Callers that only need the id treat errors as null.
   return result.fold(
     (failure) {
-      // 5xx are already absorbed in the datasource (returns null).
-      // Any other failure here (auth, network, unexpected) is logged as a
-      // warning and treated as "no enrollment" so the dashboard stays usable.
       AppLogger.w(
         'currentEnrollmentProvider: fallo al obtener inscripción — ${failure.runtimeType}: ${failure.message}',
         tag: 'EnrollmentProvider',
       );
-      return null;
+      throw failure;
     },
     (enrollment) => enrollment,
   );

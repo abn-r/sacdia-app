@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/errors/failures.dart';
+import 'package:sacdia_app/features/enrollment/domain/entities/enrollment.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -134,7 +136,12 @@ class _NextActionBar extends ConsumerWidget {
       return;
     }
 
-    final enrollment = await ref.read(currentEnrollmentProvider.future);
+    Enrollment? enrollment;
+    try {
+      enrollment = await ref.read(currentEnrollmentProvider.future);
+    } on Failure {
+      enrollment = null;
+    }
     if (!context.mounted) return;
     final enrollmentId = enrollment?.endpointId;
     if (enrollmentId == null || enrollmentId == '0') {
