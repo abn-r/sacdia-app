@@ -3487,6 +3487,7 @@
         "info_available_hours": "Le fichier sera disponible au téléchargement pendant 48 heures.",
         "info_rate_limit": "Vous pouvez demander une exportation toutes les 24 heures.",
         "request_button": "Demander une exportation de données",
+        "cooldown_notice": "Vous avez déjà une exportation des dernières 24 heures. Vous pourrez en demander une autre dans {time}.",
         "requesting": "Demande en cours…",
         "in_progress": "Exportation en cours…",
         "history_header": "HISTORIQUE DES DEMANDES",

@@ -241,6 +241,12 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
     // ¿Hay alguna export activa (pending/processing) que bloquee el botón?
     final hasActiveExport = exports?.any((e) => e.isInProgress) ?? false;
     final isButtonDisabled = _isRequesting || hasActiveExport;
+    // A ready export inside the 24 h cooldown: the backend would answer 429,
+    // so the button is replaced by when the next request opens.
+    final now = DateTime.now();
+    final nextAvailableAt = (_isRequesting || hasActiveExport)
+        ? null
+        : nextDataExportAvailableAt(exports ?? const [], now: now);
 
     return RefreshIndicator(
       onRefresh: () => ref.read(dataExportProvider.notifier).refresh(),
@@ -253,16 +259,22 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
           const SizedBox(height: 20),
 
           // ── Botón de solicitud ─────────────────────────────────────
-          SacButton.primary(
-            text: _isRequesting
-                ? 'profile.data_export.ui.requesting'.tr()
-                : hasActiveExport
-                    ? 'profile.data_export.ui.in_progress'.tr()
-                    : 'profile.data_export.ui.request_button'.tr(),
-            icon: HugeIcons.strokeRoundedDownload02,
-            isLoading: _isRequesting,
-            onPressed: isButtonDisabled ? null : _handleRequestExport,
-          ),
+          if (nextAvailableAt != null)
+            _CooldownNotice(
+              c: c,
+              wait: formatDataExportWait(nextAvailableAt.difference(now)),
+            )
+          else
+            SacButton.primary(
+              text: _isRequesting
+                  ? 'profile.data_export.ui.requesting'.tr()
+                  : hasActiveExport
+                      ? 'profile.data_export.ui.in_progress'.tr()
+                      : 'profile.data_export.ui.request_button'.tr(),
+              icon: HugeIcons.strokeRoundedDownload02,
+              isLoading: _isRequesting,
+              onPressed: isButtonDisabled ? null : _handleRequestExport,
+            ),
           const SizedBox(height: 28),
 
           // ── Lista de solicitudes ───────────────────────────────────
@@ -299,6 +311,42 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
 }
 
 // ── Info card ─────────────────────────────────────────────────────────────────
+
+class _CooldownNotice extends StatelessWidget {
+  final SacColors c;
+  final String wait;
+
+  const _CooldownNotice({required this.c, required this.wait});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: c.border),
+      ),
+      child: Row(
+        children: [
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedClock01,
+            size: 20,
+            color: c.textSecondary,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'profile.data_export.ui.cooldown_notice'
+                  .tr(namedArgs: {'time': wait}),
+              style: TextStyle(fontSize: 14, color: c.textSecondary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _InfoCard extends StatelessWidget {
   final SacColors c;

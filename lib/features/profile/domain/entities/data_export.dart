@@ -79,3 +79,35 @@ class DataExport extends Equatable {
         failureReason,
       ];
 }
+
+/// Cooldown the backend enforces between completed exports.
+const dataExportCooldown = Duration(hours: 24);
+
+/// When the user may request another export, or null if they can now.
+///
+/// Mirrors the backend rule: only a ready export created inside the
+/// cooldown blocks a new request; failed and expired ones do not.
+DateTime? nextDataExportAvailableAt(
+  List<DataExport> exports, {
+  required DateTime now,
+}) {
+  DateTime? latest;
+  for (final export in exports) {
+    if (export.status != DataExportStatus.ready) continue;
+    if (latest == null || export.createdAt.isAfter(latest)) {
+      latest = export.createdAt;
+    }
+  }
+  if (latest == null) return null;
+  final next = latest.add(dataExportCooldown);
+  return next.isAfter(now) ? next : null;
+}
+
+/// Short wait label: whole hours rounded up, or minutes under an hour.
+String formatDataExportWait(Duration wait) {
+  if (wait.inMinutes >= 60) {
+    return '${(wait.inMinutes / 60).ceil()} h';
+  }
+  final minutes = (wait.inSeconds / 60).ceil();
+  return '${minutes < 1 ? 1 : minutes} min';
+}
