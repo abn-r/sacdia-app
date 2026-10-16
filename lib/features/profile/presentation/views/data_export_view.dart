@@ -1,11 +1,14 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
@@ -175,14 +178,41 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
       return;
     }
 
-    final url = result.url!;
-    final uri = Uri.parse(url);
-
-    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    if (!launched && mounted) {
-      _showSnackBar('profile.data_export.ui.download_link_error'.tr(),
-          isError: true);
+    // Download to a temp file and hand it to the native share sheet, so the
+    // user can save it to Files or send it, instead of raw JSON in a browser.
+    final exports = ref.read(dataExportProvider).valueOrNull ?? const [];
+    final export = exports.where((e) => e.exportId == exportId).firstOrNull;
+    final fileName = dataExportFileName(export?.createdAt ?? DateTime.now());
+    final origin = _shareOrigin();
+    File? file;
+    try {
+      final dir = await getTemporaryDirectory();
+      file = File('${dir.path}/$fileName');
+      // Plain Dio on purpose: the URL is a pre-signed R2 link, no auth header.
+      await Dio().download(result.url!, file.path);
+      if (!mounted) return;
+      await Share.shareXFiles(
+        [XFile(file.path, name: fileName, mimeType: 'application/json')],
+        sharePositionOrigin: origin,
+      );
+    } catch (_) {
+      if (mounted) {
+        _showSnackBar('profile.data_export.ui.download_file_error'.tr(),
+            isError: true);
+      }
+    } finally {
+      // The file holds personal data; keep no copy once the sheet closes.
+      try {
+        if (file != null && await file.exists()) await file.delete();
+      } catch (_) {}
     }
+  }
+
+  /// Anchor for the share sheet popover on iPad.
+  Rect? _shareOrigin() {
+    final box = context.findRenderObject();
+    if (box is! RenderBox || !box.hasSize || box.size.isEmpty) return null;
+    return box.localToGlobal(Offset.zero) & box.size;
   }
 
   // ── Build ──────────────────────────────────────────────────────────────────

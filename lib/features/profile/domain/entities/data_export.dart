@@ -111,3 +111,10 @@ String formatDataExportWait(Duration wait) {
   final minutes = (wait.inSeconds / 60).ceil();
   return '${minutes < 1 ? 1 : minutes} min';
 }
+
+/// File name for a shared export, dated by when it was generated.
+String dataExportFileName(DateTime createdAt) {
+  String two(int n) => n.toString().padLeft(2, '0');
+  return 'sacdia-mis-datos-'
+      '${createdAt.year}-${two(createdAt.month)}-${two(createdAt.day)}.json';
+}
