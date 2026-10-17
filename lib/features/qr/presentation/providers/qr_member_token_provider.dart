@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/auth/acting_for_session.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../data/datasources/qr_remote_data_source.dart';
@@ -7,7 +8,11 @@ import '../../data/repositories/qr_repository_impl.dart';
 import '../../domain/entities/qr_member_token.dart';
 import '../../domain/repositories/qr_repository.dart';
 
-final _qrDioProvider = Provider((ref) => DioClient.createDio());
+final _qrDioProvider = Provider(
+  (ref) => DioClient.createDio(
+    actingForSession: ref.read(actingForSessionProvider),
+  ),
+);
 
 final _qrRepositoryProvider = Provider<QrRepository>((ref) {
   final dio = ref.watch(_qrDioProvider);

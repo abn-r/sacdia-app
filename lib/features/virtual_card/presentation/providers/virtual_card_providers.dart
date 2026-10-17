@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/auth/acting_for_session.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/network/dio_client.dart';
@@ -17,7 +18,11 @@ import '../../domain/entities/virtual_card.dart';
 import '../../domain/repositories/virtual_card_repository.dart';
 import '../utils/credential_club_type.dart';
 
-final _virtualCardDioProvider = Provider<Dio>((ref) => DioClient.createDio());
+final _virtualCardDioProvider = Provider<Dio>(
+  (ref) => DioClient.createDio(
+    actingForSession: ref.read(actingForSessionProvider),
+  ),
+);
 
 final virtualCardRemoteDataSourceProvider =
     Provider<VirtualCardRemoteDataSource>((ref) {

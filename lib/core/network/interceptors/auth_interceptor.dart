@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../auth/acting_for_session.dart';
 import '../../constants/app_constants.dart';
 import '../../utils/app_logger.dart';
 
@@ -54,6 +55,34 @@ class AuthInterceptor extends QueuedInterceptor {
   /// recovered. Use this to invalidate the auth state without making API calls.
   final VoidCallback? onAuthExpired;
 
+  /// Perfil por el que se actúa (tutor -> dependiente). Nulo en tests o
+  /// instancias de Dio que nunca actúan por otro usuario.
+  final ActingForSession? _actingForSession;
+
+  /// Rutas (relativas a la base de la API) que JAMÁS llevan `X-Acting-For`.
+  ///
+  /// Son cuenta/seguridad del tutor (`/auth/*` de sesión), la gestión de
+  /// familia (`/guardianships`) y lo que pertenece al dispositivo o a la
+  /// cuenta real (`/fcm-tokens`, preferencias de notificación, exportación).
+  /// El backend las rechaza si llevan el encabezado.
+  static const actingForSkipPrefixes = <String>[
+    '/auth/refresh',
+    '/auth/logout',
+    '/auth/login',
+    '/auth/register',
+    '/guardianships',
+    '/fcm-tokens',
+    '/users/me/notification-preferences',
+    '/users/me/data-export',
+  ];
+
+  /// Nombre del encabezado que sustituye al principal en el backend.
+  static const actingForHeader = 'X-Acting-For';
+
+  /// Clave de `RequestOptions.extra` para que una petición concreta NO lleve
+  /// `X-Acting-For` aunque se esté actuando (`extra['skipActingFor'] == true`).
+  static const skipActingForKey = 'skipActingFor';
+
   AuthInterceptor({
     FlutterSecureStorage? secureStorage,
 
@@ -61,7 +90,9 @@ class AuthInterceptor extends QueuedInterceptor {
     /// reintentar la petición original después del refresh.
     Dio? dio,
     this.onAuthExpired,
-  })  : _secureStorage = secureStorage ??
+    ActingForSession? actingForSession,
+  })  : _actingForSession = actingForSession,
+        _secureStorage = secureStorage ??
             const FlutterSecureStorage(
               aOptions: AndroidOptions(encryptedSharedPreferences: true),
               iOptions: IOSOptions(
@@ -97,7 +128,48 @@ class AuthInterceptor extends QueuedInterceptor {
       options.headers['Authorization'] = 'Bearer $token';
     }
 
+    // ÚNICO punto donde se inyecta X-Acting-For. Se lee la sesión DESPUÉS del
+    // await: la decisión del encabezado queda en el mismo tramo síncrono que
+    // sella la generación (ver ActingGenerationInterceptor).
+    final acting = _actingForSession;
+    if (acting != null) {
+      final dependentId = acting.dependentUserId;
+      if (dependentId != null && _shouldSendActingFor(options)) {
+        options.headers[actingForHeader] = dependentId;
+      } else {
+        // Un reintento o una petición reutilizada no debe arrastrar el
+        // encabezado de un perfil anterior.
+        options.headers.remove(actingForHeader);
+      }
+    }
+
     handler.next(options);
+  }
+
+  /// `false` para las rutas exentas y para peticiones marcadas con
+  /// `extra['skipActingFor'] == true`.
+  static bool _shouldSendActingFor(RequestOptions options) {
+    if (options.extra[skipActingForKey] == true) return false;
+    final path = apiPathOf(options);
+    return !actingForSkipPrefixes.any(path.startsWith);
+  }
+
+  /// Ruta de la petición relativa a la base de la API (`/users/...`).
+  ///
+  /// Los datasources de la app pasan tanto rutas relativas como URLs completas
+  /// (`'$baseUrl/auth/me'`), así que se resuelve la URI final y se le quita el
+  /// prefijo de la base (p. ej. `/api/v1`).
+  @visibleForTesting
+  static String apiPathOf(RequestOptions options) {
+    var path = options.uri.path;
+    final basePath = Uri.tryParse(options.baseUrl)?.path ?? '';
+    final trimmedBase = basePath.endsWith('/')
+        ? basePath.substring(0, basePath.length - 1)
+        : basePath;
+    if (trimmedBase.isNotEmpty && path.startsWith(trimmedBase)) {
+      path = path.substring(trimmedBase.length);
+    }
+    return path.startsWith('/') ? path : '/$path';
   }
 
   // ─── onError ──────────────────────────────────────────────────────────────
