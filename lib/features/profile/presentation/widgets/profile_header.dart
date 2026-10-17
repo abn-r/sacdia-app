@@ -45,14 +45,16 @@ class _AvatarInitials extends StatelessWidget {
 /// - Nombre en negro, email en gris secundario
 class ProfileHeader extends StatelessWidget {
   final String name;
-  final String email;
+
+  /// Nulo en perfiles de dependientes (sin cuenta, sin correo).
+  final String? email;
   final String? avatar;
   final VoidCallback? onEditPhoto;
 
   const ProfileHeader({
     super.key,
     required this.name,
-    required this.email,
+    this.email,
     this.avatar,
     this.onEditPhoto,
   });
@@ -158,20 +160,22 @@ class ProfileHeader extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 4),
+          if (email != null && email!.isNotEmpty) ...[
+            const SizedBox(height: 4),
 
-          // ── Email ──────────────────────────────────────────────
-          Text(
-            email,
-            style: TextStyle(
-              fontSize: 14,
-              color: c.textSecondary,
-              fontWeight: FontWeight.w400,
+            // ── Email ──────────────────────────────────────────────
+            Text(
+              email!,
+              style: TextStyle(
+                fontSize: 14,
+                color: c.textSecondary,
+                fontWeight: FontWeight.w400,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+          ],
         ],
       ),
     );

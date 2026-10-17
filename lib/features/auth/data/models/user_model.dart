@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 
+import '../../domain/entities/acting_for_info.dart';
 import '../../domain/entities/authorization_snapshot.dart';
 import '../../domain/entities/user_entity.dart';
 
@@ -7,7 +8,7 @@ import '../../domain/entities/user_entity.dart';
 class UserModel extends UserEntity {
   const UserModel({
     required super.id,
-    required super.email,
+    super.email,
     super.name,
     super.avatar,
     super.birthday,
@@ -17,6 +18,8 @@ class UserModel extends UserEntity {
     super.createdAt,
     super.postRegisterComplete,
     super.legalAcceptancePending,
+    super.actingFor,
+    super.family,
   });
 
   /// Crea un UserModel a partir de la respuesta de la API personalizada
@@ -32,7 +35,7 @@ class UserModel extends UserEntity {
 
     return UserModel(
       id: userId,
-      email: (data['email'] as String?) ?? '',
+      email: _parseEmail(data['email']),
       name: data['name'] as String?,
       avatar: data['avatar'] as String? ??
           data['user_image'] as String? ??
@@ -44,6 +47,8 @@ class UserModel extends UserEntity {
       createdAt: _parseDateTime(data['created_at']) ?? DateTime.now(),
       postRegisterComplete: postRegisterComplete,
       legalAcceptancePending: _parseLegalPending(data['legal']),
+      actingFor: _parseActingFor(data['acting_for']),
+      family: _parseFamily(data['family']),
     );
   }
 
@@ -61,6 +66,48 @@ class UserModel extends UserEntity {
       'createdAt': createdAt?.toIso8601String(),
       'postRegisterComplete': postRegisterComplete,
     };
+  }
+
+  /// El correo es nulo en perfiles de dependientes; una cadena vacía o
+  /// solo con espacios también cuenta como ausente.
+  static String? _parseEmail(dynamic value) {
+    if (value is! String) return null;
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
+  /// `data.acting_for`: nulo (o malformado) significa que no se actúa por nadie.
+  static ActingForInfo? _parseActingFor(dynamic value) {
+    if (value is! Map) return null;
+    final actor = value['actor_user_id']?.toString();
+    final dependent = value['dependent_user_id']?.toString();
+    if (actor == null ||
+        actor.isEmpty ||
+        dependent == null ||
+        dependent.isEmpty) {
+      return null;
+    }
+    final rawScopes = value['scopes'];
+    return ActingForInfo(
+      actorUserId: actor,
+      dependentUserId: dependent,
+      guardianshipId: value['guardianship_id']?.toString(),
+      consentStatus: value['consent_status']?.toString(),
+      scopes: rawScopes is List
+          ? rawScopes.map((s) => s.toString()).toList(growable: false)
+          : const [],
+    );
+  }
+
+  /// `data.family`: `{is_guardian, dependents_count}`; ausente o malformado es
+  /// nulo.
+  static FamilySummary? _parseFamily(dynamic value) {
+    if (value is! Map) return null;
+    final count = value['dependents_count'];
+    return FamilySummary(
+      isGuardian: value['is_guardian'] == true,
+      dependentsCount: count is num ? count.toInt() : 0,
+    );
   }
 
   /// `data.legal.requires_acceptance == true`. Un bloque ausente o malformado
@@ -236,7 +283,7 @@ class UserModel extends UserEntity {
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'] as String,
-      email: json['email'] as String,
+      email: json['email'] as String?,
       name: json['name'] as String?,
       avatar: json['avatar'] as String?,
       birthday: _parseDateTime(json['birthday']),
@@ -261,6 +308,8 @@ class UserModel extends UserEntity {
     DateTime? createdAt,
     bool? postRegisterComplete,
     bool? legalAcceptancePending,
+    ActingForInfo? actingFor,
+    FamilySummary? family,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -275,6 +324,8 @@ class UserModel extends UserEntity {
       postRegisterComplete: postRegisterComplete ?? this.postRegisterComplete,
       legalAcceptancePending:
           legalAcceptancePending ?? this.legalAcceptancePending,
+      actingFor: actingFor ?? this.actingFor,
+      family: family ?? this.family,
     );
   }
 }

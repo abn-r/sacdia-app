@@ -230,7 +230,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       (failure) {
         if (failure is NetworkFailure) {
           AppLogger.w('Sin conectividad, intentando caché', tag: _tag);
-          if (cachedId != null && cachedEmail != null) {
+          if (cachedId != null) {
             AppLogger.i('Sesión restaurada desde caché', tag: _tag);
             // Session restored from cache — initialize FCM so token is
             // registered even when the backend was temporarily unreachable.
@@ -306,7 +306,12 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     final secureStorage = ref.read(secureStorageProvider);
     // Fire-and-forget: cache writes are best-effort for offline restoration.
     secureStorage.write(AppConstants.cachedUserId, user.id);
-    secureStorage.write(AppConstants.cachedUserEmail, user.email);
+    final email = user.email;
+    if (email != null && email.isNotEmpty) {
+      secureStorage.write(AppConstants.cachedUserEmail, email);
+    } else {
+      secureStorage.delete(AppConstants.cachedUserEmail);
+    }
     if (user.name != null) {
       secureStorage.write(AppConstants.cachedUserName, user.name!);
     }
@@ -488,6 +493,8 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       createdAt: current.createdAt,
       postRegisterComplete: true,
       legalAcceptancePending: current.legalAcceptancePending,
+      actingFor: current.actingFor,
+      family: current.family,
     );
     state = AsyncValue.data(updatedUser);
     _cacheUser(updatedUser);
@@ -511,6 +518,8 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       createdAt: current.createdAt,
       postRegisterComplete: current.postRegisterComplete,
       legalAcceptancePending: false,
+      actingFor: current.actingFor,
+      family: current.family,
     );
     state = AsyncValue.data(updatedUser);
   }
@@ -529,6 +538,8 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       createdAt: current.createdAt,
       postRegisterComplete: false,
       legalAcceptancePending: current.legalAcceptancePending,
+      actingFor: current.actingFor,
+      family: current.family,
     );
     state = AsyncValue.data(updatedUser);
     _cacheUser(updatedUser);

@@ -112,7 +112,7 @@ Future<VirtualCard> _buildFallbackCard(
     user.authorization?.clubAssignments ?? const [],
   );
   final displayName =
-      _pickNonEmpty([profile?.fullName, user.name, user.email]) ?? user.email;
+      _pickNonEmpty([profile?.fullName, user.name, user.email]) ?? '';
 
   final roleLabel = _pickNonEmpty([activeGrant?.roleName]);
   final roleCode = _pickNonEmpty([activeGrant?.roleName]);

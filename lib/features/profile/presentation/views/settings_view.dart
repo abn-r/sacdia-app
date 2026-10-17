@@ -751,7 +751,7 @@ class _AccountHeaderTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final name = user.name ?? '';
-    final email = user.email;
+    final email = user.email ?? '';
     final avatar = user.avatar;
 
     return GestureDetector(

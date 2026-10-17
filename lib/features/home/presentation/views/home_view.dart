@@ -102,7 +102,7 @@ class HomeView extends ConsumerWidget {
                             ),
                             if (user != null)
                               Text(
-                                user.name ?? user.email,
+                                user.name ?? user.email ?? '',
                                 style: TextStyle(
                                   fontSize: 15,
                                   color: c.textSecondary,
