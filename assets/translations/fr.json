@@ -1055,10 +1055,6 @@
         "update_emergency_contact": "Erreur lors de la mise à jour du contact d'urgence",
         "delete_emergency_contact": "Erreur lors de la suppression du contact d'urgence",
         "fetch_relationship_types": "Erreur lors de la récupération des types de relation",
-        "verify_legal_representative": "Erreur lors de la vérification du représentant légal",
-        "create_legal_representative": "Erreur lors de la création du représentant légal",
-        "fetch_legal_representative": "Erreur lors de la récupération du représentant légal",
-        "update_legal_representative": "Erreur lors de la mise à jour du représentant légal",
         "fetch_allergies_catalog": "Erreur lors de la récupération du catalogue des allergies",
         "fetch_user_allergies": "Erreur lors de la récupération des allergies de l'utilisateur",
         "save_allergies": "Erreur lors de l'enregistrement des allergies",
@@ -1103,11 +1099,6 @@
         "hint": "Enregistrez au moins un contact d’urgence",
         "empty": "Aucun contact enregistré",
         "required_hint": "Requis : au moins 1"
-      },
-      "legal_representative": {
-        "section_title": "Représentant légal",
-        "minor_notice": "Vous avez moins de 18 ans, vous devez enregistrer un représentant légal.",
-        "empty": "Aucun représentant enregistré"
       },
       "health": {
         "section_title": "Informations médicales",
@@ -1186,32 +1177,6 @@
       "save_button": "Enregistrer le contact",
       "update_button": "Mettre à jour le contact",
       "info_note": "Le contact d’urgence sera notifié en cas d’éventualité."
-    },
-    "legal_representative": {
-      "title": "Représentant légal",
-      "save_tooltip": "Enregistrer",
-      "save_success": "Représentant légal enregistré avec succès",
-      "error_saving": "Erreur : {error}",
-      "error_loading_types": "Erreur lors du chargement des types : {error}",
-      "info_notice": "Les mineurs de moins de 18 ans nécessitent un représentant légal.",
-      "type_label": "Type de représentant *",
-      "type_required": "Sélectionnez un type de représentant",
-      "first_name_label": "Prénom(s) *",
-      "first_name_hint": "Ex. : Jean-Charles",
-      "first_name_required": "Le prénom est obligatoire",
-      "first_name_min_length": "Le prénom doit comporter au moins 2 caractères",
-      "paternal_surname_label": "Nom de famille paternel *",
-      "paternal_surname_hint": "Ex. : Dupont",
-      "paternal_surname_required": "Le nom paternel est obligatoire",
-      "surname_min_length": "Le nom de famille doit comporter au moins 2 caractères",
-      "maternal_surname_label": "Nom de famille maternel *",
-      "maternal_surname_hint": "Ex. : Martin",
-      "maternal_surname_required": "Le nom maternel est obligatoire",
-      "phone_label": "Téléphone *",
-      "phone_hint": "Ex. : 0612345678",
-      "phone_required": "Le téléphone est obligatoire",
-      "phone_invalid": "Entrez un numéro de téléphone valide à 10 chiffres",
-      "save_button": "Enregistrer le représentant légal"
     },
     "health": {
       "diseases": {
@@ -1338,6 +1303,14 @@
     },
     "dropdown": {
       "select_label": "Sélectionner {label}"
+    },
+    "guardian_only": {
+      "action": "Je suis seulement tuteur de mineurs",
+      "hint": "Vous ne rejoignez pas de club ? Terminez votre inscription et gérez vos mineurs depuis Ma famille.",
+      "confirm_title": "Terminer votre inscription en tant que tuteur ?",
+      "confirm_body": "Vous ne choisirez pas de club pour vous-même. Vous pourrez ajouter et gérer vos mineurs depuis Ma famille.",
+      "confirm_action": "Terminer l'inscription",
+      "error_generic": "Nous n'avons pas pu terminer votre inscription. Veuillez réessayer."
     }
   },
   "monthly_reports": {
@@ -3607,7 +3580,6 @@
       "diseases": "Maladies",
       "medicines": "Médicaments",
       "emergency_contacts": "Contacts d’urgence",
-      "legal_rep": "Représentant légal",
       "none_allergies": "Aucune allergie enregistrée",
       "none_diseases": "Aucune maladie enregistrée",
       "none_medicines": "Aucun médicament enregistré",

@@ -17,6 +17,7 @@ import '../providers/club_selection_providers.dart';
 import '../utils/progressive_class_logo_asset.dart';
 import '../widgets/bottom_sheet_picker.dart';
 import '../widgets/club_type_selector.dart';
+import '../widgets/guardian_only_exit.dart';
 
 /// Vista del paso 3: Selección de club - Estilo "Scout Vibrante"
 ///
@@ -443,6 +444,9 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                       .tr(namedArgs: {'error': error.toString()})),
             ),
           ],
+
+          // ── Salida "Solo soy tutor de menores" (FP-60) ───────────────────
+          if (!widget.isClubTransfer) const GuardianOnlyExit(),
 
           const SizedBox(height: 32),
         ],

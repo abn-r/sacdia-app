@@ -1055,10 +1055,6 @@
         "update_emergency_contact": "Error updating emergency contact",
         "delete_emergency_contact": "Error deleting emergency contact",
         "fetch_relationship_types": "Error fetching relationship types",
-        "verify_legal_representative": "Error verifying legal representative",
-        "create_legal_representative": "Error creating legal representative",
-        "fetch_legal_representative": "Error fetching legal representative",
-        "update_legal_representative": "Error updating legal representative",
         "fetch_allergies_catalog": "Error fetching allergies catalog",
         "fetch_user_allergies": "Error fetching user allergies",
         "save_allergies": "Error saving allergies",
@@ -1103,11 +1099,6 @@
         "hint": "Add at least one emergency contact",
         "empty": "No contacts registered",
         "required_hint": "Required: at least 1"
-      },
-      "legal_representative": {
-        "section_title": "Legal representative",
-        "minor_notice": "You are under 18 years old, you need to register a legal representative.",
-        "empty": "No representative registered"
       },
       "health": {
         "section_title": "Medical information",
@@ -1186,32 +1177,6 @@
       "save_button": "Save Contact",
       "update_button": "Update Contact",
       "info_note": "The emergency contact will be notified in case of any eventuality."
-    },
-    "legal_representative": {
-      "title": "Legal Representative",
-      "save_tooltip": "Save",
-      "save_success": "Legal representative saved successfully",
-      "error_saving": "Error: {error}",
-      "error_loading_types": "Error loading types: {error}",
-      "info_notice": "Minors under 18 years old require a legal representative.",
-      "type_label": "Representative type *",
-      "type_required": "Select a representative type",
-      "first_name_label": "First name(s) *",
-      "first_name_hint": "E.g.: John Carlos",
-      "first_name_required": "First name is required",
-      "first_name_min_length": "Name must be at least 2 characters",
-      "paternal_surname_label": "Paternal Surname *",
-      "paternal_surname_hint": "E.g.: Doe",
-      "paternal_surname_required": "Paternal surname is required",
-      "surname_min_length": "Surname must be at least 2 characters",
-      "maternal_surname_label": "Maternal Surname *",
-      "maternal_surname_hint": "E.g.: Smith",
-      "maternal_surname_required": "Maternal surname is required",
-      "phone_label": "Phone *",
-      "phone_hint": "E.g.: 5512345678",
-      "phone_required": "Phone is required",
-      "phone_invalid": "Enter a valid 10-digit phone number",
-      "save_button": "Save Legal Representative"
     },
     "health": {
       "diseases": {
@@ -1338,6 +1303,14 @@
     },
     "dropdown": {
       "select_label": "Select {label}"
+    },
+    "guardian_only": {
+      "action": "I'm only a guardian of minors",
+      "hint": "Not joining a club? Finish your registration and manage your minors from My family.",
+      "confirm_title": "Finish your registration as a guardian?",
+      "confirm_body": "You won't pick a club for yourself. You can add and manage your minors from My family.",
+      "confirm_action": "Finish registration",
+      "error_generic": "We couldn't finish your registration. Please try again."
     }
   },
   "monthly_reports": {
@@ -3608,7 +3581,6 @@
       "diseases": "Diseases",
       "medicines": "Medicines",
       "emergency_contacts": "Emergency Contacts",
-      "legal_rep": "Legal Representative",
       "none_allergies": "No allergies on record",
       "none_diseases": "No diseases on record",
       "none_medicines": "No medicines on record",

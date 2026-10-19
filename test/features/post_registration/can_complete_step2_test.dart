@@ -1,53 +1,37 @@
-import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/post_registration/data/models/emergency_contact_model.dart';
-import 'package:sacdia_app/features/post_registration/data/models/legal_representative_model.dart';
 import 'package:sacdia_app/features/post_registration/presentation/providers/personal_info_providers.dart';
 
 class _FakeContacts extends EmergencyContactsNotifier {
-  @override
-  Future<List<EmergencyContactModel>> build() async => [
-        const EmergencyContactModel(
-          name: 'Contacto',
-          phone: '5512345678',
-          relationshipTypeId: 'rel-1',
-        ),
-      ];
-}
-
-class _FakeRep extends LegalRepresentativeNotifier {
-  _FakeRep(this._rep);
-  final LegalRepresentativeModel? _rep;
+  _FakeContacts(this._contacts);
+  final List<EmergencyContactModel> _contacts;
 
   @override
-  Future<LegalRepresentativeModel?> build() async => _rep;
+  Future<List<EmergencyContactModel>> build() async => _contacts;
 }
 
-const _rep = LegalRepresentativeModel(
-  name: 'Ana',
-  paternalSurname: 'Lopez',
-  maternalSurname: '',
+const _contact = EmergencyContactModel(
+  name: 'Contacto',
   phone: '5512345678',
   relationshipTypeId: 'rel-1',
 );
 
 ProviderContainer _container({
-  required Future<bool> Function(Ref) check,
-  LegalRepresentativeModel? rep,
+  PersonalInfoFormState? form,
+  List<EmergencyContactModel> contacts = const [_contact],
 }) {
   final container = ProviderContainer(
     overrides: [
       personalInfoFormProvider.overrideWith(
-        (ref) => PersonalInfoFormState(
-          gender: 'M',
-          birthdate: DateTime(2012, 1, 1),
-        ),
+        (ref) =>
+            form ??
+            PersonalInfoFormState(
+              gender: 'M',
+              birthdate: DateTime(2012, 1, 1),
+            ),
       ),
-      emergencyContactsProvider.overrideWith(_FakeContacts.new),
-      legalRepresentativeProvider.overrideWith(() => _FakeRep(rep)),
-      legalRepresentativeRequiredProvider.overrideWith((ref) => check(ref)),
+      emergencyContactsProvider.overrideWith(() => _FakeContacts(contacts)),
     ],
   );
   addTearDown(container.dispose);
@@ -58,52 +42,44 @@ Future<void> _settle(ProviderContainer c) async {
   // Mantiene vivos los providers autoDispose y espera a que resuelvan.
   c.listen(canCompleteStep2Provider, (_, __) {});
   await c.read(emergencyContactsProvider.future);
-  await c.read(legalRepresentativeProvider.future);
 }
 
 void main() {
-  test('is false while the required check is loading (fail-closed)', () async {
-    final completer = Completer<bool>();
-    final c = _container(check: (_) => completer.future);
+  // Phase 2 (family profiles): the legal representative no longer gates step 2.
+  // A minor now registers through a guardian, so a young birthdate must not
+  // block the step by itself.
+  test('is true for a young birthdate with a contact (no legal-rep gate)',
+      () async {
+    final c = _container();
     await _settle(c);
 
-    expect(c.read(legalRepresentativeRequiredProvider).isLoading, isTrue);
+    expect(c.read(canCompleteStep2Provider), isTrue);
+  });
+
+  test('is false without an emergency contact', () async {
+    final c = _container(contacts: const []);
+    await _settle(c);
+
     expect(c.read(canCompleteStep2Provider), isFalse);
   });
 
-  test('is false when the required check failed (fail-closed)', () async {
-    final c = _container(check: (_) async => throw Exception('boom'));
+  test('is false without gender or birthdate', () async {
+    final c = _container(form: const PersonalInfoFormState());
     await _settle(c);
-    await expectLater(
-      c.read(legalRepresentativeRequiredProvider.future),
-      throwsException,
+
+    expect(c.read(canCompleteStep2Provider), isFalse);
+  });
+
+  test('is false when baptized without a baptism date', () async {
+    final c = _container(
+      form: PersonalInfoFormState(
+        gender: 'F',
+        birthdate: DateTime(1990, 5, 5),
+        baptized: true,
+      ),
     );
-
-    expect(c.read(legalRepresentativeRequiredProvider).hasError, isTrue);
-    expect(c.read(canCompleteStep2Provider), isFalse);
-  });
-
-  test('is false for a minor without representative', () async {
-    final c = _container(check: (_) async => true);
     await _settle(c);
-    await c.read(legalRepresentativeRequiredProvider.future);
 
     expect(c.read(canCompleteStep2Provider), isFalse);
-  });
-
-  test('is true for a minor with a saved representative', () async {
-    final c = _container(check: (_) async => true, rep: _rep);
-    await _settle(c);
-    await c.read(legalRepresentativeRequiredProvider.future);
-
-    expect(c.read(canCompleteStep2Provider), isTrue);
-  });
-
-  test('is true for a non-minor without representative', () async {
-    final c = _container(check: (_) async => false);
-    await _settle(c);
-    await c.read(legalRepresentativeRequiredProvider.future);
-
-    expect(c.read(canCompleteStep2Provider), isTrue);
   });
 }

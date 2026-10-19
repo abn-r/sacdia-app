@@ -1055,10 +1055,6 @@
         "update_emergency_contact": "Erro ao atualizar contato de emergência",
         "delete_emergency_contact": "Erro ao excluir contato de emergência",
         "fetch_relationship_types": "Erro ao obter tipos de relação",
-        "verify_legal_representative": "Erro ao verificar representante legal",
-        "create_legal_representative": "Erro ao criar representante legal",
-        "fetch_legal_representative": "Erro ao obter representante legal",
-        "update_legal_representative": "Erro ao atualizar representante legal",
         "fetch_allergies_catalog": "Erro ao obter catálogo de alergias",
         "fetch_user_allergies": "Erro ao obter alergias do usuário",
         "save_allergies": "Erro ao salvar alergias",
@@ -1103,11 +1099,6 @@
         "hint": "Registre pelo menos um contato de emergência",
         "empty": "Nenhum contato registrado",
         "required_hint": "Obrigatório: pelo menos 1"
-      },
-      "legal_representative": {
-        "section_title": "Representante legal",
-        "minor_notice": "Você é menor de 18 anos, precisa registrar um representante legal.",
-        "empty": "Nenhum representante registrado"
       },
       "health": {
         "section_title": "Informações médicas",
@@ -1186,32 +1177,6 @@
       "save_button": "Salvar Contato",
       "update_button": "Atualizar Contato",
       "info_note": "O contato de emergência será notificado em caso de qualquer eventualidade."
-    },
-    "legal_representative": {
-      "title": "Representante Legal",
-      "save_tooltip": "Salvar",
-      "save_success": "Representante legal salvo com sucesso",
-      "error_saving": "Erro: {error}",
-      "error_loading_types": "Erro ao carregar tipos: {error}",
-      "info_notice": "Menores de 18 anos precisam de um representante legal.",
-      "type_label": "Tipo de representante *",
-      "type_required": "Selecione um tipo de representante",
-      "first_name_label": "Nome(s) *",
-      "first_name_hint": "Ex: João Carlos",
-      "first_name_required": "O nome é obrigatório",
-      "first_name_min_length": "O nome deve ter pelo menos 2 caracteres",
-      "paternal_surname_label": "Sobrenome Paterno *",
-      "paternal_surname_hint": "Ex: Pereira",
-      "paternal_surname_required": "O sobrenome paterno é obrigatório",
-      "surname_min_length": "O sobrenome deve ter pelo menos 2 caracteres",
-      "maternal_surname_label": "Sobrenome Materno *",
-      "maternal_surname_hint": "Ex: Silva",
-      "maternal_surname_required": "O sobrenome materno é obrigatório",
-      "phone_label": "Telefone *",
-      "phone_hint": "Ex: 11912345678",
-      "phone_required": "O telefone é obrigatório",
-      "phone_invalid": "Insira um telefone válido de 10 dígitos",
-      "save_button": "Salvar Representante Legal"
     },
     "health": {
       "diseases": {
@@ -1338,6 +1303,14 @@
     },
     "dropdown": {
       "select_label": "Selecionar {label}"
+    },
+    "guardian_only": {
+      "action": "Sou apenas tutor de menores",
+      "hint": "Não vai entrar em um clube? Conclua seu cadastro e gerencie seus menores em Minha família.",
+      "confirm_title": "Concluir seu cadastro como tutor?",
+      "confirm_body": "Você não escolherá um clube para si. Poderá adicionar e gerenciar seus menores em Minha família.",
+      "confirm_action": "Concluir cadastro",
+      "error_generic": "Não conseguimos concluir seu cadastro. Tente novamente."
     }
   },
   "monthly_reports": {
@@ -3607,7 +3580,6 @@
       "diseases": "Doenças",
       "medicines": "Medicamentos",
       "emergency_contacts": "Contatos de Emergência",
-      "legal_rep": "Representante Legal",
       "none_allergies": "Sem alergias registradas",
       "none_diseases": "Sem doenças registradas",
       "none_medicines": "Sem medicamentos registrados",

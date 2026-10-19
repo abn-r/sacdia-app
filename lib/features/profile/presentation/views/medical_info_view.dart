@@ -16,7 +16,6 @@ import 'package:sacdia_app/features/post_registration/presentation/views/allergi
 import 'package:sacdia_app/features/post_registration/presentation/views/diseases_selection_view.dart';
 import 'package:sacdia_app/features/post_registration/presentation/views/medicines_selection_view.dart';
 import 'package:sacdia_app/features/post_registration/presentation/views/emergency_contacts_view.dart';
-import 'package:sacdia_app/features/post_registration/presentation/views/legal_representative_view.dart';
 import 'package:sacdia_app/features/profile/presentation/providers/profile_providers.dart';
 import 'package:sacdia_app/features/profile/presentation/widgets/blood_type_selector.dart';
 import 'package:sacdia_app/features/virtual_card/presentation/providers/virtual_card_providers.dart';
@@ -100,8 +99,6 @@ class MedicalInfoView extends ConsumerWidget {
     final diseasesAsync = ref.watch(userDiseasesProvider);
     final medicinesAsync = ref.watch(userMedicinesProvider);
     final contactsAsync = ref.watch(emergencyContactsProvider);
-    final legalRepAsync = ref.watch(legalRepresentativeProvider);
-    final legalRequiredAsync = ref.watch(legalRepresentativeRequiredProvider);
     final profileAsync = ref.watch(profileNotifierProvider);
 
     // Extraer datos crudos para calcular la completitud
@@ -351,68 +348,6 @@ class MedicalInfoView extends ConsumerWidget {
                         );
                       },
                     ),
-                  ),
-                  const SizedBox(height: 14),
-
-                  // ── Representante Legal (condicional) ───────────────────
-                  legalRequiredAsync.when(
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, __) => const SizedBox.shrink(),
-                    data: (isRequired) {
-                      if (!isRequired) return const SizedBox.shrink();
-                      return MedicoSectionCard(
-                        icon: HugeIcons.strokeRoundedSecurityCheck,
-                        iconBg: m.lavenderSoft,
-                        iconFg: m.lavenderFg,
-                        title: 'profile.medical_info.legal_rep'.tr(),
-                        actionLabel: 'profile.medical_info.action_edit'.tr(),
-                        onAction: () => Navigator.of(context).push(
-                          SacSharedAxisRoute(
-                            builder: (_) => const LegalRepresentativeView(),
-                          ),
-                        ),
-                        child: legalRepAsync.when(
-                          loading: () => const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 8),
-                            child: SacLoadingSmall(),
-                          ),
-                          error: (e, _) => _SectionError(
-                            message: e.toString(),
-                            onRetry: () =>
-                                ref.invalidate(legalRepresentativeProvider),
-                          ),
-                          data: (rep) {
-                            if (rep == null) {
-                              return EmptyHint(
-                                label:
-                                    'profile.medical_info.not_registered'.tr(),
-                              );
-                            }
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '${rep.name} ${rep.paternalSurname} ${rep.maternalSurname}',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: m.textPrimary,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '${rep.relationshipTypeName ?? ''} · ${rep.phone}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: m.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                      );
-                    },
                   ),
                 ],
               );

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
+import '../../../../core/errors/business_error.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/country_model.dart';
@@ -30,6 +31,15 @@ abstract class ClubSelectionRemoteDataSource {
     required int localFieldId,
     required int clubSectionId,
     int? classId,
+  });
+
+  /// Paso 3 alterno "Solo soy tutor de menores": cierra el post-registro de un
+  /// adulto sin elegir club. La geografía es opcional.
+  Future<void> completeGuardianOnly({
+    required String userId,
+    int? countryId,
+    int? unionId,
+    int? localFieldId,
   });
 }
 
@@ -272,6 +282,33 @@ class ClubSelectionRemoteDataSourceImpl
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<void> completeGuardianOnly({
+    required String userId,
+    int? countryId,
+    int? unionId,
+    int? localFieldId,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.users}/$userId/post-registration/step-3/guardian-only',
+        data: {
+          if (countryId != null) 'country_id': countryId,
+          if (unionId != null) 'union_id': unionId,
+          if (localFieldId != null) 'local_field_id': localFieldId,
+        },
+      );
+
+      final status = response.statusCode ?? 0;
+      if (status < 200 || status >= 300) {
+        throw businessErrorFromResponse(status, response.data);
+      }
+    } catch (e) {
+      AppLogger.e('Error en completeGuardianOnly', tag: _tag, error: e);
+      throw businessErrorFrom(e);
     }
   }
 }

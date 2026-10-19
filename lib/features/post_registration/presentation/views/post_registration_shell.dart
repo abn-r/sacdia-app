@@ -35,11 +35,6 @@ bool canReadSensitiveStep2Data(String targetUserId, UserEntity? user) {
       canReadSensitiveUserFamilyForUser(
         user,
         targetUserId: targetUserId,
-        family: SensitiveUserFamily.legalRepresentative,
-      ) ||
-      canReadSensitiveUserFamilyForUser(
-        user,
-        targetUserId: targetUserId,
         family: SensitiveUserFamily.health,
       );
 }

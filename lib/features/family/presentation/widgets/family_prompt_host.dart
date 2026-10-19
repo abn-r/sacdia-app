@@ -28,6 +28,10 @@ bool shouldPromptFamily(
   return !previous.postRegisterComplete && next.postRegisterComplete;
 }
 
+/// El tutor ya eligió ir directo a Mi familia (salida "Solo soy tutor de
+/// menores"): el aviso de una sola vez sobra y se omite en el próximo cambio.
+final familyPromptSuppressedProvider = StateProvider<bool>((ref) => false);
+
 /// Pregunta una vez, tras el post-registro del tutor, si tiene menores a cargo
 /// (FP-57). Se monta en el `builder` del `MaterialApp`.
 class FamilyPromptHost extends ConsumerWidget {
@@ -55,6 +59,10 @@ class FamilyPromptHost extends ConsumerWidget {
         next.valueOrNull,
         acting: acting,
       )) {
+        return;
+      }
+      if (ref.read(familyPromptSuppressedProvider)) {
+        ref.read(familyPromptSuppressedProvider.notifier).state = false;
         return;
       }
       Future<void>.delayed(delay, () => _ask(ref));
