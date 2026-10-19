@@ -454,7 +454,18 @@
     "user_self_account_below_minimum_age": "That date of birth does not allow having your own account. Ask your guardian to manage you from My family.",
     "post_reg_guardian_only_requires_adult": "Only an adult can register as a guardian only.",
     "mr_consent_not_verified": "The guardian's consent has not been verified yet. Verify the signed form before approving.",
-    "legal_version_mismatch": "The terms have changed. Please read and accept them again."
+    "legal_version_mismatch": "The terms have changed. Please read and accept them again.",
+    "guardianship_evidence_not_found": "The signed consent form has not been uploaded yet.",
+    "guardianship_evidence_required": "Upload the signed consent form before verifying.",
+    "guardianship_evidence_unavailable": "Consent forms are not available yet. Please try again later.",
+    "guardianship_custodian_self_verify": "This minor is in the club's custody. Another authorized person from the club must verify it, not the person who uploaded the form or who took custody.",
+    "mr_consent_confirmation_required": "Confirm that you reviewed the signed form before verifying.",
+    "mr_not_found": "The request no longer exists or does not belong to this section.",
+    "mr_already_pending": "This request has already been processed.",
+    "guard_permission_denied": "You do not have permission to do this.",
+    "file_required": "Select a file.",
+    "file_type_invalid": "File type not allowed. Use JPG, PNG, WebP or PDF.",
+    "file_too_large": "The file exceeds the 10 MB limit."
   },
   "honors": {
     "errors": {
@@ -2580,6 +2591,31 @@
         "fetch": "Could not load the not-enrolled list",
         "submit": "Could not complete enrollment"
       }
+    },
+    "consent": {
+      "badge_pending": "Minor · consent pending",
+      "badge_verified": "Minor · consent verified",
+      "verify_action": "Verify consent",
+      "title": "Verify consent",
+      "intro": "{name} is a minor. Review the form signed by their guardian and confirm to be able to approve the request.",
+      "guardians": "Guardians",
+      "guardian_primary": "Primary",
+      "evidence_title": "Signed form",
+      "evidence_none": "No form has been uploaded yet. Take a photo or upload the PDF of the signed form.",
+      "evidence_loading": "Loading form…",
+      "evidence_view": "View form",
+      "evidence_uploaded_by": "Uploaded by {name} · {date}",
+      "evidence_uploaded_on": "Uploaded on {date}",
+      "evidence_load_error": "The form could not be loaded.",
+      "evidence_uploaded_toast": "Form uploaded.",
+      "upload_first": "Upload the chosen file before confirming.",
+      "reviewed": "I verified the signed form",
+      "confirm": "Confirm and approve",
+      "approved": "Consent verified. {name}'s request approved.",
+      "verified_not_approved": "Consent was verified, but the request could not be approved: {reason}",
+      "retry_approve": "Retry approval",
+      "approve_blocked": "The guardian's consent still needs to be verified. Verification opened.",
+      "generic_error": "The consent could not be verified. Please try again."
     }
   },
   "certifications": {
@@ -4043,6 +4079,31 @@
     "theme": {
       "dark_mode": "Dark mode",
       "light_mode": "Light mode"
+    },
+    "consent": {
+      "source_title": "Add signed form",
+      "source_camera": "Take photo",
+      "source_camera_hint": "Photograph the paper form in good light",
+      "source_gallery": "Choose from gallery",
+      "source_gallery_hint": "Use an image you already have",
+      "source_pdf": "Choose a PDF",
+      "source_pdf_hint": "Scanned form as a PDF",
+      "upload": "Upload signed form",
+      "replace": "Replace form",
+      "change": "Change",
+      "upload_action": "Upload",
+      "retry": "Retry",
+      "problems": {
+        "unsupported_type": "Only JPG, PNG, WebP or PDF files are accepted.",
+        "heic": "This image format (HEIC) is not supported. Take the photo again or choose a JPG.",
+        "too_large": "The file is over 10 MB. Choose a smaller one.",
+        "empty": "The file is empty."
+      },
+      "errors": {
+        "generic": "The action could not be completed. Please try again.",
+        "rate_limited": "Too many attempts. Wait a moment and try again.",
+        "pick_failed": "The file could not be opened. Check permissions and try again."
+      }
     }
   },
   "roles": {

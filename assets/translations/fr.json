@@ -454,7 +454,18 @@
     "user_self_account_below_minimum_age": "Cette date de naissance ne permet pas d'avoir un compte personnel. Demandez à votre tuteur de vous gérer depuis Ma famille.",
     "post_reg_guardian_only_requires_adult": "Seul un adulte peut s'inscrire uniquement comme tuteur.",
     "mr_consent_not_verified": "Le consentement du tuteur n'est pas encore vérifié. Vérifiez la fiche signée avant d'approuver.",
-    "legal_version_mismatch": "Les conditions ont changé. Lisez-les et acceptez-les à nouveau."
+    "legal_version_mismatch": "Les conditions ont changé. Lisez-les et acceptez-les à nouveau.",
+    "guardianship_evidence_not_found": "La fiche de consentement signée n'a pas encore été téléversée.",
+    "guardianship_evidence_required": "Téléversez la fiche de consentement signée avant de vérifier.",
+    "guardianship_evidence_unavailable": "Les fiches de consentement ne sont pas encore disponibles. Réessayez plus tard.",
+    "guardianship_custodian_self_verify": "Ce mineur est sous la garde du club. Une autre personne autorisée du club doit le vérifier, pas celle qui a téléversé la fiche ni celle qui a reçu la garde.",
+    "mr_consent_confirmation_required": "Confirmez que vous avez examiné la fiche signée avant de vérifier.",
+    "mr_not_found": "La demande n'existe plus ou n'appartient pas à cette section.",
+    "mr_already_pending": "Cette demande a déjà été traitée.",
+    "guard_permission_denied": "Vous n'avez pas la permission d'effectuer cette action.",
+    "file_required": "Sélectionnez un fichier.",
+    "file_type_invalid": "Type de fichier non autorisé. Utilisez JPG, PNG, WebP ou PDF.",
+    "file_too_large": "Le fichier dépasse la limite de 10 Mo."
   },
   "honors": {
     "errors": {
@@ -2579,6 +2590,31 @@
         "fetch": "Impossible de charger la liste des non inscrits",
         "submit": "Impossible de terminer l'inscription"
       }
+    },
+    "consent": {
+      "badge_pending": "Mineur · consentement en attente",
+      "badge_verified": "Mineur · consentement vérifié",
+      "verify_action": "Vérifier le consentement",
+      "title": "Vérifier le consentement",
+      "intro": "{name} est mineur(e). Examinez la fiche signée par son tuteur et confirmez pour pouvoir approuver la demande.",
+      "guardians": "Tuteurs",
+      "guardian_primary": "Principal",
+      "evidence_title": "Fiche signée",
+      "evidence_none": "Aucune fiche n'a été téléversée. Prenez une photo ou téléversez le PDF de la fiche signée.",
+      "evidence_loading": "Chargement de la fiche…",
+      "evidence_view": "Voir la fiche",
+      "evidence_uploaded_by": "Téléversée par {name} · {date}",
+      "evidence_uploaded_on": "Téléversée le {date}",
+      "evidence_load_error": "La fiche n'a pas pu être chargée.",
+      "evidence_uploaded_toast": "Fiche téléversée.",
+      "upload_first": "Téléversez le fichier choisi avant de confirmer.",
+      "reviewed": "J'ai vérifié la fiche signée",
+      "confirm": "Confirmer et approuver",
+      "approved": "Consentement vérifié. Demande de {name} approuvée.",
+      "verified_not_approved": "Le consentement a été vérifié, mais la demande n'a pas pu être approuvée : {reason}",
+      "retry_approve": "Réessayer l'approbation",
+      "approve_blocked": "Le consentement du tuteur doit d'abord être vérifié. La vérification s'est ouverte.",
+      "generic_error": "Le consentement n'a pas pu être vérifié. Réessayez."
     }
   },
   "certifications": {
@@ -4041,6 +4077,31 @@
     "theme": {
       "dark_mode": "Mode sombre",
       "light_mode": "Mode clair"
+    },
+    "consent": {
+      "source_title": "Ajouter la fiche signée",
+      "source_camera": "Prendre une photo",
+      "source_camera_hint": "Photographiez la fiche papier avec une bonne lumière",
+      "source_gallery": "Choisir dans la galerie",
+      "source_gallery_hint": "Utilisez une image que vous avez déjà",
+      "source_pdf": "Choisir un PDF",
+      "source_pdf_hint": "Fiche numérisée en PDF",
+      "upload": "Téléverser la fiche signée",
+      "replace": "Remplacer la fiche",
+      "change": "Changer",
+      "upload_action": "Téléverser",
+      "retry": "Réessayer",
+      "problems": {
+        "unsupported_type": "Seuls les fichiers JPG, PNG, WebP ou PDF sont acceptés.",
+        "heic": "Ce format d'image (HEIC) n'est pas pris en charge. Reprenez la photo ou choisissez un JPG.",
+        "too_large": "Le fichier dépasse 10 Mo. Choisissez-en un plus petit.",
+        "empty": "Le fichier est vide."
+      },
+      "errors": {
+        "generic": "L'action n'a pas pu être effectuée. Réessayez.",
+        "rate_limited": "Trop de tentatives. Patientez un instant puis réessayez.",
+        "pick_failed": "Le fichier n'a pas pu être ouvert. Vérifiez les autorisations et réessayez."
+      }
     }
   },
   "roles": {

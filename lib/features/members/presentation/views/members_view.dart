@@ -5,6 +5,7 @@ import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/consent/consent_error_messages.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -27,6 +28,7 @@ import '../widgets/member_class_group_header.dart';
 import '../widgets/members_filter_bar.dart';
 import '../widgets/members_mode_switcher.dart';
 import 'annual_continuations_view.dart';
+import 'consent_verification_view.dart';
 import 'member_profile_view.dart';
 import 'role_assignment_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
@@ -495,26 +497,65 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
     );
   }
 
+  /// Abre la verificación de la ficha firmada de un menor (FP-76).
+  Future<void> _openConsentVerification(
+    BuildContext context,
+    JoinRequest request,
+  ) {
+    return Navigator.push<bool>(
+      context,
+      SacSharedAxisRoute<bool>(
+        builder: (_) => ConsentVerificationView(request: request),
+      ),
+    );
+  }
+
   Future<void> _approveRequest(
     BuildContext context,
     JoinRequest request,
   ) async {
+    // Un menor sin ficha verificada no se aprueba directo (el backend lo
+    // rechazaría con 409 MR_CONSENT_NOT_VERIFIED): se abre la verificación.
+    if (request.consentPending) {
+      await _openConsentVerification(context, request);
+      return;
+    }
+
     setState(() => _processingIds.add(request.assignmentId));
     try {
-      final success = await ref
+      final failure = await ref
           .read(membersNotifierProvider.notifier)
-          .approveRequest(request.assignmentId);
+          .approveRequestOrFailure(request.assignmentId);
 
-      if (context.mounted) {
+      if (!context.mounted) return;
+      if (failure == null) {
         SacSnackBar.show(
           context,
-          success
-              ? tr('members.view.request_approved',
-                  namedArgs: {'name': request.fullName})
-              : 'members.view.approve_error'.tr(),
-          isError: !success,
+          tr('members.view.request_approved',
+              namedArgs: {'name': request.fullName}),
         );
+        return;
       }
+
+      // La lista estaba desactualizada: era un menor con consentimiento
+      // pendiente. Se explica y se abre la verificación.
+      if (failure.errorCode == 'MR_CONSENT_NOT_VERIFIED') {
+        SacSnackBar.show(
+          context,
+          'members.consent.approve_blocked'.tr(),
+          isError: true,
+        );
+        await _openConsentVerification(context, request);
+        return;
+      }
+
+      SacSnackBar.show(
+        context,
+        consentErrorKey(failure.errorCode) != null
+            ? consentErrorMessage(failure)
+            : 'members.view.approve_error'.tr(),
+        isError: true,
+      );
     } finally {
       if (mounted) setState(() => _processingIds.remove(request.assignmentId));
     }

@@ -454,7 +454,18 @@
     "user_self_account_below_minimum_age": "Essa data de nascimento não permite ter uma conta própria. Peça ao seu responsável que gerencie você em Minha família.",
     "post_reg_guardian_only_requires_adult": "Somente um adulto pode se cadastrar apenas como responsável.",
     "mr_consent_not_verified": "O consentimento do responsável ainda não foi verificado. Verifique a ficha assinada antes de aprovar.",
-    "legal_version_mismatch": "Os termos mudaram. Leia e aceite novamente."
+    "legal_version_mismatch": "Os termos mudaram. Leia e aceite novamente.",
+    "guardianship_evidence_not_found": "A ficha de consentimento assinada ainda não foi enviada.",
+    "guardianship_evidence_required": "Envie a ficha de consentimento assinada antes de verificar.",
+    "guardianship_evidence_unavailable": "As fichas de consentimento ainda não estão disponíveis. Tente novamente mais tarde.",
+    "guardianship_custodian_self_verify": "Este menor está sob a custódia do clube. Outra pessoa autorizada do clube deve verificá-lo, não quem enviou a ficha nem quem recebeu a custódia.",
+    "mr_consent_confirmation_required": "Confirme que você revisou a ficha assinada antes de verificar.",
+    "mr_not_found": "A solicitação não existe mais ou não pertence a esta seção.",
+    "mr_already_pending": "Esta solicitação já foi processada.",
+    "guard_permission_denied": "Você não tem permissão para realizar esta ação.",
+    "file_required": "Selecione um arquivo.",
+    "file_type_invalid": "Tipo de arquivo não permitido. Use JPG, PNG, WebP ou PDF.",
+    "file_too_large": "O arquivo excede o limite de 10 MB."
   },
   "honors": {
     "errors": {
@@ -2579,6 +2590,31 @@
         "fetch": "Não foi possível carregar a lista de não inscritos",
         "submit": "Não foi possível concluir a inscrição"
       }
+    },
+    "consent": {
+      "badge_pending": "Menor · consentimento pendente",
+      "badge_verified": "Menor · consentimento verificado",
+      "verify_action": "Verificar consentimento",
+      "title": "Verificar consentimento",
+      "intro": "{name} é menor de idade. Revise a ficha assinada pelo responsável e confirme para poder aprovar a solicitação.",
+      "guardians": "Responsáveis",
+      "guardian_primary": "Principal",
+      "evidence_title": "Ficha assinada",
+      "evidence_none": "Ainda não há ficha enviada. Tire uma foto ou envie o PDF da ficha assinada.",
+      "evidence_loading": "Carregando ficha…",
+      "evidence_view": "Ver ficha",
+      "evidence_uploaded_by": "Enviada por {name} · {date}",
+      "evidence_uploaded_on": "Enviada em {date}",
+      "evidence_load_error": "Não foi possível carregar a ficha.",
+      "evidence_uploaded_toast": "Ficha enviada.",
+      "upload_first": "Envie o arquivo escolhido antes de confirmar.",
+      "reviewed": "Verifiquei a ficha assinada",
+      "confirm": "Confirmar e aprovar",
+      "approved": "Consentimento verificado. Solicitação de {name} aprovada.",
+      "verified_not_approved": "O consentimento foi verificado, mas não foi possível aprovar a solicitação: {reason}",
+      "retry_approve": "Tentar aprovar novamente",
+      "approve_blocked": "O consentimento do responsável ainda precisa ser verificado. A verificação foi aberta.",
+      "generic_error": "Não foi possível verificar o consentimento. Tente novamente."
     }
   },
   "certifications": {
@@ -4041,6 +4077,31 @@
     "theme": {
       "dark_mode": "Tema escuro",
       "light_mode": "Tema claro"
+    },
+    "consent": {
+      "source_title": "Adicionar ficha assinada",
+      "source_camera": "Tirar foto",
+      "source_camera_hint": "Fotografe a ficha em papel com boa luz",
+      "source_gallery": "Escolher da galeria",
+      "source_gallery_hint": "Use uma imagem que você já tenha",
+      "source_pdf": "Escolher um PDF",
+      "source_pdf_hint": "Ficha digitalizada em PDF",
+      "upload": "Enviar ficha assinada",
+      "replace": "Substituir ficha",
+      "change": "Trocar",
+      "upload_action": "Enviar",
+      "retry": "Tentar novamente",
+      "problems": {
+        "unsupported_type": "Somente arquivos JPG, PNG, WebP ou PDF são aceitos.",
+        "heic": "Este formato de imagem (HEIC) não é compatível. Tire a foto de novo ou escolha um JPG.",
+        "too_large": "O arquivo tem mais de 10 MB. Escolha um menor.",
+        "empty": "O arquivo está vazio."
+      },
+      "errors": {
+        "generic": "Não foi possível concluir a ação. Tente novamente.",
+        "rate_limited": "Muitas tentativas. Aguarde um momento e tente novamente.",
+        "pick_failed": "Não foi possível abrir o arquivo. Verifique as permissões e tente novamente."
+      }
     }
   },
   "roles": {

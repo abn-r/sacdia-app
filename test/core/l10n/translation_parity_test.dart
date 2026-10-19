@@ -54,6 +54,23 @@ const _phase2ErrorCodes = [
   'MR_CONSENT_NOT_VERIFIED',
 ];
 
+/// Códigos nuevos de Phase 2c (verificación del consentimiento) que la app
+/// debe traducir (FP-68), más los que puede mostrar el director al subir y
+/// verificar.
+const _phase2cErrorCodes = [
+  'GUARDIANSHIP_EVIDENCE_NOT_FOUND',
+  'GUARDIANSHIP_EVIDENCE_REQUIRED',
+  'GUARDIANSHIP_EVIDENCE_UNAVAILABLE',
+  'GUARDIANSHIP_CUSTODIAN_SELF_VERIFY',
+  'MR_CONSENT_CONFIRMATION_REQUIRED',
+  'MR_NOT_FOUND',
+  'MR_ALREADY_PENDING',
+  'GUARD_PERMISSION_DENIED',
+  'FILE_REQUIRED',
+  'FILE_TYPE_INVALID',
+  'FILE_TOO_LARGE',
+];
+
 void main() {
   final translations = {for (final l in _locales) l: _load(l)};
   final base = translations['es']!;
@@ -81,7 +98,11 @@ void main() {
   test('placeholders match across locales for the family keys', () {
     final placeholder = RegExp(r'\{[a-z_]+\}');
     for (final entry in base.entries.where(
-      (e) => e.key.startsWith('family.') || e.key.startsWith('errors.'),
+      (e) =>
+          e.key.startsWith('family.') ||
+          e.key.startsWith('errors.') ||
+          e.key.startsWith('members.consent.') ||
+          e.key.startsWith('core.consent.'),
     )) {
       final expected =
           placeholder.allMatches(entry.value).map((m) => m.group(0)).toSet();
@@ -105,6 +126,38 @@ void main() {
           isTrue,
           reason: '$key missing in $locale',
         );
+      }
+    }
+  });
+
+  test('every Phase 2c error code has an errors.* translation in all locales',
+      () {
+    for (final code in _phase2cErrorCodes) {
+      final key = 'errors.${code.toLowerCase()}';
+      for (final locale in _locales) {
+        expect(
+          translations[locale]!.containsKey(key),
+          isTrue,
+          reason: '$key missing in $locale',
+        );
+      }
+    }
+  });
+
+  test(
+      'the consent trees (members.consent.*, core.consent.*) exist in all '
+      'locales', () {
+    for (final prefix in ['members.consent.', 'core.consent.']) {
+      final keys = base.keys.where((k) => k.startsWith(prefix)).toList();
+      expect(keys.length, greaterThan(15), reason: prefix);
+      for (final locale in _locales) {
+        for (final key in keys) {
+          expect(
+            translations[locale]!.containsKey(key),
+            isTrue,
+            reason: '$key missing in $locale',
+          );
+        }
       }
     }
   });
