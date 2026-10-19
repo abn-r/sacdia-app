@@ -297,8 +297,6 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
 
   @override
   Future<UserEntity?> build() async {
-    await _cleanupAfterDirtyShutdown();
-
     final repository = ref.read(authRepositoryProvider);
 
     AppLogger.i('Verificando token local', tag: _tag);
@@ -308,6 +306,11 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       AppLogger.i('Sin token local, redirigiendo a login', tag: _tag);
       return null;
     }
+
+    // Si la app murió actuando por un menor, sus cachés de disco se purgan
+    // antes de cargar nada (sin sesión no hay nada que proteger: el logout ya
+    // los purgó).
+    await _cleanupAfterDirtyShutdown();
 
     // Pre-read PII and active grant from SecureStorage before the fold (reads are async).
     final secureStorage = ref.read(secureStorageProvider);
