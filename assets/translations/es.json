@@ -414,7 +414,27 @@
     "social_signin_already_linked": "Tu cuenta ya está vinculada a otra cuenta de {provider}. Inicia sesión con tu correo y contraseña.",
     "social_signin_provider_unavailable": "{provider} no está disponible en este momento. Intenta de nuevo en unos minutos.",
     "delete_account_social_reauth_failed": "No pudimos confirmar tu identidad con {provider}. Intenta de nuevo.",
-    "acting_for_forbidden": "Ya no tienes acceso a este perfil. Volviste a tu propio perfil."
+    "acting_for_forbidden": "Ya no tienes acceso a este perfil. Volviste a tu propio perfil.",
+    "guardianship_not_found": "No encontramos a este menor.",
+    "guardianship_dependent_age_out_of_range": "Solo puedes registrar a menores de 13 años desde Mi familia. Los mayores se registran con su propia cuenta.",
+    "guardianship_guardian_not_adult": "Debes ser mayor de edad para ser tutor. Revisa tu fecha de nacimiento en tu perfil.",
+    "guardianship_guardian_birthday_required": "Completa tu fecha de nacimiento en tu perfil para registrar a un menor.",
+    "guardianship_dependent_limit_reached": "Alcanzaste el máximo de menores que puedes tener a tu cargo.",
+    "guardianship_guardian_limit_reached": "Este menor ya tiene el máximo de tutores.",
+    "guardianship_link_code_invalid": "El código no es válido o ya no está disponible.",
+    "guardianship_link_code_locked": "Demasiados intentos. Intenta de nuevo más tarde.",
+    "guardianship_link_code_self_redeem": "No puedes canjear un código que tú mismo generaste.",
+    "guardianship_already_guardian": "Ya eres tutor de este menor.",
+    "guardianship_revoke_forbidden": "No tienes permiso para quitar a este tutor.",
+    "guardianship_relationship_type_invalid": "El parentesco seleccionado no es válido.",
+    "acting_for_header_invalid": "No se pudo identificar el perfil. Vuelve a tu perfil e inténtalo de nuevo.",
+    "acting_for_scope_denied": "Esta acción no está disponible mientras ves el perfil de un menor.",
+    "auth_delete_dependents_ack_required": "Confirma que entiendes qué pasará con los menores a tu cargo antes de eliminar tu cuenta.",
+    "auth_registration_age_below_minimum": "Pide a tu tutor que te registre desde Mi familia.",
+    "user_self_account_below_minimum_age": "Esa fecha de nacimiento no permite tener una cuenta propia. Pide a tu tutor que te administre desde Mi familia.",
+    "post_reg_guardian_only_requires_adult": "Solo una persona mayor de edad puede registrarse solo como tutor.",
+    "mr_consent_not_verified": "El consentimiento del tutor aún no está verificado. Verifica la ficha firmada antes de aprobar.",
+    "legal_version_mismatch": "Los términos cambiaron. Léelos y acepta de nuevo."
   },
   "honors": {
     "errors": {
@@ -5195,5 +5215,124 @@
     "semantics_user": "Instructor: {name}, persona de tu Campo Local",
     "semantics_external": "Instructor: {name}, nombre escrito, no verificado",
     "none_registered": "Sin instructor registrado"
+  },
+  "family": {
+    "title": "Mi familia",
+    "add_cta": "Añadir menor",
+    "have_code": "Tengo un código de vinculación",
+    "limit_reached": "Alcanzaste el máximo de {max} menores.",
+    "empty": {
+      "title": "Aún no has añadido menores",
+      "body": "Registra a un menor de 13 años para que pueda unirse a un club bajo tu cuidado."
+    },
+    "frozen": "Congelado",
+    "frozen_hint": "Sin tutor ni club. Se borrará pasados 90 días.",
+    "card": {
+      "age": "{age} años",
+      "view_as": "Ver como {name}"
+    },
+    "consent": {
+      "pending": "Consentimiento pendiente",
+      "verified": "Consentimiento verificado"
+    },
+    "club": {
+      "none": "Sin club",
+      "active": "Miembro de {club}",
+      "pending": "Solicitud pendiente en {club}",
+      "rejected": "Solicitud rechazada",
+      "expired": "Solicitud vencida",
+      "cancelled": "Solicitud cancelada"
+    },
+    "profile": {
+      "entry_title": "Mi familia",
+      "entry_subtitle": "Registra y administra a los menores a tu cargo",
+      "entry_count": "{count} menores a tu cargo",
+      "switch_title": "Cambiar de perfil",
+      "switch_subtitle": "Ver y completar el perfil de un menor"
+    },
+    "errors": {
+      "generic": "Algo salió mal. Intenta de nuevo."
+    },
+    "add": {
+      "title": "Añadir menor",
+      "intro": "Registra a la persona menor de edad a tu cargo. Después completarás su perfil por ella.",
+      "name": "Nombre(s)",
+      "paternal": "Apellido paterno",
+      "maternal": "Apellido materno (opcional)",
+      "birthday": "Fecha de nacimiento",
+      "birthday_hint": "Selecciona la fecha",
+      "birthday_required": "Selecciona la fecha de nacimiento",
+      "relationship": "Parentesco",
+      "relationship_hint": "Selecciona el parentesco",
+      "relationship_required": "Selecciona el parentesco",
+      "relationship_error": "No se pudieron cargar los parentescos. Intenta de nuevo.",
+      "required": "Campo obligatorio",
+      "sworn": "Declaro bajo protesta de decir verdad que soy el tutor legal de este menor.",
+      "legal_prefix": "Acepto en nombre del menor los ",
+      "legal_unavailable": "No se pudieron cargar los documentos legales.",
+      "submit": "Registrar y continuar",
+      "complete_profile": "Completar mi perfil"
+    },
+    "detail": {
+      "title": "Detalle del menor",
+      "guardians": "Tutores",
+      "you": "Tú",
+      "primary": "Principal",
+      "custodian": "Custodia del club",
+      "consent_pending": "Aún no hay una ficha firmada verificada. El director del club la verificará.",
+      "consent_form_uploaded": "Ficha firmada subida. Esperando la verificación del director.",
+      "consent_verified": "El director verificó el consentimiento.",
+      "invite": "Invitar a otro tutor",
+      "invite_hint": "Genera un código de un solo uso que vale 72 horas.",
+      "code_title": "Código de vinculación",
+      "code_expires": "Vence {when}",
+      "copy": "Copiar código",
+      "copied": "Código copiado",
+      "share": "Compartir",
+      "share_message": "Te invito a ser tutor de {name} en SACDIA. Código: {code}. Vence {when}. Ingrésalo en Mi familia > Tengo un código de vinculación.",
+      "leave": "Dejar de ser tutor",
+      "leave_title": "¿Dejar de ser tutor de {name}?",
+      "leave_confirm": "Dejar de ser tutor",
+      "remove": "Quitar a {name}",
+      "remove_title": "¿Quitar a {name} como tutor?",
+      "remove_body": "Esta persona dejará de poder ver y administrar al menor.",
+      "remove_confirm": "Quitar",
+      "removed": "Tutor quitado"
+    },
+    "outcome": {
+      "other_guardian": "Otro tutor seguirá a cargo de {name}.",
+      "club_custody": "El club quedará a cargo de {name} mientras tanto.",
+      "frozen": "{name} quedará congelado y su información se borrará en 90 días."
+    },
+    "link": {
+      "title": "Código de vinculación",
+      "intro": "Ingresa el código que te compartió el otro tutor o el director del club.",
+      "code_label": "Código",
+      "code_hint": "XXXX-XXXX",
+      "code_required": "Ingresa el código",
+      "sworn": "Declaro bajo protesta de decir verdad que soy el tutor legal de este menor.",
+      "submit": "Vincular",
+      "success": "Ahora eres tutor de {name}."
+    },
+    "switcher": {
+      "title": "Cambiar de perfil",
+      "you": "Tú",
+      "empty": "No tienes menores a los que puedas cambiar.",
+      "load_error": "No se pudieron cargar tus menores."
+    },
+    "switch": {
+      "offline": "Sin conexión. Volviste a tu perfil.",
+      "failed": "No se pudo cambiar de perfil. Intenta de nuevo."
+    },
+    "banner": {
+      "viewing_as": "Viendo como {name}",
+      "back": "Volver a mi perfil"
+    },
+    "prompt": {
+      "title": "¿Tienes menores a tu cargo?",
+      "body": "Puedes registrarlos para que se unan a un club. Siempre los administras tú desde Mi familia.",
+      "add": "Añadir menor",
+      "later": "Ahora no"
+    }
   }
 }

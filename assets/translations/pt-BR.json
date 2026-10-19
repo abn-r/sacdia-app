@@ -414,7 +414,27 @@
     "social_signin_already_linked": "Sua conta já está vinculada a outra conta {provider}. Entre com seu e-mail e senha.",
     "social_signin_provider_unavailable": "{provider} não está disponível no momento. Tente novamente em alguns minutos.",
     "delete_account_social_reauth_failed": "Não foi possível confirmar sua identidade com {provider}. Tente novamente.",
-    "acting_for_forbidden": "Você não tem mais acesso a este perfil. Você voltou ao seu próprio perfil."
+    "acting_for_forbidden": "Você não tem mais acesso a este perfil. Você voltou ao seu próprio perfil.",
+    "guardianship_not_found": "Não encontramos este menor.",
+    "guardianship_dependent_age_out_of_range": "Você só pode cadastrar menores de 13 anos em Minha família. Os mais velhos se cadastram com a própria conta.",
+    "guardianship_guardian_not_adult": "Você precisa ser maior de idade para ser responsável. Confira sua data de nascimento no perfil.",
+    "guardianship_guardian_birthday_required": "Informe sua data de nascimento no perfil para cadastrar um menor.",
+    "guardianship_dependent_limit_reached": "Você atingiu o número máximo de menores sob seus cuidados.",
+    "guardianship_guardian_limit_reached": "Este menor já tem o número máximo de responsáveis.",
+    "guardianship_link_code_invalid": "O código não é válido ou não está mais disponível.",
+    "guardianship_link_code_locked": "Muitas tentativas. Tente novamente mais tarde.",
+    "guardianship_link_code_self_redeem": "Você não pode resgatar um código que você mesmo gerou.",
+    "guardianship_already_guardian": "Você já é responsável por este menor.",
+    "guardianship_revoke_forbidden": "Você não tem permissão para remover este responsável.",
+    "guardianship_relationship_type_invalid": "O parentesco selecionado não é válido.",
+    "acting_for_header_invalid": "Não foi possível identificar o perfil. Volte ao seu perfil e tente novamente.",
+    "acting_for_scope_denied": "Esta ação não está disponível enquanto você vê o perfil de um menor.",
+    "auth_delete_dependents_ack_required": "Confirme que você entende o que acontecerá com os menores sob seus cuidados antes de excluir sua conta.",
+    "auth_registration_age_below_minimum": "Peça ao seu responsável que cadastre você em Minha família.",
+    "user_self_account_below_minimum_age": "Essa data de nascimento não permite ter uma conta própria. Peça ao seu responsável que gerencie você em Minha família.",
+    "post_reg_guardian_only_requires_adult": "Somente um adulto pode se cadastrar apenas como responsável.",
+    "mr_consent_not_verified": "O consentimento do responsável ainda não foi verificado. Verifique a ficha assinada antes de aprovar.",
+    "legal_version_mismatch": "Os termos mudaram. Leia e aceite novamente."
   },
   "honors": {
     "errors": {
@@ -5193,5 +5213,124 @@
     "semantics_user": "Instrutor: {name}, pessoa do seu campo local",
     "semantics_external": "Instrutor: {name}, nome digitado, não verificado",
     "none_registered": "Nenhum instrutor registrado"
+  },
+  "family": {
+    "title": "Minha família",
+    "add_cta": "Adicionar menor",
+    "have_code": "Tenho um código de vinculação",
+    "limit_reached": "Você atingiu o limite de {max} menores.",
+    "empty": {
+      "title": "Você ainda não adicionou menores",
+      "body": "Cadastre uma criança menor de 13 anos para que ela possa entrar em um clube sob seus cuidados."
+    },
+    "frozen": "Congelado",
+    "frozen_hint": "Sem responsável nem clube. Será apagado após 90 dias.",
+    "card": {
+      "age": "{age} anos",
+      "view_as": "Ver como {name}"
+    },
+    "consent": {
+      "pending": "Consentimento pendente",
+      "verified": "Consentimento verificado"
+    },
+    "club": {
+      "none": "Sem clube",
+      "active": "Membro de {club}",
+      "pending": "Solicitação pendente em {club}",
+      "rejected": "Solicitação recusada",
+      "expired": "Solicitação expirada",
+      "cancelled": "Solicitação cancelada"
+    },
+    "profile": {
+      "entry_title": "Minha família",
+      "entry_subtitle": "Cadastre e gerencie os menores sob seus cuidados",
+      "entry_count": "{count} menores sob seus cuidados",
+      "switch_title": "Trocar de perfil",
+      "switch_subtitle": "Ver e completar o perfil de um menor"
+    },
+    "errors": {
+      "generic": "Algo deu errado. Tente novamente."
+    },
+    "add": {
+      "title": "Adicionar menor",
+      "intro": "Cadastre o menor sob seus cuidados. Depois você completará o perfil dele por ele.",
+      "name": "Nome(s)",
+      "paternal": "Sobrenome paterno",
+      "maternal": "Sobrenome materno (opcional)",
+      "birthday": "Data de nascimento",
+      "birthday_hint": "Selecione a data",
+      "birthday_required": "Selecione a data de nascimento",
+      "relationship": "Parentesco",
+      "relationship_hint": "Selecione o parentesco",
+      "relationship_required": "Selecione o parentesco",
+      "relationship_error": "Não foi possível carregar os parentescos. Tente novamente.",
+      "required": "Campo obrigatório",
+      "sworn": "Declaro sob juramento que sou o responsável legal por este menor.",
+      "legal_prefix": "Em nome do menor, aceito os ",
+      "legal_unavailable": "Não foi possível carregar os documentos legais.",
+      "submit": "Cadastrar e continuar",
+      "complete_profile": "Completar meu perfil"
+    },
+    "detail": {
+      "title": "Detalhes do menor",
+      "guardians": "Responsáveis",
+      "you": "Você",
+      "primary": "Principal",
+      "custodian": "Custódia do clube",
+      "consent_pending": "Ainda não há uma ficha assinada verificada. O diretor do clube a verificará.",
+      "consent_form_uploaded": "Ficha assinada enviada. Aguardando a verificação do diretor.",
+      "consent_verified": "O diretor verificou o consentimento.",
+      "invite": "Convidar outro responsável",
+      "invite_hint": "Gera um código de uso único válido por 72 horas.",
+      "code_title": "Código de vinculação",
+      "code_expires": "Vence {when}",
+      "copy": "Copiar código",
+      "copied": "Código copiado",
+      "share": "Compartilhar",
+      "share_message": "Convido você a ser responsável por {name} no SACDIA. Código: {code}. Vence {when}. Digite em Minha família > Tenho um código de vinculação.",
+      "leave": "Deixar de ser responsável",
+      "leave_title": "Deixar de ser responsável por {name}?",
+      "leave_confirm": "Deixar de ser responsável",
+      "remove": "Remover {name}",
+      "remove_title": "Remover {name} como responsável?",
+      "remove_body": "Esta pessoa não poderá mais ver nem gerenciar o menor.",
+      "remove_confirm": "Remover",
+      "removed": "Responsável removido"
+    },
+    "outcome": {
+      "other_guardian": "Outro responsável continuará cuidando de {name}.",
+      "club_custody": "O clube ficará responsável por {name} enquanto isso.",
+      "frozen": "{name} será congelado e as informações serão apagadas em 90 dias."
+    },
+    "link": {
+      "title": "Código de vinculação",
+      "intro": "Digite o código que o outro responsável ou o diretor do clube compartilhou com você.",
+      "code_label": "Código",
+      "code_hint": "XXXX-XXXX",
+      "code_required": "Digite o código",
+      "sworn": "Declaro sob juramento que sou o responsável legal por este menor.",
+      "submit": "Vincular",
+      "success": "Agora você é responsável por {name}."
+    },
+    "switcher": {
+      "title": "Trocar de perfil",
+      "you": "Você",
+      "empty": "Você não tem menores para os quais trocar.",
+      "load_error": "Não foi possível carregar seus menores."
+    },
+    "switch": {
+      "offline": "Sem conexão. Você voltou ao seu perfil.",
+      "failed": "Não foi possível trocar de perfil. Tente novamente."
+    },
+    "banner": {
+      "viewing_as": "Vendo como {name}",
+      "back": "Voltar ao meu perfil"
+    },
+    "prompt": {
+      "title": "Você tem menores sob seus cuidados?",
+      "body": "Você pode cadastrá-los para que entrem em um clube. Você sempre os gerencia em Minha família.",
+      "add": "Adicionar menor",
+      "later": "Agora não"
+    }
   }
 }

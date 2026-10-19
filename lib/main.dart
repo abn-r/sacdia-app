@@ -27,6 +27,8 @@ import 'core/utils/app_logger.dart';
 import 'features/accessibility/presentation/providers/accessibility_provider.dart';
 import 'features/auth/presentation/widgets/acting_notice_listener.dart';
 import 'features/biometric/presentation/widgets/biometric_gate.dart';
+import 'features/family/presentation/widgets/acting_for_banner.dart';
+import 'features/family/presentation/widgets/family_prompt_host.dart';
 import 'features/home_widgets/data/next_activity_widget_bridge.dart';
 import 'features/home_widgets/presentation/next_activity_widget_launch.dart';
 import 'features/certifications/data/local/certification_draft_local_data_source.dart';
@@ -394,8 +396,13 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
             // en este cold start. Si está deshabilitada, es un passthrough.
             builder: (context, child) => SacOnboardingScope(
               child: ActingNoticeListener(
-                child: BiometricGate(
-                  child: child ?? const SizedBox.shrink(),
+                // Banner "Viendo como {nombre}" sobre TODO el navegador.
+                child: FamilyPromptHost(
+                  child: ActingForBannerHost(
+                    child: BiometricGate(
+                      child: child ?? const SizedBox.shrink(),
+                    ),
+                  ),
                 ),
               ),
             ),

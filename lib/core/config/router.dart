@@ -91,6 +91,7 @@ import 'package:sacdia_app/features/rankings/presentation/screens/club_rankings_
 import 'package:sacdia_app/features/rankings/presentation/screens/section_ranking_screen.dart';
 
 import '../auth/acting_for_session.dart';
+import 'acting_route_policy.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/providers/logout_cleanup.dart';
 import '../providers/app_bootstrap_provider.dart';
@@ -100,6 +101,10 @@ import '../../features/auth/presentation/views/forgot_password_view.dart';
 import '../../features/auth/presentation/views/login_view.dart';
 import '../../features/auth/presentation/views/register_view.dart';
 import '../../features/auth/presentation/views/splash_view.dart';
+import '../../features/family/presentation/views/add_dependent_view.dart';
+import '../../features/family/presentation/views/dependent_detail_view.dart';
+import '../../features/family/presentation/views/family_view.dart';
+import '../../features/family/presentation/views/redeem_link_code_view.dart';
 import '../../features/auth/presentation/views/welcome_carousel_view.dart';
 import '../../features/legal/presentation/views/legal_acceptance_view.dart';
 import '../../features/post_registration/presentation/views/post_registration_shell.dart';
@@ -296,6 +301,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Usuario autenticado en ruta pública → destino home compartido.
       if (isPublicRoute) {
         if (needsPostRegistration) return RouteNames.postRegistration;
+        return RouteNames.homeDashboard;
+      }
+
+      // Mientras se actúa por un menor, Mi familia no existe (se gestiona desde
+      // el perfil propio del tutor): también por enlace profundo.
+      if (isBlockedWhileActing(currentPath) &&
+          ref.read(actingForSessionProvider).isActing) {
         return RouteNames.homeDashboard;
       }
 
@@ -1402,6 +1414,33 @@ final routerProvider = Provider<GoRouter>((ref) {
             UploadReceiptView(folioOrId: folioOrId),
           );
         },
+      ),
+
+      // Mi familia: menores a cargo del tutor. Las rutas estáticas van antes de
+      // la paramétrica. Mientras se actúa por un menor el redirect las bloquea.
+      GoRoute(
+        path: RouteNames.family,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const FamilyView()),
+      ),
+      GoRoute(
+        path: RouteNames.familyAdd,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const AddDependentView()),
+      ),
+      GoRoute(
+        path: RouteNames.familyLink,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const RedeemLinkCodeView()),
+      ),
+      GoRoute(
+        path: RouteNames.familyDetail,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          DependentDetailView(
+              dependentId: state.pathParameters['dependentId']!),
+        ),
       ),
     ],
   );

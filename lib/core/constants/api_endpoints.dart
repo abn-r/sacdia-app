@@ -20,6 +20,9 @@ class ApiEndpoints {
   // ── Users ─────────────────────────────────────────────────────────────────
   static const String users = '/users';
 
+  // ── Guardianships (Mi familia) ────────────────────────────────────────────
+  static const String guardianships = '/guardianships';
+
   // ── Clubs ─────────────────────────────────────────────────────────────────
   static const String clubs = '/clubs';
 

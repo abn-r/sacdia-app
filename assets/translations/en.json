@@ -414,7 +414,27 @@
     "social_signin_already_linked": "Your account is already linked to a different {provider} account. Sign in with your email and password.",
     "social_signin_provider_unavailable": "{provider} is not available right now. Try again in a few minutes.",
     "delete_account_social_reauth_failed": "We couldn't confirm your identity with {provider}. Try again.",
-    "acting_for_forbidden": "You no longer have access to this profile. You are back on your own profile."
+    "acting_for_forbidden": "You no longer have access to this profile. You are back on your own profile.",
+    "guardianship_not_found": "We could not find this minor.",
+    "guardianship_dependent_age_out_of_range": "You can only register children under 13 from My family. Older teens register with their own account.",
+    "guardianship_guardian_not_adult": "You must be an adult to be a guardian. Check your date of birth in your profile.",
+    "guardianship_guardian_birthday_required": "Add your date of birth to your profile to register a minor.",
+    "guardianship_dependent_limit_reached": "You've reached the maximum number of minors you can have in your care.",
+    "guardianship_guardian_limit_reached": "This minor already has the maximum number of guardians.",
+    "guardianship_link_code_invalid": "The code is not valid or is no longer available.",
+    "guardianship_link_code_locked": "Too many attempts. Please try again later.",
+    "guardianship_link_code_self_redeem": "You can't redeem a code you generated yourself.",
+    "guardianship_already_guardian": "You are already a guardian of this minor.",
+    "guardianship_revoke_forbidden": "You don't have permission to remove this guardian.",
+    "guardianship_relationship_type_invalid": "The selected relationship is not valid.",
+    "acting_for_header_invalid": "The profile could not be identified. Go back to your profile and try again.",
+    "acting_for_scope_denied": "This action isn't available while viewing a minor's profile.",
+    "auth_delete_dependents_ack_required": "Confirm you understand what will happen to the minors in your care before deleting your account.",
+    "auth_registration_age_below_minimum": "Ask your guardian to register you from My family.",
+    "user_self_account_below_minimum_age": "That date of birth does not allow having your own account. Ask your guardian to manage you from My family.",
+    "post_reg_guardian_only_requires_adult": "Only an adult can register as a guardian only.",
+    "mr_consent_not_verified": "The guardian's consent has not been verified yet. Verify the signed form before approving.",
+    "legal_version_mismatch": "The terms have changed. Please read and accept them again."
   },
   "honors": {
     "errors": {
@@ -5195,5 +5215,124 @@
     "semantics_user": "Instructor: {name}, person from your Local Field",
     "semantics_external": "Instructor: {name}, typed name, not verified",
     "none_registered": "No instructor on record"
+  },
+  "family": {
+    "title": "My family",
+    "add_cta": "Add a minor",
+    "have_code": "I have a link code",
+    "limit_reached": "You've reached the limit of {max} minors.",
+    "empty": {
+      "title": "You haven't added any minors yet",
+      "body": "Register a child under 13 so they can join a club under your care."
+    },
+    "frozen": "Frozen",
+    "frozen_hint": "No guardian or club. It will be deleted after 90 days.",
+    "card": {
+      "age": "{age} years old",
+      "view_as": "View as {name}"
+    },
+    "consent": {
+      "pending": "Consent pending",
+      "verified": "Consent verified"
+    },
+    "club": {
+      "none": "No club",
+      "active": "Member of {club}",
+      "pending": "Request pending at {club}",
+      "rejected": "Request rejected",
+      "expired": "Request expired",
+      "cancelled": "Request cancelled"
+    },
+    "profile": {
+      "entry_title": "My family",
+      "entry_subtitle": "Register and manage the minors in your care",
+      "entry_count": "{count} minors in your care",
+      "switch_title": "Switch profile",
+      "switch_subtitle": "View and complete a minor's profile"
+    },
+    "errors": {
+      "generic": "Something went wrong. Please try again."
+    },
+    "add": {
+      "title": "Add a minor",
+      "intro": "Register the minor in your care. You'll then complete their profile for them.",
+      "name": "First name(s)",
+      "paternal": "Paternal last name",
+      "maternal": "Maternal last name (optional)",
+      "birthday": "Date of birth",
+      "birthday_hint": "Select the date",
+      "birthday_required": "Select the date of birth",
+      "relationship": "Relationship",
+      "relationship_hint": "Select the relationship",
+      "relationship_required": "Select the relationship",
+      "relationship_error": "Relationships could not be loaded. Please try again.",
+      "required": "Required field",
+      "sworn": "I declare under oath that I am the legal guardian of this minor.",
+      "legal_prefix": "On behalf of the minor, I accept the ",
+      "legal_unavailable": "The legal documents could not be loaded.",
+      "submit": "Register and continue",
+      "complete_profile": "Complete my profile"
+    },
+    "detail": {
+      "title": "Minor details",
+      "guardians": "Guardians",
+      "you": "You",
+      "primary": "Primary",
+      "custodian": "Club custody",
+      "consent_pending": "There is no verified signed form yet. The club director will verify it.",
+      "consent_form_uploaded": "Signed form uploaded. Waiting for the director's verification.",
+      "consent_verified": "The director verified the consent.",
+      "invite": "Invite another guardian",
+      "invite_hint": "Generates a single-use code valid for 72 hours.",
+      "code_title": "Link code",
+      "code_expires": "Expires {when}",
+      "copy": "Copy code",
+      "copied": "Code copied",
+      "share": "Share",
+      "share_message": "I invite you to be a guardian of {name} on SACDIA. Code: {code}. Expires {when}. Enter it in My family > I have a link code.",
+      "leave": "Stop being a guardian",
+      "leave_title": "Stop being a guardian of {name}?",
+      "leave_confirm": "Stop being a guardian",
+      "remove": "Remove {name}",
+      "remove_title": "Remove {name} as a guardian?",
+      "remove_body": "This person will no longer be able to see or manage the minor.",
+      "remove_confirm": "Remove",
+      "removed": "Guardian removed"
+    },
+    "outcome": {
+      "other_guardian": "Another guardian will remain in charge of {name}.",
+      "club_custody": "The club will take charge of {name} in the meantime.",
+      "frozen": "{name} will be frozen and their information deleted in 90 days."
+    },
+    "link": {
+      "title": "Link code",
+      "intro": "Enter the code shared with you by the other guardian or the club director.",
+      "code_label": "Code",
+      "code_hint": "XXXX-XXXX",
+      "code_required": "Enter the code",
+      "sworn": "I declare under oath that I am the legal guardian of this minor.",
+      "submit": "Link",
+      "success": "You are now a guardian of {name}."
+    },
+    "switcher": {
+      "title": "Switch profile",
+      "you": "You",
+      "empty": "You don't have any minors to switch to.",
+      "load_error": "Your minors could not be loaded."
+    },
+    "switch": {
+      "offline": "You're offline. You're back on your profile.",
+      "failed": "Could not switch profile. Please try again."
+    },
+    "banner": {
+      "viewing_as": "Viewing as {name}",
+      "back": "Back to my profile"
+    },
+    "prompt": {
+      "title": "Do you have minors in your care?",
+      "body": "You can register them so they can join a club. You always manage them yourself from My family.",
+      "add": "Add a minor",
+      "later": "Not now"
+    }
   }
 }

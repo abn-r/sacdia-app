@@ -1,0 +1,125 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+
+const _locales = ['es', 'en', 'fr', 'pt-BR'];
+
+/// Llaves que ya faltaban en fr y pt-BR antes de Mi familia. No se añaden más:
+/// cualquier llave nueva que falte en un idioma rompe el test.
+const _knownGaps = {
+  'camporees.detail.resources',
+  'dashboard.quick_access.materials',
+};
+
+Map<String, String> _flatten(Map<String, dynamic> map, [String prefix = '']) {
+  final out = <String, String>{};
+  map.forEach((key, value) {
+    final path = prefix.isEmpty ? key : '$prefix.$key';
+    if (value is Map<String, dynamic>) {
+      out.addAll(_flatten(value, path));
+    } else {
+      out[path] = value.toString();
+    }
+  });
+  return out;
+}
+
+Map<String, String> _load(String locale) {
+  final raw = File('assets/translations/$locale.json').readAsStringSync();
+  return _flatten(jsonDecode(raw) as Map<String, dynamic>);
+}
+
+/// Códigos de error nuevos de Phase 2 (2a) que la app debe traducir (FP-68).
+const _phase2ErrorCodes = [
+  'GUARDIANSHIP_NOT_FOUND',
+  'GUARDIANSHIP_DEPENDENT_AGE_OUT_OF_RANGE',
+  'GUARDIANSHIP_GUARDIAN_NOT_ADULT',
+  'GUARDIANSHIP_GUARDIAN_BIRTHDAY_REQUIRED',
+  'GUARDIANSHIP_DEPENDENT_LIMIT_REACHED',
+  'GUARDIANSHIP_GUARDIAN_LIMIT_REACHED',
+  'GUARDIANSHIP_LINK_CODE_INVALID',
+  'GUARDIANSHIP_LINK_CODE_LOCKED',
+  'GUARDIANSHIP_LINK_CODE_SELF_REDEEM',
+  'GUARDIANSHIP_ALREADY_GUARDIAN',
+  'GUARDIANSHIP_REVOKE_FORBIDDEN',
+  'GUARDIANSHIP_RELATIONSHIP_TYPE_INVALID',
+  'ACTING_FOR_HEADER_INVALID',
+  'ACTING_FOR_FORBIDDEN',
+  'ACTING_FOR_SCOPE_DENIED',
+  'AUTH_DELETE_DEPENDENTS_ACK_REQUIRED',
+  'AUTH_REGISTRATION_AGE_BELOW_MINIMUM',
+  'USER_SELF_ACCOUNT_BELOW_MINIMUM_AGE',
+  'POST_REG_GUARDIAN_ONLY_REQUIRES_ADULT',
+  'MR_CONSENT_NOT_VERIFIED',
+];
+
+void main() {
+  final translations = {for (final l in _locales) l: _load(l)};
+  final base = translations['es']!;
+
+  test('every locale has exactly the keys of es (known gaps aside)', () {
+    for (final locale in _locales.skip(1)) {
+      final keys = translations[locale]!.keys.toSet();
+      final missing = base.keys.toSet().difference(keys).difference(_knownGaps);
+      final extra = keys.difference(base.keys.toSet());
+      expect(missing, isEmpty, reason: '$locale is missing keys');
+      expect(extra, isEmpty, reason: '$locale has keys es does not');
+    }
+  });
+
+  test('no translation is empty', () {
+    for (final locale in _locales) {
+      final empty = translations[locale]!
+          .entries
+          .where((e) => e.value.trim().isEmpty)
+          .map((e) => e.key);
+      expect(empty, isEmpty, reason: locale);
+    }
+  });
+
+  test('placeholders match across locales for the family keys', () {
+    final placeholder = RegExp(r'\{[a-z_]+\}');
+    for (final entry in base.entries.where(
+      (e) => e.key.startsWith('family.') || e.key.startsWith('errors.'),
+    )) {
+      final expected =
+          placeholder.allMatches(entry.value).map((m) => m.group(0)).toSet();
+      for (final locale in _locales.skip(1)) {
+        final value = translations[locale]![entry.key];
+        if (value == null) continue;
+        final actual =
+            placeholder.allMatches(value).map((m) => m.group(0)).toSet();
+        expect(actual, expected, reason: '${entry.key} in $locale');
+      }
+    }
+  });
+
+  test('every Phase 2 error code has an errors.* translation in all locales',
+      () {
+    for (final code in _phase2ErrorCodes) {
+      final key = 'errors.${code.toLowerCase()}';
+      for (final locale in _locales) {
+        expect(
+          translations[locale]!.containsKey(key),
+          isTrue,
+          reason: '$key missing in $locale',
+        );
+      }
+    }
+  });
+
+  test('the family.* tree exists in all locales', () {
+    final familyKeys = base.keys.where((k) => k.startsWith('family.')).toList();
+    expect(familyKeys.length, greaterThan(50));
+    for (final locale in _locales) {
+      for (final key in familyKeys) {
+        expect(
+          translations[locale]!.containsKey(key),
+          isTrue,
+          reason: '$key missing in $locale',
+        );
+      }
+    }
+  });
+}

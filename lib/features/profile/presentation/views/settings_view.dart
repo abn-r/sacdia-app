@@ -26,6 +26,7 @@ import '../../../auth/domain/entities/delete_account_reauth.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
+import '../../../auth/presentation/providers/acting_providers.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/notification_preferences_providers.dart';
 import '../widgets/accent_picker_sheet.dart';
@@ -452,6 +453,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     final user = ref.watch(
       authNotifierProvider.select((v) => v.valueOrNull),
     );
+    // Mientras se actúa por un menor no se ofrecen seguridad, sesiones,
+    // exportación de datos ni borrado de cuenta: son del tutor (FP-56).
+    final acting = ref.watch(actingDependentProvider) != null;
     // Preferencias de notificación — cargadas desde el servidor con fallback a caché.
     final notifPrefsAsync = ref.watch(notificationPreferencesProvider);
     final notifPrefs = notifPrefsAsync.valueOrNull;
@@ -632,37 +636,39 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                         ),
                       ),
                     ],
-                    _groupDivider(),
-                    SettingTile(
-                      icon: HugeIcons.strokeRoundedDeviceAccess,
-                      title: 'settings.active_sessions'.tr(),
-                      iconColor: SacAccent.of(context).color,
-                      onTap: () => Navigator.push(
-                        context,
-                        SacSharedAxisRoute(
-                          builder: (_) => const ActiveSessionsView(),
+                    if (!acting) ...[
+                      _groupDivider(),
+                      SettingTile(
+                        icon: HugeIcons.strokeRoundedDeviceAccess,
+                        title: 'settings.active_sessions'.tr(),
+                        iconColor: SacAccent.of(context).color,
+                        onTap: () => Navigator.push(
+                          context,
+                          SacSharedAxisRoute(
+                            builder: (_) => const ActiveSessionsView(),
+                          ),
                         ),
                       ),
-                    ),
-                    _groupDivider(),
-                    SettingTile(
-                      icon: HugeIcons.strokeRoundedDownload02,
-                      title: 'settings.download_my_data'.tr(),
-                      iconColor: SacAccent.of(context).color,
-                      onTap: () => Navigator.push(
-                        context,
-                        SacSharedAxisRoute(
-                          builder: (_) => const DataExportView(),
+                      _groupDivider(),
+                      SettingTile(
+                        icon: HugeIcons.strokeRoundedDownload02,
+                        title: 'settings.download_my_data'.tr(),
+                        iconColor: SacAccent.of(context).color,
+                        onTap: () => Navigator.push(
+                          context,
+                          SacSharedAxisRoute(
+                            builder: (_) => const DataExportView(),
+                          ),
                         ),
                       ),
-                    ),
-                    _groupDivider(),
-                    SettingTile(
-                      icon: HugeIcons.strokeRoundedLockPassword,
-                      title: 'settings.change_password'.tr(),
-                      iconColor: SacAccent.of(context).color,
-                      onTap: _showChangePasswordDialog,
-                    ),
+                      _groupDivider(),
+                      SettingTile(
+                        icon: HugeIcons.strokeRoundedLockPassword,
+                        title: 'settings.change_password'.tr(),
+                        iconColor: SacAccent.of(context).color,
+                        onTap: _showChangePasswordDialog,
+                      ),
+                    ],
                     _groupDivider(),
                     const BiometricSettingsSection(),
                     _groupDivider(),
@@ -708,19 +714,21 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                if (!acting) ...[
+                  const SizedBox(height: 16),
 
-                // ── ZONA PELIGROSA ────────────────────────────────────────
-                _GroupContainer(
-                  children: [
-                    SettingTile(
-                      icon: HugeIcons.strokeRoundedDelete02,
-                      title: 'profile.settings.delete_account_tile'.tr(),
-                      iconColor: AppColors.error,
-                      onTap: _handleDeleteAccount,
-                    ),
-                  ],
-                ),
+                  // ── ZONA PELIGROSA ──────────────────────────────────────
+                  _GroupContainer(
+                    children: [
+                      SettingTile(
+                        icon: HugeIcons.strokeRoundedDelete02,
+                        title: 'profile.settings.delete_account_tile'.tr(),
+                        iconColor: AppColors.error,
+                        onTap: _handleDeleteAccount,
+                      ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 32),
                 const ZarzaRojaCredit(),
                 SizedBox(height: 24 + MediaQuery.paddingOf(context).bottom),

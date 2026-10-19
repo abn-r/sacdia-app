@@ -414,7 +414,27 @@
     "social_signin_already_linked": "Votre compte est déjà lié à un autre compte {provider}. Connectez-vous avec votre e-mail et votre mot de passe.",
     "social_signin_provider_unavailable": "{provider} n'est pas disponible pour le moment. Réessayez dans quelques minutes.",
     "delete_account_social_reauth_failed": "Impossible de confirmer votre identité avec {provider}. Réessayez.",
-    "acting_for_forbidden": "Vous n'avez plus accès à ce profil. Vous êtes revenu sur votre propre profil."
+    "acting_for_forbidden": "Vous n'avez plus accès à ce profil. Vous êtes revenu sur votre propre profil.",
+    "guardianship_not_found": "Nous n'avons pas trouvé ce mineur.",
+    "guardianship_dependent_age_out_of_range": "Vous ne pouvez inscrire que des enfants de moins de 13 ans depuis Ma famille. Les plus grands s'inscrivent avec leur propre compte.",
+    "guardianship_guardian_not_adult": "Vous devez être majeur pour être tuteur. Vérifiez votre date de naissance dans votre profil.",
+    "guardianship_guardian_birthday_required": "Renseignez votre date de naissance dans votre profil pour inscrire un mineur.",
+    "guardianship_dependent_limit_reached": "Vous avez atteint le nombre maximum de mineurs sous votre responsabilité.",
+    "guardianship_guardian_limit_reached": "Ce mineur a déjà le nombre maximum de tuteurs.",
+    "guardianship_link_code_invalid": "Le code n'est pas valide ou n'est plus disponible.",
+    "guardianship_link_code_locked": "Trop de tentatives. Réessayez plus tard.",
+    "guardianship_link_code_self_redeem": "Vous ne pouvez pas utiliser un code que vous avez généré.",
+    "guardianship_already_guardian": "Vous êtes déjà tuteur de ce mineur.",
+    "guardianship_revoke_forbidden": "Vous n'avez pas la permission de retirer ce tuteur.",
+    "guardianship_relationship_type_invalid": "Le lien de parenté sélectionné n'est pas valide.",
+    "acting_for_header_invalid": "Le profil n'a pas pu être identifié. Revenez à votre profil et réessayez.",
+    "acting_for_scope_denied": "Cette action n'est pas disponible lorsque vous voyez le profil d'un mineur.",
+    "auth_delete_dependents_ack_required": "Confirmez que vous comprenez ce qu'il adviendra des mineurs sous votre responsabilité avant de supprimer votre compte.",
+    "auth_registration_age_below_minimum": "Demandez à votre tuteur de vous inscrire depuis Ma famille.",
+    "user_self_account_below_minimum_age": "Cette date de naissance ne permet pas d'avoir un compte personnel. Demandez à votre tuteur de vous gérer depuis Ma famille.",
+    "post_reg_guardian_only_requires_adult": "Seul un adulte peut s'inscrire uniquement comme tuteur.",
+    "mr_consent_not_verified": "Le consentement du tuteur n'est pas encore vérifié. Vérifiez la fiche signée avant d'approuver.",
+    "legal_version_mismatch": "Les conditions ont changé. Lisez-les et acceptez-les à nouveau."
   },
   "honors": {
     "errors": {
@@ -5193,5 +5213,124 @@
     "semantics_user": "Instructeur : {name}, personne de votre champ local",
     "semantics_external": "Instructeur : {name}, nom saisi, non vérifié",
     "none_registered": "Aucun instructeur enregistré"
+  },
+  "family": {
+    "title": "Ma famille",
+    "add_cta": "Ajouter un mineur",
+    "have_code": "J'ai un code de liaison",
+    "limit_reached": "Vous avez atteint la limite de {max} mineurs.",
+    "empty": {
+      "title": "Vous n'avez pas encore ajouté de mineurs",
+      "body": "Inscrivez un enfant de moins de 13 ans pour qu'il puisse rejoindre un club sous votre responsabilité."
+    },
+    "frozen": "Gelé",
+    "frozen_hint": "Sans tuteur ni club. Il sera supprimé après 90 jours.",
+    "card": {
+      "age": "{age} ans",
+      "view_as": "Voir en tant que {name}"
+    },
+    "consent": {
+      "pending": "Consentement en attente",
+      "verified": "Consentement vérifié"
+    },
+    "club": {
+      "none": "Sans club",
+      "active": "Membre de {club}",
+      "pending": "Demande en attente chez {club}",
+      "rejected": "Demande refusée",
+      "expired": "Demande expirée",
+      "cancelled": "Demande annulée"
+    },
+    "profile": {
+      "entry_title": "Ma famille",
+      "entry_subtitle": "Inscrivez et gérez les mineurs sous votre responsabilité",
+      "entry_count": "{count} mineurs sous votre responsabilité",
+      "switch_title": "Changer de profil",
+      "switch_subtitle": "Voir et compléter le profil d'un mineur"
+    },
+    "errors": {
+      "generic": "Une erreur s'est produite. Réessayez."
+    },
+    "add": {
+      "title": "Ajouter un mineur",
+      "intro": "Inscrivez le mineur sous votre responsabilité. Vous compléterez ensuite son profil à sa place.",
+      "name": "Prénom(s)",
+      "paternal": "Nom de famille paternel",
+      "maternal": "Nom de famille maternel (facultatif)",
+      "birthday": "Date de naissance",
+      "birthday_hint": "Sélectionnez la date",
+      "birthday_required": "Sélectionnez la date de naissance",
+      "relationship": "Lien de parenté",
+      "relationship_hint": "Sélectionnez le lien de parenté",
+      "relationship_required": "Sélectionnez le lien de parenté",
+      "relationship_error": "Impossible de charger les liens de parenté. Réessayez.",
+      "required": "Champ obligatoire",
+      "sworn": "Je déclare sous serment être le tuteur légal de ce mineur.",
+      "legal_prefix": "Au nom du mineur, j'accepte les ",
+      "legal_unavailable": "Impossible de charger les documents juridiques.",
+      "submit": "Inscrire et continuer",
+      "complete_profile": "Compléter mon profil"
+    },
+    "detail": {
+      "title": "Détails du mineur",
+      "guardians": "Tuteurs",
+      "you": "Vous",
+      "primary": "Principal",
+      "custodian": "Garde du club",
+      "consent_pending": "Aucune fiche signée n'a encore été vérifiée. Le directeur du club la vérifiera.",
+      "consent_form_uploaded": "Fiche signée envoyée. En attente de la vérification du directeur.",
+      "consent_verified": "Le directeur a vérifié le consentement.",
+      "invite": "Inviter un autre tuteur",
+      "invite_hint": "Génère un code à usage unique valable 72 heures.",
+      "code_title": "Code de liaison",
+      "code_expires": "Expire le {when}",
+      "copy": "Copier le code",
+      "copied": "Code copié",
+      "share": "Partager",
+      "share_message": "Je vous invite à devenir tuteur de {name} sur SACDIA. Code : {code}. Expire le {when}. Saisissez-le dans Ma famille > J'ai un code de liaison.",
+      "leave": "Cesser d'être tuteur",
+      "leave_title": "Cesser d'être tuteur de {name} ?",
+      "leave_confirm": "Cesser d'être tuteur",
+      "remove": "Retirer {name}",
+      "remove_title": "Retirer {name} comme tuteur ?",
+      "remove_body": "Cette personne ne pourra plus voir ni gérer le mineur.",
+      "remove_confirm": "Retirer",
+      "removed": "Tuteur retiré"
+    },
+    "outcome": {
+      "other_guardian": "Un autre tuteur restera responsable de {name}.",
+      "club_custody": "Le club prendra {name} en charge en attendant.",
+      "frozen": "{name} sera gelé et ses informations seront supprimées dans 90 jours."
+    },
+    "link": {
+      "title": "Code de liaison",
+      "intro": "Saisissez le code que l'autre tuteur ou le directeur du club vous a transmis.",
+      "code_label": "Code",
+      "code_hint": "XXXX-XXXX",
+      "code_required": "Saisissez le code",
+      "sworn": "Je déclare sous serment être le tuteur légal de ce mineur.",
+      "submit": "Lier",
+      "success": "Vous êtes maintenant tuteur de {name}."
+    },
+    "switcher": {
+      "title": "Changer de profil",
+      "you": "Vous",
+      "empty": "Vous n'avez aucun mineur vers lequel basculer.",
+      "load_error": "Impossible de charger vos mineurs."
+    },
+    "switch": {
+      "offline": "Hors ligne. Vous êtes revenu sur votre profil.",
+      "failed": "Impossible de changer de profil. Réessayez."
+    },
+    "banner": {
+      "viewing_as": "Vous voyez en tant que {name}",
+      "back": "Retour à mon profil"
+    },
+    "prompt": {
+      "title": "Avez-vous des mineurs sous votre responsabilité ?",
+      "body": "Vous pouvez les inscrire pour qu'ils rejoignent un club. Vous les gérez toujours vous-même depuis Ma famille.",
+      "add": "Ajouter un mineur",
+      "later": "Pas maintenant"
+    }
   }
 }
