@@ -193,6 +193,19 @@ void main() {
       }
     });
 
+    test('409 keeps the already-verified code', () async {
+      adapter.replies['POST $path'] =
+          _Reply(409, _err(409, 'GUARDIANSHIP_CONSENT_ALREADY_VERIFIED'));
+
+      final failure = failureOf(await repository.uploadConsentEvidence(
+        dependentId: 'ana-1',
+        file: file,
+      ));
+
+      expect(failure.code, 409);
+      expect(failure.errorCode, 'GUARDIANSHIP_CONSENT_ALREADY_VERIFIED');
+    });
+
     test('429 (20 uploads per hour) keeps the HTTP status', () async {
       adapter.replies['POST $path'] = const _Reply(
         429,

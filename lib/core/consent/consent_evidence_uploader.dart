@@ -106,6 +106,9 @@ class _SourceTile extends StatelessWidget {
 /// - Valida tipo y tamaño en el cliente (10 MB; HEIC se rechaza) y no llama a la
 ///   red si el archivo no sirve.
 /// - Si la subida falla muestra el motivo y deja reintentar con el mismo archivo.
+/// - Si el consentimiento ya quedó verificado (409) descarta el archivo elegido,
+///   muestra el motivo y avisa con [onAlreadyVerified]: la pantalla refresca su
+///   estado y deja de ofrecer subir (no tiene sentido reintentar).
 /// - [onPendingChanged] avisa cuando hay un archivo elegido sin subir, para que
 ///   la pantalla no deje confirmar con una ficha vieja mientras tanto.
 class ConsentEvidenceUploader extends StatefulWidget {
@@ -114,6 +117,7 @@ class ConsentEvidenceUploader extends StatefulWidget {
     required this.onUpload,
     this.onUploaded,
     this.onPendingChanged,
+    this.onAlreadyVerified,
     this.picker = const ConsentEvidencePicker(),
     this.hasExisting = false,
     this.enabled = true,
@@ -122,6 +126,9 @@ class ConsentEvidenceUploader extends StatefulWidget {
   final ConsentUploadCallback onUpload;
   final ValueChanged<ConsentEvidenceReceipt>? onUploaded;
   final ValueChanged<bool>? onPendingChanged;
+
+  /// La subida fue rechazada porque el consentimiento ya está verificado.
+  final VoidCallback? onAlreadyVerified;
   final ConsentEvidencePicker picker;
 
   /// Ya hay una ficha vigente: el botón dice "Reemplazar".
@@ -174,10 +181,16 @@ class _ConsentEvidenceUploaderState extends State<ConsentEvidenceUploader> {
     final result = await widget.onUpload(file);
     if (!mounted) return;
     result.fold(
-      (failure) => setState(() {
-        _uploading = false;
-        _error = failure;
-      }),
+      (failure) {
+        final alreadyVerified = isConsentAlreadyVerified(failure);
+        setState(() {
+          _uploading = false;
+          _error = failure;
+          // Ya no hay nada que reintentar: se descarta el archivo.
+          if (alreadyVerified) _setFile(null);
+        });
+        if (alreadyVerified) widget.onAlreadyVerified?.call();
+      },
       (receipt) {
         setState(() {
           _uploading = false;
@@ -214,6 +227,8 @@ class _ConsentEvidenceUploaderState extends State<ConsentEvidenceUploader> {
           ),
           if (_pickFailed)
             _ErrorText(message: 'core.consent.errors.pick_failed'.tr()),
+          if (isConsentAlreadyVerified(_error))
+            _ErrorText(message: consentErrorMessage(_error)),
         ],
       );
     }

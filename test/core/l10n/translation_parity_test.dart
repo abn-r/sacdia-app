@@ -69,6 +69,9 @@ const _phase2cErrorCodes = [
   'FILE_REQUIRED',
   'FILE_TYPE_INVALID',
   'FILE_TOO_LARGE',
+  // Fix batch 2c backend (rulings W1/W2).
+  'GUARDIANSHIP_CONSENT_ALREADY_VERIFIED',
+  'GUARDIANSHIP_GUARDIAN_SELF_VERIFY',
 ];
 
 void main() {

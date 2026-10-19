@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/consent/consent_error_messages.dart';
 import '../../../../core/consent/consent_evidence.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/usecase.dart';
@@ -153,7 +154,10 @@ class FamilyActions {
         await _ref.read(uploadGuardianConsentEvidenceUseCaseProvider)(
       UploadGuardianConsentEvidenceParams(dependentId: dependentId, file: file),
     );
-    if (result.isRight()) {
+    // Si el director verificó mientras tanto (409 ya verificada) el detalle y la
+    // lista están desactualizados: también se refrescan.
+    final stale = result.fold(isConsentAlreadyVerified, (_) => true);
+    if (stale) {
       _ref.invalidate(dependentDetailProvider(dependentId));
       _ref.invalidate(dependentsProvider);
     }

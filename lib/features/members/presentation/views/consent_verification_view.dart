@@ -56,6 +56,10 @@ class _ConsentVerificationViewState
   /// Hay un archivo elegido que todavía no se subió.
   bool _pendingFile = false;
   bool _reviewed = false;
+
+  /// El servidor rechazó una subida porque el consentimiento ya quedó verificado
+  /// (409): la ficha ya no se puede reemplazar desde aquí.
+  bool _formAlreadyVerified = false;
   bool _verifying = false;
 
   /// El consentimiento ya quedó verificado pero la aprobación falló: solo queda
@@ -93,6 +97,21 @@ class _ConsentVerificationViewState
       _error = null;
     });
     _toast('members.consent.evidence_uploaded_toast'.tr());
+  }
+
+  void _onAlreadyVerified() {
+    // La ficha vigente y la lista cambiaron: se vuelven a pedir.
+    ref.invalidate(joinRequestConsentEvidenceProvider(_assignmentId));
+    ref.invalidate(membersNotifierProvider);
+    setState(() {
+      _formAlreadyVerified = true;
+      // Si estaba verificada, hay una ficha vigente. El archivo descartado ya
+      // no bloquea confirmar.
+      _hasEvidence = true;
+      _pendingFile = false;
+      _error = null;
+    });
+    _toast('errors.guardianship_consent_already_verified'.tr(), isError: true);
   }
 
   Future<void> _confirm() async {
@@ -180,13 +199,21 @@ class _ConsentVerificationViewState
                   ),
             ),
           const SizedBox(height: 12),
-          if (!_consentVerified)
+          if (_formAlreadyVerified)
+            Text(
+              'errors.guardianship_consent_already_verified'.tr(),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: c.textSecondary,
+                  ),
+            )
+          else if (!_consentVerified)
             ConsentEvidenceUploader(
               picker: widget.picker,
               hasExisting: _hasEvidence,
               enabled: !_verifying,
               onUpload: _upload,
               onUploaded: _onUploaded,
+              onAlreadyVerified: _onAlreadyVerified,
               onPendingChanged: (pending) {
                 if (mounted) setState(() => _pendingFile = pending);
               },

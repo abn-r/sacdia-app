@@ -465,7 +465,9 @@
     "guard_permission_denied": "No tienes permiso para realizar esta acción.",
     "file_required": "Selecciona un archivo.",
     "file_type_invalid": "Tipo de archivo no permitido. Usa JPG, PNG, WebP o PDF.",
-    "file_too_large": "El archivo supera el máximo de 10 MB."
+    "file_too_large": "El archivo supera el máximo de 10 MB.",
+    "guardianship_consent_already_verified": "La ficha ya fue verificada.",
+    "guardianship_guardian_self_verify": "No puedes verificar el consentimiento de un menor del que eres tutor. Debe hacerlo otra persona autorizada del club."
   },
   "honors": {
     "errors": {

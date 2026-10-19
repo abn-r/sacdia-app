@@ -185,6 +185,8 @@ void main() {
         'GUARDIANSHIP_CUSTODIAN_SELF_VERIFY',
         'MR_CONSENT_CONFIRMATION_REQUIRED',
         'MR_CONSENT_NOT_VERIFIED',
+        'GUARDIANSHIP_CONSENT_ALREADY_VERIFIED',
+        'GUARDIANSHIP_GUARDIAN_SELF_VERIFY',
       ]) {
         expect(consentErrorKey(code), 'errors.${code.toLowerCase()}');
       }
@@ -232,6 +234,14 @@ void main() {
       expect(isConsentEvidenceNotFound(notFound), isTrue);
       expect(isCustodianSelfVerify(fourEyes), isTrue);
       expect(isCustodianSelfVerify(unavailable), isFalse);
+      const alreadyVerified = ServerFailure(
+        message: 'x',
+        code: 409,
+        errorCode: 'GUARDIANSHIP_CONSENT_ALREADY_VERIFIED',
+      );
+      expect(isConsentAlreadyVerified(alreadyVerified), isTrue);
+      expect(isConsentAlreadyVerified(unavailable), isFalse);
+      expect(isConsentAlreadyVerified('boom'), isFalse);
       expect(isConsentEvidenceUnavailable('boom'), isFalse);
     });
   });

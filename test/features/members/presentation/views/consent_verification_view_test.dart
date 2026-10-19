@@ -251,6 +251,38 @@ void main() {
       expect(confirmButton(tester).onPressed, isNull);
     });
 
+    testWidgets(
+        '409 already verified: explains it, closes the upload and verifies '
+        'nothing', (tester) async {
+      repo.uploadResult = const Left(
+        ServerFailure(
+          message: 'x',
+          code: 409,
+          errorCode: 'GUARDIANSHIP_CONSENT_ALREADY_VERIFIED',
+        ),
+      );
+      await open(tester, request: minorRequest());
+
+      await tester.tap(find.text('Subir ficha firmada'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Elegir un PDF'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Subir'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('La ficha ya fue verificada.'), findsWidgets);
+      expect(find.text('Subir ficha firmada'), findsNothing);
+      expect(find.text('Reemplazar ficha'), findsNothing);
+      expect(find.text('Reintentar'), findsNothing);
+      expect(repo.verifyCalls, isEmpty);
+      // La ficha vigente se vuelve a pedir y se puede ver.
+      expect(repo.evidenceReads, [_assignment]);
+      expect(find.text('Ver ficha'), findsOneWidget);
+      // Ya no hay archivo pendiente: se puede confirmar.
+      await tickReviewed(tester);
+      expect(confirmButton(tester).onPressed, isNotNull);
+    });
+
     testWidgets('leaving mid-upload does not verify', (tester) async {
       final gate = Completer<void>();
       final slow = _SlowUploadRepo(repo, gate);
@@ -423,6 +455,19 @@ void main() {
       expect(
         find.text(
           'Este menor está bajo la custodia del club. Debe verificarlo otra persona autorizada del club, no quien subió la ficha ni quien lo recibió en custodia.',
+        ),
+        findsOneWidget,
+      );
+      expect(popped, isNull);
+    });
+
+    testWidgets('a guardian of the minor cannot verify it', (tester) async {
+      await verifyWith(
+          tester, _verifyError(403, 'GUARDIANSHIP_GUARDIAN_SELF_VERIFY'));
+
+      expect(
+        find.text(
+          'No puedes verificar el consentimiento de un menor del que eres tutor. Debe hacerlo otra persona autorizada del club.',
         ),
         findsOneWidget,
       );

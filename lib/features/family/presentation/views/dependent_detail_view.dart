@@ -145,6 +145,15 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
     _toast('family.detail.form_uploaded_toast'.tr());
   }
 
+  /// El director verificó mientras el tutor subía: se explica y el detalle ya se
+  /// refrescó (la tarjeta pasa a "verificado", sin subir).
+  void _onFormAlreadyVerified() {
+    _toast(
+      'errors.guardianship_consent_already_verified'.tr(),
+      isError: true,
+    );
+  }
+
   /// Abre la ficha subida. La URL es firmada y caduca: se pide al tocar y no se
   /// guarda en ningún lado.
   Future<void> _viewForm() async {
@@ -258,6 +267,7 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
           picker: widget.picker,
           onUploadForm: _uploadForm,
           onFormUploaded: _onFormUploaded,
+          onFormAlreadyVerified: _onFormAlreadyVerified,
           onViewForm: _viewForm,
           onViewAs: () => switchToDependent(context, ref, data.summary),
           onInvite: () => _invite(data),
@@ -276,6 +286,7 @@ class _Body extends StatelessWidget {
     required this.picker,
     required this.onUploadForm,
     required this.onFormUploaded,
+    required this.onFormAlreadyVerified,
     required this.onViewForm,
     required this.onViewAs,
     required this.onInvite,
@@ -288,6 +299,7 @@ class _Body extends StatelessWidget {
   final ConsentEvidencePicker picker;
   final ConsentUploadCallback onUploadForm;
   final ValueChanged<ConsentEvidenceReceipt> onFormUploaded;
+  final VoidCallback onFormAlreadyVerified;
   final VoidCallback onViewForm;
   final VoidCallback onViewAs;
   final VoidCallback onInvite;
@@ -386,6 +398,7 @@ class _Body extends StatelessWidget {
             picker: picker,
             onUpload: onUploadForm,
             onUploaded: onFormUploaded,
+            onAlreadyVerified: onFormAlreadyVerified,
             onView: onViewForm,
           ),
         ],
@@ -458,6 +471,7 @@ class _ConsentFormCard extends StatelessWidget {
     required this.picker,
     required this.onUpload,
     required this.onUploaded,
+    required this.onAlreadyVerified,
     required this.onView,
   });
 
@@ -466,6 +480,7 @@ class _ConsentFormCard extends StatelessWidget {
   final ConsentEvidencePicker picker;
   final ConsentUploadCallback onUpload;
   final ValueChanged<ConsentEvidenceReceipt> onUploaded;
+  final VoidCallback onAlreadyVerified;
   final VoidCallback onView;
 
   @override
@@ -507,6 +522,7 @@ class _ConsentFormCard extends StatelessWidget {
               enabled: !busy,
               onUpload: onUpload,
               onUploaded: onUploaded,
+              onAlreadyVerified: onAlreadyVerified,
             ),
           ],
         ],

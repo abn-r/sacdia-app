@@ -11,6 +11,10 @@ const Set<String> consentErrorCodes = {
   'GUARDIANSHIP_EVIDENCE_REQUIRED',
   'GUARDIANSHIP_EVIDENCE_UNAVAILABLE',
   'GUARDIANSHIP_CUSTODIAN_SELF_VERIFY',
+  // 403 al verificar: quien verifica es tutor del menor (cuatro ojos, W2).
+  'GUARDIANSHIP_GUARDIAN_SELF_VERIFY',
+  // 409 al subir una ficha cuando el consentimiento ya quedó verificado (W1).
+  'GUARDIANSHIP_CONSENT_ALREADY_VERIFIED',
   'MR_CONSENT_CONFIRMATION_REQUIRED',
   'MR_CONSENT_NOT_VERIFIED',
   'MR_NOT_FOUND',
@@ -45,6 +49,12 @@ bool isConsentEvidenceNotFound(Object? error) =>
 /// (cuatro ojos, 403).
 bool isCustodianSelfVerify(Object? error) =>
     error is Failure && error.errorCode == 'GUARDIANSHIP_CUSTODIAN_SELF_VERIFY';
+
+/// Se intentó subir una ficha cuando el consentimiento ya está verificado (409).
+/// Reemplazarla solo se puede tras revocar la tutoría.
+bool isConsentAlreadyVerified(Object? error) =>
+    error is Failure &&
+    error.errorCode == 'GUARDIANSHIP_CONSENT_ALREADY_VERIFIED';
 
 /// Mensaje traducido de un fallo de la ficha de consentimiento.
 ///

@@ -465,7 +465,9 @@
     "guard_permission_denied": "Você não tem permissão para realizar esta ação.",
     "file_required": "Selecione um arquivo.",
     "file_type_invalid": "Tipo de arquivo não permitido. Use JPG, PNG, WebP ou PDF.",
-    "file_too_large": "O arquivo excede o limite de 10 MB."
+    "file_too_large": "O arquivo excede o limite de 10 MB.",
+    "guardianship_consent_already_verified": "A ficha já foi verificada.",
+    "guardianship_guardian_self_verify": "Você não pode verificar o consentimento de um menor do qual é responsável. Outra pessoa autorizada do clube deve fazê-lo."
   },
   "honors": {
     "errors": {

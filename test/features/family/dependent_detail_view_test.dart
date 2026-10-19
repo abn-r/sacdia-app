@@ -428,6 +428,35 @@ void main() {
       );
     });
 
+    testWidgets(
+        '409 already verified: explains it, refreshes the detail and closes '
+        'the upload', (tester) async {
+      repo.detail = Right(_detail());
+      repo.evidenceUploaded = const Left(
+        ServerFailure(
+          message: 'x',
+          code: 409,
+          errorCode: 'GUARDIANSHIP_CONSENT_ALREADY_VERIFIED',
+        ),
+      );
+      await pump(tester);
+
+      await tester.tap(find.text('Subir ficha firmada'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Elegir un PDF'));
+      await tester.pumpAndSettle();
+      // Meanwhile the director verified: the next read of the detail says so.
+      repo.detail = Right(_detail(consent: 'verified', evidence: true));
+      await tester.tap(find.text('Subir'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('La ficha ya fue verificada.'), findsWidgets);
+      expect(find.text('Subir ficha firmada'), findsNothing);
+      expect(find.text('Reemplazar ficha'), findsNothing);
+      expect(find.text('Ver ficha subida'), findsOneWidget);
+      expect(find.text('Reintentar'), findsNothing);
+    });
+
     testWidgets('a 403 scope-denied is an action error, not a sign-out',
         (tester) async {
       repo.detail = Right(_detail());
