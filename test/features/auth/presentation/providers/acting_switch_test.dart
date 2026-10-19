@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/constants/app_constants.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/providers/profile_scope_registry.dart';
 import 'package:sacdia_app/core/notifications/push_notification_provider.dart';
+import 'package:sacdia_app/core/storage/image_cache_purge.dart';
 import 'package:sacdia_app/core/storage/json_file_cache.dart';
 import 'package:sacdia_app/features/auth/domain/entities/acting_for_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
@@ -77,6 +78,7 @@ void main() {
   late FakeSecureStorage storage;
   late SharedPreferences prefs;
   late MemoryJsonFileCache diskCache;
+  var imagePurges = 0;
 
   // Estado de prueba que representa "datos de un perfil": el registro real
   // tiene decenas de providers con red, aquí se usa un centinela.
@@ -97,6 +99,7 @@ void main() {
   });
 
   Future<void> boot({_Reply Function(String? id)? reply}) async {
+    imagePurges = 0;
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
     storage = FakeSecureStorage();
@@ -112,6 +115,7 @@ void main() {
       extraOverrides: [
         jsonFileCacheProvider.overrideWithValue(diskCache),
         profileScopedProvidersProvider.overrideWithValue([profileData]),
+        imageCachePurgerProvider.overrideWithValue(() async => imagePurges++),
       ],
     );
     addTearDown(container.dispose);
@@ -304,6 +308,17 @@ void main() {
         reason: 'exiting drops the dependent flags written while acting',
       );
       expect(prefs.getString('unrelated_key'), 'keep');
+    });
+
+    test('image caches are emptied on exit, not on entering (S5)', () async {
+      await boot();
+
+      await notifier().switchProfile('ana-1');
+      expect(imagePurges, 0, reason: 'the guardian images are still valid');
+
+      await notifier().switchProfile(null);
+      await container.read(authNotifierProvider.future);
+      expect(imagePurges, 1, reason: "Ana's photos and evidence must not stay");
     });
 
     test('exiting to the guardian lowers the flag and drops the snapshot',
@@ -694,6 +709,32 @@ void main() {
         prefs.getKeys().where((k) => k.startsWith('post_registration.')),
         isEmpty,
       );
+    });
+
+    test('acting_dirty on launch also empties the image caches (S5)', () async {
+      imagePurges = 0;
+      SharedPreferences.setMockInitialValues({kActingDirtyPrefsKey: true});
+      prefs = await SharedPreferences.getInstance();
+      storage = FakeSecureStorage();
+      diskCache = MemoryJsonFileCache();
+      repo = _ProfileRepo(
+        () => container.read(actingForSessionProvider).dependentUserId,
+        _byId,
+      );
+      container = await buildAuthContainer(
+        repo: repo,
+        storage: storage,
+        prefs: prefs,
+        extraOverrides: [
+          jsonFileCacheProvider.overrideWithValue(diskCache),
+          imageCachePurgerProvider.overrideWithValue(() async => imagePurges++),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(authNotifierProvider.future);
+
+      expect(imagePurges, 1);
     });
 
     test('a clean flag leaves the caches alone', () async {

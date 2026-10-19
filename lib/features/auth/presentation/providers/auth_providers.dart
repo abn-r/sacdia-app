@@ -216,7 +216,11 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     // actuando): es el único usuario cuyas marcas de salud se conservan.
     final guardianId =
         await ref.read(secureStorageProvider).read(AppConstants.cachedUserId);
-    await purgeProfileScopeDiskCaches(ref, guardianUserId: guardianId);
+    await purgeProfileScopeDiskCaches(
+      ref,
+      guardianUserId: guardianId,
+      clearImages: true,
+    );
     await _setActingDirty(false);
   }
 
@@ -238,7 +242,11 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     }
     if (!wasActing) return epoch;
     purgeProfileScopeProviders(ref);
-    await purgeProfileScopeDiskCaches(ref, guardianUserId: guardianId);
+    await purgeProfileScopeDiskCaches(
+      ref,
+      guardianUserId: guardianId,
+      clearImages: true,
+    );
     await _setActingDirty(false);
     return epoch;
   }
@@ -869,6 +877,9 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     await _setActingDirty(true);
     if (epoch != _switchEpoch) return SwitchProfileOutcome.superseded;
 
+    // Si ya se actuaba por otro dependiente, sus imágenes en disco se van.
+    final leavingDependent = _isActing;
+
     // Mismo tramo síncrono: sesión nueva + purga en memoria + estado de carga.
     _session.enter(ActingDependent(userId: dependentId, firstName: firstName));
     purgeProfileScopeProviders(ref);
@@ -877,6 +888,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     await purgeProfileScopeDiskCaches(
       ref,
       guardianUserId: ref.read(guardianUserProvider)?.id,
+      clearImages: leavingDependent,
     );
     if (epoch != _switchEpoch) return SwitchProfileOutcome.superseded;
 

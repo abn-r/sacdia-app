@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/providers/profile_scope_registry.dart';
+import '../../../../core/storage/image_cache_purge.dart';
 import '../../../../core/storage/json_file_cache.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../../providers/json_file_cache_provider.dart';
@@ -36,11 +37,16 @@ void purgeProfileScopeProviders(Ref ref) {
 /// próxima actividad (FP-48, FP-51), y las marcas de salud "ninguna" de todo
 /// usuario que no sea el tutor ([guardianUserId]; nulo = ninguna se conserva).
 ///
+/// Con [clearImages] también vacía los cachés de imágenes (fotos y evidencias
+/// del dependiente). Se pide al SALIR de un dependiente y al arrancar tras
+/// morir actuando; al entrar no hace falta: lo que hay en disco es del tutor.
+///
 /// Nunca lanza: una purga que falla no debe dejar al usuario atascado a medio
 /// cambio de perfil.
 Future<void> purgeProfileScopeDiskCaches(
   Ref ref, {
   String? guardianUserId,
+  bool clearImages = false,
 }) async {
   try {
     await Future.wait<void>([
@@ -54,6 +60,7 @@ Future<void> purgeProfileScopeDiskCaches(
         keepUserId: guardianUserId,
       ),
       clearNextActivityWidget(),
+      if (clearImages) ref.read(imageCachePurgerProvider)(),
     ]);
   } catch (e, st) {
     AppLogger.e(
