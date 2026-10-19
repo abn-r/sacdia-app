@@ -1025,6 +1025,9 @@
     }
   },
   "post_registration": {
+    "acting": {
+      "name_fallback": "ce mineur"
+    },
     "club_selection": {
       "errors": {
         "fetch_countries": "Erreur lors de la récupération des pays",
@@ -1036,7 +1039,9 @@
         "complete_step_3": "Erreur lors de la finalisation de l'étape 3 du post-inscription"
       },
       "title": "Trouvez votre club",
+      "title_acting": "Choisissez le club de {name}",
       "subtitle": "Sélectionnez votre emplacement et votre club pour rejoindre l'aventure",
+      "subtitle_acting": "Sélectionnez l'emplacement et le club pour que {name} rejoigne l'aventure",
       "location": "Emplacement",
       "country": "Pays",
       "select_country": "Sélectionner un pays",
@@ -1104,7 +1109,9 @@
         "complete_step_2": "Erreur lors de la finalisation de l'étape 2"
       },
       "title": "Parlez-nous de vous",
+      "title_acting": "Parlez-nous de {name}",
       "subtitle": "Ces informations aident votre club à mieux prendre soin de vous",
+      "subtitle_acting": "Ces informations aident le club à mieux prendre soin de {name}",
       "admin_restricted_notice": "Votre accès actuel ne permet que la complétion administrative minimale. Les données sensibles de l’utilisateur ne sont pas affichées.",
       "basic_data": {
         "section_title": "Informations de base"
@@ -1121,6 +1128,7 @@
       },
       "baptism": {
         "toggle_label": "Êtes-vous baptisé ?",
+        "toggle_label_acting": "{name} est baptisé(e) ?",
         "label": "Date de baptême",
         "date_picker_help": "Sélectionnez votre date de baptême"
       },
@@ -1308,7 +1316,9 @@
     },
     "photo": {
       "title": "Donnez un visage à votre aventure !",
+      "title_acting": "Ajoutez une photo de {name}",
       "subtitle": "Ajoutez une photo pour que votre club vous reconnaisse",
+      "subtitle_acting": "Pour que son club reconnaisse {name}",
       "add": "Ajouter une photo",
       "take": "Prendre une photo",
       "gallery": "Galerie",

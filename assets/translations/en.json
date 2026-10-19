@@ -1025,6 +1025,9 @@
     }
   },
   "post_registration": {
+    "acting": {
+      "name_fallback": "this minor"
+    },
     "club_selection": {
       "errors": {
         "fetch_countries": "Error fetching countries",
@@ -1036,7 +1039,9 @@
         "complete_step_3": "Error completing post-registration step 3"
       },
       "title": "Find your club",
+      "title_acting": "Choose {name}'s club",
       "subtitle": "Select your location and club to join the adventure",
+      "subtitle_acting": "Select the location and club so {name} can join the adventure",
       "location": "Location",
       "country": "Country",
       "select_country": "Select country",
@@ -1104,7 +1109,9 @@
         "complete_step_2": "Error completing step 2"
       },
       "title": "Tell us about yourself",
+      "title_acting": "Tell us about {name}",
       "subtitle": "This information helps your club take better care of you",
+      "subtitle_acting": "This information helps the club take better care of {name}",
       "admin_restricted_notice": "Your current access only allows minimum administrative completion. Sensitive user data is not displayed.",
       "basic_data": {
         "section_title": "Basic information"
@@ -1121,6 +1128,7 @@
       },
       "baptism": {
         "toggle_label": "Are you baptized?",
+        "toggle_label_acting": "Is {name} baptized?",
         "label": "Baptism date",
         "date_picker_help": "Select your baptism date"
       },
@@ -1308,7 +1316,9 @@
     },
     "photo": {
       "title": "Put a face to your adventure!",
+      "title_acting": "Add a photo of {name}",
       "subtitle": "Upload a photo so your club can recognize you",
+      "subtitle_acting": "So {name} is recognized in their club",
       "add": "Add photo",
       "take": "Take photo",
       "gallery": "Gallery",

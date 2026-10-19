@@ -1025,6 +1025,9 @@
     }
   },
   "post_registration": {
+    "acting": {
+      "name_fallback": "este menor"
+    },
     "club_selection": {
       "errors": {
         "fetch_countries": "Erro ao obter países",
@@ -1036,7 +1039,9 @@
         "complete_step_3": "Erro ao concluir a etapa 3 do pós-cadastro"
       },
       "title": "Encontre seu clube",
+      "title_acting": "Escolha o clube de {name}",
       "subtitle": "Selecione sua localização e clube para se juntar à aventura",
+      "subtitle_acting": "Selecione a localização e o clube para que {name} se junte à aventura",
       "location": "Localização",
       "country": "País",
       "select_country": "Selecionar país",
@@ -1104,7 +1109,9 @@
         "complete_step_2": "Erro ao concluir etapa 2"
       },
       "title": "Conte-nos sobre você",
+      "title_acting": "Conte-nos sobre {name}",
       "subtitle": "Essas informações ajudam seu clube a cuidar melhor de você",
+      "subtitle_acting": "Essas informações ajudam o clube a cuidar melhor de {name}",
       "admin_restricted_notice": "Seu acesso atual só permite a conclusão administrativa mínima. Os dados sensíveis do usuário não são exibidos.",
       "basic_data": {
         "section_title": "Dados básicos"
@@ -1121,6 +1128,7 @@
       },
       "baptism": {
         "toggle_label": "Você foi batizado?",
+        "toggle_label_acting": "{name} é batizado(a)?",
         "label": "Data de batismo",
         "date_picker_help": "Selecione sua data de batismo"
       },
@@ -1308,7 +1316,9 @@
     },
     "photo": {
       "title": "Dê um rosto à sua aventura!",
+      "title_acting": "Envie uma foto de {name}",
       "subtitle": "Envie uma foto para que te reconheçam no seu clube",
+      "subtitle_acting": "Para que {name} seja reconhecido(a) no clube",
       "add": "Adicionar foto",
       "take": "Tirar foto",
       "gallery": "Galeria",

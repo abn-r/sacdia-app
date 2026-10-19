@@ -19,6 +19,7 @@ import '../widgets/bottom_sheet_picker.dart';
 import '../widgets/club_type_selector.dart';
 import '../widgets/guardian_only_exit.dart';
 import 'package:sacdia_app/core/errors/user_error_message.dart';
+import '../utils/acting_copy.dart';
 
 /// Vista del paso 3: Selección de club - Estilo "Scout Vibrante"
 ///
@@ -107,6 +108,8 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
         : Theme.of(context).textTheme.displayMedium;
 
     final hPad = Responsive.horizontalPadding(context);
+    // Tutor actuando por un menor: el texto pasa a tercera persona.
+    final actingName = actingCopyName(ref);
 
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: hPad),
@@ -117,18 +120,19 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
 
           // Title
           Text(
-            (widget.isClubTransfer
-                    ? 'transfers.form.club_selection_title'
-                    : 'post_registration.club_selection.title')
-                .tr(),
+            widget.isClubTransfer
+                ? 'transfers.form.club_selection_title'.tr()
+                : postRegistrationCopy('post_registration.club_selection.title',
+                    actingName: actingName),
             style: titleStyle,
           ),
           const SizedBox(height: 8),
           Text(
-            (widget.isClubTransfer
-                    ? 'transfers.form.club_selection_subtitle'
-                    : 'post_registration.club_selection.subtitle')
-                .tr(),
+            widget.isClubTransfer
+                ? 'transfers.form.club_selection_subtitle'.tr()
+                : postRegistrationCopy(
+                    'post_registration.club_selection.subtitle',
+                    actingName: actingName),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: context.sac.textSecondary,
                 ),

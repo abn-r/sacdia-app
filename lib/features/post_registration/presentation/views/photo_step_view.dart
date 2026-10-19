@@ -11,6 +11,7 @@ import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/post_registration_providers.dart';
 import '../widgets/profile_photo_picker.dart';
 import 'package:sacdia_app/core/errors/user_error_message.dart';
+import '../utils/acting_copy.dart';
 
 /// Vista del paso 1 del post-registro: Fotografía de perfil
 ///
@@ -153,6 +154,7 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
         onTakePhoto: _takePhoto,
         onPickFromGallery: _pickFromGallery,
         onRemove: _removePhoto,
+        actingName: actingCopyName(ref),
       ),
     );
   }

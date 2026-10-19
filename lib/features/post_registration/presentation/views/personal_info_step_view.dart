@@ -20,6 +20,7 @@ import 'diseases_selection_view.dart';
 import 'medicines_selection_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/errors/user_error_message.dart';
+import '../utils/acting_copy.dart';
 
 /// Vista del paso 2: Información Personal - Estilo "Scout Vibrante"
 ///
@@ -115,6 +116,8 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
         : Theme.of(context).textTheme.displayMedium;
 
     final hPad = Responsive.horizontalPadding(context);
+    // Tutor actuando por un menor: el texto pasa a tercera persona.
+    final actingName = actingCopyName(ref);
 
     return Form(
       key: _formKey,
@@ -125,12 +128,14 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
 
           // Title
           Text(
-            tr('post_registration.personal_info.title'),
+            postRegistrationCopy('post_registration.personal_info.title',
+                actingName: actingName),
             style: titleStyle,
           ),
           const SizedBox(height: 8),
           Text(
-            tr('post_registration.personal_info.subtitle'),
+            postRegistrationCopy('post_registration.personal_info.subtitle',
+                actingName: actingName),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: context.sac.textSecondary,
                 ),
@@ -230,7 +235,9 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                 child: SwitchListTile(
                   enableFeedback: false,
                   title: Text(
-                    tr('post_registration.personal_info.baptism.toggle_label'),
+                    postRegistrationCopy(
+                        'post_registration.personal_info.baptism.toggle_label',
+                        actingName: actingName),
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
