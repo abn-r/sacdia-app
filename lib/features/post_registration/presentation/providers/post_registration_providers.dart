@@ -87,7 +87,9 @@ class CancelPendingMembershipRequestNotifier
       },
       (_) async {
         state = const AsyncValue.data(null);
-        ref.read(authNotifierProvider.notifier).markPostRegisterIncomplete();
+        ref
+            .read(authNotifierProvider.notifier)
+            .markPostRegisterIncomplete(forUserId: userId);
         await ref
             .read(authNotifierProvider.notifier)
             .refreshCurrentUser(keepCurrentOnFailure: true);

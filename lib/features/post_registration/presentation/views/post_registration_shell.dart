@@ -69,11 +69,14 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
   }
 
   Future<void> _loadCompletionStatus() async {
+    final userId = ref.read(authNotifierProvider).valueOrNull?.id;
     final status = await ref.read(completionStatusProvider.future);
     if (status == null || !mounted) return;
 
     if (status.isComplete) {
-      ref.read(authNotifierProvider.notifier).markPostRegisterComplete();
+      ref
+          .read(authNotifierProvider.notifier)
+          .markPostRegisterComplete(forUserId: userId);
       context.go(RouteNames.homeDashboard);
       return;
     }
@@ -177,6 +180,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
   }
 
   Future<void> _completeStep3() async {
+    final userId = ref.read(authNotifierProvider).valueOrNull?.id;
     final result = await ref
         .read(postRegistrationFlowNotifierProvider.notifier)
         .completeStep3();
@@ -193,7 +197,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
 
     // Update auth state so router redirects correctly
     final authNotifier = ref.read(authNotifierProvider.notifier);
-    authNotifier.markPostRegisterComplete();
+    authNotifier.markPostRegisterComplete(forUserId: userId);
     await authNotifier.refreshCurrentUser(keepCurrentOnFailure: true);
 
     if (!mounted) return;

@@ -84,9 +84,13 @@ class _RecordingAuth extends FakeAuthNotifier {
 
   int markCalls = 0;
   int refreshCalls = 0;
+  String? lastMarkedFor;
 
   @override
-  void markPostRegisterComplete() => markCalls++;
+  void markPostRegisterComplete({String? forUserId}) {
+    markCalls++;
+    lastMarkedFor = forUserId;
+  }
 
   @override
   Future<UserEntity?> refreshCurrentUser({
@@ -172,6 +176,11 @@ void main() {
 
     expect(ds.guardianOnlyCalls, ['guardian-1']);
     expect(auth.markCalls, 1);
+    expect(
+      auth.lastMarkedFor,
+      'guardian-1',
+      reason: 'the mark is scoped to the user that started the exit (S1)',
+    );
     expect(auth.refreshCalls, 1);
     expect(router.state.uri.path, RouteNames.family);
     expect(find.text('route:${RouteNames.family}'), findsOneWidget);

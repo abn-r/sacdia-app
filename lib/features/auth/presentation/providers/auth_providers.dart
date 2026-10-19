@@ -634,11 +634,30 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     return !state.hasError;
   }
 
+  /// El usuario sobre el que una marca en memoria puede actuar, o `null` si no
+  /// debe aplicarse (S1).
+  ///
+  /// Durante un cambio de perfil `AsyncLoading` conserva el valor previo en
+  /// `valueOrNull`: una llamada tardía del post-registro reescribiría ese valor
+  /// como dato y republicaría al perfil anterior (y lo guardaría en caché). Por
+  /// eso no se aplica mientras carga ni si [forUserId] —el usuario que inició la
+  /// operación— ya no es el vigente.
+  UserEntity? _markTarget(String? forUserId) {
+    if (state.isLoading) return null;
+    final current = state.valueOrNull;
+    if (current == null) return null;
+    if (forUserId != null && forUserId != current.id) return null;
+    return current;
+  }
+
   /// Marks the current user's post-registration as complete in the in-memory
   /// auth state. Call this after step 3 is successfully saved so the router
   /// redirects correctly without waiting for a full /auth/me refresh.
-  void markPostRegisterComplete() {
-    final current = state.valueOrNull;
+  ///
+  /// Pasa [forUserId] (el usuario que inició la operación) para que una
+  /// llamada tardía no marque a otro perfil.
+  void markPostRegisterComplete({String? forUserId}) {
+    final current = _markTarget(forUserId);
     if (current == null) return;
     final updatedUser = UserEntity(
       id: current.id,
@@ -683,8 +702,8 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     state = AsyncValue.data(updatedUser);
   }
 
-  void markPostRegisterIncomplete() {
-    final current = state.valueOrNull;
+  void markPostRegisterIncomplete({String? forUserId}) {
+    final current = _markTarget(forUserId);
     if (current == null) return;
     final updatedUser = UserEntity(
       id: current.id,

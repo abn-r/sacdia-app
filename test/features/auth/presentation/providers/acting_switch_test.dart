@@ -370,6 +370,52 @@ void main() {
     });
   });
 
+  group('post-registration marks are guarded (S1)', () {
+    test(
+        'a late mark during a profile switch does not republish the previous '
+        'profile', () async {
+      final gate = Completer<Either<Failure, UserEntity?>>();
+      await boot(reply: (id) => id == 'ana-1' ? gate.future : _byId(id));
+
+      final switching = notifier().switchProfile('ana-1');
+      await pumpEventQueue();
+      expect(container.read(authNotifierProvider).isLoading, isTrue);
+
+      // Una llamada tardía del post-registro del tutor llega a mitad del cambio.
+      notifier().markPostRegisterIncomplete();
+      notifier().markPostRegisterComplete();
+
+      expect(
+        container.read(authNotifierProvider).isLoading,
+        isTrue,
+        reason: 'the guardian must not be republished as data while loading',
+      );
+      gate.complete(Right(_dependent('ana-1', 'Ana')));
+      await switching;
+      expect(current()?.id, 'ana-1');
+    });
+
+    test('a mark meant for another user id is ignored', () async {
+      await boot();
+      await notifier().switchProfile('ana-1');
+      expect(current()?.postRegisterComplete, isFalse);
+
+      notifier().markPostRegisterComplete(forUserId: 'guardian-1');
+
+      expect(current()?.id, 'ana-1');
+      expect(current()?.postRegisterComplete, isFalse);
+    });
+
+    test('a mark for the current user still applies', () async {
+      await boot();
+      notifier().markPostRegisterIncomplete(forUserId: 'guardian-1');
+      expect(current()?.postRegisterComplete, isFalse);
+
+      notifier().markPostRegisterComplete(forUserId: 'guardian-1');
+      expect(current()?.postRegisterComplete, isTrue);
+    });
+  });
+
   group('failures while acting (FP-50, FP-55)', () {
     test('offline on entering returns to the guardian, never the dependent',
         () async {

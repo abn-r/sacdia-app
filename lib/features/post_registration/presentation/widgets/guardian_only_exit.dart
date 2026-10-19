@@ -43,6 +43,7 @@ class _GuardianOnlyExitState extends ConsumerState<GuardianOnlyExit> {
     );
     if (confirmed != true || !mounted) return;
 
+    final userId = ref.read(authNotifierProvider).valueOrNull?.id;
     setState(() => _busy = true);
     final result = await ref
         .read(postRegistrationFlowNotifierProvider.notifier)
@@ -66,7 +67,7 @@ class _GuardianOnlyExitState extends ConsumerState<GuardianOnlyExit> {
     ref.read(familyPromptSuppressedProvider.notifier).state = true;
     final router = GoRouter.of(context);
     final auth = ref.read(authNotifierProvider.notifier);
-    auth.markPostRegisterComplete();
+    auth.markPostRegisterComplete(forUserId: userId);
     router.go(RouteNames.homeDashboard);
     router.push(RouteNames.family);
     // Sin esperar: el estado en memoria ya basta para que el router deje el
