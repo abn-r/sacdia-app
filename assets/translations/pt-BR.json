@@ -2586,7 +2586,8 @@
         "CLASS_GM_INVESTITURE_REQUIRED": "É necessária a investidura de Guias Maiores",
         "CLASS_NOT_AVAILABLE_FOR_YEAR": "A classe não está disponível neste ano",
         "CLASS_NOT_FOUND": "Classe não encontrada",
-        "MR_ALREADY_PENDING": "Há uma solicitação de associação pendente"
+        "MR_ALREADY_PENDING": "Há uma solicitação de associação pendente",
+        "MR_CONSENT_NOT_VERIFIED": "Menor sem o consentimento do responsável verificado"
       },
       "errors": {
         "fetch": "Não foi possível carregar a lista de não inscritos",

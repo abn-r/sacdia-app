@@ -2587,7 +2587,8 @@
         "CLASS_GM_INVESTITURE_REQUIRED": "Requiere investidura de Guías Mayores",
         "CLASS_NOT_AVAILABLE_FOR_YEAR": "La clase no está disponible este año",
         "CLASS_NOT_FOUND": "No se encontró la clase",
-        "MR_ALREADY_PENDING": "Hay una solicitud de membresía pendiente"
+        "MR_ALREADY_PENDING": "Hay una solicitud de membresía pendiente",
+        "MR_CONSENT_NOT_VERIFIED": "Es menor y el consentimiento del tutor aún no está verificado"
       },
       "errors": {
         "fetch": "No se pudo cargar la lista de no inscritos",

@@ -2586,7 +2586,8 @@
         "CLASS_GM_INVESTITURE_REQUIRED": "L'investiture Guides Majeurs est requise",
         "CLASS_NOT_AVAILABLE_FOR_YEAR": "La classe n'est pas disponible cette année",
         "CLASS_NOT_FOUND": "Classe introuvable",
-        "MR_ALREADY_PENDING": "Une demande d'adhésion est déjà en cours"
+        "MR_ALREADY_PENDING": "Une demande d'adhésion est déjà en cours",
+        "MR_CONSENT_NOT_VERIFIED": "Mineur dont le consentement du tuteur n'est pas encore vérifié"
       },
       "errors": {
         "fetch": "Impossible de charger la liste des non inscrits",

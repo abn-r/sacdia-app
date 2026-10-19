@@ -2587,7 +2587,8 @@
         "CLASS_GM_INVESTITURE_REQUIRED": "Master Guide investiture is required",
         "CLASS_NOT_AVAILABLE_FOR_YEAR": "The class is not available this year",
         "CLASS_NOT_FOUND": "Class not found",
-        "MR_ALREADY_PENDING": "A membership request is already pending"
+        "MR_ALREADY_PENDING": "A membership request is already pending",
+        "MR_CONSENT_NOT_VERIFIED": "Minor without verified guardian consent"
       },
       "errors": {
         "fetch": "Could not load the not-enrolled list",
