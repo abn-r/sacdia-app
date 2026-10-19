@@ -133,12 +133,8 @@ class PostRegistrationFlowNotifier extends AutoDisposeAsyncNotifier<void> {
       state = const AsyncValue.data(null);
       return const PostRegistrationFlowResult.success();
     } on Exception catch (e, stack) {
-      // 409: el paso ya estaba completo; se trata como éxito.
-      if (e is AppException && e.code == 409) {
-        state = const AsyncValue.data(null);
-        return const PostRegistrationFlowResult.success();
-      }
-
+      // Un 409 aquí es un conflicto real (POST_REG_DUPLICATE_MEMBERSHIP,
+      // CLASS_ALREADY_ENROLLED), nunca "paso ya completo": se muestra.
       final message = userErrorMessage(e);
       state = AsyncValue.error(message, stack);
       return PostRegistrationFlowResult.failure(

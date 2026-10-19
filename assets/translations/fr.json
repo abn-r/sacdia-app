@@ -468,7 +468,8 @@
     "file_type_invalid": "Type de fichier non autorisé. Utilisez JPG, PNG, WebP ou PDF.",
     "file_too_large": "Le fichier dépasse la limite de 10 Mo.",
     "guardianship_consent_already_verified": "La fiche a déjà été vérifiée.",
-    "guardianship_guardian_self_verify": "Vous ne pouvez pas vérifier le consentement d'un mineur dont vous êtes le tuteur. Une autre personne autorisée du club doit le faire."
+    "guardianship_guardian_self_verify": "Vous ne pouvez pas vérifier le consentement d'un mineur dont vous êtes le tuteur. Une autre personne autorisée du club doit le faire.",
+    "post_reg_duplicate_membership": "Il existe déjà une adhésion ou une demande active dans un autre club. Vérifiez-la avant d'en envoyer une nouvelle."
   },
   "honors": {
     "errors": {

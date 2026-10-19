@@ -468,7 +468,8 @@
     "file_type_invalid": "File type not allowed. Use JPG, PNG, WebP or PDF.",
     "file_too_large": "The file exceeds the 10 MB limit.",
     "guardianship_consent_already_verified": "The form has already been verified.",
-    "guardianship_guardian_self_verify": "You cannot verify the consent of a minor you are a guardian of. Another authorized person from the club must do it."
+    "guardianship_guardian_self_verify": "You cannot verify the consent of a minor you are a guardian of. Another authorized person from the club must do it.",
+    "post_reg_duplicate_membership": "There is already an active membership or request in another club. Check it before sending a new one."
   },
   "honors": {
     "errors": {
