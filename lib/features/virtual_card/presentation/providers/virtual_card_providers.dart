@@ -1,11 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/acting_for_session.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/exceptions.dart';
-import '../../../../core/network/dio_client.dart';
+import '../../../../providers/dio_provider.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../profile/domain/entities/user_detail.dart';
@@ -18,15 +19,13 @@ import '../../domain/entities/virtual_card.dart';
 import '../../domain/repositories/virtual_card_repository.dart';
 import '../utils/credential_club_type.dart';
 
-final _virtualCardDioProvider = Provider<Dio>(
-  (ref) => DioClient.createDio(
-    actingForSession: ref.read(actingForSessionProvider),
-  ),
-);
+/// Dio de la credencial virtual. Público solo para poder probar sus callbacks.
+@visibleForTesting
+final virtualCardDioProvider = Provider<Dio>(buildAppDio);
 
 final virtualCardRemoteDataSourceProvider =
     Provider<VirtualCardRemoteDataSource>((ref) {
-  final dio = ref.watch(_virtualCardDioProvider);
+  final dio = ref.watch(virtualCardDioProvider);
   return VirtualCardRemoteDataSourceImpl(
     dio: dio,
     baseUrl: AppConstants.baseUrl,

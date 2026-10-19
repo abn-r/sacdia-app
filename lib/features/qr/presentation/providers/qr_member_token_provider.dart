@@ -1,21 +1,20 @@
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/auth/acting_for_session.dart';
 import '../../../../core/constants/app_constants.dart';
-import '../../../../core/network/dio_client.dart';
+import '../../../../providers/dio_provider.dart';
 import '../../data/datasources/qr_remote_data_source.dart';
 import '../../data/repositories/qr_repository_impl.dart';
 import '../../domain/entities/qr_member_token.dart';
 import '../../domain/repositories/qr_repository.dart';
 
-final _qrDioProvider = Provider(
-  (ref) => DioClient.createDio(
-    actingForSession: ref.read(actingForSessionProvider),
-  ),
-);
+/// Dio del token QR del miembro. Público solo para poder probar sus callbacks.
+@visibleForTesting
+final qrMemberTokenDioProvider = Provider<Dio>(buildAppDio);
 
 final _qrRepositoryProvider = Provider<QrRepository>((ref) {
-  final dio = ref.watch(_qrDioProvider);
+  final dio = ref.watch(qrMemberTokenDioProvider);
   return QrRepositoryImpl(
     remote: QrRemoteDataSourceImpl(dio: dio, baseUrl: AppConstants.baseUrl),
   );
