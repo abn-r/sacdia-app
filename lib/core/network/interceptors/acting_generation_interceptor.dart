@@ -12,9 +12,15 @@ import '../../utils/app_logger.dart';
 /// datos de Ana no pueden poblar el estado de Luis, ni escribirse en ningún
 /// caché, aunque la respuesta tarde más que el cambio.
 ///
-/// Va justo DESPUÉS de `AuthInterceptor` (que fija el encabezado en el mismo
-/// tramo síncrono) y ANTES de `ActingErrorInterceptor` y `ErrorInterceptor`:
-/// un 403 de un perfil ya abandonado no debe expulsar al perfil nuevo.
+/// `AuthInterceptor.onRequest` sella la generación en el MISMO tramo síncrono en
+/// que decide el encabezado `X-Acting-For` (W2), así que el sello siempre
+/// corresponde al encabezado enviado. Aquí solo se comprueba: si entre ese
+/// punto y este interceptor el perfil cambió, la petición se rechaza antes de
+/// salir. Si no hubo sello (Dio sin `AuthInterceptor`), se sella aquí.
+///
+/// Va justo DESPUÉS de `AuthInterceptor` y ANTES de `ActingErrorInterceptor` y
+/// `ErrorInterceptor`: un 403 de un perfil ya abandonado no debe expulsar al
+/// perfil nuevo.
 class ActingGenerationInterceptor extends Interceptor {
   ActingGenerationInterceptor(this._session);
 
@@ -52,7 +58,7 @@ class ActingGenerationInterceptor extends Interceptor {
       AppLogger.d('Petición obsoleta descartada antes de enviar', tag: _tag);
       return handler.reject(_stale(options));
     }
-    options.extra[generationKey] = _session.generation;
+    options.extra.putIfAbsent(generationKey, () => _session.generation);
     handler.next(options);
   }
 

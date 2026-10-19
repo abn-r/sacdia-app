@@ -7,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../auth/acting_for_session.dart';
 import '../../constants/app_constants.dart';
 import '../../utils/app_logger.dart';
+import 'acting_generation_interceptor.dart';
 
 /// Interceptor responsable de:
 /// 1. Adjuntar el Bearer token a cada petición autenticada.
@@ -95,7 +96,12 @@ class AuthInterceptor extends QueuedInterceptor {
     Dio? dio,
     this.onAuthExpired,
     ActingForSession? actingForSession,
+
+    /// Solo para tests: adaptador HTTP de las llamadas de refresh y de
+    /// reintento (que usan instancias de Dio propias, sin interceptores).
+    @visibleForTesting HttpClientAdapter? refreshAdapter,
   })  : _actingForSession = actingForSession,
+        _refreshAdapter = refreshAdapter,
         _secureStorage = secureStorage ??
             const FlutterSecureStorage(
               aOptions: AndroidOptions(encryptedSharedPreferences: true),
@@ -103,10 +109,12 @@ class AuthInterceptor extends QueuedInterceptor {
                   accessibility:
                       KeychainAccessibility.first_unlock_this_device),
             ),
-        _refreshDio = _buildRefreshDio();
+        _refreshDio = _buildRefreshDio(refreshAdapter);
 
-  static Dio _buildRefreshDio() {
-    return Dio(BaseOptions(
+  final HttpClientAdapter? _refreshAdapter;
+
+  static Dio _buildRefreshDio(HttpClientAdapter? adapter) {
+    final dio = Dio(BaseOptions(
       baseUrl: AppConstants.baseUrl,
       connectTimeout: Duration(seconds: AppConstants.connectTimeout),
       receiveTimeout: Duration(seconds: AppConstants.receiveTimeout),
@@ -117,6 +125,8 @@ class AuthInterceptor extends QueuedInterceptor {
       // No lanzar excepción para 4xx/5xx — manejar manualmente.
       validateStatus: (status) => status != null,
     ));
+    if (adapter != null) dio.httpClientAdapter = adapter;
+    return dio;
   }
 
   // ─── onRequest ────────────────────────────────────────────────────────────
@@ -132,9 +142,13 @@ class AuthInterceptor extends QueuedInterceptor {
       options.headers['Authorization'] = 'Bearer $token';
     }
 
-    // ÚNICO punto donde se inyecta X-Acting-For. Se lee la sesión DESPUÉS del
-    // await: la decisión del encabezado queda en el mismo tramo síncrono que
-    // sella la generación (ver ActingGenerationInterceptor).
+    // ÚNICO punto donde se inyecta X-Acting-For. La sesión se lee DESPUÉS del
+    // await y, en ESTE mismo tramo síncrono, se decide el encabezado Y se sella
+    // la generación (W2). Dio encadena los interceptores de petición con un
+    // salto al event loop, así que sellar en otro interceptor dejaría una
+    // ventana en la que un cambio de perfil marcaría con la generación NUEVA una
+    // petición que lleva el encabezado del perfil VIEJO. `putIfAbsent`: un
+    // reintento conserva el sello original (ver ActingGenerationInterceptor).
     final acting = _actingForSession;
     if (acting != null) {
       final dependentId = acting.dependentUserId;
@@ -145,6 +159,10 @@ class AuthInterceptor extends QueuedInterceptor {
         // encabezado de un perfil anterior.
         options.headers.remove(actingForHeader);
       }
+      options.extra.putIfAbsent(
+        ActingGenerationInterceptor.generationKey,
+        () => acting.generation,
+      );
     }
 
     handler.next(options);
@@ -238,15 +256,53 @@ class AuthInterceptor extends QueuedInterceptor {
     }
 
     // Refresh exitoso: reintentar la petición original UNA vez.
+    //
+    // El reintento sale por una instancia de Dio sin interceptores y se entrega
+    // con `handler.resolve`, así que ni AuthInterceptor.onRequest ni
+    // ActingGenerationInterceptor lo ven (W1). Por eso aquí se replica a mano:
+    //  - si el perfil cambió durante el refresh, NO se reenvía (ni con el
+    //    encabezado viejo) y se rechaza como cancelación obsoleta;
+    //  - el encabezado se recalcula con la sesión vigente, nunca se copia;
+    //  - si el perfil cambia mientras el reintento vuela, la respuesta se
+    //    descarta igual que lo haría ActingGenerationInterceptor.
+    final acting = _actingForSession;
+    final stamped =
+        ActingGenerationInterceptor.generationOf(err.requestOptions);
+    bool isStale() =>
+        acting != null && stamped != null && stamped != acting.generation;
+    DioException staleError() => DioException.requestCancelled(
+          requestOptions: err.requestOptions,
+          reason: ActingGenerationInterceptor.staleReason,
+        );
+
+    if (isStale()) {
+      AppLogger.d(
+        'Perfil cambiado durante el refresh, reintento descartado: '
+        '${err.requestOptions.path}',
+        tag: _tag,
+      );
+      return handler.next(staleError());
+    }
+
     try {
       final newToken = await _secureStorage.read(key: AppConstants.tokenKey);
+      // La lectura del token es asíncrona: se vuelve a comprobar el perfil.
+      if (isStale()) return handler.next(staleError());
+
+      final retryHeaders = <String, dynamic>{
+        for (final entry in err.requestOptions.headers.entries)
+          if (entry.key.toLowerCase() != actingForHeader.toLowerCase())
+            entry.key: entry.value,
+        'Authorization': 'Bearer $newToken',
+      };
+      final dependentId = acting?.dependentUserId;
+      if (dependentId != null && _shouldSendActingFor(err.requestOptions)) {
+        retryHeaders[actingForHeader] = dependentId;
+      }
 
       final retryOptions = Options(
         method: err.requestOptions.method,
-        headers: {
-          ...err.requestOptions.headers,
-          'Authorization': 'Bearer $newToken',
-        },
+        headers: retryHeaders,
         extra: {
           ...err.requestOptions.extra,
           _retryAfterRefreshKey: true,
@@ -257,8 +313,8 @@ class AuthInterceptor extends QueuedInterceptor {
 
       AppLogger.i('Reintentando petición tras refresh exitoso', tag: _tag);
 
-      // Usamos _refreshDio para que el reintento no pase por QueuedInterceptor
-      // y no genere un segundo ciclo de refresh.
+      // Usamos una instancia de Dio propia para que el reintento no pase por
+      // QueuedInterceptor y no genere un segundo ciclo de refresh.
       final retryDio = Dio(BaseOptions(
         baseUrl: AppConstants.baseUrl,
         connectTimeout: Duration(seconds: AppConstants.connectTimeout),
@@ -269,6 +325,8 @@ class AuthInterceptor extends QueuedInterceptor {
         // swallowed by handler.resolve(response).
         validateStatus: (s) => s != null && s >= 200 && s < 300,
       ));
+      final adapter = _refreshAdapter;
+      if (adapter != null) retryDio.httpClientAdapter = adapter;
 
       final response = await retryDio.request(
         err.requestOptions.path,
@@ -276,6 +334,15 @@ class AuthInterceptor extends QueuedInterceptor {
         queryParameters: err.requestOptions.queryParameters,
         options: retryOptions,
       );
+
+      if (isStale()) {
+        AppLogger.d(
+          'Perfil cambiado durante el reintento, respuesta descartada: '
+          '${err.requestOptions.path}',
+          tag: _tag,
+        );
+        return handler.next(staleError());
+      }
 
       return handler.resolve(response);
     } catch (e) {
