@@ -90,6 +90,7 @@ import 'package:sacdia_app/features/rankings/presentation/screens/my_ranking_scr
 import 'package:sacdia_app/features/rankings/presentation/screens/club_rankings_screen.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/section_ranking_screen.dart';
 
+import '../auth/acting_for_session.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/providers/logout_cleanup.dart';
 import '../providers/app_bootstrap_provider.dart';
@@ -161,7 +162,8 @@ final routerProvider = Provider<GoRouter>((ref) {
   var wasAuthenticated = ref.read(authNotifierProvider).valueOrNull != null;
 
   final initialUser = ref.read(authNotifierProvider).valueOrNull;
-  if (initialUser != null) {
+  // Nunca se identifica a un dependiente en analítica (FP-49).
+  if (initialUser != null && !ref.read(actingForSessionProvider).isActing) {
     unawaited(identifyAnalyticsUser(initialUser.id));
   }
 
@@ -1414,7 +1416,8 @@ final routerProvider = Provider<GoRouter>((ref) {
     if (user != null) {
       wasAuthenticated = true;
       final userId = user.id;
-      if (userId is String) {
+      // Mientras se actúa por un dependiente, la analítica sigue con el tutor.
+      if (userId is String && !ref.read(actingForSessionProvider).isActing) {
         unawaited(identifyAnalyticsUser(userId));
       }
     } else if (wasAuthenticated && !next.isLoading) {

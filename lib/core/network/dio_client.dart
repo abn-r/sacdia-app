@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../auth/acting_for_session.dart';
 import '../constants/app_constants.dart';
+import 'interceptors/acting_error_interceptor.dart';
 import 'interceptors/acting_generation_interceptor.dart';
 import 'interceptors/auth_interceptor.dart';
 import 'interceptors/client_user_agent_interceptor.dart';
@@ -23,6 +24,10 @@ class DioClient {
   static Dio createDio({
     VoidCallback? onAuthExpired,
     ActingForSession? actingForSession,
+
+    /// Se llama (una vez por petición afectada) cuando el servidor responde
+    /// 403 `ACTING_FOR_FORBIDDEN` a una petición del perfil vigente.
+    void Function(String dependentUserId)? onActingForbidden,
   }) {
     final dio = Dio(BaseOptions(
       baseUrl: AppConstants.baseUrl,
@@ -52,8 +57,13 @@ class DioClient {
       // Pegado a AuthInterceptor y ANTES de ErrorInterceptor: descarta las
       // respuestas de un perfil abandonado antes de que lleguen a la capa de
       // datos o a cualquier caché.
-      if (actingForSession != null)
+      if (actingForSession != null) ...[
         ActingGenerationInterceptor(actingForSession),
+        ActingErrorInterceptor(
+          actingForSession,
+          onActingForbidden: onActingForbidden,
+        ),
+      ],
       ErrorInterceptor(),
       // RetryInterceptor después de AuthInterceptor para que los reintentos
       // incluyan los headers de autenticación actualizados.

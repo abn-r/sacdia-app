@@ -147,8 +147,10 @@ class FakePushNotificationService extends PushNotificationService {
           navigatorKey: GlobalKey<NavigatorState>(),
         );
 
+  int initializeCalls = 0;
+
   @override
-  Future<void> initialize() async {}
+  Future<void> initialize() async => initializeCalls++;
 
   int unregisterCalls = 0;
   int disposeCalls = 0;
@@ -172,6 +174,7 @@ Future<ProviderContainer> buildAuthContainer({
   required AuthRepository repo,
   FakeSecureStorage? storage,
   SharedPreferences? prefs,
+  List<Override> extraOverrides = const [],
 }) async {
   final resolvedPrefs = prefs ??
       await (() async {
@@ -188,6 +191,7 @@ Future<ProviderContainer> buildAuthContainer({
       pushNotificationServiceProvider.overrideWith(
         (ref) => FakePushNotificationService(ref: ref, prefs: resolvedPrefs),
       ),
+      ...extraOverrides,
     ],
   );
 }

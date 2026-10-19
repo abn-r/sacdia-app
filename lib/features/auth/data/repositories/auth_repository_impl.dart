@@ -34,7 +34,11 @@ class AuthRepositoryImpl implements AuthRepository {
     } on core_exceptions.ConnectionException catch (e) {
       return Left(NetworkFailure(message: e.message, stackTrace: e.stackTrace));
     } on core_exceptions.AuthException catch (e) {
-      return Left(AuthFailure(message: e.message, code: e.code));
+      return Left(AuthFailure(
+        message: e.message,
+        code: e.code,
+        errorCode: e.errorCode,
+      ));
     } on core_exceptions.ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
     } catch (e) {

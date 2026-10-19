@@ -413,7 +413,8 @@
     "social_signin_unverified": "No pudimos verificar tu cuenta de {provider}.",
     "social_signin_already_linked": "Tu cuenta ya está vinculada a otra cuenta de {provider}. Inicia sesión con tu correo y contraseña.",
     "social_signin_provider_unavailable": "{provider} no está disponible en este momento. Intenta de nuevo en unos minutos.",
-    "delete_account_social_reauth_failed": "No pudimos confirmar tu identidad con {provider}. Intenta de nuevo."
+    "delete_account_social_reauth_failed": "No pudimos confirmar tu identidad con {provider}. Intenta de nuevo.",
+    "acting_for_forbidden": "Ya no tienes acceso a este perfil. Volviste a tu propio perfil."
   },
   "honors": {
     "errors": {

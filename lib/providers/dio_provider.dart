@@ -10,5 +10,8 @@ final dioProvider = Provider<Dio>((ref) {
     onAuthExpired: () =>
         ref.read(authNotifierProvider.notifier).expireSession(),
     actingForSession: ref.read(actingForSessionProvider),
+    onActingForbidden: (dependentUserId) => ref
+        .read(authNotifierProvider.notifier)
+        .onActingForbidden(dependentUserId),
   );
 });

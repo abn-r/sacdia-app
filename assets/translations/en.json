@@ -413,7 +413,8 @@
     "social_signin_unverified": "We could not verify your {provider} account.",
     "social_signin_already_linked": "Your account is already linked to a different {provider} account. Sign in with your email and password.",
     "social_signin_provider_unavailable": "{provider} is not available right now. Try again in a few minutes.",
-    "delete_account_social_reauth_failed": "We couldn't confirm your identity with {provider}. Try again."
+    "delete_account_social_reauth_failed": "We couldn't confirm your identity with {provider}. Try again.",
+    "acting_for_forbidden": "You no longer have access to this profile. You are back on your own profile."
   },
   "honors": {
     "errors": {

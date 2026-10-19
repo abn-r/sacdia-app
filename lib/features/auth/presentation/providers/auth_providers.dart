@@ -5,9 +5,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../core/auth/acting_for_session.dart';
 import '../../../../core/auth/social_auth_provider.dart';
 import '../../../../core/auth/social_credential.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/network/interceptors/acting_error_interceptor.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../../providers/storage_provider.dart';
@@ -32,6 +34,8 @@ import '../../../../core/notifications/push_notification_provider.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../biometric/presentation/providers/biometric_provider.dart';
 import '../../../notifications/presentation/providers/unread_notifications_count_provider.dart';
+import 'acting_providers.dart';
+import 'profile_scope_purge.dart';
 
 /// Provider para la URL base de la API
 final apiBaseUrlProvider = Provider((ref) {
@@ -52,6 +56,7 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
       baseUrl: baseUrl,
       secureStorage: secureStorage,
       socialAuth: ref.read(socialAuthClientProvider),
+      actingForSession: ref.read(actingForSessionProvider),
     ),
     networkInfo: networkInfo,
   );
@@ -145,9 +150,117 @@ final forgotPasswordNotifierProvider =
   ForgotPasswordNotifier.new,
 );
 
+/// Resultado de [AuthNotifier.switchProfile].
+enum SwitchProfileOutcome {
+  /// Ahora se actúa por el dependiente pedido.
+  entered,
+
+  /// Se volvió al perfil del tutor.
+  exited,
+
+  /// Ya se estaba en ese perfil: no se hizo nada.
+  unchanged,
+
+  /// Otro cambio de perfil posterior tomó el control; este se descartó.
+  superseded,
+
+  /// El servidor negó el acceso (`ACTING_FOR_FORBIDDEN`): se volvió al tutor y
+  /// se avisó con [ActingNotice.accessRevoked].
+  accessRevoked,
+
+  /// Sin conexión: se volvió al tutor (sin restaurar al dependiente de caché).
+  offline,
+
+  /// Cualquier otro fallo: se volvió al tutor.
+  failed,
+}
+
 /// Notifier para manejar la autenticación y sus estados
 class AuthNotifier extends AsyncNotifier<UserEntity?> {
   static const _tag = 'AuthNotifier';
+
+  /// Se incrementa en cada cambio de perfil y en cada salida del modo "actuar
+  /// por". Un cambio en vuelo compara su valor al volver de la red: si ya no
+  /// coincide, otro cambio posterior tomó el control y el resultado se tira.
+  int _switchEpoch = 0;
+
+  ActingForSession get _session => ref.read(actingForSessionProvider);
+
+  bool get _isActing => _session.isActing;
+
+  /// Registra el token FCM del usuario actual. Nunca mientras se actúa por un
+  /// dependiente: el dispositivo y sus notificaciones son del tutor (FP-49).
+  void _registerPush() {
+    if (_isActing) return;
+    ref.read(pushNotificationServiceProvider).initialize();
+  }
+
+  Future<void> _setActingDirty(bool value) =>
+      ref.read(sharedPreferencesProvider).setBool(kActingDirtyPrefsKey, value);
+
+  /// `true` si el fallo significa que ya no se puede actuar por ese dependiente.
+  static bool _isAccessRevoked(Failure failure) =>
+      failure is AuthFailure &&
+      (failure.errorCode == ActingErrorInterceptor.forbiddenCode ||
+          failure.code == 403);
+
+  /// Arranque en frío tras morir la app actuando (FP-51): purga los cachés de
+  /// disco y baja la bandera. Dentro de un proceso vivo la bandera solo está
+  /// arriba mientras se actúa, por eso se exige que NO se esté actuando.
+  Future<void> _cleanupAfterDirtyShutdown() async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    if (prefs.getBool(kActingDirtyPrefsKey) != true || _isActing) return;
+    AppLogger.w('Arranque tras morir actuando: purgando cachés', tag: _tag);
+    await purgeProfileScopeDiskCaches(ref);
+    await _setActingDirty(false);
+  }
+
+  /// Sale del modo "actuar por" SIN recargar al usuario: baja la sesión, purga
+  /// el estado del perfil, baja la bandera y descarta la foto del tutor.
+  ///
+  /// Devuelve el epoch asignado para que el llamador sepa si otro cambio de
+  /// perfil lo reemplazó mientras esperaba.
+  Future<int> _abandonActing({ActingNotice? notice}) async {
+    final epoch = ++_switchEpoch;
+    final wasActing = _session.isActing;
+    _session.exit();
+    ref.read(guardianUserProvider.notifier).state = null;
+    if (notice != null) {
+      ref.read(actingNoticeProvider.notifier).state = notice;
+    }
+    if (!wasActing) return epoch;
+    purgeProfileScopeProviders(ref);
+    await purgeProfileScopeDiskCaches(ref);
+    await _setActingDirty(false);
+    return epoch;
+  }
+
+  /// Vuelve al tutor y lo recarga (`/auth/me` sin encabezado; sin red, el
+  /// tutor cacheado). Nada del dependiente se restaura jamás.
+  Future<void> _exitActing({ActingNotice? notice}) async {
+    if (!_session.isActing) return;
+    state = const AsyncLoading();
+    final epoch = await _abandonActing(notice: notice);
+    if (epoch != _switchEpoch) return;
+    ref.invalidateSelf();
+  }
+
+  /// Cierra el modo "actuar por" antes de un logout o una expiración de sesión.
+  /// Los cachés de disco los purga `clearUserStateOnLogout` al quedar sin usuario.
+  void _clearActingForLogout() {
+    _switchEpoch++;
+    _session.exit();
+    ref.read(guardianUserProvider.notifier).state = null;
+    ref.read(actingNoticeProvider.notifier).state = null;
+  }
+
+  /// Llamado por el interceptor cuando una petición del perfil vigente recibe
+  /// 403 `ACTING_FOR_FORBIDDEN`: sale a la vista del tutor con un aviso.
+  /// `ACTING_FOR_SCOPE_DENIED` NO llega aquí (no expulsa, FP-55).
+  void onActingForbidden(String dependentUserId) {
+    if (_session.dependentUserId != dependentUserId) return;
+    unawaited(_exitActing(notice: ActingNotice.accessRevoked));
+  }
 
   List<String> _decodeCachedPermissions(String? rawPermissions) {
     if (rawPermissions == null || rawPermissions.trim().isEmpty) {
@@ -184,6 +297,8 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
 
   @override
   Future<UserEntity?> build() async {
+    await _cleanupAfterDirtyShutdown();
+
     final repository = ref.read(authRepositoryProvider);
 
     AppLogger.i('Verificando token local', tag: _tag);
@@ -224,7 +339,32 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     final prefs = ref.read(sharedPreferencesProvider);
 
     AppLogger.i('Token encontrado, validando con /auth/me', tag: _tag);
+    final generationAtStart = _session.generation;
     final result = await ref.read(getCurrentUserProvider)(NoParams());
+
+    // El perfil cambió mientras volaba /auth/me: la respuesta es de otro perfil.
+    if (_session.generation != generationAtStart) {
+      AppLogger.i('Perfil cambiado durante la carga, recargando', tag: _tag);
+      return build();
+    }
+
+    // Mientras se actúa, cualquier fallo (o un usuario vacío) saca al tutor:
+    // devolver `null` aquí cerraría la sesión, y restaurar de caché devolvería
+    // al dependiente como si fuera quien inició sesión (FP-50).
+    if (_isActing) {
+      final failure = result.fold<Failure?>((f) => f, (_) => null);
+      final user = result.fold<UserEntity?>((_) => null, (u) => u);
+      if (failure != null || user == null) {
+        AppLogger.w('Fallo al cargar el perfil dependiente, volviendo al tutor',
+            tag: _tag);
+        await _abandonActing(
+          notice: failure != null && _isAccessRevoked(failure)
+              ? ActingNotice.accessRevoked
+              : null,
+        );
+        return build();
+      }
+    }
 
     return result.fold(
       (failure) {
@@ -234,7 +374,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
             AppLogger.i('Sesión restaurada desde caché', tag: _tag);
             // Session restored from cache — initialize FCM so token is
             // registered even when the backend was temporarily unreachable.
-            ref.read(pushNotificationServiceProvider).initialize();
+            _registerPush();
             ref.read(unreadNotificationsCountProvider.notifier).refresh();
 
             // Reconstruct active grant from cached flat strings so widgets
@@ -281,9 +421,11 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       (user) {
         if (user != null) {
           AppLogger.i('Usuario autenticado', tag: _tag);
+          // Mientras se actúa: ni caché del usuario ni FCM (FP-49); ambos
+          // son del tutor y `_cacheUser` ya lo respeta.
           _cacheUser(user);
           // User already authenticated on startup — register FCM token.
-          ref.read(pushNotificationServiceProvider).initialize();
+          _registerPush();
           ref.read(unreadNotificationsCountProvider.notifier).refresh();
           return user;
         }
@@ -303,6 +445,10 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   /// y también en SecureStorage para que el datasource lo lea como fallback
   /// en /auth/me.
   void _cacheUser(UserEntity user) {
+    // Mientras se actúa, `user` es el dependiente: lo que se cachea es lo que
+    // `build()` restaura sin red, así que escribirlo traería al niño de vuelta
+    // como si fuera quien inició sesión (FP-49).
+    if (_isActing) return;
     final secureStorage = ref.read(secureStorageProvider);
     // Fire-and-forget: cache writes are best-effort for offline restoration.
     secureStorage.write(AppConstants.cachedUserId, user.id);
@@ -429,7 +575,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
             .setBool('user_manually_logged_out', false);
         _cacheUser(user);
         // Register FCM token after successful login (fire-and-forget).
-        ref.read(pushNotificationServiceProvider).initialize();
+        _registerPush();
         ref.read(unreadNotificationsCountProvider.notifier).refresh();
         return AsyncValue.data(user);
       },
@@ -548,7 +694,23 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   Future<UserEntity?> refreshCurrentUser({
     bool keepCurrentOnFailure = false,
   }) async {
+    final generationAtStart = _session.generation;
     final result = await ref.read(getCurrentUserProvider)(NoParams());
+
+    // La respuesta pertenece a un perfil que ya se abandonó: no se publica.
+    if (_session.generation != generationAtStart) return null;
+
+    // Sin red (o acceso revocado) mientras se actúa: se vuelve al tutor, nunca
+    // se deja al dependiente en pantalla ni se restaura de caché (FP-50, FP-55).
+    final actingFailure = _isActing ? result.fold((f) => f, (_) => null) : null;
+    if (actingFailure != null &&
+        (actingFailure is NetworkFailure || _isAccessRevoked(actingFailure))) {
+      await _exitActing(
+        notice:
+            _isAccessRevoked(actingFailure) ? ActingNotice.accessRevoked : null,
+      );
+      return null;
+    }
 
     return result.fold(
       (failure) {
@@ -619,12 +781,85 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
             .setBool('user_manually_logged_out', false);
         _cacheUser(user);
         // Mismos efectos que signIn(): FCM y badge de notificaciones.
-        ref.read(pushNotificationServiceProvider).initialize();
+        _registerPush();
         ref.read(unreadNotificationsCountProvider.notifier).refresh();
         state = AsyncValue.data(user);
         return SocialSignInResult.success;
       },
     );
+  }
+
+  /// Cambia de perfil: `switchProfile('id')` actúa por ese dependiente y
+  /// `switchProfile(null)` vuelve al tutor (FP-48).
+  ///
+  /// Orden: foto del tutor (para el selector), bandera `acting_dirty`, cambio de
+  /// sesión + purga del estado en memoria en el MISMO tramo síncrono (así
+  /// cualquier provider que se reconstruya ya sale con el perfil nuevo),
+  /// purga de los cachés de disco y, solo entonces, `/auth/me` con el
+  /// encabezado nuevo. Mientras carga el estado es `AsyncLoading`: ninguna vista
+  /// conserva datos del perfil anterior.
+  ///
+  /// Un cambio posterior reemplaza a uno en vuelo (`superseded`). Nada del
+  /// dependiente se escribe en disco y una falla de cualquier tipo devuelve al
+  /// tutor.
+  Future<SwitchProfileOutcome> switchProfile(
+    String? dependentId, {
+    String? firstName,
+  }) async {
+    if (dependentId == null) {
+      if (!_isActing) return SwitchProfileOutcome.unchanged;
+      await _exitActing();
+      return SwitchProfileOutcome.exited;
+    }
+    if (dependentId == _session.dependentUserId) {
+      return SwitchProfileOutcome.unchanged;
+    }
+
+    final epoch = ++_switchEpoch;
+
+    // El tutor es quien está en `state` solo cuando aún no se actúa.
+    if (!_isActing) {
+      final guardian = state.valueOrNull;
+      if (guardian == null || guardian.id == dependentId) {
+        return SwitchProfileOutcome.failed;
+      }
+      ref.read(guardianUserProvider.notifier).state = guardian;
+    }
+
+    // La bandera se sube ANTES de que exista cualquier dato del dependiente.
+    await _setActingDirty(true);
+    if (epoch != _switchEpoch) return SwitchProfileOutcome.superseded;
+
+    // Mismo tramo síncrono: sesión nueva + purga en memoria + estado de carga.
+    _session.enter(ActingDependent(userId: dependentId, firstName: firstName));
+    purgeProfileScopeProviders(ref);
+    state = const AsyncLoading();
+
+    await purgeProfileScopeDiskCaches(ref);
+    if (epoch != _switchEpoch) return SwitchProfileOutcome.superseded;
+
+    final result = await ref.read(getCurrentUserProvider)(NoParams());
+    if (epoch != _switchEpoch) return SwitchProfileOutcome.superseded;
+
+    final failure = result.fold<Failure?>((f) => f, (_) => null);
+    final user = result.fold<UserEntity?>((_) => null, (u) => u);
+
+    if (failure != null || user == null || user.id != dependentId) {
+      final revoked = failure != null && _isAccessRevoked(failure);
+      AppLogger.w(
+        'No se pudo actuar por el dependiente (${failure?.message ?? 'respuesta inválida'})',
+        tag: _tag,
+      );
+      await _exitActing(notice: revoked ? ActingNotice.accessRevoked : null);
+      if (revoked) return SwitchProfileOutcome.accessRevoked;
+      return failure is NetworkFailure
+          ? SwitchProfileOutcome.offline
+          : SwitchProfileOutcome.failed;
+    }
+
+    state = AsyncValue.data(user);
+    ref.read(unreadNotificationsCountProvider.notifier).refresh();
+    return SwitchProfileOutcome.entered;
   }
 
   /// Cambia el contexto activo de autorización y refresca el estado del usuario.
@@ -807,6 +1042,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   void expireSession() {
     AppLogger.w('Sesión expirada por interceptor, limpiando estado local',
         tag: _tag);
+    _clearActingForLogout();
 
     final secureStorage = ref.read(secureStorageProvider);
     secureStorage.delete(AppConstants.cachedUserId);
@@ -833,6 +1069,9 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
 
   /// Cerrar sesión
   Future<bool> signOut() async {
+    // El modo "actuar por" se cierra ANTES de tocar la sesión (FP-53): ninguna
+    // petición posterior debe llevar el encabezado de un dependiente.
+    _clearActingForLogout();
     state = const AsyncValue.loading();
 
     // Unregister FCM token before clearing auth tokens so the Dio interceptor

@@ -25,6 +25,7 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/utils/app_logger.dart';
 import 'features/accessibility/presentation/providers/accessibility_provider.dart';
+import 'features/auth/presentation/widgets/acting_notice_listener.dart';
 import 'features/biometric/presentation/widgets/biometric_gate.dart';
 import 'features/home_widgets/data/next_activity_widget_bridge.dart';
 import 'features/home_widgets/presentation/next_activity_widget_launch.dart';
@@ -392,8 +393,10 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
             // biometría está habilitada y la sesión no ha sido desbloqueada
             // en este cold start. Si está deshabilitada, es un passthrough.
             builder: (context, child) => SacOnboardingScope(
-              child: BiometricGate(
-                child: child ?? const SizedBox.shrink(),
+              child: ActingNoticeListener(
+                child: BiometricGate(
+                  child: child ?? const SizedBox.shrink(),
+                ),
               ),
             ),
           ),
