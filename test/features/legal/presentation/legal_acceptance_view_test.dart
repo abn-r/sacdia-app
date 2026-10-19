@@ -4,6 +4,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/core/auth/acting_for_session.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -41,6 +42,7 @@ LegalStatus _status({
 class _RecordingAuthNotifier extends AuthNotifier {
   int accepted = 0;
   int signedOut = 0;
+  final switched = <String?>[];
 
   @override
   Future<UserEntity?> build() async => const UserEntity(
@@ -56,6 +58,15 @@ class _RecordingAuthNotifier extends AuthNotifier {
   Future<bool> signOut() async {
     signedOut++;
     return true;
+  }
+
+  @override
+  Future<SwitchProfileOutcome> switchProfile(
+    String? dependentUserId, {
+    String? firstName,
+  }) async {
+    switched.add(dependentUserId);
+    return SwitchProfileOutcome.exited;
   }
 }
 
@@ -101,8 +112,9 @@ class _Harness {
 
 Future<_Harness> _pump(
   WidgetTester tester,
-  _FakeLegalRepository repo,
-) async {
+  _FakeLegalRepository repo, {
+  ActingForSession? session,
+}) async {
   tester.view.physicalSize = const Size(800, 1800);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
@@ -114,6 +126,8 @@ Future<_Harness> _pump(
       overrides: [
         authNotifierProvider.overrideWith(() => auth),
         legalRepositoryProvider.overrideWithValue(repo),
+        if (session != null)
+          actingForSessionProvider.overrideWithValue(session),
       ],
       child: MaterialApp(
         theme: AppTheme.lightTheme,
@@ -322,5 +336,39 @@ void main() {
 
     expect(h.repo.sent, hasLength(1));
     expect(h.auth.accepted, 1);
+  });
+
+  group('while acting for a dependent (S4)', () {
+    ActingForSession acting() => ActingForSession()
+      ..enter(const ActingDependent(userId: 'ana-1', firstName: 'Ana'));
+
+    testWidgets(
+        'offers "back to my profile" instead of signing the guardian out',
+        (tester) async {
+      await _pump(tester, _FakeLegalRepository(), session: acting());
+
+      expect(find.text('legal_gate.sign_out'), findsNothing);
+      expect(find.text('family.banner.back'), findsOneWidget);
+    });
+
+    testWidgets(
+        'the exit button leaves the dependent profile and never '
+        'signs out', (tester) async {
+      final h = await _pump(tester, _FakeLegalRepository(), session: acting());
+
+      await tester.tap(find.text('family.banner.back'));
+      await tester.pump();
+
+      expect(h.auth.switched, [null]);
+      expect(h.auth.signedOut, 0);
+    });
+
+    testWidgets('outside acting the sign out button is unchanged',
+        (tester) async {
+      await _pump(tester, _FakeLegalRepository());
+
+      expect(find.text('legal_gate.sign_out'), findsOneWidget);
+      expect(find.text('family.banner.back'), findsNothing);
+    });
   });
 }

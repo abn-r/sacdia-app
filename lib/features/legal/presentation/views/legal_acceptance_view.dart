@@ -13,6 +13,7 @@ import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_legal_consent.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/acting_providers.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/legal_document.dart';
 import '../../domain/entities/legal_status.dart';
@@ -23,7 +24,9 @@ import '../providers/legal_providers.dart';
 /// Aparece cuando `/auth/me` dice que el usuario no aceptó la versión vigente
 /// de los Términos y/o el Aviso de Privacidad. El router lo mantiene como único
 /// destino posible mientras `legalAcceptancePending` sea true; las únicas
-/// salidas son aceptar o cerrar sesión.
+/// salidas son aceptar o cerrar sesión. Mientras la tutora actúa por un menor,
+/// "cerrar sesión" sería cerrar la sesión de ELLA: en su lugar se ofrece
+/// volver a su perfil.
 class LegalAcceptanceView extends ConsumerStatefulWidget {
   /// Inyectable para pruebas. Por defecto abre el navegador integrado.
   final OpenLegalDocument onOpenDocument;
@@ -82,6 +85,11 @@ class _LegalAcceptanceViewState extends ConsumerState<LegalAcceptanceView> {
     await ref.read(authNotifierProvider.notifier).signOut();
   }
 
+  /// Mientras se actúa por un menor: sale del modo "actuar por" (S4).
+  Future<void> _backToOwnProfile() async {
+    await ref.read(authNotifierProvider.notifier).switchProfile(null);
+  }
+
   String _errorText(Object error) {
     if (error is String && error.startsWith('legal_gate.')) return error.tr();
     return legalAcceptErrorKey.tr();
@@ -92,6 +100,7 @@ class _LegalAcceptanceViewState extends ConsumerState<LegalAcceptanceView> {
     final statusAsync = ref.watch(myLegalStatusProvider);
     final acceptState = ref.watch(legalAcceptanceNotifierProvider);
     final isSubmitting = acceptState.isLoading;
+    final acting = ref.watch(actingDependentProvider) != null;
 
     final status = statusAsync.valueOrNull;
     if (status != null && !status.requiresAcceptance) _selfHeal();
@@ -149,10 +158,12 @@ class _LegalAcceptanceViewState extends ConsumerState<LegalAcceptanceView> {
                       ),
                     const SizedBox(height: 8),
                     SacButton.ghost(
-                      text: 'legal_gate.sign_out'.tr(),
+                      text: acting
+                          ? 'family.banner.back'.tr()
+                          : 'legal_gate.sign_out'.tr(),
                       textColor: AppColors.loginBrandBlueDark,
                       isEnabled: !isSubmitting,
-                      onPressed: _signOut,
+                      onPressed: acting ? _backToOwnProfile : _signOut,
                     ),
                   ],
                 ),
