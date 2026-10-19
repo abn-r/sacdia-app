@@ -3,7 +3,11 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/providers/app_bootstrap_provider.dart';
 import 'package:sacdia_app/core/providers/profile_scope_registry.dart';
+import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
+import 'package:sacdia_app/features/master_honors/presentation/providers/master_honor_modal_queue_provider.dart';
 import 'package:sacdia_app/features/notifications/presentation/providers/unread_notifications_count_provider.dart';
+import 'package:sacdia_app/features/qr/presentation/providers/qr_member_token_provider.dart';
+import 'package:sacdia_app/features/units/presentation/providers/units_providers.dart';
 
 /// Símbolos (variable del provider o clase del notifier) que llaman a
 /// `keepAlive()` en el código fuente dado, con el archivo donde aparecen.
@@ -62,6 +66,47 @@ Map<String, String> readFeatureProviderSources() {
   }
   return sources;
 }
+
+/// Providers SIN `autoDispose` con estado (todo menos `Provider` simple, que es
+/// derivado) declarados en el código fuente dado: la variable del provider.
+///
+/// Ignora comentarios. Entiende declaraciones partidas en varias líneas
+/// (`NotifierProvider\n    .autoDispose<...>`) y los tipos `AutoDispose*`.
+Set<String> scanNonAutoDisposeStateProviders(Iterable<String> sources) {
+  final declaration = RegExp(
+    r'^final\s+(\w+)\s*=\s*(\w*Provider)\s*(\.\s*autoDispose)?',
+    multiLine: true,
+  );
+  final found = <String>{};
+  for (final source in sources) {
+    final code = source.split('\n').map((l) => l.split('//').first).join('\n');
+    for (final m in declaration.allMatches(code)) {
+      final kind = m.group(2)!;
+      if (kind == 'Provider' || kind.startsWith('AutoDispose')) continue;
+      if (m.group(3) != null) continue;
+      found.add(m.group(1)!);
+    }
+  }
+  return found;
+}
+
+/// Los providers sin `autoDispose` con estado que no están registrados ni en la
+/// lista de globales justificados.
+Set<String> unregisteredNonAutoDispose(
+  Iterable<String> sources, {
+  required Set<String> registered,
+  required Set<String> allowlisted,
+}) =>
+    scanNonAutoDisposeStateProviders(sources)
+        .where((s) => !registered.contains(s) && !allowlisted.contains(s))
+        .toSet();
+
+/// Todo el código bajo `lib/features/**` (no solo `providers/`): hay providers
+/// de estado declarados junto a su widget.
+List<String> readAllFeatureSources() => [
+      for (final e in Directory('lib/features').listSync(recursive: true))
+        if (e is File && e.path.endsWith('.dart')) e.readAsStringSync(),
+    ];
 
 void main() {
   late Map<String, String> sources;
@@ -125,6 +170,122 @@ void main() {
         'RegisterCamporeeSectionNotifier',
         'CamporeeOrderDraftNotifier',
       });
+    });
+  });
+
+  group('non-autoDispose state guard (FP-48, FP-52, S5)', () {
+    late List<String> allSources;
+
+    setUpAll(() => allSources = readAllFeatureSources());
+
+    test('the scan sees the known non-autoDispose providers (sanity)', () {
+      expect(
+        scanNonAutoDisposeStateProviders(allSources),
+        containsAll(
+            ['dashboardNotifierProvider', 'unreadNotificationsCountProvider']),
+      );
+    });
+
+    test('every non-autoDispose state provider is registered or justified', () {
+      final missing = unregisteredNonAutoDispose(
+        allSources,
+        registered: profileScopedStateEntries.keys.toSet(),
+        allowlisted: nonAutoDisposeAllowlist.keys.toSet(),
+      );
+
+      expect(
+        missing,
+        isEmpty,
+        reason: 'These providers are not autoDispose, so their state survives '
+            'a profile switch (guardian -> Ana) and a logout. Register them in '
+            'profileScopedStateEntries, or justify in nonAutoDisposeAllowlist '
+            'why they do not depend on the current user: $missing',
+      );
+    });
+
+    test('no stale entries in the state registry or its allowlist', () {
+      final scanned = scanNonAutoDisposeStateProviders(allSources);
+
+      expect(
+        profileScopedStateEntries.keys.toSet().difference(scanned),
+        isEmpty,
+        reason: 'registry keys that are no longer non-autoDispose state',
+      );
+      expect(
+        nonAutoDisposeAllowlist.keys.toSet().difference(scanned),
+        isEmpty,
+        reason: 'allowlist entries that are no longer non-autoDispose state',
+      );
+    });
+
+    test('a provider is either registered or allowlisted, never both', () {
+      expect(
+        profileScopedStateEntries.keys
+            .toSet()
+            .intersection(nonAutoDisposeAllowlist.keys.toSet()),
+        isEmpty,
+      );
+    });
+
+    test('every allowlist entry carries a reason', () {
+      for (final entry in nonAutoDisposeAllowlist.entries) {
+        expect(entry.value.trim(), isNotEmpty, reason: entry.key);
+      }
+    });
+
+    test('the user-state providers found by the verify are registered (C2, W3)',
+        () {
+      expect(
+        profileScopedStateEntries.keys,
+        containsAll([
+          'honorCompletionModeOverrideProvider',
+          'qrMemberTokenProvider',
+          'unitsNotifierProvider',
+          'masterHonorModalQueueProvider',
+        ]),
+      );
+      expect(profileScopedProviders,
+          contains(honorCompletionModeOverrideProvider));
+      expect(profileScopedProviders, contains(qrMemberTokenProvider));
+      expect(profileScopedProviders, contains(unitsNotifierProvider));
+      expect(profileScopedProviders, contains(masterHonorModalQueueProvider));
+    });
+
+    test('the guard fails on a new unregistered StateProvider (mutation)', () {
+      final missing = unregisteredNonAutoDispose(
+        [
+          '''
+final leakyProvider = StateProvider<Map<int, String>>((ref) => {});
+final multiLineProvider = AsyncNotifierProvider
+    .autoDispose<Foo, int>(Foo.new);
+final goneProvider =
+    NotifierProvider<Bar, int>(Bar.new);
+final derivedProvider = Provider<int>((ref) => 1);
+final familyProvider = FutureProvider.autoDispose.family<int, int>((r, i) async => i);
+// final commentedProvider = StateProvider<int>((ref) => 0);
+final typedProvider = AutoDisposeNotifierProvider<Baz, int>(Baz.new);
+''',
+        ],
+        registered: const {},
+        allowlisted: const {},
+      );
+
+      expect(missing, {'leakyProvider', 'goneProvider'});
+    });
+
+    test('an allowlisted or registered provider passes the guard', () {
+      final missing = unregisteredNonAutoDispose(
+        [
+          '''
+final aProvider = StateProvider<int>((ref) => 1);
+final bProvider = FutureProvider<int>((ref) async => 1);
+''',
+        ],
+        registered: const {'aProvider'},
+        allowlisted: const {'bProvider'},
+      );
+
+      expect(missing, isEmpty);
     });
   });
 
