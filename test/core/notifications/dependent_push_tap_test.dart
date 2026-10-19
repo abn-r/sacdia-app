@@ -331,6 +331,7 @@ void main() {
     Future<PushNotificationService> pumpRouter(
       WidgetTester tester, {
       required _GatedAuth auth,
+      ActingForSession? session,
     }) async {
       tester.view.physicalSize = const Size(800, 2000);
       tester.view.devicePixelRatio = 1;
@@ -370,6 +371,8 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           authNotifierProvider.overrideWith(() => auth),
+          if (session != null)
+            actingForSessionProvider.overrideWithValue(session),
           notificationsRepositoryProvider.overrideWithValue(
             FakeNotificationsRepository(),
           ),
@@ -538,6 +541,114 @@ void main() {
       await tester.pump();
 
       expect(container.read(unreadNotificationsCountProvider), 1);
+    });
+
+    group('recipient-aware counting while acting (S2)', () {
+      ActingForSession actingAs(String id, String name) => ActingForSession()
+        ..enter(ActingDependent(userId: id, firstName: name));
+
+      ProviderContainer containerOf(WidgetTester tester) =>
+          ProviderScope.containerOf(tester.element(find.text('start')));
+
+      RemoteMessage push(Map<String, dynamic> data) => RemoteMessage(
+            notification: const RemoteNotification(title: 'Aviso', body: 'x'),
+            data: data,
+          );
+
+      testWidgets(
+          "the guardian's OWN push while acting does not bump the dependent's "
+          'counter', (tester) async {
+        final service = await pumpRouter(
+          tester,
+          auth: _GatedAuth(),
+          session: actingAs('ana-1', 'Ana'),
+        );
+        final container = containerOf(tester);
+
+        service.handleForegroundMessageForTesting(push({'type': 'generic'}));
+        await tester.pump();
+
+        expect(container.read(unreadNotificationsCountProvider), 0);
+        expect(find.byKey(const Key('foreground-notification-banner')),
+            findsOneWidget,
+            reason: 'the banner is still shown');
+      });
+
+      testWidgets(
+          "the guardian's own achievement push while acting does not "
+          'open the typed UI inside the dependent profile', (tester) async {
+        final service = await pumpRouter(
+          tester,
+          auth: _GatedAuth(),
+          session: actingAs('ana-1', 'Ana'),
+        );
+        final container = containerOf(tester);
+
+        service.handleForegroundMessageForTesting(
+          push({'type': 'achievement_unlocked'}),
+        );
+        await tester.pump();
+
+        expect(find.byKey(const Key('achievement-unlocked-snackbar')),
+            findsNothing);
+        expect(container.read(unreadNotificationsCountProvider), 0);
+      });
+
+      testWidgets(
+          "a push for the profile being viewed DOES bump that profile's "
+          'counter', (tester) async {
+        final service = await pumpRouter(
+          tester,
+          auth: _GatedAuth(),
+          session: actingAs('ana-1', 'Ana'),
+        );
+        final container = containerOf(tester);
+
+        service.handleForegroundMessageForTesting(
+          push({'type': 'generic', 'dependent_user_id': 'ana-1'}),
+        );
+        await tester.pump();
+
+        expect(container.read(unreadNotificationsCountProvider), 1);
+      });
+
+      testWidgets(
+          "a push for ANOTHER dependent does not bump the viewed "
+          "profile's counter", (tester) async {
+        final service = await pumpRouter(
+          tester,
+          auth: _GatedAuth(),
+          session: actingAs('ana-1', 'Ana'),
+        );
+        final container = containerOf(tester);
+
+        service.handleForegroundMessageForTesting(
+          push({'type': 'generic', 'dependent_user_id': 'luis-1'}),
+        );
+        await tester.pump();
+
+        expect(container.read(unreadNotificationsCountProvider), 0);
+      });
+
+      testWidgets(
+          "tapping the guardian's own push while acting leaves the "
+          'dependent profile before routing', (tester) async {
+        final auth = _GatedAuth();
+        final service = await pumpRouter(
+          tester,
+          auth: auth,
+          session: actingAs('ana-1', 'Ana'),
+        );
+
+        service.handleNotificationTapForTesting(
+          RemoteMessage(data: const {'route': RouteNames.homeClasses}),
+        );
+        await tester.pumpAndSettle();
+
+        expect(auth.switchCalls.map((c) => c.id), [null],
+            reason: 'exit acting first');
+        expect(visited, [RouteNames.homeClasses]);
+      });
     });
   });
 }
