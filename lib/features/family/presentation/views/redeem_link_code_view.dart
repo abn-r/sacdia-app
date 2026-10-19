@@ -13,7 +13,6 @@ import '../../../../core/widgets/sac_dropdown_field.dart';
 import '../../../../core/widgets/sac_snack_bar.dart';
 import '../../../../core/widgets/sac_text_field.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
-import '../../../post_registration/presentation/providers/personal_info_providers.dart';
 import '../../../profile/presentation/views/edit_profile_view.dart';
 import '../../domain/usecases/redeem_link_code.dart';
 import '../family_error_messages.dart';

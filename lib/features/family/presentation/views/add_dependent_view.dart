@@ -16,7 +16,6 @@ import '../../../../core/widgets/sac_text_field.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../legal/domain/entities/legal_document.dart';
 import '../../../legal/presentation/providers/legal_providers.dart';
-import '../../../post_registration/presentation/providers/personal_info_providers.dart';
 import '../../../profile/presentation/views/edit_profile_view.dart';
 import '../../domain/entities/dependent.dart';
 import '../../domain/repositories/family_repository.dart';
