@@ -52,6 +52,7 @@ final virtualCardFetcherProvider =
   // se guarda.
   final session = ref.read(actingForSessionProvider);
   final actingAtStart = session.isActing;
+  final generationAtStart = session.generation;
 
   final user = await ref.watch(authNotifierProvider.selectAsync((u) => u));
   if (user == null) {
@@ -65,7 +66,12 @@ final virtualCardFetcherProvider =
   if (connected) {
     try {
       final remote = await repository.getRemoteCard();
-      if (!actingAtStart) {
+      // Re-chequeo JUSTO antes de guardar: un cambio de perfil durante los
+      // `await` de arriba (p. ej. aceptar un push de tutor con la tarjeta
+      // abierta) deja la respuesta en manos de otro perfil. Se descarta.
+      final profileUnchanged =
+          !session.isActing && session.generation == generationAtStart;
+      if (!actingAtStart && profileUnchanged) {
         await repository.saveCachedCard(remote);
       }
       return _withIdentity(remote.copyWith(isOffline: false), user);

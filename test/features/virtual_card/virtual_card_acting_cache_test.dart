@@ -167,6 +167,45 @@ void main() {
     expect(_cardKeys(prefs), isEmpty);
   });
 
+  test(
+      'S1: a switch to a dependent while the guardian request is in flight '
+      'drops the save (re-check right before saveCachedCard)', () async {
+    final session = ActingForSession();
+    // La petición sale como tutor; el servidor responde con la tarjeta de Ana
+    // porque el cambio de perfil llegó antes de la respuesta.
+    final remote = _FakeRemote('ana-1')..gate = Completer<void>();
+    final container =
+        build(userId: 'guardian-1', session: session, remote: remote);
+
+    final pending = container.read(virtualCardFetcherProvider.future);
+    await pumpEventQueue();
+    expect(remote.calls, 1, reason: 'the request is in flight');
+    session.enter(const ActingDependent(userId: 'ana-1', firstName: 'Ana'));
+    remote.gate!.complete();
+    await pending;
+
+    expect(_cardKeys(prefs), isEmpty);
+  });
+
+  test(
+      'S1: a guardian -> dependent -> guardian round trip during the request '
+      'also drops the save (generation changed)', () async {
+    final session = ActingForSession();
+    final remote = _FakeRemote('guardian-1')..gate = Completer<void>();
+    final container =
+        build(userId: 'guardian-1', session: session, remote: remote);
+
+    final pending = container.read(virtualCardFetcherProvider.future);
+    await pumpEventQueue();
+    session
+      ..enter(const ActingDependent(userId: 'ana-1'))
+      ..exit();
+    remote.gate!.complete();
+    await pending;
+
+    expect(_cardKeys(prefs), isEmpty);
+  });
+
   test('the guardian own card is still cached for offline use', () async {
     final session = ActingForSession();
     final remote = _FakeRemote('guardian-1');
