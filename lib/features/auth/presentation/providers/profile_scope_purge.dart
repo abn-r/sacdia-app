@@ -9,6 +9,7 @@ import '../../../../providers/json_file_cache_provider.dart';
 import '../../../../providers/storage_provider.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../home_widgets/next_activity_widget_sync.dart';
+import '../../../virtual_card/data/virtual_card_disk_cache.dart';
 
 /// Lista de providers que se invalidan al cambiar de perfil.
 ///
@@ -30,7 +31,8 @@ void purgeProfileScopeProviders(Ref ref) {
 }
 
 /// Borra los cachés de disco que dependen del perfil: clases del usuario,
-/// resumen del dashboard y el widget de la próxima actividad (FP-48, FP-51).
+/// resumen del dashboard, credenciales virtuales guardadas y el widget de la
+/// próxima actividad (FP-48, FP-51).
 ///
 /// Nunca lanza: una purga que falla no debe dejar al usuario atascado a medio
 /// cambio de perfil.
@@ -41,6 +43,7 @@ Future<void> purgeProfileScopeDiskCaches(Ref ref) async {
           .read(jsonFileCacheProvider)
           .deleteByPrefix(kUserClassesCacheKeyPrefix),
       clearDashboardSummaryDiskCache(ref.read(localStorageProvider)),
+      clearVirtualCardDiskCache(ref.read(localStorageProvider)),
       clearNextActivityWidget(),
     ]);
   } catch (e, st) {

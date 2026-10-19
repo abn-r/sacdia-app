@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/auth/acting_for_session.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/storage/local_storage.dart';
 import '../../../../core/usecases/usecase.dart';
@@ -162,6 +163,16 @@ final getDashboardSummaryProvider = Provider<GetDashboardSummary>((ref) {
 class DashboardNotifier extends AsyncNotifier<DashboardSummary?> {
   bool _isDisposed = false;
 
+  /// Publica la próxima actividad en el widget del sistema.
+  ///
+  /// El widget se ve FUERA de la app (pantalla de inicio, bloqueo), así que
+  /// mientras se actúa por un dependiente no se escribe nada: la actividad del
+  /// menor no debe quedar a la vista fuera de la sesión de la app (FP-49).
+  void _publishWidget(DashboardSummary summary) {
+    if (_isDisposed || ref.read(actingForSessionProvider).isActing) return;
+    unawaited(publishNextActivityWidget(summary));
+  }
+
   @override
   Future<DashboardSummary?> build() async {
     // Reaccionar a cambios en la sesión: si el usuario se desloguea, limpiar.
@@ -212,7 +223,7 @@ class DashboardNotifier extends AsyncNotifier<DashboardSummary?> {
       cacheKey: cacheKey,
     );
     if (cached != null) {
-      unawaited(publishNextActivityWidget(cached));
+      _publishWidget(cached);
       _scheduleBackgroundRefresh(
         cacheKey: cacheKey,
         userId: userId,
@@ -249,7 +260,7 @@ class DashboardNotifier extends AsyncNotifier<DashboardSummary?> {
         summary: summary,
       );
       if (!_isDisposed) {
-        unawaited(publishNextActivityWidget(summary));
+        _publishWidget(summary);
       }
     }
 
@@ -294,7 +305,7 @@ class DashboardNotifier extends AsyncNotifier<DashboardSummary?> {
         return;
       }
 
-      unawaited(publishNextActivityWidget(summary));
+      _publishWidget(summary);
       state = AsyncValue.data(summary);
     } catch (_) {
       // Ignore background refresh failures so valid cached data stays visible.
@@ -375,7 +386,7 @@ class DashboardNotifier extends AsyncNotifier<DashboardSummary?> {
       cacheKey: cacheKey,
       summary: summary,
     );
-    unawaited(publishNextActivityWidget(summary));
+    _publishWidget(summary);
     state = AsyncValue.data(summary);
   }
 }

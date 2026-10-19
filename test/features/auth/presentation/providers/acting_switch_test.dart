@@ -250,6 +250,33 @@ void main() {
       expect(current()?.id, 'ana-1');
     });
 
+    test('entering and exiting purge every virtual_card_cache_ key (C1)',
+        () async {
+      await boot();
+      await prefs.setString('virtual_card_cache_guardian-1', '{"g":1}');
+      await prefs.setString('virtual_card_cache_ana-1', '{"a":1}');
+      await prefs.setString('unrelated_key', 'keep');
+
+      await notifier().switchProfile('ana-1');
+      expect(
+        prefs.getKeys().where((k) => k.startsWith('virtual_card_cache_')),
+        isEmpty,
+        reason: 'entering a profile drops every stored card',
+      );
+
+      // La tarjeta de Ana se escribe (p. ej. una petición en vuelo) y al salir
+      // tampoco puede quedar nada.
+      await prefs.setString('virtual_card_cache_ana-1', '{"a":1}');
+      await notifier().switchProfile(null);
+      await container.read(authNotifierProvider.future);
+      expect(
+        prefs.getKeys().where((k) => k.startsWith('virtual_card_cache_')),
+        isEmpty,
+        reason: 'exiting a profile drops every stored card',
+      );
+      expect(prefs.getString('unrelated_key'), 'keep');
+    });
+
     test('exiting to the guardian lowers the flag and drops the snapshot',
         () async {
       await boot();
@@ -505,6 +532,32 @@ void main() {
       expect(prefs.getString('unrelated'), 'keep');
     });
 
+    test('acting_dirty on launch also purges stored virtual cards (C1)',
+        () async {
+      SharedPreferences.setMockInitialValues({
+        kActingDirtyPrefsKey: true,
+        'virtual_card_cache_ana-1': '{"full_name":"Ana"}',
+      });
+      prefs = await SharedPreferences.getInstance();
+      storage = FakeSecureStorage();
+      diskCache = MemoryJsonFileCache();
+      repo = _ProfileRepo(
+        () => container.read(actingForSessionProvider).dependentUserId,
+        _byId,
+      );
+      container = await buildAuthContainer(
+        repo: repo,
+        storage: storage,
+        prefs: prefs,
+        extraOverrides: [jsonFileCacheProvider.overrideWithValue(diskCache)],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(authNotifierProvider.future);
+
+      expect(prefs.getString('virtual_card_cache_ana-1'), isNull);
+    });
+
     test('a clean flag leaves the caches alone', () async {
       await boot();
       await diskCache.write(userClassesCacheKey('guardian-1'), {'c': 1});
@@ -561,6 +614,21 @@ void main() {
       expect(container.read(guardianUserProvider), isNull);
       expect(prefs.getBool(kActingDirtyPrefsKey), isFalse);
       expect(container.read(profileData), 'initial');
+    });
+
+    test('logout cleanup purges stored virtual cards (C1)', () async {
+      await boot();
+      await notifier().switchProfile('ana-1');
+      await prefs.setString('virtual_card_cache_ana-1', '{"a":1}');
+      await prefs.setString('virtual_card_cache_guardian-1', '{"g":1}');
+
+      container.read(_cleanupInvoker)();
+      await pumpEventQueue();
+
+      expect(
+        prefs.getKeys().where((k) => k.startsWith('virtual_card_cache_')),
+        isEmpty,
+      );
     });
 
     test('the next login after a logout while acting starts as guardian',

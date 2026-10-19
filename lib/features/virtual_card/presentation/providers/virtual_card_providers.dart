@@ -47,19 +47,28 @@ final virtualCardFetcherProvider =
     FutureProvider.autoDispose<VirtualCard>((ref) async {
   ref.keepAlive();
 
+  // Mientras se actúa por un dependiente la credencial NO toca el disco: ni se
+  // lee un caché ni se escribe uno (FP-49, FP-51). Se decide al EMPEZAR: si el
+  // tutor sale mientras la petición vuela, la tarjeta del dependiente igual no
+  // se guarda.
+  final session = ref.read(actingForSessionProvider);
+  final actingAtStart = session.isActing;
+
   final user = await ref.watch(authNotifierProvider.selectAsync((u) => u));
   if (user == null) {
     throw Exception('virtual_card.errors.not_authenticated'.tr());
   }
 
   final repository = ref.read(virtualCardRepositoryProvider);
-  final cached = await repository.getCachedCard(user.id);
+  final cached = actingAtStart ? null : await repository.getCachedCard(user.id);
   final connected = await ref.read(networkInfoProvider).isConnected;
 
   if (connected) {
     try {
       final remote = await repository.getRemoteCard();
-      await repository.saveCachedCard(remote);
+      if (!actingAtStart) {
+        await repository.saveCachedCard(remote);
+      }
       return _withIdentity(remote.copyWith(isOffline: false), user);
     } on ConnectionException {
       if (cached != null) {

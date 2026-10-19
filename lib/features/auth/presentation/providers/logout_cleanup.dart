@@ -11,6 +11,7 @@ import '../../../../providers/json_file_cache_provider.dart';
 import '../../../../providers/storage_provider.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../home_widgets/next_activity_widget_sync.dart';
+import '../../../virtual_card/data/virtual_card_disk_cache.dart';
 import 'acting_providers.dart';
 import 'profile_scope_purge.dart';
 
@@ -57,6 +58,7 @@ void clearUserStateOnLogout(Ref ref) {
   purgeProfileScopeProviders(ref);
   ref.invalidate(appBootstrapProvider);
   _clearScopedDashboardCache(ref);
+  unawaited(clearVirtualCardDiskCache(ref.read(localStorageProvider)));
   unawaited(resetAnalyticsUser());
   unawaited(clearNextActivityWidget());
   unawaited(
