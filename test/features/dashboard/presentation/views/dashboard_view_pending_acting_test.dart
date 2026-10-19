@@ -106,6 +106,7 @@ void main() {
 
   testWidgets('the CTA exits acting first and then opens Mi familia',
       (tester) async {
+    auth.outcome = SwitchProfileOutcome.exited;
     await pump(
       tester,
       session: ActingForSession()

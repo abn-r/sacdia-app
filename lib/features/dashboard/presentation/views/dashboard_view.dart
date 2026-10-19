@@ -257,10 +257,32 @@ class _PendingMembershipDashboardState extends ConsumerWidget {
   const _PendingMembershipDashboardState();
 
   /// Sale de "actuar por" y abre Mi familia del tutor.
+  ///
+  /// `switchProfile(null)` termina cuando la sesión ya salió, pero el estado de
+  /// auth sigue en carga mientras `/auth/me` del tutor se vuelve a pedir. Con
+  /// auth cargando el `redirect` del router manda a splash y de ahí al inicio,
+  /// así que un `push` hecho antes se pierde. Se espera a que auth quede
+  /// resuelto y solo entonces se abre Mi familia.
   Future<void> _openFamily(BuildContext context, WidgetRef ref) async {
-    // El router sobrevive al cambio de perfil; el `context` puede no hacerlo.
+    // El router y el contenedor sobreviven al cambio de perfil; el `context` y
+    // el `ref` de este widget pueden no hacerlo.
     final router = GoRouter.of(context);
-    await ref.read(authNotifierProvider.notifier).switchProfile(null);
+    final container = ProviderScope.containerOf(context, listen: false);
+
+    final outcome =
+        await container.read(authNotifierProvider.notifier).switchProfile(null);
+    if (outcome != SwitchProfileOutcome.exited &&
+        outcome != SwitchProfileOutcome.unchanged) {
+      return;
+    }
+
+    try {
+      final guardian = await container.read(authNotifierProvider.future);
+      if (guardian == null) return;
+    } catch (_) {
+      // Sin sesión del tutor no hay Mi familia a donde ir.
+      return;
+    }
     router.push(RouteNames.family);
   }
 

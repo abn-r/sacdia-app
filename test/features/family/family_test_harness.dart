@@ -269,3 +269,41 @@ GoRoute stubRoute(String path) => GoRoute(
       path: path,
       builder: (_, state) => Scaffold(body: Text('route:${state.uri.path}')),
     );
+
+/// Monta un `GoRouter` ya construido (p. ej. el `routerProvider` real) dentro
+/// de [container], con español real y texto reducido.
+Future<void> pumpLocalizedRouterApp(
+  WidgetTester tester,
+  ProviderContainer container,
+  GoRouter router,
+) async {
+  await tester.pumpWidget(
+    UncontrolledProviderScope(
+      container: container,
+      child: EasyLocalization(
+        supportedLocales: const [Locale('es')],
+        path: 'assets/translations',
+        assetLoader: const FileAssetLoader(),
+        fallbackLocale: const Locale('es'),
+        startLocale: const Locale('es'),
+        child: Builder(
+          builder: (context) => MaterialApp.router(
+            theme: AppTheme.lightTheme,
+            locale: context.locale,
+            localizationsDelegates: context.localizationDelegates,
+            supportedLocales: context.supportedLocales,
+            routerConfig: router,
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                textScaler: const TextScaler.linear(0.5),
+              ),
+              child: child!,
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+  await tester.pump();
+  await tester.pump();
+}
