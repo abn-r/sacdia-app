@@ -149,7 +149,8 @@ const Map<String, String> nonAutoDisposeAllowlist = {
   'socialSignInInFlightProvider':
       'bandera de la pantalla de login, sin sesión de por medio',
   'familyPromptSuppressedProvider':
-      'bandera de un solo uso del tutor, la consume FamilyPromptHost',
+      'bandera de un solo uso del tutor, la consume FamilyPromptHost; se '
+          'reinicia en clearUserStateOnLogout',
   // Preferencias del dispositivo.
   'welcomeCarouselSeenProvider': 'bandera del dispositivo, no de la cuenta',
   'accessibilityProvider': 'preferencias de accesibilidad del dispositivo',
