@@ -4,7 +4,9 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sacdia_app/core/consent/consent_evidence.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
+import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
 import 'package:sacdia_app/features/family/data/models/dependent_models.dart';
 import 'package:sacdia_app/features/family/domain/entities/dependent.dart';
 import 'package:sacdia_app/features/family/presentation/family_outcome_messages.dart';
@@ -64,6 +66,10 @@ void main() {
           path: '/family/:dependentId',
           builder: (_, state) => DependentDetailView(
             dependentId: state.pathParameters['dependentId']!,
+            picker: ConsentEvidencePicker(
+              pickPdf: () async =>
+                  (path: '/tmp/ficha.pdf', name: 'ficha.pdf', size: 2048),
+            ),
           ),
         ),
       ],
@@ -310,6 +316,179 @@ void main() {
     });
   });
 
+  group('consent form (FP-78)', () {
+    testWidgets('a pending dependent without a form can upload one',
+        (tester) async {
+      repo.detail = Right(_detail());
+      await pump(tester);
+
+      expect(find.text('Ficha de consentimiento'), findsOneWidget);
+      expect(find.textContaining('Imprime y firma la ficha del club'),
+          findsOneWidget);
+      expect(find.text('Subir ficha firmada'), findsOneWidget);
+      expect(find.text('Ver ficha subida'), findsNothing);
+    });
+
+    testWidgets('with a form it can be viewed or replaced', (tester) async {
+      repo.detail = Right(_detail(evidence: true));
+      await pump(tester);
+
+      expect(find.text('Ver ficha subida'), findsOneWidget);
+      expect(find.text('Reemplazar ficha'), findsOneWidget);
+      expect(find.text('Subir ficha firmada'), findsNothing);
+    });
+
+    testWidgets('a verified consent can only view the form', (tester) async {
+      repo.detail = Right(_detail(consent: 'verified', evidence: true));
+      await pump(tester);
+
+      expect(find.text('Ver ficha subida'), findsOneWidget);
+      expect(find.text('Reemplazar ficha'), findsNothing);
+      expect(find.text('Subir ficha firmada'), findsNothing);
+      expect(find.textContaining('Imprime y firma la ficha del club'),
+          findsNothing);
+    });
+
+    testWidgets('a verified consent without a form shows no upload either',
+        (tester) async {
+      repo.detail = Right(_detail(consent: 'verified'));
+      await pump(tester);
+
+      expect(find.text('Subir ficha firmada'), findsNothing);
+      expect(find.text('Ver ficha subida'), findsNothing);
+    });
+
+    testWidgets('a frozen dependent has no form card', (tester) async {
+      repo.detail = Right(
+        FamilyJson.detail({...detailJson(), 'frozen': true}),
+      );
+      await pump(tester);
+
+      expect(find.text('Ficha de consentimiento'), findsNothing);
+      expect(find.text('Subir ficha firmada'), findsNothing);
+    });
+
+    testWidgets(
+        'uploading sends the file for that dependent, waits for the director '
+        'and does NOT verify the consent', (tester) async {
+      final server = _EvidenceRepo();
+      repo = server;
+      repo.detail = Right(_detail());
+      await pump(tester);
+
+      await tester.tap(find.text('Subir ficha firmada'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Elegir un PDF'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Subir'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+
+      expect(repo.evidenceUploads, [
+        (dependentId: 'ana-1', fileName: 'ficha.pdf'),
+      ]);
+      expect(
+        find.text('Ficha subida. Esperando la verificación del director.'),
+        findsOneWidget,
+        reason: 'toast',
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+            'Ficha firmada subida. Esperando la verificación del director.'),
+        findsOneWidget,
+      );
+      expect(find.text('Consentimiento pendiente'), findsWidgets);
+      expect(find.text('Consentimiento verificado'), findsNothing);
+    });
+
+    testWidgets('503 shows that forms are not available yet', (tester) async {
+      repo.detail = Right(_detail());
+      repo.evidenceUploaded = const Left(
+        ServerFailure(
+          message: 'x',
+          code: 503,
+          errorCode: 'GUARDIANSHIP_EVIDENCE_UNAVAILABLE',
+        ),
+      );
+      await pump(tester);
+
+      await tester.tap(find.text('Subir ficha firmada'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Elegir un PDF'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Subir'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'Las fichas de consentimiento aún no están disponibles. Inténtalo más tarde.',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a 403 scope-denied is an action error, not a sign-out',
+        (tester) async {
+      repo.detail = Right(_detail());
+      repo.evidenceUploaded = const Left(
+        AuthFailure(
+          message: 'x',
+          code: 403,
+          errorCode: 'ACTING_FOR_SCOPE_DENIED',
+        ),
+      );
+      await pump(tester);
+
+      await tester.tap(find.text('Subir ficha firmada'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Elegir un PDF'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Subir'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Reintentar'), findsOneWidget);
+      expect(auth.switchCalls, isEmpty, reason: 'does not leave the profile');
+    });
+
+    testWidgets('viewing the form asks for a fresh signed URL', (tester) async {
+      repo.detail = Right(_detail(evidence: true));
+      await pump(tester);
+
+      await tester.tap(find.text('Ver ficha subida'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(repo.evidenceReads, ['ana-1']);
+      final viewer = tester.widget<SacImageViewer>(find.byType(SacImageViewer));
+      expect(viewer.allowShare, isFalse);
+      expect(viewer.cacheNetwork, isFalse);
+    });
+
+    testWidgets('a missing form explains it instead of opening a viewer',
+        (tester) async {
+      repo.detail = Right(_detail(evidence: true));
+      repo.evidenceAccess = const Left(
+        ServerFailure(
+          message: 'x',
+          code: 404,
+          errorCode: 'GUARDIANSHIP_EVIDENCE_NOT_FOUND',
+        ),
+      );
+      await pump(tester);
+
+      await tester.tap(find.text('Ver ficha subida'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(
+        find.text('Aún no se ha subido la ficha de consentimiento firmada.'),
+        findsOneWidget,
+      );
+      expect(find.byType(SacImageViewer), findsNothing);
+    });
+  });
+
   group('view as', () {
     testWidgets('switches to the dependent', (tester) async {
       repo.detail = Right(_detail());
@@ -384,4 +563,21 @@ void main() {
       );
     });
   });
+}
+
+/// Emula al servidor: subir la ficha marca `evidence_uploaded` en el detalle,
+/// pero el consentimiento sigue pendiente.
+class _EvidenceRepo extends FakeFamilyRepository {
+  @override
+  Future<Either<Failure, ConsentEvidenceReceipt>> uploadConsentEvidence({
+    required String dependentId,
+    required ConsentEvidenceLocalFile file,
+  }) async {
+    final result = await super.uploadConsentEvidence(
+      dependentId: dependentId,
+      file: file,
+    );
+    detail = Right(_detail(evidence: true));
+    return result;
+  }
 }

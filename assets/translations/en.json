@@ -5350,7 +5350,11 @@
       "remove_title": "Remove {name} as a guardian?",
       "remove_body": "This person will no longer be able to see or manage the minor.",
       "remove_confirm": "Remove",
-      "removed": "Guardian removed"
+      "removed": "Guardian removed",
+      "form_title": "Consent form",
+      "form_hint": "Print and sign the club form, then upload it here as a photo or PDF. The club director will verify it.",
+      "form_view": "View uploaded form",
+      "form_uploaded_toast": "Form uploaded. Waiting for the director's verification."
     },
     "outcome": {
       "other_guardian": "Another guardian will remain in charge of {name}.",

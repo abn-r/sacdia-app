@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 
+import '../../../core/consent/consent_error_messages.dart';
 import '../../../core/errors/failures.dart';
 
 /// Códigos de negocio del backend → llave de traducción `errors.*`.
@@ -32,7 +33,8 @@ const Set<String> familyErrorCodes = {
 
 /// Llave `errors.*` de un código, o `null` si no es uno de Mi familia.
 String? familyErrorKey(String? code) {
-  if (code == null || !familyErrorCodes.contains(code)) return null;
+  if (code == null) return null;
+  if (!familyErrorCodes.contains(code)) return consentErrorKey(code);
   return 'errors.${code.toLowerCase()}';
 }
 

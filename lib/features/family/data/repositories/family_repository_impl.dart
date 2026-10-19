@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 
+import '../../../../core/consent/consent_evidence.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/dependent.dart';
@@ -82,4 +83,22 @@ class FamilyRepositoryImpl implements FamilyRepository {
   @override
   Future<Either<Failure, List<DeletionImpactEntry>>> deletionImpact() =>
       _guard(remoteDataSource.deletionImpact);
+
+  @override
+  Future<Either<Failure, ConsentEvidenceReceipt>> uploadConsentEvidence({
+    required String dependentId,
+    required ConsentEvidenceLocalFile file,
+  }) =>
+      _guard(
+        () => remoteDataSource.uploadConsentEvidence(
+          dependentId: dependentId,
+          file: file,
+        ),
+      );
+
+  @override
+  Future<Either<Failure, ConsentEvidenceAccess>> getConsentEvidence(
+    String dependentId,
+  ) =>
+      _guard(() => remoteDataSource.getConsentEvidence(dependentId));
 }

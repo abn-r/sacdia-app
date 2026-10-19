@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sacdia_app/core/consent/consent_evidence.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
@@ -65,11 +66,29 @@ class FakeFamilyRepository implements FamilyRepository {
     RevokeResult(guardianshipId: 'gs-1', outcome: DependentOutcome.frozen),
   );
   Either<Failure, List<DeletionImpactEntry>> impact = const Right([]);
+  Either<Failure, ConsentEvidenceReceipt> evidenceUploaded = Right(
+    ConsentEvidenceReceipt(
+      evidenceId: 'ev-1',
+      contentType: 'application/pdf',
+      sizeBytes: 1234,
+      uploadedAt: DateTime.utc(2026, 10, 19, 12),
+    ),
+  );
+  Either<Failure, ConsentEvidenceAccess> evidenceAccess = Right(
+    ConsentEvidenceAccess(
+      url: 'https://signed.example.com/form.jpg',
+      expiresIn: 900,
+      contentType: 'image/jpeg',
+      uploadedAt: DateTime.utc(2026, 10, 19, 12),
+    ),
+  );
 
   final createInputs = <CreateDependentInput>[];
   final redeemCalls = <({String code, String relationshipTypeId})>[];
   final revokeCalls = <({String guardianshipId, bool removedByPrimary})>[];
   final issueCalls = <String>[];
+  final evidenceUploads = <({String dependentId, String fileName})>[];
+  final evidenceReads = <String>[];
   int listCalls = 0;
 
   @override
@@ -121,6 +140,23 @@ class FakeFamilyRepository implements FamilyRepository {
   @override
   Future<Either<Failure, List<DeletionImpactEntry>>> deletionImpact() async =>
       impact;
+
+  @override
+  Future<Either<Failure, ConsentEvidenceReceipt>> uploadConsentEvidence({
+    required String dependentId,
+    required ConsentEvidenceLocalFile file,
+  }) async {
+    evidenceUploads.add((dependentId: dependentId, fileName: file.name));
+    return evidenceUploaded;
+  }
+
+  @override
+  Future<Either<Failure, ConsentEvidenceAccess>> getConsentEvidence(
+    String dependentId,
+  ) async {
+    evidenceReads.add(dependentId);
+    return evidenceAccess;
+  }
 }
 
 /// `AuthNotifier` fijo que registra los cambios de perfil.

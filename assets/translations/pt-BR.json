@@ -5348,7 +5348,11 @@
       "remove_title": "Remover {name} como responsável?",
       "remove_body": "Esta pessoa não poderá mais ver nem gerenciar o menor.",
       "remove_confirm": "Remover",
-      "removed": "Responsável removido"
+      "removed": "Responsável removido",
+      "form_title": "Ficha de consentimento",
+      "form_hint": "Imprima e assine a ficha do clube; depois envie aqui como foto ou PDF. O diretor do clube a verificará.",
+      "form_view": "Ver ficha enviada",
+      "form_uploaded_toast": "Ficha enviada. Aguardando a verificação do diretor."
     },
     "outcome": {
       "other_guardian": "Outro responsável continuará cuidando de {name}.",

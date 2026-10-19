@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/consent/consent_evidence.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../../../providers/dio_provider.dart';
@@ -12,12 +13,14 @@ import '../../data/repositories/family_repository_impl.dart';
 import '../../domain/entities/dependent.dart';
 import '../../domain/repositories/family_repository.dart';
 import '../../domain/usecases/create_dependent.dart';
+import '../../domain/usecases/get_consent_evidence.dart';
 import '../../domain/usecases/get_deletion_impact.dart';
 import '../../domain/usecases/get_dependent_detail.dart';
 import '../../domain/usecases/issue_link_code.dart';
 import '../../domain/usecases/list_dependents.dart';
 import '../../domain/usecases/redeem_link_code.dart';
 import '../../domain/usecases/revoke_guardianship.dart';
+import '../../domain/usecases/upload_consent_evidence.dart';
 
 // ── Infraestructura ──────────────────────────────────────────────────────────
 
@@ -54,6 +57,14 @@ final revokeGuardianshipUseCaseProvider = Provider<RevokeGuardianship>(
 );
 final getDeletionImpactUseCaseProvider = Provider<GetDeletionImpact>(
   (ref) => GetDeletionImpact(ref.read(familyRepositoryProvider)),
+);
+final uploadGuardianConsentEvidenceUseCaseProvider =
+    Provider<UploadGuardianConsentEvidence>(
+  (ref) => UploadGuardianConsentEvidence(ref.read(familyRepositoryProvider)),
+);
+final getGuardianConsentEvidenceUseCaseProvider =
+    Provider<GetGuardianConsentEvidence>(
+  (ref) => GetGuardianConsentEvidence(ref.read(familyRepositoryProvider)),
 );
 
 // ── Datos ────────────────────────────────────────────────────────────────────
@@ -129,6 +140,32 @@ class FamilyActions {
     final result = await _ref.read(revokeGuardianshipUseCaseProvider)(params);
     if (result.isRight()) _refreshFamily();
     return result;
+  }
+
+  /// Sube la ficha firmada del menor. Tras subirla refresca el detalle y la
+  /// lista (`evidence_uploaded`); el consentimiento sigue `pending` hasta que un
+  /// director lo verifique.
+  Future<Either<Failure, ConsentEvidenceReceipt>> uploadConsentEvidence(
+    String dependentId,
+    ConsentEvidenceLocalFile file,
+  ) async {
+    final result =
+        await _ref.read(uploadGuardianConsentEvidenceUseCaseProvider)(
+      UploadGuardianConsentEvidenceParams(dependentId: dependentId, file: file),
+    );
+    if (result.isRight()) {
+      _ref.invalidate(dependentDetailProvider(dependentId));
+      _ref.invalidate(dependentsProvider);
+    }
+    return result;
+  }
+
+  /// Ficha vigente con URL firmada. La URL caduca: se pide cada vez que se va a
+  /// mostrar y no se guarda.
+  Future<Either<Failure, ConsentEvidenceAccess>> getConsentEvidence(
+    String dependentId,
+  ) {
+    return _ref.read(getGuardianConsentEvidenceUseCaseProvider)(dependentId);
   }
 
   void _refreshFamily() {

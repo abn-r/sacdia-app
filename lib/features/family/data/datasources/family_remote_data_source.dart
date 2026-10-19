@@ -1,8 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 
+import '../../../../core/consent/consent_evidence.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/network/api_error_mapper.dart';
 import '../../../../core/network/interceptors/auth_interceptor.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/dependent.dart';
@@ -31,6 +33,13 @@ abstract class FamilyRemoteDataSource {
   });
 
   Future<List<DeletionImpactEntry>> deletionImpact();
+
+  Future<ConsentEvidenceReceipt> uploadConsentEvidence({
+    required String dependentId,
+    required ConsentEvidenceLocalFile file,
+  });
+
+  Future<ConsentEvidenceAccess> getConsentEvidence(String dependentId);
 }
 
 class FamilyRemoteDataSourceImpl implements FamilyRemoteDataSource {
@@ -61,53 +70,6 @@ class FamilyRemoteDataSourceImpl implements FamilyRemoteDataSource {
   bool _isOk(Response<dynamic> r) =>
       r.statusCode != null && r.statusCode! >= 200 && r.statusCode! < 300;
 
-  /// Convierte el error en una excepción tipada que conserva el `code` de
-  /// negocio. `details` no se lee nunca: el backend lo omite en producción.
-  Never _rethrow(Object e) {
-    if (e is AppException) throw e;
-    if (e is DioException) {
-      if (e.type == DioExceptionType.connectionError ||
-          e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.receiveTimeout ||
-          e.type == DioExceptionType.sendTimeout) {
-        throw ConnectionException(
-          message: e.message ?? tr('errors.connection_error'),
-          stackTrace: e.stackTrace,
-        );
-      }
-      // El ErrorInterceptor ya tradujo el error; si trae uno nuestro, se
-      // respeta su tipo pero se rescata el `code` de la respuesta.
-      throw _fromResponse(
-        e.response?.statusCode,
-        e.response?.data,
-        fallback: e.message,
-      );
-    }
-    throw ServerException(message: e.toString());
-  }
-
-  AppException _fromResponse(int? status, Object? data, {String? fallback}) {
-    String? message;
-    String? errorCode;
-    if (data is Map) {
-      message = data['message']?.toString();
-      errorCode = data['code']?.toString();
-    }
-    final resolved = message ?? fallback ?? tr('errors.server_error');
-    if (status == 401 || status == 403) {
-      return AuthException(
-        message: resolved,
-        code: status,
-        errorCode: errorCode,
-      );
-    }
-    return ServerException(
-      message: resolved,
-      code: status,
-      errorCode: errorCode,
-    );
-  }
-
   Future<T> _run<T>(
     String label,
     Future<Response<dynamic>> Function() request,
@@ -116,12 +78,12 @@ class FamilyRemoteDataSourceImpl implements FamilyRemoteDataSource {
     try {
       final response = await request();
       if (!_isOk(response)) {
-        throw _fromResponse(response.statusCode, response.data);
+        throw appExceptionFromResponse(response.statusCode, response.data);
       }
       return parse(_unwrap(response.data));
     } catch (e) {
       AppLogger.e('Error en $label', tag: _tag, error: e);
-      _rethrow(e);
+      rethrowApiError(e);
     }
   }
 
@@ -214,5 +176,37 @@ class FamilyRemoteDataSourceImpl implements FamilyRemoteDataSource {
         'deletionImpact',
         () => _dio.get('$_root/me/deletion-impact', options: _options),
         FamilyJson.deletionImpact,
+      );
+
+  @override
+  Future<ConsentEvidenceReceipt> uploadConsentEvidence({
+    required String dependentId,
+    required ConsentEvidenceLocalFile file,
+  }) =>
+      _run(
+        'uploadConsentEvidence',
+        () async => _dio.post(
+          '$_root/me/dependents/$dependentId/consent-evidence',
+          data: await file.toFormData(),
+          options: Options(
+            // Sin `X-Acting-For`: el tutor sube la ficha desde su perfil
+            // propio (la ruta no lleva ActingScope).
+            extra: const {AuthInterceptor.skipActingForKey: true},
+            headers: const {'Content-Type': 'multipart/form-data'},
+            sendTimeout: const Duration(minutes: 2),
+            receiveTimeout: const Duration(minutes: 2),
+          ),
+        ),
+        ConsentEvidenceJson.receipt,
+      );
+
+  @override
+  Future<ConsentEvidenceAccess> getConsentEvidence(String dependentId) => _run(
+        'getConsentEvidence',
+        () => _dio.get(
+          '$_root/me/dependents/$dependentId/consent-evidence',
+          options: _options,
+        ),
+        ConsentEvidenceJson.access,
       );
 }

@@ -5350,7 +5350,11 @@
       "remove_title": "¿Quitar a {name} como tutor?",
       "remove_body": "Esta persona dejará de poder ver y administrar al menor.",
       "remove_confirm": "Quitar",
-      "removed": "Tutor quitado"
+      "removed": "Tutor quitado",
+      "form_title": "Ficha de consentimiento",
+      "form_hint": "Imprime y firma la ficha del club; luego súbela aquí como foto o PDF. El director del club la verificará.",
+      "form_view": "Ver ficha subida",
+      "form_uploaded_toast": "Ficha subida. Esperando la verificación del director."
     },
     "outcome": {
       "other_guardian": "Otro tutor seguirá a cargo de {name}.",

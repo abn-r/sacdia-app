@@ -5348,7 +5348,11 @@
       "remove_title": "Retirer {name} comme tuteur ?",
       "remove_body": "Cette personne ne pourra plus voir ni gérer le mineur.",
       "remove_confirm": "Retirer",
-      "removed": "Tuteur retiré"
+      "removed": "Tuteur retiré",
+      "form_title": "Fiche de consentement",
+      "form_hint": "Imprimez et signez la fiche du club, puis téléversez-la ici en photo ou en PDF. Le directeur du club la vérifiera.",
+      "form_view": "Voir la fiche téléversée",
+      "form_uploaded_toast": "Fiche téléversée. En attente de la vérification du directeur."
     },
     "outcome": {
       "other_guardian": "Un autre tuteur restera responsable de {name}.",

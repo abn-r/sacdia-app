@@ -1,3 +1,4 @@
+import 'package:dartz/dartz.dart' show Either;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +7,10 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../../core/consent/consent_error_messages.dart';
+import '../../../../core/consent/consent_evidence.dart';
+import '../../../../core/consent/consent_evidence_uploader.dart';
+import '../../../../core/consent/consent_evidence_viewer.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -32,9 +37,16 @@ import '../widgets/profile_switcher_sheet.dart';
 /// Detalle de un menor: tutores, consentimiento, invitar a un segundo tutor y
 /// dejar la tutoría (FP-61).
 class DependentDetailView extends ConsumerStatefulWidget {
-  const DependentDetailView({super.key, required this.dependentId});
+  const DependentDetailView({
+    super.key,
+    required this.dependentId,
+    this.picker = const ConsentEvidencePicker(),
+  });
 
   final String dependentId;
+
+  /// Inyectable para probar sin los plugins de cámara/archivos.
+  final ConsentEvidencePicker picker;
 
   @override
   ConsumerState<DependentDetailView> createState() =>
@@ -117,6 +129,38 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
             },
           ),
         ],
+      ),
+    );
+  }
+
+  Future<Either<Failure, ConsentEvidenceReceipt>> _uploadForm(
+    ConsentEvidenceLocalFile file,
+  ) {
+    return ref
+        .read(familyActionsProvider)
+        .uploadConsentEvidence(widget.dependentId, file);
+  }
+
+  void _onFormUploaded(ConsentEvidenceReceipt receipt) {
+    _toast('family.detail.form_uploaded_toast'.tr());
+  }
+
+  /// Abre la ficha subida. La URL es firmada y caduca: se pide al tocar y no se
+  /// guarda en ningún lado.
+  Future<void> _viewForm() async {
+    setState(() => _busy = true);
+    final result = await ref
+        .read(familyActionsProvider)
+        .getConsentEvidence(widget.dependentId);
+    if (!mounted) return;
+    setState(() => _busy = false);
+
+    await result.fold(
+      (failure) async => _toast(consentErrorMessage(failure), isError: true),
+      (access) => openConsentEvidence(
+        context,
+        access,
+        title: 'family.detail.form_title'.tr(),
       ),
     );
   }
@@ -211,6 +255,10 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
         data: (data) => _Body(
           detail: data,
           busy: _busy,
+          picker: widget.picker,
+          onUploadForm: _uploadForm,
+          onFormUploaded: _onFormUploaded,
+          onViewForm: _viewForm,
           onViewAs: () => switchToDependent(context, ref, data.summary),
           onInvite: () => _invite(data),
           onLeave: (me) => _leave(data, me),
@@ -225,6 +273,10 @@ class _Body extends StatelessWidget {
   const _Body({
     required this.detail,
     required this.busy,
+    required this.picker,
+    required this.onUploadForm,
+    required this.onFormUploaded,
+    required this.onViewForm,
     required this.onViewAs,
     required this.onInvite,
     required this.onLeave,
@@ -233,6 +285,10 @@ class _Body extends StatelessWidget {
 
   final DependentDetail detail;
   final bool busy;
+  final ConsentEvidencePicker picker;
+  final ConsentUploadCallback onUploadForm;
+  final ValueChanged<ConsentEvidenceReceipt> onFormUploaded;
+  final VoidCallback onViewForm;
   final VoidCallback onViewAs;
   final VoidCallback onInvite;
   final void Function(DependentGuardian me) onLeave;
@@ -322,6 +378,17 @@ class _Body extends StatelessWidget {
             ],
           ),
         ),
+        if (!summary.frozen) ...[
+          const SizedBox(height: 20),
+          _ConsentFormCard(
+            guardianship: summary.guardianship,
+            busy: busy,
+            picker: picker,
+            onUpload: onUploadForm,
+            onUploaded: onFormUploaded,
+            onView: onViewForm,
+          ),
+        ],
         const SizedBox(height: 20),
         _SectionLabel(label: 'family.detail.guardians'.tr()),
         const SizedBox(height: 8),
@@ -376,6 +443,75 @@ class _Body extends StatelessWidget {
     return guardianship.evidenceUploaded
         ? 'family.detail.consent_form_uploaded'.tr()
         : 'family.detail.consent_pending'.tr();
+  }
+}
+
+/// Ficha de consentimiento firmada (FP-78).
+///
+/// El tutor puede subirla (foto, imagen o PDF) mientras el consentimiento está
+/// pendiente; NUNCA queda verificado por subirla: eso lo hace el director. Una
+/// vez verificado, solo se puede ver.
+class _ConsentFormCard extends StatelessWidget {
+  const _ConsentFormCard({
+    required this.guardianship,
+    required this.busy,
+    required this.picker,
+    required this.onUpload,
+    required this.onUploaded,
+    required this.onView,
+  });
+
+  final DependentGuardianship guardianship;
+  final bool busy;
+  final ConsentEvidencePicker picker;
+  final ConsentUploadCallback onUpload;
+  final ValueChanged<ConsentEvidenceReceipt> onUploaded;
+  final VoidCallback onView;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final textTheme = Theme.of(context).textTheme;
+
+    return SacCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'family.detail.form_title'.tr(),
+            style: textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: c.text,
+            ),
+          ),
+          if (!guardianship.isVerified) ...[
+            const SizedBox(height: 4),
+            Text(
+              'family.detail.form_hint'.tr(),
+              style: textTheme.bodySmall?.copyWith(color: c.textSecondary),
+            ),
+          ],
+          if (guardianship.evidenceUploaded) ...[
+            const SizedBox(height: 12),
+            SacButton.outline(
+              text: 'family.detail.form_view'.tr(),
+              icon: HugeIcons.strokeRoundedView,
+              onPressed: busy ? null : onView,
+            ),
+          ],
+          if (!guardianship.isVerified) ...[
+            const SizedBox(height: 12),
+            ConsentEvidenceUploader(
+              picker: picker,
+              hasExisting: guardianship.evidenceUploaded,
+              enabled: !busy,
+              onUpload: onUpload,
+              onUploaded: onUploaded,
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }
 

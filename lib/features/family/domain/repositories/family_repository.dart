@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 
+import '../../../../core/consent/consent_evidence.dart';
 import '../../../../core/errors/failures.dart';
 import '../entities/dependent.dart';
 
@@ -58,4 +59,19 @@ abstract class FamilyRepository {
   });
 
   Future<Either<Failure, List<DeletionImpactEntry>>> deletionImpact();
+
+  /// Sube la ficha de consentimiento firmada del menor (foto o PDF).
+  ///
+  /// Sin `X-Acting-For`. El tutor NO puede dejar el consentimiento verificado:
+  /// eso lo hace el director (FP-78).
+  Future<Either<Failure, ConsentEvidenceReceipt>> uploadConsentEvidence({
+    required String dependentId,
+    required ConsentEvidenceLocalFile file,
+  });
+
+  /// Ficha vigente con URL firmada (15 min). 404 `GUARDIANSHIP_EVIDENCE_NOT_FOUND`
+  /// si todavía no hay.
+  Future<Either<Failure, ConsentEvidenceAccess>> getConsentEvidence(
+    String dependentId,
+  );
 }
