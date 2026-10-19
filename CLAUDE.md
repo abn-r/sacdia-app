@@ -101,6 +101,72 @@ Google Maps en Android también requiere `android/secrets.properties` (ver `andr
 
 Hermano Dart de `sacdia-admin/src/lib/auth/screen-catalog/`. Entrada: `lib/core/authorization/`. Quick access, tabs Clases/Actividades y el router usan `canViewScreen(screenId)`. Paridad: `test/fixtures/screen-catalog.snapshot.json` vs `dumpAppCatalog()` en admin (`screen-catalog.app.test.ts`). Regenerar el fixture cuando cambie un gate `app` en TS y copiar el registro Dart.
 
+## Perfiles familiares (tutor y menores)
+
+Un tutor puede crear y gestionar perfiles de menores (sin cuenta propia) y "actuar por" ellos. Backend: guardas `acting-for` y módulo `guardianships` (ver `../sacdia-backend/src/common/guards/README.md`).
+
+### Actuar por (acting-for)
+
+- **Sesión solo en memoria**: `ActingForSession` (`lib/core/auth/acting_for_session.dart`, `actingForSessionProvider`). Nunca se escribe en disco: al matar la app siempre se arranca como el tutor. Lleva `generation`, que sube en cada `enter`/`exit`.
+- **Encabezado**: `X-Acting-For: <user_id del menor>` se inyecta SOLO en `AuthInterceptor.onRequest` (único punto). No lo añadas a mano en datasources.
+- **Exenciones**: `AuthInterceptor.actingForSkipPrefixes` (`/auth/refresh|logout|login|register`, `/guardianships`, `/fcm-tokens`, `/users/me/notification-preferences`, `/users/me/data-export`) nunca llevan el encabezado. Una llamada concreta lo omite con `Options(extra: {AuthInterceptor.skipActingForKey: true})`; `FamilyRemoteDataSourceImpl` lo hace en todas las llamadas a `/guardianships` (el tutor gestiona la familia como tutor).
+- **Token de generación**: `ActingGenerationInterceptor` sella cada petición con la generación vigente y rechaza como cancelación (`stale-acting-profile`) cualquier respuesta o error que llegue tras un cambio de perfil. Así los datos de Ana no llegan a la vista de Luis.
+- **`ActingErrorInterceptor`** (después del de generación, antes de `ErrorInterceptor`): ante `403 ACTING_FOR_FORBIDDEN` con `X-Acting-For` igual al menor vigente llama a `AuthNotifier.onActingForbidden` -> sale de actuar, vuelve al tutor y `ActingNoticeListener` muestra el aviso (`errors.acting_for_forbidden`). `ACTING_FOR_SCOPE_DENIED` pasa sin tocar: es un error de esa acción, no se sale del modo.
+- **Errores de negocio**: leer solo `code` (y `message`). NUNCA `details`: el backend lo omite en producción. Helper: `lib/core/errors/business_error.dart`.
+- **Cambio de perfil**: `AuthNotifier.switchProfile(id, {firstName})` devuelve `SwitchProfileOutcome`. Orden: foto del tutor, bandera `acting_dirty`, un bloque síncrono (`session.enter` + `purgeProfileScopeProviders` + `AsyncLoading`), purga de disco, `/auth/me` con el encabezado. Cualquier fallo vuelve al tutor (nunca cierra sesión ni restaura datos del menor desde caché). `switchProfile(null)` = salir.
+- **403 en `/auth/me` actuando**: el datasource NO borra tokens si la petición llevaba `X-Acting-For` (si no, un `ACTING_FOR_FORBIDDEN` cerraría la sesión del tutor).
+- **Mientras se actúa** no se cachea el usuario (`_cacheUser` es no-op), no se registra FCM ni se identifica en PostHog, y se ocultan sesiones, exportación de datos, cambio de contraseña y borrar cuenta (`actingDependentProvider`). `/family/**` redirige a home (`lib/core/config/acting_route_policy.dart`).
+- **Limpieza en arranque en frío**: la bandera `acting_dirty` (`kActingDirtyPrefsKey`, única huella en disco, no identifica a nadie) se pone a `true` al actuar y a `false` al volver con cachés purgados. Si al arrancar sigue en `true` (la app murió actuando) y hay sesión, `AuthNotifier.build` purga los cachés de disco del perfil antes de continuar. El logout también limpia sesión, aviso y bandera.
+- **Banner**: `ActingForBannerHost` se monta en el `builder` de `main.dart` ("Viendo como Ana") y cubre también el post-registro.
+- **Limitación de Riverpod 2.6**: `state = AsyncLoading()` conserva el valor previo, así que el aislamiento depende de `isLoading` + purga del registro + purga de disco, no de que `valueOrNull` sea null.
+
+### Registro de providers por perfil (regla obligatoria)
+
+Todo provider con `keepAlive()` bajo `lib/features/**/providers/*.dart` vive en `lib/core/providers/profile_scope_registry.dart`, en uno de dos sitios:
+
+1. `profileScopedKeepAliveEntries`: se invalida en cada cambio de perfil. Clave = símbolo que llama a `keepAlive()` (variable del provider, o nombre de la clase si se llama dentro de un notifier).
+2. `catalogKeepAliveAllowlist`: catálogos o estado transitorio que no dependen de quién pregunta.
+
+`test/core/providers/profile_scope_registry_test.dart` escanea el código y FALLA si aparece un `keepAlive()` que no esté en ninguno. Providers por perfil sin `keepAlive()` pero que no son `autoDispose` (p. ej. `unreadNotificationsCountProvider`) van en `_otherProfileScopedProviders`. La lista final es `profileScopedProviders` (más `userSpecificProviders`); `logout_cleanup.dart` la invalida entera.
+
+### Mi familia (`lib/features/family/`)
+
+Feature `data/domain/presentation` con 7 use cases (`list_dependents`, `get_dependent_detail`, `create_dependent`, `issue_link_code`, `redeem_link_code`, `revoke_guardianship`, `get_deletion_impact`). Los providers de la feature no usan `keepAlive`.
+
+| Ruta | Vista |
+| --- | --- |
+| `/family` (`RouteNames.family`) | `FamilyView`: lista de menores, cupo (`canAddMore`) y accionables (`actable`) |
+| `/family/add` | `AddDependentView` (paso 0) |
+| `/family/link` | `RedeemLinkCodeView`: canjear código de segundo tutor |
+| `/family/:dependentId` | `DependentDetailView`: tutores, consentimiento, código de invitación, salir/revocar |
+
+Entrada desde el perfil (`FamilyProfileEntry`, oculta al actuar); `FamilyPromptHost` pregunta una sola vez al completar el post-registro. Selector de perfil: `ProfileSwitcherSheet` + `switchToDependent`.
+
+### Alta de un menor
+
+1. **Paso 0** (`AddDependentView`): nombre, fecha de nacimiento, parentesco, declaración bajo protesta y aceptación de Términos/Privacidad EN NOMBRE del menor, con las versiones de `GET /legal/current` que el tutor vio. Los errores del servidor se mapean por `code` (`familyErrorKey`).
+2. Al crearlo, la app llama `switchToDependent` y el router lleva al post-registro (pasos 1-3) YA actuando por el menor. El tutor completa el post-registro del menor; no hay paso de representante legal (se eliminó `LegalRepresentativeView`; el backend solo expone GET).
+
+### Salida solo como tutor (guardian-only)
+
+`GuardianOnlyExit` (`lib/features/post_registration/presentation/widgets/`): un adulto sin club puede terminar el post-registro como "solo tutor" (`POST .../step-3/guardian-only`). Oculto si se actúa por un menor o si `user.actingFor != null`, y no se muestra en traslado de club. Éxito: marca el post-registro completo, va a home y abre `/family` (suprime una vez `FamilyPromptHost`). `422 POST_REG_GUARDIAN_ONLY_REQUIRES_ADULT` se traduce por `code`.
+
+### Control de edad en el registro
+
+`RegisterView` exige fecha de nacimiento (se envía `YYYY-MM-DD`). Compuerta local `< 13` (`registration_age_gate.dart`, `kDefaultMinSelfLoginAge`) muestra `_AgeGatePanel` sin llamar a la API; el mínimo por país solo lo aplica el servidor (`AUTH_REGISTRATION_AGE_BELOW_MINIMUM`, publicado como `RegistrationAgeBelowMinimum`). Usa `Localizations.localeOf(context)` (no `context.locale`, que lanza si EasyLocalization no está montado).
+
+### Borrar cuenta con dependientes
+
+`DeleteAccountFlow` consulta `deletionImpactProvider` y muestra `DeleteAccountDependentsDialog` ANTES de pedir la contraseña, con el destino de cada menor (transferido, custodia, congelado). El backend verifica la contraseña antes del `acknowledge_dependents`, así que `409 AUTH_DELETE_DEPENDENTS_ACK_REQUIRED` solo llega con contraseña válida: se vuelve a mostrar la advertencia con la lista fresca y se reintenta (máx. 2) con `acknowledge_dependents: true`. Si el impacto no carga no se bloquea: el servidor decide.
+
+### Push de un menor
+
+El servidor reenvía al tutor los push del menor (`data.dependent_user_id`, título "Ana · ..."). `DependentPushTapHandler` (`lib/core/notifications/`): espera la sesión del tutor, relee `GET /guardianships/me/dependents` (sin `X-Acting-For`) y exige que el menor esté en `actable`; si no, avisa (`family.push.unavailable`) y NO cambia de perfil. Si ya se actúa por ese menor solo navega. Si no, diálogo "Esta notificación es de Ana. ¿Cambiar a su perfil?" y, al aceptar, `switchProfile` con el id de la lista (el id del payload solo se compara, nunca se usa para actuar). En primer plano estos push no suman al contador ni invalidan el inbox del tutor (pertenecen al inbox del menor).
+
+### i18n: paridad de traducciones
+
+`test/core/l10n/translation_parity_test.dart` exige que en, fr y pt-BR tengan exactamente las llaves de es (solo 2 huecos históricos permitidos en `_knownGaps`: no añadir más), sin textos vacíos, mismos placeholders en `family.*`/`errors.*`, y una traducción `errors.<code en minúsculas>` por cada código de Fase 2 (`_phase2ErrorCodes`). Al añadir un código de error del backend, agrégalo a esa lista y a los 4 idiomas.
+
 ## CI y deployment
 
 - GitHub Actions (`.github/workflows/ci.yml`) en push/PR a `development`, `preproduction` y `main`: `dart format`, `flutter analyze`, `flutter test` y build Android (APK; AAB firmado y ofuscado cuando existen los secrets del keystore, con símbolos subidos a Sentry).
