@@ -9,11 +9,11 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
-import '../../../../core/widgets/sac_dropdown_field.dart';
 import '../../../../core/widgets/sac_snack_bar.dart';
 import '../../../../core/widgets/sac_text_field.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../profile/presentation/views/edit_profile_view.dart';
+import '../../../post_registration/presentation/widgets/relationship_type_picker_field.dart';
 import '../../domain/usecases/redeem_link_code.dart';
 import '../family_error_messages.dart';
 import '../providers/family_providers.dart';
@@ -138,20 +138,14 @@ class _RedeemLinkCodeViewState extends ConsumerState<RedeemLinkCodeView> {
                           color: AppColors.error,
                         ),
                   ),
-                  data: (types) => SacDropdownField<String>(
-                    value: _relationshipTypeId,
+                  data: (types) => RelationshipTypePickerField(
+                    selectedId: _relationshipTypeId,
+                    relationshipTypes: types,
                     label: 'family.add.relationship'.tr(),
-                    hint: 'family.add.relationship_hint'.tr(),
-                    prefixIcon: HugeIcons.strokeRoundedUserLove01,
-                    items: [
-                      for (final type in types)
-                        DropdownMenuItem(
-                            value: type.id, child: Text(type.name)),
-                    ],
-                    validator: (v) => v == null
-                        ? 'family.add.relationship_required'.tr()
-                        : null,
-                    onChanged: (v) => setState(() => _relationshipTypeId = v),
+                    placeholder: 'family.add.relationship_hint'.tr(),
+                    errorText: 'family.add.relationship_required'.tr(),
+                    onSelected: (id) =>
+                        setState(() => _relationshipTypeId = id),
                   ),
                 ),
                 const SizedBox(height: 16),

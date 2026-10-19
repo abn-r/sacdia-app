@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/features/post_registration/presentation/widgets/relationship_type_picker_field.dart';
 import 'package:sacdia_app/features/family/presentation/views/add_dependent_view.dart';
 
 import 'family_test_harness.dart';
@@ -50,7 +51,7 @@ void main() {
       await tester.tap(find.text(ok));
       await tester.pumpAndSettle();
     }
-    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.tap(find.byType(RelationshipTypePickerField));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Madre').last);
     await tester.pumpAndSettle();
@@ -106,13 +107,30 @@ void main() {
     await pump(tester);
 
     expect(find.text('Tu parentesco con el menor'), findsOneWidget);
-    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.tap(find.byType(RelationshipTypePickerField));
     await tester.pumpAndSettle();
 
     expect(find.text('Madre'), findsWidgets);
     expect(find.text('Padre'), findsWidgets);
     expect(find.text('Primo'), findsNothing,
         reason: 'the full /catalogs list must not reach the family picker');
+  });
+
+  testWidgets(
+      'the relationship picker is the searchable bottom sheet, '
+      'not a Material dropdown', (tester) async {
+    await pump(tester);
+
+    expect(find.byType(DropdownButtonFormField<String>), findsNothing);
+    expect(find.text('Soy su…'), findsOneWidget);
+    await tester.tap(find.byType(RelationshipTypePickerField));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RelationshipTypePickerSheet), findsOneWidget);
+    await tester.enterText(find.byType(TextField).last, 'pad');
+    await tester.pumpAndSettle();
+    expect(find.text('Padre'), findsOneWidget);
+    expect(find.text('Madre'), findsNothing);
   });
 
   testWidgets('relationship type not allowed shows the translated message',

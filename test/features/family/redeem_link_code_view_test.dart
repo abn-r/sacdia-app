@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/features/post_registration/presentation/widgets/relationship_type_picker_field.dart';
 import 'package:sacdia_app/features/family/presentation/views/redeem_link_code_view.dart';
 
 import 'family_test_harness.dart';
@@ -47,7 +48,7 @@ void main() {
 
   Future<void> fill(WidgetTester tester, {String code = '7kq4-m9tx'}) async {
     await tester.enterText(find.byType(TextFormField).first, code);
-    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.tap(find.byType(RelationshipTypePickerField));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Madre').last);
     await tester.pumpAndSettle();
@@ -60,7 +61,7 @@ void main() {
     await pump(tester);
 
     expect(find.text('Tu parentesco con el menor'), findsOneWidget);
-    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.tap(find.byType(RelationshipTypePickerField));
     await tester.pumpAndSettle();
 
     expect(find.text('Madre'), findsWidgets);
