@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/datasources/personal_info_remote_data_source.dart';
+import '../../data/health_none_disk_cache.dart';
 import '../../data/models/emergency_contact_model.dart';
 import '../../data/models/allergy_model.dart';
 import '../../data/models/disease_model.dart';
@@ -147,8 +148,6 @@ final healthNoneStateProvider =
 
 class HealthNoneStateNotifier
     extends AutoDisposeAsyncNotifier<HealthNoneState> {
-  static const _prefix = 'post_registration.health_none';
-
   @override
   Future<HealthNoneState> build() async {
     final userId = await ref.watch(
@@ -192,7 +191,7 @@ class HealthNoneStateNotifier
   }
 
   static String _key(String userId, HealthNoneCategory category) {
-    return '$_prefix.$userId.${category.name}';
+    return healthNoneKey(userId, category.name);
   }
 }
 

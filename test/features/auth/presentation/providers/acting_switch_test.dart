@@ -277,6 +277,35 @@ void main() {
       expect(prefs.getString('unrelated_key'), 'keep');
     });
 
+    test('entering and exiting purge every non-guardian health_none flag (W1)',
+        () async {
+      await boot();
+      const scope = 'post_registration.health_none';
+      await prefs.setBool('$scope.guardian-1.allergies', true);
+      await prefs.setBool('$scope.ana-1.allergies', true);
+      await prefs.setBool('$scope.luis-1.medicines', true);
+      await prefs.setString('unrelated_key', 'keep');
+
+      await notifier().switchProfile('ana-1');
+      expect(
+        prefs.getKeys().where((k) => k.startsWith(scope)).toSet(),
+        {'$scope.guardian-1.allergies'},
+        reason: 'entering drops every dependent flag, keeps the guardian own',
+      );
+
+      // El paso 2 escribe mientras se actúa (para que funcione la sesión)...
+      await prefs.setBool('$scope.ana-1.diseases', true);
+      // ...y al salir no puede quedar rastro del menor.
+      await notifier().switchProfile(null);
+      await container.read(authNotifierProvider.future);
+      expect(
+        prefs.getKeys().where((k) => k.startsWith(scope)).toSet(),
+        {'$scope.guardian-1.allergies'},
+        reason: 'exiting drops the dependent flags written while acting',
+      );
+      expect(prefs.getString('unrelated_key'), 'keep');
+    });
+
     test('exiting to the guardian lowers the flag and drops the snapshot',
         () async {
       await boot();
@@ -604,6 +633,69 @@ void main() {
       expect(prefs.getString('virtual_card_cache_ana-1'), isNull);
     });
 
+    test(
+        'acting_dirty on launch purges dependent health_none flags but keeps '
+        "the guardian's (W1)", () async {
+      SharedPreferences.setMockInitialValues({
+        kActingDirtyPrefsKey: true,
+        'post_registration.health_none.ana-1.allergies': true,
+        'post_registration.health_none.guardian-1.allergies': true,
+      });
+      prefs = await SharedPreferences.getInstance();
+      storage = FakeSecureStorage();
+      await storage.write(AppConstants.cachedUserId, 'guardian-1');
+      diskCache = MemoryJsonFileCache();
+      repo = _ProfileRepo(
+        () => container.read(actingForSessionProvider).dependentUserId,
+        _byId,
+      );
+      container = await buildAuthContainer(
+        repo: repo,
+        storage: storage,
+        prefs: prefs,
+        extraOverrides: [jsonFileCacheProvider.overrideWithValue(diskCache)],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(authNotifierProvider.future);
+
+      expect(
+        prefs.getKeys().where((k) => k.startsWith('post_registration.')),
+        {'post_registration.health_none.guardian-1.allergies'},
+      );
+    });
+
+    test(
+        'acting_dirty on launch with no cached guardian purges every '
+        'health_none flag (conservative)', () async {
+      SharedPreferences.setMockInitialValues({
+        kActingDirtyPrefsKey: true,
+        'post_registration.health_none.ana-1.allergies': true,
+        'post_registration.health_none.someone.allergies': true,
+      });
+      prefs = await SharedPreferences.getInstance();
+      storage = FakeSecureStorage();
+      diskCache = MemoryJsonFileCache();
+      repo = _ProfileRepo(
+        () => container.read(actingForSessionProvider).dependentUserId,
+        _byId,
+      );
+      container = await buildAuthContainer(
+        repo: repo,
+        storage: storage,
+        prefs: prefs,
+        extraOverrides: [jsonFileCacheProvider.overrideWithValue(diskCache)],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(authNotifierProvider.future);
+
+      expect(
+        prefs.getKeys().where((k) => k.startsWith('post_registration.')),
+        isEmpty,
+      );
+    });
+
     test('a clean flag leaves the caches alone', () async {
       await boot();
       await diskCache.write(userClassesCacheKey('guardian-1'), {'c': 1});
@@ -675,6 +767,28 @@ void main() {
         prefs.getKeys().where((k) => k.startsWith('virtual_card_cache_')),
         isEmpty,
       );
+    });
+
+    test('logout cleanup purges ALL health_none flags, guardian included (W1)',
+        () async {
+      await boot();
+      await notifier().switchProfile('ana-1');
+      await prefs.setBool(
+          'post_registration.health_none.ana-1.allergies', true);
+      await prefs.setBool(
+        'post_registration.health_none.guardian-1.allergies',
+        true,
+      );
+      await prefs.setString('unrelated_key', 'keep');
+
+      container.read(_cleanupInvoker)();
+      await pumpEventQueue();
+
+      expect(
+        prefs.getKeys().where((k) => k.startsWith('post_registration.')),
+        isEmpty,
+      );
+      expect(prefs.getString('unrelated_key'), 'keep');
     });
 
     test('the next login after a logout while acting starts as guardian',

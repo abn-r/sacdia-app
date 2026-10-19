@@ -212,7 +212,11 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     final prefs = ref.read(sharedPreferencesProvider);
     if (prefs.getBool(kActingDirtyPrefsKey) != true || _isActing) return;
     AppLogger.w('Arranque tras morir actuando: purgando cachés', tag: _tag);
-    await purgeProfileScopeDiskCaches(ref);
+    // `cachedUserId` solo se escribe como tutor (`_cacheUser` no corre
+    // actuando): es el único usuario cuyas marcas de salud se conservan.
+    final guardianId =
+        await ref.read(secureStorageProvider).read(AppConstants.cachedUserId);
+    await purgeProfileScopeDiskCaches(ref, guardianUserId: guardianId);
     await _setActingDirty(false);
   }
 
@@ -224,6 +228,9 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   Future<int> _abandonActing({ActingNotice? notice}) async {
     final epoch = ++_switchEpoch;
     final wasActing = _session.isActing;
+    // El id del tutor se toma ANTES de soltar su foto: la purga de disco
+    // conserva solo sus marcas de salud.
+    final guardianId = ref.read(guardianUserProvider)?.id;
     _session.exit();
     ref.read(guardianUserProvider.notifier).state = null;
     if (notice != null) {
@@ -231,7 +238,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     }
     if (!wasActing) return epoch;
     purgeProfileScopeProviders(ref);
-    await purgeProfileScopeDiskCaches(ref);
+    await purgeProfileScopeDiskCaches(ref, guardianUserId: guardianId);
     await _setActingDirty(false);
     return epoch;
   }
@@ -867,7 +874,10 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     purgeProfileScopeProviders(ref);
     state = const AsyncLoading();
 
-    await purgeProfileScopeDiskCaches(ref);
+    await purgeProfileScopeDiskCaches(
+      ref,
+      guardianUserId: ref.read(guardianUserProvider)?.id,
+    );
     if (epoch != _switchEpoch) return SwitchProfileOutcome.superseded;
 
     final result = await ref.read(getCurrentUserProvider)(NoParams());
