@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/auth/acting_for_session.dart';
 import '../../../../core/utils/birthday_utils.dart';
 import '../../../../providers/storage_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -50,8 +51,12 @@ class BirthdayCelebrationNotifier
     final key = current?.dismissalKey;
     if (key == null) return;
 
-    final prefs = ref.read(sharedPreferencesProvider);
-    await prefs.setBool(key, true);
+    // Actuando por un menor la bandera no se escribe en disco (FP-49): el
+    // aviso queda descartado solo en memoria, mientras dure el perfil.
+    if (!ref.read(actingForSessionProvider).isActing) {
+      final prefs = ref.read(sharedPreferencesProvider);
+      await prefs.setBool(key, true);
+    }
     state = AsyncValue.data(
       BirthdayCelebrationState(
         isBirthday: current!.isBirthday,
