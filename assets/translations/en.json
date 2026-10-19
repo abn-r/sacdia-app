@@ -155,7 +155,15 @@
       "other": "{} days ago"
     },
     "accessibility_tile": "Accessibility",
-    "open_document_failed": "We couldn't open this document."
+    "open_document_failed": "We couldn't open this document.",
+    "delete_account": {
+      "dependents": {
+        "title": "You have minors in your care",
+        "intro": "If you delete your account, this is what will happen to each minor:",
+        "ack": "I understand what will happen to the minors in my care",
+        "continue": "Continue"
+      }
+    }
   },
   "accessibility": {
     "title": "Accessibility",
@@ -239,6 +247,18 @@
       "retry": "Retry",
       "open_failed": "The document could not be opened. Please try again.",
       "consent_semantics": "Accept the Terms and Conditions and the Privacy Notice"
+    },
+    "register": {
+      "birthday_label": "Date of birth",
+      "birthday_hint": "Select your date of birth",
+      "birthday_required": "Select your date of birth",
+      "age_gate": {
+        "title": "You can't create an account yet",
+        "message": "Ask your guardian to register you from My family.",
+        "hint": "An adult can add you from the My family section of their profile.",
+        "fix": "Correct date of birth",
+        "back": "Back"
+      }
     }
   },
   "legal_gate": {

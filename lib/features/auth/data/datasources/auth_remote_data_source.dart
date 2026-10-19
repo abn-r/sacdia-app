@@ -38,6 +38,7 @@ abstract class AuthRemoteDataSource {
     required String maternalSurname,
     required String acceptedTermsVersion,
     required String acceptedPrivacyVersion,
+    String? birthday,
   });
 
   /// Cierra la sesión del usuario
@@ -543,6 +544,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String maternalSurname,
     required String acceptedTermsVersion,
     required String acceptedPrivacyVersion,
+    String? birthday,
   }) async {
     try {
       AppLogger.i('Registro iniciado', tag: _tag);
@@ -556,11 +558,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'maternal_last_name': maternalSurname,
         'accepted_terms_version': acceptedTermsVersion,
         'accepted_privacy_version': acceptedPrivacyVersion,
+        if (birthday != null) 'birthday': birthday,
       });
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw AuthException(
           message: response.data['message'] ?? tr('errors.register_failed'),
+          errorCode: response.data['code']?.toString(),
         );
       }
 
@@ -603,7 +607,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         final message = e.response?.data?['message'] ??
             e.message ??
             tr('common.error_network');
-        throw AuthException(message: message);
+        // Solo `code`: `details` no existe en producción (ruling #11528).
+        final data = e.response?.data;
+        throw AuthException(
+          message: message,
+          code: e.response?.statusCode,
+          errorCode: data is Map ? data['code']?.toString() : null,
+        );
       }
       if (e is AuthException) rethrow;
       throw AuthException(message: e.toString());
@@ -927,6 +937,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       throw AuthException(
         message: _deleteAccountErrorMessage(e, reauth, status, errorCode),
         code: status,
+        errorCode: errorCode,
       );
     } on AuthException {
       rethrow;
@@ -965,6 +976,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
 
     if (status == 429) return tr('errors.too_many_attempts');
+
+    // Tutor con menores a cargo que aún no aceptó el aviso (409). La app lo
+    // pide antes, así que solo llega si cambió algo entremedias.
+    if (errorCode == kDeleteDependentsAckRequiredCode) {
+      return tr('errors.auth_delete_dependents_ack_required');
+    }
 
     // Reautenticación rechazada: contraseña incorrecta o idToken inválido /
     // identidad no vinculada a esta cuenta. Un 401/403 sin `code` se trata igual.

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_picker_field.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/auth/presentation/views/register_view.dart';
@@ -65,6 +66,7 @@ class _RecordingAuthNotifier extends AuthNotifier {
     required String maternalSurname,
     required String acceptedTermsVersion,
     required String acceptedPrivacyVersion,
+    String? birthday,
   }) async {
     sent.add((terms: acceptedTermsVersion, privacy: acceptedPrivacyVersion));
     state = AsyncValue.error('boom', StackTrace.current);
@@ -118,6 +120,11 @@ Future<void> _fillForm(WidgetTester tester) async {
   await tester.enterText(fields.at(4), 'Password123');
   await tester.enterText(fields.at(5), 'Password123');
   await tester.pump();
+  // Fecha de nacimiento obligatoria: el selector abre en hace 18 años.
+  await tester.tap(find.byType(SacPickerField));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('OK'));
+  await tester.pumpAndSettle();
 }
 
 SacButton _registerButton(WidgetTester tester) => tester.widget<SacButton>(

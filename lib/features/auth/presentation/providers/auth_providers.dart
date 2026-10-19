@@ -19,6 +19,7 @@ import '../../domain/entities/authorization_snapshot.dart';
 import '../../domain/entities/delete_account_reauth.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../domain/utils/registration_age_gate.dart';
 import '../../domain/usecases/get_current_user.dart';
 import '../../domain/usecases/reset_password_request.dart';
 import '../../domain/usecases/sign_in.dart';
@@ -596,6 +597,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     required String maternalSurname,
     required String acceptedTermsVersion,
     required String acceptedPrivacyVersion,
+    String? birthday,
   }) async {
     state = const AsyncValue.loading();
 
@@ -608,11 +610,19 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         maternalSurname: maternalSurname,
         acceptedTermsVersion: acceptedTermsVersion,
         acceptedPrivacyVersion: acceptedPrivacyVersion,
+        birthday: birthday,
       ),
     );
 
     state = result.fold(
       (failure) {
+        // Menor del mínimo: el formulario muestra la pantalla de bloqueo.
+        if (failure.errorCode == kRegistrationAgeBelowMinimumCode) {
+          return AsyncValue.error(
+            const RegistrationAgeBelowMinimum(),
+            StackTrace.current,
+          );
+        }
         final errorMessage = failure is AuthFailure
             ? failure.message
             : 'auth.errors.sign_up_failed'.tr();
@@ -962,8 +972,11 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   ///  2. En éxito limpia FCM y todo el storage local y pone state = null.
   ///     En fallo no toca nada: el usuario sigue con sesión y push activo.
   ///
-  /// Retorna null en éxito o un mensaje de error localizado.
-  Future<String?> deleteAccount(DeleteAccountReauth reauth) async {
+  /// Retorna el resultado con el mensaje de error localizado y el código de
+  /// negocio del backend (p. ej. `AUTH_DELETE_DEPENDENTS_ACK_REQUIRED`).
+  Future<DeleteAccountResult> deleteAccountWithResult(
+    DeleteAccountReauth reauth,
+  ) async {
     AppLogger.i('Iniciando eliminación de cuenta', tag: _tag);
 
     // Confirmación biométrica antes de cualquier efecto destructivo
@@ -974,18 +987,23 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     );
     if (!bioOk) {
       AppLogger.w('Delete account cancelado por biometría', tag: _tag);
-      return 'auth.errors.operation_cancelled'.tr();
+      return DeleteAccountResult(
+        errorMessage: 'auth.errors.operation_cancelled'.tr(),
+      );
     }
 
     final result = await ref.read(authRepositoryProvider).deleteAccount(reauth);
 
-    return result.fold<Future<String?>>(
+    return result.fold<Future<DeleteAccountResult>>(
       (failure) async {
         final msg = failure is AuthFailure
             ? failure.message
             : 'auth.errors.delete_account_failed'.tr();
         AppLogger.w('Delete account fallido: $msg', tag: _tag);
-        return msg;
+        return DeleteAccountResult(
+          errorMessage: msg,
+          errorCode: failure.errorCode,
+        );
       },
       (_) async {
         AppLogger.i('Cuenta eliminada correctamente', tag: _tag);
@@ -1024,10 +1042,15 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
 
         ref.read(unreadNotificationsCountProvider.notifier).setZero();
         state = const AsyncValue.data(null);
-        return null;
+        return const DeleteAccountResult.success();
       },
     );
   }
+
+  /// Igual que [deleteAccountWithResult] pero solo devuelve el mensaje de error
+  /// (`null` si se borró la cuenta).
+  Future<String?> deleteAccount(DeleteAccountReauth reauth) async =>
+      (await deleteAccountWithResult(reauth)).errorMessage;
 
   /// Proveedores sociales vinculados, para ofrecer la confirmación sin
   /// contraseña al borrar la cuenta. Lista vacía si la consulta falla.

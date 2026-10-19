@@ -134,4 +134,38 @@ void main() {
       expect(push.unregisterCalls, 0);
     },
   );
+
+  test('deleteAccountWithResult exposes the business code of the failure',
+      () async {
+    final repo = _DeleteRepo(
+      deleteResult: const Left(
+        AuthFailure(
+          message: 'Confirma qué pasará con los menores',
+          code: 409,
+          errorCode: 'AUTH_DELETE_DEPENDENTS_ACK_REQUIRED',
+        ),
+      ),
+    );
+    final container = await build(repo);
+
+    final result = await container
+        .read(authNotifierProvider.notifier)
+        .deleteAccountWithResult(const PasswordReauth('pw'));
+
+    expect(result.isSuccess, isFalse);
+    expect(result.needsDependentsAck, isTrue);
+    expect(result.errorMessage, 'Confirma qué pasará con los menores');
+  });
+
+  test('the acknowledged reauth reaches the repository untouched', () async {
+    final repo = _DeleteRepo();
+    final container = await build(repo);
+
+    final result = await container
+        .read(authNotifierProvider.notifier)
+        .deleteAccountWithResult(const PasswordReauth('pw').acknowledged());
+
+    expect(result.isSuccess, isTrue);
+    expect(repo.received!.acknowledgeDependents, isTrue);
+  });
 }

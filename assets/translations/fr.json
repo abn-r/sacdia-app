@@ -155,7 +155,15 @@
       "other": "il y a {} jours"
     },
     "accessibility_tile": "Accessibilité",
-    "open_document_failed": "Impossible d’ouvrir ce document."
+    "open_document_failed": "Impossible d’ouvrir ce document.",
+    "delete_account": {
+      "dependents": {
+        "title": "Vous avez des mineurs à votre charge",
+        "intro": "Si vous supprimez votre compte, voici ce qui arrivera à chaque mineur :",
+        "ack": "Je comprends ce qui arrivera aux mineurs à ma charge",
+        "continue": "Continuer"
+      }
+    }
   },
   "accessibility": {
     "title": "Accessibilité",
@@ -239,6 +247,18 @@
       "retry": "Réessayer",
       "open_failed": "Impossible d'ouvrir le document. Veuillez réessayer.",
       "consent_semantics": "Accepter les Conditions générales et l'Avis de confidentialité"
+    },
+    "register": {
+      "birthday_label": "Date de naissance",
+      "birthday_hint": "Sélectionnez votre date de naissance",
+      "birthday_required": "Sélectionnez votre date de naissance",
+      "age_gate": {
+        "title": "Vous ne pouvez pas encore créer de compte",
+        "message": "Demandez à votre tuteur de vous inscrire depuis Ma famille.",
+        "hint": "Un adulte peut vous ajouter depuis la section Ma famille de son profil.",
+        "fix": "Corriger la date de naissance",
+        "back": "Retour"
+      }
     }
   },
   "legal_gate": {

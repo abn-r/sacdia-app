@@ -73,6 +73,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String maternalSurname,
     required String acceptedTermsVersion,
     required String acceptedPrivacyVersion,
+    String? birthday,
   }) async {
     try {
       final user = await remoteDataSource.signUpWithEmailAndPassword(
@@ -83,10 +84,15 @@ class AuthRepositoryImpl implements AuthRepository {
         maternalSurname: maternalSurname,
         acceptedTermsVersion: acceptedTermsVersion,
         acceptedPrivacyVersion: acceptedPrivacyVersion,
+        birthday: birthday,
       );
       return Right(user);
     } on core_exceptions.AuthException catch (e) {
-      return Left(AuthFailure(message: e.message, code: e.code));
+      return Left(AuthFailure(
+        message: e.message,
+        code: e.code,
+        errorCode: e.errorCode,
+      ));
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
     }
@@ -195,7 +201,11 @@ class AuthRepositoryImpl implements AuthRepository {
       await remoteDataSource.deleteAccount(reauth);
       return const Right(null);
     } on core_exceptions.AuthException catch (e) {
-      return Left(AuthFailure(message: e.message, code: e.code));
+      return Left(AuthFailure(
+        message: e.message,
+        code: e.code,
+        errorCode: e.errorCode,
+      ));
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
     }

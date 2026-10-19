@@ -155,7 +155,15 @@
       "other": "hace {} días"
     },
     "accessibility_tile": "Accesibilidad",
-    "open_document_failed": "No pudimos abrir este documento."
+    "open_document_failed": "No pudimos abrir este documento.",
+    "delete_account": {
+      "dependents": {
+        "title": "Tienes menores a tu cargo",
+        "intro": "Si eliminas tu cuenta, esto pasará con cada menor:",
+        "ack": "Entiendo lo que pasará con los menores a mi cargo",
+        "continue": "Continuar"
+      }
+    }
   },
   "accessibility": {
     "title": "Accesibilidad",
@@ -239,6 +247,18 @@
       "retry": "Reintentar",
       "open_failed": "No se pudo abrir el documento. Intenta de nuevo.",
       "consent_semantics": "Aceptar los Términos y Condiciones y el Aviso de Privacidad"
+    },
+    "register": {
+      "birthday_label": "Fecha de nacimiento",
+      "birthday_hint": "Selecciona tu fecha de nacimiento",
+      "birthday_required": "Selecciona tu fecha de nacimiento",
+      "age_gate": {
+        "title": "Aún no puedes crear una cuenta",
+        "message": "Pide a tu tutor que te registre desde Mi familia.",
+        "hint": "Un adulto puede agregarte desde la sección Mi familia de su perfil.",
+        "fix": "Corregir fecha de nacimiento",
+        "back": "Volver"
+      }
     }
   },
   "legal_gate": {
