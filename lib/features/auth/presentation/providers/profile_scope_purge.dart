@@ -28,6 +28,10 @@ final profileScopedProvidersProvider = Provider<List<ProviderOrFamily>>(
 /// invalidación ya sale con el encabezado y la generación del perfil nuevo.
 void purgeProfileScopeProviders(Ref ref) {
   for (final provider in ref.read(profileScopedProvidersProvider)) {
+    // A provider that was never mounted holds no state. Invalidating it from a
+    // provider Ref makes debug builds instantiate it, which can fire network
+    // calls during logout or a profile switch.
+    if (provider is ProviderBase<Object?> && !ref.exists(provider)) continue;
     ref.invalidate(provider);
   }
 }
