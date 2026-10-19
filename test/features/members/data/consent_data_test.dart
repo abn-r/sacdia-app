@@ -167,6 +167,21 @@ void main() {
       expect(failure.errorCode, 'GUARDIANSHIP_EVIDENCE_UNAVAILABLE');
     });
 
+    test('409 keeps the already-verified code (form frozen after verify)',
+        () async {
+      adapter.replies['POST $base/consent-evidence'] =
+          _Reply(409, _err(409, 'GUARDIANSHIP_CONSENT_ALREADY_VERIFIED'));
+
+      final failure = failureOf(await repository.uploadConsentEvidence(
+        assignmentId: assignmentId,
+        file: file,
+      ));
+
+      expect(failure, isA<ServerFailure>());
+      expect(failure.code, 409);
+      expect(failure.errorCode, 'GUARDIANSHIP_CONSENT_ALREADY_VERIFIED');
+    });
+
     test('a 413 without a code keeps the HTTP status', () async {
       adapter.replies['POST $base/consent-evidence'] =
           const _Reply(413, {'status': 'error', 'message': 'too large'});
@@ -301,6 +316,7 @@ void main() {
       const cases = <(int, String)>[
         (400, 'MR_CONSENT_CONFIRMATION_REQUIRED'),
         (403, 'GUARDIANSHIP_CUSTODIAN_SELF_VERIFY'),
+        (403, 'GUARDIANSHIP_GUARDIAN_SELF_VERIFY'),
         (403, 'GUARD_PERMISSION_DENIED'),
         (404, 'MR_NOT_FOUND'),
         (404, 'GUARDIANSHIP_NOT_FOUND'),
@@ -324,6 +340,52 @@ void main() {
           reason: code,
         );
       }
+    });
+  });
+
+  group('assign club role', () {
+    const rolesPath = '/api/v1/clubs/1/sections/2/roles';
+
+    void catalog() {
+      adapter.replies['GET /api/v1/catalogs/roles'] = _Reply(
+        200,
+        _ok([
+          {'role_id': 'role-member', 'name': 'member'},
+        ]),
+      );
+    }
+
+    test('409 MR_CONSENT_NOT_VERIFIED keeps its code and status', () async {
+      catalog();
+      adapter.replies['POST $rolesPath'] =
+          _Reply(409, _err(409, 'MR_CONSENT_NOT_VERIFIED'));
+
+      final failure = failureOf(await repository.assignClubRole(
+        clubId: 1,
+        sectionId: 2,
+        userId: 'ana-1',
+        role: 'member',
+      ));
+
+      expect(failure, isA<ServerFailure>());
+      expect(failure.code, 409);
+      expect(failure.errorCode, 'MR_CONSENT_NOT_VERIFIED');
+    });
+
+    test('a 403 keeps its code too', () async {
+      catalog();
+      adapter.replies['POST $rolesPath'] =
+          _Reply(403, _err(403, 'GUARD_PERMISSION_DENIED'));
+
+      final failure = failureOf(await repository.assignClubRole(
+        clubId: 1,
+        sectionId: 2,
+        userId: 'ana-1',
+        role: 'member',
+      ));
+
+      expect(failure.code, 403);
+      expect(failure.errorCode, 'GUARD_PERMISSION_DENIED');
     });
   });
 

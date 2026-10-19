@@ -142,9 +142,11 @@ class MembersRepositoryImpl implements MembersRepository {
       );
       return Right(result);
     } on AuthException catch (e) {
-      return Left(AuthFailure(message: e.message, code: e.code));
+      return Left(AuthFailure(
+          message: e.message, code: e.code, errorCode: e.errorCode));
     } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, code: e.code));
+      return Left(ServerFailure(
+          message: e.message, code: e.code, errorCode: e.errorCode));
     } catch (e) {
       return Left(UnexpectedFailure(message: e.toString()));
     }

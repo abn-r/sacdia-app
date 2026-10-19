@@ -1,12 +1,15 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/features/members/domain/entities/club_member.dart';
 import 'package:sacdia_app/features/members/presentation/providers/members_providers.dart';
 import 'package:sacdia_app/features/members/presentation/views/consent_verification_view.dart';
 import 'package:sacdia_app/features/members/presentation/views/members_view.dart';
+import 'package:sacdia_app/features/members/presentation/views/role_assignment_view.dart';
 
 import '../../members_test_support.dart';
 
@@ -156,5 +159,60 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repo.approveCalls, ['12/membership-requests/req-2']);
+  });
+
+  Finder assignRoleButton() => find.byWidgetPredicate(
+        (w) => w is HugeIcon && w.icon == HugeIcons.strokeRoundedUserEdit01,
+      );
+
+  Future<void> openMembers(WidgetTester tester) async {
+    await pumpMembersApp(
+      tester,
+      overrides: [
+        authNotifierProvider.overrideWith(_FakeAuth.new),
+        membersRepositoryProvider.overrideWithValue(repo),
+        annualContinuationsNotifierProvider.overrideWith(
+          _EmptyContinuations.new,
+        ),
+      ],
+      home: const MembersView(),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets(
+      'assigning a role to a member with a pending-consent join request '
+      'passes that request to the role view', (tester) async {
+    repo.members = const [
+      ClubMember(userId: 'ana-1', name: 'Ana', paternalSurname: 'Pérez'),
+    ];
+    repo.requests = [minorRequest(evidence: true), adultRequest()];
+    await openMembers(tester);
+
+    await tester.tap(assignRoleButton());
+    await tester.pumpAndSettle();
+
+    final view = tester.widget<RoleAssignmentView>(
+      find.byType(RoleAssignmentView),
+    );
+    expect(view.pendingConsentRequest?.assignmentId,
+        '12/membership-requests/req-1');
+  });
+
+  testWidgets('a member without a pending-consent request gets none',
+      (tester) async {
+    repo.members = const [
+      ClubMember(userId: 'luis-9', name: 'Luis', paternalSurname: 'Soto'),
+    ];
+    repo.requests = [minorRequest(evidence: true)];
+    await openMembers(tester);
+
+    await tester.tap(assignRoleButton());
+    await tester.pumpAndSettle();
+
+    final view = tester.widget<RoleAssignmentView>(
+      find.byType(RoleAssignmentView),
+    );
+    expect(view.pendingConsentRequest, isNull);
   });
 }

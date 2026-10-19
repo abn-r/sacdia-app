@@ -134,8 +134,10 @@ JoinRequest adultRequest() => JoinRequest(
 /// Repositorio configurable que registra cada llamada.
 class FakeMembersRepository implements MembersRepository {
   List<JoinRequest> requests = [];
+  List<ClubMember> members = [];
 
   Either<Failure, JoinRequest>? approveResult;
+  Either<Failure, bool> assignRoleResult = const Right(true);
   Either<Failure, ConsentEvidenceReceipt> uploadResult = const Right(
     ConsentEvidenceReceipt(
       evidenceId: 'ev-1',
@@ -165,6 +167,7 @@ class FakeMembersRepository implements MembersRepository {
   ];
 
   final approveCalls = <String>[];
+  final assignRoleCalls = <({String userId, String role})>[];
   final uploadCalls = <({String assignmentId, String fileName})>[];
   final evidenceReads = <String>[];
   final verifyCalls = <({String assignmentId, bool approve})>[];
@@ -183,7 +186,7 @@ class FakeMembersRepository implements MembersRepository {
     required int sectionId,
     RequestCancelToken? cancelToken,
   }) async =>
-      const Right([]);
+      Right(members);
 
   @override
   Future<Either<Failure, JoinRequest>> approveJoinRequest(
@@ -239,16 +242,19 @@ class FakeMembersRepository implements MembersRepository {
     required int sectionId,
     required String userId,
     required String role,
-  }) async =>
-      throw UnimplementedError();
+  }) async {
+    assignRoleCalls.add((userId: userId, role: role));
+    return assignRoleResult;
+  }
 
+  /// Sin endpoint de roles asignables: la vista usa su lista de respaldo.
   @override
   Future<Either<Failure, AssignableRolesResult>> getAssignableRoles({
     required int clubId,
     required int sectionId,
     required String userId,
   }) async =>
-      throw UnimplementedError();
+      const Left(ServerFailure(message: 'assignable roles unavailable'));
 
   @override
   Future<Either<Failure, bool>> removeClubRole(String assignmentId) async =>

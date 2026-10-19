@@ -356,6 +356,16 @@ class _MembersTab extends ConsumerWidget {
     WidgetRef ref,
     ClubMember member,
   ) async {
+    // Un menor con solicitud pendiente y consentimiento sin verificar: si el
+    // backend rechaza el cargo (409 MR_CONSENT_NOT_VERIFIED) la vista ofrece
+    // abrir la verificación de esa solicitud.
+    final requests =
+        ref.read(membersNotifierProvider).valueOrNull?.joinRequests ??
+            const <JoinRequest>[];
+    final pendingConsent = requests
+        .where((r) => r.userId == member.userId && r.consentPending)
+        .firstOrNull;
+
     // Result is ignored here — MembersNotifier.assignRole calls invalidateSelf()
     // internally so the list auto-refreshes via the AsyncNotifier build().
     await Navigator.push<bool>(
@@ -364,6 +374,7 @@ class _MembersTab extends ConsumerWidget {
         builder: (_) => RoleAssignmentView(
           member: member,
           clubContext: clubContext,
+          pendingConsentRequest: pendingConsent,
         ),
       ),
     );

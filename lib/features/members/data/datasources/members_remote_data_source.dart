@@ -398,10 +398,14 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       return response.statusCode == 200 || response.statusCode == 201;
     } on DioException catch (e) {
       AppLogger.e('Error al asignar rol', tag: _tag, error: e);
+      final data = e.response?.data;
       throw ServerException(
         message:
             e.response?.data?['message'] ?? tr('members.errors.assign_role'),
         code: e.response?.statusCode,
+        // `MR_CONSENT_NOT_VERIFIED` (menor sin ficha verificada, 409) se
+        // distingue por código; `details` nunca se lee.
+        errorCode: data is Map ? data['code']?.toString() : null,
       );
     } catch (e) {
       if (e is AuthException || e is ServerException) rethrow;
