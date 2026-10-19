@@ -18,6 +18,7 @@ import '../realtime/realtime_invalidation_handler.dart';
 import '../realtime/realtime_ref.dart';
 import '../theme/sac_colors.dart';
 import '../utils/app_logger.dart';
+import 'dependent_push_tap_handler.dart';
 import '../../features/achievements/presentation/providers/achievements_providers.dart';
 import '../../features/investiture_requests/presentation/utils/investiture_notification_routes.dart';
 import '../../features/master_honors/presentation/providers/master_honor_modal_queue_provider.dart';
@@ -91,6 +92,12 @@ class PushNotificationService {
     SharedPreferences? prefs,
   })  : _dio = dio,
         _ref = ref;
+
+  /// Toques en pushes que el servidor reenvió al tutor en nombre de un menor.
+  late final DependentPushTapHandler _dependentTap = DependentPushTapHandler(
+    ref: _ref,
+    navigatorKey: navigatorKey,
+  );
 
   // ── StreamSubscription references ─────────────────────────────────────────
 
@@ -436,12 +443,19 @@ class PushNotificationService {
       return;
     }
 
+    // Un push reenviado al tutor en nombre de un menor ("Ana · ...") vive en la
+    // bandeja del MENOR: ni suma al contador del tutor ni dispara los avisos
+    // propios (logros, maestrías). Solo se muestra el aviso etiquetado y, al
+    // tocarlo, se pregunta si cambiar al perfil del menor (FP-64).
+    final isDependentPush =
+        DependentPushTapHandler.dependentIdOf(message.data) != null;
+
     final type = message.data['type'] as String?;
-    if (type == 'achievement_unlocked') {
+    if (!isDependentPush && type == 'achievement_unlocked') {
       _handleAchievementUnlockedForeground(message);
       return;
     }
-    if (type == 'master_honor_changed') {
+    if (!isDependentPush && type == 'master_honor_changed') {
       _handleMasterHonorChangedForeground(message);
       return;
     }
@@ -449,9 +463,11 @@ class PushNotificationService {
     final notification = message.notification;
     if (notification == null) return;
 
-    // Increment unread count optimistically and refresh inbox if it is alive.
-    _ref.read(unreadNotificationsCountProvider.notifier).increment();
-    _ref.invalidate(notificationsInboxProvider);
+    if (!isDependentPush) {
+      // Increment unread count optimistically and refresh inbox if it is alive.
+      _ref.read(unreadNotificationsCountProvider.notifier).increment();
+      _ref.invalidate(notificationsInboxProvider);
+    }
 
     final context = navigatorKey?.currentContext;
     if (context == null) return;
@@ -928,8 +944,36 @@ class PushNotificationService {
       tag: _tag,
     );
 
-    final data = message.data;
+    // Push de un menor: antes de navegar se confirma el cambio de perfil.
+    final dependentId = DependentPushTapHandler.dependentIdOf(message.data);
+    if (dependentId != null) {
+      unawaited(
+        _dependentTap.handle(
+          dependentId,
+          onReady: () => _openDependentNotificationTarget(message.data),
+        ),
+      );
+      return;
+    }
 
+    _routeNotificationTap(message.data);
+  }
+
+  /// Ya se actúa por el menor: va al inicio de su perfil y, encima, al destino
+  /// del push (si trae uno permitido).
+  void _openDependentNotificationTarget(Map<String, dynamic> data) {
+    _pushRoute(RouteNames.homeDashboard);
+    _routeNotificationTap(data);
+  }
+
+  @visibleForTesting
+  Future<void> handleDependentTapForTesting(RemoteMessage message) =>
+      _dependentTap.handle(
+        DependentPushTapHandler.dependentIdOf(message.data)!,
+        onReady: () => _openDependentNotificationTarget(message.data),
+      );
+
+  void _routeNotificationTap(Map<String, dynamic> data) {
     // Check for typed notification first (member_of_month, etc.)
     final type = data['type'] as String?;
     if (type != null && _handledNotificationTypes.contains(type)) {

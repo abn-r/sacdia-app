@@ -5325,6 +5325,13 @@
       "body": "Puedes registrarlos para que se unan a un club. Siempre los administras tú desde Mi familia.",
       "add": "Añadir menor",
       "later": "Ahora no"
+    },
+    "push": {
+      "dialog_title": "Notificación de {name}",
+      "dialog_body": "Esta notificación es de {name}. ¿Cambiar a su perfil?",
+      "dialog_confirm": "Cambiar",
+      "dialog_cancel": "Ahora no",
+      "unavailable": "Ese perfil ya no está disponible para ti."
     }
   }
 }

@@ -5323,6 +5323,13 @@
       "body": "Vous pouvez les inscrire pour qu'ils rejoignent un club. Vous les gérez toujours vous-même depuis Ma famille.",
       "add": "Ajouter un mineur",
       "later": "Pas maintenant"
+    },
+    "push": {
+      "dialog_title": "Notification de {name}",
+      "dialog_body": "Cette notification concerne {name}. Passer à son profil ?",
+      "dialog_confirm": "Changer",
+      "dialog_cancel": "Pas maintenant",
+      "unavailable": "Ce profil n'est plus disponible pour vous."
     }
   }
 }

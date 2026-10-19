@@ -5323,6 +5323,13 @@
       "body": "Você pode cadastrá-los para que entrem em um clube. Você sempre os gerencia em Minha família.",
       "add": "Adicionar menor",
       "later": "Agora não"
+    },
+    "push": {
+      "dialog_title": "Notificação de {name}",
+      "dialog_body": "Esta notificação é de {name}. Mudar para o perfil dele(a)?",
+      "dialog_confirm": "Mudar",
+      "dialog_cancel": "Agora não",
+      "unavailable": "Esse perfil não está mais disponível para você."
     }
   }
 }

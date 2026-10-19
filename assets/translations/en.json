@@ -5325,6 +5325,13 @@
       "body": "You can register them so they can join a club. You always manage them yourself from My family.",
       "add": "Add a minor",
       "later": "Not now"
+    },
+    "push": {
+      "dialog_title": "Notification from {name}",
+      "dialog_body": "This notification is from {name}. Switch to their profile?",
+      "dialog_confirm": "Switch",
+      "dialog_cancel": "Not now",
+      "unavailable": "That profile is no longer available to you."
     }
   }
 }
