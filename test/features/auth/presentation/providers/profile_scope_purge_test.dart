@@ -5,7 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/auth/acting_for_session.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/storage/json_file_cache.dart';
-import 'package:sacdia_app/features/achievements/domain/entities/user_achievement.dart';
 import 'package:sacdia_app/features/achievements/domain/repositories/achievements_repository.dart';
 import 'package:sacdia_app/features/achievements/presentation/providers/achievements_providers.dart';
 import 'package:sacdia_app/features/auth/domain/entities/acting_for_info.dart';
