@@ -112,8 +112,9 @@ const Set<String> catalogKeepAliveAllowlist = {
 ///   2. [nonAutoDisposeAllowlist]: estado global (dispositivo, catálogo,
 ///      plomería de la sesión) con el motivo por el que no depende del perfil.
 ///
-/// La clave es la variable del provider. Los `Provider` simples no se vigilan:
-/// son derivados y se recalculan al invalidarse lo que observan.
+/// La clave es la variable del provider. Los `Provider` simples son derivados y
+/// se recalculan al invalidarse lo que observan; solo los que son dueños de
+/// estado mutable se revisan, en [statefulPlainProviderAllowlist].
 final Map<String, ProviderOrFamily> profileScopedStateEntries = {
   'dashboardNotifierProvider': dashboardNotifierProvider,
   'clubContextProvider': clubContextProvider,
@@ -162,6 +163,12 @@ const Map<String, String> nonAutoDisposeAllowlist = {
   'faqItemsProvider': 'preguntas frecuentes estáticas',
   'faqSearchQueryProvider':
       'texto de búsqueda de la pantalla, sin datos de perfil',
+  // Fuera de lib/features (S3: la guarda también escanea lib/core y
+  // lib/providers).
+  'themeNotifierProvider': 'tema claro/oscuro del dispositivo',
+  'accentNotifierProvider': 'color de acento del dispositivo',
+  'appBootstrapProvider':
+      'compuerta de arranque, no guarda datos de usuario; logout la invalida',
 };
 
 /// Todo lo que se invalida al cambiar de perfil (entrar, salir o cambiar de
@@ -173,3 +180,27 @@ final List<ProviderOrFamily> profileScopedProviders = <ProviderOrFamily>{
   ...profileScopedKeepAliveEntries.values,
   ...profileScopedStateEntries.values,
 }.toList(growable: false);
+
+/// `Provider` simples (no `autoDispose`) que SÍ son dueños de estado mutable
+/// (un notifier, un caché, un controlador, un `onDispose`...) y que se han
+/// revisado a mano, con el porqué de que no filtren datos entre perfiles.
+///
+/// `test/core/providers/profile_scope_registry_test.dart` falla si aparece un
+/// `Provider` simple con ese perfil que no está aquí ni en
+/// [profileScopedStateEntries]. Es una heurística: marca para revisión humana.
+const Map<String, String> statefulPlainProviderAllowlist = {
+  'actingForSessionProvider':
+      'es la sesión actuar-por misma: la purga no debe tocarla; se sale con '
+          'exit() y la generación sube en cada cambio',
+  'actingDependentProvider':
+      'derivado de la sesión: solo escucha y se recalcula, no guarda datos',
+  'jsonFileCacheProvider':
+      'manejador del caché en disco; su contenido por usuario se borra por '
+          'prefijo al cambiar de perfil y en logout',
+  'cacheRepositoryProvider':
+      'repositorio de la pantalla de ajustes (medir/vaciar cachés); no guarda '
+          'datos de usuario',
+  'certificationDraftBoxProvider':
+      'caja Hive de borradores del flujo de adultos, clave por inscripción; '
+          'un dependiente nunca escribe ahí',
+};

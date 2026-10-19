@@ -67,24 +67,83 @@ Map<String, String> readFeatureProviderSources() {
   return sources;
 }
 
+/// Clases de provider con estado de Riverpod (todo menos `Provider` simple).
+const _stateKinds =
+    r'(?:StateProvider|StateNotifierProvider|ChangeNotifierProvider|'
+    r'FutureProvider|StreamProvider|NotifierProvider|AsyncNotifierProvider)';
+
+/// Prefijo común de una declaración: sangría opcional (miembros, variables
+/// locales) y los modificadores `static` / `late`.
+const _declPrefix = r'^[ \t]*(?:(?:static|late)\s+)*final\s+';
+
+/// Quita los comentarios de línea (`//`, `///`) de [source].
+String _stripLineComments(String source) =>
+    source.split('\n').map((l) => l.split('//').first).join('\n');
+
 /// Providers SIN `autoDispose` con estado (todo menos `Provider` simple, que es
 /// derivado) declarados en el código fuente dado: la variable del provider.
 ///
-/// Ignora comentarios. Entiende declaraciones partidas en varias líneas
-/// (`NotifierProvider\n    .autoDispose<...>`) y los tipos `AutoDispose*`.
+/// Entiende (S3):
+///  - declaraciones partidas en varias líneas (`NotifierProvider\n  .autoDispose`);
+///  - declaraciones con tipo (`final StateProvider<T> x = ...`), con el tipo
+///    `AutoDispose*` descartado;
+///  - miembros `static final` / `late final` y cualquier sangría;
+///  - familias (`.family`), que cuentan igual que su provider base.
+/// No confunde `final x = fooProvider;` ni `final x = ref.watch(...)` con una
+/// declaración: tras `=` debe venir el constructor de un provider.
 Set<String> scanNonAutoDisposeStateProviders(Iterable<String> sources) {
-  final declaration = RegExp(
-    r'^final\s+(\w+)\s*=\s*(\w*Provider)\s*(\.\s*autoDispose)?',
+  final untyped = RegExp(
+    '$_declPrefix(\\w+)\\s*=\\s*($_stateKinds)\\b\\s*(\\.\\s*autoDispose)?',
+    multiLine: true,
+  );
+  final typed = RegExp(
+    '$_declPrefix(AutoDispose)?($_stateKinds)(?:Family)?\\b'
+    r'(?:\s*<[^;=]*?>)?\s+(\w+)\s*=',
     multiLine: true,
   );
   final found = <String>{};
   for (final source in sources) {
-    final code = source.split('\n').map((l) => l.split('//').first).join('\n');
-    for (final m in declaration.allMatches(code)) {
-      final kind = m.group(2)!;
-      if (kind == 'Provider' || kind.startsWith('AutoDispose')) continue;
+    final code = _stripLineComments(source);
+    for (final m in untyped.allMatches(code)) {
       if (m.group(3) != null) continue;
       found.add(m.group(1)!);
+    }
+    for (final m in typed.allMatches(code)) {
+      if (m.group(1) != null) continue;
+      found.add(m.group(3)!);
+    }
+  }
+  return found;
+}
+
+/// `Provider` simples (no `autoDispose`) cuyo cuerpo es dueño de estado mutable:
+/// un caché, un notifier, un controlador, un `onDispose`... Un `Provider` simple
+/// sobrevive al cambio de perfil mientras nadie invalide lo que observa, así que
+/// cada uno de estos necesita una revisión explícita (S3).
+///
+/// Es una heurística de revisión, no una prueba: marca para que una persona
+/// decida (registrar o justificar en `statefulPlainProviderAllowlist`).
+Set<String> scanStatefulPlainProviders(Iterable<String> sources) {
+  final plain = RegExp(
+    '$_declPrefix(?:(\\w+)\\s*=\\s*Provider\\b(?!\\s*\\.\\s*autoDispose)'
+    r'|Provider\b(?:\s*<[^;=]*?>)?\s+(\w+)\s*=)',
+    multiLine: true,
+  );
+  final stateful = RegExp(
+    r'ValueNotifier\s*[(<]|ChangeNotifier\b|StreamController\b|Completer\b|'
+    r'\bTimer\b|\bHive\b|Box<|\bonDispose\b|\bkeepAlive\b|'
+    r'CacheManager|Cache\w*\(|LinkedHashMap|HashMap|'
+    r'<[^<>()]*>\s*\{\s*\}|<[^<>()]*>\s*\[\s*\]|=\s*\{\s*\}\s*;|=\s*\[\s*\]\s*;',
+  );
+  final found = <String>{};
+  for (final source in sources) {
+    final code = _stripLineComments(source);
+    for (final m in plain.allMatches(code)) {
+      final rest = code.substring(m.end);
+      // El cuerpo llega hasta la siguiente declaración de primer nivel.
+      final next = RegExp(r'\n[A-Za-z]').firstMatch(rest);
+      final body = next == null ? rest : rest.substring(0, next.start);
+      if (stateful.hasMatch(body)) found.add(m.group(1) ?? m.group(2)!);
     }
   }
   return found;
@@ -105,6 +164,13 @@ Set<String> unregisteredNonAutoDispose(
 /// de estado declarados junto a su widget.
 List<String> readAllFeatureSources() => [
       for (final e in Directory('lib/features').listSync(recursive: true))
+        if (e is File && e.path.endsWith('.dart')) e.readAsStringSync(),
+    ];
+
+/// Todo `lib/**` (features, core, providers, shared...): el estado que sobrevive
+/// al cambio de perfil puede vivir en cualquier carpeta.
+List<String> readEveryLibSource() => [
+      for (final e in Directory('lib').listSync(recursive: true))
         if (e is File && e.path.endsWith('.dart')) e.readAsStringSync(),
     ];
 
@@ -176,7 +242,7 @@ void main() {
   group('non-autoDispose state guard (FP-48, FP-52, S5)', () {
     late List<String> allSources;
 
-    setUpAll(() => allSources = readAllFeatureSources());
+    setUpAll(() => allSources = readEveryLibSource());
 
     test('the scan sees the known non-autoDispose providers (sanity)', () {
       expect(
@@ -227,6 +293,26 @@ void main() {
       );
     });
 
+    test('the guard covers lib/core and lib/providers too (S3)', () {
+      final everything = scanNonAutoDisposeStateProviders(readEveryLibSource());
+
+      expect(
+        everything,
+        containsAll([
+          'themeNotifierProvider',
+          'accentNotifierProvider',
+          'appBootstrapProvider',
+        ]),
+        reason: 'device/startup providers outside lib/features must be seen',
+      );
+      final missing = unregisteredNonAutoDispose(
+        readEveryLibSource(),
+        registered: profileScopedStateEntries.keys.toSet(),
+        allowlisted: nonAutoDisposeAllowlist.keys.toSet(),
+      );
+      expect(missing, isEmpty, reason: '$missing');
+    });
+
     test('every allowlist entry carries a reason', () {
       for (final entry in nonAutoDisposeAllowlist.entries) {
         expect(entry.value.trim(), isNotEmpty, reason: entry.key);
@@ -273,6 +359,41 @@ final typedProvider = AutoDisposeNotifierProvider<Baz, int>(Baz.new);
       expect(missing, {'leakyProvider', 'goneProvider'});
     });
 
+    test('S3: typed, static, late and indented declarations are seen', () {
+      final missing = unregisteredNonAutoDispose(
+        [
+          '''
+final StateProvider<int> typedLeak = StateProvider<int>((ref) => 0);
+final NotifierProvider<Foo, int>
+    wrappedTypedLeak = NotifierProvider<Foo, int>(Foo.new);
+final AutoDisposeStateProvider<int> typedOk =
+    StateProvider.autoDispose<int>((ref) => 0);
+class Holder {
+  static final staticLeak = StateProvider<int>((ref) => 0);
+  late final lateLeak = NotifierProvider<Foo, int>(Foo.new);
+  static final StreamProvider<int> staticTypedLeak = StreamProvider<int>((r) => s);
+}
+void f(WidgetRef ref) {
+  final indentedLeak = FutureProvider<int>((ref) async => 1);
+  final notAProvider = authNotifierProvider;
+  final alsoNot = ref.watch(unitsNotifierProvider);
+}
+''',
+        ],
+        registered: const {},
+        allowlisted: const {},
+      );
+
+      expect(missing, {
+        'typedLeak',
+        'wrappedTypedLeak',
+        'staticLeak',
+        'lateLeak',
+        'staticTypedLeak',
+        'indentedLeak',
+      });
+    });
+
     test('an allowlisted or registered provider passes the guard', () {
       final missing = unregisteredNonAutoDispose(
         [
@@ -286,6 +407,71 @@ final bProvider = FutureProvider<int>((ref) async => 1);
       );
 
       expect(missing, isEmpty);
+    });
+  });
+
+  group('plain Provider holding mutable state (S3)', () {
+    test('a Provider that owns state is reported, a pure factory is not', () {
+      final found = scanStatefulPlainProviders([
+        '''
+final cachingProvider = Provider<Foo>((ref) {
+  final memo = <String, int>{};
+  return Foo(memo);
+});
+final notifierHolderProvider = Provider<Bar>((ref) {
+  final session = BarSession();
+  ref.onDispose(session.dispose);
+  return session;
+});
+final typedHolder = Provider<ValueNotifier<int>>((ref) => ValueNotifier(0));
+final StreamControllerProvider = Provider<S>((ref) => S(StreamController<int>()));
+final repoProvider = Provider<Repo>((ref) {
+  return RepoImpl(ref.watch(dioProvider));
+});
+final autoProvider = Provider.autoDispose<Foo>((ref) {
+  final memo = <String, int>{};
+  return Foo(memo);
+});
+// final commentedProvider = Provider<Foo>((ref) => ValueNotifier(0));
+''',
+      ]);
+
+      expect(found, {
+        'cachingProvider',
+        'notifierHolderProvider',
+        'typedHolder',
+        'StreamControllerProvider',
+      });
+    });
+
+    test('every stateful plain Provider in lib is registered or reviewed', () {
+      final missing = scanStatefulPlainProviders(readEveryLibSource())
+          .where((s) =>
+              !profileScopedStateEntries.containsKey(s) &&
+              !statefulPlainProviderAllowlist.containsKey(s))
+          .toSet();
+
+      expect(
+        missing,
+        isEmpty,
+        reason: 'These plain Providers own mutable state (a cache, a notifier, '
+            'a controller...). Plain Providers survive a profile switch '
+            'unless something they watch is invalidated. Register them in '
+            'profileScopedStateEntries or justify them in '
+            'statefulPlainProviderAllowlist: $missing',
+      );
+    });
+
+    test('no stale entries in the stateful plain Provider allowlist', () {
+      final scanned = scanStatefulPlainProviders(readEveryLibSource());
+
+      expect(
+        statefulPlainProviderAllowlist.keys.toSet().difference(scanned),
+        isEmpty,
+      );
+      for (final entry in statefulPlainProviderAllowlist.entries) {
+        expect(entry.value.trim(), isNotEmpty, reason: entry.key);
+      }
     });
   });
 
