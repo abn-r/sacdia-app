@@ -179,9 +179,20 @@ class _AddDependentViewState extends ConsumerState<AddDependentView> {
         backgroundColor: c.background,
         foregroundColor: c.text,
       ),
+      // El inset inferior (home indicator, barra de gestos) se suma de forma
+      // explícita al margen del último control, como en las demás pantallas con
+      // acción al pie (`12 + MediaQuery.padding.bottom`); `SafeArea` solo cuida
+      // los laterales.
       body: SafeArea(
+        top: false,
+        bottom: false,
         child: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 32),
+          padding: EdgeInsets.fromLTRB(
+            hPad,
+            8,
+            hPad,
+            24 + MediaQuery.paddingOf(context).bottom,
+          ),
           child: Form(
             key: _formKey,
             child: Column(
