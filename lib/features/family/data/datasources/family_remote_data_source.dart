@@ -7,6 +7,7 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../../core/network/api_error_mapper.dart';
 import '../../../../core/network/interceptors/auth_interceptor.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../../../post_registration/data/models/relationship_type_model.dart';
 import '../../domain/entities/dependent.dart';
 import '../../domain/repositories/family_repository.dart';
 import '../models/dependent_models.dart';
@@ -14,6 +15,12 @@ import '../models/dependent_models.dart';
 /// Fuente remota de `/guardianships`.
 abstract class FamilyRemoteDataSource {
   Future<FamilyOverview> listDependents();
+
+  /// Parentescos que el tutor puede declarar con un menor («yo soy su…»), en
+  /// el orden del servidor. NO es el catálogo completo de
+  /// `/catalogs/relationship-types` (ese sigue siendo el de contactos de
+  /// emergencia).
+  Future<List<RelationshipTypeModel>> getRelationshipTypes();
 
   Future<DependentDetail> getDependent(String dependentId);
 
@@ -83,6 +90,34 @@ class FamilyRemoteDataSourceImpl implements FamilyRemoteDataSource {
       return parse(_unwrap(response.data));
     } catch (e) {
       AppLogger.e('Error en $label', tag: _tag, error: e);
+      rethrowApiError(e);
+    }
+  }
+
+  @override
+  Future<List<RelationshipTypeModel>> getRelationshipTypes() async {
+    try {
+      final response = await _dio.get(
+        '$_root/relationship-types',
+        options: _options,
+      );
+      if (!_isOk(response)) {
+        throw appExceptionFromResponse(response.statusCode, response.data);
+      }
+      final raw = response.data;
+      final list = raw is List
+          ? raw
+          : (raw is Map && raw['data'] is List ? raw['data'] as List : null);
+      if (list == null) {
+        throw ServerException(message: tr('errors.server_error'));
+      }
+      return [
+        for (final item in list)
+          if (item is Map)
+            RelationshipTypeModel.fromJson(Map<String, dynamic>.from(item)),
+      ];
+    } catch (e) {
+      AppLogger.e('Error en getRelationshipTypes', tag: _tag, error: e);
       rethrowApiError(e);
     }
   }

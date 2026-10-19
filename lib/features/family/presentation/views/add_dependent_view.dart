@@ -141,7 +141,7 @@ class _AddDependentViewState extends ConsumerState<AddDependentView> {
   Widget build(BuildContext context) {
     final c = context.sac;
     final hPad = Responsive.horizontalPadding(context);
-    final relationshipTypes = ref.watch(relationshipTypesProvider);
+    final relationshipTypes = ref.watch(guardianshipRelationshipTypesProvider);
     final legalAsync = ref.watch(currentLegalDocumentsProvider);
     final legal = legalSnapshotOf(legalAsync.valueOrNull);
 

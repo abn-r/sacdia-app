@@ -9,6 +9,7 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../post_registration/data/models/relationship_type_model.dart';
 import '../../data/datasources/family_remote_data_source.dart';
 import '../../data/repositories/family_repository_impl.dart';
 import '../../domain/entities/dependent.dart';
@@ -81,6 +82,16 @@ final dependentsProvider = FutureProvider.autoDispose<FamilyOverview>((
     const NoParams(),
   );
   return result.fold((failure) => throw failure, (overview) => overview);
+});
+
+/// Parentescos que el tutor puede elegir con un menor (`GET
+/// /guardianships/relationship-types`): Padre, Madre, Tutor Legal, Abuelo(a),
+/// Tío(a), Hermano/a Mayor, Otro. Es distinto de `relationshipTypesProvider`
+/// (catálogo completo, solo para contactos de emergencia). No se filtra por
+/// UUID: cambian por ambiente, la lista la fija el servidor.
+final guardianshipRelationshipTypesProvider =
+    FutureProvider.autoDispose<List<RelationshipTypeModel>>((ref) {
+  return ref.read(familyRemoteDataSourceProvider).getRelationshipTypes();
 });
 
 /// Detalle de un menor (tutores y consentimiento).

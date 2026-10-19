@@ -359,6 +359,47 @@ void main() {
     });
   });
 
+  group('relationship types', () {
+    late FamilyRemoteDataSourceImpl dataSource;
+
+    setUp(() {
+      final dio = Dio(BaseOptions(baseUrl: 'http://localhost:3000/api/v1'))
+        ..httpClientAdapter = adapter;
+      dio.interceptors.add(ErrorInterceptor());
+      dataSource = FamilyRemoteDataSourceImpl(
+        dio: dio,
+        baseUrl: 'http://localhost:3000/api/v1',
+      );
+    });
+
+    test('reads GET /guardianships/relationship-types in server order',
+        () async {
+      adapter.replies['GET $root/relationship-types'] = _Reply(
+        200,
+        _ok([
+          {'relationship_type_id': 'uuid-a', 'name': 'Padre'},
+          {'relationship_type_id': 'uuid-b', 'name': 'Madre'},
+          {'relationship_type_id': 'uuid-c', 'name': 'Otro'},
+        ]),
+      );
+
+      final types = await dataSource.getRelationshipTypes();
+
+      expect(adapter.sent.single.uri.path, '$root/relationship-types');
+      expect(adapter.sent.single.uri.path, isNot(contains('/catalogs')));
+      expect(types.map((t) => t.name), ['Padre', 'Madre', 'Otro']);
+      expect(types.map((t) => t.id), ['uuid-a', 'uuid-b', 'uuid-c']);
+    });
+
+    test('a failure surfaces as an exception, never as a partial list',
+        () async {
+      adapter.replies['GET $root/relationship-types'] =
+          _Reply(500, _err(500, 'INTERNAL'));
+
+      expect(dataSource.getRelationshipTypes(), throwsA(isA<Exception>()));
+    });
+  });
+
   group('errors', () {
     test('the business code survives in the Failure, details is never read',
         () async {

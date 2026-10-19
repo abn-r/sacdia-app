@@ -55,6 +55,18 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('the relationship picker uses only the guardianship types',
+      (tester) async {
+    await pump(tester);
+
+    expect(find.text('Tu parentesco con el menor'), findsOneWidget);
+    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Madre'), findsWidgets);
+    expect(find.text('Primo'), findsNothing);
+  });
+
   testWidgets('submit needs a code, a relationship and the sworn declaration',
       (tester) async {
     await pump(tester);

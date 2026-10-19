@@ -100,6 +100,46 @@ void main() {
     expect(auth.switchCalls, [(id: 'ana-1', firstName: 'Ana')]);
   });
 
+  testWidgets(
+      'the relationship picker lists only the guardianship types, labelled '
+      'from the guardian point of view', (tester) async {
+    await pump(tester);
+
+    expect(find.text('Tu parentesco con el menor'), findsOneWidget);
+    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Madre'), findsWidgets);
+    expect(find.text('Padre'), findsWidgets);
+    expect(find.text('Primo'), findsNothing,
+        reason: 'the full /catalogs list must not reach the family picker');
+  });
+
+  testWidgets('relationship type not allowed shows the translated message',
+      (tester) async {
+    repo.created = const Left(
+      ServerFailure(
+        message: 'x',
+        code: 422,
+        errorCode: 'GUARDIANSHIP_RELATIONSHIP_TYPE_NOT_ALLOWED',
+      ),
+    );
+    await pump(tester);
+    await fillForm(tester);
+    await tester.tap(find.byType(Checkbox).first);
+    await tester.tap(find.byType(Checkbox).last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Registrar y continuar'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.textContaining('Ese parentesco no está permitido para un tutor'),
+      findsOneWidget,
+    );
+    expect(auth.switchCalls, isEmpty);
+  });
+
   testWidgets('age out of range shows the translated message and stays',
       (tester) async {
     repo.created = const Left(

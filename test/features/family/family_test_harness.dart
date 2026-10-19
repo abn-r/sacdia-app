@@ -207,10 +207,17 @@ List<Override> familyOverrides({
     [
       familyRepositoryProvider.overrideWithValue(repo),
       authNotifierProvider.overrideWith(() => auth),
-      relationshipTypesProvider.overrideWith(
+      // El selector de Mi familia usa SOLO el endpoint de tutoría.
+      guardianshipRelationshipTypesProvider.overrideWith(
         (ref) async => const [
           RelationshipTypeModel(id: 'rel-1', name: 'Madre'),
           RelationshipTypeModel(id: 'rel-2', name: 'Padre'),
+        ],
+      ),
+      // Catálogo completo (contactos de emergencia): no debe verse aquí.
+      relationshipTypesProvider.overrideWith(
+        (ref) async => const [
+          RelationshipTypeModel(id: 'rel-9', name: 'Primo'),
         ],
       ),
       currentLegalDocumentsProvider.overrideWith((ref) async => legal),
