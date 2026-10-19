@@ -3894,7 +3894,9 @@
     "pending_state": {
       "title": "Demande envoyée",
       "body": "Votre demande pour rejoindre le club a été envoyée. Le directeur du club l'examinera bientôt. En attendant, vous pouvez enregistrer votre formation personnelle depuis votre profil.",
-      "profile_action": "Aller à mon profil"
+      "body_acting": "La demande de {name} pour rejoindre le club a été envoyée. Le directeur l'examinera avec la fiche de consentement signée. Si vous ne l'avez pas encore remise, apportez-la au club ou téléversez-la depuis Ma famille.",
+      "profile_action": "Aller à mon profil",
+      "family_action_acting": "Aller à Ma famille"
     },
     "notifications_tooltip": "Notifications",
     "club_info": {

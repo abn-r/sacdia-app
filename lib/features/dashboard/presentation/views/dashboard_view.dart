@@ -15,6 +15,7 @@ import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../post_registration/presentation/utils/acting_copy.dart';
 import '../../../notifications/presentation/providers/unread_notifications_count_provider.dart';
 import '../providers/dashboard_providers.dart';
 import '../widgets/club_info_card.dart';
@@ -246,12 +247,28 @@ class DashboardView extends ConsumerWidget {
   }
 }
 
-class _PendingMembershipDashboardState extends StatelessWidget {
+/// Solicitud de membresía pendiente.
+///
+/// Mientras un tutor actúa por un menor (su consentimiento sigue pendiente) el
+/// texto pasa a tercera persona con el nombre del menor, no menciona la
+/// formación personal y la acción lleva a Mi familia: primero se sale de
+/// "actuar por" porque esas rutas están bloqueadas con un menor activo.
+class _PendingMembershipDashboardState extends ConsumerWidget {
   const _PendingMembershipDashboardState();
 
+  /// Sale de "actuar por" y abre Mi familia del tutor.
+  Future<void> _openFamily(BuildContext context, WidgetRef ref) async {
+    // El router sobrevive al cambio de perfil; el `context` puede no hacerlo.
+    final router = GoRouter.of(context);
+    await ref.read(authNotifierProvider.notifier).switchProfile(null);
+    router.push(RouteNames.family);
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = context.sac;
+    final actingName = actingCopyName(ref);
+    final acting = actingName != null;
 
     return Center(
       child: SingleChildScrollView(
@@ -285,7 +302,10 @@ class _PendingMembershipDashboardState extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              tr('dashboard.pending_state.body'),
+              acting
+                  ? tr('dashboard.pending_state.body_acting',
+                      namedArgs: {'name': actingName})
+                  : tr('dashboard.pending_state.body'),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: c.textSecondary,
                     height: 1.45,
@@ -293,11 +313,18 @@ class _PendingMembershipDashboardState extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            SacButton.primary(
-              text: tr('dashboard.pending_state.profile_action'),
-              icon: HugeIcons.strokeRoundedUser,
-              onPressed: () => context.go(RouteNames.homeProfile),
-            ),
+            if (acting)
+              SacButton.primary(
+                text: tr('dashboard.pending_state.family_action_acting'),
+                icon: HugeIcons.strokeRoundedUserGroup,
+                onPressed: () => _openFamily(context, ref),
+              )
+            else
+              SacButton.primary(
+                text: tr('dashboard.pending_state.profile_action'),
+                icon: HugeIcons.strokeRoundedUser,
+                onPressed: () => context.go(RouteNames.homeProfile),
+              ),
           ],
         ),
       ),

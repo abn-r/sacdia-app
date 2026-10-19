@@ -3895,7 +3895,9 @@
     "pending_state": {
       "title": "Request sent",
       "body": "Your request to join the club has been sent. The club director will review it soon. In the meantime, you can record your personal formation from your profile.",
-      "profile_action": "Go to my profile"
+      "body_acting": "{name}'s request to join the club has been sent. The director will review it together with the signed consent form. If you haven't handed it in yet, take it to the club or upload it from My family.",
+      "profile_action": "Go to my profile",
+      "family_action_acting": "Go to My family"
     },
     "notifications_tooltip": "Notifications",
     "club_info": {
