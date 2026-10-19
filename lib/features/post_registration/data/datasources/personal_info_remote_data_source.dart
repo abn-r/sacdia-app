@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../models/emergency_contact_model.dart';
-import '../models/legal_representative_model.dart';
 import '../models/allergy_model.dart';
 import '../models/disease_model.dart';
 import '../models/medicine_model.dart';
@@ -115,14 +114,6 @@ abstract class PersonalInfoRemoteDataSource {
   Future<void> deleteEmergencyContact(String userId, int contactId);
   Future<List<RelationshipTypeModel>> getRelationshipTypes(
       {CancelToken? cancelToken});
-  Future<bool> checkLegalRepresentativeRequired(String userId,
-      {CancelToken? cancelToken});
-  Future<LegalRepresentativeModel> createLegalRepresentative(
-      String userId, LegalRepresentativeModel representative);
-  Future<LegalRepresentativeModel?> getLegalRepresentative(String userId,
-      {CancelToken? cancelToken});
-  Future<LegalRepresentativeModel> updateLegalRepresentative(
-      String userId, LegalRepresentativeModel representative);
   Future<List<AllergyModel>> getAllergiesCatalog({CancelToken? cancelToken});
   Future<List<AllergyModel>> getUserAllergies(String userId,
       {CancelToken? cancelToken});
@@ -330,93 +321,6 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
       if (e.type == DioExceptionType.cancel) rethrow;
       throw Exception(
           '${tr('post_registration.personal_info.errors.fetch_relationship_types')}: ${e.message}');
-    }
-  }
-
-  @override
-  Future<bool> checkLegalRepresentativeRequired(
-    String userId, {
-    CancelToken? cancelToken,
-  }) async {
-    try {
-      final response = await dio.get(
-        '$_baseUrl${ApiEndpoints.users}/$userId/requires-legal-representative',
-        cancelToken: cancelToken,
-      );
-
-      final required = _extractMap(response.data)['required'];
-      if (required is bool) return required;
-      throw Exception(tr(
-          'post_registration.personal_info.errors.verify_legal_representative'));
-    } on DioException catch (e) {
-      if (e.type == DioExceptionType.cancel) rethrow;
-      throw Exception(
-          '${tr('post_registration.personal_info.errors.verify_legal_representative')}: ${e.message}');
-    }
-  }
-
-  @override
-  Future<LegalRepresentativeModel> createLegalRepresentative(
-    String userId,
-    LegalRepresentativeModel representative,
-  ) async {
-    try {
-      final response = await dio.post(
-        '$_baseUrl${ApiEndpoints.users}/$userId/legal-representative',
-        data: representative.toJson(),
-      );
-
-      return LegalRepresentativeModel.fromJson(_extractMap(response.data));
-    } on DioException catch (e) {
-      throw Exception(
-          '${tr('post_registration.personal_info.errors.create_legal_representative')}: ${e.message}');
-    }
-  }
-
-  @override
-  Future<LegalRepresentativeModel?> getLegalRepresentative(
-    String userId, {
-    CancelToken? cancelToken,
-  }) async {
-    try {
-      final response = await dio.get(
-        '$_baseUrl${ApiEndpoints.users}/$userId/legal-representative',
-        cancelToken: cancelToken,
-      );
-
-      final responseData = response.data;
-      if (responseData == null) return null;
-
-      if (responseData is Map<String, dynamic>) {
-        final data = responseData['data'];
-        if (data == null) return null;
-        return LegalRepresentativeModel.fromJson(data as Map<String, dynamic>);
-      }
-
-      return null;
-    } on DioException catch (e) {
-      if (e.type == DioExceptionType.cancel) rethrow;
-      if (e.response?.statusCode == 404) return null;
-      throw Exception(
-          '${tr('post_registration.personal_info.errors.fetch_legal_representative')}: ${e.message}');
-    }
-  }
-
-  @override
-  Future<LegalRepresentativeModel> updateLegalRepresentative(
-    String userId,
-    LegalRepresentativeModel representative,
-  ) async {
-    try {
-      final response = await dio.patch(
-        '$_baseUrl${ApiEndpoints.users}/$userId/legal-representative',
-        data: representative.toJson(),
-      );
-
-      return LegalRepresentativeModel.fromJson(_extractMap(response.data));
-    } on DioException catch (e) {
-      throw Exception(
-          '${tr('post_registration.personal_info.errors.update_legal_representative')}: ${e.message}');
     }
   }
 

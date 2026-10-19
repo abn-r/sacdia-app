@@ -26,9 +26,12 @@ import '../../../auth/domain/entities/delete_account_reauth.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
+import '../../../auth/presentation/providers/acting_providers.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/notification_preferences_providers.dart';
 import '../widgets/accent_picker_sheet.dart';
+import '../utils/delete_account_dependents_gate.dart';
+import '../utils/delete_account_flow.dart';
 import '../widgets/delete_account_confirm_dialog.dart';
 import '../widgets/setting_tile.dart';
 import '../../../qr/presentation/views/qr_scanner_view.dart';
@@ -374,10 +377,41 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
 
     if (firstConfirmed != true || !mounted) return;
 
+    // Un tutor con menores a cargo los ve (y acepta qué pasará con cada uno)
+    // ANTES de pedir la contraseña; sin menores no hay pasos extra (FP-66).
+    final flow = DeleteAccountFlow(
+      confirmDependents: ({required bool refresh}) async {
+        if (!mounted) return DependentsAck.cancelled;
+        return confirmDeletionDependents(context, ref, refresh: refresh);
+      },
+      promptReauth: () => _promptDeleteReauth(deleteConfirmationWord),
+      delete: _deleteWithFeedback,
+    );
+
+    final result = await flow.run();
+    if (result == null || !mounted) return;
+
+    if (result.isSuccess) {
+      SacSnackBar.show(
+        context,
+        'profile.settings.account_deleted'.tr(),
+        backgroundColor: AppColors.success,
+      );
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } else {
+      SacSnackBar.show(context, result.errorMessage!, isError: true);
+    }
+  }
+
+  /// Segunda confirmación: palabra de confirmación + contraseña o proveedor.
+  Future<DeleteAccountReauth?> _promptDeleteReauth(
+    String deleteConfirmationWord,
+  ) async {
     // Proveedores vinculados para ofrecer la confirmación sin contraseña.
     // El diálogo muestra solo los que este dispositivo soporta.
     // La consulta puede tardar con mala red: se muestra progreso y se limita
     // a 10 s; si no responde, se sigue solo con la contraseña.
+    if (!mounted) return null;
     SacSnackBar.show(
       context,
       'common.loading'.tr(),
@@ -398,10 +432,10 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           const Duration(seconds: 10),
           onTimeout: () => const <SocialProvider>[],
         );
-    if (!mounted) return;
+    if (!mounted) return null;
     SacSnackBar.hide(context);
 
-    final reauth = await SacDialog.present<DeleteAccountReauth>(
+    return SacDialog.present<DeleteAccountReauth>(
       context,
       barrierDismissible: false,
       builder: (_) => DeleteAccountConfirmDialog(
@@ -409,40 +443,34 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
         connectedProviders: providers,
       ),
     );
+  }
 
-    if (reauth == null || !mounted) return;
-
-    SacSnackBar.show(
-      context,
-      'profile.settings.deleting_account'.tr(),
-      duration: const Duration(seconds: 30),
-      leading: const SizedBox(
-        width: 16,
-        height: 16,
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          color: Colors.white,
-        ),
-      ),
-    );
-
-    final error =
-        await ref.read(authNotifierProvider.notifier).deleteAccount(reauth);
-
-    if (!mounted) return;
-
-    SacSnackBar.hide(context);
-
-    if (error == null) {
+  Future<DeleteAccountResult> _deleteWithFeedback(
+    DeleteAccountReauth reauth,
+  ) async {
+    if (mounted) {
       SacSnackBar.show(
         context,
-        'profile.settings.account_deleted'.tr(),
-        backgroundColor: AppColors.success,
+        'profile.settings.deleting_account'.tr(),
+        duration: const Duration(seconds: 30),
+        leading: const SizedBox(
+          width: 16,
+          height: 16,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: Colors.white,
+          ),
+        ),
       );
-      Navigator.of(context).popUntil((route) => route.isFirst);
-    } else {
-      SacSnackBar.show(context, error, isError: true);
     }
+
+    final result =
+        await ref.read(authNotifierProvider.notifier).deleteAccountWithResult(
+              reauth,
+            );
+
+    if (mounted) SacSnackBar.hide(context);
+    return result;
   }
 
   @override
@@ -452,6 +480,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     final user = ref.watch(
       authNotifierProvider.select((v) => v.valueOrNull),
     );
+    // Mientras se actúa por un menor no se ofrecen seguridad, sesiones,
+    // exportación de datos ni borrado de cuenta: son del tutor (FP-56).
+    final acting = ref.watch(actingDependentProvider) != null;
     // Preferencias de notificación — cargadas desde el servidor con fallback a caché.
     final notifPrefsAsync = ref.watch(notificationPreferencesProvider);
     final notifPrefs = notifPrefsAsync.valueOrNull;
@@ -632,37 +663,39 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                         ),
                       ),
                     ],
-                    _groupDivider(),
-                    SettingTile(
-                      icon: HugeIcons.strokeRoundedDeviceAccess,
-                      title: 'settings.active_sessions'.tr(),
-                      iconColor: SacAccent.of(context).color,
-                      onTap: () => Navigator.push(
-                        context,
-                        SacSharedAxisRoute(
-                          builder: (_) => const ActiveSessionsView(),
+                    if (!acting) ...[
+                      _groupDivider(),
+                      SettingTile(
+                        icon: HugeIcons.strokeRoundedDeviceAccess,
+                        title: 'settings.active_sessions'.tr(),
+                        iconColor: SacAccent.of(context).color,
+                        onTap: () => Navigator.push(
+                          context,
+                          SacSharedAxisRoute(
+                            builder: (_) => const ActiveSessionsView(),
+                          ),
                         ),
                       ),
-                    ),
-                    _groupDivider(),
-                    SettingTile(
-                      icon: HugeIcons.strokeRoundedDownload02,
-                      title: 'settings.download_my_data'.tr(),
-                      iconColor: SacAccent.of(context).color,
-                      onTap: () => Navigator.push(
-                        context,
-                        SacSharedAxisRoute(
-                          builder: (_) => const DataExportView(),
+                      _groupDivider(),
+                      SettingTile(
+                        icon: HugeIcons.strokeRoundedDownload02,
+                        title: 'settings.download_my_data'.tr(),
+                        iconColor: SacAccent.of(context).color,
+                        onTap: () => Navigator.push(
+                          context,
+                          SacSharedAxisRoute(
+                            builder: (_) => const DataExportView(),
+                          ),
                         ),
                       ),
-                    ),
-                    _groupDivider(),
-                    SettingTile(
-                      icon: HugeIcons.strokeRoundedLockPassword,
-                      title: 'settings.change_password'.tr(),
-                      iconColor: SacAccent.of(context).color,
-                      onTap: _showChangePasswordDialog,
-                    ),
+                      _groupDivider(),
+                      SettingTile(
+                        icon: HugeIcons.strokeRoundedLockPassword,
+                        title: 'settings.change_password'.tr(),
+                        iconColor: SacAccent.of(context).color,
+                        onTap: _showChangePasswordDialog,
+                      ),
+                    ],
                     _groupDivider(),
                     const BiometricSettingsSection(),
                     _groupDivider(),
@@ -708,19 +741,21 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                if (!acting) ...[
+                  const SizedBox(height: 16),
 
-                // ── ZONA PELIGROSA ────────────────────────────────────────
-                _GroupContainer(
-                  children: [
-                    SettingTile(
-                      icon: HugeIcons.strokeRoundedDelete02,
-                      title: 'profile.settings.delete_account_tile'.tr(),
-                      iconColor: AppColors.error,
-                      onTap: _handleDeleteAccount,
-                    ),
-                  ],
-                ),
+                  // ── ZONA PELIGROSA ──────────────────────────────────────
+                  _GroupContainer(
+                    children: [
+                      SettingTile(
+                        icon: HugeIcons.strokeRoundedDelete02,
+                        title: 'profile.settings.delete_account_tile'.tr(),
+                        iconColor: AppColors.error,
+                        onTap: _handleDeleteAccount,
+                      ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 32),
                 const ZarzaRojaCredit(),
                 SizedBox(height: 24 + MediaQuery.paddingOf(context).bottom),
@@ -751,7 +786,7 @@ class _AccountHeaderTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final name = user.name ?? '';
-    final email = user.email;
+    final email = user.email ?? '';
     final avatar = user.avatar;
 
     return GestureDetector(

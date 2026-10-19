@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 
+import '../../../../core/consent/consent_evidence.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -9,6 +10,7 @@ import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/annual_continuation.dart';
 import '../../domain/entities/assignable_role.dart';
 import '../../domain/entities/club_member.dart';
+import '../../domain/entities/consent_verification_result.dart';
 import '../../domain/entities/join_request.dart';
 import '../../domain/repositories/members_repository.dart';
 import '../datasources/members_remote_data_source.dart';
@@ -99,9 +101,11 @@ class MembersRepositoryImpl implements MembersRepository {
       final request = await remoteDataSource.approveJoinRequest(assignmentId);
       return Right(request);
     } on AuthException catch (e) {
-      return Left(AuthFailure(message: e.message, code: e.code));
+      return Left(AuthFailure(
+          message: e.message, code: e.code, errorCode: e.errorCode));
     } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, code: e.code));
+      return Left(ServerFailure(
+          message: e.message, code: e.code, errorCode: e.errorCode));
     } catch (e) {
       return Left(UnexpectedFailure(message: e.toString()));
     }
@@ -138,9 +142,11 @@ class MembersRepositoryImpl implements MembersRepository {
       );
       return Right(result);
     } on AuthException catch (e) {
-      return Left(AuthFailure(message: e.message, code: e.code));
+      return Left(AuthFailure(
+          message: e.message, code: e.code, errorCode: e.errorCode));
     } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, code: e.code));
+      return Left(ServerFailure(
+          message: e.message, code: e.code, errorCode: e.errorCode));
     } catch (e) {
       return Left(UnexpectedFailure(message: e.toString()));
     }
@@ -221,4 +227,62 @@ class MembersRepositoryImpl implements MembersRepository {
       return Left(UnexpectedFailure(message: e.toString()));
     }
   }
+
+  // ── Consentimiento de menores (Phase 2c) ──────────────────────────────────
+
+  /// Conserva [Failure.errorCode] (`GUARDIANSHIP_*`, `MR_*`) para que la UI
+  /// muestre el mensaje exacto; el cliente nunca lee `details`.
+  Future<Either<Failure, T>> _guardKeepingCode<T>(
+      Future<T> Function() action) async {
+    try {
+      return Right(await action());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(
+        message: e.message,
+        code: e.code,
+        errorCode: e.errorCode,
+      ));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(
+        message: e.message,
+        code: e.code,
+        errorCode: e.errorCode,
+      ));
+    } on ConnectionException catch (e) {
+      return Left(NetworkFailure(message: e.message));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, ConsentEvidenceReceipt>> uploadConsentEvidence({
+    required String assignmentId,
+    required ConsentEvidenceLocalFile file,
+  }) =>
+      _guardKeepingCode(
+        () => remoteDataSource.uploadConsentEvidence(
+          assignmentId: assignmentId,
+          file: file,
+        ),
+      );
+
+  @override
+  Future<Either<Failure, ConsentEvidenceAccess>> getConsentEvidence(
+          String assignmentId) =>
+      _guardKeepingCode(
+        () => remoteDataSource.getConsentEvidence(assignmentId),
+      );
+
+  @override
+  Future<Either<Failure, ConsentVerificationResult>> verifyConsent({
+    required String assignmentId,
+    required bool approve,
+  }) =>
+      _guardKeepingCode(
+        () => remoteDataSource.verifyConsent(
+          assignmentId: assignmentId,
+          approve: approve,
+        ),
+      );
 }

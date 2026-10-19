@@ -3,8 +3,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/datasources/personal_info_remote_data_source.dart';
+import '../../data/health_none_disk_cache.dart';
 import '../../data/models/emergency_contact_model.dart';
-import '../../data/models/legal_representative_model.dart';
 import '../../data/models/allergy_model.dart';
 import '../../data/models/disease_model.dart';
 import '../../data/models/medicine_model.dart';
@@ -148,8 +148,6 @@ final healthNoneStateProvider =
 
 class HealthNoneStateNotifier
     extends AutoDisposeAsyncNotifier<HealthNoneState> {
-  static const _prefix = 'post_registration.health_none';
-
   @override
   Future<HealthNoneState> build() async {
     final userId = await ref.watch(
@@ -193,7 +191,7 @@ class HealthNoneStateNotifier
   }
 
   static String _key(String userId, HealthNoneCategory category) {
-    return '$_prefix.$userId.${category.name}';
+    return healthNoneKey(userId, category.name);
   }
 }
 
@@ -507,23 +505,6 @@ final userMedicinesProvider = AsyncNotifierProvider.autoDispose<
   () => UserMedicinesNotifier(),
 );
 
-/// Provider que verifica si se requiere representante legal
-final legalRepresentativeRequiredProvider =
-    FutureProvider.autoDispose<bool>((ref) async {
-  final userId = await ref.watch(
-    authNotifierProvider.selectAsync((user) => user?.id),
-  );
-  if (userId == null) return false;
-
-  final cancelToken = CancelToken();
-  ref.onDispose(() => cancelToken.cancel());
-  final dataSource = ref.watch(personalInfoDataSourceProvider);
-  return await dataSource.checkLegalRepresentativeRequired(
-    userId,
-    cancelToken: cancelToken,
-  );
-});
-
 /// Notifier de contactos de emergencia
 class EmergencyContactsNotifier
     extends AutoDisposeAsyncNotifier<List<EmergencyContactModel>> {
@@ -621,54 +602,6 @@ final emergencyContactsProvider = AsyncNotifierProvider.autoDispose<
   () => EmergencyContactsNotifier(),
 );
 
-/// Notifier de representante legal
-class LegalRepresentativeNotifier
-    extends AutoDisposeAsyncNotifier<LegalRepresentativeModel?> {
-  @override
-  Future<LegalRepresentativeModel?> build() async {
-    final userId = await ref.watch(
-      authNotifierProvider.selectAsync((user) => user?.id),
-    );
-    if (userId == null) return null;
-
-    final cancelToken = CancelToken();
-    ref.onDispose(() => cancelToken.cancel());
-    final dataSource = ref.watch(personalInfoDataSourceProvider);
-    return await dataSource.getLegalRepresentative(userId,
-        cancelToken: cancelToken);
-  }
-
-  /// Crea o actualiza el representante legal
-  Future<void> saveRepresentative(
-      LegalRepresentativeModel representative) async {
-    state = const AsyncValue.loading();
-
-    state = await AsyncValue.guard(() async {
-      final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
-
-      if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
-
-      final dataSource = ref.read(personalInfoDataSourceProvider);
-      final existing = await dataSource.getLegalRepresentative(userId);
-
-      if (existing == null) {
-        return await dataSource.createLegalRepresentative(
-            userId, representative);
-      } else {
-        return await dataSource.updateLegalRepresentative(
-            userId, representative);
-      }
-    });
-  }
-}
-
-/// Provider de representante legal
-final legalRepresentativeProvider = AsyncNotifierProvider.autoDispose<
-    LegalRepresentativeNotifier, LegalRepresentativeModel?>(
-  () => LegalRepresentativeNotifier(),
-);
-
 /// Provider que determina si se puede completar el paso 2
 final canCompleteStep2Provider = Provider.autoDispose<bool>((ref) {
   final formState = ref.watch(personalInfoFormProvider);
@@ -686,29 +619,7 @@ final canCompleteStep2Provider = Provider.autoDispose<bool>((ref) {
     orElse: () => false,
   );
 
-  if (!hasContacts) return false;
-
-  final requiresRepAsync = ref.watch(legalRepresentativeRequiredProvider);
-  // Fail-closed: mientras la verificación carga o falla, un menor no puede
-  // saltarse el representante legal.
-  final requiresRep = requiresRepAsync.valueOrNull;
-  if (requiresRepAsync.isLoading ||
-      requiresRepAsync.hasError ||
-      requiresRep == null) {
-    return false;
-  }
-
-  if (requiresRep) {
-    final repAsync = ref.watch(legalRepresentativeProvider);
-    final hasRep = repAsync.maybeWhen(
-      data: (rep) => rep != null,
-      orElse: () => false,
-    );
-
-    if (!hasRep) return false;
-  }
-
-  return true;
+  return hasContacts;
 });
 
 /// Notifier para guardar información personal con loading/error state

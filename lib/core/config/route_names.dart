@@ -358,4 +358,13 @@ class RouteNames {
 
   static String memberBreakdownPath(int enrollmentId, int yearId) =>
       '/rankings/breakdown/$enrollmentId?year_id=$yearId';
+
+  // Mi familia: menores a cargo del tutor. Se gestionan desde el perfil propio
+  // del tutor; mientras se actúa por un menor estas rutas redirigen al inicio.
+  static const String family = '/family';
+  static const String familyAdd = '/family/add';
+  static const String familyLink = '/family/link';
+  static const String familyDetail = '/family/:dependentId';
+
+  static String familyDetailPath(String dependentId) => '/family/$dependentId';
 }

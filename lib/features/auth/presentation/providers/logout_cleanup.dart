@@ -3,13 +3,20 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/analytics/posthog_analytics.dart';
+import '../../../../core/auth/acting_for_session.dart';
 import '../../../../core/providers/app_bootstrap_provider.dart';
+import '../../../../core/storage/image_cache_purge.dart';
 import '../../../../core/storage/json_file_cache.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../../providers/json_file_cache_provider.dart';
 import '../../../../providers/storage_provider.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
+import '../../../family/presentation/widgets/family_prompt_host.dart';
 import '../../../home_widgets/next_activity_widget_sync.dart';
+import '../../../post_registration/data/health_none_disk_cache.dart';
+import '../../../virtual_card/data/virtual_card_disk_cache.dart';
+import 'acting_providers.dart';
+import 'profile_scope_purge.dart';
 
 /// Invalida providers con estado de usuario al cerrar sesión.
 ///
@@ -38,12 +45,31 @@ import '../../../home_widgets/next_activity_widget_sync.dart';
 ///   - currentClubSectionProvider  FutureProvider.autoDispose     + keepAlive (club-specific)
 ///   - clubActivitiesProvider      FutureProvider.autoDispose     + keepAlive (club-specific)
 ///   - userClassesProvider         FutureProvider.autoDispose     + keepAlive (user-specific)
+///
+/// También cierra el modo "actuar por" (FP-53): la sesión de memoria, la foto
+/// del tutor y el aviso pendiente se borran, y la bandera `acting_dirty` baja
+/// porque los cachés de disco se purgan aquí mismo. Se invalida todo el
+/// registro de perfil (no solo [userSpecificProviders]) para que el siguiente
+/// inicio de sesión no herede providers `keepAlive` del usuario anterior.
 void clearUserStateOnLogout(Ref ref) {
-  for (final provider in userSpecificProviders) {
-    ref.invalidate(provider);
-  }
+  ref.read(actingForSessionProvider).exit();
+  ref.read(guardianUserProvider.notifier).state = null;
+  ref.read(actingNoticeProvider.notifier).state = null;
+  unawaited(
+    ref.read(sharedPreferencesProvider).setBool(kActingDirtyPrefsKey, false),
+  );
+  purgeProfileScopeProviders(ref);
+  // Bandera de un solo uso del tutor: no es del registro de perfil (no debe
+  // reiniciarse al cambiar de perfil) pero un segundo usuario del mismo proceso
+  // no puede heredarla.
+  ref.invalidate(familyPromptSuppressedProvider);
   ref.invalidate(appBootstrapProvider);
   _clearScopedDashboardCache(ref);
+  unawaited(clearVirtualCardDiskCache(ref.read(localStorageProvider)));
+  // Al cerrar sesión no se conserva ninguna marca, tampoco la del tutor.
+  unawaited(clearHealthNoneFlags(ref.read(localStorageProvider)));
+  // Fotos y evidencias en disco/memoria (incluidas las de un dependiente).
+  unawaited(ref.read(imageCachePurgerProvider)());
   unawaited(resetAnalyticsUser());
   unawaited(clearNextActivityWidget());
   unawaited(

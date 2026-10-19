@@ -1,6 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/errors/exceptions.dart';
+import '../../../../core/errors/user_error_message.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import 'club_selection_providers.dart';
 import 'personal_info_providers.dart';
@@ -11,15 +13,20 @@ class PostRegistrationFlowResult {
   final bool success;
   final String? errorMessage;
 
+  /// Código de negocio del backend (p. ej.
+  /// `POST_REG_GUARDIAN_ONLY_REQUIRES_ADULT`), si el fallo lo trae.
+  final String? errorCode;
+
   const PostRegistrationFlowResult._({
     required this.success,
     this.errorMessage,
+    this.errorCode,
   });
 
   const PostRegistrationFlowResult.success() : this._(success: true);
 
-  const PostRegistrationFlowResult.failure(String message)
-      : this._(success: false, errorMessage: message);
+  const PostRegistrationFlowResult.failure(String message, {String? errorCode})
+      : this._(success: false, errorMessage: message, errorCode: errorCode);
 }
 
 /// Notifier para completar pasos del post-registro sin acoplar el shell a
@@ -45,8 +52,12 @@ class PostRegistrationFlowNotifier extends AutoDisposeAsyncNotifier<void> {
 
     return result.fold(
       (failure) {
-        state = AsyncValue.error(failure.message, StackTrace.current);
-        return PostRegistrationFlowResult.failure(failure.message);
+        final message = userErrorMessage(failure);
+        state = AsyncValue.error(message, StackTrace.current);
+        return PostRegistrationFlowResult.failure(
+          message,
+          errorCode: failure.errorCode,
+        );
       },
       (_) {
         state = const AsyncValue.data(null);
@@ -72,10 +83,16 @@ class PostRegistrationFlowNotifier extends AutoDisposeAsyncNotifier<void> {
         await ref.read(savePersonalInfoProvider.notifier).save();
         final saveState = ref.read(savePersonalInfoProvider);
         if (saveState.hasError) {
-          final message = saveState.error?.toString() ??
-              tr('post_registration.shell.error_step_failed');
+          final error = saveState.error;
+          final message = userErrorMessage(
+            error,
+            fallbackKey: 'post_registration.shell.error_step_failed',
+          );
           state = AsyncValue.error(message, StackTrace.current);
-          return PostRegistrationFlowResult.failure(message);
+          return PostRegistrationFlowResult.failure(
+            message,
+            errorCode: error is AppException ? error.errorCode : null,
+          );
         }
       } else {
         await ref.read(personalInfoDataSourceProvider).completeStep2(userId);
@@ -84,9 +101,12 @@ class PostRegistrationFlowNotifier extends AutoDisposeAsyncNotifier<void> {
       state = const AsyncValue.data(null);
       return const PostRegistrationFlowResult.success();
     } catch (e, stack) {
-      final message = e.toString().replaceFirst('Exception: ', '');
+      final message = userErrorMessage(e);
       state = AsyncValue.error(message, stack);
-      return PostRegistrationFlowResult.failure(message);
+      return PostRegistrationFlowResult.failure(
+        message,
+        errorCode: e is AppException ? e.errorCode : null,
+      );
     }
   }
 
@@ -113,14 +133,50 @@ class PostRegistrationFlowNotifier extends AutoDisposeAsyncNotifier<void> {
       state = const AsyncValue.data(null);
       return const PostRegistrationFlowResult.success();
     } on Exception catch (e, stack) {
-      final message = e.toString().replaceFirst('Exception: ', '');
-      if (message.contains('409')) {
-        state = const AsyncValue.data(null);
-        return const PostRegistrationFlowResult.success();
-      }
-
+      // Un 409 aquí es un conflicto real (POST_REG_DUPLICATE_MEMBERSHIP,
+      // CLASS_ALREADY_ENROLLED), nunca "paso ya completo": se muestra.
+      final message = userErrorMessage(e);
       state = AsyncValue.error(message, stack);
-      return PostRegistrationFlowResult.failure(message);
+      return PostRegistrationFlowResult.failure(
+        message,
+        errorCode: e is AppException ? e.errorCode : null,
+      );
+    } finally {
+      ref.read(isSavingStep3Provider.notifier).state = false;
+    }
+  }
+
+  /// Paso 3 alterno "Solo soy tutor de menores" (FP-60). Solo el propio
+  /// usuario: la UI lo oculta mientras se actúa por un dependiente y el
+  /// backend lo rechaza igualmente.
+  Future<PostRegistrationFlowResult> completeGuardianOnly() async {
+    final userId = _currentUserId;
+    if (userId == null) {
+      return PostRegistrationFlowResult.failure(
+        tr('errors.user_not_authenticated'),
+      );
+    }
+
+    state = const AsyncValue.loading();
+    ref.read(isSavingStep3Provider.notifier).state = true;
+
+    try {
+      await ref.read(clubSelectionDataSourceProvider).completeGuardianOnly(
+            userId: userId,
+            countryId: ref.read(selectedCountryProvider),
+            unionId: ref.read(selectedUnionProvider),
+            localFieldId: ref.read(selectedLocalFieldProvider),
+          );
+
+      state = const AsyncValue.data(null);
+      return const PostRegistrationFlowResult.success();
+    } catch (e, stack) {
+      final message = userErrorMessage(e);
+      state = AsyncValue.error(message, stack);
+      return PostRegistrationFlowResult.failure(
+        message,
+        errorCode: e is AppException ? e.errorCode : null,
+      );
     } finally {
       ref.read(isSavingStep3Provider.notifier).state = false;
     }

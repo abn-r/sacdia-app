@@ -20,6 +20,7 @@ import '../../../profile/presentation/widgets/medico/medico_tokens.dart';
 import '../../../profile/presentation/widgets/medico/medico_section_card.dart';
 import '../../../profile/presentation/widgets/medico/medical_chip.dart';
 import '../utils/health_selection_state.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 
 /// Redesigned view for managing user medicines.
 /// Mint tone. Inline dose editor. None toggle above search.
@@ -347,7 +348,7 @@ class _MedicinesSelectionViewState
           SacSnackBar.show(
               context,
               'post_registration.health.medicines.delete_error'
-                  .tr(namedArgs: {'error': e.toString()}),
+                  .tr(namedArgs: {'error': userErrorMessage(e)}),
               isError: true);
         }
       }
@@ -473,7 +474,7 @@ class _MedicinesSelectionViewState
                     const SizedBox(height: 16),
                     Text(
                       'post_registration.health.medicines.load_error'
-                          .tr(namedArgs: {'error': error.toString()}),
+                          .tr(namedArgs: {'error': userErrorMessage(error)}),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),

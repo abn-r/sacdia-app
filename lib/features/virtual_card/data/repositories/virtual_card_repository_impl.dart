@@ -10,6 +10,7 @@ import '../../domain/entities/virtual_card.dart';
 import '../../domain/repositories/virtual_card_repository.dart';
 import '../datasources/virtual_card_remote_data_source.dart';
 import '../models/virtual_card_model.dart';
+import '../virtual_card_disk_cache.dart';
 
 class VirtualCardRepositoryImpl implements VirtualCardRepository {
   VirtualCardRepositoryImpl({
@@ -89,5 +90,5 @@ class VirtualCardRepositoryImpl implements VirtualCardRepository {
     );
   }
 
-  String _cacheKey(String userId) => 'virtual_card_cache_$userId';
+  String _cacheKey(String userId) => '$kVirtualCardCacheKeyPrefix$userId';
 }

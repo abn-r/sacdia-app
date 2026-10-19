@@ -1,10 +1,12 @@
 import 'package:dartz/dartz.dart';
 
+import '../../../../core/consent/consent_evidence.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/annual_continuation.dart';
 import '../entities/assignable_role.dart';
 import '../entities/club_member.dart';
+import '../entities/consent_verification_result.dart';
 import '../entities/join_request.dart';
 
 /// Interfaz del repositorio de miembros
@@ -59,5 +61,21 @@ abstract class MembersRepository {
   Future<Either<Failure, ContinuationBatchResult>> submitAnnualContinuations({
     required int sectionId,
     required List<String> userIds,
+  });
+
+  /// Sube la ficha de consentimiento firmada de un menor (director). No verifica.
+  Future<Either<Failure, ConsentEvidenceReceipt>> uploadConsentEvidence({
+    required String assignmentId,
+    required ConsentEvidenceLocalFile file,
+  });
+
+  /// Ficha vigente con URL firmada (15 min).
+  Future<Either<Failure, ConsentEvidenceAccess>> getConsentEvidence(
+      String assignmentId);
+
+  /// Verifica el consentimiento (y opcionalmente aprueba la solicitud).
+  Future<Either<Failure, ConsentVerificationResult>> verifyConsent({
+    required String assignmentId,
+    required bool approve,
   });
 }

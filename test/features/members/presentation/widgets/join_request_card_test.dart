@@ -23,6 +23,7 @@ void main() {
 
   JoinRequest buildRequest({
     JoinRequestStatus status = JoinRequestStatus.pending,
+    JoinRequestConsent? consent,
   }) {
     return JoinRequest(
       assignmentId: 'req-1',
@@ -31,12 +32,14 @@ void main() {
       paternalSurname: 'Ruiz',
       status: status,
       requestedAt: DateTime(2026, 9, 12),
+      consent: consent,
     );
   }
 
   Future<void> pumpCard(
     WidgetTester tester, {
     JoinRequestStatus status = JoinRequestStatus.pending,
+    JoinRequestConsent? consent,
     VoidCallback? onApprove,
     VoidCallback? onReject,
   }) async {
@@ -53,7 +56,7 @@ void main() {
             supportedLocales: context.supportedLocales,
             home: Scaffold(
               body: JoinRequestCard(
-                request: buildRequest(status: status),
+                request: buildRequest(status: status, consent: consent),
                 onApprove: onApprove,
                 onReject: onReject,
               ),
@@ -80,6 +83,53 @@ void main() {
       tester.getSize(find.byType(JoinRequestCard)).height,
       lessThanOrEqualTo(64),
     );
+  });
+
+  group('consent badge (FP-76)', () {
+    testWidgets('a pending minor shows the badge and a verify action',
+        (tester) async {
+      await pumpCard(
+        tester,
+        consent: const JoinRequestConsent(
+          status: JoinRequestConsentStatus.pending,
+        ),
+        onApprove: () {},
+        onReject: () {},
+      );
+
+      expect(find.text('Menor · consentimiento pendiente'), findsOneWidget);
+      expect(find.bySemanticsLabel('Verificar consentimiento'), findsOneWidget);
+      expect(
+        find.bySemanticsLabel('Aprobar'),
+        findsNothing,
+        reason: 'a pending minor is not approved directly',
+      );
+      expect(find.bySemanticsLabel('Rechazar'), findsOneWidget);
+    });
+
+    testWidgets('a verified minor shows the badge and approves directly',
+        (tester) async {
+      await pumpCard(
+        tester,
+        consent: const JoinRequestConsent(
+          status: JoinRequestConsentStatus.verified,
+        ),
+        onApprove: () {},
+        onReject: () {},
+      );
+
+      expect(find.text('Menor · consentimiento verificado'), findsOneWidget);
+      expect(find.bySemanticsLabel('Aprobar'), findsOneWidget);
+      expect(find.bySemanticsLabel('Verificar consentimiento'), findsNothing);
+    });
+
+    testWidgets('an adult request has no badge and is unchanged',
+        (tester) async {
+      await pumpCard(tester, onApprove: () {}, onReject: () {});
+
+      expect(find.textContaining('Menor ·'), findsNothing);
+      expect(find.bySemanticsLabel('Aprobar'), findsOneWidget);
+    });
   });
 
   testWidgets('approved status uses a badge and no action hits',

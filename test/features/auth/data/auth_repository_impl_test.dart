@@ -68,6 +68,7 @@ class _FakeAuthRemoteDataSource implements AuthRemoteDataSource {
     required String maternalSurname,
     required String acceptedTermsVersion,
     required String acceptedPrivacyVersion,
+    String? birthday,
   }) =>
       throw UnimplementedError();
 

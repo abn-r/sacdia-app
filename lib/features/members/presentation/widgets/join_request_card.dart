@@ -29,6 +29,8 @@ class JoinRequestCard extends StatelessWidget {
     final c = context.sac;
     final isPending = request.status == JoinRequestStatus.pending;
     final canAct = isPending && (onApprove != null || onReject != null);
+    final consent = request.consent;
+    final needsVerification = request.consentPending;
     final dateLabel = request.requestedAt == null
         ? null
         : DateFormat('dd MMM yyyy').format(request.requestedAt!.toLocal());
@@ -76,6 +78,10 @@ class JoinRequestCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
+                  if (consent != null) ...[
+                    const SizedBox(height: 6),
+                    _ConsentBadge(consent: consent),
+                  ],
                 ],
               ),
             ),
@@ -90,8 +96,14 @@ class JoinRequestCard extends StatelessWidget {
                 ),
               if (onApprove != null)
                 _IconAction(
-                  semanticLabel: 'members.join_request.approve'.tr(),
-                  icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                  // Un menor sin ficha verificada no se aprueba directo: el
+                  // mismo botón abre la verificación (FP-76).
+                  semanticLabel: needsVerification
+                      ? 'members.consent.verify_action'.tr()
+                      : 'members.join_request.approve'.tr(),
+                  icon: needsVerification
+                      ? HugeIcons.strokeRoundedFileVerified
+                      : HugeIcons.strokeRoundedCheckmarkCircle01,
                   color: AppColors.secondary,
                   background: AppColors.secondary.withValues(alpha: 0.12),
                   onTap: onApprove!,
@@ -103,6 +115,29 @@ class JoinRequestCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// "Menor · consentimiento pendiente/verificado" (solo menores sin cuenta).
+class _ConsentBadge extends StatelessWidget {
+  final JoinRequestConsent consent;
+
+  const _ConsentBadge({required this.consent});
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: consent.isVerified
+          ? SacBadge.success(
+              label: 'members.consent.badge_verified'.tr(),
+              icon: HugeIcons.strokeRoundedCheckmarkBadge01,
+            )
+          : SacBadge.warning(
+              label: 'members.consent.badge_pending'.tr(),
+              icon: HugeIcons.strokeRoundedClock01,
+            ),
     );
   }
 }

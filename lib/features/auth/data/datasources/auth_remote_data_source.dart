@@ -3,11 +3,13 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../core/auth/acting_for_session.dart';
 import '../../../../core/auth/social_auth_client.dart';
 import '../../../../core/auth/social_credential.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/network/interceptors/auth_interceptor.dart';
 import '../../../../core/storage/secure_storage.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/delete_account_reauth.dart';
@@ -36,6 +38,7 @@ abstract class AuthRemoteDataSource {
     required String maternalSurname,
     required String acceptedTermsVersion,
     required String acceptedPrivacyVersion,
+    String? birthday,
   });
 
   /// Cierra la sesión del usuario
@@ -87,6 +90,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final SecureStorage _secureStorage;
   final SocialAuthClient _socialAuth;
 
+  /// Perfil por el que se actúa. Mientras hay un dependiente en curso, `/auth/me`
+  /// devuelve datos del dependiente y NADA de eso puede tocar los cachés del
+  /// tutor (FP-49).
+  final ActingForSession? _actingForSession;
+
   static const _tag = 'AuthDS';
   bool _attemptedContextAutoActivation = false;
 
@@ -95,10 +103,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String baseUrl,
     required SecureStorage secureStorage,
     required SocialAuthClient socialAuth,
+    ActingForSession? actingForSession,
   })  : _dio = dio,
         _baseUrl = baseUrl,
         _secureStorage = secureStorage,
         _socialAuth = socialAuth,
+        _actingForSession = actingForSession,
         _authStateController = StreamController<bool>.broadcast() {
     _checkInitialAuthState();
   }
@@ -197,7 +207,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     return null;
   }
 
+  bool get _isActing => _actingForSession?.isActing ?? false;
+
+  static bool _requestCarriedActingFor(RequestOptions options) =>
+      options.headers[AuthInterceptor.actingForHeader] != null;
+
   Future<void> _persistCompletionCache(bool value) async {
+    // El flag de post-registro cacheado es del tutor: el del dependiente no se
+    // escribe nunca (FP-49).
+    if (_isActing) return;
     await _secureStorage.write(
       'cached_post_register_complete',
       value.toString(),
@@ -207,6 +225,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   Future<bool> _readCompletionCache() async {
+    // El valor cacheado pertenece al tutor; para un dependiente sería ajeno.
+    if (_isActing) return false;
     final prefs = await SharedPreferences.getInstance();
     final sharedValue = prefs.getBool('cached_post_register_complete');
     if (sharedValue != null) {
@@ -406,6 +426,27 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       AppLogger.e('Error al obtener usuario actual', tag: _tag, error: e);
 
       final statusCode = e.response?.statusCode;
+
+      // 403 de una petición que llevaba `X-Acting-For`: es el acceso al
+      // DEPENDIENTE lo que se perdió (tutoría revocada, congelado...), no la
+      // sesión del tutor. Borrar los tokens aquí cerraría la sesión del tutor
+      // (FP-55). Se decide por el encabezado enviado y no por la sesión
+      // actual: el interceptor ya pudo salir del modo antes de llegar aquí.
+      // Solo se lee el `code`, nunca `details` (RULING #11528).
+      if (statusCode == 403 && _requestCarriedActingFor(e.requestOptions)) {
+        final data = e.response?.data;
+        throw AuthException(
+          message: data is Map && data['message'] is String
+              ? data['message'] as String
+              : tr('errors.acting_for_forbidden'),
+          code: statusCode,
+          errorCode: data is Map && data['code'] is String
+              ? data['code'] as String
+              : null,
+          stackTrace: e.stackTrace,
+        );
+      }
+
       if (statusCode == 401 || statusCode == 403) {
         await _clearToken();
         return null;
@@ -503,6 +544,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String maternalSurname,
     required String acceptedTermsVersion,
     required String acceptedPrivacyVersion,
+    String? birthday,
   }) async {
     try {
       AppLogger.i('Registro iniciado', tag: _tag);
@@ -516,11 +558,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'maternal_last_name': maternalSurname,
         'accepted_terms_version': acceptedTermsVersion,
         'accepted_privacy_version': acceptedPrivacyVersion,
+        if (birthday != null) 'birthday': birthday,
       });
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw AuthException(
           message: response.data['message'] ?? tr('errors.register_failed'),
+          errorCode: response.data['code']?.toString(),
         );
       }
 
@@ -563,7 +607,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         final message = e.response?.data?['message'] ??
             e.message ??
             tr('common.error_network');
-        throw AuthException(message: message);
+        // Solo `code`: `details` no existe en producción (ruling #11528).
+        final data = e.response?.data;
+        throw AuthException(
+          message: message,
+          code: e.response?.statusCode,
+          errorCode: data is Map ? data['code']?.toString() : null,
+        );
       }
       if (e is AuthException) rethrow;
       throw AuthException(message: e.toString());
@@ -887,6 +937,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       throw AuthException(
         message: _deleteAccountErrorMessage(e, reauth, status, errorCode),
         code: status,
+        errorCode: errorCode,
       );
     } on AuthException {
       rethrow;
@@ -925,6 +976,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
 
     if (status == 429) return tr('errors.too_many_attempts');
+
+    // Tutor con menores a cargo que aún no aceptó el aviso (409). La app lo
+    // pide antes, así que solo llega si cambió algo entremedias.
+    if (errorCode == kDeleteDependentsAckRequiredCode) {
+      return tr('errors.auth_delete_dependents_ack_required');
+    }
 
     // Reautenticación rechazada: contraseña incorrecta o idToken inválido /
     // identidad no vinculada a esta cuenta. Un 401/403 sin `code` se trata igual.

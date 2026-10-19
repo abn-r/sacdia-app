@@ -5,7 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sacdia_app/core/constants/app_constants.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/core/storage/image_cache_purge.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/logout_cleanup.dart';
+import 'package:sacdia_app/features/family/presentation/widgets/family_prompt_host.dart';
 import 'package:sacdia_app/providers/storage_provider.dart';
 
 /// Signed-out session: invalidating user providers must not hit the network.
@@ -55,6 +57,7 @@ void main() {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         authNotifierProvider.overrideWith(_SignedOutAuthNotifier.new),
+        imageCachePurgerProvider.overrideWithValue(() async {}),
       ],
     );
     addTearDown(container.dispose);
@@ -79,6 +82,7 @@ void main() {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         authNotifierProvider.overrideWith(_SignedOutAuthNotifier.new),
+        imageCachePurgerProvider.overrideWithValue(() async {}),
       ],
     );
     addTearDown(container.dispose);
@@ -87,5 +91,48 @@ void main() {
     await Future<void>.delayed(Duration.zero);
 
     expect(prefs.getString('other_pref'), equals('ok'));
+  });
+
+  test('logout cleanup resets the one-time family prompt suppression (S4)',
+      () async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        authNotifierProvider.overrideWith(_SignedOutAuthNotifier.new),
+        imageCachePurgerProvider.overrideWithValue(() async {}),
+      ],
+    );
+    addTearDown(container.dispose);
+    container.read(familyPromptSuppressedProvider.notifier).state = true;
+
+    container.read(_logoutCleanupInvoker)();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(
+      container.read(familyPromptSuppressedProvider),
+      isFalse,
+      reason: 'a second account in the same process must not inherit it',
+    );
+  });
+
+  test('logout cleanup empties the image caches (S5)', () async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    var purges = 0;
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        authNotifierProvider.overrideWith(_SignedOutAuthNotifier.new),
+        imageCachePurgerProvider.overrideWithValue(() async => purges++),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    container.read(_logoutCleanupInvoker)();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(purges, 1);
   });
 }

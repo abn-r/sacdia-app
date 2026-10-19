@@ -27,6 +27,7 @@ abstract class AuthRepository {
     required String maternalSurname,
     required String acceptedTermsVersion,
     required String acceptedPrivacyVersion,
+    String? birthday,
   });
 
   /// Cierra la sesión del usuario actual

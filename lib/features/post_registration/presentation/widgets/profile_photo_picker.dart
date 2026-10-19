@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/features/post_registration/presentation/utils/acting_copy.dart';
 
 /// Widget para seleccionar y mostrar la foto de perfil.
 ///
@@ -22,6 +23,10 @@ class ProfilePhotoPicker extends StatelessWidget {
   final VoidCallback? onRemove;
   final bool isUploading;
 
+  /// Nombre del menor mientras el tutor actúa por él: el título y el subtítulo
+  /// pasan a tercera persona. `null` conserva el texto en segunda persona.
+  final String? actingName;
+
   const ProfilePhotoPicker({
     super.key,
     this.imagePath,
@@ -30,6 +35,7 @@ class ProfilePhotoPicker extends StatelessWidget {
     this.onConfirm,
     this.onRemove,
     this.isUploading = false,
+    this.actingName,
   });
 
   @override
@@ -40,13 +46,15 @@ class ProfilePhotoPicker extends StatelessWidget {
 
         // Title
         Text(
-          'post_registration.photo.title'.tr(),
+          postRegistrationCopy('post_registration.photo.title',
+              actingName: actingName),
           style: Theme.of(context).textTheme.displayMedium,
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 8),
         Text(
-          'post_registration.photo.subtitle'.tr(),
+          postRegistrationCopy('post_registration.photo.subtitle',
+              actingName: actingName),
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: context.sac.textSecondary,
               ),

@@ -209,6 +209,31 @@ bool isPastorWithoutClub(UserEntity? user) {
   return authorization.clubAssignments.every(_isDesignated);
 }
 
+/// ¿Es un tutor que no pertenece a ningún club?
+///
+/// Es el caso de quien cerró el post-registro por «solo tutor»: tiene la cuenta
+/// completa y dependientes, pero ninguna asignación de club, así que no hay
+/// resumen de dashboard que mostrar. No inventa campos del servidor: se deriva
+/// de `family` (`is_guardian`, `dependents_count`) y de las asignaciones de
+/// club de `authorization`.
+///
+/// Es falso mientras se actúa por un dependiente y con cualquier asignación
+/// visible (activa, pendiente, inactiva o vencida; las `designated` no cuentan
+/// como pertenencia).
+bool isGuardianWithoutClub(UserEntity? user) {
+  if (user == null || user.actingFor != null) return false;
+  final assignments = user.authorization?.clubAssignments ?? const [];
+  if (visibleClubAssignments(assignments).isNotEmpty) return false;
+  final family = user.family;
+  final isGuardian =
+      family != null && (family.isGuardian || family.dependentsCount > 0);
+  // Sin datos de tutoría, solo califica quien ya completó el post-registro y
+  // el servidor devolvió su autorización sin clubes (cuenta de tutor sin club).
+  final completedWithoutClub =
+      user.postRegisterComplete && user.authorization != null;
+  return isGuardian || completedWithoutClub;
+}
+
 /// ¿Debe pasar por el post-registro de club?
 ///
 /// Falta completarlo, salvo para el pastor sin club: su cuenta no tiene

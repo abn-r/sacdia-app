@@ -15,6 +15,7 @@ import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../post_registration/presentation/utils/acting_copy.dart';
 import '../../../notifications/presentation/providers/unread_notifications_count_provider.dart';
 import '../providers/dashboard_providers.dart';
 import '../widgets/club_info_card.dart';
@@ -67,6 +68,12 @@ class DashboardView extends ConsumerWidget {
                 // Ghost: member belongs to a club but not enrolled this year.
                 // Show dedicated empty state with the ghost banner.
                 return const _GhostMembershipDashboardState();
+              }
+
+              if (isGuardianWithoutClub(user)) {
+                // Tutor sin club (post-registro «solo tutor»): su inicio es la
+                // familia, no un resumen de club.
+                return const _GuardianWithoutClubDashboardState();
               }
 
               return Center(
@@ -240,12 +247,50 @@ class DashboardView extends ConsumerWidget {
   }
 }
 
-class _PendingMembershipDashboardState extends StatelessWidget {
+/// Solicitud de membresía pendiente.
+///
+/// Mientras un tutor actúa por un menor (su consentimiento sigue pendiente) el
+/// texto pasa a tercera persona con el nombre del menor, no menciona la
+/// formación personal y la acción lleva a Mi familia: primero se sale de
+/// "actuar por" porque esas rutas están bloqueadas con un menor activo.
+class _PendingMembershipDashboardState extends ConsumerWidget {
   const _PendingMembershipDashboardState();
 
+  /// Sale de "actuar por" y abre Mi familia del tutor.
+  ///
+  /// `switchProfile(null)` termina cuando la sesión ya salió, pero el estado de
+  /// auth sigue en carga mientras `/auth/me` del tutor se vuelve a pedir. Con
+  /// auth cargando el `redirect` del router manda a splash y de ahí al inicio,
+  /// así que un `push` hecho antes se pierde. Se espera a que auth quede
+  /// resuelto y solo entonces se abre Mi familia.
+  Future<void> _openFamily(BuildContext context, WidgetRef ref) async {
+    // El router y el contenedor sobreviven al cambio de perfil; el `context` y
+    // el `ref` de este widget pueden no hacerlo.
+    final router = GoRouter.of(context);
+    final container = ProviderScope.containerOf(context, listen: false);
+
+    final outcome =
+        await container.read(authNotifierProvider.notifier).switchProfile(null);
+    if (outcome != SwitchProfileOutcome.exited &&
+        outcome != SwitchProfileOutcome.unchanged) {
+      return;
+    }
+
+    try {
+      final guardian = await container.read(authNotifierProvider.future);
+      if (guardian == null) return;
+    } catch (_) {
+      // Sin sesión del tutor no hay Mi familia a donde ir.
+      return;
+    }
+    router.push(RouteNames.family);
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = context.sac;
+    final actingName = actingCopyName(ref);
+    final acting = actingName != null;
 
     return Center(
       child: SingleChildScrollView(
@@ -279,7 +324,10 @@ class _PendingMembershipDashboardState extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              tr('dashboard.pending_state.body'),
+              acting
+                  ? tr('dashboard.pending_state.body_acting',
+                      namedArgs: {'name': actingName})
+                  : tr('dashboard.pending_state.body'),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: c.textSecondary,
                     height: 1.45,
@@ -287,11 +335,18 @@ class _PendingMembershipDashboardState extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            SacButton.primary(
-              text: tr('dashboard.pending_state.profile_action'),
-              icon: HugeIcons.strokeRoundedUser,
-              onPressed: () => context.go(RouteNames.homeProfile),
-            ),
+            if (acting)
+              SacButton.primary(
+                text: tr('dashboard.pending_state.family_action_acting'),
+                icon: HugeIcons.strokeRoundedUserGroup,
+                onPressed: () => _openFamily(context, ref),
+              )
+            else
+              SacButton.primary(
+                text: tr('dashboard.pending_state.profile_action'),
+                icon: HugeIcons.strokeRoundedUser,
+                onPressed: () => context.go(RouteNames.homeProfile),
+              ),
           ],
         ),
       ),
@@ -315,6 +370,72 @@ class _GhostMembershipDashboardState extends StatelessWidget {
           children: [
             // Banner de no inscrito: copy informativo, sin autoinscripción.
             const MembershipStatusBanner(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Estado del dashboard para un tutor sin club: invita a gestionar la familia.
+///
+/// No hay ruta para unirse a un club tras el post-registro (el selector de
+/// club solo vive dentro de ese flujo y de las transferencias entre clubes),
+/// así que la única acción es «Mi familia».
+class _GuardianWithoutClubDashboardState extends StatelessWidget {
+  const _GuardianWithoutClubDashboardState();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final accent = SacAccent.of(context).color;
+    final hPad = Responsive.horizontalPadding(context);
+
+    return Center(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(horizontal: hPad, vertical: 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Center(
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedUserGroup,
+                  size: 36,
+                  color: accent,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              tr('dashboard.guardian_no_club.title'),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: c.text,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              tr('dashboard.guardian_no_club.subtitle'),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: c.textSecondary,
+                    height: 1.45,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            SacButton.primary(
+              text: tr('dashboard.guardian_no_club.family_action'),
+              icon: HugeIcons.strokeRoundedUserGroup,
+              onPressed: () => context.push(RouteNames.family),
+            ),
           ],
         ),
       ),

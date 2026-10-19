@@ -10,6 +10,8 @@ import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/post_registration_providers.dart';
 import '../widgets/profile_photo_picker.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import '../utils/acting_copy.dart';
 
 /// Vista del paso 1 del post-registro: Fotografía de perfil
 ///
@@ -124,7 +126,7 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
       SacSnackBar.show(
           context,
           'post_registration.photo.errors.upload'.tr(
-            namedArgs: {'message': error?.toString() ?? tr('common.error')},
+            namedArgs: {'message': userErrorMessage(error)},
           ),
           isError: true);
       ref.read(selectedPhotoPathProvider.notifier).state = null;
@@ -152,6 +154,7 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
         onTakePhoto: _takePhoto,
         onPickFromGallery: _pickFromGallery,
         onRemove: _removePhoto,
+        actingName: actingCopyName(ref),
       ),
     );
   }

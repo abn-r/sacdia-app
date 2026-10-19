@@ -1,6 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import '../auth/acting_for_session.dart';
 import '../constants/app_constants.dart';
+import 'interceptors/acting_error_interceptor.dart';
+import 'interceptors/acting_generation_interceptor.dart';
 import 'interceptors/auth_interceptor.dart';
 import 'interceptors/client_user_agent_interceptor.dart';
 import 'interceptors/logger_interceptor.dart';
@@ -18,7 +21,14 @@ import 'interceptors/error_interceptor.dart';
 /// validation. Revisit certificate pinning if the backend moves to a
 /// dedicated host with a stable certificate or uses a public-key pin.
 class DioClient {
-  static Dio createDio({VoidCallback? onAuthExpired}) {
+  static Dio createDio({
+    VoidCallback? onAuthExpired,
+    ActingForSession? actingForSession,
+
+    /// Se llama (una vez por petición afectada) cuando el servidor responde
+    /// 403 `ACTING_FOR_FORBIDDEN` a una petición del perfil vigente.
+    void Function(String dependentUserId)? onActingForbidden,
+  }) {
     final dio = Dio(BaseOptions(
       baseUrl: AppConstants.baseUrl,
       connectTimeout: Duration(seconds: AppConstants.connectTimeout),
@@ -39,7 +49,21 @@ class DioClient {
       // AuthInterceptor ANTES de ErrorInterceptor: Dio procesa onError en
       // orden forward (0→1→2→3), así AuthInterceptor intercepta el 401 y
       // refresca el token antes de que ErrorInterceptor lance AuthException.
-      AuthInterceptor(dio: dio, onAuthExpired: onAuthExpired),
+      AuthInterceptor(
+        dio: dio,
+        onAuthExpired: onAuthExpired,
+        actingForSession: actingForSession,
+      ),
+      // Pegado a AuthInterceptor y ANTES de ErrorInterceptor: descarta las
+      // respuestas de un perfil abandonado antes de que lleguen a la capa de
+      // datos o a cualquier caché.
+      if (actingForSession != null) ...[
+        ActingGenerationInterceptor(actingForSession),
+        ActingErrorInterceptor(
+          actingForSession,
+          onActingForbidden: onActingForbidden,
+        ),
+      ],
       ErrorInterceptor(),
       // RetryInterceptor después de AuthInterceptor para que los reintentos
       // incluyan los headers de autenticación actualizados.

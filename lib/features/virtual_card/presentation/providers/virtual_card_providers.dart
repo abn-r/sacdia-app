@@ -1,10 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/auth/acting_for_session.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/exceptions.dart';
-import '../../../../core/network/dio_client.dart';
+import '../../../../providers/dio_provider.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../profile/domain/entities/user_detail.dart';
@@ -17,11 +19,13 @@ import '../../domain/entities/virtual_card.dart';
 import '../../domain/repositories/virtual_card_repository.dart';
 import '../utils/credential_club_type.dart';
 
-final _virtualCardDioProvider = Provider<Dio>((ref) => DioClient.createDio());
+/// Dio de la credencial virtual. Público solo para poder probar sus callbacks.
+@visibleForTesting
+final virtualCardDioProvider = Provider<Dio>(buildAppDio);
 
 final virtualCardRemoteDataSourceProvider =
     Provider<VirtualCardRemoteDataSource>((ref) {
-  final dio = ref.watch(_virtualCardDioProvider);
+  final dio = ref.watch(virtualCardDioProvider);
   return VirtualCardRemoteDataSourceImpl(
     dio: dio,
     baseUrl: AppConstants.baseUrl,
@@ -42,19 +46,34 @@ final virtualCardFetcherProvider =
     FutureProvider.autoDispose<VirtualCard>((ref) async {
   ref.keepAlive();
 
+  // Mientras se actúa por un dependiente la credencial NO toca el disco: ni se
+  // lee un caché ni se escribe uno (FP-49, FP-51). Se decide al EMPEZAR: si el
+  // tutor sale mientras la petición vuela, la tarjeta del dependiente igual no
+  // se guarda.
+  final session = ref.read(actingForSessionProvider);
+  final actingAtStart = session.isActing;
+  final generationAtStart = session.generation;
+
   final user = await ref.watch(authNotifierProvider.selectAsync((u) => u));
   if (user == null) {
     throw Exception('virtual_card.errors.not_authenticated'.tr());
   }
 
   final repository = ref.read(virtualCardRepositoryProvider);
-  final cached = await repository.getCachedCard(user.id);
+  final cached = actingAtStart ? null : await repository.getCachedCard(user.id);
   final connected = await ref.read(networkInfoProvider).isConnected;
 
   if (connected) {
     try {
       final remote = await repository.getRemoteCard();
-      await repository.saveCachedCard(remote);
+      // Re-chequeo JUSTO antes de guardar: un cambio de perfil durante los
+      // `await` de arriba (p. ej. aceptar un push de tutor con la tarjeta
+      // abierta) deja la respuesta en manos de otro perfil. Se descarta.
+      final profileUnchanged =
+          !session.isActing && session.generation == generationAtStart;
+      if (!actingAtStart && profileUnchanged) {
+        await repository.saveCachedCard(remote);
+      }
       return _withIdentity(remote.copyWith(isOffline: false), user);
     } on ConnectionException {
       if (cached != null) {
@@ -112,7 +131,7 @@ Future<VirtualCard> _buildFallbackCard(
     user.authorization?.clubAssignments ?? const [],
   );
   final displayName =
-      _pickNonEmpty([profile?.fullName, user.name, user.email]) ?? user.email;
+      _pickNonEmpty([profile?.fullName, user.name, user.email]) ?? '';
 
   final roleLabel = _pickNonEmpty([activeGrant?.roleName]);
   final roleCode = _pickNonEmpty([activeGrant?.roleName]);

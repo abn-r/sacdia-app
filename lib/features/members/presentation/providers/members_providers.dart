@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/club_role_names.dart';
+import '../../../../core/consent/consent_evidence.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -25,7 +26,10 @@ import '../../domain/entities/join_request.dart';
 import '../../domain/repositories/members_repository.dart';
 import '../../domain/usecases/assign_club_role.dart';
 import '../../domain/usecases/get_club_members.dart';
+import '../../domain/usecases/get_consent_evidence.dart';
 import '../../domain/usecases/get_join_requests.dart';
+import '../../domain/usecases/upload_consent_evidence.dart';
+import '../../domain/usecases/verify_consent.dart';
 
 // ── Infrastructure providers ──────────────────────────────────────────────────
 
@@ -59,6 +63,32 @@ final getJoinRequestsUseCaseProvider = Provider<GetJoinRequests>((ref) {
 
 final assignClubRoleUseCaseProvider = Provider<AssignClubRole>((ref) {
   return AssignClubRole(ref.read(membersRepositoryProvider));
+});
+
+final uploadConsentEvidenceUseCaseProvider =
+    Provider<UploadConsentEvidence>((ref) {
+  return UploadConsentEvidence(ref.read(membersRepositoryProvider));
+});
+
+final getConsentEvidenceUseCaseProvider = Provider<GetConsentEvidence>((ref) {
+  return GetConsentEvidence(ref.read(membersRepositoryProvider));
+});
+
+final verifyConsentUseCaseProvider = Provider<VerifyConsent>((ref) {
+  return VerifyConsent(ref.read(membersRepositoryProvider));
+});
+
+/// Ficha firmada vigente de una solicitud de menor, con URL firmada.
+///
+/// `autoDispose`: la URL caduca a los 15 min y no debe sobrevivir a la pantalla
+/// ni a un cambio de perfil. Falla con el [Failure] original (para distinguir
+/// `GUARDIANSHIP_EVIDENCE_NOT_FOUND` de `GUARDIANSHIP_EVIDENCE_UNAVAILABLE`).
+final joinRequestConsentEvidenceProvider = FutureProvider.autoDispose
+    .family<ConsentEvidenceAccess, String>((ref, assignmentId) async {
+  final result = await ref.read(getConsentEvidenceUseCaseProvider)(
+    assignmentId,
+  );
+  return result.fold((failure) => throw failure, (access) => access);
 });
 
 // ── Context providers — club/section values ──────────────────────────────────
@@ -324,6 +354,20 @@ class MembersNotifier extends AutoDisposeAsyncNotifier<MembersData> {
       (_) {
         ref.invalidateSelf();
         return true;
+      },
+    );
+  }
+
+  /// Como [approveRequest] pero conserva el fallo, para distinguir
+  /// `MR_CONSENT_NOT_VERIFIED` (menor sin ficha verificada) de un error genérico.
+  Future<Failure?> approveRequestOrFailure(String assignmentId) async {
+    final repo = ref.read(membersRepositoryProvider);
+    final result = await repo.approveJoinRequest(assignmentId);
+    return result.fold(
+      (failure) => failure,
+      (_) {
+        ref.invalidateSelf();
+        return null;
       },
     );
   }

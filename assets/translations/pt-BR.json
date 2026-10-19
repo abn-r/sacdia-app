@@ -155,7 +155,15 @@
       "other": "há {} dias"
     },
     "accessibility_tile": "Acessibilidade",
-    "open_document_failed": "Não foi possível abrir este documento."
+    "open_document_failed": "Não foi possível abrir este documento.",
+    "delete_account": {
+      "dependents": {
+        "title": "Você tem menores sob seus cuidados",
+        "intro": "Se você excluir sua conta, isto acontecerá com cada menor:",
+        "ack": "Entendo o que acontecerá com os menores sob meus cuidados",
+        "continue": "Continuar"
+      }
+    }
   },
   "accessibility": {
     "title": "Acessibilidade",
@@ -239,6 +247,18 @@
       "retry": "Tentar novamente",
       "open_failed": "Não foi possível abrir o documento. Tente novamente.",
       "consent_semantics": "Aceitar os Termos e Condições e o Aviso de Privacidade"
+    },
+    "register": {
+      "birthday_label": "Data de nascimento",
+      "birthday_hint": "Selecione sua data de nascimento",
+      "birthday_required": "Selecione sua data de nascimento",
+      "age_gate": {
+        "title": "Você ainda não pode criar uma conta",
+        "message": "Peça ao seu tutor que cadastre você em Minha família.",
+        "hint": "Um adulto pode adicionar você na seção Minha família do perfil dele.",
+        "fix": "Corrigir data de nascimento",
+        "back": "Voltar"
+      }
     }
   },
   "legal_gate": {
@@ -413,7 +433,43 @@
     "social_signin_unverified": "Não conseguimos verificar sua conta {provider}.",
     "social_signin_already_linked": "Sua conta já está vinculada a outra conta {provider}. Entre com seu e-mail e senha.",
     "social_signin_provider_unavailable": "{provider} não está disponível no momento. Tente novamente em alguns minutos.",
-    "delete_account_social_reauth_failed": "Não foi possível confirmar sua identidade com {provider}. Tente novamente."
+    "delete_account_social_reauth_failed": "Não foi possível confirmar sua identidade com {provider}. Tente novamente.",
+    "acting_for_forbidden": "Você não tem mais acesso a este perfil. Você voltou ao seu próprio perfil.",
+    "guardianship_not_found": "Não encontramos este menor.",
+    "guardianship_dependent_age_out_of_range": "Você só pode cadastrar menores de 13 anos em Minha família. Os mais velhos se cadastram com a própria conta.",
+    "guardianship_guardian_not_adult": "Você precisa ser maior de idade para ser responsável. Confira sua data de nascimento no perfil.",
+    "guardianship_guardian_birthday_required": "Informe sua data de nascimento no perfil para cadastrar um menor.",
+    "guardianship_dependent_limit_reached": "Você atingiu o número máximo de menores sob seus cuidados.",
+    "guardianship_guardian_limit_reached": "Este menor já tem o número máximo de responsáveis.",
+    "guardianship_link_code_invalid": "O código não é válido ou não está mais disponível.",
+    "guardianship_link_code_locked": "Muitas tentativas. Tente novamente mais tarde.",
+    "guardianship_link_code_self_redeem": "Você não pode resgatar um código que você mesmo gerou.",
+    "guardianship_already_guardian": "Você já é responsável por este menor.",
+    "guardianship_revoke_forbidden": "Você não tem permissão para remover este responsável.",
+    "guardianship_relationship_type_invalid": "O parentesco selecionado não é válido.",
+    "guardianship_relationship_type_not_allowed": "Esse parentesco não é permitido para um responsável. Escolha uma das opções da lista.",
+    "acting_for_header_invalid": "Não foi possível identificar o perfil. Volte ao seu perfil e tente novamente.",
+    "acting_for_scope_denied": "Esta ação não está disponível enquanto você gerencia o perfil de um menor.",
+    "auth_delete_dependents_ack_required": "Confirme que você entende o que acontecerá com os menores sob seus cuidados antes de excluir sua conta.",
+    "auth_registration_age_below_minimum": "Peça ao seu responsável que cadastre você em Minha família.",
+    "user_self_account_below_minimum_age": "Essa data de nascimento não permite ter uma conta própria. Peça ao seu responsável que gerencie você em Minha família.",
+    "post_reg_guardian_only_requires_adult": "Somente um adulto pode se cadastrar apenas como responsável.",
+    "mr_consent_not_verified": "O consentimento do responsável ainda não foi verificado. Verifique a ficha assinada antes de aprovar.",
+    "legal_version_mismatch": "Os termos mudaram. Leia e aceite novamente.",
+    "guardianship_evidence_not_found": "A ficha de consentimento assinada ainda não foi enviada.",
+    "guardianship_evidence_required": "Envie a ficha de consentimento assinada antes de verificar.",
+    "guardianship_evidence_unavailable": "As fichas de consentimento ainda não estão disponíveis. Tente novamente mais tarde.",
+    "guardianship_custodian_self_verify": "Este menor está sob a custódia do clube. Outra pessoa autorizada do clube deve verificá-lo, não quem enviou a ficha nem quem recebeu a custódia.",
+    "mr_consent_confirmation_required": "Confirme que você revisou a ficha assinada antes de verificar.",
+    "mr_not_found": "A solicitação não existe mais ou não pertence a esta seção.",
+    "mr_already_pending": "Esta solicitação já foi processada.",
+    "guard_permission_denied": "Você não tem permissão para realizar esta ação.",
+    "file_required": "Selecione um arquivo.",
+    "file_type_invalid": "Tipo de arquivo não permitido. Use JPG, PNG, WebP ou PDF.",
+    "file_too_large": "O arquivo excede o limite de 10 MB.",
+    "guardianship_consent_already_verified": "A ficha já foi verificada.",
+    "guardianship_guardian_self_verify": "Você não pode verificar o consentimento de um menor do qual é responsável. Outra pessoa autorizada do clube deve fazê-lo.",
+    "post_reg_duplicate_membership": "Já existe uma associação ou solicitação ativa em outro clube. Verifique-a antes de enviar uma nova."
   },
   "honors": {
     "errors": {
@@ -970,6 +1026,9 @@
     }
   },
   "post_registration": {
+    "acting": {
+      "name_fallback": "este menor"
+    },
     "club_selection": {
       "errors": {
         "fetch_countries": "Erro ao obter países",
@@ -981,7 +1040,9 @@
         "complete_step_3": "Erro ao concluir a etapa 3 do pós-cadastro"
       },
       "title": "Encontre seu clube",
+      "title_acting": "Escolha o clube de {name}",
       "subtitle": "Selecione sua localização e clube para se juntar à aventura",
+      "subtitle_acting": "Selecione a localização e o clube para que {name} se junte à aventura",
       "location": "Localização",
       "country": "País",
       "select_country": "Selecionar país",
@@ -1034,10 +1095,6 @@
         "update_emergency_contact": "Erro ao atualizar contato de emergência",
         "delete_emergency_contact": "Erro ao excluir contato de emergência",
         "fetch_relationship_types": "Erro ao obter tipos de relação",
-        "verify_legal_representative": "Erro ao verificar representante legal",
-        "create_legal_representative": "Erro ao criar representante legal",
-        "fetch_legal_representative": "Erro ao obter representante legal",
-        "update_legal_representative": "Erro ao atualizar representante legal",
         "fetch_allergies_catalog": "Erro ao obter catálogo de alergias",
         "fetch_user_allergies": "Erro ao obter alergias do usuário",
         "save_allergies": "Erro ao salvar alergias",
@@ -1053,7 +1110,9 @@
         "complete_step_2": "Erro ao concluir etapa 2"
       },
       "title": "Conte-nos sobre você",
+      "title_acting": "Conte-nos sobre {name}",
       "subtitle": "Essas informações ajudam seu clube a cuidar melhor de você",
+      "subtitle_acting": "Essas informações ajudam o clube a cuidar melhor de {name}",
       "admin_restricted_notice": "Seu acesso atual só permite a conclusão administrativa mínima. Os dados sensíveis do usuário não são exibidos.",
       "basic_data": {
         "section_title": "Dados básicos"
@@ -1070,6 +1129,7 @@
       },
       "baptism": {
         "toggle_label": "Você foi batizado?",
+        "toggle_label_acting": "{name} é batizado(a)?",
         "label": "Data de batismo",
         "date_picker_help": "Selecione sua data de batismo"
       },
@@ -1082,11 +1142,6 @@
         "hint": "Registre pelo menos um contato de emergência",
         "empty": "Nenhum contato registrado",
         "required_hint": "Obrigatório: pelo menos 1"
-      },
-      "legal_representative": {
-        "section_title": "Representante legal",
-        "minor_notice": "Você é menor de 18 anos, precisa registrar um representante legal.",
-        "empty": "Nenhum representante registrado"
       },
       "health": {
         "section_title": "Informações médicas",
@@ -1165,32 +1220,6 @@
       "save_button": "Salvar Contato",
       "update_button": "Atualizar Contato",
       "info_note": "O contato de emergência será notificado em caso de qualquer eventualidade."
-    },
-    "legal_representative": {
-      "title": "Representante Legal",
-      "save_tooltip": "Salvar",
-      "save_success": "Representante legal salvo com sucesso",
-      "error_saving": "Erro: {error}",
-      "error_loading_types": "Erro ao carregar tipos: {error}",
-      "info_notice": "Menores de 18 anos precisam de um representante legal.",
-      "type_label": "Tipo de representante *",
-      "type_required": "Selecione um tipo de representante",
-      "first_name_label": "Nome(s) *",
-      "first_name_hint": "Ex: João Carlos",
-      "first_name_required": "O nome é obrigatório",
-      "first_name_min_length": "O nome deve ter pelo menos 2 caracteres",
-      "paternal_surname_label": "Sobrenome Paterno *",
-      "paternal_surname_hint": "Ex: Pereira",
-      "paternal_surname_required": "O sobrenome paterno é obrigatório",
-      "surname_min_length": "O sobrenome deve ter pelo menos 2 caracteres",
-      "maternal_surname_label": "Sobrenome Materno *",
-      "maternal_surname_hint": "Ex: Silva",
-      "maternal_surname_required": "O sobrenome materno é obrigatório",
-      "phone_label": "Telefone *",
-      "phone_hint": "Ex: 11912345678",
-      "phone_required": "O telefone é obrigatório",
-      "phone_invalid": "Insira um telefone válido de 10 dígitos",
-      "save_button": "Salvar Representante Legal"
     },
     "health": {
       "diseases": {
@@ -1288,7 +1317,9 @@
     },
     "photo": {
       "title": "Dê um rosto à sua aventura!",
+      "title_acting": "Envie uma foto de {name}",
       "subtitle": "Envie uma foto para que te reconheçam no seu clube",
+      "subtitle_acting": "Para que {name} seja reconhecido(a) no clube",
       "add": "Adicionar foto",
       "take": "Tirar foto",
       "gallery": "Galeria",
@@ -1317,6 +1348,14 @@
     },
     "dropdown": {
       "select_label": "Selecionar {label}"
+    },
+    "guardian_only": {
+      "action": "Sou apenas tutor de menores",
+      "hint": "Não vai entrar em um clube? Conclua seu cadastro e gerencie seus menores em Minha família.",
+      "confirm_title": "Concluir seu cadastro como tutor?",
+      "confirm_body": "Você não escolherá um clube para si. Poderá adicionar e gerenciar seus menores em Minha família.",
+      "confirm_action": "Concluir cadastro",
+      "error_generic": "Não conseguimos concluir seu cadastro. Tente novamente."
     }
   },
   "monthly_reports": {
@@ -2559,12 +2598,38 @@
         "CLASS_GM_INVESTITURE_REQUIRED": "É necessária a investidura de Guias Maiores",
         "CLASS_NOT_AVAILABLE_FOR_YEAR": "A classe não está disponível neste ano",
         "CLASS_NOT_FOUND": "Classe não encontrada",
-        "MR_ALREADY_PENDING": "Há uma solicitação de associação pendente"
+        "MR_ALREADY_PENDING": "Há uma solicitação de associação pendente",
+        "MR_CONSENT_NOT_VERIFIED": "Menor sem o consentimento do responsável verificado"
       },
       "errors": {
         "fetch": "Não foi possível carregar a lista de não inscritos",
         "submit": "Não foi possível concluir a inscrição"
       }
+    },
+    "consent": {
+      "badge_pending": "Menor · consentimento pendente",
+      "badge_verified": "Menor · consentimento verificado",
+      "verify_action": "Verificar consentimento",
+      "title": "Verificar consentimento",
+      "intro": "{name} é menor de idade. Revise a ficha assinada pelo responsável e confirme para poder aprovar a solicitação.",
+      "guardians": "Responsáveis",
+      "guardian_primary": "Principal",
+      "evidence_title": "Ficha assinada",
+      "evidence_none": "Ainda não há ficha enviada. Tire uma foto ou envie o PDF da ficha assinada.",
+      "evidence_loading": "Carregando ficha…",
+      "evidence_view": "Ver ficha",
+      "evidence_uploaded_by": "Enviada por {name} · {date}",
+      "evidence_uploaded_on": "Enviada em {date}",
+      "evidence_load_error": "Não foi possível carregar a ficha.",
+      "evidence_uploaded_toast": "Ficha enviada.",
+      "upload_first": "Envie o arquivo escolhido antes de confirmar.",
+      "reviewed": "Verifiquei a ficha assinada",
+      "confirm": "Confirmar e aprovar",
+      "approved": "Consentimento verificado. Solicitação de {name} aprovada.",
+      "verified_not_approved": "O consentimento foi verificado, mas não foi possível aprovar a solicitação: {reason}",
+      "retry_approve": "Tentar aprovar novamente",
+      "approve_blocked": "O consentimento do responsável ainda precisa ser verificado. A verificação foi aberta.",
+      "generic_error": "Não foi possível verificar o consentimento. Tente novamente."
     }
   },
   "certifications": {
@@ -3586,7 +3651,6 @@
       "diseases": "Doenças",
       "medicines": "Medicamentos",
       "emergency_contacts": "Contatos de Emergência",
-      "legal_rep": "Representante Legal",
       "none_allergies": "Sem alergias registradas",
       "none_diseases": "Sem doenças registradas",
       "none_medicines": "Sem medicamentos registrados",
@@ -3822,11 +3886,18 @@
       "get_summary": "Erro ao obter o resumo do dashboard"
     },
     "load_null_error": "Não foi possível carregar o painel",
+    "guardian_no_club": {
+      "title": "Sua conta está pronta",
+      "subtitle": "Você está como responsável, sem um clube próprio. Em Minha família você pode ver e gerenciar seus dependentes e agir em nome deles.",
+      "family_action": "Ir para Minha família"
+    },
     "load_error": "Erro ao carregar o painel",
     "pending_state": {
       "title": "Solicitação enviada",
       "body": "Sua solicitação para entrar no clube foi enviada. O diretor do clube a analisará em breve. Enquanto isso, você pode registrar sua formação pessoal pelo seu perfil.",
-      "profile_action": "Ir para meu perfil"
+      "body_acting": "A solicitação de {name} para entrar no clube foi enviada. O diretor a analisará junto com a ficha de consentimento assinada. Se você ainda não a entregou, leve-a ao clube ou envie-a por Minha família.",
+      "profile_action": "Ir para meu perfil",
+      "family_action_acting": "Ir para Minha família"
     },
     "notifications_tooltip": "Notificações",
     "club_info": {
@@ -4028,6 +4099,31 @@
     "theme": {
       "dark_mode": "Tema escuro",
       "light_mode": "Tema claro"
+    },
+    "consent": {
+      "source_title": "Adicionar ficha assinada",
+      "source_camera": "Tirar foto",
+      "source_camera_hint": "Fotografe a ficha em papel com boa luz",
+      "source_gallery": "Escolher da galeria",
+      "source_gallery_hint": "Use uma imagem que você já tenha",
+      "source_pdf": "Escolher um PDF",
+      "source_pdf_hint": "Ficha digitalizada em PDF",
+      "upload": "Enviar ficha assinada",
+      "replace": "Substituir ficha",
+      "change": "Trocar",
+      "upload_action": "Enviar",
+      "retry": "Tentar novamente",
+      "problems": {
+        "unsupported_type": "Somente arquivos JPG, PNG, WebP ou PDF são aceitos.",
+        "heic": "Este formato de imagem (HEIC) não é compatível. Tire a foto de novo ou escolha um JPG.",
+        "too_large": "O arquivo tem mais de 10 MB. Escolha um menor.",
+        "empty": "O arquivo está vazio."
+      },
+      "errors": {
+        "generic": "Não foi possível concluir a ação. Tente novamente.",
+        "rate_limited": "Muitas tentativas. Aguarde um momento e tente novamente.",
+        "pick_failed": "Não foi possível abrir o arquivo. Verifique as permissões e tente novamente."
+      }
     }
   },
   "roles": {
@@ -5192,5 +5288,135 @@
     "semantics_user": "Instrutor: {name}, pessoa do seu campo local",
     "semantics_external": "Instrutor: {name}, nome digitado, não verificado",
     "none_registered": "Nenhum instrutor registrado"
+  },
+  "family": {
+    "title": "Minha família",
+    "add_cta": "Adicionar menor",
+    "have_code": "Tenho um código de vinculação",
+    "limit_reached": "Você atingiu o limite de {max} menores.",
+    "empty": {
+      "title": "Você ainda não adicionou menores",
+      "body": "Cadastre uma criança menor de 13 anos para que ela possa entrar em um clube sob seus cuidados."
+    },
+    "frozen": "Congelado",
+    "frozen_hint": "Sem responsável nem clube. Será apagado após 90 dias.",
+    "card": {
+      "age": "{age} anos",
+      "view_as": "Ver como {name}"
+    },
+    "consent": {
+      "pending": "Consentimento pendente",
+      "verified": "Consentimento verificado"
+    },
+    "club": {
+      "none": "Sem clube",
+      "active": "Membro de {club}",
+      "pending": "Solicitação pendente em {club}",
+      "rejected": "Solicitação recusada",
+      "expired": "Solicitação expirada",
+      "cancelled": "Solicitação cancelada"
+    },
+    "profile": {
+      "entry_title": "Minha família",
+      "entry_subtitle": "Cadastre e gerencie os menores sob seus cuidados",
+      "entry_count": "{count} menores sob seus cuidados",
+      "switch_title": "Trocar de perfil",
+      "switch_subtitle": "Ver e completar o perfil de um menor"
+    },
+    "errors": {
+      "generic": "Algo deu errado. Tente novamente."
+    },
+    "add": {
+      "title": "Adicionar menor",
+      "intro": "Cadastre o menor sob seus cuidados. Depois você completará o perfil dele por ele.",
+      "name": "Nome(s)",
+      "paternal": "Sobrenome paterno",
+      "maternal": "Sobrenome materno (opcional)",
+      "birthday": "Data de nascimento",
+      "birthday_hint": "Selecione a data",
+      "birthday_required": "Selecione a data de nascimento",
+      "relationship": "Seu parentesco com o menor",
+      "relationship_hint": "Sou o/a…",
+      "relationship_required": "Selecione o parentesco",
+      "relationship_error": "Não foi possível carregar os parentescos. Tente novamente.",
+      "required": "Campo obrigatório",
+      "sworn": "Declaro sob juramento que sou o responsável legal por este menor.",
+      "legal_prefix": "Em nome do menor, aceito os ",
+      "legal_unavailable": "Não foi possível carregar os documentos legais.",
+      "submit": "Cadastrar e continuar",
+      "complete_profile": "Completar meu perfil"
+    },
+    "detail": {
+      "title": "Detalhes do menor",
+      "guardians": "Responsáveis",
+      "you": "Você",
+      "primary": "Principal",
+      "custodian": "Custódia do clube",
+      "consent_pending": "Ainda não há uma ficha assinada verificada. O diretor do clube a verificará.",
+      "consent_form_uploaded": "Ficha assinada enviada. Aguardando a verificação do diretor.",
+      "consent_verified": "O diretor verificou o consentimento.",
+      "invite": "Convidar outro responsável",
+      "invite_hint": "Gera um código de uso único válido por 72 horas.",
+      "code_title": "Código de vinculação",
+      "code_expires": "Vence {when}",
+      "copy": "Copiar código",
+      "copied": "Código copiado",
+      "share": "Compartilhar",
+      "share_message": "Convido você a ser responsável por {name} no SACDIA. Código: {code}. Vence {when}. Digite em Minha família > Tenho um código de vinculação.",
+      "leave": "Deixar de ser responsável",
+      "leave_title": "Deixar de ser responsável por {name}?",
+      "leave_confirm": "Deixar de ser responsável",
+      "remove": "Remover {name}",
+      "remove_title": "Remover {name} como responsável?",
+      "remove_body": "Esta pessoa não poderá mais ver nem gerenciar o menor.",
+      "remove_confirm": "Remover",
+      "removed": "Responsável removido",
+      "form_title": "Ficha de consentimento",
+      "form_hint": "Imprima e assine a ficha do clube; depois envie aqui como foto ou PDF. O diretor do clube a verificará.",
+      "form_view": "Ver ficha enviada",
+      "form_uploaded_toast": "Ficha enviada. Aguardando a verificação do diretor."
+    },
+    "outcome": {
+      "other_guardian": "Outro responsável continuará cuidando de {name}.",
+      "club_custody": "O clube ficará responsável por {name} enquanto isso.",
+      "frozen": "{name} será congelado e as informações serão apagadas em 90 dias."
+    },
+    "link": {
+      "title": "Código de vinculação",
+      "intro": "Digite o código que o outro responsável ou o diretor do clube compartilhou com você.",
+      "code_label": "Código",
+      "code_hint": "XXXX-XXXX",
+      "code_required": "Digite o código",
+      "sworn": "Declaro sob juramento que sou o responsável legal por este menor.",
+      "submit": "Vincular",
+      "success": "Agora você é responsável por {name}."
+    },
+    "switcher": {
+      "title": "Trocar de perfil",
+      "you": "Você",
+      "empty": "Você não tem menores para os quais trocar.",
+      "load_error": "Não foi possível carregar seus menores."
+    },
+    "switch": {
+      "offline": "Sem conexão. Você voltou ao seu perfil.",
+      "failed": "Não foi possível trocar de perfil. Tente novamente."
+    },
+    "banner": {
+      "viewing_as": "Vendo como {name}",
+      "back": "Voltar ao meu perfil"
+    },
+    "prompt": {
+      "title": "Você tem menores sob seus cuidados?",
+      "body": "Você pode cadastrá-los para que entrem em um clube. Você sempre os gerencia em Minha família.",
+      "add": "Adicionar menor",
+      "later": "Agora não"
+    },
+    "push": {
+      "dialog_title": "Notificação de {name}",
+      "dialog_body": "Esta notificação é de {name}. Mudar para o perfil dele(a)?",
+      "dialog_confirm": "Mudar",
+      "dialog_cancel": "Agora não",
+      "unavailable": "Esse perfil não está mais disponível para você."
+    }
   }
 }
