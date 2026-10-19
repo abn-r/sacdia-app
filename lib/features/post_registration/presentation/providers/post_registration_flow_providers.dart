@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/errors/user_error_message.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import 'club_selection_providers.dart';
 import 'personal_info_providers.dart';
@@ -51,8 +52,12 @@ class PostRegistrationFlowNotifier extends AutoDisposeAsyncNotifier<void> {
 
     return result.fold(
       (failure) {
-        state = AsyncValue.error(failure.message, StackTrace.current);
-        return PostRegistrationFlowResult.failure(failure.message);
+        final message = userErrorMessage(failure);
+        state = AsyncValue.error(message, StackTrace.current);
+        return PostRegistrationFlowResult.failure(
+          message,
+          errorCode: failure.errorCode,
+        );
       },
       (_) {
         state = const AsyncValue.data(null);
@@ -78,10 +83,16 @@ class PostRegistrationFlowNotifier extends AutoDisposeAsyncNotifier<void> {
         await ref.read(savePersonalInfoProvider.notifier).save();
         final saveState = ref.read(savePersonalInfoProvider);
         if (saveState.hasError) {
-          final message = saveState.error?.toString() ??
-              tr('post_registration.shell.error_step_failed');
+          final error = saveState.error;
+          final message = userErrorMessage(
+            error,
+            fallbackKey: 'post_registration.shell.error_step_failed',
+          );
           state = AsyncValue.error(message, StackTrace.current);
-          return PostRegistrationFlowResult.failure(message);
+          return PostRegistrationFlowResult.failure(
+            message,
+            errorCode: error is AppException ? error.errorCode : null,
+          );
         }
       } else {
         await ref.read(personalInfoDataSourceProvider).completeStep2(userId);
@@ -90,9 +101,12 @@ class PostRegistrationFlowNotifier extends AutoDisposeAsyncNotifier<void> {
       state = const AsyncValue.data(null);
       return const PostRegistrationFlowResult.success();
     } catch (e, stack) {
-      final message = e.toString().replaceFirst('Exception: ', '');
+      final message = userErrorMessage(e);
       state = AsyncValue.error(message, stack);
-      return PostRegistrationFlowResult.failure(message);
+      return PostRegistrationFlowResult.failure(
+        message,
+        errorCode: e is AppException ? e.errorCode : null,
+      );
     }
   }
 
@@ -119,14 +133,18 @@ class PostRegistrationFlowNotifier extends AutoDisposeAsyncNotifier<void> {
       state = const AsyncValue.data(null);
       return const PostRegistrationFlowResult.success();
     } on Exception catch (e, stack) {
-      final message = e.toString().replaceFirst('Exception: ', '');
-      if (message.contains('409')) {
+      // 409: el paso ya estaba completo; se trata como éxito.
+      if (e is AppException && e.code == 409) {
         state = const AsyncValue.data(null);
         return const PostRegistrationFlowResult.success();
       }
 
+      final message = userErrorMessage(e);
       state = AsyncValue.error(message, stack);
-      return PostRegistrationFlowResult.failure(message);
+      return PostRegistrationFlowResult.failure(
+        message,
+        errorCode: e is AppException ? e.errorCode : null,
+      );
     } finally {
       ref.read(isSavingStep3Provider.notifier).state = false;
     }
@@ -157,9 +175,7 @@ class PostRegistrationFlowNotifier extends AutoDisposeAsyncNotifier<void> {
       state = const AsyncValue.data(null);
       return const PostRegistrationFlowResult.success();
     } catch (e, stack) {
-      final message = e is AppException
-          ? e.message
-          : e.toString().replaceFirst('Exception: ', '');
+      final message = userErrorMessage(e);
       state = AsyncValue.error(message, stack);
       return PostRegistrationFlowResult.failure(
         message,

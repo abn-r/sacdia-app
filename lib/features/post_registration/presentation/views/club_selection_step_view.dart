@@ -18,6 +18,7 @@ import '../utils/progressive_class_logo_asset.dart';
 import '../widgets/bottom_sheet_picker.dart';
 import '../widgets/club_type_selector.dart';
 import '../widgets/guardian_only_exit.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 
 /// Vista del paso 3: Selección de club - Estilo "Scout Vibrante"
 ///
@@ -191,7 +192,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
             ),
             error: (error, _) => _buildErrorText(
                 'post_registration.club_selection.error_loading_countries'
-                    .tr(namedArgs: {'error': error.toString()})),
+                    .tr(namedArgs: {'error': userErrorMessage(error)})),
           ),
 
           // ── Unión ────────────────────────────────────────────────────────
@@ -239,7 +240,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
               ),
               error: (error, _) => _buildErrorText(
                   'post_registration.club_selection.error_loading_unions'
-                      .tr(namedArgs: {'error': error.toString()})),
+                      .tr(namedArgs: {'error': userErrorMessage(error)})),
             ),
           ],
 
@@ -291,7 +292,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
               ),
               error: (error, _) => _buildErrorText(
                   'post_registration.club_selection.error_loading_local_fields'
-                      .tr(namedArgs: {'error': error.toString()})),
+                      .tr(namedArgs: {'error': userErrorMessage(error)})),
             ),
           ],
 
@@ -353,7 +354,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
               ),
               error: (error, _) => _buildErrorText(
                   'post_registration.club_selection.error_loading_clubs'
-                      .tr(namedArgs: {'error': error.toString()})),
+                      .tr(namedArgs: {'error': userErrorMessage(error)})),
             ),
           ],
 
@@ -441,7 +442,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
               ),
               error: (error, _) => _buildErrorText(
                   'post_registration.club_selection.error_loading_classes'
-                      .tr(namedArgs: {'error': error.toString()})),
+                      .tr(namedArgs: {'error': userErrorMessage(error)})),
             ),
           ],
 

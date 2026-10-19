@@ -449,7 +449,7 @@
     "guardianship_relationship_type_invalid": "The selected relationship is not valid.",
     "guardianship_relationship_type_not_allowed": "That relationship is not allowed for a guardian. Choose one of the options in the list.",
     "acting_for_header_invalid": "The profile could not be identified. Go back to your profile and try again.",
-    "acting_for_scope_denied": "This action isn't available while viewing a minor's profile.",
+    "acting_for_scope_denied": "This action isn't available while you manage a minor's profile.",
     "auth_delete_dependents_ack_required": "Confirm you understand what will happen to the minors in your care before deleting your account.",
     "auth_registration_age_below_minimum": "Ask your guardian to register you from My family.",
     "user_self_account_below_minimum_age": "That date of birth does not allow having your own account. Ask your guardian to manage you from My family.",

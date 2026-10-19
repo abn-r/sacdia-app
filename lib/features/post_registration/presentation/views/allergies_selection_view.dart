@@ -19,6 +19,7 @@ import '../../../profile/presentation/widgets/medico/medico_tokens.dart';
 import '../../../profile/presentation/widgets/medico/medico_section_card.dart';
 import '../../../profile/presentation/widgets/medico/medical_chip.dart';
 import '../utils/health_selection_state.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 
 /// Redesigned view for managing user allergies.
 /// - AppBar: back only, no refresh, no Save
@@ -350,7 +351,7 @@ class _AllergiesSelectionViewState
           SacSnackBar.show(
               context,
               'post_registration.health.allergies.delete_error'
-                  .tr(namedArgs: {'error': e.toString()}),
+                  .tr(namedArgs: {'error': userErrorMessage(e)}),
               isError: true);
         }
       }
@@ -492,7 +493,7 @@ class _AllergiesSelectionViewState
                     const SizedBox(height: 16),
                     Text(
                       'post_registration.health.allergies.load_error'
-                          .tr(namedArgs: {'error': error.toString()}),
+                          .tr(namedArgs: {'error': userErrorMessage(error)}),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),

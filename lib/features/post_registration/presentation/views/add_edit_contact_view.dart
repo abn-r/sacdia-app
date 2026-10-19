@@ -14,6 +14,7 @@ import '../../../../core/widgets/sac_text_field.dart';
 import '../../data/models/emergency_contact_model.dart';
 import '../providers/personal_info_providers.dart';
 import '../widgets/relationship_type_picker_field.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 
 /// Vista para agregar o editar un contacto de emergencia
 class AddEditContactView extends ConsumerStatefulWidget {
@@ -102,7 +103,7 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
         SacSnackBar.show(
             context,
             'post_registration.contact_form.error_saving'
-                .tr(namedArgs: {'error': e.toString()}),
+                .tr(namedArgs: {'error': userErrorMessage(e)}),
             isError: true);
       }
     } finally {
@@ -161,7 +162,7 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
                   const SizedBox(height: 16),
                   Text(
                     'post_registration.contact_form.error_loading'
-                        .tr(namedArgs: {'error': error.toString()}),
+                        .tr(namedArgs: {'error': userErrorMessage(error)}),
                   ),
                   const SizedBox(height: 16),
                   SacButton(

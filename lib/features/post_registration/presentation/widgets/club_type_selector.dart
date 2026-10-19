@@ -9,6 +9,7 @@ import '../../data/models/club_section_model.dart';
 
 import '../providers/club_selection_providers.dart';
 import 'bottom_sheet_picker.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 
 /// Selector de tipo de club.
 ///
@@ -88,7 +89,7 @@ class ClubTypeSelector extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         child: Text(
           'post_registration.club_type.error_loading'
-              .tr(namedArgs: {'error': error.toString()}),
+              .tr(namedArgs: {'error': userErrorMessage(error)}),
           style: TextStyle(color: AppColors.error),
         ),
       ),

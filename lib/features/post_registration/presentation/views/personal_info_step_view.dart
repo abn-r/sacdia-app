@@ -19,6 +19,7 @@ import 'allergies_selection_view.dart';
 import 'diseases_selection_view.dart';
 import 'medicines_selection_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 
 /// Vista del paso 2: Información Personal - Estilo "Scout Vibrante"
 ///
@@ -298,7 +299,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                   child: SacLoadingSmall(),
                 ),
               ),
-              error: (error, _) => _ErrorCard(message: 'Error: $error'),
+              error: (error, _) => _ErrorCard(message: userErrorMessage(error)),
               data: (contacts) => SacCard(
                 onTap: () => _navigateToEmergencyContacts(),
                 child: Row(

@@ -449,7 +449,7 @@
     "guardianship_relationship_type_invalid": "El parentesco seleccionado no es válido.",
     "guardianship_relationship_type_not_allowed": "Ese parentesco no está permitido para un tutor. Elige una de las opciones de la lista.",
     "acting_for_header_invalid": "No se pudo identificar el perfil. Vuelve a tu perfil e inténtalo de nuevo.",
-    "acting_for_scope_denied": "Esta acción no está disponible mientras ves el perfil de un menor.",
+    "acting_for_scope_denied": "Esta acción no está disponible mientras gestionas el perfil de un menor.",
     "auth_delete_dependents_ack_required": "Confirma que entiendes qué pasará con los menores a tu cargo antes de eliminar tu cuenta.",
     "auth_registration_age_below_minimum": "Pide a tu tutor que te registre desde Mi familia.",
     "user_self_account_below_minimum_age": "Esa fecha de nacimiento no permite tener una cuenta propia. Pide a tu tutor que te administre desde Mi familia.",

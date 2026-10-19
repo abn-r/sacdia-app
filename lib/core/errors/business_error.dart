@@ -15,6 +15,10 @@ import 'exceptions.dart';
 AppException businessErrorFrom(Object e, {String? fallbackMessage}) {
   if (e is AppException) return e;
   if (e is DioException) {
+    // El ErrorInterceptor ya clasificó la falta de red (incluido SocketException
+    // con tipo `unknown`): se respeta su mensaje traducido.
+    final inner = e.error;
+    if (inner is ConnectionException) return inner;
     if (e.type == DioExceptionType.connectionError ||
         e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout ||

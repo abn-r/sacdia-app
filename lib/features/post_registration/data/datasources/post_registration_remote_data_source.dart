@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:http_parser/http_parser.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
+import '../../../../core/errors/business_error.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/completion_status_model.dart';
@@ -52,7 +53,7 @@ class PostRegistrationRemoteDataSourceImpl
     } catch (e) {
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
-        throw ServerException(message: e.message ?? tr('common.error_network'));
+        throw businessErrorFrom(e);
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());
@@ -98,7 +99,7 @@ class PostRegistrationRemoteDataSourceImpl
     } catch (e) {
       AppLogger.e('Error al subir foto de perfil', tag: _tag, error: e);
       if (e is DioException) {
-        throw ServerException(message: e.message ?? tr('common.error_network'));
+        throw businessErrorFrom(e);
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());
@@ -118,7 +119,7 @@ class PostRegistrationRemoteDataSourceImpl
       }
     } catch (e) {
       if (e is DioException) {
-        throw ServerException(message: e.message ?? tr('common.error_network'));
+        throw businessErrorFrom(e);
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());
@@ -144,7 +145,7 @@ class PostRegistrationRemoteDataSourceImpl
     } catch (e) {
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
-        throw ServerException(message: e.message ?? tr('common.error_network'));
+        throw businessErrorFrom(e);
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());
@@ -165,7 +166,7 @@ class PostRegistrationRemoteDataSourceImpl
     } catch (e) {
       AppLogger.e('Error en completeStep1', tag: _tag, error: e);
       if (e is DioException) {
-        throw ServerException(message: e.message ?? tr('common.error_network'));
+        throw businessErrorFrom(e);
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());
@@ -187,7 +188,7 @@ class PostRegistrationRemoteDataSourceImpl
     } catch (e) {
       AppLogger.e('Error al cancelar solicitud pendiente', tag: _tag, error: e);
       if (e is DioException) {
-        throw ServerException(message: e.message ?? tr('common.error_network'));
+        throw businessErrorFrom(e);
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());

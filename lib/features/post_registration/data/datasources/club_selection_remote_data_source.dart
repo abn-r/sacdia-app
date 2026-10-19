@@ -77,7 +77,7 @@ class ClubSelectionRemoteDataSourceImpl
       AppLogger.e('Error en getCountries', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
-        throw ServerException(message: e.message ?? tr('common.error_network'));
+        throw businessErrorFrom(e);
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());
@@ -106,7 +106,7 @@ class ClubSelectionRemoteDataSourceImpl
       AppLogger.e('Error en getUnionsByCountry', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
-        throw ServerException(message: e.message ?? tr('common.error_network'));
+        throw businessErrorFrom(e);
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());
@@ -136,7 +136,7 @@ class ClubSelectionRemoteDataSourceImpl
       AppLogger.e('Error en getLocalFieldsByUnion', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
-        throw ServerException(message: e.message ?? tr('common.error_network'));
+        throw businessErrorFrom(e);
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());
@@ -167,7 +167,7 @@ class ClubSelectionRemoteDataSourceImpl
       AppLogger.e('Error en getClubsByLocalField', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
-        throw ServerException(message: e.message ?? tr('common.error_network'));
+        throw businessErrorFrom(e);
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());
@@ -211,7 +211,7 @@ class ClubSelectionRemoteDataSourceImpl
       AppLogger.e('Error en getClubSections', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
-        throw ServerException(message: e.message ?? tr('common.error_network'));
+        throw businessErrorFrom(e);
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());
@@ -242,7 +242,7 @@ class ClubSelectionRemoteDataSourceImpl
       AppLogger.e('Error en getClassesByClubType', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
-        throw ServerException(message: e.message ?? tr('common.error_network'));
+        throw businessErrorFrom(e);
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());
@@ -278,7 +278,7 @@ class ClubSelectionRemoteDataSourceImpl
     } catch (e) {
       AppLogger.e('Error en completeStep3', tag: _tag, error: e);
       if (e is DioException) {
-        throw ServerException(message: e.message ?? tr('common.error_network'));
+        throw businessErrorFrom(e);
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());

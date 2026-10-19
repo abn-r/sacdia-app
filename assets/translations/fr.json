@@ -449,7 +449,7 @@
     "guardianship_relationship_type_invalid": "Le lien de parenté sélectionné n'est pas valide.",
     "guardianship_relationship_type_not_allowed": "Ce lien de parenté n'est pas autorisé pour un tuteur. Choisissez l'une des options de la liste.",
     "acting_for_header_invalid": "Le profil n'a pas pu être identifié. Revenez à votre profil et réessayez.",
-    "acting_for_scope_denied": "Cette action n'est pas disponible lorsque vous voyez le profil d'un mineur.",
+    "acting_for_scope_denied": "Cette action n'est pas disponible pendant que vous gérez le profil d'un mineur.",
     "auth_delete_dependents_ack_required": "Confirmez que vous comprenez ce qu'il adviendra des mineurs sous votre responsabilité avant de supprimer votre compte.",
     "auth_registration_age_below_minimum": "Demandez à votre tuteur de vous inscrire depuis Ma famille.",
     "user_self_account_below_minimum_age": "Cette date de naissance ne permet pas d'avoir un compte personnel. Demandez à votre tuteur de vous gérer depuis Ma famille.",

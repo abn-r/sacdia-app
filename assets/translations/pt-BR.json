@@ -449,7 +449,7 @@
     "guardianship_relationship_type_invalid": "O parentesco selecionado não é válido.",
     "guardianship_relationship_type_not_allowed": "Esse parentesco não é permitido para um responsável. Escolha uma das opções da lista.",
     "acting_for_header_invalid": "Não foi possível identificar o perfil. Volte ao seu perfil e tente novamente.",
-    "acting_for_scope_denied": "Esta ação não está disponível enquanto você vê o perfil de um menor.",
+    "acting_for_scope_denied": "Esta ação não está disponível enquanto você gerencia o perfil de um menor.",
     "auth_delete_dependents_ack_required": "Confirme que você entende o que acontecerá com os menores sob seus cuidados antes de excluir sua conta.",
     "auth_registration_age_below_minimum": "Peça ao seu responsável que cadastre você em Minha família.",
     "user_self_account_below_minimum_age": "Essa data de nascimento não permite ter uma conta própria. Peça ao seu responsável que gerencie você em Minha família.",
