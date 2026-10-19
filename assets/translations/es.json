@@ -3875,6 +3875,11 @@
       "get_summary": "Error al obtener el resumen del dashboard"
     },
     "load_null_error": "No se pudo cargar el dashboard",
+    "guardian_no_club": {
+      "title": "Tu cuenta está lista",
+      "subtitle": "Estás como tutor, sin un club propio. Desde Mi familia puedes ver y gestionar a tus dependientes y actuar en su nombre.",
+      "family_action": "Ir a Mi familia"
+    },
     "load_error": "Error al cargar el dashboard",
     "pending_state": {
       "title": "Solicitud enviada",

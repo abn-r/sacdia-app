@@ -3874,6 +3874,11 @@
       "get_summary": "Erreur lors de la récupération du résumé du tableau de bord"
     },
     "load_null_error": "Impossible de charger le tableau de bord",
+    "guardian_no_club": {
+      "title": "Votre compte est prêt",
+      "subtitle": "Vous êtes inscrit comme tuteur, sans club personnel. Depuis Ma famille, vous pouvez consulter et gérer vos personnes à charge et agir en leur nom.",
+      "family_action": "Aller à Ma famille"
+    },
     "load_error": "Erreur lors du chargement du tableau de bord",
     "pending_state": {
       "title": "Demande envoyée",

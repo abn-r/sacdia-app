@@ -3874,6 +3874,11 @@
       "get_summary": "Erro ao obter o resumo do dashboard"
     },
     "load_null_error": "Não foi possível carregar o painel",
+    "guardian_no_club": {
+      "title": "Sua conta está pronta",
+      "subtitle": "Você está como responsável, sem um clube próprio. Em Minha família você pode ver e gerenciar seus dependentes e agir em nome deles.",
+      "family_action": "Ir para Minha família"
+    },
     "load_error": "Erro ao carregar o painel",
     "pending_state": {
       "title": "Solicitação enviada",

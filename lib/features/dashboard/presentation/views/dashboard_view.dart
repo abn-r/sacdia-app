@@ -69,6 +69,12 @@ class DashboardView extends ConsumerWidget {
                 return const _GhostMembershipDashboardState();
               }
 
+              if (isGuardianWithoutClub(user)) {
+                // Tutor sin club (post-registro «solo tutor»): su inicio es la
+                // familia, no un resumen de club.
+                return const _GuardianWithoutClubDashboardState();
+              }
+
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -315,6 +321,72 @@ class _GhostMembershipDashboardState extends StatelessWidget {
           children: [
             // Banner de no inscrito: copy informativo, sin autoinscripción.
             const MembershipStatusBanner(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Estado del dashboard para un tutor sin club: invita a gestionar la familia.
+///
+/// No hay ruta para unirse a un club tras el post-registro (el selector de
+/// club solo vive dentro de ese flujo y de las transferencias entre clubes),
+/// así que la única acción es «Mi familia».
+class _GuardianWithoutClubDashboardState extends StatelessWidget {
+  const _GuardianWithoutClubDashboardState();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final accent = SacAccent.of(context).color;
+    final hPad = Responsive.horizontalPadding(context);
+
+    return Center(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(horizontal: hPad, vertical: 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Center(
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedUserGroup,
+                  size: 36,
+                  color: accent,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              tr('dashboard.guardian_no_club.title'),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: c.text,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              tr('dashboard.guardian_no_club.subtitle'),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: c.textSecondary,
+                    height: 1.45,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            SacButton.primary(
+              text: tr('dashboard.guardian_no_club.family_action'),
+              icon: HugeIcons.strokeRoundedUserGroup,
+              onPressed: () => context.push(RouteNames.family),
+            ),
           ],
         ),
       ),

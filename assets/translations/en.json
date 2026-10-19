@@ -3875,6 +3875,11 @@
       "get_summary": "Error fetching dashboard summary"
     },
     "load_null_error": "Could not load the dashboard",
+    "guardian_no_club": {
+      "title": "Your account is ready",
+      "subtitle": "You are set up as a guardian without a club of your own. From My family you can view and manage your dependents and act on their behalf.",
+      "family_action": "Go to My family"
+    },
     "load_error": "Error loading the dashboard",
     "pending_state": {
       "title": "Request sent",
