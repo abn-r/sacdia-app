@@ -72,6 +72,10 @@ class AuthInterceptor extends QueuedInterceptor {
     '/auth/register',
     '/guardianships',
     '/fcm-tokens',
+    // La app registra y borra el token FCM en `/users/me/fcm-tokens` (W4): el
+    // refresco de token del tutor mientras actúa no puede llevar el encabezado.
+    '/users/me/fcm-tokens',
+    '/notifications/preferences',
     '/users/me/notification-preferences',
     '/users/me/data-export',
   ];

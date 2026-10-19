@@ -89,6 +89,11 @@ void main() {
       '/guardianships/link-codes/redeem',
       '/fcm-tokens',
       '/fcm-tokens/abc',
+      // W4: the app registers/unregisters at /users/me/fcm-tokens; the
+      // guardian's token refresh while acting must not carry the header.
+      '/users/me/fcm-tokens',
+      '/users/me/fcm-tokens/token-id-1',
+      '/notifications/preferences',
       '/users/me/notification-preferences',
       '/users/me/data-export',
       '/users/me/data-export/latest',
