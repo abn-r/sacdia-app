@@ -346,6 +346,29 @@ class AuthInterceptor extends QueuedInterceptor {
 
       return handler.resolve(response);
     } catch (e) {
+      // Un 403 del reintento es la respuesta REAL del servidor (p. ej.
+      // `ACTING_FOR_FORBIDDEN`): se reenvía tal cual para que
+      // ActingErrorInterceptor saque al tutor del perfil. Reenviar el 401
+      // original la tragaría. Se conservan las `requestOptions` originales (su
+      // `X-Acting-For` es el del perfil vigente: el sello ya se comprobó) y se
+      // descarta si el perfil cambió mientras volaba.
+      if (e is DioException && e.response?.statusCode == 403) {
+        if (isStale()) return handler.next(staleError());
+        AppLogger.w(
+          '403 en el reintento tras refresh: ${err.requestOptions.path}',
+          tag: _tag,
+        );
+        return handler.next(
+          DioException(
+            requestOptions: err.requestOptions,
+            response: e.response,
+            type: e.type,
+            error: e.error,
+            stackTrace: e.stackTrace,
+            message: e.message,
+          ),
+        );
+      }
       AppLogger.e('Error al reintentar después de refresh',
           tag: _tag, error: e);
       return handler.next(err);

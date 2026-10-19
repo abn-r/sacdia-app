@@ -6,6 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/auth/acting_for_session.dart';
 import 'package:sacdia_app/core/constants/app_constants.dart';
+import 'package:sacdia_app/core/network/interceptors/acting_error_interceptor.dart';
 import 'package:sacdia_app/core/network/interceptors/acting_generation_interceptor.dart';
 import 'package:sacdia_app/core/network/interceptors/auth_interceptor.dart';
 import 'package:sacdia_app/core/network/interceptors/error_interceptor.dart';
@@ -24,6 +25,10 @@ class _ScriptedAdapter implements HttpClientAdapter {
   final calls = <String, int>{};
   Completer<void>? refreshGate;
   Completer<void>? retryGate;
+
+  /// Si se da, el reintento (no el 401 inicial) responde con este estado/cuerpo.
+  int? retryStatus;
+  Map<String, Object?>? retryBody;
 
   @override
   Future<ResponseBody> fetch(
@@ -46,10 +51,11 @@ class _ScriptedAdapter implements HttpClientAdapter {
       body = {'status': 'error', 'code': 'AUTH_SESSION_EXPIRED'};
     } else {
       await retryGate?.future;
-      status = 200;
-      body = {
-        'data': {'owner': options.headers['X-Acting-For'] ?? 'guardian'},
-      };
+      status = retryStatus ?? 200;
+      body = retryBody ??
+          {
+            'data': {'owner': options.headers['X-Acting-For'] ?? 'guardian'},
+          };
     }
     return ResponseBody.fromString(
       jsonEncode(body),
@@ -91,6 +97,7 @@ void main() {
 
   late ActingForSession session;
   late _ScriptedAdapter adapter;
+  late List<String> forbidden;
 
   Dio build({List<Interceptor> between = const []}) {
     FlutterSecureStorage.setMockInitialValues({
@@ -99,6 +106,7 @@ void main() {
     });
     session = ActingForSession();
     adapter = _ScriptedAdapter();
+    forbidden = <String>[];
     final dio = Dio(BaseOptions(baseUrl: 'http://localhost:3000'))
       ..httpClientAdapter = adapter;
     dio.interceptors.addAll([
@@ -109,6 +117,7 @@ void main() {
       ),
       ...between,
       ActingGenerationInterceptor(session),
+      ActingErrorInterceptor(session, onActingForbidden: forbidden.add),
       ErrorInterceptor(),
     ]);
     return dio;
@@ -197,6 +206,59 @@ void main() {
         throwsA(staleCancel()),
         reason: 'the response must not reach the caller (e.g. a cache write)',
       );
+    });
+  });
+
+  group('403 on the post-refresh retry (S2 of re-verify)', () {
+    test(
+        'ACTING_FOR_FORBIDDEN on the retry reaches the acting exit path '
+        '(it is not swallowed as the original 401)', () async {
+      final dio = build();
+      session.enter(_ana);
+      adapter
+        ..retryStatus = 403
+        ..retryBody = {'status': 'error', 'code': 'ACTING_FOR_FORBIDDEN'};
+
+      await expectLater(
+        dio.get<Map<String, dynamic>>(_path),
+        throwsA(isA<DioException>()),
+      );
+
+      expect(forbidden, ['ana-1']);
+    });
+
+    test('ACTING_FOR_SCOPE_DENIED on the retry does NOT exit the profile',
+        () async {
+      final dio = build();
+      session.enter(_ana);
+      adapter
+        ..retryStatus = 403
+        ..retryBody = {'status': 'error', 'code': 'ACTING_FOR_SCOPE_DENIED'};
+
+      await expectLater(
+        dio.get<Map<String, dynamic>>(_path),
+        throwsA(isA<DioException>()),
+      );
+
+      expect(forbidden, isEmpty);
+    });
+
+    test('a 403 for a profile already abandoned is dropped, not escalated',
+        () async {
+      final dio = build();
+      session.enter(_ana);
+      adapter
+        ..retryGate = Completer<void>()
+        ..retryStatus = 403
+        ..retryBody = {'status': 'error', 'code': 'ACTING_FOR_FORBIDDEN'};
+
+      final request = dio.get<Map<String, dynamic>>(_path);
+      await until(() => adapter.retries.length == 1);
+      session.enter(_luis);
+      adapter.retryGate!.complete();
+
+      await expectLater(request, throwsA(staleCancel()));
+      expect(forbidden, isEmpty);
     });
   });
 
