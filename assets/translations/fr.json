@@ -2671,7 +2671,7 @@
       "retry_approve": "Réessayer l'approbation",
       "approve_blocked": "Le consentement du tuteur doit d'abord être vérifié. La vérification s'est ouverte.",
       "generic_error": "Le consentement n'a pas pu être vérifié. Réessayez.",
-      "another_person": "Une autre personne doit vérifier ce consentement : vous avez inscrit le mineur ou téléversé la fiche.",
+      "another_person": "Une autre personne doit vérifier ce consentement : vous avez inscrit le mineur, téléversé la fiche ou l’avez confié à la garde du club.",
       "verify_only_hint": "Vous pouvez vérifier la fiche, mais l'approbation de la demande revient à un directeur.",
       "verify_only_confirm": "Confirmer la vérification",
       "verified_toast": "Consentement vérifié. Un directeur doit encore approuver la demande de {name}."

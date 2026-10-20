@@ -2671,7 +2671,7 @@
       "retry_approve": "Tentar aprovar novamente",
       "approve_blocked": "O consentimento do responsável ainda precisa ser verificado. A verificação foi aberta.",
       "generic_error": "Não foi possível verificar o consentimento. Tente novamente.",
-      "another_person": "Outra pessoa deve verificar este consentimento: você cadastrou o menor ou enviou a ficha.",
+      "another_person": "Outra pessoa deve verificar este consentimento: você cadastrou o menor, enviou a ficha ou o deixou sob a custódia do clube.",
       "verify_only_hint": "Você pode verificar a ficha, mas aprovar a solicitação cabe a um diretor.",
       "verify_only_confirm": "Confirmar verificação",
       "verified_toast": "Consentimento verificado. Um diretor ainda precisa aprovar a solicitação de {name}."

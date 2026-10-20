@@ -148,7 +148,7 @@ void main() {
   }
 
   const anotherPerson =
-      'Otra persona debe verificar este consentimiento: tú registraste al menor o subiste la ficha.';
+      'Otra persona debe verificar este consentimiento: tú registraste al menor, subiste la ficha o lo dejaste bajo custodia del club.';
 
   group('four eyes: the creator or uploader', () {
     testWidgets(

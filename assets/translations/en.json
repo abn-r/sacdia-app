@@ -2672,7 +2672,7 @@
       "retry_approve": "Retry approval",
       "approve_blocked": "The guardian's consent still needs to be verified. Verification opened.",
       "generic_error": "The consent could not be verified. Please try again.",
-      "another_person": "Another person must verify this consent: you registered the minor or uploaded the form.",
+      "another_person": "Another person must verify this consent: you registered the minor, uploaded the form or left them in the club’s custody.",
       "verify_only_hint": "You can verify the form, but approving the request is up to a director.",
       "verify_only_confirm": "Confirm verification",
       "verified_toast": "Consent verified. A director still has to approve {name}'s request."
