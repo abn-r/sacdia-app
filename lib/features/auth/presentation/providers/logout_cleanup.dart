@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/analytics/posthog_analytics.dart';
+import '../../../../core/config/pending_navigation.dart';
 import '../../../../core/auth/acting_for_session.dart';
 import '../../../../core/providers/app_bootstrap_provider.dart';
 import '../../../../core/storage/image_cache_purge.dart';
@@ -55,6 +56,9 @@ void clearUserStateOnLogout(Ref ref) {
   ref.read(actingForSessionProvider).exit();
   ref.read(guardianUserProvider.notifier).state = null;
   ref.read(actingNoticeProvider.notifier).state = null;
+  // Un push que esperaba la sesión de la persona anterior no se entrega a la
+  // siguiente.
+  ref.read(pendingNavigationProvider.notifier).state = null;
   unawaited(
     ref.read(sharedPreferencesProvider).setBool(kActingDirtyPrefsKey, false),
   );

@@ -33,6 +33,15 @@ Future<void> setupPosthog() async {
   _ready = true;
 }
 
+/// ¿Esta instalación ya identificó a alguien en PostHog?
+bool get analyticsUserIdentified => _identifiedUserId != null;
+
+/// Identifica a [userId] en PostHog.
+///
+/// Solo [AnalyticsPolicy] debe llamarlo: ahí se decide quién puede
+/// identificarse. Un menor de 13 a 17 o un teléfono vinculado nunca lo hace
+/// (FP3-30); `test/core/analytics/no_sentry_user_test.dart` falla si otro
+/// archivo lo llama.
 Future<void> identifyAnalyticsUser(String userId) async {
   if (!_ready || userId.isEmpty || userId == _identifiedUserId) {
     return;

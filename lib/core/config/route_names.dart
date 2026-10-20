@@ -367,4 +367,9 @@ class RouteNames {
   static const String familyDetail = '/family/:dependentId';
 
   static String familyDetailPath(String dependentId) => '/family/$dependentId';
+
+  // Adolescente (13-17) sin tutor verificado: pantalla única del modo
+  // restringido (estado, código para el tutor y cuenta atrás). Ver
+  // `supervised_route_policy.dart`.
+  static const String teenPendingHome = '/teen/pending';
 }

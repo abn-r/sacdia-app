@@ -7,6 +7,7 @@ import 'interceptors/acting_generation_interceptor.dart';
 import 'interceptors/auth_interceptor.dart';
 import 'interceptors/client_user_agent_interceptor.dart';
 import 'interceptors/logger_interceptor.dart';
+import 'interceptors/principal_scope_interceptor.dart';
 import 'interceptors/error_interceptor.dart';
 
 /// Cliente HTTP configurado con DIO según los requisitos
@@ -27,6 +28,10 @@ class DioClient {
     /// Se llama cuando el servidor corta el acceso de un menor supervisado
     /// (401 `AUTH_SUPERVISED_ACCESS_REVOKED`).
     VoidCallback? onSupervisedAccessRevoked,
+
+    /// Se llama cuando el servidor responde 403 `PRINCIPAL_SCOPE_DENIED`
+    /// (adolescente supervisado o teléfono vinculado en una ruta sin alcance).
+    VoidCallback? onPrincipalScopeDenied,
     ActingForSession? actingForSession,
 
     /// Se llama (una vez por petición afectada) cuando el servidor responde
@@ -69,6 +74,9 @@ class DioClient {
           onActingForbidden: onActingForbidden,
         ),
       ],
+      // Junto a los de "actuar por": ve el 403 antes de que ErrorInterceptor lo
+      // convierta en excepción.
+      PrincipalScopeInterceptor(onScopeDenied: onPrincipalScopeDenied),
       ErrorInterceptor(),
       // RetryInterceptor después de AuthInterceptor para que los reintentos
       // incluyan los headers de autenticación actualizados.

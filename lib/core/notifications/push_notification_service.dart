@@ -13,6 +13,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../auth/acting_for_session.dart';
+import '../config/pending_navigation.dart';
 import '../config/route_names.dart';
 import '../realtime/feature_flags.dart';
 import '../realtime/realtime_invalidation_handler.dart';
@@ -937,6 +938,19 @@ class PushNotificationService {
       AppLogger.w(
         'No hay GoRouter disponible para navegar desde push notification',
         tag: _tag,
+      );
+      return;
+    }
+
+    // Mientras la sesión o el arranque cargan, el router está en splash y su
+    // redirect descartaría este destino. Se guarda y el router lo entrega
+    // cuando la sesión está lista (y solo si la política del modo lo permite).
+    final location =
+        router.routerDelegate.currentConfiguration.last.matchedLocation;
+    if (location == RouteNames.splash) {
+      _ref.read(pendingNavigationProvider.notifier).state = PendingNavigation(
+        route: route,
+        replace: _shouldUseGoNavigation(route),
       );
       return;
     }

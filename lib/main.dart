@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -25,6 +27,7 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/utils/app_logger.dart';
 import 'features/accessibility/presentation/providers/accessibility_provider.dart';
+import 'features/auth/presentation/providers/auth_providers.dart';
 import 'features/auth/presentation/widgets/acting_notice_listener.dart';
 import 'features/biometric/presentation/widgets/biometric_gate.dart';
 import 'features/family/presentation/widgets/acting_for_banner.dart';
@@ -320,6 +323,12 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   /// arrived while the app was backgrounded and were staged to SharedPreferences.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Un adolescente cuyo tutor se verificó (o se fue) mientras la app estaba
+      // en segundo plano cambia de pantalla sin reiniciar. No hace nada para
+      // adultos ni mientras se actúa por un menor.
+      unawaited(ref.read(authNotifierProvider.notifier).refreshSupervision());
+    }
     if (state == AppLifecycleState.resumed &&
         RealtimeFeatureFlags.realtimeInvalidationEnabled) {
       RealtimeInvalidationHandler.drainPending(RealtimeRef.fromWidgetRef(ref));

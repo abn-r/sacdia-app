@@ -17,6 +17,7 @@ import '../../data/datasources/auth_remote_data_source.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/authorization_snapshot.dart';
 import '../../domain/entities/delete_account_reauth.dart';
+import '../../domain/entities/principal_info.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/utils/registration_age_gate.dart';
@@ -883,6 +884,16 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       return SwitchProfileOutcome.unchanged;
     }
 
+    // Solo un `user` puede actuar por un menor. Un adolescente supervisado o un
+    // teléfono vinculado jamás envía `X-Acting-For` (el servidor lo rechazaría
+    // con 403 ACTING_FOR_FORBIDDEN): ni siquiera se entra en el modo.
+    final kind = state.valueOrNull?.principal?.kind;
+    if (kind != null && kind != PrincipalKind.user) {
+      AppLogger.w('switchProfile rechazado: el principal no es un tutor',
+          tag: _tag);
+      return SwitchProfileOutcome.failed;
+    }
+
     final epoch = ++_switchEpoch;
 
     // El tutor es quien está en `state` solo cuando aún no se actúa.
@@ -1120,6 +1131,61 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     final result =
         await ref.read(authRepositoryProvider).getConnectedProviders();
     return result.fold((_) => const [], (list) => list);
+  }
+
+  /// Mínimo entre dos refrescos del modo disparados por 403
+  /// `PRINCIPAL_SCOPE_DENIED`: una pantalla que dispara varias peticiones
+  /// negadas no debe provocar una tormenta de `/auth/me`.
+  static const Duration scopeDeniedRefreshInterval = Duration(seconds: 20);
+
+  DateTime? _lastSupervisionRefresh;
+  bool _refreshingSupervision = false;
+
+  /// Vuelve a pedir `/auth/me` y publica el usuario SOLO si cambió el
+  /// principal o el modo (p. ej. el director verificó el consentimiento: el
+  /// adolescente pasa de pendiente a supervisado sin reiniciar la app).
+  ///
+  /// Solo actúa para un adolescente supervisado, nunca mientras se actúa por un
+  /// menor ni durante una carga, y no sale de ningún modo "actuar por". Un
+  /// fallo (sin red, 401...) no toca el estado. [minInterval] limita la
+  /// frecuencia. Devuelve `true` si el estado cambió.
+  Future<bool> refreshSupervision({Duration? minInterval}) async {
+    final current = state.valueOrNull;
+    if (current == null ||
+        state.isLoading ||
+        _isActing ||
+        !current.isSupervisedTeen ||
+        _refreshingSupervision) {
+      return false;
+    }
+    final last = _lastSupervisionRefresh;
+    if (minInterval != null &&
+        last != null &&
+        DateTime.now().difference(last) < minInterval) {
+      return false;
+    }
+    _lastSupervisionRefresh = DateTime.now();
+    _refreshingSupervision = true;
+    try {
+      final generation = _session.generation;
+      final result = await ref.read(getCurrentUserProvider)(NoParams());
+      // El perfil o la sesión cambiaron mientras volaba: la respuesta es vieja.
+      if (_session.generation != generation || state.isLoading) return false;
+      final fresh = result.fold<UserEntity?>((_) => null, (u) => u);
+      final still = state.valueOrNull;
+      if (fresh == null || still == null || fresh.id != still.id) return false;
+      final changed = fresh.principal != still.principal ||
+          fresh.mode != still.mode ||
+          fresh.legalAcceptancePending != still.legalAcceptancePending ||
+          fresh.familyFeatures != still.familyFeatures;
+      if (!changed) return false;
+      AppLogger.i('Modo de la cuenta actualizado desde el servidor', tag: _tag);
+      _cacheUser(fresh);
+      state = AsyncValue.data(fresh);
+      return true;
+    } finally {
+      _refreshingSupervision = false;
+    }
   }
 
   /// Llamado por el interceptor ante 401 `AUTH_SUPERVISED_ACCESS_REVOKED`: el

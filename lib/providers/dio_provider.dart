@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/auth/acting_for_session.dart';
@@ -17,6 +19,11 @@ Dio buildAppDio(Ref ref) {
         ref.read(authNotifierProvider.notifier).expireSession(),
     onSupervisedAccessRevoked: () =>
         ref.read(authNotifierProvider.notifier).onSupervisedAccessRevoked(),
+    onPrincipalScopeDenied: () => unawaited(
+      ref.read(authNotifierProvider.notifier).refreshSupervision(
+            minInterval: AuthNotifier.scopeDeniedRefreshInterval,
+          ),
+    ),
     actingForSession: ref.read(actingForSessionProvider),
     onActingForbidden: (dependentUserId) => ref
         .read(authNotifierProvider.notifier)
