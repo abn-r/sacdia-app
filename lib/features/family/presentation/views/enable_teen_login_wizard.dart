@@ -432,8 +432,11 @@ class _MethodOption extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(
-                selected ? Icons.radio_button_checked : Icons.radio_button_off,
+              HugeIcon(
+                icon: selected
+                    ? HugeIcons.strokeRoundedCheckmarkCircle02
+                    : HugeIcons.strokeRoundedCircle,
+                size: 22,
                 color: selected ? accent.color : c.textTertiary,
               ),
             ],

@@ -104,74 +104,86 @@ class AccessSection extends StatelessWidget {
   }
 
   List<Widget> _actions(BuildContext context, {required bool verified}) {
+    if (summary.frozen) return const [];
+    return [
+      ..._managementActions(context),
+      // El resumen funciona en todos los modos de acceso para un tutor
+      // verificado y no depende de la bandera del acceso propio.
+      const SizedBox(height: 8),
+      SacButton.outline(
+        text: 'family.access.summary'.tr(),
+        icon: HugeIcons.strokeRoundedChartLineData01,
+        onPressed: onOpenSummary,
+      ),
+    ];
+  }
+
+  /// Activar / reactivar / restablecer / desactivar, según el estado del acceso.
+  List<Widget> _managementActions(BuildContext context) {
     final c = context.sac;
     final textTheme = Theme.of(context).textTheme;
     final name = summary.firstName;
     final login = summary.supervisedLogin;
     final hasOwnAccess = summary.accessMode == AccessMode.supervisedLogin;
-    final disabled = login?.isDisabled ?? false;
 
-    return [
-      if (summary.frozen)
-        ...const <Widget>[]
-      else if (login == null && !hasOwnAccess) ...[
-        if (summary.ageMilestoneReached && teenLoginEnabled) ...[
-          const SizedBox(height: 8),
-          Text(
-            'family.access.enable_hint'.tr(namedArgs: {'name': name}),
-            style: textTheme.bodySmall?.copyWith(
-              color: c.textSecondary,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 12),
-          SacButton.primary(
-            text: 'family.access.enable'.tr(),
-            icon: HugeIcons.strokeRoundedUserAdd01,
-            onPressed: busy ? null : onEnable,
-          ),
-        ] else if (!summary.ageMilestoneReached) ...[
+    // Sin acceso propio: ofrecer activarlo si ya cumplió la edad mínima.
+    if (login == null && !hasOwnAccess) {
+      if (!summary.ageMilestoneReached) {
+        return [
           const SizedBox(height: 8),
           Text(
             'family.access.not_yet'.tr(namedArgs: {'name': name}),
             key: const ValueKey('access_not_yet'),
             style: textTheme.bodySmall?.copyWith(color: c.textSecondary),
           ),
-        ],
-      ] else if (teenLoginEnabled) ...[
-        const SizedBox(height: 12),
-        if (disabled) ...[
-          if (login?.canBeReactivated ?? false)
-            SacButton.primary(
-              text: 'family.access.reactivate'.tr(),
-              icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: busy ? null : onReactivate,
-            ),
-        ] else ...[
-          SacButton.outline(
-            text: 'family.access.reset_password'.tr(),
-            icon: HugeIcons.strokeRoundedLockPassword,
-            onPressed: busy ? null : onResetPassword,
-          ),
-          const SizedBox(height: 8),
-          SacButton.ghost(
-            text: 'family.access.disable'.tr(),
-            icon: HugeIcons.strokeRoundedUserBlock01,
-            textColor: AppColors.error,
-            onPressed: busy ? null : onDisable,
-          ),
-        ],
-      ],
-      // El resumen funciona en todos los modos de acceso para un tutor
-      // verificado y no depende de la bandera del acceso propio.
-      if (!summary.frozen) ...[
+        ];
+      }
+      if (!teenLoginEnabled) return const [];
+      return [
         const SizedBox(height: 8),
-        SacButton.outline(
-          text: 'family.access.summary'.tr(),
-          icon: HugeIcons.strokeRoundedChartLineData01,
-          onPressed: onOpenSummary,
+        Text(
+          'family.access.enable_hint'.tr(namedArgs: {'name': name}),
+          style: textTheme.bodySmall?.copyWith(
+            color: c.textSecondary,
+            height: 1.4,
+          ),
         ),
-      ],
+        const SizedBox(height: 12),
+        SacButton.primary(
+          text: 'family.access.enable'.tr(),
+          icon: HugeIcons.strokeRoundedUserAdd01,
+          onPressed: busy ? null : onEnable,
+        ),
+      ];
+    }
+
+    // Con acceso propio (o que lo tuvo): la gestión la apaga la bandera.
+    if (!teenLoginEnabled) return const [];
+    if (login?.isDisabled ?? false) {
+      if (!login!.canBeReactivated) return const [];
+      return [
+        const SizedBox(height: 12),
+        SacButton.primary(
+          text: 'family.access.reactivate'.tr(),
+          icon: HugeIcons.strokeRoundedRefresh,
+          onPressed: busy ? null : onReactivate,
+        ),
+      ];
+    }
+    return [
+      const SizedBox(height: 12),
+      SacButton.outline(
+        text: 'family.access.reset_password'.tr(),
+        icon: HugeIcons.strokeRoundedLockPassword,
+        onPressed: busy ? null : onResetPassword,
+      ),
+      const SizedBox(height: 8),
+      SacButton.ghost(
+        text: 'family.access.disable'.tr(),
+        icon: HugeIcons.strokeRoundedUserBlock01,
+        textColor: AppColors.error,
+        onPressed: busy ? null : onDisable,
+      ),
     ];
   }
 }
