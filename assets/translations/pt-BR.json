@@ -259,6 +259,17 @@
         "fix": "Corrigir data de nascimento",
         "back": "Voltar"
       }
+    },
+    "login": {
+      "identifier": {
+        "label": "E-mail ou usuário",
+        "hint": "Seu e-mail ou seu usuário",
+        "required": "Informe seu e-mail ou usuário",
+        "too_long": "Está muito longo"
+      },
+      "notice": {
+        "supervised_access_revoked": "Seu responsável desativou ou alterou seu acesso. Entre novamente com seus dados atualizados."
+      }
     }
   },
   "legal_gate": {
@@ -469,7 +480,23 @@
     "file_too_large": "O arquivo excede o limite de 10 MB.",
     "guardianship_consent_already_verified": "A ficha já foi verificada.",
     "guardianship_guardian_self_verify": "Você não pode verificar o consentimento de um menor do qual é responsável. Outra pessoa autorizada do clube deve fazê-lo.",
-    "post_reg_duplicate_membership": "Já existe uma associação ou solicitação ativa em outro clube. Verifique-a antes de enviar uma nova."
+    "post_reg_duplicate_membership": "Já existe uma associação ou solicitação ativa em outro clube. Verifique-a antes de enviar uma nova.",
+    "auth_invalid_credentials": "E-mail, usuário ou senha incorretos.",
+    "auth_login_locked": "Muitas tentativas. Tente novamente mais tarde.",
+    "auth_login_locked_wait": "Muitas tentativas. Tente novamente em {minutes} min.",
+    "auth_supervised_login_disabled": "Seu responsável desativou este acesso. Peça para ele reativar.",
+    "auth_account_frozen": "Esta conta foi removida porque não tinha um responsável vinculado.",
+    "auth_supervised_access_revoked": "Seu responsável desativou ou alterou seu acesso.",
+    "principal_scope_denied": "Esta ação não está disponível para sua conta.",
+    "user_birthday_change_requires_guardian": "Seu responsável precisa alterar sua data de nascimento.",
+    "supervised_login_not_eligible": "Este perfil ainda não pode ter acesso próprio.",
+    "supervised_login_age_out_of_range": "O acesso próprio é apenas para menores, a partir da idade mínima e até antes da maioridade.",
+    "supervised_login_already_enabled": "Este perfil já tem acesso próprio.",
+    "supervised_login_not_found": "Este perfil não tem acesso próprio.",
+    "supervised_login_email_unavailable": "Esse e-mail não está disponível. Tente outro.",
+    "supervised_login_password_invalid": "A senha não atende aos requisitos de segurança.",
+    "guardianship_consent_not_verified": "O consentimento ainda não foi verificado. Um diretor precisa confirmá-lo primeiro.",
+    "family_feature_disabled": "Este recurso não está disponível no momento."
   },
   "honors": {
     "errors": {

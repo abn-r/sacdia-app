@@ -259,6 +259,17 @@
         "fix": "Corregir fecha de nacimiento",
         "back": "Volver"
       }
+    },
+    "login": {
+      "identifier": {
+        "label": "Correo o usuario",
+        "hint": "Tu correo o tu usuario",
+        "required": "Ingresa tu correo o tu usuario",
+        "too_long": "Es demasiado largo"
+      },
+      "notice": {
+        "supervised_access_revoked": "Tu tutor desactivó o cambió tu acceso. Inicia sesión de nuevo con tus datos actualizados."
+      }
     }
   },
   "legal_gate": {
@@ -469,7 +480,23 @@
     "file_too_large": "El archivo supera el máximo de 10 MB.",
     "guardianship_consent_already_verified": "La ficha ya fue verificada.",
     "guardianship_guardian_self_verify": "No puedes verificar el consentimiento de un menor del que eres tutor. Debe hacerlo otra persona autorizada del club.",
-    "post_reg_duplicate_membership": "Ya hay una membresía o solicitud activa en otro club. Revísala antes de enviar una nueva."
+    "post_reg_duplicate_membership": "Ya hay una membresía o solicitud activa en otro club. Revísala antes de enviar una nueva.",
+    "auth_invalid_credentials": "Correo, usuario o contraseña incorrectos.",
+    "auth_login_locked": "Demasiados intentos. Inténtalo de nuevo más tarde.",
+    "auth_login_locked_wait": "Demasiados intentos. Inténtalo de nuevo en {minutes} min.",
+    "auth_supervised_login_disabled": "Tu tutor desactivó este acceso. Pídele que lo vuelva a activar.",
+    "auth_account_frozen": "Esta cuenta se eliminó porque no tenía un tutor vinculado.",
+    "auth_supervised_access_revoked": "Tu tutor desactivó o cambió tu acceso.",
+    "principal_scope_denied": "Esta acción no está disponible para tu cuenta.",
+    "user_birthday_change_requires_guardian": "Tu tutor debe cambiar tu fecha de nacimiento.",
+    "supervised_login_not_eligible": "Este perfil aún no puede tener acceso propio.",
+    "supervised_login_age_out_of_range": "El acceso propio es solo para menores desde la edad mínima y hasta antes de la mayoría de edad.",
+    "supervised_login_already_enabled": "Este perfil ya tiene acceso propio.",
+    "supervised_login_not_found": "Este perfil no tiene acceso propio.",
+    "supervised_login_email_unavailable": "Ese correo no está disponible. Prueba con otro.",
+    "supervised_login_password_invalid": "La contraseña no cumple los requisitos de seguridad.",
+    "guardianship_consent_not_verified": "El consentimiento aún no está verificado. Un director debe confirmarlo primero.",
+    "family_feature_disabled": "Esta función no está disponible por ahora."
   },
   "honors": {
     "errors": {

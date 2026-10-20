@@ -74,6 +74,26 @@ const _phase2cErrorCodes = [
   'GUARDIANSHIP_GUARDIAN_SELF_VERIFY',
 ];
 
+/// Códigos nuevos de la Fase 3a (login supervisado, resumen, modo pendiente)
+/// que la app debe traducir en los 4 idiomas (FP3-34).
+const _phase3aErrorCodes = [
+  'AUTH_INVALID_CREDENTIALS',
+  'AUTH_LOGIN_LOCKED',
+  'AUTH_SUPERVISED_LOGIN_DISABLED',
+  'AUTH_ACCOUNT_FROZEN',
+  'AUTH_SUPERVISED_ACCESS_REVOKED',
+  'PRINCIPAL_SCOPE_DENIED',
+  'USER_BIRTHDAY_CHANGE_REQUIRES_GUARDIAN',
+  'SUPERVISED_LOGIN_NOT_ELIGIBLE',
+  'SUPERVISED_LOGIN_AGE_OUT_OF_RANGE',
+  'SUPERVISED_LOGIN_ALREADY_ENABLED',
+  'SUPERVISED_LOGIN_NOT_FOUND',
+  'SUPERVISED_LOGIN_EMAIL_UNAVAILABLE',
+  'SUPERVISED_LOGIN_PASSWORD_INVALID',
+  'GUARDIANSHIP_CONSENT_NOT_VERIFIED',
+  'FAMILY_FEATURE_DISABLED',
+];
+
 void main() {
   final translations = {for (final l in _locales) l: _load(l)};
   final base = translations['es']!;
@@ -161,6 +181,41 @@ void main() {
             reason: '$key missing in $locale',
           );
         }
+      }
+    }
+  });
+
+  test('every Phase 3a error code has an errors.* translation in all locales',
+      () {
+    for (final code in _phase3aErrorCodes) {
+      final key = 'errors.${code.toLowerCase()}';
+      for (final locale in _locales) {
+        expect(
+          translations[locale]!.containsKey(key),
+          isTrue,
+          reason: '$key missing in $locale',
+        );
+      }
+    }
+  });
+
+  test('the 3a login and teen trees keep their placeholders in all locales',
+      () {
+    final placeholder = RegExp(r'\{[a-z_]+\}');
+    for (final entry in base.entries.where(
+      (e) =>
+          e.key.startsWith('auth.login.') ||
+          e.key.startsWith('teen.') ||
+          e.key == 'errors.auth_login_locked_wait',
+    )) {
+      final expected =
+          placeholder.allMatches(entry.value).map((m) => m.group(0)).toSet();
+      for (final locale in _locales.skip(1)) {
+        final value = translations[locale]![entry.key];
+        expect(value, isNotNull, reason: '${entry.key} in $locale');
+        final actual =
+            placeholder.allMatches(value!).map((m) => m.group(0)).toSet();
+        expect(actual, expected, reason: '${entry.key} in $locale');
       }
     }
   });

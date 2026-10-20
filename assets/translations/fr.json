@@ -259,6 +259,17 @@
         "fix": "Corriger la date de naissance",
         "back": "Retour"
       }
+    },
+    "login": {
+      "identifier": {
+        "label": "E-mail ou nom d'utilisateur",
+        "hint": "Votre e-mail ou votre nom d'utilisateur",
+        "required": "Saisissez votre e-mail ou votre nom d'utilisateur",
+        "too_long": "C'est trop long"
+      },
+      "notice": {
+        "supervised_access_revoked": "Votre tuteur a désactivé ou modifié votre accès. Reconnectez-vous avec vos informations mises à jour."
+      }
     }
   },
   "legal_gate": {
@@ -469,7 +480,23 @@
     "file_too_large": "Le fichier dépasse la limite de 10 Mo.",
     "guardianship_consent_already_verified": "La fiche a déjà été vérifiée.",
     "guardianship_guardian_self_verify": "Vous ne pouvez pas vérifier le consentement d'un mineur dont vous êtes le tuteur. Une autre personne autorisée du club doit le faire.",
-    "post_reg_duplicate_membership": "Il existe déjà une adhésion ou une demande active dans un autre club. Vérifiez-la avant d'en envoyer une nouvelle."
+    "post_reg_duplicate_membership": "Il existe déjà une adhésion ou une demande active dans un autre club. Vérifiez-la avant d'en envoyer une nouvelle.",
+    "auth_invalid_credentials": "E-mail, nom d'utilisateur ou mot de passe incorrect.",
+    "auth_login_locked": "Trop de tentatives. Réessayez plus tard.",
+    "auth_login_locked_wait": "Trop de tentatives. Réessayez dans {minutes} min.",
+    "auth_supervised_login_disabled": "Votre tuteur a désactivé cet accès. Demandez-lui de le réactiver.",
+    "auth_account_frozen": "Ce compte a été supprimé car aucun tuteur n'y était lié.",
+    "auth_supervised_access_revoked": "Votre tuteur a désactivé ou modifié votre accès.",
+    "principal_scope_denied": "Cette action n'est pas disponible pour votre compte.",
+    "user_birthday_change_requires_guardian": "Votre tuteur doit modifier votre date de naissance.",
+    "supervised_login_not_eligible": "Ce profil ne peut pas encore avoir son propre accès.",
+    "supervised_login_age_out_of_range": "L'accès personnel est réservé aux mineurs, à partir de l'âge minimum et jusqu'à la majorité.",
+    "supervised_login_already_enabled": "Ce profil a déjà son propre accès.",
+    "supervised_login_not_found": "Ce profil n'a pas d'accès personnel.",
+    "supervised_login_email_unavailable": "Cet e-mail n'est pas disponible. Essayez-en un autre.",
+    "supervised_login_password_invalid": "Le mot de passe ne respecte pas les exigences de sécurité.",
+    "guardianship_consent_not_verified": "Le consentement n'est pas encore vérifié. Un directeur doit d'abord le confirmer.",
+    "family_feature_disabled": "Cette fonctionnalité n'est pas disponible pour le moment."
   },
   "honors": {
     "errors": {

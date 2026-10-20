@@ -259,6 +259,17 @@
         "fix": "Correct date of birth",
         "back": "Back"
       }
+    },
+    "login": {
+      "identifier": {
+        "label": "Email or username",
+        "hint": "Your email or your username",
+        "required": "Enter your email or username",
+        "too_long": "That is too long"
+      },
+      "notice": {
+        "supervised_access_revoked": "Your guardian turned off or changed your access. Sign in again with your updated details."
+      }
     }
   },
   "legal_gate": {
@@ -469,7 +480,23 @@
     "file_too_large": "The file exceeds the 10 MB limit.",
     "guardianship_consent_already_verified": "The form has already been verified.",
     "guardianship_guardian_self_verify": "You cannot verify the consent of a minor you are a guardian of. Another authorized person from the club must do it.",
-    "post_reg_duplicate_membership": "There is already an active membership or request in another club. Check it before sending a new one."
+    "post_reg_duplicate_membership": "There is already an active membership or request in another club. Check it before sending a new one.",
+    "auth_invalid_credentials": "Wrong email, username or password.",
+    "auth_login_locked": "Too many attempts. Try again later.",
+    "auth_login_locked_wait": "Too many attempts. Try again in {minutes} min.",
+    "auth_supervised_login_disabled": "Your guardian turned this access off. Ask them to turn it back on.",
+    "auth_account_frozen": "This account was removed because it had no linked guardian.",
+    "auth_supervised_access_revoked": "Your guardian turned off or changed your access.",
+    "principal_scope_denied": "This action is not available for your account.",
+    "user_birthday_change_requires_guardian": "Your guardian has to change your birthday.",
+    "supervised_login_not_eligible": "This profile cannot have its own login yet.",
+    "supervised_login_age_out_of_range": "Own login is only for minors from the minimum age up to before the age of majority.",
+    "supervised_login_already_enabled": "This profile already has its own login.",
+    "supervised_login_not_found": "This profile has no own login.",
+    "supervised_login_email_unavailable": "That email is not available. Try another one.",
+    "supervised_login_password_invalid": "The password does not meet the security requirements.",
+    "guardianship_consent_not_verified": "Consent is not verified yet. A director has to confirm it first.",
+    "family_feature_disabled": "This feature is not available right now."
   },
   "honors": {
     "errors": {
