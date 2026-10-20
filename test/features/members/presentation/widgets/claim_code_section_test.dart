@@ -1,11 +1,14 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/members/domain/entities/join_request.dart';
 import 'package:sacdia_app/features/members/presentation/providers/members_providers.dart';
 import 'package:sacdia_app/features/members/presentation/views/consent_verification_view.dart';
+import 'package:sacdia_app/features/members/presentation/widgets/claim_code_section.dart';
 
 import '../../members_test_support.dart';
 
@@ -144,5 +147,38 @@ void main() {
     expect(
         find.text('Demasiados intentos. Intente más tarde.'), findsOneWidget);
     await tester.pumpAndSettle();
+  });
+
+  testWidgets(
+      'at phone width (402x874, real text size) the action label is complete: '
+      'no ellipsis, no overflow, full accessibility label', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pumpMembersApp(
+      tester,
+      size: const Size(402, 874),
+      textScale: 1.0,
+      overrides: [membersRepositoryProvider.overrideWithValue(repo)],
+      home: const Scaffold(
+        body: Padding(
+          padding: EdgeInsets.all(16),
+          child: ClaimCodeSection(
+            clubSectionId: 12,
+            dependentUserId: 'luis-9',
+            dependentName: 'Luis',
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final label = tester.renderObject<RenderParagraph>(find.text(action));
+    expect(label.didExceedMaxLines, isFalse,
+        reason: 'the label must wrap, not be cut with an ellipsis');
+    expect(tester.takeException(), isNull);
+    expect(
+      tester.getSemantics(find.text(action)).label,
+      contains(action),
+    );
+    semantics.dispose();
   });
 }

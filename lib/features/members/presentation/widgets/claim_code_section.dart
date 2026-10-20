@@ -150,6 +150,9 @@ class _ClaimCodeSectionState extends ConsumerState<ClaimCodeSection> {
           SacButton.outline(
             text: 'members.claim_code.action'.tr(),
             icon: HugeIcons.strokeRoundedKey01,
+            // A 402pt la etiqueta no cabe en una línea (en fr/pt-BR menos aún):
+            // se parte en dos en vez de cortarse con «…».
+            labelMaxLines: 2,
             isLoading: _busy,
             onPressed: _busy ? null : _generate,
           ),

@@ -38,12 +38,17 @@ Future<void> initLocalization() async {
 
 /// Monta [home] con español real y texto reducido (0.5), como el resto de los
 /// tests de widget del proyecto.
+///
+/// [size] y [textScale] permiten reproducir un teléfono real (p. ej. 402×874
+/// con texto al 100 %): con el 0.5 por defecto un rótulo largo nunca se corta.
 Future<void> pumpMembersApp(
   WidgetTester tester, {
   required Widget home,
   List<Override> overrides = const [],
+  Size size = const Size(800, 2400),
+  double textScale = 0.5,
 }) async {
-  tester.view.physicalSize = const Size(800, 2400);
+  tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
@@ -63,7 +68,7 @@ Future<void> pumpMembersApp(
             supportedLocales: context.supportedLocales,
             builder: (context, child) => MediaQuery(
               data: MediaQuery.of(context).copyWith(
-                textScaler: const TextScaler.linear(0.5),
+                textScaler: TextScaler.linear(textScale),
               ),
               child: child!,
             ),
