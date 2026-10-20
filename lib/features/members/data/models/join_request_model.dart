@@ -86,6 +86,10 @@ class JoinRequestModel extends JoinRequest {
       guardianLinked: map['guardian_linked'] is bool
           ? map['guardian_linked'] as bool
           : null,
+      viewerCanVerify: map['viewer_can_verify'] is bool
+          ? map['viewer_can_verify'] as bool
+          : null,
+      viewerVerifyBlock: ConsentVerifyBlock.parse(map['viewer_verify_block']),
       guardians: guardians is List
           ? guardians.whereType<Map>().map((g) {
               final guardian = Map<String, dynamic>.from(g);

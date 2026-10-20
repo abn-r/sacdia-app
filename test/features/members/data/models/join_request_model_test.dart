@@ -99,5 +99,50 @@ void main() {
       expect(parse({'dependent': false, 'guardian_linked': false})?.isCustody,
           isFalse);
     });
+
+    test('the server verdict on who may verify is parsed; absent stays null',
+        () {
+      JoinRequestConsent? parse(Map<String, Object?> extra) =>
+          JoinRequestModel.fromJson(_item(
+            consent: {...consentJson(), ...extra},
+          )).consent;
+
+      final absent = parse({});
+      expect(absent?.viewerCanVerify, isNull);
+      expect(absent?.viewerVerifyBlock, isNull);
+
+      final allowed =
+          parse({'viewer_can_verify': true, 'viewer_verify_block': null});
+      expect(allowed?.viewerCanVerify, isTrue);
+      expect(allowed?.viewerVerifyBlock, isNull);
+
+      expect(
+        parse({
+          'viewer_can_verify': false,
+          'viewer_verify_block': 'self_custodian',
+        })?.viewerVerifyBlock,
+        ConsentVerifyBlock.selfCustodian,
+      );
+      final guardian = parse({
+        'viewer_can_verify': false,
+        'viewer_verify_block': 'self_guardian',
+      });
+      expect(guardian?.viewerCanVerify, isFalse);
+      expect(guardian?.viewerVerifyBlock, ConsentVerifyBlock.selfGuardian);
+    });
+
+    test('an unknown block or a non-boolean verdict is ignored, never a crash',
+        () {
+      final consent = JoinRequestModel.fromJson(_item(
+        consent: {
+          ...consentJson(),
+          'viewer_can_verify': 'yes',
+          'viewer_verify_block': 'something_new',
+        },
+      )).consent;
+
+      expect(consent?.viewerCanVerify, isNull);
+      expect(consent?.viewerVerifyBlock, isNull);
+    });
   });
 }

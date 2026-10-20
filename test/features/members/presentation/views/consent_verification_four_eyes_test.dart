@@ -15,7 +15,12 @@ import '../../members_test_support.dart';
 const _assignment = '12/membership-requests/req-9';
 
 /// Menor bajo custodia del club: sin tutor vinculado, con ficha subida.
-JoinRequest _custodyRequest({bool evidence = true}) => JoinRequest(
+JoinRequest _custodyRequest({
+  bool evidence = true,
+  bool? viewerCanVerify,
+  ConsentVerifyBlock? viewerVerifyBlock,
+}) =>
+    JoinRequest(
       assignmentId: _assignment,
       userId: 'luis-9',
       name: 'Luis',
@@ -28,6 +33,8 @@ JoinRequest _custodyRequest({bool evidence = true}) => JoinRequest(
         evidenceUploaded: evidence,
         dependent: true,
         guardianLinked: false,
+        viewerCanVerify: viewerCanVerify,
+        viewerVerifyBlock: viewerVerifyBlock,
         guardians: const [
           ConsentGuardianRef(displayName: 'Club ACV', isPrimary: true),
         ],
@@ -35,20 +42,26 @@ JoinRequest _custodyRequest({bool evidence = true}) => JoinRequest(
     );
 
 /// Menor con un tutor vinculado: el cuatro ojos del club NO aplica.
-JoinRequest _guardedRequest() => JoinRequest(
+JoinRequest _guardedRequest({
+  bool? viewerCanVerify,
+  ConsentVerifyBlock? viewerVerifyBlock,
+}) =>
+    JoinRequest(
       assignmentId: '12/membership-requests/req-1',
       userId: 'ana-1',
       name: 'Ana',
       paternalSurname: 'Pérez',
       status: JoinRequestStatus.pending,
       requestedAt: DateTime(2026, 10, 12),
-      consent: const JoinRequestConsent(
+      consent: JoinRequestConsent(
         guardianshipId: 'gs-1',
         status: JoinRequestConsentStatus.pending,
         evidenceUploaded: true,
         dependent: true,
         guardianLinked: true,
-        guardians: [
+        viewerCanVerify: viewerCanVerify,
+        viewerVerifyBlock: viewerVerifyBlock,
+        guardians: const [
           ConsentGuardianRef(
             displayName: 'María Pérez',
             relationshipTypeName: 'Madre',
@@ -214,6 +227,124 @@ void main() {
       expect(button(tester, 'Confirmar y aprobar').onPressed, isNull,
           reason: 'retrying with the same person can never work');
       expect(popped, isNull);
+    });
+  });
+
+  const guardianNotice =
+      'No puedes verificar el consentimiento de un menor del que eres tutor. Debe hacerlo otra persona autorizada del club.';
+
+  group('the server verdict (viewer_can_verify / viewer_verify_block)', () {
+    testWidgets(
+        'self_custodian: Confirm disabled with the "another person" copy '
+        'although this session knows nothing about the minor', (tester) async {
+      await open(
+        tester,
+        request: _custodyRequest(
+          viewerCanVerify: false,
+          viewerVerifyBlock: ConsentVerifyBlock.selfCustodian,
+        ),
+      );
+
+      expect(find.text(anotherPerson), findsOneWidget);
+      await tick(tester);
+      expect(button(tester, 'Confirmar y aprobar').onPressed, isNull);
+      expect(repo.verifyCalls, isEmpty);
+    });
+
+    testWidgets(
+        'self_guardian: Confirm disabled with the guardian copy (also on a '
+        'guardian-managed minor)', (tester) async {
+      await open(
+        tester,
+        request: _guardedRequest(
+          viewerCanVerify: false,
+          viewerVerifyBlock: ConsentVerifyBlock.selfGuardian,
+        ),
+      );
+
+      expect(find.text(guardianNotice), findsOneWidget);
+      expect(find.text(anotherPerson), findsNothing);
+      await tick(tester);
+      expect(button(tester, 'Confirmar y aprobar').onPressed, isNull);
+    });
+
+    testWidgets('viewer_can_verify true: Confirm works, no notice',
+        (tester) async {
+      await open(
+        tester,
+        request: _custodyRequest(viewerCanVerify: true),
+      );
+
+      expect(find.text(anotherPerson), findsNothing);
+      expect(find.text(guardianNotice), findsNothing);
+      await tick(tester);
+      expect(button(tester, 'Confirmar y aprobar').onPressed, isNotNull);
+    });
+
+    testWidgets(
+        'the verdict also disables verify-only mode (a reviewer without '
+        'approve who is the creator)', (tester) async {
+      await open(
+        tester,
+        request: _custodyRequest(
+          viewerCanVerify: false,
+          viewerVerifyBlock: ConsentVerifyBlock.selfCustodian,
+        ),
+        canApprove: false,
+      );
+
+      expect(find.text(anotherPerson), findsOneWidget);
+      await tick(tester);
+      expect(button(tester, 'Confirmar verificación').onPressed, isNull);
+    });
+
+    testWidgets(
+        'field absent: falls back to what this session knows (creator '
+        'blocked, third person allowed)', (tester) async {
+      await open(tester, request: _custodyRequest(), created: {'luis-9'});
+      expect(find.text(anotherPerson), findsOneWidget);
+      await tick(tester);
+      expect(button(tester, 'Confirmar y aprobar').onPressed, isNull);
+    });
+
+    testWidgets(
+        'false with no block means "nothing to verify when the list loaded" '
+        '(no form yet): uploading the form here makes it confirmable',
+        (tester) async {
+      await open(
+        tester,
+        request: _custodyRequest(
+          evidence: false,
+          viewerCanVerify: false,
+        ),
+      );
+
+      expect(find.text(anotherPerson), findsNothing);
+      expect(find.text(guardianNotice), findsNothing);
+      await tester.tap(find.text('Subir ficha firmada'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Elegir un PDF'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Subir'));
+      await tester.pumpAndSettle();
+
+      // The user uploaded the form: this session's knowledge bars them.
+      expect(find.text(anotherPerson), findsOneWidget);
+    });
+
+    testWidgets(
+        'a verdict that allows does not override a form this user uploaded '
+        'in this session (the snapshot is older than the upload)',
+        (tester) async {
+      await open(
+        tester,
+        request: _custodyRequest(viewerCanVerify: true),
+        uploaded: {'luis-9'},
+      );
+
+      expect(find.text(anotherPerson), findsOneWidget);
+      await tick(tester);
+      expect(button(tester, 'Confirmar y aprobar').onPressed, isNull);
     });
   });
 

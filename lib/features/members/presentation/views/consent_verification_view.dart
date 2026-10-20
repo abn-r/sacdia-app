@@ -32,10 +32,13 @@ import '../widgets/claim_code_section.dart';
 /// Confirmar llama a `verify-consent` con `approve: true`. Subir una ficha o
 /// salir de la pantalla NUNCA verifica.
 ///
-/// Cuatro ojos (FP3-62): si el menor está bajo custodia del club y el usuario lo
-/// registró o subió la ficha, "Confirmar" queda desactivado con el aviso de que
-/// otra persona debe verificar. El servidor sigue siendo la autoridad (403
-/// `GUARDIANSHIP_CUSTODIAN_SELF_VERIFY`). Quien solo puede verificar (sin
+/// Cuatro ojos (FP3-62): el servidor dice si quien consulta puede verificar
+/// (`consent.viewer_verify_block`: `self_custodian` o `self_guardian`) y
+/// "Confirmar" queda desactivado con el aviso que corresponde. Si el servidor no
+/// informa el veredicto, o la ficha la subió este usuario en esta sesión, se usa
+/// lo que sabe la sesión (menor bajo custodia que registró o cuya ficha subió).
+/// El servidor sigue siendo la autoridad (403
+/// `GUARDIANSHIP_CUSTODIAN_SELF_VERIFY` / `GUARDIANSHIP_GUARDIAN_SELF_VERIFY`). Quien solo puede verificar (sin
 /// `club_members:approve`, [canApprove] falso) no ve "aprobar": verifica con
 /// `approve: false`.
 ///
@@ -96,14 +99,36 @@ class _ConsentVerificationViewState
   /// Solo verifica: sin `club_members:approve` (de entrada o por el 403).
   bool get _verifyOnly => !widget.canApprove || _approveDenied;
 
-  /// Custodia del club y este usuario la registró o subió la ficha (cuatro
-  /// ojos). Solo una ayuda de interfaz: el servidor decide.
-  bool get _mustBeAnotherPerson {
+  /// Motivo por el que el SERVIDOR impide verificar a este usuario (cuatro ojos),
+  /// calculado con la misma regla que `verify-consent`. `null` si no lo impide,
+  /// si no había nada que verificar al cargar la lista o si el servidor no lo
+  /// informa.
+  ConsentVerifyBlock? get _serverBlock =>
+      widget.request.consent?.viewerVerifyBlock;
+
+  /// Custodia del club y este usuario la registró o subió la ficha EN ESTA
+  /// SESIÓN. Complementa al servidor: su dato es una foto del momento en que se
+  /// cargó la lista (sin ficha, o antes de que este usuario subiera la suya) y
+  /// cuando no informa el veredicto es lo único que se sabe. Solo una ayuda de
+  /// interfaz: el servidor decide.
+  bool get _sessionMustBeAnotherPerson {
     if (!(widget.request.consent?.isCustody ?? false)) return false;
     final userId = widget.request.userId;
     // `read`: la vista se reconstruye porque `build` vigila los dos conjuntos.
     return ref.read(createdMinorUserIdsProvider).contains(userId) ||
         ref.read(uploadedFormMinorUserIdsProvider).contains(userId);
+  }
+
+  /// "Confirmar" queda desactivado: otra persona debe verificar.
+  bool get _mustBeAnotherPerson =>
+      _serverBlock != null || _sessionMustBeAnotherPerson;
+
+  /// Aviso del cuatro ojos según el motivo; `null` si no aplica.
+  String? get _fourEyesNotice {
+    if (_serverBlock == ConsentVerifyBlock.selfGuardian) {
+      return 'errors.guardianship_guardian_self_verify'.tr();
+    }
+    return _mustBeAnotherPerson ? 'members.consent.another_person'.tr() : null;
   }
 
   bool get _canConfirm =>
@@ -305,9 +330,7 @@ class _ConsentVerificationViewState
           else
             _ConfirmSection(
               verifyOnly: _verifyOnly,
-              notice: _mustBeAnotherPerson
-                  ? 'members.consent.another_person'.tr()
-                  : null,
+              notice: _fourEyesNotice,
               reviewed: _reviewed,
               onReviewedChanged: (value) => setState(() => _reviewed = value),
               pendingFile: _pendingFile,
