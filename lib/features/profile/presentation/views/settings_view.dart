@@ -5,7 +5,6 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sacdia_app/core/auth/club_role_names.dart';
-import 'package:sacdia_app/core/auth/social_credential.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
@@ -20,7 +19,6 @@ import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/widgets/zarza_roja_credit.dart';
 import '../../../../core/utils/icon_helper.dart';
-import '../../../auth/domain/entities/delete_account_reauth.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
@@ -28,10 +26,8 @@ import '../../../auth/presentation/providers/acting_providers.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/notification_preferences_providers.dart';
 import '../widgets/accent_picker_sheet.dart';
-import '../utils/delete_account_dependents_gate.dart';
 import '../utils/change_password_flow.dart';
-import '../utils/delete_account_flow.dart';
-import '../widgets/delete_account_confirm_dialog.dart';
+import '../utils/run_delete_account_flow.dart';
 import '../widgets/setting_tile.dart';
 import '../../../qr/presentation/views/qr_scanner_view.dart';
 import '../../../accessibility/presentation/widgets/accessibility_settings_section.dart';
@@ -154,115 +150,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     }
   }
 
-  Future<void> _handleDeleteAccount() async {
-    final deleteConfirmationWord =
-        'profile.settings.delete_account_confirmation_word'.tr();
-
-    final firstConfirmed = await SacDialog.show(
-      context,
-      title: 'profile.settings.delete_account_title'.tr(),
-      content: 'profile.settings.delete_account_first_confirm_body'.tr(),
-      confirmLabel: 'profile.settings.delete_account_first_confirm_action'.tr(),
-      confirmIsDestructive: true,
-    );
-
-    if (firstConfirmed != true || !mounted) return;
-
-    // Un tutor con menores a cargo los ve (y acepta qué pasará con cada uno)
-    // ANTES de pedir la contraseña; sin menores no hay pasos extra (FP-66).
-    final flow = DeleteAccountFlow(
-      confirmDependents: ({required bool refresh}) async {
-        if (!mounted) return DependentsAck.cancelled;
-        return confirmDeletionDependents(context, ref, refresh: refresh);
-      },
-      promptReauth: () => _promptDeleteReauth(deleteConfirmationWord),
-      delete: _deleteWithFeedback,
-    );
-
-    final result = await flow.run();
-    if (result == null || !mounted) return;
-
-    if (result.isSuccess) {
-      SacSnackBar.show(
-        context,
-        'profile.settings.account_deleted'.tr(),
-        backgroundColor: AppColors.success,
-      );
-      Navigator.of(context).popUntil((route) => route.isFirst);
-    } else {
-      SacSnackBar.show(context, result.errorMessage!, isError: true);
-    }
-  }
-
-  /// Segunda confirmación: palabra de confirmación + contraseña o proveedor.
-  Future<DeleteAccountReauth?> _promptDeleteReauth(
-    String deleteConfirmationWord,
-  ) async {
-    // Proveedores vinculados para ofrecer la confirmación sin contraseña.
-    // El diálogo muestra solo los que este dispositivo soporta.
-    // La consulta puede tardar con mala red: se muestra progreso y se limita
-    // a 10 s; si no responde, se sigue solo con la contraseña.
-    if (!mounted) return null;
-    SacSnackBar.show(
-      context,
-      'common.loading'.tr(),
-      duration: const Duration(seconds: 15),
-      leading: const SizedBox(
-        width: 16,
-        height: 16,
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          color: Colors.white,
-        ),
-      ),
-    );
-    final List<SocialProvider> providers = await ref
-        .read(authNotifierProvider.notifier)
-        .connectedProviders()
-        .timeout(
-          const Duration(seconds: 10),
-          onTimeout: () => const <SocialProvider>[],
-        );
-    if (!mounted) return null;
-    SacSnackBar.hide(context);
-
-    return SacDialog.present<DeleteAccountReauth>(
-      context,
-      barrierDismissible: false,
-      builder: (_) => DeleteAccountConfirmDialog(
-        confirmationWord: deleteConfirmationWord,
-        connectedProviders: providers,
-      ),
-    );
-  }
-
-  Future<DeleteAccountResult> _deleteWithFeedback(
-    DeleteAccountReauth reauth,
-  ) async {
-    if (mounted) {
-      SacSnackBar.show(
-        context,
-        'profile.settings.deleting_account'.tr(),
-        duration: const Duration(seconds: 30),
-        leading: const SizedBox(
-          width: 16,
-          height: 16,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: Colors.white,
-          ),
-        ),
-      );
-    }
-
-    final result =
-        await ref.read(authNotifierProvider.notifier).deleteAccountWithResult(
-              reauth,
-            );
-
-    if (mounted) SacSnackBar.hide(context);
-    return result;
-  }
+  Future<void> _handleDeleteAccount() => runDeleteAccountFlow(context, ref);
 
   @override
   Widget build(BuildContext context) {

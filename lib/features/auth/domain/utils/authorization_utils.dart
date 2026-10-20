@@ -245,6 +245,28 @@ bool userNeedsPostRegistration(UserEntity user) =>
     user.mode == AccountMode.profileIncomplete ||
     (!user.postRegisterComplete && !isPastorWithoutClub(user));
 
+/// ¿Se ofrece «Eliminar cuenta» en el menú del post-registro?
+///
+/// La guideline 5.1.1(v) de App Store exige poder borrar la cuenta dentro de la
+/// app aunque el registro no haya terminado (un alta nueva con Apple/Google es
+/// `age_unknown_user`). Solo para quien puede borrar SU cuenta: un adulto o una
+/// cuenta sin fecha de nacimiento (`account:manage`). Nunca mientras se actúa
+/// por un dependiente, ni para un adolescente supervisado (su borrado lo
+/// gestiona el tutor o un administrador) ni para un principal desconocido.
+bool canDeleteAccountInPostRegistration(
+  UserEntity? user, {
+  required bool acting,
+}) {
+  if (user == null || acting || user.actingFor != null) return false;
+  final kind = user.principal?.kind ?? PrincipalKind.user;
+  final kindAllowed =
+      kind == PrincipalKind.user || kind == PrincipalKind.ageUnknownUser;
+  final mode = user.mode;
+  final modeAllowed =
+      mode == AccountMode.adult || mode == AccountMode.profileIncomplete;
+  return kindAllowed && modeAllowed;
+}
+
 /// ¿Debe aceptar los documentos legales vigentes antes de usar la app?
 bool userNeedsLegalAcceptance(UserEntity user) => user.legalAcceptancePending;
 
