@@ -23,6 +23,7 @@ import '../../features/rankings/presentation/providers/my_ranking_provider.dart'
 import '../../features/rankings/presentation/providers/section_ranking_provider.dart';
 import '../../features/qr/presentation/providers/qr_member_token_provider.dart';
 import '../../features/support/presentation/providers/support_providers.dart';
+import '../../features/teen/presentation/providers/teen_providers.dart';
 import '../../features/units/presentation/providers/units_providers.dart';
 import '../../features/validation/presentation/providers/validation_providers.dart';
 import '../../features/virtual_card/presentation/providers/virtual_card_providers.dart';
@@ -132,6 +133,10 @@ final Map<String, ProviderOrFamily> profileScopedStateEntries = {
   'unitsNotifierProvider': unitsNotifierProvider,
   'virtualCardRateLimitNoticeProvider': virtualCardRateLimitNoticeProvider,
   'supportReportSubmitProvider': supportReportSubmitProvider,
+  // Adolescente sin tutor verificado: tutores vinculados y el código en claro
+  // (solo en memoria) que se muestra al tutor.
+  'supervisionStatusProvider': supervisionStatusProvider,
+  'teenLinkCodeProvider': teenLinkCodeProvider,
 };
 
 /// Estado sin `autoDispose` que NO depende del perfil, con el porqué.

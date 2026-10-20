@@ -256,4 +256,48 @@ void main() {
       expect(formatBirthdayIso(DateTime(2014, 3, 5)), '2014-03-05');
     });
   });
+
+  group('supervised-account notice (FP3-31)', () {
+    const notice = Key('register_minor_notice');
+
+    testWidgets('a 15-year-old is told the account will be supervised',
+        (tester) async {
+      await _pump(tester);
+      await _fillText(tester);
+      await _pickBirthday(tester, _yearsAgo(15));
+
+      expect(find.byKey(notice), findsOneWidget);
+      expect(find.byKey(_gate), findsNothing);
+    });
+
+    testWidgets('turning 13 today already sees the notice', (tester) async {
+      await _pump(tester);
+      await _pickBirthday(tester, _yearsAgo(13));
+
+      expect(find.byKey(notice), findsOneWidget);
+    });
+
+    testWidgets('an adult sees no notice', (tester) async {
+      await _pump(tester);
+      await _pickBirthday(tester, _yearsAgo(30));
+
+      expect(find.byKey(notice), findsNothing);
+    });
+
+    testWidgets('turning 18 today sees no notice', (tester) async {
+      await _pump(tester);
+      await _pickBirthday(tester, _yearsAgo(18));
+
+      expect(find.byKey(notice), findsNothing);
+    });
+
+    testWidgets('under 13 keeps the unchanged age gate and no notice',
+        (tester) async {
+      await _pump(tester);
+      await _pickBirthday(tester, _yearsAgo(12));
+
+      expect(find.byKey(_gate), findsOneWidget);
+      expect(find.byKey(notice), findsNothing);
+    });
+  });
 }

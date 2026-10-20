@@ -258,7 +258,8 @@
         "hint": "Um adulto pode adicionar você na seção Minha família do perfil dele.",
         "fix": "Corrigir data de nascimento",
         "back": "Voltar"
-      }
+      },
+      "minor_notice": "Se você tem menos de 18 anos, sua conta funciona em modo supervisionado: será preciso vincular um responsável e um diretor verificará o consentimento dele."
     },
     "login": {
       "identifier": {
@@ -5444,6 +5445,50 @@
       "dialog_confirm": "Mudar",
       "dialog_cancel": "Agora não",
       "unavailable": "Esse perfil não está mais disponível para você."
+    }
+  },
+  "teen": {
+    "pending": {
+      "title": "Falta o seu responsável",
+      "subtitle": "Sua conta fica restrita até que um responsável se vincule e um diretor verifique o consentimento dele.",
+      "countdown": "Você tem {days} dias para vincular um responsável. Caso contrário, sua conta será removida.",
+      "countdown_one": "Você tem 1 dia para vincular um responsável. Caso contrário, sua conta será removida.",
+      "countdown_today": "Hoje é o último dia para vincular um responsável. Caso contrário, sua conta será removida.",
+      "code_title": "Código para o seu responsável",
+      "code_hint": "Gere um código e compartilhe com sua mãe, seu pai ou responsável. Ele precisa resgatá-lo no app, em Minha família. Dura 72 horas e é mostrado só uma vez.",
+      "code_generate": "Gerar código",
+      "code_regenerate": "Gerar um novo código",
+      "code_expires": "Vence em {when}",
+      "code_open_existing": "Você já gerou um código que vence em {when}. Se o perdeu, gere um novo: o anterior deixará de funcionar.",
+      "code_copy": "Copiar",
+      "code_copied": "Código copiado",
+      "code_share": "Compartilhar",
+      "share_message": "Meu código do SACDIA para vincular você como responsável: {code}. Resgate no app, em Minha família. Vence em {when}.",
+      "guardians_title": "Seu responsável",
+      "no_guardian": "Ainda não há um responsável vinculado.",
+      "guardian_pending": "Aguardando verificação",
+      "guardian_verified": "Verificado",
+      "guardian_pending_hint": "Um diretor do clube precisa verificar o formulário de consentimento assinado do seu responsável. Até lá, sua conta continua restrita.",
+      "guardian_remove": "Remover",
+      "remove_title": "Remover {name}?",
+      "remove_body": "A pessoa deixará de estar vinculada à sua conta e os 90 dias para vincular um responsável recomeçam. Você poderá gerar um novo código.",
+      "remove_confirm": "Remover",
+      "removed": "Vínculo removido",
+      "actions_title": "Enquanto isso",
+      "actions_hint": "Você pode completar seu perfil e alterar sua senha.",
+      "edit_profile": "Completar meu perfil",
+      "change_password": "Alterar minha senha"
+    },
+    "info": {
+      "title": "Seu responsável e suas informações",
+      "body": "Seu responsável pode ver seu progresso e sua presença. Ele não pode ver suas informações de saúde nem suas mensagens.",
+      "understood": "Entendi"
+    },
+    "errors": {
+      "generic": "Não foi possível concluir a ação. Tente novamente.",
+      "too_many_codes": "Você gerou códigos demais. Tente novamente mais tarde.",
+      "already_linked": "Você já tem um responsável vinculado.",
+      "link_not_found": "Esse vínculo não existe mais ou um diretor já o verificou."
     }
   }
 }

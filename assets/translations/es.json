@@ -258,7 +258,8 @@
         "hint": "Un adulto puede agregarte desde la sección Mi familia de su perfil.",
         "fix": "Corregir fecha de nacimiento",
         "back": "Volver"
-      }
+      },
+      "minor_notice": "Si eres menor de 18 años, tu cuenta funciona en modo supervisado: necesitarás vincular a un tutor y un director verificará su consentimiento."
     },
     "login": {
       "identifier": {
@@ -5446,6 +5447,50 @@
       "dialog_confirm": "Cambiar",
       "dialog_cancel": "Ahora no",
       "unavailable": "Ese perfil ya no está disponible para ti."
+    }
+  },
+  "teen": {
+    "pending": {
+      "title": "Falta tu tutor",
+      "subtitle": "Tu cuenta está en modo restringido hasta que un tutor se vincule y un director verifique su consentimiento.",
+      "countdown": "Te quedan {days} días para vincular a un tutor. Si no, tu cuenta se eliminará.",
+      "countdown_one": "Te queda 1 día para vincular a un tutor. Si no, tu cuenta se eliminará.",
+      "countdown_today": "Hoy es el último día para vincular a un tutor. Si no, tu cuenta se eliminará.",
+      "code_title": "Código para tu tutor",
+      "code_hint": "Genera un código y compártelo con tu mamá, papá o tutor. Debe canjearlo en la app, en Mi familia. Dura 72 horas y solo se muestra una vez.",
+      "code_generate": "Generar código",
+      "code_regenerate": "Generar un código nuevo",
+      "code_expires": "Vence el {when}",
+      "code_open_existing": "Ya generaste un código que vence el {when}. Si lo perdiste, genera uno nuevo: el anterior dejará de funcionar.",
+      "code_copy": "Copiar",
+      "code_copied": "Código copiado",
+      "code_share": "Compartir",
+      "share_message": "Mi código de SACDIA para vincularte como tutor: {code}. Canjéalo en la app, en Mi familia. Vence el {when}.",
+      "guardians_title": "Tu tutor",
+      "no_guardian": "Aún no hay un tutor vinculado.",
+      "guardian_pending": "Pendiente de verificación",
+      "guardian_verified": "Verificado",
+      "guardian_pending_hint": "Un director del club debe verificar el formulario de consentimiento firmado de tu tutor. Hasta entonces tu cuenta sigue restringida.",
+      "guardian_remove": "Quitar",
+      "remove_title": "¿Quitar a {name}?",
+      "remove_body": "Dejará de estar vinculado a tu cuenta y los 90 días para vincular a un tutor empiezan de nuevo. Podrás generar un código nuevo.",
+      "remove_confirm": "Quitar",
+      "removed": "Vínculo quitado",
+      "actions_title": "Mientras tanto",
+      "actions_hint": "Puedes completar tu perfil y cambiar tu contraseña.",
+      "edit_profile": "Completar mi perfil",
+      "change_password": "Cambiar mi contraseña"
+    },
+    "info": {
+      "title": "Tu tutor y tu información",
+      "body": "Tu tutor puede ver tu progreso y tu asistencia. No puede ver tu información de salud ni tus mensajes.",
+      "understood": "Entendido"
+    },
+    "errors": {
+      "generic": "No pudimos completar la acción. Inténtalo de nuevo.",
+      "too_many_codes": "Generaste demasiados códigos. Inténtalo de nuevo más tarde.",
+      "already_linked": "Ya tienes un tutor vinculado.",
+      "link_not_found": "Ese vínculo ya no existe o un director ya lo verificó."
     }
   }
 }

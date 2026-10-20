@@ -6,6 +6,11 @@
 /// cubra el resto.
 const int kDefaultMinSelfLoginAge = 13;
 
+/// Mayoría de edad por defecto (FP3-31): quien se registra con menos queda en
+/// modo supervisado. El país puede cambiarla; el servidor decide. Solo sirve
+/// para avisar en el formulario, nunca para bloquear ni permitir nada.
+const int kDefaultAgeOfMajority = 18;
+
 /// Código de negocio del backend cuando la edad no alcanza el mínimo.
 const String kRegistrationAgeBelowMinimumCode =
     'AUTH_REGISTRATION_AGE_BELOW_MINIMUM';
@@ -26,6 +31,18 @@ bool isBelowRegistrationMinAge(
   int minAge = kDefaultMinSelfLoginAge,
 }) =>
     ageOn(birthday, today) < minAge;
+
+/// `true` si [birthday] alcanza el mínimo para tener cuenta pero no la mayoría
+/// de edad por defecto: la cuenta nacerá supervisada (aviso en el registro).
+bool isSupervisedRegistrationAge(
+  DateTime birthday,
+  DateTime today, {
+  int minAge = kDefaultMinSelfLoginAge,
+  int majority = kDefaultAgeOfMajority,
+}) {
+  final age = ageOn(birthday, today);
+  return age >= minAge && age < majority;
+}
 
 /// `YYYY-MM-DD` tal como lo espera el backend.
 String formatBirthdayIso(DateTime date) =>

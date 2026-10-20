@@ -258,7 +258,8 @@
         "hint": "An adult can add you from the My family section of their profile.",
         "fix": "Correct date of birth",
         "back": "Back"
-      }
+      },
+      "minor_notice": "If you are under 18, your account runs in supervised mode: you will need to link a guardian and a director will verify their consent."
     },
     "login": {
       "identifier": {
@@ -5446,6 +5447,50 @@
       "dialog_confirm": "Switch",
       "dialog_cancel": "Not now",
       "unavailable": "That profile is no longer available to you."
+    }
+  },
+  "teen": {
+    "pending": {
+      "title": "Your guardian is missing",
+      "subtitle": "Your account stays restricted until a guardian links to it and a director verifies their consent.",
+      "countdown": "You have {days} days left to link a guardian. Otherwise your account will be removed.",
+      "countdown_one": "You have 1 day left to link a guardian. Otherwise your account will be removed.",
+      "countdown_today": "Today is the last day to link a guardian. Otherwise your account will be removed.",
+      "code_title": "Code for your guardian",
+      "code_hint": "Generate a code and share it with your mom, dad or guardian. They have to redeem it in the app, under My family. It lasts 72 hours and is shown only once.",
+      "code_generate": "Generate code",
+      "code_regenerate": "Generate a new code",
+      "code_expires": "Expires {when}",
+      "code_open_existing": "You already generated a code that expires {when}. If you lost it, generate a new one: the previous one will stop working.",
+      "code_copy": "Copy",
+      "code_copied": "Code copied",
+      "code_share": "Share",
+      "share_message": "My SACDIA code to link you as my guardian: {code}. Redeem it in the app, under My family. It expires {when}.",
+      "guardians_title": "Your guardian",
+      "no_guardian": "No guardian is linked yet.",
+      "guardian_pending": "Pending verification",
+      "guardian_verified": "Verified",
+      "guardian_pending_hint": "A club director has to verify your guardian's signed consent form. Until then your account stays restricted.",
+      "guardian_remove": "Remove",
+      "remove_title": "Remove {name}?",
+      "remove_body": "They will no longer be linked to your account and the 90 days to link a guardian start over. You can generate a new code.",
+      "remove_confirm": "Remove",
+      "removed": "Link removed",
+      "actions_title": "In the meantime",
+      "actions_hint": "You can complete your profile and change your password.",
+      "edit_profile": "Complete my profile",
+      "change_password": "Change my password"
+    },
+    "info": {
+      "title": "Your guardian and your information",
+      "body": "Your guardian can see your progress and attendance. They cannot see your health information or your messages.",
+      "understood": "Got it"
+    },
+    "errors": {
+      "generic": "We could not complete the action. Try again.",
+      "too_many_codes": "You generated too many codes. Try again later.",
+      "already_linked": "You already have a linked guardian.",
+      "link_not_found": "That link no longer exists or a director already verified it."
     }
   }
 }

@@ -145,6 +145,13 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
 
   bool get _ageGateActive => _blockedByServer || _blockedByAge;
 
+  /// 13-17: la cuenta nacerá en modo supervisado (necesitará un tutor).
+  bool get _showMinorNotice {
+    final birthday = _birthday;
+    if (birthday == null || _ageGateActive) return false;
+    return isSupervisedRegistrationAge(birthday, DateTime.now());
+  }
+
   Future<void> _pickBirthday() async {
     final now = DateTime.now();
     final picker = widget.birthdayPicker ??
@@ -399,6 +406,20 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                             enabled: !isLoading,
                             onTap: _pickBirthday,
                           ),
+                          if (_showMinorNotice) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              'auth.register.minor_notice'.tr(),
+                              key: const ValueKey('register_minor_notice'),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: context.sac.textSecondary,
+                                    height: 1.4,
+                                  ),
+                            ),
+                          ],
                           const SizedBox(height: 16),
 
                           if (_ageGateActive)

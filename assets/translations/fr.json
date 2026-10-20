@@ -258,7 +258,8 @@
         "hint": "Un adulte peut vous ajouter depuis la section Ma famille de son profil.",
         "fix": "Corriger la date de naissance",
         "back": "Retour"
-      }
+      },
+      "minor_notice": "Si vous avez moins de 18 ans, votre compte fonctionne en mode supervisé : vous devrez lier un tuteur et un directeur vérifiera son consentement."
     },
     "login": {
       "identifier": {
@@ -5444,6 +5445,50 @@
       "dialog_confirm": "Changer",
       "dialog_cancel": "Pas maintenant",
       "unavailable": "Ce profil n'est plus disponible pour vous."
+    }
+  },
+  "teen": {
+    "pending": {
+      "title": "Il manque votre tuteur",
+      "subtitle": "Votre compte reste restreint jusqu'à ce qu'un tuteur s'y lie et qu'un directeur vérifie son consentement.",
+      "countdown": "Il vous reste {days} jours pour lier un tuteur. Sinon, votre compte sera supprimé.",
+      "countdown_one": "Il vous reste 1 jour pour lier un tuteur. Sinon, votre compte sera supprimé.",
+      "countdown_today": "Aujourd'hui est le dernier jour pour lier un tuteur. Sinon, votre compte sera supprimé.",
+      "code_title": "Code pour votre tuteur",
+      "code_hint": "Générez un code et partagez-le avec votre mère, votre père ou votre tuteur. Il doit l'utiliser dans l'application, dans Ma famille. Il dure 72 heures et ne s'affiche qu'une fois.",
+      "code_generate": "Générer un code",
+      "code_regenerate": "Générer un nouveau code",
+      "code_expires": "Expire le {when}",
+      "code_open_existing": "Vous avez déjà généré un code qui expire le {when}. Si vous l'avez perdu, générez-en un nouveau : le précédent cessera de fonctionner.",
+      "code_copy": "Copier",
+      "code_copied": "Code copié",
+      "code_share": "Partager",
+      "share_message": "Mon code SACDIA pour vous lier comme tuteur : {code}. Utilisez-le dans l'application, dans Ma famille. Il expire le {when}.",
+      "guardians_title": "Votre tuteur",
+      "no_guardian": "Aucun tuteur n'est encore lié.",
+      "guardian_pending": "En attente de vérification",
+      "guardian_verified": "Vérifié",
+      "guardian_pending_hint": "Un directeur du club doit vérifier le formulaire de consentement signé de votre tuteur. D'ici là, votre compte reste restreint.",
+      "guardian_remove": "Retirer",
+      "remove_title": "Retirer {name} ?",
+      "remove_body": "Cette personne ne sera plus liée à votre compte et les 90 jours pour lier un tuteur recommencent. Vous pourrez générer un nouveau code.",
+      "remove_confirm": "Retirer",
+      "removed": "Lien retiré",
+      "actions_title": "En attendant",
+      "actions_hint": "Vous pouvez compléter votre profil et changer votre mot de passe.",
+      "edit_profile": "Compléter mon profil",
+      "change_password": "Changer mon mot de passe"
+    },
+    "info": {
+      "title": "Votre tuteur et vos informations",
+      "body": "Votre tuteur peut voir votre progression et votre présence. Il ne peut pas voir vos informations de santé ni vos messages.",
+      "understood": "Compris"
+    },
+    "errors": {
+      "generic": "Impossible de terminer l'action. Réessayez.",
+      "too_many_codes": "Vous avez généré trop de codes. Réessayez plus tard.",
+      "already_linked": "Vous avez déjà un tuteur lié.",
+      "link_not_found": "Ce lien n'existe plus ou un directeur l'a déjà vérifié."
     }
   }
 }
