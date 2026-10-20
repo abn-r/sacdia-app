@@ -9,8 +9,10 @@ import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/annual_continuation.dart';
 import '../../domain/entities/assignable_role.dart';
+import '../../domain/entities/claim_code.dart';
 import '../../domain/entities/club_member.dart';
 import '../../domain/entities/consent_verification_result.dart';
+import '../../domain/entities/create_minor.dart';
 import '../../domain/entities/join_request.dart';
 import '../../domain/repositories/members_repository.dart';
 import '../datasources/members_remote_data_source.dart';
@@ -283,6 +285,24 @@ class MembersRepositoryImpl implements MembersRepository {
         () => remoteDataSource.verifyConsent(
           assignmentId: assignmentId,
           approve: approve,
+        ),
+      );
+
+  // ── Director registra a un menor (Phase 3c) ───────────────────────────────
+
+  @override
+  Future<Either<Failure, CreatedMinor>> createMinor(CreateMinorInput input) =>
+      _guardKeepingCode(() => remoteDataSource.createMinor(input));
+
+  @override
+  Future<Either<Failure, IssuedClaimCode>> issueClaimCode({
+    required int clubSectionId,
+    required String dependentUserId,
+  }) =>
+      _guardKeepingCode(
+        () => remoteDataSource.issueClaimCode(
+          clubSectionId: clubSectionId,
+          dependentUserId: dependentUserId,
         ),
       );
 }

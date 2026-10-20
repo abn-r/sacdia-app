@@ -2670,6 +2670,30 @@
       "retry_approve": "Réessayer l'approbation",
       "approve_blocked": "Le consentement du tuteur doit d'abord être vérifié. La vérification s'est ouverte.",
       "generic_error": "Le consentement n'a pas pu être vérifié. Réessayez."
+    },
+    "create_minor": {
+      "entry": "Inscrire un mineur",
+      "title": "Inscrire un mineur",
+      "intro": "Inscrivez un mineur qui fréquentera votre section avec l'autorisation signée de son tuteur. Le mineur reste sous la garde du club et la demande attend la vérification d'une autre personne.",
+      "name": "Prénom(s)",
+      "paternal": "Nom de famille paternel",
+      "maternal": "Nom de famille maternel (facultatif)",
+      "birthday": "Date de naissance",
+      "birthday_hint": "Sélectionnez la date",
+      "birthday_required": "Sélectionnez la date de naissance",
+      "gender_label": "Genre (facultatif)",
+      "gender_male": "Masculin",
+      "gender_female": "Féminin",
+      "required": "Champ obligatoire",
+      "sworn": "Je déclare sous serment que le tuteur du mineur a signé l'autorisation sur papier.",
+      "legal_prefix": "Au nom du mineur, j'accepte les ",
+      "legal_unavailable": "Impossible de charger les documents juridiques.",
+      "submit": "Inscrire le mineur",
+      "created_toast": "{name} est inscrit. Une autre personne doit encore vérifier la fiche signée.",
+      "errors": {
+        "age_out_of_range": "Cet âge n'est pas valide pour inscrire un mineur. La personne doit être mineure selon le pays du club.",
+        "no_active_year": "Il n'y a pas d'année ecclésiastique en cours. Le mineur n'a pas été inscrit."
+      }
     }
   },
   "certifications": {

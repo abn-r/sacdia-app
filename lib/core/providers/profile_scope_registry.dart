@@ -137,6 +137,10 @@ final Map<String, ProviderOrFamily> profileScopedStateEntries = {
   // (solo en memoria) que se muestra al tutor.
   'supervisionStatusProvider': supervisionStatusProvider,
   'teenLinkCodeProvider': teenLinkCodeProvider,
+  // Director: ids de los menores que ESTE usuario registró o cuya ficha subió
+  // (aviso de cuatro ojos). Otro perfil no debe heredarlos.
+  'createdMinorUserIdsProvider': createdMinorUserIdsProvider,
+  'uploadedFormMinorUserIdsProvider': uploadedFormMinorUserIdsProvider,
 };
 
 /// Estado sin `autoDispose` que NO depende del perfil, con el porqué.

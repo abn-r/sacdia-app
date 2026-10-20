@@ -2671,6 +2671,30 @@
       "retry_approve": "Retry approval",
       "approve_blocked": "The guardian's consent still needs to be verified. Verification opened.",
       "generic_error": "The consent could not be verified. Please try again."
+    },
+    "create_minor": {
+      "entry": "Register a minor",
+      "title": "Register a minor",
+      "intro": "Register a minor who will attend your section with the guardian's signed authorization. The minor stays in the club's custody and the request waits for another person to verify it.",
+      "name": "First name(s)",
+      "paternal": "Paternal last name",
+      "maternal": "Maternal last name (optional)",
+      "birthday": "Date of birth",
+      "birthday_hint": "Select the date",
+      "birthday_required": "Select the date of birth",
+      "gender_label": "Gender (optional)",
+      "gender_male": "Male",
+      "gender_female": "Female",
+      "required": "Required field",
+      "sworn": "I declare under oath that the minor's guardian signed the authorization on paper.",
+      "legal_prefix": "On behalf of the minor, I accept the ",
+      "legal_unavailable": "The legal documents could not be loaded.",
+      "submit": "Register minor",
+      "created_toast": "{name} is registered. Another person still has to verify the signed form.",
+      "errors": {
+        "age_out_of_range": "That age is not valid to register a minor. The person must be under the age of majority in the club's country.",
+        "no_active_year": "There is no current ecclesiastical year. The minor was not registered."
+      }
     }
   },
   "certifications": {

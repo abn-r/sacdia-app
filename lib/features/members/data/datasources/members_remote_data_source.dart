@@ -7,7 +7,9 @@ import '../../../../core/network/api_error_mapper.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/annual_continuation.dart';
 import '../../domain/entities/assignable_role.dart';
+import '../../domain/entities/claim_code.dart';
 import '../../domain/entities/consent_verification_result.dart';
+import '../../domain/entities/create_minor.dart';
 import '../models/annual_continuation_model.dart';
 import '../models/club_member_model.dart';
 import '../models/join_request_model.dart';
@@ -79,6 +81,15 @@ abstract class MembersRemoteDataSource {
   Future<ConsentVerificationResult> verifyConsent({
     required String assignmentId,
     required bool approve,
+  });
+
+  /// Alta de un menor por un director (custodia del club).
+  Future<CreatedMinor> createMinor(CreateMinorInput input);
+
+  /// Código de reclamo (7 días) de un menor bajo custodia del club.
+  Future<IssuedClaimCode> issueClaimCode({
+    required int clubSectionId,
+    required String dependentUserId,
   });
 }
 
@@ -638,5 +649,71 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
                 rawError is String && rawError.isNotEmpty ? rawError : null,
           );
         },
+      );
+
+  // ── Director registra a un menor (Phase 3c) ───────────────────────────────
+  //
+  // Rutas de usuario normal, SIN acting-scope: nunca se mandan desde un
+  // perfil actuado, un adolescente o un teléfono vinculado.
+
+  @override
+  Future<CreatedMinor> createMinor(CreateMinorInput input) => _consentCall(
+        'createMinor',
+        () => _dio.post(
+          '$_baseUrl${ApiEndpoints.clubSections}/${input.clubSectionId}/dependents',
+          data: {
+            'name': input.name,
+            'paternal_last_name': input.paternalLastName,
+            if (input.maternalLastName != null &&
+                input.maternalLastName!.trim().isNotEmpty)
+              'maternal_last_name': input.maternalLastName,
+            'birthday': input.birthday,
+            if (input.gender != null) 'gender': input.gender,
+            'sworn_declaration': input.swornDeclaration,
+            'accepted_terms_version': input.acceptedTermsVersion,
+            'accepted_privacy_version': input.acceptedPrivacyVersion,
+          },
+        ),
+        (data) {
+          Map<String, dynamic> block(Object? raw) => raw is Map
+              ? Map<String, dynamic>.from(raw)
+              : const <String, dynamic>{};
+          final dependent = block(data['dependent']);
+          final guardianship = block(data['guardianship']);
+          final assignment = block(data['assignment']);
+          final age = dependent['age'];
+          final section = assignment['club_section_id'];
+          return CreatedMinor(
+            userId: dependent['user_id']?.toString() ?? '',
+            name: dependent['name']?.toString() ?? input.name,
+            birthday: dependent['birthday']?.toString(),
+            age: age is num ? age.toInt() : null,
+            guardianshipId: guardianship['guardianship_id']?.toString() ?? '',
+            consentStatus:
+                guardianship['consent_status']?.toString() ?? 'pending',
+            assignmentId: assignment['assignment_id']?.toString() ?? '',
+            clubSectionId: section is num
+                ? section.toInt()
+                : int.tryParse(section?.toString() ?? ''),
+          );
+        },
+      );
+
+  @override
+  Future<IssuedClaimCode> issueClaimCode({
+    required int clubSectionId,
+    required String dependentUserId,
+  }) =>
+      _consentCall(
+        'issueClaimCode',
+        () => _dio.post(
+          '$_baseUrl${ApiEndpoints.clubSections}/$clubSectionId/dependents/'
+          '$dependentUserId/claim-codes',
+        ),
+        (data) => IssuedClaimCode(
+          code: data['code'].toString(),
+          expiresAt: DateTime.tryParse(data['expires_at']?.toString() ?? '') ??
+              DateTime.now().add(const Duration(days: 7)),
+        ),
       );
 }

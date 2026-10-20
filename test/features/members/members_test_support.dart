@@ -11,8 +11,10 @@ import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/features/members/domain/entities/annual_continuation.dart';
 import 'package:sacdia_app/features/members/domain/entities/assignable_role.dart';
+import 'package:sacdia_app/features/members/domain/entities/claim_code.dart';
 import 'package:sacdia_app/features/members/domain/entities/club_member.dart';
 import 'package:sacdia_app/features/members/domain/entities/consent_verification_result.dart';
+import 'package:sacdia_app/features/members/domain/entities/create_minor.dart';
 import 'package:sacdia_app/features/members/domain/entities/join_request.dart';
 import 'package:sacdia_app/features/members/domain/repositories/members_repository.dart';
 import 'package:sacdia_app/core/usecases/cancellation_token.dart';
@@ -166,6 +168,27 @@ class FakeMembersRepository implements MembersRepository {
     ),
   ];
 
+  /// Alta de un menor por un director (Fase 3c).
+  Either<Failure, CreatedMinor> createMinorResult = const Right(
+    CreatedMinor(
+      userId: 'luis-9',
+      name: 'Luis',
+      birthday: '2016-02-10',
+      age: 10,
+      guardianshipId: 'gs-9',
+      assignmentId: 'req-9',
+      clubSectionId: 12,
+    ),
+  );
+  Either<Failure, IssuedClaimCode> claimCodeResult = Right(
+    IssuedClaimCode(
+      code: '7KQ4-M9TX',
+      expiresAt: DateTime.utc(2026, 10, 27, 10),
+    ),
+  );
+
+  final createMinorInputs = <CreateMinorInput>[];
+  final claimCodeCalls = <({int clubSectionId, String dependentUserId})>[];
   final approveCalls = <String>[];
   final assignRoleCalls = <({String userId, String role})>[];
   final uploadCalls = <({String assignmentId, String fileName})>[];
@@ -271,4 +294,21 @@ class FakeMembersRepository implements MembersRepository {
     required List<String> userIds,
   }) async =>
       throw UnimplementedError();
+
+  @override
+  Future<Either<Failure, CreatedMinor>> createMinor(
+      CreateMinorInput input) async {
+    createMinorInputs.add(input);
+    return createMinorResult;
+  }
+
+  @override
+  Future<Either<Failure, IssuedClaimCode>> issueClaimCode({
+    required int clubSectionId,
+    required String dependentUserId,
+  }) async {
+    claimCodeCalls
+        .add((clubSectionId: clubSectionId, dependentUserId: dependentUserId));
+    return claimCodeResult;
+  }
 }

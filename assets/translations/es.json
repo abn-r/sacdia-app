@@ -2671,6 +2671,30 @@
       "retry_approve": "Reintentar aprobación",
       "approve_blocked": "Falta verificar el consentimiento del tutor. Se abrió la verificación.",
       "generic_error": "No se pudo verificar el consentimiento. Intenta de nuevo."
+    },
+    "create_minor": {
+      "entry": "Registrar un menor",
+      "title": "Registrar un menor",
+      "intro": "Registra a un menor que asistirá a tu sección con la autorización firmada de su tutor. Queda bajo la custodia del club y su solicitud espera la verificación de otra persona.",
+      "name": "Nombre(s)",
+      "paternal": "Apellido paterno",
+      "maternal": "Apellido materno (opcional)",
+      "birthday": "Fecha de nacimiento",
+      "birthday_hint": "Selecciona la fecha",
+      "birthday_required": "Selecciona la fecha de nacimiento",
+      "gender_label": "Género (opcional)",
+      "gender_male": "Masculino",
+      "gender_female": "Femenino",
+      "required": "Campo obligatorio",
+      "sworn": "Declaro bajo protesta de decir verdad que el tutor del menor firmó la autorización en papel.",
+      "legal_prefix": "Acepto en nombre del menor los ",
+      "legal_unavailable": "No se pudieron cargar los documentos legales.",
+      "submit": "Registrar menor",
+      "created_toast": "{name} quedó registrado. Falta que otra persona verifique la ficha firmada.",
+      "errors": {
+        "age_out_of_range": "La edad no es válida para registrar a un menor. Debe ser menor de edad según el país del club.",
+        "no_active_year": "No hay un año eclesiástico vigente. No se registró al menor."
+      }
     }
   },
   "certifications": {

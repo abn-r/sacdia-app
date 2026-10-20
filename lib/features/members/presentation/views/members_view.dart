@@ -27,7 +27,9 @@ import '../widgets/member_card.dart';
 import '../widgets/member_class_group_header.dart';
 import '../widgets/members_filter_bar.dart';
 import '../widgets/members_mode_switcher.dart';
+import '../utils/create_minor_access.dart';
 import 'annual_continuations_view.dart';
+import 'create_minor_view.dart';
 import 'consent_verification_view.dart';
 import 'member_profile_view.dart';
 import 'role_assignment_view.dart';
@@ -68,6 +70,17 @@ class _MembersViewState extends ConsumerState<MembersView> {
     return hasAnyPermission(user, const {'club_members:approve'});
   }
 
+  /// Abre el alta de un menor; al volver la lista ya se refrescó (la vista
+  /// invalida `membersNotifierProvider` al crear).
+  Future<void> _openCreateMinor(BuildContext context, int sectionId) {
+    return Navigator.push<void>(
+      context,
+      SacSharedAxisRoute<void>(
+        builder: (_) => CreateMinorView(clubSectionId: sectionId),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
@@ -89,6 +102,11 @@ class _MembersViewState extends ConsumerState<MembersView> {
         continuationsAsync?.valueOrNull?.items.length ?? 0;
     final clubCtxAsync = ref.watch(clubContextProvider);
     final membersAsync = ref.watch(membersNotifierProvider);
+    // "Registrar un menor": permiso `dependents:create` Y bandera del servidor.
+    final registerSectionId =
+        canRegisterMinor(ref.watch(authNotifierProvider).valueOrNull)
+            ? clubCtxAsync.valueOrNull?.sectionId
+            : null;
     final onContinuations = canContinue && mode == 2;
     final fadeDuration = SacMotion.reducedFade;
     final refreshing = onContinuations
@@ -107,6 +125,20 @@ class _MembersViewState extends ConsumerState<MembersView> {
             color: SacAccent.of(context).color,
           ),
           actions: [
+            if (registerSectionId != null)
+              SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  tooltip: 'members.create_minor.entry'.tr(),
+                  onPressed: () => _openCreateMinor(context, registerSectionId),
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedUserAdd01,
+                    color: c.textTertiary,
+                    size: 18,
+                  ),
+                ),
+              ),
             SacPressable(
               listenOnly: true,
               child: IconButton(

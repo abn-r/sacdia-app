@@ -2670,6 +2670,30 @@
       "retry_approve": "Tentar aprovar novamente",
       "approve_blocked": "O consentimento do responsável ainda precisa ser verificado. A verificação foi aberta.",
       "generic_error": "Não foi possível verificar o consentimento. Tente novamente."
+    },
+    "create_minor": {
+      "entry": "Cadastrar um menor",
+      "title": "Cadastrar um menor",
+      "intro": "Cadastre um menor que participará da sua seção com a autorização assinada do responsável. O menor fica sob a custódia do clube e a solicitação aguarda a verificação de outra pessoa.",
+      "name": "Nome(s)",
+      "paternal": "Sobrenome paterno",
+      "maternal": "Sobrenome materno (opcional)",
+      "birthday": "Data de nascimento",
+      "birthday_hint": "Selecione a data",
+      "birthday_required": "Selecione a data de nascimento",
+      "gender_label": "Gênero (opcional)",
+      "gender_male": "Masculino",
+      "gender_female": "Feminino",
+      "required": "Campo obrigatório",
+      "sworn": "Declaro sob juramento que o responsável do menor assinou a autorização em papel.",
+      "legal_prefix": "Em nome do menor, aceito os ",
+      "legal_unavailable": "Não foi possível carregar os documentos legais.",
+      "submit": "Cadastrar menor",
+      "created_toast": "{name} foi cadastrado. Outra pessoa ainda precisa verificar a ficha assinada.",
+      "errors": {
+        "age_out_of_range": "Essa idade não é válida para cadastrar um menor. A pessoa deve ser menor de idade conforme o país do clube.",
+        "no_active_year": "Não há um ano eclesiástico vigente. O menor não foi cadastrado."
+      }
     }
   },
   "certifications": {
