@@ -59,6 +59,9 @@ class _LoginViewState extends ConsumerState<LoginView> {
   @override
   void initState() {
     super.initState();
+    // Si el login falló (p. ej. `/auth/me` dio error) la pantalla se reconstruye:
+    // lo que se había escrito se recupera. La contraseña nunca se guarda.
+    _identifierController.text = ref.read(lastLoginIdentifierProvider);
     _identifierFocus.addListener(_onFieldFocusChanged);
     _passwordFocus.addListener(_onFieldFocusChanged);
   }

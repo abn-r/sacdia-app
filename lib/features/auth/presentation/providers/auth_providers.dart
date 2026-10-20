@@ -9,6 +9,7 @@ import '../../../../core/auth/acting_for_session.dart';
 import '../../../../core/auth/social_auth_provider.dart';
 import '../../../../core/auth/social_credential.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/user_error_message.dart';
 import '../../../../core/network/interceptors/acting_error_interceptor.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -584,33 +585,75 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     AppLogger.i('Login iniciado', tag: _tag);
     // Un intento nuevo descarta el aviso de "acceso revocado" del anterior.
     ref.read(loginNoticeProvider.notifier).state = null;
+    // El router manda a /splash mientras carga y la pantalla de login se
+    // desmonta: lo escrito se conserva para rellenarlo al volver.
+    ref.read(lastLoginIdentifierProvider.notifier).state = identifier;
     state = const AsyncValue.loading();
 
     final result = await ref.read(signInProvider)(
       SignInParams(identifier: identifier, password: password),
     );
 
-    state = result.fold(
-      (failure) {
-        final errorMessage = loginErrorMessage(failure);
-        AppLogger.w('Login fallido (${failure.errorCode ?? failure.code})',
-            tag: _tag);
-        return AsyncValue.error(errorMessage, StackTrace.current);
-      },
-      (user) {
-        AppLogger.i('Login exitoso', tag: _tag);
-        ref
-            .read(sharedPreferencesProvider)
-            .setBool('user_manually_logged_out', false);
-        _cacheUser(user);
-        // Register FCM token after successful login (fire-and-forget).
-        _registerPush();
-        ref.read(unreadNotificationsCountProvider.notifier).refresh();
-        return AsyncValue.data(user);
-      },
-    );
+    final failure = result.fold<Failure?>((f) => f, (_) => null);
+    if (failure != null) {
+      AppLogger.w('Login fallido (${failure.errorCode ?? failure.code})',
+          tag: _tag);
+      state = AsyncValue.error(loginErrorMessage(failure), StackTrace.current);
+      return false;
+    }
 
-    return !state.hasError;
+    // El POST /auth/login ya creó la sesión, pero la sesión solo sirve si
+    // `/auth/me` también responde.
+    final loginUser = result.getOrElse(() => throw StateError('unreachable'));
+    final session = await _confirmSessionAfterLogin(loginUser);
+    if (session.error != null) {
+      state = AsyncValue.error(session.error!, StackTrace.current);
+      return false;
+    }
+    final user = session.user!;
+
+    AppLogger.i('Login exitoso', tag: _tag);
+    ref.read(lastLoginIdentifierProvider.notifier).state = '';
+    ref
+        .read(sharedPreferencesProvider)
+        .setBool('user_manually_logged_out', false);
+    _cacheUser(user);
+    // Register FCM token after successful login (fire-and-forget).
+    _registerPush();
+    ref.read(unreadNotificationsCountProvider.notifier).refresh();
+    state = AsyncValue.data(user);
+    return true;
+  }
+
+  /// Tras un login (correo o social) pide `/auth/me` y devuelve el usuario
+  /// completo, que reemplaza al del login. Si falla (500, sin red, respuesta
+  /// vacía) NO se deja una sesión a medias: se cierra la sesión recién creada
+  /// (tokens y cachés locales) y se devuelve un mensaje traducido por código
+  /// ([userErrorMessage]), nunca texto crudo.
+  Future<({UserEntity? user, String? error})> _confirmSessionAfterLogin(
+    UserEntity loginUser,
+  ) async {
+    final me = await ref.read(getCurrentUserProvider)(NoParams());
+    final failure = me.fold<Failure?>((f) => f, (_) => null);
+    final user = me.fold<UserEntity?>((_) => null, (u) => u);
+    if (failure == null && user != null) return (user: user, error: null);
+
+    AppLogger.w(
+      'Login correcto pero /auth/me falló (${failure?.errorCode ?? failure?.code ?? 'sin usuario'}); se cierra la sesión',
+      tag: _tag,
+    );
+    // Cierre fail-safe: limpia tokens y cachés aunque el servidor no responda.
+    try {
+      await ref.read(signOutProvider)(NoParams());
+    } catch (_) {}
+    ref.read(unreadNotificationsCountProvider.notifier).setZero();
+    return (
+      user: null,
+      error: userErrorMessage(
+        failure,
+        fallbackKey: 'auth.errors.session_load_failed',
+      ),
+    );
   }
 
   /// Registrar un nuevo usuario
@@ -833,36 +876,41 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
 
     final result = await useCase(const NoParams());
 
-    return result.fold(
-      (failure) {
-        if (failure is SocialSignInCancelledFailure) {
-          AppLogger.i('Login social cancelado: $provider', tag: _tag);
-          return SocialSignInResult.cancelled;
-        }
-        final errorMessage = failure is AuthFailure
-            ? failure.message
-            : 'errors.social_signin_failed'.tr(
-                namedArgs: {
-                  'provider': provider == 'apple' ? 'Apple' : 'Google'
-                },
-              );
-        AppLogger.w('Login social $provider falló: $errorMessage', tag: _tag);
-        state = AsyncValue.error(errorMessage, StackTrace.current);
-        return SocialSignInResult.failed;
-      },
-      (user) {
-        AppLogger.i('Login social exitoso: $provider', tag: _tag);
-        ref
-            .read(sharedPreferencesProvider)
-            .setBool('user_manually_logged_out', false);
-        _cacheUser(user);
-        // Mismos efectos que signIn(): FCM y badge de notificaciones.
-        _registerPush();
-        ref.read(unreadNotificationsCountProvider.notifier).refresh();
-        state = AsyncValue.data(user);
-        return SocialSignInResult.success;
-      },
-    );
+    final failure = result.fold<Failure?>((f) => f, (_) => null);
+    if (failure != null) {
+      if (failure is SocialSignInCancelledFailure) {
+        AppLogger.i('Login social cancelado: $provider', tag: _tag);
+        return SocialSignInResult.cancelled;
+      }
+      final errorMessage = failure is AuthFailure
+          ? failure.message
+          : 'errors.social_signin_failed'.tr(
+              namedArgs: {'provider': provider == 'apple' ? 'Apple' : 'Google'},
+            );
+      AppLogger.w('Login social $provider falló: $errorMessage', tag: _tag);
+      state = AsyncValue.error(errorMessage, StackTrace.current);
+      return SocialSignInResult.failed;
+    }
+
+    // Igual que signIn(): la sesión solo vale si `/auth/me` responde.
+    final loginUser = result.getOrElse(() => throw StateError('unreachable'));
+    final session = await _confirmSessionAfterLogin(loginUser);
+    if (session.error != null) {
+      state = AsyncValue.error(session.error!, StackTrace.current);
+      return SocialSignInResult.failed;
+    }
+    final user = session.user!;
+
+    AppLogger.i('Login social exitoso: $provider', tag: _tag);
+    ref
+        .read(sharedPreferencesProvider)
+        .setBool('user_manually_logged_out', false);
+    _cacheUser(user);
+    // Mismos efectos que signIn(): FCM y badge de notificaciones.
+    _registerPush();
+    ref.read(unreadNotificationsCountProvider.notifier).refresh();
+    state = AsyncValue.data(user);
+    return SocialSignInResult.success;
   }
 
   /// Cambia de perfil: `switchProfile('id')` actúa por ese dependiente y

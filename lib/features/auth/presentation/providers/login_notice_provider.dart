@@ -13,3 +13,11 @@ enum LoginNotice {
 /// propia vista al descartarlo. No es estado de perfil: se escribe JUSTO al
 /// cerrar la sesión y debe sobrevivir a la purga de perfil.
 final loginNoticeProvider = StateProvider<LoginNotice?>((ref) => null);
+
+/// Correo o usuario que la persona escribió en el último intento de login.
+///
+/// Mientras el login corre el router manda a `/splash` y la pantalla de login
+/// se desmonta; al volver con un error sus campos nacerían vacíos. Se guarda
+/// SOLO en memoria (nunca la contraseña) y se limpia en cuanto el login termina
+/// bien. La pantalla lo usa para rellenar el campo.
+final lastLoginIdentifierProvider = StateProvider<String>((ref) => '');

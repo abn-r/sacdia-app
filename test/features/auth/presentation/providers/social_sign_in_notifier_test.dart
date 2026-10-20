@@ -17,10 +17,24 @@ class _SocialRepo extends FakeAuthRepository {
   /// Si se pasa, el login queda pendiente hasta que se complete.
   final Completer<void>? gate;
 
+  /// Resultado de `/auth/me` tras el login.
+  Either<Failure, UserEntity?>? meResult;
+  int signOuts = 0;
+
   @override
   Future<Either<Failure, UserEntity>> signInWithGoogle() async {
     await gate?.future;
     return googleResult;
+  }
+
+  @override
+  Future<Either<Failure, UserEntity?>> getCurrentUser() async =>
+      meResult ?? googleResult.fold((f) => Left(f), (u) => Right(u));
+
+  @override
+  Future<Either<Failure, void>> signOut() async {
+    signOuts++;
+    return const Right(null);
   }
 }
 
@@ -49,6 +63,30 @@ void main() {
 
       expect(result, SocialSignInResult.success);
       expect(container.read(authNotifierProvider).value?.id, 'user-1');
+    },
+  );
+
+  test(
+    'a /auth/me failure after the social login ends the session and explains',
+    () async {
+      final repo = _SocialRepo(const Right(user))
+        ..meResult = const Left(
+          ServerFailure(message: 'RAW SERVER TEXT', code: 500),
+        );
+      final container = await buildAuthContainer(repo: repo);
+      addTearDown(container.dispose);
+      await container.read(authNotifierProvider.future);
+
+      final result = await container
+          .read(authNotifierProvider.notifier)
+          .signInWithGoogle();
+
+      expect(result, SocialSignInResult.failed);
+      final state = container.read(authNotifierProvider);
+      expect(state.hasError, isTrue);
+      expect(state.valueOrNull, isNull);
+      expect(state.error.toString(), isNot(contains('RAW SERVER TEXT')));
+      expect(repo.signOuts, 1, reason: 'no half-logged-in session is left');
     },
   );
 
