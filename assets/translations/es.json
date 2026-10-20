@@ -1696,6 +1696,8 @@
       "evidence_subtitle": "Aprobar o rechazar carpetas, clases y especialidades",
       "clubs_title": "Clubes y secciones",
       "clubs_subtitle": "Ver clubes y secciones bajo tu coordinación",
+      "consent_title": "Fichas por verificar",
+      "consent_subtitle": "Consentimientos de menores en tus secciones",
       "camporees_title": "Aprobaciones de Camporees",
       "camporees_subtitle": "Clubs, miembros y pagos pendientes",
       "dashboard_title": "Dashboard Operativo",
@@ -1711,6 +1713,24 @@
       "assigned_one": "Tienes {count} sección asignada para coordinación.",
       "assigned_other": "Tienes {count} secciones asignadas para coordinación.",
       "empty": "No tienes secciones asignadas como coordinador. Si también eres director, tus funciones de director siguen apareciendo en la app."
+    },
+    "consent_review": {
+      "title": "Fichas por verificar",
+      "refresh_tooltip": "Actualizar",
+      "empty_title": "No hay fichas por verificar",
+      "empty_subtitle": "Ninguna de las secciones revisadas tiene fichas esperando verificación.",
+      "empty_more_subtitle": "Todavía no revisaste todas tus secciones.",
+      "progress": "Revisadas {checked} de {total} secciones",
+      "load_more": "Revisar más secciones",
+      "forms_one": "{count} ficha por verificar",
+      "forms_other": "{count} fichas por verificar",
+      "load_error": "No se pudieron cargar tus secciones.",
+      "retry": "Reintentar",
+      "failed_one": "No se pudo revisar {count} sección.",
+      "failed_other": "No se pudieron revisar {count} secciones.",
+      "retry_failed": "Reintentar esas secciones",
+      "dropped_one": "Ya no tienes acceso a {count} sección; se omitió.",
+      "dropped_other": "Ya no tienes acceso a {count} secciones; se omitieron."
     },
     "camporee_approvals": {
       "title": "Aprobaciones de Camporees",

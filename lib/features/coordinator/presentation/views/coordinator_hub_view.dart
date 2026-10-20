@@ -9,7 +9,9 @@ import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
+import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../members/presentation/utils/consent_access.dart';
 import '../../domain/entities/coordinator_scope.dart';
 import '../../domain/entities/sla_dashboard.dart';
 import '../providers/coordinator_providers.dart';
@@ -154,6 +156,22 @@ class CoordinatorHubView extends ConsumerWidget {
                     onTap: () => context.push(RouteNames.coordinatorClubs),
                   ),
                   const SizedBox(height: 10),
+
+                  // Fichas de consentimiento de menores por verificar: solo
+                  // con `consent:verify` y secciones en el alcance.
+                  if (hasAnyPermission(user, verifyConsentPermissions) &&
+                      (scopeAsync.valueOrNull?.hasAssignedSections ??
+                          false)) ...[
+                    _NavCard(
+                      icon: HugeIcons.strokeRoundedFileVerified,
+                      color: AppColors.warning,
+                      title: 'coordinator.nav.consent_title'.tr(),
+                      subtitle: 'coordinator.nav.consent_subtitle'.tr(),
+                      onTap: () =>
+                          context.push(RouteNames.coordinatorConsentReview),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
 
                   _NavCard(
                     icon: HugeIcons.strokeRoundedAnalytics01,

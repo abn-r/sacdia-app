@@ -1696,6 +1696,8 @@
       "evidence_subtitle": "Approuver ou rejeter dossiers, cours et spécialités",
       "clubs_title": "Clubs et sections",
       "clubs_subtitle": "Voir les clubs et sections sous votre coordination",
+      "consent_title": "Fiches à vérifier",
+      "consent_subtitle": "Consentements des mineurs dans vos sections",
       "camporees_title": "Approbations de camporées",
       "camporees_subtitle": "Clubs, membres et paiements en attente",
       "dashboard_title": "Tableau de bord opérationnel",
@@ -1711,6 +1713,24 @@
       "assigned_one": "Vous avez {count} section assignée pour la coordination.",
       "assigned_other": "Vous avez {count} sections assignées pour la coordination.",
       "empty": "Vous n'avez aucune section assignée comme coordinateur. Si vous êtes aussi directeur, vos fonctions de directeur restent visibles dans l'app."
+    },
+    "consent_review": {
+      "title": "Fiches à vérifier",
+      "refresh_tooltip": "Actualiser",
+      "empty_title": "Aucune fiche à vérifier",
+      "empty_subtitle": "Aucune des sections examinées n'a de fiche en attente de vérification.",
+      "empty_more_subtitle": "Vous n'avez pas encore examiné toutes vos sections.",
+      "progress": "{checked} sections examinées sur {total}",
+      "load_more": "Examiner d'autres sections",
+      "forms_one": "{count} fiche à vérifier",
+      "forms_other": "{count} fiches à vérifier",
+      "load_error": "Impossible de charger vos sections.",
+      "retry": "Réessayer",
+      "failed_one": "Impossible d'examiner {count} section.",
+      "failed_other": "Impossible d'examiner {count} sections.",
+      "retry_failed": "Réessayer ces sections",
+      "dropped_one": "Vous n'avez plus accès à {count} section ; elle a été ignorée.",
+      "dropped_other": "Vous n'avez plus accès à {count} sections ; elles ont été ignorées."
     },
     "camporee_approvals": {
       "title": "Approbations de camporées",

@@ -65,6 +65,7 @@ import 'package:sacdia_app/features/monthly_reports/presentation/views/monthly_r
 import 'package:sacdia_app/features/role_assignments/presentation/views/role_assignments_view.dart';
 import 'package:sacdia_app/features/coordinator/presentation/views/coordinator_hub_view.dart';
 import 'package:sacdia_app/features/coordinator/presentation/views/sla_dashboard_view.dart';
+import 'package:sacdia_app/features/coordinator/presentation/views/consent_review_view.dart';
 import 'package:sacdia_app/features/coordinator/presentation/views/evidence_review_list_view.dart';
 import 'package:sacdia_app/features/coordinator/presentation/views/evidence_review_detail_view.dart';
 import 'package:sacdia_app/features/coordinator/presentation/views/coordinator_clubs_list_view.dart';
@@ -1432,6 +1433,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: RouteNames.coordinatorEvidenceReview,
         pageBuilder: (context, state) =>
             _sharedAxisBuild(context, state, const EvidenceReviewListView()),
+      ),
+
+      // Coordinador: fichas de consentimiento por verificar
+      GoRoute(
+        path: RouteNames.coordinatorConsentReview,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const ConsentReviewView()),
       ),
 
       // Coordinador: detalle de evidencia

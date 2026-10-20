@@ -304,10 +304,14 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
         return [];
       }
       AppLogger.e('Error al obtener solicitudes', tag: _tag, error: e);
+      final data = e.response?.data;
       throw ServerException(
         message:
             e.response?.data?['message'] ?? tr('members.errors.fetch_requests'),
         code: e.response?.statusCode,
+        // `GUARD_CLUB_SCOPE_REQUIRED` (sección fuera del alcance del
+        // coordinador) se distingue por código; `details` nunca se lee.
+        errorCode: data is Map ? data['code']?.toString() : null,
       );
     } catch (e) {
       if (e is AuthException || e is ServerException) rethrow;

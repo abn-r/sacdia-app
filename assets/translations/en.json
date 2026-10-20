@@ -1696,6 +1696,8 @@
       "evidence_subtitle": "Approve or reject folders, classes and honors",
       "clubs_title": "Clubs and sections",
       "clubs_subtitle": "View clubs and sections under your coordination",
+      "consent_title": "Forms to verify",
+      "consent_subtitle": "Minors' consent forms in your sections",
       "camporees_title": "Camporee Approvals",
       "camporees_subtitle": "Clubs, members and pending payments",
       "dashboard_title": "Operational Dashboard",
@@ -1711,6 +1713,24 @@
       "assigned_one": "You have {count} section assigned for coordination.",
       "assigned_other": "You have {count} sections assigned for coordination.",
       "empty": "You do not have sections assigned as coordinator. If you are also a director, your director features still appear in the app."
+    },
+    "consent_review": {
+      "title": "Forms to verify",
+      "refresh_tooltip": "Refresh",
+      "empty_title": "No forms to verify",
+      "empty_subtitle": "None of the sections checked has forms waiting for verification.",
+      "empty_more_subtitle": "You haven't checked all your sections yet.",
+      "progress": "Checked {checked} of {total} sections",
+      "load_more": "Check more sections",
+      "forms_one": "{count} form to verify",
+      "forms_other": "{count} forms to verify",
+      "load_error": "Your sections couldn't be loaded.",
+      "retry": "Retry",
+      "failed_one": "{count} section couldn't be checked.",
+      "failed_other": "{count} sections couldn't be checked.",
+      "retry_failed": "Retry those sections",
+      "dropped_one": "You no longer have access to {count} section; it was skipped.",
+      "dropped_other": "You no longer have access to {count} sections; they were skipped."
     },
     "camporee_approvals": {
       "title": "Camporee Approvals",
