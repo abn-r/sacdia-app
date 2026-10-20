@@ -15,6 +15,8 @@ Dio buildAppDio(Ref ref) {
   return DioClient.createDio(
     onAuthExpired: () =>
         ref.read(authNotifierProvider.notifier).expireSession(),
+    onSupervisedAccessRevoked: () =>
+        ref.read(authNotifierProvider.notifier).onSupervisedAccessRevoked(),
     actingForSession: ref.read(actingForSessionProvider),
     onActingForbidden: (dependentUserId) => ref
         .read(authNotifierProvider.notifier)

@@ -35,7 +35,9 @@ import '../../../../core/notifications/push_notification_provider.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../biometric/presentation/providers/biometric_provider.dart';
 import '../../../notifications/presentation/providers/unread_notifications_count_provider.dart';
+import '../login_error_messages.dart';
 import 'acting_providers.dart';
+import 'login_notice_provider.dart';
 import 'profile_scope_purge.dart';
 
 /// Provider para la URL base de la API
@@ -570,21 +572,28 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     }
   }
 
-  /// Iniciar sesión con email y contraseña
-  Future<bool> signIn({required String email, required String password}) async {
+  /// Iniciar sesión con correo o usuario (handle) y contraseña.
+  ///
+  /// El [identifier] no se valida ni se registra. Un fallo deja en el estado un
+  /// mensaje traducido por `code` ([loginErrorMessage]), nunca texto crudo.
+  Future<bool> signIn({
+    required String identifier,
+    required String password,
+  }) async {
     AppLogger.i('Login iniciado', tag: _tag);
+    // Un intento nuevo descarta el aviso de "acceso revocado" del anterior.
+    ref.read(loginNoticeProvider.notifier).state = null;
     state = const AsyncValue.loading();
 
     final result = await ref.read(signInProvider)(
-      SignInParams(email: email, password: password),
+      SignInParams(identifier: identifier, password: password),
     );
 
     state = result.fold(
       (failure) {
-        final errorMessage = failure is AuthFailure
-            ? failure.message
-            : 'auth.errors.sign_in_failed'.tr();
-        AppLogger.w('Login fallido: $errorMessage', tag: _tag);
+        final errorMessage = loginErrorMessage(failure);
+        AppLogger.w('Login fallido (${failure.errorCode ?? failure.code})',
+            tag: _tag);
         return AsyncValue.error(errorMessage, StackTrace.current);
       },
       (user) {
@@ -1111,6 +1120,19 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     final result =
         await ref.read(authRepositoryProvider).getConnectedProviders();
     return result.fold((_) => const [], (list) => list);
+  }
+
+  /// Llamado por el interceptor ante 401 `AUTH_SUPERVISED_ACCESS_REVOKED`: el
+  /// tutor cortó el acceso del menor (desactivó, restableció, congeló).
+  ///
+  /// Deja el aviso para el login y cierra la sesión local igual que una sesión
+  /// expirada: [expireSession] borra el almacenamiento seguro y pone el estado
+  /// en `null`, y el router purga el registro de perfil y los cachés de disco
+  /// al ver el cierre. Sin llamadas a la API: el token ya no vale.
+  void onSupervisedAccessRevoked() {
+    ref.read(loginNoticeProvider.notifier).state =
+        LoginNotice.supervisedAccessRevoked;
+    expireSession();
   }
 
   /// Called by AuthInterceptor when the refresh token is dead.

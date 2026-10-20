@@ -56,6 +56,15 @@ class AuthInterceptor extends QueuedInterceptor {
   /// recovered. Use this to invalidate the auth state without making API calls.
   final VoidCallback? onAuthExpired;
 
+  /// Se llama cuando el servidor responde 401 `AUTH_SUPERVISED_ACCESS_REVOKED`:
+  /// el tutor desactivó, restableció o cambió el acceso del menor. La sesión ya
+  /// no existe en el servidor, así que NO se intenta refrescar; si es nulo se
+  /// usa [onAuthExpired].
+  final VoidCallback? onSupervisedAccessRevoked;
+
+  /// `code` del 401 de un token de menor cuyo acceso se cortó (FP3-17).
+  static const supervisedAccessRevokedCode = 'AUTH_SUPERVISED_ACCESS_REVOKED';
+
   /// Perfil por el que se actúa (tutor -> dependiente). Nulo en tests o
   /// instancias de Dio que nunca actúan por otro usuario.
   final ActingForSession? _actingForSession;
@@ -95,6 +104,7 @@ class AuthInterceptor extends QueuedInterceptor {
     /// reintentar la petición original después del refresh.
     Dio? dio,
     this.onAuthExpired,
+    this.onSupervisedAccessRevoked,
     ActingForSession? actingForSession,
 
     /// Solo para tests: adaptador HTTP de las llamadas de refresh y de
@@ -230,6 +240,16 @@ class AuthInterceptor extends QueuedInterceptor {
         '401 de reautenticación (${err.requestOptions.path}), omitiendo refresh',
         tag: _tag,
       );
+      return handler.next(err);
+    }
+
+    // Acceso del menor cortado por su tutor: la sesión se borró en el servidor,
+    // un refresh solo fallaría. Se limpia YA y se avisa para que el login
+    // explique por qué (FP3-32). Solo se lee el `code`, nunca `details`.
+    if (_isSupervisedAccessRevoked(err)) {
+      AppLogger.w('Acceso supervisado revocado, cerrando sesión', tag: _tag);
+      await _clearTokens();
+      (onSupervisedAccessRevoked ?? onAuthExpired)?.call();
       return handler.next(err);
     }
 
@@ -383,6 +403,11 @@ class AuthInterceptor extends QueuedInterceptor {
     'AUTH_INVALID_PASSWORD',
     'AUTH_INVALID_TOKEN',
   };
+
+  static bool _isSupervisedAccessRevoked(DioException err) {
+    final data = err.response?.data;
+    return data is Map && data['code'] == supervisedAccessRevokedCode;
+  }
 
   static bool _isReauthRejection(DioException err) {
     final data = err.response?.data;

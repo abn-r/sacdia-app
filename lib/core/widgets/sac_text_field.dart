@@ -41,6 +41,10 @@ class SacTextField extends StatefulWidget {
   final EdgeInsetsGeometry? margin;
   final TextCapitalization textCapitalization;
 
+  /// `false` para identificadores (usuario, código): sin autocorrección ni
+  /// sugerencias.
+  final bool autocorrect;
+
   const SacTextField({
     super.key,
     this.controller,
@@ -69,6 +73,7 @@ class SacTextField extends StatefulWidget {
     this.onTap,
     this.margin,
     this.textCapitalization = TextCapitalization.none,
+    this.autocorrect = true,
   });
 
   @override
@@ -158,6 +163,8 @@ class _SacTextFieldState extends State<SacTextField> {
                 focusNode: widget.focusNode,
                 textInputAction: widget.textInputAction,
                 textCapitalization: widget.textCapitalization,
+                autocorrect: widget.autocorrect,
+                enableSuggestions: widget.autocorrect,
                 onTap: widget.onTap,
                 style: theme.textTheme.bodyMedium,
                 autovalidateMode: AutovalidateMode.disabled,

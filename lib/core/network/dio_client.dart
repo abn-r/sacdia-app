@@ -23,6 +23,10 @@ import 'interceptors/error_interceptor.dart';
 class DioClient {
   static Dio createDio({
     VoidCallback? onAuthExpired,
+
+    /// Se llama cuando el servidor corta el acceso de un menor supervisado
+    /// (401 `AUTH_SUPERVISED_ACCESS_REVOKED`).
+    VoidCallback? onSupervisedAccessRevoked,
     ActingForSession? actingForSession,
 
     /// Se llama (una vez por petición afectada) cuando el servidor responde
@@ -52,6 +56,7 @@ class DioClient {
       AuthInterceptor(
         dio: dio,
         onAuthExpired: onAuthExpired,
+        onSupervisedAccessRevoked: onSupervisedAccessRevoked,
         actingForSession: actingForSession,
       ),
       // Pegado a AuthInterceptor y ANTES de ErrorInterceptor: descarta las

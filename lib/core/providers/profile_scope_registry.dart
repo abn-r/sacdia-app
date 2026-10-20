@@ -148,6 +148,10 @@ const Map<String, String> nonAutoDisposeAllowlist = {
   // Flujos previos a la sesión o de un solo uso.
   'socialSignInInFlightProvider':
       'bandera de la pantalla de login, sin sesión de por medio',
+  'loginNoticeProvider':
+      'aviso de una sola vez del login (acceso de menor revocado): se escribe '
+          'al cerrar la sesión y lo limpia el siguiente intento; sin datos de '
+          'usuario',
   'familyPromptSuppressedProvider':
       'bandera de un solo uso del tutor, la consume FamilyPromptHost; se '
           'reinicia en clearUserStateOnLogout',

@@ -59,12 +59,19 @@ class CacheFailure extends Failure {
 
 // Fallos de autenticación
 class AuthFailure extends Failure {
+  /// Segundos del encabezado `Retry-After` (bloqueo de login, 429).
+  final int? retryAfterSeconds;
+
   const AuthFailure({
     required super.message,
     super.code,
     super.errorCode,
     super.stackTrace,
+    this.retryAfterSeconds,
   });
+
+  @override
+  List<Object?> get props => [...super.props, retryAfterSeconds];
 }
 
 // Fallos de validación de datos

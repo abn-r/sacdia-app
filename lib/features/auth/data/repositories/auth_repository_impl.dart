@@ -47,18 +47,33 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, UserEntity>> signInWithEmailAndPassword({
-    required String email,
+  Future<Either<Failure, UserEntity>> signInWithIdentifier({
+    required String identifier,
     required String password,
   }) async {
     try {
-      final user = await remoteDataSource.signInWithEmailAndPassword(
-        email: email,
+      final user = await remoteDataSource.signInWithIdentifier(
+        identifier: identifier,
         password: password,
       );
       return Right(user);
+    } on core_exceptions.ConnectionException catch (e) {
+      return Left(NetworkFailure(message: e.message, stackTrace: e.stackTrace));
     } on core_exceptions.AuthException catch (e) {
-      return Left(AuthFailure(message: e.message, code: e.code));
+      // Se conserva el `code` de negocio y el Retry-After: la pantalla de login
+      // distingue bloqueo, acceso desactivado y cuenta congelada por ellos.
+      return Left(AuthFailure(
+        message: e.message,
+        code: e.code,
+        errorCode: e.errorCode,
+        retryAfterSeconds: e.retryAfterSeconds,
+      ));
+    } on core_exceptions.ServerException catch (e) {
+      return Left(ServerFailure(
+        message: e.message,
+        code: e.code,
+        errorCode: e.errorCode,
+      ));
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
     }
