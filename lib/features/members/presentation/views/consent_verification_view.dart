@@ -22,6 +22,7 @@ import '../../domain/entities/join_request.dart';
 import '../../domain/usecases/upload_consent_evidence.dart';
 import '../../domain/usecases/verify_consent.dart';
 import '../providers/members_providers.dart';
+import '../widgets/claim_code_section.dart';
 
 /// Verificación del consentimiento de un menor que pide entrar al club
 /// (FP-76, FP-77).
@@ -246,6 +247,18 @@ class _ConsentVerificationViewState
         padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 32),
         children: [
           _Intro(request: widget.request),
+          // Menor bajo custodia del club: el director puede devolverlo a su
+          // familia con un código. El servidor exige `club_members:approve`.
+          if ((widget.request.consent?.isCustody ?? false) &&
+              widget.canApprove &&
+              widget.request.clubSectionId != null) ...[
+            const SizedBox(height: 12),
+            ClaimCodeSection(
+              clubSectionId: widget.request.clubSectionId!,
+              dependentUserId: widget.request.userId,
+              dependentName: widget.request.name,
+            ),
+          ],
           const SizedBox(height: 20),
           _SectionLabel(label: 'members.consent.evidence_title'.tr()),
           const SizedBox(height: 8),

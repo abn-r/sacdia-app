@@ -2699,6 +2699,17 @@
         "age_out_of_range": "Cet âge n'est pas valide pour inscrire un mineur. La personne doit être mineure selon le pays du club.",
         "no_active_year": "Il n'y a pas d'année ecclésiastique en cours. Le mineur n'a pas été inscrit."
       }
+    },
+    "claim_code": {
+      "section_title": "Remettre à la famille",
+      "hint": "Générez un code à usage unique valable 7 jours. La famille le saisit dans Ma famille pour prendre en charge le mineur.",
+      "action": "Générer le code pour les parents",
+      "code_title": "Code pour la famille",
+      "expires": "Expire le {when}",
+      "copy": "Copier le code",
+      "copied": "Code copié",
+      "share": "Partager",
+      "share_message": "Je vous invite à prendre en charge {name} sur SACDIA. Code : {code}. Expire le {when}. Saisissez-le dans Ma famille > J'ai un code de liaison."
     }
   },
   "certifications": {

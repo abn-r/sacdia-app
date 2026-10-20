@@ -124,6 +124,13 @@ class JoinRequest extends Equatable {
     this.consent,
   });
 
+  /// Sección de la solicitud: el prefijo de [assignmentId]
+  /// (`<sectionId>/membership-requests/<id>`). `null` si no viene.
+  int? get clubSectionId {
+    final slash = assignmentId.indexOf('/');
+    return slash <= 0 ? null : int.tryParse(assignmentId.substring(0, slash));
+  }
+
   /// Es un menor cuya solicitud necesita el consentimiento del tutor.
   bool get isMinorWithConsent => consent != null;
 

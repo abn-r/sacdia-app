@@ -2700,6 +2700,17 @@
         "age_out_of_range": "La edad no es válida para registrar a un menor. Debe ser menor de edad según el país del club.",
         "no_active_year": "No hay un año eclesiástico vigente. No se registró al menor."
       }
+    },
+    "claim_code": {
+      "section_title": "Entregar a la familia",
+      "hint": "Genera un código de un solo uso que vale 7 días. La familia lo canjea en Mi familia para hacerse cargo del menor.",
+      "action": "Generar código para los padres",
+      "code_title": "Código para la familia",
+      "expires": "Vence {when}",
+      "copy": "Copiar código",
+      "copied": "Código copiado",
+      "share": "Compartir",
+      "share_message": "Te invito a hacerte cargo de {name} en SACDIA. Código: {code}. Vence {when}. Ingrésalo en Mi familia > Tengo un código de vinculación."
     }
   },
   "certifications": {

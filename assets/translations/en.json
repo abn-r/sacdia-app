@@ -2700,6 +2700,17 @@
         "age_out_of_range": "That age is not valid to register a minor. The person must be under the age of majority in the club's country.",
         "no_active_year": "There is no current ecclesiastical year. The minor was not registered."
       }
+    },
+    "claim_code": {
+      "section_title": "Hand over to the family",
+      "hint": "Generate a single-use code valid for 7 days. The family redeems it in My family to take over the minor.",
+      "action": "Generate parent code",
+      "code_title": "Code for the family",
+      "expires": "Expires {when}",
+      "copy": "Copy code",
+      "copied": "Code copied",
+      "share": "Share",
+      "share_message": "I invite you to take over {name} on SACDIA. Code: {code}. Expires {when}. Enter it in My family > I have a link code."
     }
   },
   "certifications": {

@@ -52,6 +52,16 @@ void main() {
     'members.consent.verify_only_confirm': {},
     'members.consent.verified_toast': {'name'},
     'errors.mr_approve_permission_required': {},
+    // A03: código para la familia de un menor bajo custodia.
+    'members.claim_code.section_title': {},
+    'members.claim_code.hint': {},
+    'members.claim_code.action': {},
+    'members.claim_code.code_title': {},
+    'members.claim_code.expires': {'when'},
+    'members.claim_code.copy': {},
+    'members.claim_code.copied': {},
+    'members.claim_code.share': {},
+    'members.claim_code.share_message': {'name', 'code', 'when'},
   };
 
   for (final locale in _locales) {
@@ -77,6 +87,7 @@ void main() {
         'members.create_minor.intro',
         'members.create_minor.sworn',
         'members.consent.another_person',
+        'members.claim_code.hint',
       ]) {
         expect(_at(other, key), isNot(_at(es, key)),
             reason: '$locale $key is untranslated');
