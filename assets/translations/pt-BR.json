@@ -5469,7 +5469,7 @@
         "warn_acting": "Você deixará de poder agir por {name}: ele(a) usará o próprio acesso.",
         "warn_devices": "Se {name} tiver celulares vinculados, eles serão desvinculados.",
         "warn_control": "Você poderá desativar o acesso ou alterar a senha quando quiser enquanto for menor.",
-        "warn_privacy": "Você verá um resumo do progresso e da presença, nunca a saúde nem as mensagens.",
+        "warn_privacy": "Você verá um resumo do progresso e da presença, nunca as informações de saúde.",
         "activate": "Ativar acesso",
         "result_title": "Acesso ativado",
         "result_handle_label": "Usuário",
@@ -5529,7 +5529,7 @@
       "attendance_value": "{attended} de {total} atividades",
       "attendance_period": "De {from} a {to}",
       "no_activities": "Sem atividades neste período.",
-      "privacy_note": "Este resumo não inclui saúde, mensagens nem anotações pessoais."
+      "privacy_note": "Este resumo não inclui informações de saúde nem anotações pessoais."
     }
   },
   "restricted_account": {
@@ -5570,7 +5570,7 @@
     },
     "info": {
       "title": "Seu responsável e suas informações",
-      "body": "Seu responsável pode ver seu progresso e sua presença. Ele não pode ver suas informações de saúde nem suas mensagens.",
+      "body": "Seu responsável pode ver seu progresso e sua presença. Ele não pode ver suas informações de saúde.",
       "understood": "Entendi"
     },
     "errors": {

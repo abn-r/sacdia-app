@@ -5471,7 +5471,7 @@
         "warn_acting": "Dejarás de poder actuar por {name}: usará su propio acceso.",
         "warn_devices": "Si {name} tiene teléfonos vinculados, se desvincularán.",
         "warn_control": "Podrás desactivar su acceso o cambiar su contraseña cuando quieras mientras sea menor.",
-        "warn_privacy": "Verás un resumen de su progreso y asistencia, nunca su salud ni sus mensajes.",
+        "warn_privacy": "Verás un resumen de su progreso y asistencia, nunca su información de salud.",
         "activate": "Activar acceso",
         "result_title": "Acceso activado",
         "result_handle_label": "Usuario",
@@ -5531,7 +5531,7 @@
       "attendance_value": "{attended} de {total} actividades",
       "attendance_period": "Del {from} al {to}",
       "no_activities": "Sin actividades en este periodo.",
-      "privacy_note": "Este resumen no incluye salud, mensajes ni notas personales."
+      "privacy_note": "Este resumen no incluye información de salud ni notas personales."
     }
   },
   "restricted_account": {
@@ -5572,7 +5572,7 @@
     },
     "info": {
       "title": "Tu tutor y tu información",
-      "body": "Tu tutor puede ver tu progreso y tu asistencia. No puede ver tu información de salud ni tus mensajes.",
+      "body": "Tu tutor puede ver tu progreso y tu asistencia. No puede ver tu información de salud.",
       "understood": "Entendido"
     },
     "errors": {

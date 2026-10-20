@@ -5469,7 +5469,7 @@
         "warn_acting": "Vous ne pourrez plus agir pour {name} : il utilisera son propre accès.",
         "warn_devices": "Si {name} a des téléphones liés, ils seront déliés.",
         "warn_control": "Vous pourrez désactiver son accès ou changer son mot de passe quand vous voulez tant qu'il est mineur.",
-        "warn_privacy": "Vous verrez un résumé de sa progression et de sa présence, jamais sa santé ni ses messages.",
+        "warn_privacy": "Vous verrez un résumé de sa progression et de sa présence, jamais ses informations de santé.",
         "activate": "Activer l'accès",
         "result_title": "Accès activé",
         "result_handle_label": "Nom d'utilisateur",
@@ -5529,7 +5529,7 @@
       "attendance_value": "{attended} activités sur {total}",
       "attendance_period": "Du {from} au {to}",
       "no_activities": "Aucune activité sur cette période.",
-      "privacy_note": "Ce résumé n'inclut ni la santé, ni les messages, ni les notes personnelles."
+      "privacy_note": "Ce résumé n'inclut ni les informations de santé, ni les notes personnelles."
     }
   },
   "restricted_account": {
@@ -5570,7 +5570,7 @@
     },
     "info": {
       "title": "Votre tuteur et vos informations",
-      "body": "Votre tuteur peut voir votre progression et votre présence. Il ne peut pas voir vos informations de santé ni vos messages.",
+      "body": "Votre tuteur peut voir votre progression et votre présence. Il ne peut pas voir vos informations de santé.",
       "understood": "Compris"
     },
     "errors": {

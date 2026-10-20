@@ -5471,7 +5471,7 @@
         "warn_acting": "You will no longer be able to act for {name}: they will use their own access.",
         "warn_devices": "If {name} has linked phones, they will be unlinked.",
         "warn_control": "You can turn their access off or change their password whenever you want while they are a minor.",
-        "warn_privacy": "You will see a summary of their progress and attendance, never their health or their messages.",
+        "warn_privacy": "You will see a summary of their progress and attendance, never their health information.",
         "activate": "Turn on access",
         "result_title": "Access turned on",
         "result_handle_label": "Username",
@@ -5531,7 +5531,7 @@
       "attendance_value": "{attended} of {total} activities",
       "attendance_period": "From {from} to {to}",
       "no_activities": "No activities in this period.",
-      "privacy_note": "This summary does not include health data, messages or personal notes."
+      "privacy_note": "This summary does not include health data or personal notes."
     }
   },
   "restricted_account": {
@@ -5572,7 +5572,7 @@
     },
     "info": {
       "title": "Your guardian and your information",
-      "body": "Your guardian can see your progress and attendance. They cannot see your health information or your messages.",
+      "body": "Your guardian can see your progress and attendance. They cannot see your health information.",
       "understood": "Got it"
     },
     "errors": {

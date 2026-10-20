@@ -34,7 +34,7 @@ void main() {
   setUpAll(initLocalization);
 
   const note = 'Tu tutor puede ver tu progreso y tu asistencia. No puede ver '
-      'tu información de salud ni tus mensajes.';
+      'tu información de salud.';
 
   group('shouldShowSupervisionInfo', () {
     bool should(
