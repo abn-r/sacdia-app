@@ -454,6 +454,56 @@ void main() {
     });
   });
 
+  group('approve and reject routes', () {
+    // The list payload carries club_section_id, so the request id the app
+    // keeps is `<section>/membership-requests/<id>` and both actions land on
+    // the section's membership route.
+    Future<String> listedAssignmentId() async {
+      adapter.replies['GET /api/v1/club-sections/12/membership-requests'] =
+          _Reply(
+        200,
+        _ok([
+          {
+            'assignment_id': 'req-1',
+            'club_section_id': 12,
+            'status': 'pending',
+            'users': {'user_id': 'ana-1', 'name': 'Ana'},
+          },
+        ]),
+      );
+      final listed = (await repository.getJoinRequests(
+        clubId: 1,
+        sectionId: 12,
+      ))
+          .fold((f) => throw StateError(f.message), (r) => r);
+      return listed.single.assignmentId;
+    }
+
+    test('approve posts to the section membership route', () async {
+      final id = await listedAssignmentId();
+      adapter.replies['POST $base/approve'] =
+          _Reply(200, _ok({'assignment_id': 'req-1', 'status': 'active'}));
+
+      final result = await repository.approveJoinRequest(id);
+
+      expect(result.isRight(), isTrue);
+      expect(adapter.sent.last.method, 'POST');
+      expect(adapter.sent.last.uri.path, '$base/approve');
+    });
+
+    test('reject posts to the section membership route', () async {
+      final id = await listedAssignmentId();
+      adapter.replies['POST $base/reject'] =
+          _Reply(200, _ok({'assignment_id': 'req-1', 'status': 'rejected'}));
+
+      final result = await repository.rejectJoinRequest(id);
+
+      expect(result.isRight(), isTrue);
+      expect(adapter.sent.last.method, 'POST');
+      expect(adapter.sent.last.uri.path, '$base/reject');
+    });
+  });
+
   group('acting', () {
     test(
         'ACTING_FOR_SCOPE_DENIED is reported as an action error and does not '
