@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/acting_providers.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/family/presentation/family_error_messages.dart';
@@ -21,6 +22,9 @@ import '../providers/post_registration_flow_providers.dart';
 ///
 /// - Se oculta mientras se actúa por un dependiente: ese post-registro es el
 ///   del menor y el backend tampoco lo permite (sin `@ActingScope`).
+/// - Solo la ve un adulto (`mode == adult` y principal `user`): un adolescente
+///   supervisado, una cuenta sin fecha de nacimiento o un principal que la app
+///   no conoce no pueden ser «solo tutor», y el backend lo rechaza con 403.
 /// - Un menor de edad recibe `POST_REG_GUARDIAN_ONLY_REQUIRES_ADULT` (422).
 class GuardianOnlyExit extends ConsumerStatefulWidget {
   const GuardianOnlyExit({super.key});
@@ -82,6 +86,17 @@ class _GuardianOnlyExitState extends ConsumerState<GuardianOnlyExit> {
           authNotifierProvider.select((v) => v.valueOrNull?.actingFor != null),
         );
     if (acting) return const SizedBox.shrink();
+
+    // Un principal ausente es un adulto de un servidor anterior a la Fase 3.
+    final adult = ref.watch(
+      authNotifierProvider.select((v) {
+        final user = v.valueOrNull;
+        if (user == null) return true;
+        return !user.isLimitedAccount &&
+            (user.principal?.kind ?? PrincipalKind.user) == PrincipalKind.user;
+      }),
+    );
+    if (!adult) return const SizedBox.shrink();
 
     // Mantiene vivo el notifier (autoDispose) durante la llamada.
     ref.watch(postRegistrationFlowNotifierProvider);

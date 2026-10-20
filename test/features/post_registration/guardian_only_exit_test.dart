@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/errors/exceptions.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/auth/domain/entities/acting_for_info.dart';
+import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/post_registration/data/datasources/club_selection_remote_data_source.dart';
@@ -237,6 +238,72 @@ void main() {
     );
     expect(find.text('raw server text'), findsNothing);
     expect(auth.markCalls, 0);
+  });
+
+  group('is hidden for any principal that is not an adult', () {
+    UserEntity user({
+      required PrincipalInfo principal,
+      AccountMode? mode,
+    }) =>
+        UserEntity(
+          id: 'u-1',
+          postRegisterComplete: false,
+          principal: principal,
+          serverMode: mode,
+        );
+
+    const teenPending = PrincipalInfo(
+      kind: PrincipalKind.supervisedUser,
+      supervision: SupervisionInfo(status: SupervisionStatus.pendingGuardian),
+    );
+    const teenActive = PrincipalInfo(
+      kind: PrincipalKind.supervisedUser,
+      supervision: SupervisionInfo(status: SupervisionStatus.active),
+    );
+
+    final cases = <String, UserEntity>{
+      'teen_pending':
+          user(principal: teenPending, mode: AccountMode.teenPending),
+      'teen_supervised':
+          user(principal: teenActive, mode: AccountMode.teenSupervised),
+      'profile_incomplete': user(
+        principal: const PrincipalInfo(kind: PrincipalKind.ageUnknownUser),
+        mode: AccountMode.profileIncomplete,
+      ),
+      'unknown principal':
+          user(principal: const PrincipalInfo(kind: PrincipalKind.unknown)),
+      'a non-user kind even if the mode says adult': user(
+        principal: const PrincipalInfo(kind: PrincipalKind.linkedDevice),
+        mode: AccountMode.adult,
+      ),
+    };
+
+    for (final entry in cases.entries) {
+      testWidgets(entry.key, (tester) async {
+        await pump(
+          tester,
+          auth: _RecordingAuth(entry.value),
+          ds: _FakeClubDataSource(),
+        );
+
+        expect(find.text('Solo soy tutor de menores'), findsNothing);
+        expect(find.byType(SacButton), findsNothing);
+      });
+    }
+
+    testWidgets('an adult with the user principal still sees it',
+        (tester) async {
+      await pump(
+        tester,
+        auth: _RecordingAuth(user(
+          principal: const PrincipalInfo(kind: PrincipalKind.user),
+          mode: AccountMode.adult,
+        )),
+        ds: _FakeClubDataSource(),
+      );
+
+      expect(find.text('Solo soy tutor de menores'), findsOneWidget);
+    });
   });
 
   testWidgets('is hidden while acting for a dependent (session)',
