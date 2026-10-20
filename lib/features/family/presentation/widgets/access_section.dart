@@ -141,6 +141,10 @@ class AccessSection extends StatelessWidget {
       if (!teenLoginEnabled) return const [];
       return [
         const SizedBox(height: 8),
+        // Cumplió la edad mínima de acceso propio (el aviso del cumpleaños):
+        // el push `family:age_nudge` aterriza aquí.
+        _AgeNudge(name: name),
+        const SizedBox(height: 8),
         Text(
           'family.access.enable_hint'.tr(namedArgs: {'name': name}),
           style: textTheme.bodySmall?.copyWith(
@@ -185,6 +189,60 @@ class AccessSection extends StatelessWidget {
         onPressed: busy ? null : onDisable,
       ),
     ];
+  }
+}
+
+/// Aviso de que el menor ya cumplió la edad mínima de acceso propio.
+class _AgeNudge extends StatelessWidget {
+  const _AgeNudge({required this.name});
+
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final textTheme = Theme.of(context).textTheme;
+    return Container(
+      key: const ValueKey('age_nudge'),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedBirthdayCake,
+            size: 20,
+            color: AppColors.primary,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'family.age_nudge.title'.tr(namedArgs: {'name': name}),
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: c.text,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'family.age_nudge.body'.tr(),
+                  style: textTheme.bodySmall?.copyWith(
+                    color: c.textSecondary,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

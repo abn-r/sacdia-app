@@ -62,6 +62,9 @@ void main() {
     'members.claim_code.copied': {},
     'members.claim_code.share': {},
     'members.claim_code.share_message': {'name', 'code', 'when'},
+    // A04: aviso al cumplir la edad mínima de acceso propio.
+    'family.age_nudge.title': {'name'},
+    'family.age_nudge.body': {},
   };
 
   for (final locale in _locales) {
@@ -88,6 +91,7 @@ void main() {
         'members.create_minor.sworn',
         'members.consent.another_person',
         'members.claim_code.hint',
+        'family.age_nudge.body',
       ]) {
         expect(_at(other, key), isNot(_at(es, key)),
             reason: '$locale $key is untranslated');

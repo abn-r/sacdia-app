@@ -5608,6 +5608,10 @@
       "pair_warning": "Use it only on the child's phone and do not share it: it works once. You will get a notice when it links and you can unlink it any time.",
       "paired_title": "Phone linked",
       "paired_body": "Done: the phone can now use SACDIA. You will see it in the list of linked phones."
+    },
+    "age_nudge": {
+      "title": "{name} can now have their own access",
+      "body": "They reached the minimum age for their own access. You can turn it on whenever you want and you will keep supervising their account."
     }
   },
   "restricted_account": {

@@ -5606,6 +5606,10 @@
       "pair_warning": "Use somente no telefone da criança e não compartilhe: vale uma única vez. Você receberá um aviso quando vincular e poderá desvincular quando quiser.",
       "paired_title": "Telefone vinculado",
       "paired_body": "Pronto: o telefone já pode usar o SACDIA. Você o verá na lista de telefones vinculados."
+    },
+    "age_nudge": {
+      "title": "{name} já pode ter o próprio acesso",
+      "body": "Atingiu a idade mínima para ter o próprio acesso. Você pode ativá-lo quando quiser e continuará supervisionando a conta."
     }
   },
   "restricted_account": {

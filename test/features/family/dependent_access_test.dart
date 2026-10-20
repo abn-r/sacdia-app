@@ -159,6 +159,33 @@ void main() {
       );
     });
 
+    testWidgets(
+        'the age nudge: a minor who reached the minimum age gets the '
+        'notice with the enable entry', (tester) async {
+      repo.detail = Right(_detail());
+      await pump(tester);
+
+      expect(find.byKey(const ValueKey('age_nudge')), findsOneWidget);
+      expect(find.text('Ana ya puede tener su propio acceso'), findsOneWidget);
+      expect(find.text('Darle acceso propio'), findsOneWidget);
+    });
+
+    testWidgets(
+        'no nudge before the minimum age, with the flag off or with an '
+        'own login', (tester) async {
+      repo.detail = Right(_detail(age: 12, milestone: false));
+      await pump(tester);
+      expect(find.byKey(const ValueKey('age_nudge')), findsNothing);
+    });
+
+    testWidgets('no nudge when the feature flag is off', (tester) async {
+      auth = FakeAuthNotifier(_guardian(teenLogin: false));
+      repo.detail = Right(_detail());
+      await pump(tester);
+
+      expect(find.byKey(const ValueKey('age_nudge')), findsNothing);
+    });
+
     testWidgets('a 12-year-old gets no entry, only the explanation',
         (tester) async {
       repo.detail = Right(_detail(age: 12, milestone: false));

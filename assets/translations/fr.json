@@ -5606,6 +5606,10 @@
       "pair_warning": "Utilise-le seulement sur le téléphone de l'enfant et ne le partage pas : il ne sert qu'une fois. Tu recevras un avis à l'association et tu pourras dissocier quand tu veux.",
       "paired_title": "Téléphone associé",
       "paired_body": "C'est fait : le téléphone peut maintenant utiliser SACDIA. Tu le verras dans la liste des téléphones associés."
+    },
+    "age_nudge": {
+      "title": "{name} peut désormais avoir son propre accès",
+      "body": "Le seuil d'âge minimal pour avoir son propre accès est atteint. Vous pouvez l'activer quand vous voulez et vous continuerez à superviser son compte."
     }
   },
   "restricted_account": {
