@@ -106,7 +106,8 @@ void main() {
     await pump(tester);
 
     expect(
-      find.text('Este resumen no incluye información de salud ni notas personales.'),
+      find.text(
+          'Este resumen no incluye información de salud ni notas personales.'),
       findsOneWidget,
     );
   });
