@@ -52,7 +52,7 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <!-- QR de vinculación de un teléfono de menor: sacdia://pair?c=...
+            <!-- QR de vinculación de un teléfono de menor: sacdia://pair?t=<token> (`?c=` se sigue aceptando por compatibilidad).
                  La app nunca registra la URL (FP3-51). -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>

@@ -30,7 +30,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>io.sacdia.app</string>
-				<!-- QR de vinculacion de un telefono de menor: sacdia://pair?c=...
+				<!-- QR de vinculacion de un telefono de menor: sacdia://pair?t=<token> (`?c=` se sigue aceptando por compatibilidad).
 				     La app nunca registra la URL (FP3-51). -->
 				<string>sacdia</string>
 				<!-- REVERSED_CLIENT_ID del client ID iOS de Google Cloud. Debe
