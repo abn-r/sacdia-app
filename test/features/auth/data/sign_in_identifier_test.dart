@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/auth/social_auth_client.dart';
 import 'package:sacdia_app/core/auth/social_credential.dart';
 import 'package:sacdia_app/core/errors/exceptions.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
+import 'package:sacdia_app/core/network/interceptors/error_interceptor.dart';
 import 'package:sacdia_app/core/network/network_info.dart';
 import 'package:sacdia_app/core/storage/secure_storage.dart';
 import 'package:sacdia_app/features/auth/data/datasources/auth_remote_data_source.dart';
@@ -109,9 +110,15 @@ Map<String, dynamic> _loginOk({String? email, Map<String, dynamic>? user}) => {
       },
     };
 
-AuthRemoteDataSourceImpl _dataSource(HttpClientAdapter adapter) {
+AuthRemoteDataSourceImpl _dataSource(
+  HttpClientAdapter adapter, {
+  bool withErrorInterceptor = false,
+}) {
   final dio = Dio(BaseOptions(baseUrl: 'http://localhost:3000'))
     ..httpClientAdapter = adapter;
+  // El mismo interceptor que usa la app: convierte el DioException pero debe
+  // conservar la respuesta (cuerpo y encabezados).
+  if (withErrorInterceptor) dio.interceptors.add(ErrorInterceptor());
   return AuthRemoteDataSourceImpl(
     dio: dio,
     baseUrl: 'http://localhost:3000',
@@ -127,6 +134,21 @@ Map<String, dynamic> _error(String code, int status) => {
       'message': 'RAW SERVER TEXT',
       // `details` NUNCA se lee: este valor no debe llegar a ningún sitio.
       'details': {'retry_after_seconds': 999, 'secret': 'leak'},
+    };
+
+/// Cuerpo real del `ThrottlerException` genérico de Nest: SIN `code`.
+Map<String, dynamic> _throttlerBody() => {
+      'statusCode': 429,
+      'message': 'ThrottlerException: Too Many Requests',
+    };
+
+/// Cuerpo real de `AUTH_LOGIN_LOCKED`: el tiempo solo viaja en `Retry-After`,
+/// no hay `details.retry_after_seconds`.
+Map<String, dynamic> _lockedBody() => {
+      'status': 'error',
+      'statusCode': 429,
+      'code': 'AUTH_LOGIN_LOCKED',
+      'message': 'RAW SERVER TEXT',
     };
 
 void main() {
@@ -249,6 +271,47 @@ void main() {
       expect(e.retryAfterSeconds, 900);
     });
 
+    test('429 lock reads Retry-After when the body has no details at all',
+        () async {
+      for (final withInterceptor in [false, true]) {
+        try {
+          await _dataSource(
+            _HeaderAdapter(
+              429,
+              _lockedBody(),
+              headers: {
+                'retry-after': ['900'],
+              },
+            ),
+            withErrorInterceptor: withInterceptor,
+          ).signInWithIdentifier(identifier: 'ana-7kq4m9', password: 'bad');
+          fail('expected an AuthException');
+        } on AuthException catch (e) {
+          expect(e.code, 429, reason: 'interceptor: $withInterceptor');
+          expect(e.errorCode, 'AUTH_LOGIN_LOCKED');
+          expect(e.retryAfterSeconds, 900,
+              reason: 'interceptor: $withInterceptor');
+        }
+      }
+    });
+
+    test('generic throttler 429 has no errorCode and keeps the status',
+        () async {
+      for (final withInterceptor in [false, true]) {
+        try {
+          await _dataSource(
+            _HeaderAdapter(429, _throttlerBody()),
+            withErrorInterceptor: withInterceptor,
+          ).signInWithIdentifier(identifier: 'ana-7kq4m9', password: 'bad');
+          fail('expected an AuthException');
+        } on AuthException catch (e) {
+          expect(e.code, 429, reason: 'interceptor: $withInterceptor');
+          expect(e.errorCode, isNull);
+          expect(e.retryAfterSeconds, isNull);
+        }
+      }
+    });
+
     test('429 without a usable Retry-After has no seconds', () async {
       expect(
           (await failWith(429, 'AUTH_LOGIN_LOCKED')).retryAfterSeconds, isNull);
@@ -295,6 +358,22 @@ void main() {
       expect(failure.retryAfterSeconds, 120);
     });
 
+    test('keeps the 429 status of the generic throttler (no errorCode)',
+        () async {
+      final result = await repo(_HeaderAdapter(
+        429,
+        _throttlerBody(),
+        headers: {
+          'retry-after': ['61'],
+        },
+      )).signInWithIdentifier(identifier: 'ana-7kq4m9', password: 'x');
+
+      final failure = result.fold((f) => f, (_) => null) as AuthFailure;
+      expect(failure.code, 429);
+      expect(failure.errorCode, isNull);
+      expect(failure.retryAfterSeconds, 61);
+    });
+
     test('maps a dropped connection to NetworkFailure', () async {
       final result = await repo(_DropAdapter())
           .signInWithIdentifier(identifier: 'x@y.com', password: 'x');
@@ -326,6 +405,37 @@ void main() {
       );
       return out;
     }
+
+    testWidgets('any 429 maps to a specific "too many attempts" message',
+        (tester) async {
+      final out = await messages(tester, const [
+        // ThrottlerException genérico: sin errorCode, sin Retry-After.
+        AuthFailure(message: 'RAW', code: 429),
+        // Con Retry-After: 61 s se redondea a 2 min.
+        AuthFailure(message: 'RAW', code: 429, retryAfterSeconds: 61),
+        // El bloqueo de negocio conserva su propio texto.
+        AuthFailure(
+          message: 'RAW',
+          code: 429,
+          errorCode: 'AUTH_LOGIN_LOCKED',
+          retryAfterSeconds: 120,
+        ),
+        // Un 429 que no llegó como AuthFailure también se reconoce.
+        ServerFailure(message: 'RAW', code: 429),
+      ]);
+
+      expect(
+        out[0],
+        'Demasiados intentos. Espera un momento e inténtalo de nuevo.',
+      );
+      expect(out[1], 'Demasiados intentos. Inténtalo de nuevo en 2 min.');
+      expect(out[2], 'Demasiados intentos. Inténtalo de nuevo en 2 min.');
+      expect(out[3], out[0]);
+      for (final message in out) {
+        expect(message, isNot(contains('RAW')));
+        expect(message, isNot(equals('Error al iniciar sesión')));
+      }
+    });
 
     testWidgets('each business code has its own friendly message',
         (tester) async {

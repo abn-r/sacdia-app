@@ -485,6 +485,7 @@
     "auth_invalid_credentials": "Correo, usuario o contraseña incorrectos.",
     "auth_login_locked": "Demasiados intentos. Inténtalo de nuevo más tarde.",
     "auth_login_locked_wait": "Demasiados intentos. Inténtalo de nuevo en {minutes} min.",
+    "auth_login_throttled": "Demasiados intentos. Espera un momento e inténtalo de nuevo.",
     "auth_supervised_login_disabled": "Tu tutor desactivó este acceso. Pídele que lo vuelva a activar.",
     "auth_account_frozen": "Esta cuenta se eliminó porque no tenía un tutor vinculado.",
     "auth_supervised_access_revoked": "Tu tutor desactivó o cambió tu acceso.",

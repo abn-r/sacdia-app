@@ -485,6 +485,7 @@
     "auth_invalid_credentials": "Wrong email, username or password.",
     "auth_login_locked": "Too many attempts. Try again later.",
     "auth_login_locked_wait": "Too many attempts. Try again in {minutes} min.",
+    "auth_login_throttled": "Too many attempts. Wait a moment and try again.",
     "auth_supervised_login_disabled": "Your guardian turned this access off. Ask them to turn it back on.",
     "auth_account_frozen": "This account was removed because it had no linked guardian.",
     "auth_supervised_access_revoked": "Your guardian turned off or changed your access.",

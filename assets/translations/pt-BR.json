@@ -485,6 +485,7 @@
     "auth_invalid_credentials": "E-mail, usuário ou senha incorretos.",
     "auth_login_locked": "Muitas tentativas. Tente novamente mais tarde.",
     "auth_login_locked_wait": "Muitas tentativas. Tente novamente em {minutes} min.",
+    "auth_login_throttled": "Muitas tentativas. Aguarde um momento e tente novamente.",
     "auth_supervised_login_disabled": "Seu responsável desativou este acesso. Peça para ele reativar.",
     "auth_account_frozen": "Esta conta foi removida porque não tinha um responsável vinculado.",
     "auth_supervised_access_revoked": "Seu responsável desativou ou alterou seu acesso.",

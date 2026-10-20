@@ -485,6 +485,7 @@
     "auth_invalid_credentials": "E-mail, nom d'utilisateur ou mot de passe incorrect.",
     "auth_login_locked": "Trop de tentatives. Réessayez plus tard.",
     "auth_login_locked_wait": "Trop de tentatives. Réessayez dans {minutes} min.",
+    "auth_login_throttled": "Trop de tentatives. Patientez un instant puis réessayez.",
     "auth_supervised_login_disabled": "Votre tuteur a désactivé cet accès. Demandez-lui de le réactiver.",
     "auth_account_frozen": "Ce compte a été supprimé car aucun tuteur n'y était lié.",
     "auth_supervised_access_revoked": "Votre tuteur a désactivé ou modifié votre accès.",
