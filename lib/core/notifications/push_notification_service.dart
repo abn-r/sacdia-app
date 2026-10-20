@@ -945,9 +945,8 @@ class PushNotificationService {
     // Mientras la sesión o el arranque cargan, el router está en splash y su
     // redirect descartaría este destino. Se guarda y el router lo entrega
     // cuando la sesión está lista (y solo si la política del modo lo permite).
-    final location =
-        router.routerDelegate.currentConfiguration.last.matchedLocation;
-    if (location == RouteNames.splash) {
+    final location = currentRouterLocation(router);
+    if (location == null || location == RouteNames.splash) {
       _ref.read(pendingNavigationProvider.notifier).state = PendingNavigation(
         route: route,
         replace: _shouldUseGoNavigation(route),

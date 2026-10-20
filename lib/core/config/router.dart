@@ -1521,9 +1521,8 @@ final routerProvider = Provider<GoRouter>((ref) {
     if (bootstrap.isLoading || bootstrap.valueOrNull is! AppBootstrapReady) {
       return;
     }
-    final location =
-        router.routerDelegate.currentConfiguration.last.matchedLocation;
-    if (location == RouteNames.splash) return;
+    final location = currentRouterLocation(router);
+    if (location == null || location == RouteNames.splash) return;
 
     ref.read(pendingNavigationProvider.notifier).state = null;
     if (!isPendingNavigationAllowed(

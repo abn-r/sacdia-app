@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/domain/utils/authorization_utils.dart';
@@ -30,6 +31,12 @@ class PendingNavigation extends Equatable {
 final pendingNavigationProvider = StateProvider<PendingNavigation?>(
   (ref) => null,
 );
+
+/// Ruta en la que está el router ahora, o `null` si aún no resolvió ninguna.
+String? currentRouterLocation(GoRouter router) {
+  final matches = router.routerDelegate.currentConfiguration;
+  return matches.isEmpty ? null : matches.last.matchedLocation;
+}
 
 /// ¿Puede entregarse [route] a [user] ahora que la sesión está lista?
 ///
