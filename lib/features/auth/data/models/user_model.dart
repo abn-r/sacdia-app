@@ -157,6 +157,8 @@ class UserModel extends UserEntity {
                 (g) => SupervisionGuardian(
                   displayName: g['display_name']?.toString() ?? '—',
                   relationshipTypeName: g['relationship_type_name']?.toString(),
+                  guardianshipId: g['guardianship_id']?.toString(),
+                  consentStatus: g['consent_status']?.toString(),
                 ),
               )
               .toList(growable: false)

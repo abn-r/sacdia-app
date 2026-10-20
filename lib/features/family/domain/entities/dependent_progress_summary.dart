@@ -33,11 +33,15 @@ class AttendanceSummary extends Equatable {
   final int activitiesTotal;
   final int activitiesAttended;
 
+  /// Fecha de la última actividad a la que asistió (`last_attended_on`).
+  final DateTime? lastAttendedOn;
+
   const AttendanceSummary({
     this.from,
     this.to,
     this.activitiesTotal = 0,
     this.activitiesAttended = 0,
+    this.lastAttendedOn,
   });
 
   /// 0 a 100; 0 si no hubo actividades.
@@ -46,7 +50,8 @@ class AttendanceSummary extends Equatable {
       : ((activitiesAttended * 100) / activitiesTotal).round().clamp(0, 100);
 
   @override
-  List<Object?> get props => [from, to, activitiesTotal, activitiesAttended];
+  List<Object?> get props =>
+      [from, to, activitiesTotal, activitiesAttended, lastAttendedOn];
 }
 
 /// `GET .../dependents/:id/summary` (FP3-26): lo ÚNICO que el tutor ve de un

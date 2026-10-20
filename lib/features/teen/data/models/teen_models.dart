@@ -23,6 +23,8 @@ abstract final class TeenJson {
       // Solo un `verified` explícito cuenta: el valor por defecto es el lado
       // seguro (sin poderes).
       verified: consent == 'verified' || json['verified'] == true,
+      // Solo un `pending` explícito permite quitar el vínculo.
+      consentPending: consent == 'pending',
     );
   }
 

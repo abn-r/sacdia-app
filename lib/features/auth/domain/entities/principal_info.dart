@@ -51,13 +51,22 @@ class SupervisionGuardian extends Equatable {
   final String displayName;
   final String? relationshipTypeName;
 
+  /// Id de la tutoría (`guardianship_id`); nulo en servidores anteriores.
+  final String? guardianshipId;
+
+  /// `consent_status` crudo: `pending` | `verified`. Nulo si falta.
+  final String? consentStatus;
+
   const SupervisionGuardian({
     required this.displayName,
     this.relationshipTypeName,
+    this.guardianshipId,
+    this.consentStatus,
   });
 
   @override
-  List<Object?> get props => [displayName, relationshipTypeName];
+  List<Object?> get props =>
+      [displayName, relationshipTypeName, guardianshipId, consentStatus];
 }
 
 /// Plazo (en días) que el servidor da a un adolescente sin tutor antes de

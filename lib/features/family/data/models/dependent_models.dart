@@ -159,6 +159,7 @@ abstract final class FamilyJson {
         to: _date(attendance['to']),
         activitiesTotal: _int(attendance['activities_total']) ?? 0,
         activitiesAttended: _int(attendance['activities_attended']) ?? 0,
+        lastAttendedOn: _date(attendance['last_attended_on']),
       ),
       generatedAt: _date(json['generated_at']),
     );

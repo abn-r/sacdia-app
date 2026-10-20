@@ -327,6 +327,32 @@ void main() {
       expect(auth.refreshes, greaterThanOrEqualTo(1));
     });
 
+    testWidgets(
+        'the /auth/me fallback keeps consent: verified has no remove button, '
+        'pending does', (tester) async {
+      repo.supervision = const Left(ServerFailure(message: 'x', code: 500));
+      await pump(
+        tester,
+        _teen(guardians: const [
+          SupervisionGuardian(
+            displayName: 'Luis Gómez',
+            guardianshipId: 'gs-2',
+            consentStatus: 'verified',
+          ),
+          SupervisionGuardian(
+            displayName: 'María Pérez',
+            guardianshipId: 'gs-1',
+            consentStatus: 'pending',
+          ),
+        ]),
+      );
+
+      expect(find.text('Luis Gómez'), findsOneWidget);
+      expect(find.text('María Pérez'), findsOneWidget);
+      // Solo el pendiente se puede quitar: el verificado da 403.
+      expect(find.text('Quitar'), findsOneWidget);
+    });
+
     testWidgets('cancelling the confirmation revokes nothing', (tester) async {
       repo.supervision = Right(pendingGuardian);
       await pump(tester, _teen());

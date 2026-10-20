@@ -12,20 +12,34 @@ class TeenGuardian extends Equatable {
   /// `true` cuando un director ya verificó el consentimiento de este tutor.
   final bool verified;
 
+  /// `true` solo cuando el servidor informó `consent_status == 'pending'`. El
+  /// parseo lo deja en `false` si el valor falta o es desconocido: el servidor
+  /// responde 403 `PRINCIPAL_SCOPE_DENIED` al quitar un vínculo verificado, así
+  /// que ante la duda no se ofrece el botón.
+  final bool consentPending;
+
   const TeenGuardian({
     required this.displayName,
     this.guardianshipId,
     this.relationshipTypeName,
     this.verified = false,
+    this.consentPending = true,
   });
 
   /// El adolescente puede quitar un vínculo que él inició y nadie ha verificado
-  /// (por ejemplo, le dio el código a la persona equivocada).
-  bool get canBeRemovedByTeen => !verified && guardianshipId != null;
+  /// (por ejemplo, le dio el código a la persona equivocada). Solo con
+  /// `consent_status == 'pending'`; uno verificado lo rechaza el servidor.
+  bool get canBeRemovedByTeen =>
+      consentPending && !verified && guardianshipId != null;
 
   @override
-  List<Object?> get props =>
-      [guardianshipId, displayName, relationshipTypeName, verified];
+  List<Object?> get props => [
+        guardianshipId,
+        displayName,
+        relationshipTypeName,
+        verified,
+        consentPending,
+      ];
 }
 
 /// Código vigente SIN su texto: el servidor solo lo entrega una vez, al

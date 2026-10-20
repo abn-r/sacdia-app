@@ -145,8 +145,11 @@ class _TeenPendingHomeViewState extends ConsumerState<TeenPendingHomeView> {
         [
           for (final g in fromMe?.guardians ?? const <SupervisionGuardian>[])
             TeenGuardian(
+              guardianshipId: g.guardianshipId,
               displayName: g.displayName,
               relationshipTypeName: g.relationshipTypeName,
+              verified: g.consentStatus == 'verified',
+              consentPending: g.consentStatus == 'pending',
             ),
         ];
 
