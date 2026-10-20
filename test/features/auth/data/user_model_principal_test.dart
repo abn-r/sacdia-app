@@ -171,7 +171,7 @@ void main() {
         },
       }));
       final guardian = user.principal!.supervision!.guardians.single;
-      expect(guardian.props, ['María', null]);
+      expect(guardian.props, ['María', null, null, null]);
     });
   });
 
