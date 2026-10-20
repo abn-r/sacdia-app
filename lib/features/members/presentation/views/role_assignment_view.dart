@@ -15,11 +15,13 @@ import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 
 import '../../domain/entities/assignable_role.dart';
 import '../../domain/entities/club_member.dart';
 import '../../domain/entities/join_request.dart';
 import '../providers/members_providers.dart';
+import '../utils/consent_access.dart';
 import 'consent_verification_view.dart';
 
 /// Vista de asignación de rol de club a un miembro.
@@ -154,7 +156,12 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
     await Navigator.push<bool>(
       context,
       SacSharedAxisRoute<bool>(
-        builder: (_) => ConsentVerificationView(request: request),
+        builder: (_) => ConsentVerificationView(
+          request: request,
+          canApprove: canApproveJoinRequests(
+            ref.read(authNotifierProvider).valueOrNull,
+          ),
+        ),
       ),
     );
   }

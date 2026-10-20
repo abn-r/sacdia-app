@@ -31,15 +31,27 @@ import '../providers/members_providers.dart';
 /// Confirmar llama a `verify-consent` con `approve: true`. Subir una ficha o
 /// salir de la pantalla NUNCA verifica.
 ///
-/// Se hace pop con `true` cuando la solicitud quedó aprobada.
+/// Cuatro ojos (FP3-62): si el menor está bajo custodia del club y el usuario lo
+/// registró o subió la ficha, "Confirmar" queda desactivado con el aviso de que
+/// otra persona debe verificar. El servidor sigue siendo la autoridad (403
+/// `GUARDIANSHIP_CUSTODIAN_SELF_VERIFY`). Quien solo puede verificar (sin
+/// `club_members:approve`, [canApprove] falso) no ve "aprobar": verifica con
+/// `approve: false`.
+///
+/// Se hace pop con `true` cuando la solicitud quedó aprobada y con `false` si
+/// solo se verificó.
 class ConsentVerificationView extends ConsumerStatefulWidget {
   const ConsentVerificationView({
     super.key,
     required this.request,
+    this.canApprove = true,
     this.picker = const ConsentEvidencePicker(),
   });
 
   final JoinRequest request;
+
+  /// El usuario tiene `club_members:approve`. Sin él solo puede verificar.
+  final bool canApprove;
 
   /// Inyectable para probar sin los plugins de cámara/archivos.
   final ConsentEvidencePicker picker;
@@ -62,6 +74,14 @@ class _ConsentVerificationViewState
   bool _formAlreadyVerified = false;
   bool _verifying = false;
 
+  /// El servidor respondió 403 `GUARDIANSHIP_CUSTODIAN_SELF_VERIFY`: este
+  /// usuario no puede verificar a este menor y reintentar no cambia nada.
+  bool _custodianBlocked = false;
+
+  /// El servidor respondió 403 `MR_APPROVE_PERMISSION_REQUIRED`: solo puede
+  /// verificar, no aprobar (no se escribió nada).
+  bool _approveDenied = false;
+
   /// El consentimiento ya quedó verificado pero la aprobación falló: solo queda
   /// reintentar la aprobación.
   String? _approveError;
@@ -72,8 +92,26 @@ class _ConsentVerificationViewState
 
   bool get _consentVerified => _approveError != null;
 
+  /// Solo verifica: sin `club_members:approve` (de entrada o por el 403).
+  bool get _verifyOnly => !widget.canApprove || _approveDenied;
+
+  /// Custodia del club y este usuario la registró o subió la ficha (cuatro
+  /// ojos). Solo una ayuda de interfaz: el servidor decide.
+  bool get _mustBeAnotherPerson {
+    if (!(widget.request.consent?.isCustody ?? false)) return false;
+    final userId = widget.request.userId;
+    // `read`: la vista se reconstruye porque `build` vigila los dos conjuntos.
+    return ref.read(createdMinorUserIdsProvider).contains(userId) ||
+        ref.read(uploadedFormMinorUserIdsProvider).contains(userId);
+  }
+
   bool get _canConfirm =>
-      _hasEvidence && !_pendingFile && _reviewed && !_verifying;
+      _hasEvidence &&
+      !_pendingFile &&
+      _reviewed &&
+      !_verifying &&
+      !_custodianBlocked &&
+      !_mustBeAnotherPerson;
 
   void _toast(String message, {bool isError = false}) {
     if (!mounted) return;
@@ -89,6 +127,12 @@ class _ConsentVerificationViewState
   }
 
   void _onUploaded(ConsentEvidenceReceipt receipt) {
+    // Quien sube la ficha de un menor bajo custodia no puede verificarlo.
+    if (widget.request.consent?.isCustody ?? false) {
+      ref.read(uploadedFormMinorUserIdsProvider.notifier).update(
+            (ids) => {...ids, widget.request.userId},
+          );
+    }
     ref.invalidate(joinRequestConsentEvidenceProvider(_assignmentId));
     // La lista de solicitudes trae `evidence_uploaded`: se refresca.
     ref.invalidate(membersNotifierProvider);
@@ -120,8 +164,9 @@ class _ConsentVerificationViewState
       _verifying = true;
       _error = null;
     });
+    final approve = !_verifyOnly;
     final result = await ref.read(verifyConsentUseCaseProvider)(
-      VerifyConsentParams(assignmentId: _assignmentId, approve: true),
+      VerifyConsentParams(assignmentId: _assignmentId, approve: approve),
     );
     if (!mounted) return;
 
@@ -139,6 +184,11 @@ class _ConsentVerificationViewState
           if (failure.errorCode == 'GUARDIANSHIP_EVIDENCE_REQUIRED') {
             _hasEvidence = false;
           }
+          // Cuatro ojos: otra persona debe verificar. No se vuelve a intentar.
+          if (isCustodianSelfVerify(failure)) _custodianBlocked = true;
+          // Sin `club_members:approve`: se queda en "solo verificar" (el 403 se
+          // da antes de escribir nada).
+          if (isApprovePermissionRequired(failure)) _approveDenied = true;
         });
       },
       (verification) {
@@ -149,6 +199,16 @@ class _ConsentVerificationViewState
             _verifying = false;
             _approveError = verification.approveError;
           });
+          return;
+        }
+        if (!approve) {
+          // Verificado, NO aprobado: aprobar le corresponde a un director.
+          _toast(
+            'members.consent.verified_toast'.tr(
+              namedArgs: {'name': widget.request.fullName},
+            ),
+          );
+          Navigator.of(context).pop(false);
           return;
         }
         _toast(
@@ -171,6 +231,9 @@ class _ConsentVerificationViewState
   Widget build(BuildContext context) {
     final c = context.sac;
     final hPad = Responsive.horizontalPadding(context);
+    // Cuatro ojos: se reconstruye si cambia quién registró o subió la ficha.
+    ref.watch(createdMinorUserIdsProvider);
+    ref.watch(uploadedFormMinorUserIdsProvider);
 
     return Scaffold(
       backgroundColor: c.background,
@@ -228,6 +291,10 @@ class _ConsentVerificationViewState
             )
           else
             _ConfirmSection(
+              verifyOnly: _verifyOnly,
+              notice: _mustBeAnotherPerson
+                  ? 'members.consent.another_person'.tr()
+                  : null,
               reviewed: _reviewed,
               onReviewedChanged: (value) => setState(() => _reviewed = value),
               pendingFile: _pendingFile,
@@ -429,6 +496,8 @@ class _CurrentEvidence extends ConsumerWidget {
 
 class _ConfirmSection extends StatelessWidget {
   const _ConfirmSection({
+    required this.verifyOnly,
+    required this.notice,
     required this.reviewed,
     required this.onReviewedChanged,
     required this.pendingFile,
@@ -438,6 +507,11 @@ class _ConfirmSection extends StatelessWidget {
     required this.onConfirm,
   });
 
+  /// Sin permiso para aprobar: el botón solo verifica.
+  final bool verifyOnly;
+
+  /// Aviso de cuatro ojos (otra persona debe verificar); `null` si no aplica.
+  final String? notice;
   final bool reviewed;
   final ValueChanged<bool> onReviewedChanged;
   final bool pendingFile;
@@ -454,6 +528,22 @@ class _ConfirmSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (verifyOnly)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              'members.consent.verify_only_hint'.tr(),
+              style: textTheme.bodySmall?.copyWith(color: c.textSecondary),
+            ),
+          ),
+        if (notice != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              notice!,
+              style: textTheme.bodyMedium?.copyWith(color: AppColors.error),
+            ),
+          ),
         ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 48),
           child: Row(
@@ -489,7 +579,9 @@ class _ConfirmSection extends StatelessWidget {
             ),
           ),
         SacButton.primary(
-          text: 'members.consent.confirm'.tr(),
+          text: verifyOnly
+              ? 'members.consent.verify_only_confirm'.tr()
+              : 'members.consent.confirm'.tr(),
           icon: HugeIcons.strokeRoundedCheckmarkCircle01,
           isLoading: busy,
           onPressed: canConfirm ? onConfirm : null,

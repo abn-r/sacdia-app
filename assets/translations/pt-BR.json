@@ -508,7 +508,8 @@
     "device_not_found": "Não encontramos esse telefone vinculado.",
     "linked_device_not_found": "Não encontramos esse telefone vinculado.",
     "auth_device_revoked": "Seu responsável desvinculou este telefone.",
-    "auth_device_session_expired": "O vínculo deste telefone expirou. Peça ao seu responsável para vinculá-lo novamente."
+    "auth_device_session_expired": "O vínculo deste telefone expirou. Peça ao seu responsável para vinculá-lo novamente.",
+    "mr_approve_permission_required": "Você não tem permissão para aprovar solicitações. Só pode verificar o consentimento."
   },
   "honors": {
     "errors": {
@@ -2669,7 +2670,11 @@
       "verified_not_approved": "O consentimento foi verificado, mas não foi possível aprovar a solicitação: {reason}",
       "retry_approve": "Tentar aprovar novamente",
       "approve_blocked": "O consentimento do responsável ainda precisa ser verificado. A verificação foi aberta.",
-      "generic_error": "Não foi possível verificar o consentimento. Tente novamente."
+      "generic_error": "Não foi possível verificar o consentimento. Tente novamente.",
+      "another_person": "Outra pessoa deve verificar este consentimento: você cadastrou o menor ou enviou a ficha.",
+      "verify_only_hint": "Você pode verificar a ficha, mas aprovar a solicitação cabe a um diretor.",
+      "verify_only_confirm": "Confirmar verificação",
+      "verified_toast": "Consentimento verificado. Um diretor ainda precisa aprovar a solicitação de {name}."
     },
     "create_minor": {
       "entry": "Cadastrar um menor",

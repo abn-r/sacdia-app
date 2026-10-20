@@ -27,6 +27,7 @@ import '../widgets/member_card.dart';
 import '../widgets/member_class_group_header.dart';
 import '../widgets/members_filter_bar.dart';
 import '../widgets/members_mode_switcher.dart';
+import '../utils/consent_access.dart';
 import '../utils/create_minor_access.dart';
 import 'annual_continuations_view.dart';
 import 'create_minor_view.dart';
@@ -548,7 +549,12 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
     return Navigator.push<bool>(
       context,
       SacSharedAxisRoute<bool>(
-        builder: (_) => ConsentVerificationView(request: request),
+        builder: (_) => ConsentVerificationView(
+          request: request,
+          canApprove: canApproveJoinRequests(
+            ref.read(authNotifierProvider).valueOrNull,
+          ),
+        ),
       ),
     );
   }

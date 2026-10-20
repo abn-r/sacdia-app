@@ -508,7 +508,8 @@
     "device_not_found": "Nous n'avons pas trouvé ce téléphone associé.",
     "linked_device_not_found": "Nous n'avons pas trouvé ce téléphone associé.",
     "auth_device_revoked": "Ton tuteur a dissocié ce téléphone.",
-    "auth_device_session_expired": "L'association de ce téléphone a expiré. Demande à ton tuteur de l'associer à nouveau."
+    "auth_device_session_expired": "L'association de ce téléphone a expiré. Demande à ton tuteur de l'associer à nouveau.",
+    "mr_approve_permission_required": "Vous n'avez pas l'autorisation d'approuver les demandes. Vous pouvez seulement vérifier le consentement."
   },
   "honors": {
     "errors": {
@@ -2669,7 +2670,11 @@
       "verified_not_approved": "Le consentement a été vérifié, mais la demande n'a pas pu être approuvée : {reason}",
       "retry_approve": "Réessayer l'approbation",
       "approve_blocked": "Le consentement du tuteur doit d'abord être vérifié. La vérification s'est ouverte.",
-      "generic_error": "Le consentement n'a pas pu être vérifié. Réessayez."
+      "generic_error": "Le consentement n'a pas pu être vérifié. Réessayez.",
+      "another_person": "Une autre personne doit vérifier ce consentement : vous avez inscrit le mineur ou téléversé la fiche.",
+      "verify_only_hint": "Vous pouvez vérifier la fiche, mais l'approbation de la demande revient à un directeur.",
+      "verify_only_confirm": "Confirmer la vérification",
+      "verified_toast": "Consentement vérifié. Un directeur doit encore approuver la demande de {name}."
     },
     "create_minor": {
       "entry": "Inscrire un mineur",

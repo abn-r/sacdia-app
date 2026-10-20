@@ -46,6 +46,12 @@ void main() {
     'members.create_minor.created_toast': {'name'},
     'members.create_minor.errors.age_out_of_range': {},
     'members.create_minor.errors.no_active_year': {},
+    // A02: cuatro ojos y verificar sin aprobar.
+    'members.consent.another_person': {},
+    'members.consent.verify_only_hint': {},
+    'members.consent.verify_only_confirm': {},
+    'members.consent.verified_toast': {'name'},
+    'errors.mr_approve_permission_required': {},
   };
 
   for (final locale in _locales) {
@@ -70,6 +76,7 @@ void main() {
       for (final key in [
         'members.create_minor.intro',
         'members.create_minor.sworn',
+        'members.consent.another_person',
       ]) {
         expect(_at(other, key), isNot(_at(es, key)),
             reason: '$locale $key is untranslated');

@@ -59,19 +59,39 @@ class JoinRequestConsent extends Equatable {
   final bool evidenceUploaded;
   final List<ConsentGuardianRef> guardians;
 
+  /// Tiene perfil de dependiente (`consent.dependent`).
+  final bool dependent;
+
+  /// Hay un tutor (no el club) vinculado (`consent.guardian_linked`). `null` si
+  /// el servidor no lo informa: entonces no se asume custodia.
+  final bool? guardianLinked;
+
   const JoinRequestConsent({
     required this.status,
     this.guardianshipId,
     this.evidenceUploaded = false,
     this.guardians = const [],
+    this.dependent = true,
+    this.guardianLinked,
   });
+
+  /// El menor está bajo CUSTODIA del club: tiene perfil pero ningún tutor
+  /// vinculado. Solo entonces rige el cuatro ojos (quien lo registró o subió la
+  /// ficha no puede verificar). Sin el dato del servidor, no se asume.
+  bool get isCustody => dependent && guardianLinked == false;
 
   bool get isPending => status == JoinRequestConsentStatus.pending;
   bool get isVerified => status == JoinRequestConsentStatus.verified;
 
   @override
-  List<Object?> get props =>
-      [guardianshipId, status, evidenceUploaded, guardians];
+  List<Object?> get props => [
+        guardianshipId,
+        status,
+        evidenceUploaded,
+        guardians,
+        dependent,
+        guardianLinked,
+      ];
 }
 
 /// Entidad que representa una solicitud de ingreso al club

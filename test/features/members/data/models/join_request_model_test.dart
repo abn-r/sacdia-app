@@ -82,5 +82,22 @@ void main() {
       final request = JoinRequestModel.fromJson(_item());
       expect(request.assignmentId, '12/membership-requests/req-1');
     });
+
+    test('custody is dependent with NO linked guardian; unknown is not custody',
+        () {
+      JoinRequestConsent? parse(Map<String, Object?> extra) =>
+          JoinRequestModel.fromJson(_item(
+            consent: {...consentJson(), ...extra},
+          )).consent;
+
+      expect(parse({'dependent': true, 'guardian_linked': false})?.isCustody,
+          isTrue);
+      expect(parse({'dependent': true, 'guardian_linked': true})?.isCustody,
+          isFalse);
+      // Sin el dato del servidor no se asume custodia.
+      expect(parse({'dependent': true})?.isCustody, isFalse);
+      expect(parse({'dependent': false, 'guardian_linked': false})?.isCustody,
+          isFalse);
+    });
   });
 }

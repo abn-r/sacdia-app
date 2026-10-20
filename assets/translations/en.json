@@ -508,7 +508,8 @@
     "device_not_found": "We could not find that linked phone.",
     "linked_device_not_found": "We could not find that linked phone.",
     "auth_device_revoked": "Your guardian unlinked this phone.",
-    "auth_device_session_expired": "This phone link has expired. Ask your guardian to link it again."
+    "auth_device_session_expired": "This phone link has expired. Ask your guardian to link it again.",
+    "mr_approve_permission_required": "You are not allowed to approve requests. You can only verify the consent."
   },
   "honors": {
     "errors": {
@@ -2670,7 +2671,11 @@
       "verified_not_approved": "Consent was verified, but the request could not be approved: {reason}",
       "retry_approve": "Retry approval",
       "approve_blocked": "The guardian's consent still needs to be verified. Verification opened.",
-      "generic_error": "The consent could not be verified. Please try again."
+      "generic_error": "The consent could not be verified. Please try again.",
+      "another_person": "Another person must verify this consent: you registered the minor or uploaded the form.",
+      "verify_only_hint": "You can verify the form, but approving the request is up to a director.",
+      "verify_only_confirm": "Confirm verification",
+      "verified_toast": "Consent verified. A director still has to approve {name}'s request."
     },
     "create_minor": {
       "entry": "Register a minor",
