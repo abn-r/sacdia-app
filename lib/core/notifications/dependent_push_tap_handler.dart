@@ -125,7 +125,10 @@ class DependentPushTapHandler {
   }
 
   /// Espera a que `AuthNotifier` deje de cargar. `null` si no hay sesión o no
-  /// cargó a tiempo.
+  /// cargó a tiempo. Lo usa también el toque de un push de familia para decidir
+  /// según el modo de la sesión (arranque en frío).
+  Future<UserEntity?> awaitSession() => _awaitSession();
+
   Future<UserEntity?> _awaitSession() async {
     final completer = Completer<UserEntity?>();
     final sub = _ref.listen<AsyncValue<UserEntity?>>(

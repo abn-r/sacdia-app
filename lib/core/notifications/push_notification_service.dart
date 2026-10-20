@@ -23,8 +23,12 @@ import '../theme/sac_colors.dart';
 import '../utils/app_logger.dart';
 import 'dependent_push_tap_handler.dart';
 import 'device_push_route.dart';
+import 'family_push_route.dart';
 import '../../features/achievements/presentation/providers/achievements_providers.dart';
+import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
+import '../../features/family/presentation/providers/family_providers.dart';
+import '../../features/teen/presentation/providers/teen_providers.dart';
 import '../../features/investiture_requests/presentation/utils/investiture_notification_routes.dart';
 import '../../features/master_honors/presentation/providers/master_honor_modal_queue_provider.dart';
 import '../../features/master_honors/presentation/providers/master_honors_providers.dart';
@@ -827,6 +831,8 @@ class PushNotificationService {
     RouteNames.deviceClasses,
     RouteNames.deviceAgenda,
     RouteNames.deviceInbox,
+    // Pantalla de estado del adolescente sin tutor: es su inicio, se reemplaza.
+    RouteNames.teenPendingHome,
     RouteNames.homeDashboard,
     RouteNames.homeClasses,
     RouteNames.homeActivities,
@@ -932,7 +938,7 @@ class PushNotificationService {
     return _goNavigationRoutes.contains(route);
   }
 
-  void _pushRoute(String route) {
+  void _pushRoute(String route, {bool skipIfCurrent = false}) {
     final context = navigatorKey?.currentContext;
     if (context == null) {
       AppLogger.w(
@@ -963,6 +969,11 @@ class PushNotificationService {
       return;
     }
 
+    // Ya se está en esa pantalla (p. ej. el detalle del menor): empujarla otra
+    // vez apilaría un duplicado y un deep link a la ruta vigente no reconstruye
+    // la vista. Quien llama ya refrescó los datos.
+    if (skipIfCurrent && location == route) return;
+
     if (_shouldUseGoNavigation(route)) {
       router.go(route);
       return;
@@ -988,13 +999,46 @@ class PushNotificationService {
       return;
     }
 
-    // Push de un menor: antes de navegar se confirma el cambio de perfil.
-    final dependentId = DependentPushTapHandler.dependentIdOf(message.data);
-    if (dependentId != null) {
+    // Un push de familia o de un menor necesita saber QUIÉN es la sesión (modo
+    // de la cuenta): en un arranque en frío se espera a que cargue.
+    final data = message.data;
+    final needsSession = familyPushKindOf(data) != null ||
+        DependentPushTapHandler.dependentIdOf(data) != null;
+    if (!needsSession) {
+      _dispatchTap(data, null);
+      return;
+    }
+    final auth = _ref.read(authNotifierProvider);
+    if (auth.isLoading) {
+      unawaited(
+        _dependentTap.awaitSession().then((user) => _dispatchTap(data, user)),
+      );
+      return;
+    }
+    _dispatchTap(data, auth.valueOrNull);
+  }
+
+  /// Despacha el toque según el modo de la sesión ([user] solo viene resuelto
+  /// para los pushes que lo necesitan).
+  void _dispatchTap(Map<String, dynamic> data, UserEntity? user) {
+    final family = familyPushKindOf(data);
+    if (family != null) {
+      if (user == null) return; // sin sesión: el router lleva al login
+      final target = familyPushTarget(kind: family, data: data, user: user);
+      if (target == null) return;
+      _openFamilyTarget(target);
+      return;
+    }
+
+    // Push de un menor: antes de navegar se confirma el cambio de perfil, pero
+    // SOLO a quien puede actuar por un menor. Un adolescente o una cuenta
+    // restringida ignoran `dependent_user_id`.
+    final dependentId = DependentPushTapHandler.dependentIdOf(data);
+    if (dependentId != null && mayConfirmProfileSwitch(user)) {
       unawaited(
         _dependentTap.handle(
           dependentId,
-          onReady: () => _openDependentNotificationTarget(message.data),
+          onReady: () => _openDependentNotificationTarget(data),
         ),
       );
       return;
@@ -1003,11 +1047,48 @@ class PushNotificationService {
     // Push propio del tutor tocado mientras actúa por un menor: se sale primero
     // a su perfil; si no, el destino se abriría DENTRO del perfil del menor.
     if (_ref.read(actingForSessionProvider).isActing) {
-      unawaited(_exitActingThenRoute(message.data));
+      unawaited(_exitActingThenRoute(data));
       return;
     }
 
-    _routeNotificationTap(message.data);
+    _routeNotificationTap(data);
+  }
+
+  /// Abre el destino de un push de familia. El detalle del menor solo existe en
+  /// el perfil del tutor: si se actúa por un menor se sale de él primero.
+  void _openFamilyTarget(FamilyPushTarget target) {
+    if (target.needsGuardianProfile &&
+        _ref.read(actingForSessionProvider).isActing) {
+      unawaited(_exitActingThenOpen(target));
+      return;
+    }
+    _deliverFamilyTarget(target);
+  }
+
+  Future<void> _exitActingThenOpen(FamilyPushTarget target) async {
+    try {
+      await _ref.read(authNotifierProvider.notifier).switchProfile(null);
+      await _ref.read(authNotifierProvider.future);
+    } catch (e) {
+      AppLogger.w('No se pudo salir del perfil antes de abrir el push',
+          tag: _tag, error: e);
+      return;
+    }
+    _deliverFamilyTarget(target);
+  }
+
+  void _deliverFamilyTarget(FamilyPushTarget target) {
+    // Si ya se está en esa pantalla no se reconstruye sola: se relee lo que
+    // muestra (el aviso trae justo un cambio ahí).
+    _ref.invalidate(dependentsProvider);
+    final dependentId = target.dependentId;
+    if (dependentId != null) {
+      _ref.invalidate(dependentDetailProvider(dependentId));
+    }
+    if (target.route == RouteNames.teenPendingHome) {
+      _ref.invalidate(supervisionStatusProvider);
+    }
+    _pushRoute(target.route, skipIfCurrent: true);
   }
 
   Future<void> _exitActingThenRoute(Map<String, dynamic> data) async {

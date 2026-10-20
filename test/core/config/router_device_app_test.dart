@@ -300,6 +300,42 @@ void main() {
       expect(location(app.router), RouteNames.deviceInbox);
     });
 
+    testWidgets(
+        'a family push with a child id opens the notices, no profile dialog',
+        (tester) async {
+      final app = await pumpApp(tester, deviceUser());
+
+      for (final type in [
+        'family:security',
+        'dependent_age_milestone',
+        'teen_guardian_reminder',
+      ]) {
+        app.push.handleNotificationTapForTesting(
+          RemoteMessage(data: {
+            'type': type,
+            'dependent_user_id': 'someone-else',
+          }),
+        );
+        expect(
+          app.container.read(pendingNavigationProvider)?.route,
+          RouteNames.deviceInbox,
+          reason: type,
+        );
+        app.container.read(pendingNavigationProvider.notifier).state = null;
+      }
+      app.container.read(pendingNavigationProvider.notifier).state =
+          PendingNavigation(
+        route: RouteNames.familyDetailPath('someone-else'),
+      );
+
+      app.gate.complete();
+      await _settle(tester);
+
+      expect(location(app.router), RouteNames.deviceHome,
+          reason: 'Mi familia never opens on a linked phone');
+      expect(find.text('Cambiar'), findsNothing);
+    });
+
     testWidgets('a destination outside the allowlist is dropped, not opened',
         (tester) async {
       final app = await pumpApp(tester, deviceUser());
