@@ -131,10 +131,25 @@ class DeviceInfo extends Equatable {
   final String? label;
   final DateTime? pairedAt;
 
-  const DeviceInfo({this.linkedDeviceId, this.label, this.pairedAt});
+  /// Club del menor (`/auth/me.club{club_id, club_name, club_type}` de un
+  /// teléfono vinculado, que no trae `authorization`). Se guarda aquí para que
+  /// viaje con el principal.
+  final int? clubId;
+  final String? clubName;
+  final String? clubType;
+
+  const DeviceInfo({
+    this.linkedDeviceId,
+    this.label,
+    this.pairedAt,
+    this.clubId,
+    this.clubName,
+    this.clubType,
+  });
 
   @override
-  List<Object?> get props => [linkedDeviceId, label, pairedAt];
+  List<Object?> get props =>
+      [linkedDeviceId, label, pairedAt, clubId, clubName, clubType];
 }
 
 /// Bloque `principal` de `GET /auth/me`.

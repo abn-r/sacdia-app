@@ -69,6 +69,9 @@ String familyErrorMessage(Object? error) {
     if (error is NetworkFailure || error is ConnectionFailure) {
       return 'errors.connection_error'.tr();
     }
+    // Un 429 del limitador (p. ej. 10 códigos de vinculación por hora) llega
+    // SIN código de negocio: mensaje de «demasiados intentos».
+    if (error.code == 429) return 'errors.too_many_attempts'.tr();
   }
   return 'family.errors.generic'.tr();
 }

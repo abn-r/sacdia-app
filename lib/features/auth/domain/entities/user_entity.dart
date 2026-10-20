@@ -123,6 +123,11 @@ class UserEntity extends Equatable {
     return AccountMode.adult;
   }
 
+  /// Club del menor. Un teléfono vinculado lo recibe en `/auth/me.club`; si no
+  /// vino, cae a la asignación activa de `authorization`.
+  int? get deviceClubId =>
+      principal?.device?.clubId ?? authorization?.activeGrant?.clubId;
+
   /// Sesión de un teléfono vinculado de un menor (Fase 3b).
   bool get isLinkedDevice => mode == AccountMode.linkedDevice;
 

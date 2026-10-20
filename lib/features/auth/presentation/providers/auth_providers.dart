@@ -1350,9 +1350,13 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     if (failure != null) {
       AppLogger.w('Vinculación fallida (${failure.errorCode ?? failure.code})',
           tag: _tag);
+      // 5 intentos por minuto por IP: un 429 sin código es «demasiados
+      // intentos», no un fallo genérico.
       return userErrorMessage(
         failure,
-        fallbackKey: 'device.pair.errors.generic',
+        fallbackKey: failure.code == 429
+            ? 'errors.too_many_attempts'
+            : 'device.pair.errors.generic',
       );
     }
     final paired = result.getOrElse(() => throw StateError('unreachable'));

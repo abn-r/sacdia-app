@@ -22,24 +22,19 @@ UserEntity deviceUser({
       name: 'Ana',
       postRegisterComplete: postRegisterComplete,
       legalAcceptancePending: legalPending,
-      principal: const PrincipalInfo(
+      // Como el /auth/me real de un teléfono: el club viaja en `club`, no en
+      // `authorization`.
+      principal: PrincipalInfo(
         kind: PrincipalKind.linkedDevice,
-        device: DeviceInfo(linkedDeviceId: 'dev-1', label: 'Tablet de Ana'),
+        device: DeviceInfo(
+          linkedDeviceId: 'dev-1',
+          label: 'Tablet de Ana',
+          clubId: clubId,
+          clubName: clubId == null ? null : 'Club Águilas',
+          clubType: clubId == null ? null : 'Conquistadores',
+        ),
       ),
-      authorization: clubId == null
-          ? const AuthorizationSnapshot(effectivePermissions: [])
-          : AuthorizationSnapshot(
-              effectivePermissions: const ['clubs:read'],
-              clubAssignments: [
-                AuthorizationGrant(
-                  assignmentId: 'as-1',
-                  roleName: 'member',
-                  clubId: clubId,
-                  status: 'active',
-                ),
-              ],
-              activeAssignmentId: 'as-1',
-            ),
+      authorization: const AuthorizationSnapshot(effectivePermissions: []),
     );
 
 /// `AuthNotifier` fijo que registra el emparejado y el cierre de sesión.

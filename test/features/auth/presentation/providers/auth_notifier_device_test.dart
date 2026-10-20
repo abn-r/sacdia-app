@@ -283,6 +283,14 @@ void main() {
       expect(await h.auth.pairDevice(_input), 'device.pair.errors.generic');
     });
 
+    test('a code-less 429 (5/min per IP) is "too many attempts"', () async {
+      final h = await boot();
+      h.pairing.result =
+          const Left(ServerFailure(message: 'ThrottlerException', code: 429));
+
+      expect(await h.auth.pairDevice(_input), 'errors.too_many_attempts');
+    });
+
     test('a network failure reads as a connection error', () async {
       final h = await boot();
       h.pairing.result = const Left(NetworkFailure(message: 'offline'));

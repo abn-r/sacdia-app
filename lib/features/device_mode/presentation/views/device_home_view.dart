@@ -38,7 +38,7 @@ class DeviceHomeView extends ConsumerWidget {
     final name = (user?.name ?? '').trim();
     final label = user?.principal?.device?.label;
     final classes = ref.watch(userClassesProvider);
-    final clubId = user?.authorization?.activeGrant?.clubId;
+    final clubId = user?.deviceClubId;
 
     return Scaffold(
       backgroundColor: c.background,

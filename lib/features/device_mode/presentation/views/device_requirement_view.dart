@@ -89,6 +89,8 @@ class _DeviceRequirementViewState extends ConsumerState<DeviceRequirementView> {
         context,
         userErrorMessage(
           ServerFailure(message: '', errorCode: next.errorCode),
+          // Cualquier 403 de un teléfono (PRINCIPAL_SCOPE_DENIED o
+          // GUARD_PERMISSION_DENIED) es «no disponible»; el resto, genérico.
           fallbackKey: 'device.requirement.errors.action_failed',
         ),
         isError: true,

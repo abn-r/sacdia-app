@@ -269,6 +269,45 @@ void main() {
       expect(user.principal!.supervision, isNull);
     });
 
+    test('the club of a device comes from /auth/me.club', () {
+      final user = UserModel.fromCustomApi({
+        'user_id': 'kid-1',
+        'birthday': '2017-04-02',
+        'club': {
+          'club_id': 7,
+          'club_name': 'Club Águilas',
+          'club_type': 'Conquistadores',
+        },
+        'permissions': ['self:read'],
+        'principal': {
+          'kind': 'linked_device',
+          'device': {'linked_device_id': 'dev-1', 'label': 'Tablet'},
+        },
+      });
+
+      expect(user.deviceClubId, 7);
+      expect(user.principal!.device!.clubName, 'Club Águilas');
+      expect(user.principal!.device!.clubType, 'Conquistadores');
+      expect(user.email, isNull);
+      expect(user.birthday, isNotNull);
+    });
+
+    test('a club alone is enough, and an account never takes one', () {
+      final device = UserModel.fromCustomApi({
+        'user_id': 'kid-1',
+        'club': {'club_id': '9'},
+        'principal': {'kind': 'linked_device'},
+      });
+      expect(device.deviceClubId, 9);
+
+      final adult = UserModel.fromCustomApi({
+        'user_id': 'a',
+        'club': {'club_id': 3},
+        'principal': {'kind': 'user'},
+      });
+      expect(adult.principal!.device, isNull);
+    });
+
     test('a missing device block is tolerated', () {
       final user = UserModel.fromCustomApi({
         'user_id': 'kid-1',

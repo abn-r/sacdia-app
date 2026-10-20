@@ -9,6 +9,7 @@ import 'package:sacdia_app/features/family/data/models/dependent_models.dart';
 import 'package:sacdia_app/features/family/data/models/linked_device_models.dart';
 import 'package:sacdia_app/features/family/data/repositories/linked_devices_repository_impl.dart';
 import 'package:sacdia_app/features/family/domain/entities/dependent.dart';
+import 'package:sacdia_app/features/family/presentation/family_error_messages.dart';
 import 'package:sacdia_app/features/family/domain/entities/linked_device.dart';
 
 import '../family_fixtures.dart';
@@ -295,6 +296,18 @@ void main() {
       );
       final result = await repo.revoke('ana-1', 'd1');
       expect(result.fold((f) => f, (_) => null), isA<NetworkFailure>());
+    });
+  });
+
+  group('code-less 429 (token creation is 10/h)', () {
+    test('maps to the too-many-attempts message, not the generic one', () {
+      const failure = ServerFailure(message: 'ThrottlerException', code: 429);
+      // Sin EasyLocalization montada `tr()` devuelve la clave.
+      expect(familyErrorMessage(failure), 'errors.too_many_attempts');
+      expect(
+        familyErrorMessage(const ServerFailure(message: 'x', code: 500)),
+        'family.errors.generic',
+      );
     });
   });
 

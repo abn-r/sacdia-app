@@ -54,7 +54,7 @@ class UserModel extends UserEntity {
       legalAcceptancePending: _parseLegalPending(data['legal']),
       actingFor: _parseActingFor(data['acting_for']),
       family: _parseFamily(data['family']),
-      principal: parsePrincipal(data['principal']),
+      principal: parsePrincipal(data['principal'], club: data['club']),
       familyFeatures: _parseFamilyFeatures(data['family_features']),
       analyticsAnonymous: _parseAnalyticsAnonymous(data),
       serverMode: _parseMode(data),
@@ -125,27 +125,39 @@ class UserModel extends UserEntity {
   /// (`"pending_guardian"` | `"active"` | `null`). Se aceptan las dos formas.
   /// Ausente o malformado es nulo: el modo cae a adulto y la analítica queda
   /// anónima.
-  static PrincipalInfo? parsePrincipal(dynamic value) {
+  static PrincipalInfo? parsePrincipal(dynamic value, {dynamic club}) {
     if (value is! Map) return null;
     final rawScopes = value['scopes'];
+    final kind = PrincipalKind.parse(value['kind']);
     return PrincipalInfo(
-      kind: PrincipalKind.parse(value['kind']),
+      kind: kind,
       scopes: rawScopes is List
           ? rawScopes.map((s) => s.toString()).toList(growable: false)
           : null,
       supervision: _parseSupervision(value['supervision']),
-      device: _parseDevice(value['device']),
+      device: _parseDevice(
+        value['device'],
+        // Solo un teléfono vinculado trae el club fuera de `authorization`.
+        club: kind == PrincipalKind.linkedDevice ? club : null,
+      ),
     );
   }
 
   /// `principal.device`: `{linked_device_id, label, paired_at}`. Ausente o
   /// malformado es nulo.
-  static DeviceInfo? _parseDevice(dynamic value) {
-    if (value is! Map) return null;
+  static DeviceInfo? _parseDevice(dynamic value, {dynamic club}) {
+    final clubMap = club is Map ? club : null;
+    if (value is! Map && clubMap == null) return null;
+    final device = value is Map ? value : const {};
     return DeviceInfo(
-      linkedDeviceId: value['linked_device_id']?.toString(),
-      label: value['label']?.toString(),
-      pairedAt: _parseDateTime(value['paired_at']),
+      linkedDeviceId: device['linked_device_id']?.toString(),
+      label: device['label']?.toString(),
+      pairedAt: _parseDateTime(device['paired_at']),
+      clubId: clubMap == null
+          ? null
+          : int.tryParse(clubMap['club_id']?.toString() ?? ''),
+      clubName: clubMap?['club_name']?.toString(),
+      clubType: clubMap?['club_type']?.toString(),
     );
   }
 
