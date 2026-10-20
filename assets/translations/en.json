@@ -2599,6 +2599,8 @@
       "verify_empty_title": "No forms to verify",
       "verify_empty_subtitle": "When a minor's signed form is ready to review, it will show up here.",
       "verify_only_hint": "You can verify consent forms. Approving or rejecting requests is up to a director.",
+      "verify_scope_title": "No access to this section's forms",
+      "verify_scope_subtitle": "This section is outside your scope. The forms of the sections you coordinate are under “Forms to verify” in your coordination panel.",
       "request_profile_title": "Applicant Profile",
       "request_approved": "Request from {name} approved",
       "approve_error": "Error approving request",

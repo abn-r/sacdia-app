@@ -505,62 +505,72 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
                 onRetry: () =>
                     ref.read(membersNotifierProvider.notifier).refresh(),
               ),
-              data: (_) => filteredRequests.isEmpty
+              data: (data) => widget.verifyOnly && data.requestsScopeDenied
                   ? _EmptyState(
-                      icon: widget.verifyOnly
-                          ? HugeIcons.strokeRoundedFileVerified
-                          : HugeIcons.strokeRoundedUserAdd01,
-                      title: widget.verifyOnly
-                          ? 'members.view.verify_empty_title'.tr()
-                          : 'members.view.no_requests_title'.tr(),
-                      subtitle: widget.verifyOnly && filters.searchQuery.isEmpty
-                          ? 'members.view.verify_empty_subtitle'.tr()
-                          : _emptySubtitleKey(filters).tr(),
+                      icon: HugeIcons.strokeRoundedLockKey,
+                      title: 'members.view.verify_scope_title'.tr(),
+                      subtitle: 'members.view.verify_scope_subtitle'.tr(),
                     )
-                  : RefreshIndicator(
-                      color: SacAccent.of(context).color,
-                      onRefresh: () =>
-                          ref.read(membersNotifierProvider.notifier).refresh(),
-                      child: ListView.separated(
-                        padding: EdgeInsets.fromLTRB(hPad, 4, hPad, 24),
-                        itemCount: filteredRequests.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 6),
-                        itemBuilder: (context, index) {
-                          final request = filteredRequests[index];
-                          final isProcessing =
-                              _processingIds.contains(request.assignmentId);
-                          if (widget.verifyOnly) {
-                            // Solo se verifica la ficha: ni aprobar ni rechazar,
-                            // y la fila abre la verificación (no el perfil, que
-                            // este permiso no necesariamente puede leer).
-                            final verify = request.consentPending
-                                ? () => _openConsentVerification(
-                                      context,
-                                      request,
-                                    )
-                                : null;
-                            return JoinRequestCard(
-                              request: request,
-                              onTap: verify,
-                              onVerify: verify,
-                            );
-                          }
-                          final canAct = widget.isDirector &&
-                              request.status == JoinRequestStatus.pending &&
-                              !isProcessing;
-                          return JoinRequestCard(
-                            request: request,
-                            onTap: () => _openRequestProfile(context, request),
-                            onApprove: canAct
-                                ? () => _approveRequest(context, request)
-                                : null,
-                            onReject: canAct
-                                ? () => _rejectRequest(context, request)
-                                : null,
-                          );
-                        },
-                      ),
-                    ),
+                  : filteredRequests.isEmpty
+                      ? _EmptyState(
+                          icon: widget.verifyOnly
+                              ? HugeIcons.strokeRoundedFileVerified
+                              : HugeIcons.strokeRoundedUserAdd01,
+                          title: widget.verifyOnly
+                              ? 'members.view.verify_empty_title'.tr()
+                              : 'members.view.no_requests_title'.tr(),
+                          subtitle:
+                              widget.verifyOnly && filters.searchQuery.isEmpty
+                                  ? 'members.view.verify_empty_subtitle'.tr()
+                                  : _emptySubtitleKey(filters).tr(),
+                        )
+                      : RefreshIndicator(
+                          color: SacAccent.of(context).color,
+                          onRefresh: () => ref
+                              .read(membersNotifierProvider.notifier)
+                              .refresh(),
+                          child: ListView.separated(
+                            padding: EdgeInsets.fromLTRB(hPad, 4, hPad, 24),
+                            itemCount: filteredRequests.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 6),
+                            itemBuilder: (context, index) {
+                              final request = filteredRequests[index];
+                              final isProcessing =
+                                  _processingIds.contains(request.assignmentId);
+                              if (widget.verifyOnly) {
+                                // Solo se verifica la ficha: ni aprobar ni rechazar,
+                                // y la fila abre la verificación (no el perfil, que
+                                // este permiso no necesariamente puede leer).
+                                final verify = request.consentPending
+                                    ? () => _openConsentVerification(
+                                          context,
+                                          request,
+                                        )
+                                    : null;
+                                return JoinRequestCard(
+                                  request: request,
+                                  onTap: verify,
+                                  onVerify: verify,
+                                );
+                              }
+                              final canAct = widget.isDirector &&
+                                  request.status == JoinRequestStatus.pending &&
+                                  !isProcessing;
+                              return JoinRequestCard(
+                                request: request,
+                                onTap: () =>
+                                    _openRequestProfile(context, request),
+                                onApprove: canAct
+                                    ? () => _approveRequest(context, request)
+                                    : null,
+                                onReject: canAct
+                                    ? () => _rejectRequest(context, request)
+                                    : null,
+                              );
+                            },
+                          ),
+                        ),
             ),
           ),
         ),

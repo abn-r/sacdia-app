@@ -2599,6 +2599,8 @@
       "verify_empty_title": "No hay fichas por verificar",
       "verify_empty_subtitle": "Cuando un menor tenga su ficha firmada lista para revisar, aparecerá aquí.",
       "verify_only_hint": "Puedes verificar fichas de consentimiento. Aprobar o rechazar solicitudes le corresponde a un director.",
+      "verify_scope_title": "Sin acceso a las fichas de esta sección",
+      "verify_scope_subtitle": "Esta sección no está dentro de tu alcance. Las fichas de las secciones que coordinas están en «Fichas por verificar», en tu panel de coordinación.",
       "request_profile_title": "Perfil del solicitante",
       "request_approved": "Solicitud de {name} aprobada",
       "approve_error": "Error al aprobar la solicitud",

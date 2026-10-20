@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
@@ -12,7 +13,12 @@ import 'package:sacdia_app/features/members/presentation/views/members_view.dart
 
 import '../../members_test_support.dart';
 
-UserEntity _user(List<String> permissions) => UserEntity(
+UserEntity _user(
+  List<String> permissions, {
+  List<AuthorizationGrant> globalGrants = const [],
+  List<String> activeRolePermissions = const [],
+}) =>
+    UserEntity(
       id: 'user-1',
       email: 'user@example.com',
       name: 'Laura',
@@ -20,16 +26,26 @@ UserEntity _user(List<String> permissions) => UserEntity(
       authorization: AuthorizationSnapshot(
         effectivePermissions: permissions,
         activeAssignmentId: 'asg-1',
-        clubAssignments: const [
+        globalGrants: globalGrants,
+        clubAssignments: [
           AuthorizationGrant(
             assignmentId: 'asg-1',
             roleName: 'counselor',
+            permissions: activeRolePermissions,
             clubId: 1,
             sectionId: 12,
             status: 'active',
           ),
         ],
       ),
+    );
+
+/// Rol global de coordinación con `consent:verify` (como lo entrega
+/// `/auth/me` en `authorization.grants.global_roles`).
+AuthorizationGrant _coordinatorRole([String name = 'coordinator']) =>
+    AuthorizationGrant(
+      roleName: name,
+      permissions: const ['consent:verify'],
     );
 
 class _FakeAuth extends AuthNotifier {
@@ -58,12 +74,15 @@ void main() {
 
   Future<void> openMembers(
     WidgetTester tester,
-    List<String> permissions,
-  ) async {
+    List<String> permissions, {
+    UserEntity? user,
+  }) async {
     await pumpMembersApp(
       tester,
       overrides: [
-        authNotifierProvider.overrideWith(() => _FakeAuth(_user(permissions))),
+        authNotifierProvider.overrideWith(
+          () => _FakeAuth(user ?? _user(permissions)),
+        ),
         membersRepositoryProvider.overrideWithValue(repo),
         annualContinuationsNotifierProvider.overrideWith(
           _EmptyContinuations.new,
@@ -76,9 +95,10 @@ void main() {
 
   Future<void> openRequests(
     WidgetTester tester,
-    List<String> permissions,
-  ) async {
-    await openMembers(tester, permissions);
+    List<String> permissions, {
+    UserEntity? user,
+  }) async {
+    await openMembers(tester, permissions, user: user);
     await tester.tap(find.text('Solicitudes').first);
     await tester.pumpAndSettle();
   }
@@ -259,6 +279,172 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(ConsentVerificationView), findsOneWidget);
+    });
+  });
+  group('verify-only needs club authority, not a coordinator role', () {
+    test('a coordinator role alone does not open the requests', () {
+      for (final role in [
+        'coordinator',
+        'zone-coordinator',
+        'general-coordinator',
+      ]) {
+        expect(
+          joinRequestsAccess(
+            _user(['consent:verify'], globalGrants: [_coordinatorRole(role)]),
+          ),
+          JoinRequestsAccess.none,
+          reason: '$role is coordinator authority, it opens the hub instead',
+        );
+      }
+    });
+
+    test('a club role that carries consent:verify opens verify-only', () {
+      expect(
+        joinRequestsAccess(
+          _user(['consent:verify'], activeRolePermissions: ['consent:verify']),
+        ),
+        JoinRequestsAccess.verifyOnly,
+      );
+    });
+
+    test('a coordinator who also has the club role keeps verify-only', () {
+      expect(
+        joinRequestsAccess(
+          _user(
+            ['consent:verify'],
+            globalGrants: [_coordinatorRole()],
+            activeRolePermissions: ['consent:verify'],
+          ),
+        ),
+        JoinRequestsAccess.verifyOnly,
+      );
+    });
+
+    test('a non-coordinator global role with the permission keeps it', () {
+      expect(
+        joinRequestsAccess(
+          _user(
+            ['consent:verify'],
+            globalGrants: const [
+              AuthorizationGrant(
+                roleName: 'admin',
+                permissions: ['consent:verify'],
+              ),
+            ],
+          ),
+        ),
+        JoinRequestsAccess.verifyOnly,
+      );
+    });
+
+    test('approve is never taken away by a coordinator role', () {
+      expect(
+        joinRequestsAccess(
+          _user(
+            ['consent:verify', 'club_members:approve'],
+            globalGrants: [_coordinatorRole()],
+          ),
+        ),
+        JoinRequestsAccess.approve,
+      );
+    });
+
+    test('a role that is not active in the section does not count', () {
+      final user = UserEntity(
+        id: 'user-1',
+        email: 'user@example.com',
+        name: 'Laura',
+        postRegisterComplete: true,
+        authorization: AuthorizationSnapshot(
+          effectivePermissions: const ['consent:verify'],
+          globalGrants: [_coordinatorRole()],
+          activeAssignmentId: 'asg-1',
+          clubAssignments: const [
+            AuthorizationGrant(
+              assignmentId: 'asg-2',
+              roleName: 'secretary',
+              permissions: ['consent:verify'],
+              clubId: 2,
+              sectionId: 30,
+              status: 'active',
+            ),
+            AuthorizationGrant(
+              assignmentId: 'asg-1',
+              roleName: 'member',
+              clubId: 1,
+              sectionId: 12,
+              status: 'active',
+            ),
+          ],
+        ),
+      );
+      expect(joinRequestsAccess(user), JoinRequestsAccess.none);
+    });
+
+    testWidgets('a coordinator has no requests mode in the members screen',
+        (tester) async {
+      await openMembers(
+        tester,
+        const [],
+        user: _user(['consent:verify'], globalGrants: [_coordinatorRole()]),
+      );
+
+      expect(find.text('Solicitudes'), findsNothing);
+    });
+
+    testWidgets('a club reviewer keeps the requests mode', (tester) async {
+      await openMembers(
+        tester,
+        const [],
+        user: _user(
+          ['consent:verify'],
+          activeRolePermissions: ['consent:verify'],
+        ),
+      );
+
+      expect(find.text('Solicitudes'), findsWidgets);
+    });
+
+    testWidgets(
+        'a 403 GUARD_CLUB_SCOPE_REQUIRED shows an info state, not an empty list',
+        (tester) async {
+      repo.requestsBySection[12] = const Left(
+        AuthFailure(
+          message: 'x',
+          code: 403,
+          errorCode: 'GUARD_CLUB_SCOPE_REQUIRED',
+        ),
+      );
+      await openRequests(
+        tester,
+        const [],
+        user: _user(
+          ['consent:verify'],
+          activeRolePermissions: ['consent:verify'],
+        ),
+      );
+
+      expect(
+          find.text('Sin acceso a las fichas de esta sección'), findsOneWidget);
+      expect(find.text('No hay fichas por verificar'), findsNothing);
+      expect(find.text('Sin solicitudes'), findsNothing);
+    });
+
+    testWidgets('any other failure is still an empty list', (tester) async {
+      repo.requestsBySection[12] =
+          const Left(ServerFailure(message: 'x', code: 500));
+      await openRequests(
+        tester,
+        const [],
+        user: _user(
+          ['consent:verify'],
+          activeRolePermissions: ['consent:verify'],
+        ),
+      );
+
+      expect(
+          find.text('Sin acceso a las fichas de esta sección'), findsNothing);
+      expect(find.text('No hay fichas por verificar'), findsOneWidget);
     });
   });
 }

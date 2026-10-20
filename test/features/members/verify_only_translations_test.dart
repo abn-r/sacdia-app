@@ -23,6 +23,8 @@ void main() {
     'members.view.verify_empty_title',
     'members.view.verify_empty_subtitle',
     'members.view.verify_only_hint',
+    'members.view.verify_scope_title',
+    'members.view.verify_scope_subtitle',
   ];
 
   for (final locale in _locales) {
