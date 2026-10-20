@@ -349,6 +349,7 @@ Future<GoRouter> pumpFamilyApp(
   required List<GoRoute> routes,
   required List<Override> overrides,
   String initialLocation = '/',
+  double textScale = 0.5,
 }) async {
   final router = GoRouter(initialLocation: initialLocation, routes: routes);
   await tester.pumpWidget(
@@ -369,7 +370,7 @@ Future<GoRouter> pumpFamilyApp(
             routerConfig: router,
             builder: (context, child) => MediaQuery(
               data: MediaQuery.of(context).copyWith(
-                textScaler: const TextScaler.linear(0.5),
+                textScaler: TextScaler.linear(textScale),
               ),
               child: child!,
             ),

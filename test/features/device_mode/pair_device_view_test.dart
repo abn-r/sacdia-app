@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -50,8 +51,10 @@ void main() {
     UserEntity? user,
     DeviceNotice? notice,
     String? pendingLink,
+    Size logicalSize = const Size(600, 1200),
+    double textScale = 0.5,
   }) async {
-    tester.view.physicalSize = const Size(1200, 2400);
+    tester.view.physicalSize = logicalSize * 2;
     tester.view.devicePixelRatio = 2;
     addTearDown(tester.view.reset);
     auth = FakeDeviceAuth(user);
@@ -59,6 +62,7 @@ void main() {
     await pumpFamilyApp(
       tester,
       initialLocation: RouteNames.devicePair,
+      textScale: textScale,
       overrides: [
         authNotifierProvider.overrideWith(() => auth),
         metaOverride(),
@@ -91,6 +95,30 @@ void main() {
   }
 
   group('PairDeviceView: scanning', () {
+    testWidgets(
+        'at phone width (402x874) the phone-name helper wraps instead of '
+        'ending in an ellipsis', (tester) async {
+      // The test font (Ahem) is wider than the real one, so 1.0 would overflow
+      // the unrelated ghost buttons; 0.6 still forces the helper onto 2 lines.
+      await pump(
+        tester,
+        logicalSize: const Size(402, 874),
+        textScale: 0.6,
+      );
+      await scan(tester);
+
+      final helper = find.text(
+        'Tu tutor verá este nombre en su lista de teléfonos vinculados.',
+      );
+      expect(helper, findsOneWidget);
+      expect(
+        tester.renderObject<RenderParagraph>(helper).didExceedMaxLines,
+        isFalse,
+        reason: 'the full sentence must be visible',
+      );
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('a valid QR asks for the phone name, prefilled',
         (tester) async {
       await pump(tester);

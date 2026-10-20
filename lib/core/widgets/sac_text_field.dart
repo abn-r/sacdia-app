@@ -12,6 +12,10 @@ class SacTextField extends StatefulWidget {
   final String? label;
   final String? hint;
   final String? helperText;
+
+  /// Líneas máximas del texto de ayuda. Sin valor, Flutter lo corta en una sola
+  /// línea con «…»; una ayuda larga necesita un tope mayor para envolver.
+  final int? helperMaxLines;
   final bool obscureText;
   final String? Function(String?)? validator;
   final TextInputType keyboardType;
@@ -51,6 +55,7 @@ class SacTextField extends StatefulWidget {
     this.label,
     this.hint,
     this.helperText,
+    this.helperMaxLines,
     this.obscureText = false,
     this.validator,
     this.keyboardType = TextInputType.text,
@@ -175,6 +180,7 @@ class _SacTextFieldState extends State<SacTextField> {
                 decoration: InputDecoration(
                   hintText: widget.hint,
                   helperText: widget.helperText,
+                  helperMaxLines: widget.helperMaxLines,
                   counterText: widget.maxLength != null ? '' : null,
                   prefixText: widget.prefixText,
                   prefixStyle: theme.textTheme.bodyMedium?.copyWith(

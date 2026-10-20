@@ -326,6 +326,7 @@ class _PairBody extends StatelessWidget {
             label: 'device.pair.label_title'.tr(),
             hint: 'device.pair.label_hint'.tr(),
             helperText: 'device.pair.label_help'.tr(),
+            helperMaxLines: 3,
             maxLength: 40,
             enabled: !busy,
             prefixIcon: HugeIcons.strokeRoundedSmartPhone01,
