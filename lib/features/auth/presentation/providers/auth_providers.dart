@@ -688,6 +688,10 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       legalAcceptancePending: current.legalAcceptancePending,
       actingFor: current.actingFor,
       family: current.family,
+      principal: current.principal,
+      familyFeatures: current.familyFeatures,
+      analyticsAnonymous: current.analyticsAnonymous,
+      serverMode: current.serverMode,
     );
     state = AsyncValue.data(updatedUser);
     _cacheUser(updatedUser);
@@ -713,6 +717,10 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       legalAcceptancePending: false,
       actingFor: current.actingFor,
       family: current.family,
+      principal: current.principal,
+      familyFeatures: current.familyFeatures,
+      analyticsAnonymous: current.analyticsAnonymous,
+      serverMode: current.serverMode,
     );
     state = AsyncValue.data(updatedUser);
   }
@@ -733,6 +741,10 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       legalAcceptancePending: current.legalAcceptancePending,
       actingFor: current.actingFor,
       family: current.family,
+      principal: current.principal,
+      familyFeatures: current.familyFeatures,
+      analyticsAnonymous: current.analyticsAnonymous,
+      serverMode: current.serverMode,
     );
     state = AsyncValue.data(updatedUser);
     _cacheUser(updatedUser);
