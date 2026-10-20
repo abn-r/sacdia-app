@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
+import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
@@ -73,7 +74,13 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
     final status = await ref.read(completionStatusProvider.future);
     if (status == null || !mounted) return;
 
-    if (status.isComplete) {
+    // Sin fecha de nacimiento el servidor aún no libera la cuenta, aunque el
+    // post-registro figure completo: salir al inicio rebotaría aquí otra vez.
+    // Se queda en el paso 2, que es donde se guarda la fecha.
+    final awaitingBirthday = ref.read(authNotifierProvider).valueOrNull?.mode ==
+        AccountMode.profileIncomplete;
+
+    if (status.isComplete && !awaitingBirthday) {
       ref
           .read(authNotifierProvider.notifier)
           .markPostRegisterComplete(forUserId: userId);
@@ -81,7 +88,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
       return;
     }
 
-    final step = status.currentStep;
+    final step = status.isComplete ? 2 : status.currentStep;
     _currentStep = step;
     ref.read(currentStepProvider.notifier).state = step;
 
@@ -156,6 +163,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
     final user = authState.valueOrNull;
     final userId = user?.id;
     if (userId == null) return;
+    final awaitingBirthday = user?.mode == AccountMode.profileIncomplete;
 
     final canReadSensitiveData = canReadSensitiveStep2Data(userId, user);
 
@@ -167,6 +175,25 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
 
       if (!mounted) return;
       if (result.success) {
+        // La fecha de nacimiento acaba de guardarse: el servidor reclasifica la
+        // cuenta (menor supervisado o adulto). Se vuelve a pedir `/auth/me` para
+        // que el modo y el router lo sigan sin esperar al paso 3.
+        final fresh = await ref
+            .read(authNotifierProvider.notifier)
+            .refreshCurrentUser(keepCurrentOnFailure: true);
+        if (!mounted) return;
+        // Una cuenta sin fecha de nacimiento que sigue así no puede continuar:
+        // el paso 3 sería rechazado con 403 hasta que el servidor la libere.
+        final stillRestricted = awaitingBirthday &&
+            (fresh ?? ref.read(authNotifierProvider).valueOrNull)?.mode ==
+                AccountMode.profileIncomplete;
+        if (stillRestricted) {
+          SacSnackBar.show(
+            context,
+            tr('post_registration.shell.error_step_failed'),
+          );
+          return;
+        }
         _goToStep(3);
       } else {
         SacSnackBar.show(
