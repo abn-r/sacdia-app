@@ -5588,5 +5588,95 @@
       "already_linked": "Vous avez déjà un tuteur lié.",
       "link_not_found": "Ce lien n'existe plus ou un directeur l'a déjà vérifié."
     }
+  },
+  "device": {
+    "tabs": {
+      "home": "Accueil",
+      "classes": "Classes",
+      "agenda": "Agenda",
+      "notices": "Avis"
+    },
+    "offline": "Pas de connexion. Tu vois la dernière version enregistrée et tu ne peux rien envoyer.",
+    "pair": {
+      "entry": "Associer le téléphone d'un enfant",
+      "title": "Associer ce téléphone",
+      "subtitle": "Scanne le code QR que ton tuteur affiche sur son téléphone.",
+      "confirm_body": "Code lu. Vérifie le nom de ce téléphone et associe-le.",
+      "scan": "Scanner le code QR",
+      "rescan": "Scanner un autre code",
+      "scanner_title": "Scanner le code",
+      "scanner_hint": "Pointe vers le code QR du téléphone de ton tuteur.",
+      "label_title": "Nom de ce téléphone",
+      "label_hint": "Ex. Tablette d'Ana",
+      "label_help": "Ton tuteur verra ce nom dans sa liste de téléphones associés.",
+      "fallback_label": "Téléphone associé",
+      "link": "Associer le téléphone",
+      "linking": "Association...",
+      "back_to_login": "Retour à la connexion",
+      "refused": {
+        "title": "Déconnecte-toi d'abord",
+        "body": "Ce téléphone est connecté. Pour l'associer comme téléphone d'enfant, déconnecte-toi d'abord.",
+        "close": "Compris"
+      },
+      "notice": {
+        "unpaired": "Ton tuteur a dissocié ce téléphone. Demande-lui de l'associer à nouveau.",
+        "session_expired": "L'association de ce téléphone a expiré. Demande à ton tuteur de l'associer à nouveau."
+      },
+      "errors": {
+        "generic": "Nous n'avons pas pu associer ce téléphone. Réessaie.",
+        "invalid_qr": "Ce code QR n'est pas de SACDIA. Demande à ton tuteur d'en générer un nouveau.",
+        "session_exists": "Ce téléphone est déjà connecté. Déconnecte-toi avant de l'associer.",
+        "session_load_failed": "Le téléphone a été associé mais nous n'avons pas pu charger ton profil. Demande un nouveau code à ton tuteur et réessaie."
+      }
+    },
+    "home": {
+      "greeting": "Salut, {name}",
+      "greeting_anonymous": "Salut",
+      "subtitle": "Tes classes et activités du club",
+      "classes_title": "Ma progression",
+      "no_classes": "Tu n'as pas encore de classes. Ton tuteur ou ton directeur t'inscrira.",
+      "next_activity": "Prochaine activité",
+      "no_activity": "Pas d'activité à venir",
+      "credential_title": "Ma carte de membre",
+      "credential_hint": "Montre-la quand on te la demande lors d'une activité.",
+      "this_phone": "Ce téléphone : {label}",
+      "unlink": "Dissocier ce téléphone",
+      "unlink_title": "Dissocier ce téléphone ?",
+      "unlink_body": "Tout ce qui est à toi sera supprimé de ce téléphone et ton tuteur devra l'associer à nouveau.",
+      "unlink_confirm": "Dissocier",
+      "unlink_failed": "Impossible de dissocier. Réessaie."
+    },
+    "classes": {
+      "title": "Mes classes",
+      "empty_title": "Pas encore de classes",
+      "empty_body": "Quand tu seras inscrit à une classe, elle apparaîtra ici.",
+      "error": "Nous n'avons pas pu charger tes classes.",
+      "detail_error": "Nous n'avons pas pu charger cette classe.",
+      "no_requirements": "Cette classe n'a pas encore d'exigences.",
+      "progress": "{percent} % terminé"
+    },
+    "requirement": {
+      "title": "Preuves",
+      "not_found": "Nous n'avons pas trouvé cette exigence.",
+      "offline_readonly": "Pas de connexion : tu peux seulement voir tes preuves. Connecte-toi pour envoyer."
+    },
+    "agenda": {
+      "title": "Agenda",
+      "empty": "Il n'y a pas d'activités à venir.",
+      "error": "Nous n'avons pas pu charger l'agenda.",
+      "no_club": "Tu n'es pas encore dans un club.",
+      "detail_title": "Activité",
+      "detail_error": "Nous n'avons pas pu charger cette activité."
+    },
+    "legal_block": {
+      "title": "Une étape de ton tuteur est nécessaire",
+      "body": "Demande à ton tuteur de relire les nouvelles conditions sur son téléphone. Dès qu'il les accepte, tu pourras continuer à utiliser l'appli.",
+      "refresh": "Il les a acceptées"
+    },
+    "registration_pending": {
+      "title": "Ton inscription n'est pas terminée",
+      "body": "Demande à ton tuteur de terminer ton profil depuis son téléphone.",
+      "refresh": "Il a terminé"
+    }
   }
 }

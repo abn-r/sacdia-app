@@ -13,6 +13,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../auth/acting_for_session.dart';
+import '../auth/session_mode.dart';
 import '../config/pending_navigation.dart';
 import '../config/route_names.dart';
 import '../realtime/feature_flags.dart';
@@ -21,6 +22,7 @@ import '../realtime/realtime_ref.dart';
 import '../theme/sac_colors.dart';
 import '../utils/app_logger.dart';
 import 'dependent_push_tap_handler.dart';
+import 'device_push_route.dart';
 import '../../features/achievements/presentation/providers/achievements_providers.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/investiture_requests/presentation/utils/investiture_notification_routes.dart';
@@ -506,6 +508,9 @@ class PushNotificationService {
   /// (push sin `dependent_user_id` y sin actuar) o el menor por el que se actúa
   /// (`dependent_user_id` igual al de la sesión).
   bool _belongsToCurrentProfile(Map<String, dynamic> data) {
+    // Un teléfono vinculado no tiene otros perfiles: todo lo que le llega es
+    // suyo, aunque el push traiga `dependent_user_id` (el niño es el menor).
+    if (_isDeviceMode) return true;
     final recipient = DependentPushTapHandler.dependentIdOf(data);
     return recipient == _ref.read(actingForSessionProvider).dependentUserId;
   }
@@ -818,6 +823,10 @@ class PushNotificationService {
 
   /// Static shell branch routes that must switch tabs instead of stacking a page.
   static const Set<String> _goNavigationRoutes = {
+    RouteNames.deviceHome,
+    RouteNames.deviceClasses,
+    RouteNames.deviceAgenda,
+    RouteNames.deviceInbox,
     RouteNames.homeDashboard,
     RouteNames.homeClasses,
     RouteNames.homeActivities,
@@ -962,11 +971,22 @@ class PushNotificationService {
     router.push(route);
   }
 
+  /// ¿Esta instalación es el teléfono vinculado de un menor?
+  bool get _isDeviceMode =>
+      _ref.read(sessionModeProvider) == SessionMode.device;
+
   void _handleNotificationTap(RemoteMessage message) {
     AppLogger.i(
-      'Notificación tapeada: ${message.data}',
+      'Notificación tapeada',
       tag: _tag,
     );
+
+    // Teléfono vinculado: sin cambio de perfil ni dependientes. Solo se abre una
+    // pantalla del dispositivo (el router descarta cualquier otra).
+    if (_isDeviceMode) {
+      _pushRoute(deviceRouteForPush(message.data));
+      return;
+    }
 
     // Push de un menor: antes de navegar se confirma el cambio de perfil.
     final dependentId = DependentPushTapHandler.dependentIdOf(message.data);

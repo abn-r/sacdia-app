@@ -5590,5 +5590,95 @@
       "already_linked": "You already have a linked guardian.",
       "link_not_found": "That link no longer exists or a director already verified it."
     }
+  },
+  "device": {
+    "tabs": {
+      "home": "Home",
+      "classes": "Classes",
+      "agenda": "Agenda",
+      "notices": "Notices"
+    },
+    "offline": "No connection. You see what was saved last and cannot upload or send anything.",
+    "pair": {
+      "entry": "Link a child's phone to this device",
+      "title": "Link this phone",
+      "subtitle": "Scan the QR code your guardian shows on their phone.",
+      "confirm_body": "Code read. Check the name of this phone and link it.",
+      "scan": "Scan QR code",
+      "rescan": "Scan another code",
+      "scanner_title": "Scan code",
+      "scanner_hint": "Point at the QR code on your guardian's phone.",
+      "label_title": "Name of this phone",
+      "label_hint": "E.g. Ana's tablet",
+      "label_help": "Your guardian will see this name in their list of linked phones.",
+      "fallback_label": "Linked phone",
+      "link": "Link phone",
+      "linking": "Linking...",
+      "back_to_login": "Back to sign in",
+      "refused": {
+        "title": "Sign out first",
+        "body": "This phone is signed in. To link it as a child's phone, sign out first.",
+        "close": "Got it"
+      },
+      "notice": {
+        "unpaired": "Your guardian unlinked this phone. Ask them to link it again.",
+        "session_expired": "This phone link has expired. Ask your guardian to link it again."
+      },
+      "errors": {
+        "generic": "We could not link this phone. Please try again.",
+        "invalid_qr": "That QR code is not from SACDIA. Ask your guardian to generate a new one.",
+        "session_exists": "This phone is already signed in. Sign out before linking it.",
+        "session_load_failed": "The phone was linked but we could not load your profile. Ask your guardian for a new code and try again."
+      }
+    },
+    "home": {
+      "greeting": "Hi, {name}",
+      "greeting_anonymous": "Hi",
+      "subtitle": "Your club classes and activities",
+      "classes_title": "My progress",
+      "no_classes": "You have no classes yet. Your guardian or director will enroll you.",
+      "next_activity": "Next activity",
+      "no_activity": "No upcoming activities",
+      "credential_title": "My credential",
+      "credential_hint": "Show it when you are asked for it at an activity.",
+      "this_phone": "This phone: {label}",
+      "unlink": "Unlink this phone",
+      "unlink_title": "Unlink this phone?",
+      "unlink_body": "Everything of yours will be removed from this phone and your guardian will have to link it again to use it.",
+      "unlink_confirm": "Unlink",
+      "unlink_failed": "Could not unlink. Please try again."
+    },
+    "classes": {
+      "title": "My classes",
+      "empty_title": "No classes yet",
+      "empty_body": "When you are enrolled in a class it will show up here.",
+      "error": "We could not load your classes.",
+      "detail_error": "We could not load this class.",
+      "no_requirements": "This class has no requirements yet.",
+      "progress": "{percent}% complete"
+    },
+    "requirement": {
+      "title": "Evidence",
+      "not_found": "We could not find this requirement.",
+      "offline_readonly": "No connection: you can only view your evidence. Connect to upload or send."
+    },
+    "agenda": {
+      "title": "Agenda",
+      "empty": "There are no upcoming activities.",
+      "error": "We could not load the agenda.",
+      "no_club": "You are not in a club yet.",
+      "detail_title": "Activity",
+      "detail_error": "We could not load this activity."
+    },
+    "legal_block": {
+      "title": "Your guardian has a step to do",
+      "body": "Ask your guardian to review the new terms on their phone. Once they accept them you can keep using the app.",
+      "refresh": "They accepted"
+    },
+    "registration_pending": {
+      "title": "Your registration is not finished",
+      "body": "Ask your guardian to finish completing your profile on their phone.",
+      "refresh": "They finished it"
+    }
   }
 }

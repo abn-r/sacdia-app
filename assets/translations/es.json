@@ -5590,5 +5590,95 @@
       "already_linked": "Ya tienes un tutor vinculado.",
       "link_not_found": "Ese vínculo ya no existe o un director ya lo verificó."
     }
+  },
+  "device": {
+    "tabs": {
+      "home": "Inicio",
+      "classes": "Clases",
+      "agenda": "Agenda",
+      "notices": "Avisos"
+    },
+    "offline": "Sin conexión. Ves lo último guardado y no puedes subir ni enviar nada.",
+    "pair": {
+      "entry": "Vincular este teléfono de un niño",
+      "title": "Vincular este teléfono",
+      "subtitle": "Escanea el código QR que muestra tu tutor en su teléfono.",
+      "confirm_body": "Código leído. Revisa el nombre de este teléfono y vincúlalo.",
+      "scan": "Escanear código QR",
+      "rescan": "Escanear otro código",
+      "scanner_title": "Escanear código",
+      "scanner_hint": "Apunta al código QR del teléfono de tu tutor.",
+      "label_title": "Nombre de este teléfono",
+      "label_hint": "Ej. Tablet de Ana",
+      "label_help": "Tu tutor verá este nombre en su lista de teléfonos vinculados.",
+      "fallback_label": "Teléfono vinculado",
+      "link": "Vincular teléfono",
+      "linking": "Vinculando...",
+      "back_to_login": "Volver al inicio de sesión",
+      "refused": {
+        "title": "Cierra sesión primero",
+        "body": "Este teléfono tiene una sesión iniciada. Para vincularlo como el teléfono de un niño, cierra sesión antes.",
+        "close": "Entendido"
+      },
+      "notice": {
+        "unpaired": "Tu tutor desvinculó este teléfono. Pídele que lo vincule de nuevo.",
+        "session_expired": "La vinculación de este teléfono venció. Pide a tu tutor que lo vincule de nuevo."
+      },
+      "errors": {
+        "generic": "No pudimos vincular este teléfono. Inténtalo de nuevo.",
+        "invalid_qr": "Ese código QR no es de SACDIA. Pide a tu tutor que genere uno nuevo.",
+        "session_exists": "Este teléfono ya tiene una sesión iniciada. Cierra sesión antes de vincularlo.",
+        "session_load_failed": "Se vinculó el teléfono pero no pudimos cargar tu perfil. Pide a tu tutor un código nuevo e inténtalo otra vez."
+      }
+    },
+    "home": {
+      "greeting": "Hola, {name}",
+      "greeting_anonymous": "Hola",
+      "subtitle": "Tus clases y actividades del club",
+      "classes_title": "Mi avance",
+      "no_classes": "Todavía no tienes clases. Tu tutor o tu director te inscribirán.",
+      "next_activity": "Próxima actividad",
+      "no_activity": "Sin actividades próximas",
+      "credential_title": "Mi credencial",
+      "credential_hint": "Muéstrala cuando te la pidan en una actividad.",
+      "this_phone": "Este teléfono: {label}",
+      "unlink": "Desvincular este teléfono",
+      "unlink_title": "¿Desvincular este teléfono?",
+      "unlink_body": "Se borrará todo lo tuyo de este teléfono y tu tutor tendrá que vincularlo otra vez para usarlo.",
+      "unlink_confirm": "Desvincular",
+      "unlink_failed": "No se pudo desvincular. Inténtalo de nuevo."
+    },
+    "classes": {
+      "title": "Mis clases",
+      "empty_title": "Sin clases todavía",
+      "empty_body": "Cuando te inscriban en una clase aparecerá aquí.",
+      "error": "No pudimos cargar tus clases.",
+      "detail_error": "No pudimos cargar esta clase.",
+      "no_requirements": "Esta clase aún no tiene requisitos.",
+      "progress": "{percent}% completado"
+    },
+    "requirement": {
+      "title": "Evidencias",
+      "not_found": "No encontramos este requisito.",
+      "offline_readonly": "Sin conexión: solo puedes ver tus evidencias. Conéctate para subir o enviar."
+    },
+    "agenda": {
+      "title": "Agenda",
+      "empty": "No hay actividades próximas.",
+      "error": "No pudimos cargar la agenda.",
+      "no_club": "Todavía no estás en un club.",
+      "detail_title": "Actividad",
+      "detail_error": "No pudimos cargar esta actividad."
+    },
+    "legal_block": {
+      "title": "Falta un paso de tu tutor",
+      "body": "Pide a tu tutor que revise los nuevos términos desde su teléfono. Cuando los acepte podrás seguir usando la app.",
+      "refresh": "Ya los aceptó"
+    },
+    "registration_pending": {
+      "title": "Falta terminar tu registro",
+      "body": "Pide a tu tutor que termine de completar tu perfil desde su teléfono.",
+      "refresh": "Ya lo completó"
+    }
   }
 }

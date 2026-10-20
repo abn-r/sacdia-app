@@ -5588,5 +5588,95 @@
       "already_linked": "Você já tem um responsável vinculado.",
       "link_not_found": "Esse vínculo não existe mais ou um diretor já o verificou."
     }
+  },
+  "device": {
+    "tabs": {
+      "home": "Início",
+      "classes": "Classes",
+      "agenda": "Agenda",
+      "notices": "Avisos"
+    },
+    "offline": "Sem conexão. Você vê o último conteúdo salvo e não pode enviar nada.",
+    "pair": {
+      "entry": "Vincular o telefone de uma criança",
+      "title": "Vincular este telefone",
+      "subtitle": "Escaneie o código QR que seu responsável mostra no telefone dele.",
+      "confirm_body": "Código lido. Confira o nome deste telefone e vincule.",
+      "scan": "Escanear código QR",
+      "rescan": "Escanear outro código",
+      "scanner_title": "Escanear código",
+      "scanner_hint": "Aponte para o código QR do telefone do seu responsável.",
+      "label_title": "Nome deste telefone",
+      "label_hint": "Ex. Tablet da Ana",
+      "label_help": "Seu responsável verá este nome na lista de telefones vinculados.",
+      "fallback_label": "Telefone vinculado",
+      "link": "Vincular telefone",
+      "linking": "Vinculando...",
+      "back_to_login": "Voltar ao login",
+      "refused": {
+        "title": "Saia da conta primeiro",
+        "body": "Este telefone está com uma sessão iniciada. Para vinculá-lo como telefone de uma criança, saia da conta antes.",
+        "close": "Entendi"
+      },
+      "notice": {
+        "unpaired": "Seu responsável desvinculou este telefone. Peça para vinculá-lo novamente.",
+        "session_expired": "O vínculo deste telefone expirou. Peça ao seu responsável para vinculá-lo novamente."
+      },
+      "errors": {
+        "generic": "Não foi possível vincular este telefone. Tente novamente.",
+        "invalid_qr": "Esse código QR não é do SACDIA. Peça ao seu responsável para gerar um novo.",
+        "session_exists": "Este telefone já está com uma sessão iniciada. Saia da conta antes de vinculá-lo.",
+        "session_load_failed": "O telefone foi vinculado, mas não foi possível carregar seu perfil. Peça um novo código ao seu responsável e tente novamente."
+      }
+    },
+    "home": {
+      "greeting": "Oi, {name}",
+      "greeting_anonymous": "Oi",
+      "subtitle": "Suas classes e atividades do clube",
+      "classes_title": "Meu progresso",
+      "no_classes": "Você ainda não tem classes. Seu responsável ou diretor fará sua inscrição.",
+      "next_activity": "Próxima atividade",
+      "no_activity": "Sem atividades próximas",
+      "credential_title": "Minha credencial",
+      "credential_hint": "Mostre quando pedirem em uma atividade.",
+      "this_phone": "Este telefone: {label}",
+      "unlink": "Desvincular este telefone",
+      "unlink_title": "Desvincular este telefone?",
+      "unlink_body": "Tudo seu será removido deste telefone e seu responsável terá que vinculá-lo novamente para usar.",
+      "unlink_confirm": "Desvincular",
+      "unlink_failed": "Não foi possível desvincular. Tente novamente."
+    },
+    "classes": {
+      "title": "Minhas classes",
+      "empty_title": "Ainda sem classes",
+      "empty_body": "Quando você for inscrito em uma classe, ela aparecerá aqui.",
+      "error": "Não foi possível carregar suas classes.",
+      "detail_error": "Não foi possível carregar esta classe.",
+      "no_requirements": "Esta classe ainda não tem requisitos.",
+      "progress": "{percent}% concluído"
+    },
+    "requirement": {
+      "title": "Evidências",
+      "not_found": "Não encontramos este requisito.",
+      "offline_readonly": "Sem conexão: você só pode ver suas evidências. Conecte-se para enviar."
+    },
+    "agenda": {
+      "title": "Agenda",
+      "empty": "Não há atividades próximas.",
+      "error": "Não foi possível carregar a agenda.",
+      "no_club": "Você ainda não está em um clube.",
+      "detail_title": "Atividade",
+      "detail_error": "Não foi possível carregar esta atividade."
+    },
+    "legal_block": {
+      "title": "Falta um passo do seu responsável",
+      "body": "Peça ao seu responsável para revisar os novos termos no telefone dele. Quando ele aceitar, você poderá continuar usando o app.",
+      "refresh": "Ele já aceitou"
+    },
+    "registration_pending": {
+      "title": "Falta terminar seu cadastro",
+      "body": "Peça ao seu responsável para terminar de completar seu perfil no telefone dele.",
+      "refresh": "Ele já completou"
+    }
   }
 }

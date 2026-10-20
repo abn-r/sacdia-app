@@ -109,6 +109,15 @@ import '../../features/auth/presentation/views/register_view.dart';
 import '../../features/auth/presentation/views/splash_view.dart';
 import '../../features/teen/presentation/views/teen_pending_home_view.dart';
 import '../../features/device_mode/presentation/providers/device_notice_provider.dart';
+import '../../features/device_mode/presentation/views/device_activity_detail_view.dart';
+import '../../features/device_mode/presentation/views/device_agenda_view.dart';
+import '../../features/device_mode/presentation/views/device_blocked_views.dart';
+import '../../features/device_mode/presentation/views/device_class_detail_view.dart';
+import '../../features/device_mode/presentation/views/device_classes_view.dart';
+import '../../features/device_mode/presentation/views/device_home_view.dart';
+import '../../features/device_mode/presentation/views/device_requirement_view.dart';
+import '../../features/device_mode/presentation/views/device_shell.dart';
+import '../../features/device_mode/presentation/views/pair_device_view.dart';
 import '../../features/auth/presentation/views/restricted_account_view.dart';
 import '../../features/family/presentation/views/add_dependent_view.dart';
 import '../../features/family/presentation/views/dependent_detail_view.dart';
@@ -477,6 +486,104 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: RouteNames.restrictedAccount,
         pageBuilder: (context, state) =>
             _sharedAxisBuild(context, state, const RestrictedAccountView()),
+      ),
+
+      // Teléfono vinculado de un menor de 13 (Fase 3b). La pantalla de
+      // vinculación es pública para quien no tiene sesión; el resto solo lo abre
+      // la sesión de un dispositivo (ver `device_route_policy.dart`).
+      GoRoute(
+        path: RouteNames.devicePair,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const PairDeviceView()),
+      ),
+      GoRoute(
+        path: RouteNames.deviceLegalBlock,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const DeviceLegalBlockView()),
+      ),
+      GoRoute(
+        path: RouteNames.deviceRegistrationPending,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+            context, state, const DeviceRegistrationPendingView()),
+      ),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            DeviceShell(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.deviceHome,
+                pageBuilder: (context, state) =>
+                    _fadeThroughBuild(context, state, const DeviceHomeView()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.deviceClasses,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                    context, state, const DeviceClassesView()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.deviceAgenda,
+                pageBuilder: (context, state) =>
+                    _fadeThroughBuild(context, state, const DeviceAgendaView()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.deviceInbox,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                    context, state, const NotificationsInboxView()),
+              ),
+            ],
+          ),
+        ],
+      ),
+      GoRoute(
+        path: RouteNames.deviceClassDetail,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          DeviceClassDetailView(
+            classId: int.tryParse(state.pathParameters['classId'] ?? '') ?? 0,
+            enrollmentId:
+                int.tryParse(state.uri.queryParameters['enrollmentId'] ?? ''),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: RouteNames.deviceRequirement,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          DeviceRequirementView(
+            classId: int.tryParse(state.pathParameters['classId'] ?? '') ?? 0,
+            requirementId:
+                int.tryParse(state.pathParameters['requirementId'] ?? '') ?? 0,
+            enrollmentId:
+                int.tryParse(state.uri.queryParameters['enrollmentId'] ?? ''),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: RouteNames.deviceActivityDetail,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          DeviceActivityDetailView(
+            activityId:
+                int.tryParse(state.pathParameters['activityId'] ?? '') ?? 0,
+          ),
+        ),
       ),
 
       // Gate de aceptación legal (fuera del shell, no es ruta pública).

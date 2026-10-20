@@ -94,6 +94,21 @@ const _phase3aErrorCodes = [
   'FAMILY_FEATURE_DISABLED',
 ];
 
+/// Códigos nuevos de la Fase 3b (teléfono vinculado) que la app debe traducir
+/// en los 4 idiomas (FP3-34). Los dos grupos de nombres (spec y diseño) se
+/// traducen: el servidor puede usar cualquiera.
+const _phase3bErrorCodes = [
+  'AUTH_DEVICE_REVOKED',
+  'AUTH_DEVICE_SESSION_EXPIRED',
+  'DEVICE_PAIRING_TOKEN_INVALID',
+  'DEVICE_PAIRING_NOT_ELIGIBLE',
+  'DEVICE_LIMIT_REACHED',
+  'LINKED_DEVICE_LIMIT_REACHED',
+  'LINKED_DEVICE_AGE_OUT_OF_RANGE',
+  'DEVICE_NOT_FOUND',
+  'LINKED_DEVICE_NOT_FOUND',
+];
+
 void main() {
   final translations = {for (final l in _locales) l: _load(l)};
   final base = translations['es']!;
@@ -230,6 +245,57 @@ void main() {
           isTrue,
           reason: '$key missing in $locale',
         );
+      }
+    }
+  });
+
+  test('every Phase 3b error code has an errors.* translation in all locales',
+      () {
+    for (final code in _phase3bErrorCodes) {
+      final key = 'errors.${code.toLowerCase()}';
+      for (final locale in _locales) {
+        expect(
+          translations[locale]!.containsKey(key),
+          isTrue,
+          reason: '$key missing in $locale',
+        );
+      }
+    }
+  });
+
+  test('every device.* key used in lib exists in all locales', () {
+    final used = <String>{};
+    final pattern = RegExp(r"'(device\.[a-z_]+(?:\.[a-z_]+)*)'");
+    for (final entity in Directory('lib').listSync(recursive: true)) {
+      if (entity is! File || !entity.path.endsWith('.dart')) continue;
+      for (final m in pattern.allMatches(entity.readAsStringSync())) {
+        used.add(m.group(1)!);
+      }
+    }
+    expect(used.length, greaterThan(40));
+    for (final key in used) {
+      for (final locale in _locales) {
+        expect(
+          translations[locale]!.containsKey(key),
+          isTrue,
+          reason: '$key missing in $locale',
+        );
+      }
+    }
+  });
+
+  test('device.* placeholders match across locales', () {
+    final placeholder = RegExp(r'\{[a-z_]+\}');
+    for (final entry
+        in base.entries.where((e) => e.key.startsWith('device.'))) {
+      final expected =
+          placeholder.allMatches(entry.value).map((m) => m.group(0)).toSet();
+      for (final locale in _locales.skip(1)) {
+        final actual = placeholder
+            .allMatches(translations[locale]![entry.key]!)
+            .map((m) => m.group(0))
+            .toSet();
+        expect(actual, expected, reason: '${entry.key} in $locale');
       }
     }
   });

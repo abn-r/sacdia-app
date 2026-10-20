@@ -427,6 +427,27 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                         ),
                                       ),
                                     ),
+                                    const SizedBox(height: 12),
+                                    // Entrada del teléfono de un menor de 13:
+                                    // se vincula escaneando el QR de su tutor.
+                                    Center(
+                                      child: TextButton(
+                                        key:
+                                            const ValueKey('login_pair_device'),
+                                        onPressed: isLoading || socialInFlight
+                                            ? null
+                                            : () => context
+                                                .push(RouteNames.devicePair),
+                                        child: Text(
+                                          'device.pair.entry'.tr(),
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: context.sac.textSecondary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                     const SizedBox(height: 32),
                                   ],
                                 ),
