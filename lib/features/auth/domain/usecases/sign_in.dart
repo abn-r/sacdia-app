@@ -5,7 +5,7 @@ import '../../../../core/usecases/usecase.dart';
 import '../entities/user_entity.dart';
 import '../repositories/auth_repository.dart';
 
-/// Caso de uso para iniciar sesión con email y contraseña
+/// Caso de uso para iniciar sesión con correo o usuario (handle) y contraseña
 class SignIn implements UseCase<UserEntity, SignInParams> {
   final AuthRepository repository;
 
@@ -13,8 +13,8 @@ class SignIn implements UseCase<UserEntity, SignInParams> {
 
   @override
   Future<Either<Failure, UserEntity>> call(SignInParams params) {
-    return repository.signInWithEmailAndPassword(
-      email: params.email,
+    return repository.signInWithIdentifier(
+      identifier: params.identifier,
       password: params.password,
     );
   }
@@ -22,14 +22,16 @@ class SignIn implements UseCase<UserEntity, SignInParams> {
 
 /// Parámetros para el caso de uso SignIn
 class SignInParams extends Equatable {
-  final String email;
+  /// Correo electrónico o usuario (handle) tal como lo escribió la persona,
+  /// sin validar formato: el servidor decide cuál es (FP3-08).
+  final String identifier;
   final String password;
 
   const SignInParams({
-    required this.email,
+    required this.identifier,
     required this.password,
   });
 
   @override
-  List<Object> get props => [email, password];
+  List<Object> get props => [identifier, password];
 }

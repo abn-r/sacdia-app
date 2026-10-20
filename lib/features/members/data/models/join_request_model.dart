@@ -82,6 +82,14 @@ class JoinRequestModel extends JoinRequest {
       guardianshipId: map['guardianship_id']?.toString(),
       status: JoinRequestConsentStatus.parse(map['status']),
       evidenceUploaded: map['evidence_uploaded'] == true,
+      dependent: map['dependent'] != false,
+      guardianLinked: map['guardian_linked'] is bool
+          ? map['guardian_linked'] as bool
+          : null,
+      viewerCanVerify: map['viewer_can_verify'] is bool
+          ? map['viewer_can_verify'] as bool
+          : null,
+      viewerVerifyBlock: ConsentVerifyBlock.parse(map['viewer_verify_block']),
       guardians: guardians is List
           ? guardians.whereType<Map>().map((g) {
               final guardian = Map<String, dynamic>.from(g);

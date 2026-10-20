@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'supervised_login.dart';
+
 /// Estado del consentimiento de una tutoría que el cliente puede ver.
 ///
 /// El servidor nunca devuelve `revoked` en estos endpoints (una tutoría
@@ -13,6 +15,10 @@ enum GuardianConsentStatus {
       raw == 'verified' ? verified : pending;
 }
 
+/// Edad (exclusiva) desde la que ya no se vinculan teléfonos nuevos: 13, la
+/// edad mínima de acceso propio (ruling #11591, confirmado por el backend).
+const int kLinkedDeviceMaxAge = 13;
+
 /// Qué pasa con un menor cuando su tutor sale o borra la cuenta.
 enum DependentOutcome {
   /// Queda otro tutor activo.
@@ -22,11 +28,17 @@ enum DependentOutcome {
   clubCustody,
 
   /// Sin tutor ni club: se congela y se borra a los 90 días.
-  frozen;
+  frozen,
+
+  /// Menor CON cuenta propia (adolescente) que se queda sin tutor: no se
+  /// congela, vuelve al modo restringido y tiene 90 días para vincular a otro
+  /// tutor (FP3-37).
+  pendingGuardian;
 
   static DependentOutcome parse(Object? raw) => switch (raw) {
         'other_guardian' => otherGuardian,
         'club_custody' => clubCustody,
+        'pending_guardian' => pendingGuardian,
         _ => frozen,
       };
 }
@@ -99,6 +111,20 @@ class DependentClubMembership extends Equatable {
       [assignmentId, status, clubSectionId, clubName, clubTypeName];
 }
 
+/// Cómo entra el menor a la app (calculado por el servidor).
+enum AccessMode {
+  /// Sin cuenta: el tutor actúa por él (o, a futuro, un teléfono vinculado).
+  guardianManaged,
+
+  /// Con acceso propio (usuario o correo + contraseña): el tutor lo supervisa.
+  supervisedLogin;
+
+  /// Un valor ausente o desconocido es el modo más restrictivo del lado del
+  /// tutor: sin acceso propio (el tutor puede actuar).
+  static AccessMode parse(Object? raw) =>
+      raw == 'supervised_login' ? supervisedLogin : guardianManaged;
+}
+
 /// Menor sin cuenta, tal como lo ve su tutor (`DependentSummary`).
 class DependentSummary extends Equatable {
   final String userId;
@@ -116,6 +142,18 @@ class DependentSummary extends Equatable {
   final DependentGuardianship guardianship;
   final DependentClubMembership? clubMembership;
 
+  /// `guardian_managed` o `supervised_login` (FP3-33).
+  final AccessMode accessMode;
+
+  /// Acceso propio del menor (nulo si nunca se activó).
+  final SupervisedLoginInfo? supervisedLogin;
+
+  /// Teléfonos vinculados activos (fase 3b).
+  final int linkedDevicesCount;
+
+  /// Ya cumplió la edad mínima de acceso propio y todavía no lo tiene.
+  final bool ageMilestoneReached;
+
   const DependentSummary({
     required this.userId,
     required this.guardianship,
@@ -128,7 +166,33 @@ class DependentSummary extends Equatable {
     this.postRegisterComplete = false,
     this.frozen = false,
     this.clubMembership,
+    this.accessMode = AccessMode.guardianManaged,
+    this.supervisedLogin,
+    this.linkedDevicesCount = 0,
+    this.ageMilestoneReached = false,
   });
+
+  /// El menor entra con su propio acceso activo (el tutor ya no actúa por él).
+  bool get hasActiveOwnLogin =>
+      accessMode == AccessMode.supervisedLogin &&
+      !(supervisedLogin?.isDisabled ?? false);
+
+  /// Se puede ofrecer vincular un teléfono NUEVO a este menor (FP3-41): el
+  /// tutor tiene el consentimiento verificado, el menor no está congelado, no
+  /// tiene acceso propio y todavía no llegó a la edad de acceso propio (un
+  /// teléfono se vincula solo por debajo de ella, ruling #11591). El servidor
+  /// vuelve a validar todo; esto solo evita ofrecer un botón que daría 422.
+  bool get canPairDevice {
+    final years = age;
+    return guardianship.isVerified &&
+        !frozen &&
+        accessMode == AccessMode.guardianManaged &&
+        !ageMilestoneReached &&
+        // El motivo de un 422 DEVICE_PAIRING_NOT_ELIGIBLE no se expone: la
+        // elegibilidad se deduce aquí (menor de 13 y sin acceso propio). Con la
+        // edad desconocida manda `ageMilestoneReached`, que calcula el servidor.
+        (years == null || years < kLinkedDeviceMaxAge);
+  }
 
   /// Nombre de pila para el banner y el selector. Nunca vacío.
   String get firstName {
@@ -146,7 +210,10 @@ class DependentSummary extends Equatable {
   }
 
   /// Se puede ver como este menor desde el selector de perfiles.
-  bool get canActAs => !frozen;
+  ///
+  /// Con acceso propio activo el servidor ya no deja actuar por él (403
+  /// `ACTING_FOR_FORBIDDEN`): no aparece en el selector ni en los push.
+  bool get canActAs => !frozen && !hasActiveOwnLogin;
 
   @override
   List<Object?> get props => [
@@ -161,6 +228,10 @@ class DependentSummary extends Equatable {
         frozen,
         guardianship,
         clubMembership,
+        accessMode,
+        supervisedLogin,
+        linkedDevicesCount,
+        ageMilestoneReached,
       ];
 }
 

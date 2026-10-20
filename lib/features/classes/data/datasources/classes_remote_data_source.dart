@@ -124,7 +124,13 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     if (e is DioException) {
       if (e.type == DioExceptionType.cancel) throw e;
       final msg = _extractDioMessage(e);
-      throw ServerException(message: msg, code: e.response?.statusCode);
+      throw ServerException(
+        message: msg,
+        code: e.response?.statusCode,
+        // El `code` de negocio viaja hasta la UI (p. ej. el teléfono vinculado
+        // mapea `PRINCIPAL_SCOPE_DENIED`); `details` jamás se lee.
+        errorCode: _extractDioCode(e),
+      );
     }
     if (e is ServerException || e is AuthException) throw e;
     throw ServerException(message: e.toString());

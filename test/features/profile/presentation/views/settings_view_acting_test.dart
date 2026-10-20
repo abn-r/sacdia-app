@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sacdia_app/core/auth/acting_for_session.dart';
+import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
+import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/profile/presentation/views/settings_view.dart';
 import 'package:sacdia_app/providers/storage_provider.dart';
@@ -27,7 +29,11 @@ void main() {
     );
   });
 
-  Future<void> pump(WidgetTester tester, {required bool acting}) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    required bool acting,
+    UserEntity? user,
+  }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     tester.view.physicalSize = const Size(800, 6000);
@@ -40,7 +46,9 @@ void main() {
     await pumpFamilyApp(
       tester,
       overrides: [
-        authNotifierProvider.overrideWith(() => FakeAuthNotifier()),
+        authNotifierProvider.overrideWith(
+          () => user == null ? FakeAuthNotifier() : FakeAuthNotifier(user),
+        ),
         actingForSessionProvider.overrideWithValue(session),
         sharedPreferencesProvider.overrideWithValue(prefs),
       ],
@@ -76,5 +84,40 @@ void main() {
     // El resto de Ajustes sigue disponible.
     expect(find.text('profile.settings.logout_tile'.tr()), findsOneWidget);
     expect(find.text('settings.member_qr'.tr()), findsOneWidget);
+  });
+
+  group('supervised teen (FP3-32)', () {
+    const teen = UserEntity(
+      id: 'teen-1',
+      name: 'Ana',
+      postRegisterComplete: true,
+      serverMode: AccountMode.teenSupervised,
+    );
+
+    testWidgets(
+        'no sessions, data export, delete account or club change; the '
+        'password stays', (tester) async {
+      await pump(tester, acting: false, user: teen);
+
+      for (final key in [
+        'settings.active_sessions',
+        'settings.download_my_data',
+        'profile.settings.delete_account_tile',
+        'profile.settings.change_club_tile',
+      ]) {
+        expect(find.text(key.tr()), findsNothing, reason: key);
+      }
+      expect(find.text('settings.change_password'.tr()), findsOneWidget);
+      expect(find.text('profile.settings.logout_tile'.tr()), findsOneWidget);
+    });
+
+    testWidgets('an adult still sees the club change', (tester) async {
+      await pump(tester, acting: false);
+
+      expect(
+        find.text('profile.settings.change_club_tile'.tr()),
+        findsOneWidget,
+      );
+    });
   });
 }

@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:sacdia_app/core/analytics/posthog_analytics.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/features/activities/presentation/views/activities_list_view.dart';
@@ -91,7 +90,14 @@ import 'package:sacdia_app/features/rankings/presentation/screens/club_rankings_
 import 'package:sacdia_app/features/rankings/presentation/screens/section_ranking_screen.dart';
 
 import '../auth/acting_for_session.dart';
+import '../analytics/analytics_policy.dart';
+import '../analytics/posthog_analytics.dart'
+    show createPosthogNavigatorObserver;
 import 'acting_route_policy.dart';
+import 'device_pair_link.dart';
+import 'device_route_policy.dart';
+import 'pending_navigation.dart';
+import 'supervised_route_policy.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/providers/logout_cleanup.dart';
 import '../providers/app_bootstrap_provider.dart';
@@ -101,9 +107,24 @@ import '../../features/auth/presentation/views/forgot_password_view.dart';
 import '../../features/auth/presentation/views/login_view.dart';
 import '../../features/auth/presentation/views/register_view.dart';
 import '../../features/auth/presentation/views/splash_view.dart';
+import '../../features/teen/presentation/views/teen_pending_home_view.dart';
+import '../../features/device_mode/presentation/providers/device_notice_provider.dart';
+import '../../features/device_mode/presentation/views/device_activity_detail_view.dart';
+import '../../features/device_mode/presentation/views/device_agenda_view.dart';
+import '../../features/device_mode/presentation/views/device_blocked_views.dart';
+import '../../features/device_mode/presentation/views/device_class_detail_view.dart';
+import '../../features/device_mode/presentation/views/device_classes_view.dart';
+import '../../features/device_mode/presentation/views/device_home_view.dart';
+import '../../features/device_mode/presentation/views/device_requirement_view.dart';
+import '../../features/device_mode/presentation/views/device_shell.dart';
+import '../../features/device_mode/presentation/views/pair_device_view.dart';
+import '../../features/auth/presentation/views/restricted_account_view.dart';
 import '../../features/family/presentation/views/add_dependent_view.dart';
 import '../../features/family/presentation/views/dependent_detail_view.dart';
+import '../../features/family/presentation/views/enable_teen_login_wizard.dart';
 import '../../features/family/presentation/views/family_view.dart';
+import '../../features/family/presentation/views/guardian_summary_view.dart';
+import '../../features/family/presentation/views/pairing_qr_view.dart';
 import '../../features/family/presentation/views/redeem_link_code_view.dart';
 import '../../features/auth/presentation/views/welcome_carousel_view.dart';
 import '../../features/legal/presentation/views/legal_acceptance_view.dart';
@@ -167,9 +188,15 @@ final routerProvider = Provider<GoRouter>((ref) {
   var wasAuthenticated = ref.read(authNotifierProvider).valueOrNull != null;
 
   final initialUser = ref.read(authNotifierProvider).valueOrNull;
-  // Nunca se identifica a un dependiente en analítica (FP-49).
-  if (initialUser != null && !ref.read(actingForSessionProvider).isActing) {
-    unawaited(identifyAnalyticsUser(initialUser.id));
+  // La política decide quién se identifica en analítica: nunca un dependiente
+  // (FP-49), un adolescente supervisado ni un teléfono vinculado (FP3-30).
+  if (initialUser != null) {
+    unawaited(
+      ref.read(analyticsPolicyProvider).apply(
+            initialUser,
+            acting: ref.read(actingForSessionProvider).isActing,
+          ),
+    );
   }
 
   final router = GoRouter(
@@ -186,6 +213,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isLoggedIn = user != null;
       final currentPath = state.matchedLocation;
       final bootstrapAsync = ref.read(appBootstrapProvider);
+
+      // Enlace `sacdia://pair?t=<token>` (QR leído con la cámara del sistema):
+      // el token se guarda SOLO en memoria y se sigue por splash, para que
+      // sobreviva a la carga de la sesión. Nunca se vuelve a poner en una
+      // ruta (ni se registra). Un push o enlace que llegue con la sesión
+      // cargando se perdería de otro modo (lección de la Fase 2).
+      final linkedToken = pairingTokenFromUri(state.uri);
+      if (linkedToken != null) {
+        ref.read(pairingLinkProvider.notifier).state = linkedToken;
+        return RouteNames.splash;
+      }
 
       // Rutas públicas que no requieren autenticación
       const publicRoutes = [
@@ -259,15 +297,42 @@ final routerProvider = Provider<GoRouter>((ref) {
       // gate returns null for itself (no loop) and is left only once
       // `legalAcceptancePending` is false.
       if (isLoggedIn && userNeedsLegalAcceptance(user)) {
+        // Un teléfono vinculado no puede aceptar términos (no tiene
+        // `legal:accept`): ve un bloqueo que pide a su tutor revisarlos.
+        if (user.isLinkedDevice) {
+          return currentPath == RouteNames.deviceLegalBlock
+              ? null
+              : RouteNames.deviceLegalBlock;
+        }
         return currentPath == RouteNames.legalAcceptance
             ? null
             : RouteNames.legalAcceptance;
       }
       if (currentPath == RouteNames.legalAcceptance) {
         if (!isLoggedIn) return RouteNames.login;
-        return userNeedsPostRegistration(user)
-            ? RouteNames.postRegistration
-            : RouteNames.homeDashboard;
+        return accountHomeFor(
+          user.mode,
+          needsPostRegistration: userNeedsPostRegistration(user),
+        );
+      }
+
+      // Un enlace de vinculación recibido mientras la app arrancaba llega a la
+      // pantalla de vinculación. Con una sesión de cuenta la pantalla se
+      // muestra igual, pero solo para negarse («cierra sesión primero») y sin
+      // llamar a la API.
+      if (ref.read(pairingLinkProvider) != null &&
+          currentPath != RouteNames.devicePair &&
+          (currentPath == RouteNames.splash || isPublicRoute) &&
+          !(isLoggedIn && user.isLinkedDevice)) {
+        return RouteNames.devicePair;
+      }
+
+      // Un teléfono que perdió su vinculación vuelve a la pantalla de
+      // vinculación (con su aviso), no al login de cuentas.
+      if (!isLoggedIn &&
+          ref.read(deviceNoticeProvider) != null &&
+          currentPath != RouteNames.devicePair) {
+        return RouteNames.devicePair;
       }
 
       // Splash es transitorio: una vez que la carga terminó, siempre salir.
@@ -283,10 +348,22 @@ final routerProvider = Provider<GoRouter>((ref) {
             welcomeCarouselSeen: ref.read(welcomeCarouselSeenProvider),
           );
         }
-        if (userNeedsPostRegistration(user)) {
-          return RouteNames.postRegistration;
-        }
-        return RouteNames.homeDashboard;
+        // Adolescente sin tutor verificado: su pantalla de estado, sin rebote
+        // por el inicio. Cuenta sin fecha de nacimiento: el post-registro.
+        // Principal desconocido: su pantalla informativa.
+        return accountHomeFor(
+          user.mode,
+          needsPostRegistration: userNeedsPostRegistration(user),
+        );
+      }
+
+      // Pantalla de vinculación: pública para quien no tiene sesión.
+      if (currentPath == RouteNames.devicePair) {
+        if (!isLoggedIn) return null;
+        // Ya vinculado: no hay nada que vincular. Una cuenta la abre solo para
+        // ver la negativa (sin llamadas a la API).
+        if (user.isLinkedDevice) return RouteNames.deviceHome;
+        return null;
       }
 
       // Sin usuario autenticado → login
@@ -300,9 +377,33 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Usuario autenticado en ruta pública → destino home compartido.
       if (isPublicRoute) {
-        if (needsPostRegistration) return RouteNames.postRegistration;
-        return RouteNames.homeDashboard;
+        return accountHomeFor(
+          user.mode,
+          needsPostRegistration: needsPostRegistration,
+        );
       }
+
+      // Teléfono vinculado de un menor: lista blanca estricta (FP3-52). Va
+      // primero y NO sigue: nunca entra al post-registro (un registro
+      // incompleto va a su pantalla informativa), ni a "actuar por", ni a la
+      // regla del pastor.
+      if (user.isLinkedDevice) {
+        return deviceRouteRedirect(
+          path: currentPath,
+          legalPending: false,
+          needsRegistration: needsPostRegistration,
+        );
+      }
+
+      // Adolescente supervisado: pendiente = lista blanca, con tutor = lista
+      // negra (FP3-31/32). Va antes que "actuar por" y que el post-registro
+      // (un adolescente pendiente sin post-registro va a los pasos 1-3).
+      final supervisedTarget = supervisedRouteRedirect(
+        mode: user.mode,
+        path: currentPath,
+        needsPostRegistration: needsPostRegistration,
+      );
+      if (supervisedTarget != null) return supervisedTarget;
 
       // Mientras se actúa por un menor, Mi familia no existe (se gestiona desde
       // el perfil propio del tutor): también por enlace profundo.
@@ -371,6 +472,119 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: RouteNames.postRegistration,
         pageBuilder: (context, state) =>
             _slideUpBuild(context, state, const PostRegistrationShell()),
+      ),
+
+      // Estado del modo restringido de un adolescente sin tutor verificado.
+      GoRoute(
+        path: RouteNames.teenPendingHome,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const TeenPendingHomeView()),
+      ),
+
+      // Cuenta con un principal desconocido: falla cerrado en una pantalla
+      // informativa.
+      GoRoute(
+        path: RouteNames.restrictedAccount,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const RestrictedAccountView()),
+      ),
+
+      // Teléfono vinculado de un menor de 13 (Fase 3b). La pantalla de
+      // vinculación es pública para quien no tiene sesión; el resto solo lo abre
+      // la sesión de un dispositivo (ver `device_route_policy.dart`).
+      GoRoute(
+        path: RouteNames.devicePair,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const PairDeviceView()),
+      ),
+      GoRoute(
+        path: RouteNames.deviceLegalBlock,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const DeviceLegalBlockView()),
+      ),
+      GoRoute(
+        path: RouteNames.deviceRegistrationPending,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+            context, state, const DeviceRegistrationPendingView()),
+      ),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            DeviceShell(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.deviceHome,
+                pageBuilder: (context, state) =>
+                    _fadeThroughBuild(context, state, const DeviceHomeView()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.deviceClasses,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                    context, state, const DeviceClassesView()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.deviceAgenda,
+                pageBuilder: (context, state) =>
+                    _fadeThroughBuild(context, state, const DeviceAgendaView()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.deviceInbox,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                    context, state, const NotificationsInboxView()),
+              ),
+            ],
+          ),
+        ],
+      ),
+      GoRoute(
+        path: RouteNames.deviceClassDetail,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          DeviceClassDetailView(
+            classId: int.tryParse(state.pathParameters['classId'] ?? '') ?? 0,
+            enrollmentId:
+                int.tryParse(state.uri.queryParameters['enrollmentId'] ?? ''),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: RouteNames.deviceRequirement,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          DeviceRequirementView(
+            classId: int.tryParse(state.pathParameters['classId'] ?? '') ?? 0,
+            requirementId:
+                int.tryParse(state.pathParameters['requirementId'] ?? '') ?? 0,
+            enrollmentId:
+                int.tryParse(state.uri.queryParameters['enrollmentId'] ?? ''),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: RouteNames.deviceActivityDetail,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          DeviceActivityDetailView(
+            activityId:
+                int.tryParse(state.pathParameters['activityId'] ?? '') ?? 0,
+          ),
+        ),
       ),
 
       // Gate de aceptación legal (fuera del shell, no es ruta pública).
@@ -1442,8 +1656,70 @@ final routerProvider = Provider<GoRouter>((ref) {
               dependentId: state.pathParameters['dependentId']!),
         ),
       ),
+      GoRoute(
+        path: RouteNames.familyTeenLogin,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          EnableTeenLoginWizard(
+              dependentId: state.pathParameters['dependentId']!),
+        ),
+      ),
+      GoRoute(
+        path: RouteNames.familyPairDevice,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          PairingQrView(dependentId: state.pathParameters['dependentId']!),
+        ),
+      ),
+      GoRoute(
+        path: RouteNames.familySummary,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          GuardianSummaryView(
+              dependentId: state.pathParameters['dependentId']!),
+        ),
+      ),
     ],
   );
+
+  // Entrega el destino diferido (push tocado mientras la app cargaba) cuando el
+  // router ya puede recibirlo: sesión lista, arranque validado y fuera de
+  // splash. Si la política del modo vigente no lo permite, se descarta (el
+  // redirect lo habría rebotado). Sin usuario no hay a quién entregarlo.
+  void deliverPendingNavigation() {
+    final pending = ref.read(pendingNavigationProvider);
+    if (pending == null) return;
+    final authState = ref.read(authNotifierProvider);
+    if (authState.isLoading) return;
+    final user = authState.valueOrNull;
+    if (user == null) {
+      ref.read(pendingNavigationProvider.notifier).state = null;
+      return;
+    }
+    final bootstrap = ref.read(appBootstrapProvider);
+    if (bootstrap.isLoading || bootstrap.valueOrNull is! AppBootstrapReady) {
+      return;
+    }
+    final location = currentRouterLocation(router);
+    if (location == null || location == RouteNames.splash) return;
+
+    ref.read(pendingNavigationProvider.notifier).state = null;
+    if (!isPendingNavigationAllowed(
+      user: user,
+      route: pending.route,
+      acting: ref.read(actingForSessionProvider).isActing,
+    )) {
+      return;
+    }
+    if (pending.replace) {
+      router.go(pending.route);
+    } else {
+      router.push(pending.route);
+    }
+  }
 
   // Listen to auth state changes and refresh the router so the redirect
   // callback re-evaluates with the latest state. This replaces the previous
@@ -1452,24 +1728,33 @@ final routerProvider = Provider<GoRouter>((ref) {
   ref.listen<AsyncValue<dynamic>>(authNotifierProvider, (_, next) {
     final user = next.valueOrNull;
 
-    if (user != null) {
+    if (user is UserEntity) {
       wasAuthenticated = true;
-      final userId = user.id;
       // Mientras se actúa por un dependiente, la analítica sigue con el tutor.
-      if (userId is String && !ref.read(actingForSessionProvider).isActing) {
-        unawaited(identifyAnalyticsUser(userId));
-      }
+      unawaited(
+        ref.read(analyticsPolicyProvider).apply(
+              user,
+              acting: ref.read(actingForSessionProvider).isActing,
+            ),
+      );
     } else if (wasAuthenticated && !next.isLoading) {
       clearUserStateOnLogout(ref);
       wasAuthenticated = false;
     }
 
     router.refresh();
+    deliverPendingNavigation();
   });
 
   ref.listen<AsyncValue<AppBootstrapState>>(appBootstrapProvider, (_, __) {
     router.refresh();
+    deliverPendingNavigation();
   });
+
+  // Cada cambio de ruta (p. ej. salir de splash tras el redirect) es otra
+  // oportunidad de entregar el destino diferido.
+  // El delegate muere con el router, así que no hace falta quitar el oyente.
+  router.routerDelegate.addListener(deliverPendingNavigation);
 
   return router;
 });

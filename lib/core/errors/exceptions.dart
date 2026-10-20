@@ -49,11 +49,16 @@ class CacheException extends AppException {
 
 // Excepciones de autenticación
 class AuthException extends AppException {
+  /// Segundos que indicó el encabezado `Retry-After` (bloqueo de login, 429).
+  /// Nunca sale del cuerpo del error: ahí vive `details`, que no se lee.
+  final int? retryAfterSeconds;
+
   AuthException({
     required super.message,
     super.code,
     super.errorCode,
     super.stackTrace,
+    this.retryAfterSeconds,
   });
 }
 

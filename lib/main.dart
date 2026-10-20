@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -12,7 +14,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'core/analytics/pairing_redaction.dart';
 import 'core/analytics/posthog_analytics.dart';
+import 'core/auth/session_mode.dart';
 import 'core/config/cache_config.dart';
 import 'core/l10n/sunday_first_material_localizations.dart';
 import 'core/config/router.dart';
@@ -25,11 +29,13 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/utils/app_logger.dart';
 import 'features/accessibility/presentation/providers/accessibility_provider.dart';
+import 'features/auth/presentation/providers/auth_providers.dart';
 import 'features/auth/presentation/widgets/acting_notice_listener.dart';
 import 'features/biometric/presentation/widgets/biometric_gate.dart';
 import 'features/family/presentation/widgets/acting_for_banner.dart';
 import 'features/family/presentation/widgets/family_prompt_host.dart';
 import 'features/home_widgets/data/next_activity_widget_bridge.dart';
+import 'features/teen/presentation/widgets/supervision_info_notice_host.dart';
 import 'features/home_widgets/presentation/next_activity_widget_launch.dart';
 import 'features/certifications/data/local/certification_draft_local_data_source.dart';
 import 'firebase_options.dart';
@@ -55,6 +61,9 @@ const _sensitiveFields = <String>{
   'refreshToken',
   'access_token',
   'accessToken',
+  // Token de un solo uso del QR de vinculación (FP3-51).
+  'pairing_token',
+  'pairingToken',
   // Medical
   'blood',
   'birthday',
@@ -136,6 +145,7 @@ SentryEvent? _scrubEvent(SentryEvent event, Hint hint) {
     for (final crumb in breadcrumbs) {
       _scrubMapRecursive(crumb.data, _sensitiveHeaders);
       _scrubMapRecursive(crumb.data, _sensitiveFields);
+      redactPairingBreadcrumb(crumb);
     }
   }
 
@@ -176,10 +186,19 @@ Future<void> main() async {
       options.sendDefaultPii = false;
       options.debug = kDebugMode;
       options.beforeSend = _scrubEvent;
+      // El token de un enlace de vinculación (`sacdia://pair?t=...`) nunca
+      // llega a un breadcrumb (FP3-51).
+      options.beforeBreadcrumb =
+          (crumb, hint) => redactPairingBreadcrumb(crumb);
     },
     appRunner: () async {
       // Aseguramos que las dependencias de Flutter estén inicializadas
       WidgetsFlutterBinding.ensureInitialized();
+      // Teléfono vinculado de un menor de 13: PostHog ni se inicializa
+      // (privacidad §6.1, FP3-52). FCM sí se inicializa más adelante.
+      if (await readPersistedSessionMode() == SessionMode.device) {
+        blockAnalyticsForDevice();
+      }
       await setupPosthog();
       _configureDebugPerformanceFlags();
       // EasyLocalization lee los catálogos en assets/translations/* y expone
@@ -320,6 +339,12 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   /// arrived while the app was backgrounded and were staged to SharedPreferences.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Un adolescente cuyo tutor se verificó (o se fue) mientras la app estaba
+      // en segundo plano cambia de pantalla sin reiniciar. No hace nada para
+      // adultos ni mientras se actúa por un menor.
+      unawaited(ref.read(authNotifierProvider.notifier).refreshSupervision());
+    }
     if (state == AppLifecycleState.resumed &&
         RealtimeFeatureFlags.realtimeInvalidationEnabled) {
       RealtimeInvalidationHandler.drainPending(RealtimeRef.fromWidgetRef(ref));
@@ -398,9 +423,12 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
               child: ActingNoticeListener(
                 // Banner "Viendo como {nombre}" sobre TODO el navegador.
                 child: FamilyPromptHost(
-                  child: ActingForBannerHost(
-                    child: BiometricGate(
-                      child: child ?? const SizedBox.shrink(),
+                  // Nota de transparencia del adolescente con tutor (una vez).
+                  child: SupervisionInfoNoticeHost(
+                    child: ActingForBannerHost(
+                      child: BiometricGate(
+                        child: child ?? const SizedBox.shrink(),
+                      ),
                     ),
                   ),
                 ),

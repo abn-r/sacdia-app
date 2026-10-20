@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/errors/exceptions.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/auth/domain/entities/acting_for_info.dart';
+import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/post_registration/data/datasources/club_selection_remote_data_source.dart';
@@ -239,6 +240,72 @@ void main() {
     expect(auth.markCalls, 0);
   });
 
+  group('is hidden for any principal that is not an adult', () {
+    UserEntity user({
+      required PrincipalInfo principal,
+      AccountMode? mode,
+    }) =>
+        UserEntity(
+          id: 'u-1',
+          postRegisterComplete: false,
+          principal: principal,
+          serverMode: mode,
+        );
+
+    const teenPending = PrincipalInfo(
+      kind: PrincipalKind.supervisedUser,
+      supervision: SupervisionInfo(status: SupervisionStatus.pendingGuardian),
+    );
+    const teenActive = PrincipalInfo(
+      kind: PrincipalKind.supervisedUser,
+      supervision: SupervisionInfo(status: SupervisionStatus.active),
+    );
+
+    final cases = <String, UserEntity>{
+      'teen_pending':
+          user(principal: teenPending, mode: AccountMode.teenPending),
+      'teen_supervised':
+          user(principal: teenActive, mode: AccountMode.teenSupervised),
+      'profile_incomplete': user(
+        principal: const PrincipalInfo(kind: PrincipalKind.ageUnknownUser),
+        mode: AccountMode.profileIncomplete,
+      ),
+      'unknown principal':
+          user(principal: const PrincipalInfo(kind: PrincipalKind.unknown)),
+      'a non-user kind even if the mode says adult': user(
+        principal: const PrincipalInfo(kind: PrincipalKind.linkedDevice),
+        mode: AccountMode.adult,
+      ),
+    };
+
+    for (final entry in cases.entries) {
+      testWidgets(entry.key, (tester) async {
+        await pump(
+          tester,
+          auth: _RecordingAuth(entry.value),
+          ds: _FakeClubDataSource(),
+        );
+
+        expect(find.text('Solo soy tutor de menores'), findsNothing);
+        expect(find.byType(SacButton), findsNothing);
+      });
+    }
+
+    testWidgets('an adult with the user principal still sees it',
+        (tester) async {
+      await pump(
+        tester,
+        auth: _RecordingAuth(user(
+          principal: const PrincipalInfo(kind: PrincipalKind.user),
+          mode: AccountMode.adult,
+        )),
+        ds: _FakeClubDataSource(),
+      );
+
+      expect(find.text('Solo soy tutor de menores'), findsOneWidget);
+    });
+  });
+
   testWidgets('is hidden while acting for a dependent (session)',
       (tester) async {
     final session = ActingForSession()
@@ -310,6 +377,81 @@ void main() {
       await pumpStep(tester, isClubTransfer: false, session: session);
 
       expect(find.text('Solo soy tutor de menores'), findsNothing);
+    });
+
+    group('consent form upload while acting (FP3-27)', () {
+      const actingUser = UserEntity(
+        id: 'ana-1',
+        name: 'Ana',
+        postRegisterComplete: false,
+        actingFor: ActingForInfo(
+          actorUserId: 'guardian-1',
+          dependentUserId: 'ana-1',
+          consentStatus: 'pending',
+          scopes: ['self:read', 'registration:write', 'consent:evidence'],
+        ),
+      );
+
+      Future<void> pumpActing(
+        WidgetTester tester, {
+        required bool isClubTransfer,
+        UserEntity user = actingUser,
+      }) async {
+        final session = ActingForSession()
+          ..enter(const ActingDependent(userId: 'ana-1', firstName: 'Ana'));
+        await pump(
+          tester,
+          auth: _RecordingAuth(user),
+          ds: _FakeClubDataSource(),
+          session: session,
+          child: Scaffold(
+            body: ClubSelectionStepView(isClubTransfer: isClubTransfer),
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      const card = ValueKey('acting_consent_form_card');
+
+      testWidgets('step 3 offers the form while acting with the scope',
+          (tester) async {
+        await pumpActing(tester, isClubTransfer: false);
+        await tester.scrollUntilVisible(
+          find.byKey(card),
+          300,
+          scrollable: find.byType(Scrollable).first,
+        );
+
+        expect(find.byKey(card), findsOneWidget);
+      });
+
+      testWidgets('not for a club transfer', (tester) async {
+        await pumpActing(tester, isClubTransfer: true);
+        expect(find.byKey(card), findsNothing);
+      });
+
+      testWidgets('not without the server scope', (tester) async {
+        await pumpActing(
+          tester,
+          isClubTransfer: false,
+          user: const UserEntity(
+            id: 'ana-1',
+            postRegisterComplete: false,
+            actingFor: ActingForInfo(
+              actorUserId: 'guardian-1',
+              dependentUserId: 'ana-1',
+              consentStatus: 'pending',
+              scopes: ['self:read'],
+            ),
+          ),
+        );
+        expect(find.byKey(card), findsNothing);
+      });
+
+      testWidgets('not when the guardian is not acting', (tester) async {
+        await pumpStep(tester, isClubTransfer: false);
+        expect(find.byKey(card), findsNothing);
+      });
     });
   });
 }

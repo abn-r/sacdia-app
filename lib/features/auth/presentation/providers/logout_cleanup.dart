@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/analytics/posthog_analytics.dart';
+import '../../../../core/config/device_pair_link.dart';
+import '../../../../core/config/pending_navigation.dart';
 import '../../../../core/auth/acting_for_session.dart';
 import '../../../../core/providers/app_bootstrap_provider.dart';
 import '../../../../core/storage/image_cache_purge.dart';
@@ -14,6 +16,7 @@ import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../family/presentation/widgets/family_prompt_host.dart';
 import '../../../home_widgets/next_activity_widget_sync.dart';
 import '../../../post_registration/data/health_none_disk_cache.dart';
+import '../../../teen/presentation/widgets/supervision_info_notice_host.dart';
 import '../../../virtual_card/data/virtual_card_disk_cache.dart';
 import 'acting_providers.dart';
 import 'profile_scope_purge.dart';
@@ -55,10 +58,20 @@ void clearUserStateOnLogout(Ref ref) {
   ref.read(actingForSessionProvider).exit();
   ref.read(guardianUserProvider.notifier).state = null;
   ref.read(actingNoticeProvider.notifier).state = null;
+  // Un push que esperaba la sesión de la persona anterior no se entrega a la
+  // siguiente.
+  ref.read(pendingNavigationProvider.notifier).state = null;
+  // Un enlace de vinculación sin canjear tampoco sobrevive a la sesión.
+  ref.read(pairingLinkProvider.notifier).state = null;
   unawaited(
     ref.read(sharedPreferencesProvider).setBool(kActingDirtyPrefsKey, false),
   );
   purgeProfileScopeProviders(ref);
+  // La nota de transparencia del adolescente vuelve a mostrarse a la persona
+  // siguiente de este teléfono.
+  unawaited(
+    ref.read(sharedPreferencesProvider).remove(kSupervisionInfoSeenPrefsKey),
+  );
   // Bandera de un solo uso del tutor: no es del registro de perfil (no debe
   // reiniciarse al cambiar de perfil) pero un segundo usuario del mismo proceso
   // no puede heredarla.

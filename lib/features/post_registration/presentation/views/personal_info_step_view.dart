@@ -11,6 +11,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
+import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/profile/presentation/widgets/blood_type_selector.dart';
 import '../providers/personal_info_providers.dart';
@@ -118,6 +119,13 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
     final hPad = Responsive.horizontalPadding(context);
     // Tutor actuando por un menor: el texto pasa a tercera persona.
     final actingName = actingCopyName(ref);
+    // Un adolescente supervisado no puede cambiar su fecha de nacimiento: solo
+    // su tutor. Se muestra en solo lectura.
+    final birthdayLocked = ref.watch(
+      authNotifierProvider.select(
+        (v) => v.valueOrNull?.principal?.kind == PrincipalKind.supervisedUser,
+      ),
+    );
 
     return Form(
       key: _formKey,
@@ -225,8 +233,19 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
               label: tr('post_registration.personal_info.birth.label'),
               icon: HugeIcons.strokeRoundedBirthdayCake,
               date: formState.birthdate,
-              onTap: () => _selectBirthdate(context),
+              onTap: birthdayLocked ? null : () => _selectBirthdate(context),
+              locked: birthdayLocked,
             ),
+            if (birthdayLocked) ...[
+              const SizedBox(height: 6),
+              Text(
+                'post_registration.personal_info.birth.read_only_hint'.tr(),
+                key: const ValueKey('birthday_read_only_hint'),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: context.sac.textSecondary,
+                    ),
+              ),
+            ],
             const SizedBox(height: 16),
             SacCard(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -760,13 +779,17 @@ class _DatePickerCard extends StatelessWidget {
   final String label;
   final dynamic icon;
   final DateTime? date;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+
+  /// Solo lectura: no se abre el selector y el candado sustituye al calendario.
+  final bool locked;
 
   const _DatePickerCard({
     required this.label,
     required this.icon,
     required this.date,
     required this.onTap,
+    this.locked = false,
   });
 
   @override
@@ -821,7 +844,9 @@ class _DatePickerCard extends StatelessWidget {
             ),
           ),
           HugeIcon(
-            icon: HugeIcons.strokeRoundedCalendar01,
+            icon: locked
+                ? HugeIcons.strokeRoundedSquareLock02
+                : HugeIcons.strokeRoundedCalendar01,
             size: 18,
             color: context.sac.textTertiary,
           ),

@@ -23,6 +23,7 @@ import '../../features/rankings/presentation/providers/my_ranking_provider.dart'
 import '../../features/rankings/presentation/providers/section_ranking_provider.dart';
 import '../../features/qr/presentation/providers/qr_member_token_provider.dart';
 import '../../features/support/presentation/providers/support_providers.dart';
+import '../../features/teen/presentation/providers/teen_providers.dart';
 import '../../features/units/presentation/providers/units_providers.dart';
 import '../../features/validation/presentation/providers/validation_providers.dart';
 import '../../features/virtual_card/presentation/providers/virtual_card_providers.dart';
@@ -132,6 +133,14 @@ final Map<String, ProviderOrFamily> profileScopedStateEntries = {
   'unitsNotifierProvider': unitsNotifierProvider,
   'virtualCardRateLimitNoticeProvider': virtualCardRateLimitNoticeProvider,
   'supportReportSubmitProvider': supportReportSubmitProvider,
+  // Adolescente sin tutor verificado: tutores vinculados y el código en claro
+  // (solo en memoria) que se muestra al tutor.
+  'supervisionStatusProvider': supervisionStatusProvider,
+  'teenLinkCodeProvider': teenLinkCodeProvider,
+  // Director: ids de los menores que ESTE usuario registró o cuya ficha subió
+  // (aviso de cuatro ojos). Otro perfil no debe heredarlos.
+  'createdMinorUserIdsProvider': createdMinorUserIdsProvider,
+  'uploadedFormMinorUserIdsProvider': uploadedFormMinorUserIdsProvider,
 };
 
 /// Estado sin `autoDispose` que NO depende del perfil, con el porqué.
@@ -148,6 +157,32 @@ const Map<String, String> nonAutoDisposeAllowlist = {
   // Flujos previos a la sesión o de un solo uso.
   'socialSignInInFlightProvider':
       'bandera de la pantalla de login, sin sesión de por medio',
+  'pendingNavigationProvider':
+      'destino diferido de un push tocado mientras la app carga; lo entrega o '
+          'descarta el router y clearUserStateOnLogout lo borra; no guarda '
+          'datos de usuario',
+  'loginNoticeProvider':
+      'aviso de una sola vez del login (acceso de menor revocado): se escribe '
+          'al cerrar la sesión y lo limpia el siguiente intento; sin datos de '
+          'usuario',
+  'sessionModeProvider':
+      'plomería de la sesión: AuthNotifier la escribe (arranque, emparejado, '
+          '/auth/me, cierre) y el cliente HTTP la lee para no mandar nunca '
+          'X-Acting-For desde un teléfono vinculado; se reinicia al cerrar '
+          'sesión y no guarda datos de usuario',
+  'pairingLinkProvider':
+      'token de un enlace sacdia://pair recibido mientras la app arrancaba; '
+          'solo en memoria, lo consume y borra PairDeviceView y '
+          'clearUserStateOnLogout lo descarta; es de antes de la sesión',
+  'deviceNoticeProvider':
+      'aviso de una sola vez de la pantalla de vinculación (teléfono '
+          'desvinculado); se escribe JUSTO al cerrar la sesión del dispositivo '
+          'y debe sobrevivir a la purga de perfil; sin datos de usuario',
+  'lastLoginIdentifierProvider':
+      'correo o usuario tecleado en el último intento de login, solo en '
+          'memoria y nunca la contraseña; es de antes de la sesión, se vacía '
+          'en cuanto un login termina bien y rellena el campo si el login '
+          'falla',
   'familyPromptSuppressedProvider':
       'bandera de un solo uso del tutor, la consume FamilyPromptHost; se '
           'reinicia en clearUserStateOnLogout',

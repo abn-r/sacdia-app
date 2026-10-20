@@ -3,6 +3,8 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/consent/consent_evidence.dart';
 import '../../../../core/errors/failures.dart';
 import '../entities/dependent.dart';
+import '../entities/dependent_progress_summary.dart';
+import '../entities/supervised_login.dart';
 
 /// Datos de alta de un menor (paso 0).
 class CreateDependentInput {
@@ -68,6 +70,57 @@ abstract class FamilyRepository {
     required String dependentId,
     required ConsentEvidenceLocalFile file,
   });
+
+  /// Sube la ficha firmada ACTUANDO por el menor (paso 3 del post-registro),
+  /// con `X-Acting-For`. Reemplaza el rodeo de la Fase 2 (subir desde el perfil
+  /// propio del tutor). El tutor sigue sin poder verificar: eso lo hace el
+  /// director.
+  Future<Either<Failure, ConsentEvidenceReceipt>>
+      uploadConsentEvidenceWhileActing({
+    required String dependentUserId,
+    required ConsentEvidenceLocalFile file,
+  });
+
+  /// `GET .../dependents/:id/supervised-login`: elegibilidad y estado del acceso
+  /// propio. Solo un tutor verificado (403/404 en otro caso).
+  Future<Either<Failure, SupervisedLoginStatus>> getSupervisedLogin(
+    String dependentId,
+  );
+
+  /// `POST .../dependents/:id/supervised-login`. La contraseña la fija el tutor
+  /// y NUNCA se devuelve ni se registra. [email] solo con el método `email`.
+  Future<Either<Failure, EnabledSupervisedLogin>> enableSupervisedLogin({
+    required String dependentId,
+    required SupervisedLoginMethod method,
+    required String password,
+    String? email,
+  });
+
+  /// `POST .../supervised-login/disable`: cierra todas sus sesiones al instante.
+  Future<Either<Failure, SupervisedLoginInfo>> disableSupervisedLogin({
+    required String dependentId,
+    String? reason,
+  });
+
+  /// `POST .../supervised-login/reactivate`. Un acceso por usuario exige una
+  /// contraseña NUEVA fijada por el tutor ([password]); el de correo no.
+  Future<Either<Failure, SupervisedLoginInfo>> reactivateSupervisedLogin({
+    required String dependentId,
+    String? password,
+  });
+
+  /// `POST .../supervised-login/password`: usuario → el tutor fija una
+  /// contraseña nueva ([password]); correo → se cierran sesiones y el menor
+  /// recibe el correo estándar de restablecimiento (sin contraseña).
+  Future<Either<Failure, PasswordResetResult>> resetSupervisedPassword({
+    required String dependentId,
+    String? password,
+  });
+
+  /// `GET .../dependents/:id/summary`: progreso y asistencia (sin salud).
+  Future<Either<Failure, DependentProgressSummary>> getProgressSummary(
+    String dependentId,
+  );
 
   /// Ficha vigente con URL firmada (15 min). 404 `GUARDIANSHIP_EVIDENCE_NOT_FOUND`
   /// si todavía no hay.

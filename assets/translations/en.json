@@ -232,6 +232,7 @@
     "errors": {
       "sign_in_failed": "Sign in failed",
       "sign_up_failed": "Registration failed",
+      "session_load_failed": "You signed in, but we could not load your account. Please try again.",
       "change_password_failed": "Password change failed",
       "delete_account_failed": "Account deletion failed",
       "sign_out_failed": "Sign out failed",
@@ -258,6 +259,18 @@
         "hint": "An adult can add you from the My family section of their profile.",
         "fix": "Correct date of birth",
         "back": "Back"
+      },
+      "minor_notice": "If you are under 18, your account runs in supervised mode: you will need to link a guardian and a director will verify their consent."
+    },
+    "login": {
+      "identifier": {
+        "label": "Email or username",
+        "hint": "Your email or your username",
+        "required": "Enter your email or username",
+        "too_long": "That is too long"
+      },
+      "notice": {
+        "supervised_access_revoked": "Your guardian turned off or changed your access. Sign in again with your updated details."
       }
     }
   },
@@ -469,7 +482,34 @@
     "file_too_large": "The file exceeds the 10 MB limit.",
     "guardianship_consent_already_verified": "The form has already been verified.",
     "guardianship_guardian_self_verify": "You cannot verify the consent of a minor you are a guardian of. Another authorized person from the club must do it.",
-    "post_reg_duplicate_membership": "There is already an active membership or request in another club. Check it before sending a new one."
+    "post_reg_duplicate_membership": "There is already an active membership or request in another club. Check it before sending a new one.",
+    "auth_invalid_credentials": "Wrong email, username or password.",
+    "auth_login_locked": "Too many attempts. Try again later.",
+    "auth_login_locked_wait": "Too many attempts. Try again in {minutes} min.",
+    "auth_login_throttled": "Too many attempts. Wait a moment and try again.",
+    "auth_supervised_login_disabled": "Your guardian turned this access off. Ask them to turn it back on.",
+    "auth_account_frozen": "This account was removed because it had no linked guardian.",
+    "auth_supervised_access_revoked": "Your guardian turned off or changed your access.",
+    "principal_scope_denied": "This action is not available for your account.",
+    "user_birthday_change_requires_guardian": "Only your guardian can correct your birthday.",
+    "supervised_login_not_eligible": "This profile cannot have its own login yet.",
+    "supervised_login_age_out_of_range": "Own login is only for minors from the minimum age up to before the age of majority.",
+    "supervised_login_already_enabled": "This profile already has its own login.",
+    "supervised_login_not_found": "This profile has no own login.",
+    "supervised_login_email_unavailable": "That email is not available. Try another one.",
+    "supervised_login_password_invalid": "The password does not meet the security requirements.",
+    "guardianship_consent_not_verified": "Consent is not verified yet. A director has to confirm it first.",
+    "family_feature_disabled": "This feature is not available right now.",
+    "device_pairing_token_invalid": "This code is not valid or has expired. Ask your guardian to generate a new one.",
+    "device_pairing_not_eligible": "This profile cannot be linked to a phone right now. Check that consent is verified, that it has no login of its own and that the child is under 13.",
+    "device_limit_reached": "This child already has the maximum number of linked phones. Unlink one to add another.",
+    "linked_device_limit_reached": "This child already has the maximum number of linked phones. Unlink one to add another.",
+    "linked_device_age_out_of_range": "Only phones of children under 13 can be linked. Older children can have their own login.",
+    "device_not_found": "We could not find that linked phone.",
+    "linked_device_not_found": "We could not find that linked phone.",
+    "auth_device_revoked": "Your guardian unlinked this phone.",
+    "auth_device_session_expired": "This phone link has expired. Ask your guardian to link it again.",
+    "mr_approve_permission_required": "You are not allowed to approve requests. You can only verify the consent."
   },
   "honors": {
     "errors": {
@@ -1125,7 +1165,8 @@
       "birth": {
         "label": "Date of birth",
         "date_picker_help": "Select your date of birth",
-        "select_date": "Select date"
+        "select_date": "Select date",
+        "read_only_hint": "Only your guardian can correct your birthday."
       },
       "baptism": {
         "toggle_label": "Are you baptized?",
@@ -2630,7 +2671,46 @@
       "verified_not_approved": "Consent was verified, but the request could not be approved: {reason}",
       "retry_approve": "Retry approval",
       "approve_blocked": "The guardian's consent still needs to be verified. Verification opened.",
-      "generic_error": "The consent could not be verified. Please try again."
+      "generic_error": "The consent could not be verified. Please try again.",
+      "another_person": "Another person must verify this consent: you registered the minor, uploaded the form or left them in the club’s custody.",
+      "verify_only_hint": "You can verify the form, but approving the request is up to a director.",
+      "verify_only_confirm": "Confirm verification",
+      "verified_toast": "Consent verified. A director still has to approve {name}'s request."
+    },
+    "create_minor": {
+      "entry": "Register a minor",
+      "title": "Register a minor",
+      "intro": "Register a minor who will attend your section with the guardian's signed authorization. The minor stays in the club's custody and the request waits for another person to verify it.",
+      "name": "First name(s)",
+      "paternal": "Paternal last name",
+      "maternal": "Maternal last name (optional)",
+      "birthday": "Date of birth",
+      "birthday_hint": "Select the date",
+      "birthday_required": "Select the date of birth",
+      "gender_label": "Gender (optional)",
+      "gender_male": "Male",
+      "gender_female": "Female",
+      "required": "Required field",
+      "sworn": "I declare under oath that the minor's guardian signed the authorization on paper.",
+      "legal_prefix": "On behalf of the minor, I accept the ",
+      "legal_unavailable": "The legal documents could not be loaded.",
+      "submit": "Register minor",
+      "created_toast": "{name} is registered. Another person still has to verify the signed form.",
+      "errors": {
+        "age_out_of_range": "That age is not valid to register a minor. The person must be under the age of majority in the club's country.",
+        "no_active_year": "There is no current ecclesiastical year. The minor was not registered."
+      }
+    },
+    "claim_code": {
+      "section_title": "Hand over to the family",
+      "hint": "Generate a single-use code valid for 7 days. The family redeems it in My family to take over the minor.",
+      "action": "Generate parent code",
+      "code_title": "Code for the family",
+      "expires": "Expires {when}",
+      "copy": "Copy code",
+      "copied": "Code copied",
+      "share": "Share",
+      "share_message": "I invite you to take over {name} on SACDIA. Code: {code}. Expires {when}. Enter it in My family > I have a link code."
     }
   },
   "certifications": {
@@ -5381,7 +5461,8 @@
     "outcome": {
       "other_guardian": "Another guardian will remain in charge of {name}.",
       "club_custody": "The club will take charge of {name} in the meantime.",
-      "frozen": "{name} will be frozen and their information deleted in 90 days."
+      "frozen": "{name} will be frozen and their information deleted in 90 days.",
+      "pending_guardian": "{name} will be left without a verified guardian: their access will be limited and they will have 90 days to link another guardian."
     },
     "link": {
       "title": "Link code",
@@ -5419,6 +5500,259 @@
       "dialog_confirm": "Switch",
       "dialog_cancel": "Not now",
       "unavailable": "That profile is no longer available to you."
+    },
+    "teen": {
+      "wizard": {
+        "title": "Own login for {name}",
+        "step_of": "Step {current} of {total}",
+        "method_title": "How will {name} sign in?",
+        "method_handle": "With a username",
+        "method_handle_hint": "We create a username for {name}. No email address needed.",
+        "method_email": "With their email",
+        "method_email_hint": "{name} signs in with their own email address.",
+        "credentials_title": "Sign-in details",
+        "email_hint": "{name}'s email address",
+        "password_label": "Password",
+        "confirm_label": "Confirm password",
+        "password_policy": "At least 8 characters, with an uppercase letter, a lowercase letter and a number.",
+        "password_note": "You choose the password and give it to {name}. You can change it whenever you want.",
+        "confirm_title": "Before turning it on",
+        "warn_acting": "You will no longer be able to act for {name}: they will use their own access.",
+        "warn_devices": "If {name} has linked phones, they will be unlinked.",
+        "warn_control": "You can turn their access off or change their password whenever you want while they are a minor.",
+        "warn_privacy": "You will see a summary of their progress and attendance, never their health information.",
+        "activate": "Turn on access",
+        "result_title": "Access turned on",
+        "result_handle_label": "Username",
+        "result_email_label": "Email",
+        "result_hint": "Give {name} their username and the password you chose. Keep them somewhere safe: the password is not shown again.",
+        "result_devices": "Phones unlinked: {count}",
+        "copy": "Copy username",
+        "copied": "Username copied",
+        "done": "Done",
+        "not_eligible": "{name} cannot have their own login yet."
+      }
+    },
+    "access": {
+      "title": "Access",
+      "pending_guardian": "You will be able to manage {name}'s access and see their summary once a director verifies your consent. Until then you can only upload the signed form.",
+      "active": "Own login on",
+      "disabled": "Access turned off",
+      "method_handle": "With username",
+      "method_email": "With email",
+      "handle_label": "Username",
+      "copy": "Copy",
+      "copied": "Username copied",
+      "enable": "Give them their own login",
+      "enable_hint": "{name} will be able to sign in with their own username or email. You will stop acting for {name}.",
+      "not_yet": "{name} will be able to have their own login from the minimum age.",
+      "summary": "View summary",
+      "disable": "Turn off access",
+      "disable_title": "Turn off {name}'s access?",
+      "disable_body": "{name} will not be able to sign in and their session will end immediately. You can turn the access back on whenever you want while they are a minor.",
+      "disable_confirm": "Turn off",
+      "disabled_toast": "Access turned off",
+      "reactivate": "Turn access back on",
+      "reactivate_title": "Turn {name}'s access back on",
+      "reactivate_body_handle": "Choose a new password: the previous one will stop working.",
+      "reactivate_body_email": "{name} will be able to sign in with their email again.",
+      "reactivate_confirm": "Turn on",
+      "reactivated_toast": "Access turned back on",
+      "reset_password": "Reset password",
+      "reset_title": "Reset {name}'s password",
+      "reset_body_handle": "Choose a new password. All their sessions will end and the other guardians will get a notice.",
+      "reset_body_email": "All their sessions will end and {name} will get an email to choose a new password. You will not see the password.",
+      "reset_confirm": "Reset",
+      "reset_toast": "Password reset. Sessions ended: {count}.",
+      "reset_toast_email": "Sessions ended: {count}. We sent the reset email to {name}.",
+      "new_password": "New password"
+    },
+    "summary": {
+      "title": "{name}'s summary",
+      "subtitle": "Progress and attendance",
+      "classes_title": "Classes",
+      "sections_progress": "{done} of {total} sections",
+      "no_classes": "No classes in progress yet.",
+      "honors_title": "Honors",
+      "honors_completed": "{count} completed",
+      "honors_in_progress": "{count} in progress",
+      "attendance_title": "Attendance",
+      "attendance_value": "{attended} of {total} activities",
+      "attendance_period": "From {from} to {to}",
+      "no_activities": "No activities in this period.",
+      "privacy_note": "This summary does not include health data or personal notes."
+    },
+    "devices": {
+      "title": "Linked phones",
+      "intro": "Link a phone so {name} can see their classes and activities and upload evidence without creating an account. You get a notice for each upload.",
+      "no_new": "No new phones can be linked for {name} anymore. The existing ones keep working until you unlink them.",
+      "empty": "No phones linked yet.",
+      "history": "Recently unlinked",
+      "paired_by": "Linked by {name}",
+      "last_seen": "Last active: {when}",
+      "never_seen": "No activity yet",
+      "revoked_on": "Unlinked on {date}",
+      "limit_hint": "There are already {max} linked phones, the maximum. Unlink one to add another.",
+      "pair": "Link a phone",
+      "revoke": "Unlink",
+      "revoke_title": "Unlink {label}?",
+      "revoke_body": "The phone will stop working right away and {name} will have to link it again with a new code. The other guardians will get a notice.",
+      "revoke_confirm": "Unlink",
+      "revoked_toast": "Phone unlinked",
+      "pair_title": "Link a phone",
+      "pair_instructions": "On the child's phone open SACDIA, tap \"Link a child's phone\" and scan this code.",
+      "qr_alt": "QR code to link a phone",
+      "expires_in": "Expires in {time}",
+      "expired": "The code expired",
+      "regenerate": "Generate another code",
+      "pair_warning": "Use it only on the child's phone and do not share it: it works once. You will get a notice when it links and you can unlink it any time.",
+      "paired_title": "Phone linked",
+      "paired_body": "Done: the phone can now use SACDIA. You will see it in the list of linked phones."
+    },
+    "age_nudge": {
+      "title": "{name} can now have their own access",
+      "body": "They reached the minimum age for their own access. You can turn it on whenever you want and you will keep supervising their account."
+    }
+  },
+  "restricted_account": {
+    "title": "Account unavailable",
+    "body": "Your account uses a feature this version of the app does not recognize yet. For your safety, access is limited. Update the app or sign in again later."
+  },
+  "teen": {
+    "pending": {
+      "title": "Your guardian is missing",
+      "subtitle": "Your account stays restricted until a guardian links to it and a director verifies their consent.",
+      "countdown": "You have {days} days left to link a guardian. Otherwise your account will be removed.",
+      "countdown_one": "You have 1 day left to link a guardian. Otherwise your account will be removed.",
+      "countdown_today": "Today is the last day to link a guardian. Otherwise your account will be removed.",
+      "code_title": "Code for your guardian",
+      "code_hint": "Generate a code and share it with your mom, dad or guardian. They have to redeem it in the app, under My family. It lasts 72 hours and is shown only once.",
+      "code_generate": "Generate code",
+      "code_regenerate": "Generate a new code",
+      "code_expires": "Expires {when}",
+      "code_open_existing": "You already generated a code that expires {when}. If you lost it, generate a new one: the previous one will stop working.",
+      "code_copy": "Copy",
+      "code_copied": "Code copied",
+      "code_share": "Share",
+      "share_message": "My SACDIA code to link you as my guardian: {code}. Redeem it in the app, under My family. It expires {when}.",
+      "guardians_title": "Your guardian",
+      "no_guardian": "No guardian is linked yet.",
+      "guardian_pending": "Pending verification",
+      "guardian_verified": "Verified",
+      "guardian_pending_hint": "A club director has to verify your guardian's signed consent form. Until then your account stays restricted.",
+      "guardian_remove": "Remove",
+      "remove_title": "Remove {name}?",
+      "remove_body": "They will no longer be linked to your account and the 90 days to link a guardian start over. You can generate a new code.",
+      "remove_confirm": "Remove",
+      "removed": "Link removed",
+      "actions_title": "In the meantime",
+      "actions_hint": "You can complete your profile and change your password.",
+      "edit_profile": "Complete my profile",
+      "change_password": "Change my password"
+    },
+    "info": {
+      "title": "Your guardian and your information",
+      "body": "Your guardian can see your progress and attendance. They cannot see your health information.",
+      "understood": "Got it"
+    },
+    "errors": {
+      "generic": "We could not complete the action. Try again.",
+      "too_many_codes": "You generated too many codes. Try again later.",
+      "already_linked": "You already have a linked guardian.",
+      "link_not_found": "That link no longer exists or a director already verified it."
+    }
+  },
+  "device": {
+    "tabs": {
+      "home": "Home",
+      "classes": "Classes",
+      "agenda": "Agenda",
+      "notices": "Notices"
+    },
+    "offline": "No connection. You see what was saved last and cannot upload or send anything.",
+    "pair": {
+      "entry": "Link a child's phone to this device",
+      "title": "Link this phone",
+      "subtitle": "Scan the QR code your guardian shows on their phone.",
+      "confirm_body": "Code read. Check the name of this phone and link it.",
+      "scan": "Scan QR code",
+      "rescan": "Scan another code",
+      "scanner_title": "Scan code",
+      "scanner_hint": "Point at the QR code on your guardian's phone.",
+      "label_title": "Name of this phone",
+      "label_hint": "E.g. Ana's tablet",
+      "label_help": "Your guardian will see this name in their list of linked phones.",
+      "fallback_label": "Linked phone",
+      "link": "Link phone",
+      "linking": "Linking...",
+      "back_to_login": "Back to sign in",
+      "refused": {
+        "title": "Sign out first",
+        "body": "This phone is signed in. To link it as a child's phone, sign out first.",
+        "close": "Got it"
+      },
+      "notice": {
+        "unpaired": "Your guardian unlinked this phone. Ask them to link it again.",
+        "session_expired": "This phone link has expired. Ask your guardian to link it again."
+      },
+      "errors": {
+        "generic": "We could not link this phone. Please try again.",
+        "invalid_qr": "That QR code is not from SACDIA. Ask your guardian to generate a new one.",
+        "session_exists": "This phone is already signed in. Sign out before linking it.",
+        "session_load_failed": "The phone was linked but we could not load your profile. Ask your guardian for a new code and try again."
+      }
+    },
+    "home": {
+      "greeting": "Hi, {name}",
+      "greeting_anonymous": "Hi",
+      "subtitle": "Your club classes and activities",
+      "classes_title": "My progress",
+      "no_classes": "You have no classes yet. Your guardian or director will enroll you.",
+      "next_activity": "Next activity",
+      "no_activity": "No upcoming activities",
+      "credential_title": "My credential",
+      "credential_hint": "Show it when you are asked for it at an activity.",
+      "this_phone": "This phone: {label}",
+      "unlink": "Unlink this phone",
+      "unlink_title": "Unlink this phone?",
+      "unlink_body": "Everything of yours will be removed from this phone and your guardian will have to link it again to use it.",
+      "unlink_confirm": "Unlink",
+      "unlink_failed": "Could not unlink. Please try again."
+    },
+    "classes": {
+      "title": "My classes",
+      "empty_title": "No classes yet",
+      "empty_body": "When you are enrolled in a class it will show up here.",
+      "error": "We could not load your classes.",
+      "detail_error": "We could not load this class.",
+      "no_requirements": "This class has no requirements yet.",
+      "progress": "{percent}% complete"
+    },
+    "requirement": {
+      "title": "Evidence",
+      "not_found": "We could not find this requirement.",
+      "offline_readonly": "No connection: you can only view your evidence. Connect to upload or send.",
+      "errors": {
+        "action_failed": "We could not complete the action. Please try again."
+      }
+    },
+    "agenda": {
+      "title": "Agenda",
+      "empty": "There are no upcoming activities.",
+      "error": "We could not load the agenda.",
+      "no_club": "You are not in a club yet.",
+      "detail_title": "Activity",
+      "detail_error": "We could not load this activity."
+    },
+    "legal_block": {
+      "title": "Your guardian has a step to do",
+      "body": "Ask your guardian to review the new terms on their phone. Once they accept them you can keep using the app.",
+      "refresh": "They accepted"
+    },
+    "registration_pending": {
+      "title": "Your registration is not finished",
+      "body": "Ask your guardian to finish completing your profile on their phone.",
+      "refresh": "They finished it"
     }
   }
 }

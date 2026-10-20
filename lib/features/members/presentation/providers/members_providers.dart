@@ -25,9 +25,11 @@ import '../../domain/entities/club_member.dart';
 import '../../domain/entities/join_request.dart';
 import '../../domain/repositories/members_repository.dart';
 import '../../domain/usecases/assign_club_role.dart';
+import '../../domain/usecases/create_minor.dart';
 import '../../domain/usecases/get_club_members.dart';
 import '../../domain/usecases/get_consent_evidence.dart';
 import '../../domain/usecases/get_join_requests.dart';
+import '../../domain/usecases/issue_claim_code.dart';
 import '../../domain/usecases/upload_consent_evidence.dart';
 import '../../domain/usecases/verify_consent.dart';
 
@@ -77,6 +79,30 @@ final getConsentEvidenceUseCaseProvider = Provider<GetConsentEvidence>((ref) {
 final verifyConsentUseCaseProvider = Provider<VerifyConsent>((ref) {
   return VerifyConsent(ref.read(membersRepositoryProvider));
 });
+
+final createMinorUseCaseProvider = Provider<CreateMinor>((ref) {
+  return CreateMinor(ref.read(membersRepositoryProvider));
+});
+
+final issueClaimCodeUseCaseProvider = Provider<IssueClaimCode>((ref) {
+  return IssueClaimCode(ref.read(membersRepositoryProvider));
+});
+
+/// Ids (`user_id`) de los menores que ESTE usuario registró en esta sesión.
+///
+/// Sirve para avisar de antemano que otra persona debe verificar el
+/// consentimiento (cuatro ojos, FP3-62). Es solo una ayuda de interfaz: el
+/// servidor es la autoridad y responde 403
+/// `GUARDIANSHIP_CUSTODIAN_SELF_VERIFY` si el usuario es el creador, aunque la
+/// app no lo recuerde. Vive en memoria y se purga al cambiar de perfil.
+final createdMinorUserIdsProvider =
+    StateProvider<Set<String>>((ref) => const <String>{});
+
+/// Ids (`user_id`) de los menores cuya ficha subió este usuario desde la
+/// pantalla de verificación en esta sesión. Mismo criterio que
+/// [createdMinorUserIdsProvider].
+final uploadedFormMinorUserIdsProvider =
+    StateProvider<Set<String>>((ref) => const <String>{});
 
 /// Ficha firmada vigente de una solicitud de menor, con URL firmada.
 ///

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
+import '../../../../core/errors/business_error.dart';
 import '../models/emergency_contact_model.dart';
 import '../models/allergy_model.dart';
 import '../models/disease_model.dart';
@@ -217,8 +218,14 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
     } on DioException catch (e) {
       AppLogger.e('Error PATCH /users/$userId',
           tag: _tag, error: e.response?.data ?? e.message);
-      throw Exception(
-          '${tr('post_registration.personal_info.errors.update_personal_info')}: ${e.message}');
+      // Conserva el `code` de negocio (p. ej. USER_BIRTHDAY_CHANGE_REQUIRES_GUARDIAN)
+      // para que la pantalla lo traduzca.
+      throw businessErrorFrom(
+        e,
+        fallbackMessage: tr(
+          'post_registration.personal_info.errors.update_personal_info',
+        ),
+      );
     }
   }
 

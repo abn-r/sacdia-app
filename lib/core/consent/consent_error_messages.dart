@@ -17,6 +17,8 @@ const Set<String> consentErrorCodes = {
   'GUARDIANSHIP_CONSENT_ALREADY_VERIFIED',
   'MR_CONSENT_CONFIRMATION_REQUIRED',
   'MR_CONSENT_NOT_VERIFIED',
+  // 403 al aprobar con solo `consent:verify`: puede verificar, no aprobar.
+  'MR_APPROVE_PERMISSION_REQUIRED',
   'MR_NOT_FOUND',
   'MR_ALREADY_PENDING',
   'GUARDIANSHIP_NOT_FOUND',
@@ -49,6 +51,11 @@ bool isConsentEvidenceNotFound(Object? error) =>
 /// (cuatro ojos, 403).
 bool isCustodianSelfVerify(Object? error) =>
     error is Failure && error.errorCode == 'GUARDIANSHIP_CUSTODIAN_SELF_VERIFY';
+
+/// Se pidió aprobar sin `club_members:approve` (403). No se verificó nada: el
+/// revisor solo puede verificar (`consent:verify`).
+bool isApprovePermissionRequired(Object? error) =>
+    error is Failure && error.errorCode == 'MR_APPROVE_PERMISSION_REQUIRED';
 
 /// Se intentó subir una ficha cuando el consentimiento ya está verificado (409).
 /// Reemplazarla solo se puede tras revocar la tutoría.

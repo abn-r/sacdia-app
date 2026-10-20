@@ -6,9 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/auth/acting_for_session.dart';
+import '../../../../core/auth/session_mode.dart';
 import '../../../../core/auth/social_auth_provider.dart';
 import '../../../../core/auth/social_credential.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/user_error_message.dart';
 import '../../../../core/network/interceptors/acting_error_interceptor.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -17,6 +19,7 @@ import '../../data/datasources/auth_remote_data_source.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/authorization_snapshot.dart';
 import '../../domain/entities/delete_account_reauth.dart';
+import '../../domain/entities/principal_info.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/utils/registration_age_gate.dart';
@@ -34,8 +37,13 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/notifications/push_notification_provider.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../biometric/presentation/providers/biometric_provider.dart';
+import '../../../device_mode/domain/entities/device_pairing.dart';
+import '../../../device_mode/presentation/providers/device_notice_provider.dart';
+import '../../../device_mode/presentation/providers/device_pairing_providers.dart';
 import '../../../notifications/presentation/providers/unread_notifications_count_provider.dart';
+import '../login_error_messages.dart';
 import 'acting_providers.dart';
+import 'login_notice_provider.dart';
 import 'profile_scope_purge.dart';
 
 /// Provider para la URL base de la API
@@ -187,6 +195,9 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
 
   ActingForSession get _session => ref.read(actingForSessionProvider);
 
+  SessionModeStore get _sessionModeStore =>
+      SessionModeStore(ref.read(secureStorageProvider));
+
   bool get _isActing => _session.isActing;
 
   /// Registra el token FCM del usuario actual. Nunca mientras se actúa por un
@@ -320,8 +331,18 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
 
     if (!hasToken) {
       AppLogger.i('Sin token local, redirigiendo a login', tag: _tag);
+      // Sin sesión no hay modo: una bandera de dispositivo huérfana (sesión
+      // borrada por el servidor, app reinstalada...) no sobrevive.
+      ref.read(sessionModeProvider.notifier).state = SessionMode.account;
+      unawaited(_sessionModeStore.clear());
       return null;
     }
+
+    // La cáscara de un teléfono vinculado se elige ANTES de que `/auth/me`
+    // responda (también sin red). `/auth/me.principal.kind` manda: si dice
+    // otra cosa, se reescribe más abajo.
+    final persistedMode = await _sessionModeStore.read();
+    ref.read(sessionModeProvider.notifier).state = persistedMode;
 
     // Si la app murió actuando por un menor, sus cachés de disco se purgan
     // antes de cargar nada (sin sesión no hay nada que proteger: el logout ya
@@ -429,6 +450,12 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
               // Server is the truth; never cache pending. Offline restore
               // cannot know the legal status, so it stays false.
               legalAcceptancePending: false,
+              // Un teléfono vinculado se restaura SIEMPRE como tal: la bandera
+              // del almacenamiento seguro solo elige la cáscara (nunca otorga
+              // nada; el servidor sigue siendo quien deniega).
+              principal: persistedMode == SessionMode.device
+                  ? const PrincipalInfo(kind: PrincipalKind.linkedDevice)
+                  : null,
             );
           }
           AppLogger.i('Sin caché, redirigiendo a login', tag: _tag);
@@ -437,9 +464,13 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         AppLogger.e('Error al validar token: ${failure.message}', tag: _tag);
         return null;
       },
-      (user) {
-        if (user != null) {
+      (loaded) {
+        if (loaded != null) {
           AppLogger.i('Usuario autenticado', tag: _tag);
+          // El servidor manda sobre la bandera local: reescribe el modo y, si
+          // la bandera dice dispositivo pero el principal no llegó, falla
+          // cerrado (cuenta restringida, nunca adulto).
+          final user = _reconcileSessionMode(loaded, persistedMode);
           // Mientras se actúa: ni caché del usuario ni FCM (FP-49); ambos
           // son del tutor y `_cacheUser` ya lo respeta.
           _cacheUser(user);
@@ -570,37 +601,86 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     }
   }
 
-  /// Iniciar sesión con email y contraseña
-  Future<bool> signIn({required String email, required String password}) async {
+  /// Iniciar sesión con correo o usuario (handle) y contraseña.
+  ///
+  /// El [identifier] no se valida ni se registra. Un fallo deja en el estado un
+  /// mensaje traducido por `code` ([loginErrorMessage]), nunca texto crudo.
+  Future<bool> signIn({
+    required String identifier,
+    required String password,
+  }) async {
     AppLogger.i('Login iniciado', tag: _tag);
+    // Un intento nuevo descarta el aviso de "acceso revocado" del anterior.
+    ref.read(loginNoticeProvider.notifier).state = null;
+    // El router manda a /splash mientras carga y la pantalla de login se
+    // desmonta: lo escrito se conserva para rellenarlo al volver.
+    ref.read(lastLoginIdentifierProvider.notifier).state = identifier;
     state = const AsyncValue.loading();
 
     final result = await ref.read(signInProvider)(
-      SignInParams(email: email, password: password),
+      SignInParams(identifier: identifier, password: password),
     );
 
-    state = result.fold(
-      (failure) {
-        final errorMessage = failure is AuthFailure
-            ? failure.message
-            : 'auth.errors.sign_in_failed'.tr();
-        AppLogger.w('Login fallido: $errorMessage', tag: _tag);
-        return AsyncValue.error(errorMessage, StackTrace.current);
-      },
-      (user) {
-        AppLogger.i('Login exitoso', tag: _tag);
-        ref
-            .read(sharedPreferencesProvider)
-            .setBool('user_manually_logged_out', false);
-        _cacheUser(user);
-        // Register FCM token after successful login (fire-and-forget).
-        _registerPush();
-        ref.read(unreadNotificationsCountProvider.notifier).refresh();
-        return AsyncValue.data(user);
-      },
-    );
+    final failure = result.fold<Failure?>((f) => f, (_) => null);
+    if (failure != null) {
+      AppLogger.w('Login fallido (${failure.errorCode ?? failure.code})',
+          tag: _tag);
+      state = AsyncValue.error(loginErrorMessage(failure), StackTrace.current);
+      return false;
+    }
 
-    return !state.hasError;
+    // El POST /auth/login ya creó la sesión, pero la sesión solo sirve si
+    // `/auth/me` también responde.
+    final loginUser = result.getOrElse(() => throw StateError('unreachable'));
+    final session = await _confirmSessionAfterLogin(loginUser);
+    if (session.error != null) {
+      state = AsyncValue.error(session.error!, StackTrace.current);
+      return false;
+    }
+    final user = session.user!;
+
+    AppLogger.i('Login exitoso', tag: _tag);
+    ref.read(lastLoginIdentifierProvider.notifier).state = '';
+    ref
+        .read(sharedPreferencesProvider)
+        .setBool('user_manually_logged_out', false);
+    _cacheUser(user);
+    // Register FCM token after successful login (fire-and-forget).
+    _registerPush();
+    ref.read(unreadNotificationsCountProvider.notifier).refresh();
+    state = AsyncValue.data(user);
+    return true;
+  }
+
+  /// Tras un login (correo o social) pide `/auth/me` y devuelve el usuario
+  /// completo, que reemplaza al del login. Si falla (500, sin red, respuesta
+  /// vacía) NO se deja una sesión a medias: se cierra la sesión recién creada
+  /// (tokens y cachés locales) y se devuelve un mensaje traducido por código
+  /// ([userErrorMessage]), nunca texto crudo.
+  Future<({UserEntity? user, String? error})> _confirmSessionAfterLogin(
+    UserEntity loginUser,
+  ) async {
+    final me = await ref.read(getCurrentUserProvider)(NoParams());
+    final failure = me.fold<Failure?>((f) => f, (_) => null);
+    final user = me.fold<UserEntity?>((_) => null, (u) => u);
+    if (failure == null && user != null) return (user: user, error: null);
+
+    AppLogger.w(
+      'Login correcto pero /auth/me falló (${failure?.errorCode ?? failure?.code ?? 'sin usuario'}); se cierra la sesión',
+      tag: _tag,
+    );
+    // Cierre fail-safe: limpia tokens y cachés aunque el servidor no responda.
+    try {
+      await ref.read(signOutProvider)(NoParams());
+    } catch (_) {}
+    ref.read(unreadNotificationsCountProvider.notifier).setZero();
+    return (
+      user: null,
+      error: userErrorMessage(
+        failure,
+        fallbackKey: 'auth.errors.session_load_failed',
+      ),
+    );
   }
 
   /// Registrar un nuevo usuario
@@ -688,6 +768,10 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       legalAcceptancePending: current.legalAcceptancePending,
       actingFor: current.actingFor,
       family: current.family,
+      principal: current.principal,
+      familyFeatures: current.familyFeatures,
+      analyticsAnonymous: current.analyticsAnonymous,
+      serverMode: current.serverMode,
     );
     state = AsyncValue.data(updatedUser);
     _cacheUser(updatedUser);
@@ -713,6 +797,10 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       legalAcceptancePending: false,
       actingFor: current.actingFor,
       family: current.family,
+      principal: current.principal,
+      familyFeatures: current.familyFeatures,
+      analyticsAnonymous: current.analyticsAnonymous,
+      serverMode: current.serverMode,
     );
     state = AsyncValue.data(updatedUser);
   }
@@ -733,6 +821,10 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       legalAcceptancePending: current.legalAcceptancePending,
       actingFor: current.actingFor,
       family: current.family,
+      principal: current.principal,
+      familyFeatures: current.familyFeatures,
+      analyticsAnonymous: current.analyticsAnonymous,
+      serverMode: current.serverMode,
     );
     state = AsyncValue.data(updatedUser);
     _cacheUser(updatedUser);
@@ -771,10 +863,17 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         return null;
       },
       (user) {
+        final previous = state.valueOrNull;
         if (user != null) {
           _cacheUser(user);
         }
         state = AsyncValue.data(user);
+        // Salir de una cuenta restringida (el paso 2 guardó la fecha): ahora el
+        // servidor sí atiende el inbox, que no se pidió mientras duró.
+        if ((previous?.isRestrictedAccount ?? false) &&
+            !(user?.isRestrictedAccount ?? true)) {
+          ref.read(unreadNotificationsCountProvider.notifier).refresh();
+        }
         return user;
       },
     );
@@ -804,36 +903,41 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
 
     final result = await useCase(const NoParams());
 
-    return result.fold(
-      (failure) {
-        if (failure is SocialSignInCancelledFailure) {
-          AppLogger.i('Login social cancelado: $provider', tag: _tag);
-          return SocialSignInResult.cancelled;
-        }
-        final errorMessage = failure is AuthFailure
-            ? failure.message
-            : 'errors.social_signin_failed'.tr(
-                namedArgs: {
-                  'provider': provider == 'apple' ? 'Apple' : 'Google'
-                },
-              );
-        AppLogger.w('Login social $provider falló: $errorMessage', tag: _tag);
-        state = AsyncValue.error(errorMessage, StackTrace.current);
-        return SocialSignInResult.failed;
-      },
-      (user) {
-        AppLogger.i('Login social exitoso: $provider', tag: _tag);
-        ref
-            .read(sharedPreferencesProvider)
-            .setBool('user_manually_logged_out', false);
-        _cacheUser(user);
-        // Mismos efectos que signIn(): FCM y badge de notificaciones.
-        _registerPush();
-        ref.read(unreadNotificationsCountProvider.notifier).refresh();
-        state = AsyncValue.data(user);
-        return SocialSignInResult.success;
-      },
-    );
+    final failure = result.fold<Failure?>((f) => f, (_) => null);
+    if (failure != null) {
+      if (failure is SocialSignInCancelledFailure) {
+        AppLogger.i('Login social cancelado: $provider', tag: _tag);
+        return SocialSignInResult.cancelled;
+      }
+      final errorMessage = failure is AuthFailure
+          ? failure.message
+          : 'errors.social_signin_failed'.tr(
+              namedArgs: {'provider': provider == 'apple' ? 'Apple' : 'Google'},
+            );
+      AppLogger.w('Login social $provider falló: $errorMessage', tag: _tag);
+      state = AsyncValue.error(errorMessage, StackTrace.current);
+      return SocialSignInResult.failed;
+    }
+
+    // Igual que signIn(): la sesión solo vale si `/auth/me` responde.
+    final loginUser = result.getOrElse(() => throw StateError('unreachable'));
+    final session = await _confirmSessionAfterLogin(loginUser);
+    if (session.error != null) {
+      state = AsyncValue.error(session.error!, StackTrace.current);
+      return SocialSignInResult.failed;
+    }
+    final user = session.user!;
+
+    AppLogger.i('Login social exitoso: $provider', tag: _tag);
+    ref
+        .read(sharedPreferencesProvider)
+        .setBool('user_manually_logged_out', false);
+    _cacheUser(user);
+    // Mismos efectos que signIn(): FCM y badge de notificaciones.
+    _registerPush();
+    ref.read(unreadNotificationsCountProvider.notifier).refresh();
+    state = AsyncValue.data(user);
+    return SocialSignInResult.success;
   }
 
   /// Cambia de perfil: `switchProfile('id')` actúa por ese dependiente y
@@ -860,6 +964,16 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     }
     if (dependentId == _session.dependentUserId) {
       return SwitchProfileOutcome.unchanged;
+    }
+
+    // Solo un `user` puede actuar por un menor. Un adolescente supervisado o un
+    // teléfono vinculado jamás envía `X-Acting-For` (el servidor lo rechazaría
+    // con 403 ACTING_FOR_FORBIDDEN): ni siquiera se entra en el modo.
+    final kind = state.valueOrNull?.principal?.kind;
+    if (kind != null && kind != PrincipalKind.user) {
+      AppLogger.w('switchProfile rechazado: el principal no es un tutor',
+          tag: _tag);
+      return SwitchProfileOutcome.failed;
     }
 
     final epoch = ++_switchEpoch;
@@ -1101,6 +1215,239 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     return result.fold((_) => const [], (list) => list);
   }
 
+  /// Mínimo entre dos refrescos del modo disparados por 403
+  /// `PRINCIPAL_SCOPE_DENIED`: una pantalla que dispara varias peticiones
+  /// negadas no debe provocar una tormenta de `/auth/me`.
+  static const Duration scopeDeniedRefreshInterval = Duration(seconds: 20);
+
+  DateTime? _lastSupervisionRefresh;
+  bool _refreshingSupervision = false;
+
+  /// Vuelve a pedir `/auth/me` y publica el usuario SOLO si cambió el
+  /// principal o el modo (p. ej. el director verificó el consentimiento: el
+  /// adolescente pasa de pendiente a supervisado sin reiniciar la app).
+  ///
+  /// Solo actúa para una cuenta que no es adulta (adolescente supervisado, sin
+  /// fecha de nacimiento o desconocida), nunca mientras se actúa por un
+  /// menor ni durante una carga, y no sale de ningún modo "actuar por". Un
+  /// fallo (sin red, 401...) no toca el estado. [minInterval] limita la
+  /// frecuencia. Devuelve `true` si el estado cambió.
+  Future<bool> refreshSupervision({Duration? minInterval}) async {
+    final current = state.valueOrNull;
+    if (current == null ||
+        state.isLoading ||
+        _isActing ||
+        !current.isLimitedAccount ||
+        _refreshingSupervision) {
+      return false;
+    }
+    final last = _lastSupervisionRefresh;
+    if (minInterval != null &&
+        last != null &&
+        DateTime.now().difference(last) < minInterval) {
+      return false;
+    }
+    _lastSupervisionRefresh = DateTime.now();
+    _refreshingSupervision = true;
+    try {
+      final generation = _session.generation;
+      final result = await ref.read(getCurrentUserProvider)(NoParams());
+      // El perfil o la sesión cambiaron mientras volaba: la respuesta es vieja.
+      if (_session.generation != generation || state.isLoading) return false;
+      final fresh = result.fold<UserEntity?>((_) => null, (u) => u);
+      final still = state.valueOrNull;
+      if (fresh == null || still == null || fresh.id != still.id) return false;
+      final changed = fresh.principal != still.principal ||
+          fresh.mode != still.mode ||
+          fresh.legalAcceptancePending != still.legalAcceptancePending ||
+          fresh.familyFeatures != still.familyFeatures;
+      if (!changed) return false;
+      AppLogger.i('Modo de la cuenta actualizado desde el servidor', tag: _tag);
+      _cacheUser(fresh);
+      state = AsyncValue.data(fresh);
+      return true;
+    } finally {
+      _refreshingSupervision = false;
+    }
+  }
+
+  /// Llamado por el interceptor ante 401 `AUTH_SUPERVISED_ACCESS_REVOKED`: el
+  /// tutor cortó el acceso del menor (desactivó, restableció, congeló).
+  ///
+  /// Deja el aviso para el login y cierra la sesión local igual que una sesión
+  /// expirada: [expireSession] borra el almacenamiento seguro y pone el estado
+  /// en `null`, y el router purga el registro de perfil y los cachés de disco
+  /// al ver el cierre. Sin llamadas a la API: el token ya no vale.
+  void onSupervisedAccessRevoked() {
+    ref.read(loginNoticeProvider.notifier).state =
+        LoginNotice.supervisedAccessRevoked;
+    expireSession();
+  }
+
+  /// Alinea la bandera `session_mode` con lo que el servidor dice de esta
+  /// sesión (`/auth/me.principal.kind` es la autoridad).
+  ///
+  /// - `linked_device`: la bandera pasa a `device`.
+  /// - Cualquier otro principal: la bandera se borra.
+  /// - Sin principal con la bandera en `device`: el servidor no confirma que
+  ///   sea un teléfono vinculado ni una cuenta, así que falla cerrado como
+  ///   principal desconocido (cuenta restringida: solo «Cerrar sesión»).
+  UserEntity _reconcileSessionMode(UserEntity user, SessionMode persisted) {
+    final kind = user.principal?.kind;
+    final modeState = ref.read(sessionModeProvider.notifier);
+    if (kind == PrincipalKind.linkedDevice) {
+      if (persisted != SessionMode.device) {
+        unawaited(_sessionModeStore.write(SessionMode.device));
+      }
+      modeState.state = SessionMode.device;
+      return user;
+    }
+    if (kind == null && persisted == SessionMode.device) {
+      AppLogger.w('Bandera de dispositivo sin principal: falla cerrado',
+          tag: _tag);
+      modeState.state = SessionMode.device;
+      return user
+          .withPrincipal(const PrincipalInfo(kind: PrincipalKind.unknown));
+    }
+    if (persisted == SessionMode.device) {
+      unawaited(_sessionModeStore.clear());
+    }
+    modeState.state = SessionMode.account;
+    return user;
+  }
+
+  /// Vincula este teléfono como dispositivo de un menor (FP3-42, FP3-52).
+  ///
+  /// Solo con la app SIN sesión (ni de cuenta ni de dispositivo). Devuelve
+  /// `null` si todo salió bien (el router lleva al inicio del dispositivo) o el
+  /// mensaje traducido por `errorCode` para mostrar en la pantalla.
+  ///
+  /// Orden: purga defensiva de todo estado de perfil por el CONTENEDOR (nunca
+  /// `Ref.invalidate`, que lanza `CircularDependencyError`) > canje del token >
+  /// tokens + bandera de modo > `/auth/me`. Si `/auth/me` falla NO queda una
+  /// sesión a medias: se cierra la sesión recién creada (tokens, bandera y
+  /// cachés locales) y se muestra el error. No pasa por `AsyncLoading`: el
+  /// router mandaría a splash y desmontaría la pantalla de vinculación.
+  Future<String?> pairDevice(DevicePairingInput input) async {
+    if (_isActing ||
+        state.isLoading ||
+        state.valueOrNull != null ||
+        await ref.read(authRepositoryProvider).hasLocalToken()) {
+      AppLogger.w('Vinculación rechazada: ya hay una sesión', tag: _tag);
+      return 'device.pair.errors.session_exists'.tr();
+    }
+
+    // Purga defensiva ANTES de que exista cualquier dato del menor.
+    purgeProfileScopeProviders(ref);
+    await purgeProfileScopeDiskCaches(
+      ref,
+      guardianUserId: null,
+      clearImages: true,
+    );
+
+    final result = await ref.read(pairDeviceUseCaseProvider)(input);
+    final failure = result.fold<Failure?>((f) => f, (_) => null);
+    if (failure != null) {
+      AppLogger.w('Vinculación fallida (${failure.errorCode ?? failure.code})',
+          tag: _tag);
+      // 5 intentos por minuto por IP: un 429 sin código es «demasiados
+      // intentos», no un fallo genérico.
+      return userErrorMessage(
+        failure,
+        fallbackKey: failure.code == 429
+            ? 'errors.too_many_attempts'
+            : 'device.pair.errors.generic',
+      );
+    }
+    final paired = result.getOrElse(() => throw StateError('unreachable'));
+
+    // Tokens y bandera, juntos. Si algo de esto falla se deshace todo.
+    final secureStorage = ref.read(secureStorageProvider);
+    try {
+      await secureStorage.write(AppConstants.tokenKey, paired.accessToken);
+      await secureStorage.write(
+          AppConstants.refreshTokenKey, paired.refreshToken);
+      final expiresAt = paired.expiresAt;
+      if (expiresAt != null) {
+        await secureStorage.write(
+            AppConstants.expiresAtKey, expiresAt.toString());
+      }
+      final tokenType = paired.tokenType;
+      if (tokenType != null) {
+        await secureStorage.write(AppConstants.tokenTypeKey, tokenType);
+      }
+      await _sessionModeStore.write(SessionMode.device);
+    } catch (e) {
+      AppLogger.e('No se pudo guardar la sesión del dispositivo',
+          tag: _tag, error: e.runtimeType);
+      return _abortPairing(null);
+    }
+    ref.read(sessionModeProvider.notifier).state = SessionMode.device;
+
+    final me = await ref.read(getCurrentUserProvider)(NoParams());
+    final meFailure = me.fold<Failure?>((f) => f, (_) => null);
+    final user = me.fold<UserEntity?>((_) => null, (u) => u);
+    if (meFailure != null ||
+        user == null ||
+        user.principal?.kind != PrincipalKind.linkedDevice) {
+      AppLogger.w(
+        'Vinculación correcta pero /auth/me falló '
+        '(${meFailure?.errorCode ?? meFailure?.code ?? 'sin usuario'}); '
+        'se deshace',
+        tag: _tag,
+      );
+      return _abortPairing(meFailure);
+    }
+
+    AppLogger.i('Dispositivo vinculado', tag: _tag);
+    ref.read(deviceNoticeProvider.notifier).state = null;
+    ref
+        .read(sharedPreferencesProvider)
+        .setBool('user_manually_logged_out', false);
+    // Un teléfono vinculado guarda lo mínimo para restaurarse sin red.
+    _cacheUser(user);
+    // El token FCM del teléfono se registra con `push:register`.
+    _registerPush();
+    ref.read(unreadNotificationsCountProvider.notifier).refresh();
+    state = AsyncValue.data(user);
+    return null;
+  }
+
+  /// Deshace una vinculación a medias: cierra la sesión recién creada (en el
+  /// servidor, si responde) y borra tokens, bandera y estado local. Devuelve el
+  /// mensaje a mostrar.
+  Future<String?> _abortPairing(Failure? failure) async {
+    try {
+      await ref.read(signOutProvider)(NoParams());
+    } catch (_) {}
+    await _sessionModeStore.clear();
+    ref.read(sessionModeProvider.notifier).state = SessionMode.account;
+    ref.read(unreadNotificationsCountProvider.notifier).setZero();
+    purgeProfileScopeProviders(ref);
+    return userErrorMessage(
+      failure,
+      fallbackKey: 'device.pair.errors.session_load_failed',
+    );
+  }
+
+  /// Llamado por el interceptor ante 401 `AUTH_DEVICE_REVOKED` /
+  /// `AUTH_DEVICE_SESSION_EXPIRED` o un refresh muerto en modo dispositivo: el
+  /// tutor desvinculó el teléfono, dejó de ser elegible o la vinculación llegó
+  /// a su tope (FP3-52).
+  ///
+  /// Deja el aviso para la pantalla de vinculación y cierra la sesión local
+  /// igual que una sesión expirada ([expireSession] borra los cachés y el router
+  /// purga el registro de perfil y los cachés de disco al ver el cierre). Sin
+  /// llamadas a la API: el token ya no vale. Nada queda en cola: el teléfono no
+  /// tiene cola de subidas.
+  void onDeviceUnpaired({DeviceNotice notice = DeviceNotice.unpaired}) {
+    ref.read(deviceNoticeProvider.notifier).state = notice;
+    unawaited(
+      ref.read(pushNotificationServiceProvider).clearLocalRegistration(),
+    );
+    expireSession();
+  }
+
   /// Called by AuthInterceptor when the refresh token is dead.
   ///
   /// Clears all local tokens and cached PII then sets state to null so
@@ -1110,6 +1457,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     AppLogger.w('Sesión expirada por interceptor, limpiando estado local',
         tag: _tag);
     _clearActingForLogout();
+    _endSessionMode();
 
     final secureStorage = ref.read(secureStorageProvider);
     secureStorage.delete(AppConstants.cachedUserId);
@@ -1132,6 +1480,13 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     ref.invalidate(biometricProvider);
 
     state = const AsyncValue.data(null);
+  }
+
+  /// La sesión terminó: ni el modo en memoria ni la bandera del almacenamiento
+  /// seguro sobreviven.
+  void _endSessionMode() {
+    ref.read(sessionModeProvider.notifier).state = SessionMode.account;
+    unawaited(_sessionModeStore.clear());
   }
 
   /// Cerrar sesión
@@ -1162,6 +1517,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         return false;
       },
       (_) async {
+        _endSessionMode();
         state = const AsyncValue.data(null);
 
         final prefs = ref.read(sharedPreferencesProvider);

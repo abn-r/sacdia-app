@@ -26,6 +26,14 @@ class FamilyProfileEntry extends ConsumerWidget {
     if (ref.watch(actingDependentProvider) != null) {
       return const SizedBox.shrink();
     }
+    // Un adolescente supervisado, una cuenta sin fecha de nacimiento o una
+    // cuenta desconocida no tienen Mi familia ni selector de perfiles (FP3-32):
+    // el router también bloquea /family.
+    final isTeen = ref.watch(
+      authNotifierProvider
+          .select((v) => v.valueOrNull?.isLimitedAccount ?? false),
+    );
+    if (isTeen) return const SizedBox.shrink();
     final c = context.sac;
     final accent = SacAccent.of(context);
     final family = ref.watch(authNotifierProvider).valueOrNull?.family;

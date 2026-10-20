@@ -80,19 +80,13 @@ class PostRegistrationFlowNotifier extends AutoDisposeAsyncNotifier<void> {
 
     try {
       if (canReadSensitiveData) {
-        await ref.read(savePersonalInfoProvider.notifier).save();
-        final saveState = ref.read(savePersonalInfoProvider);
-        if (saveState.hasError) {
-          final error = saveState.error;
-          final message = userErrorMessage(
-            error,
-            fallbackKey: 'post_registration.shell.error_step_failed',
-          );
-          state = AsyncValue.error(message, StackTrace.current);
-          return PostRegistrationFlowResult.failure(
-            message,
-            errorCode: error is AppException ? error.errorCode : null,
-          );
+        // El provider es autoDispose: sin oyente se libera durante el guardado.
+        final keepAlive = ref.listen(savePersonalInfoProvider, (_, __) {});
+        try {
+          // Relanza si el guardado falla: nunca se avanza al paso 3 sin guardar.
+          await ref.read(savePersonalInfoProvider.notifier).save();
+        } finally {
+          keepAlive.close();
         }
       } else {
         await ref.read(personalInfoDataSourceProvider).completeStep2(userId);
@@ -101,7 +95,10 @@ class PostRegistrationFlowNotifier extends AutoDisposeAsyncNotifier<void> {
       state = const AsyncValue.data(null);
       return const PostRegistrationFlowResult.success();
     } catch (e, stack) {
-      final message = userErrorMessage(e);
+      final message = userErrorMessage(
+        e,
+        fallbackKey: 'post_registration.shell.error_step_failed',
+      );
       state = AsyncValue.error(message, stack);
       return PostRegistrationFlowResult.failure(
         message,

@@ -33,6 +33,25 @@ enum JoinRequestConsentStatus {
       raw == 'verified' ? verified : pending;
 }
 
+/// Por qué quien consulta NO puede verificar un consentimiento (cuatro ojos),
+/// según el servidor (`consent.viewer_verify_block`).
+enum ConsentVerifyBlock {
+  /// Custodia del club y quien consulta registró al menor, subió la ficha
+  /// vigente o cedió al menor al club.
+  selfCustodian,
+
+  /// Quien consulta es tutor vigente del menor.
+  selfGuardian;
+
+  /// Un valor desconocido o ausente es `null` (el servidor sigue siendo la
+  /// autoridad con su 403).
+  static ConsentVerifyBlock? parse(Object? raw) => switch (raw) {
+        'self_custodian' => selfCustodian,
+        'self_guardian' => selfGuardian,
+        _ => null,
+      };
+}
+
 /// Tutor de un menor, tal como lo ve el director en la solicitud.
 class ConsentGuardianRef extends Equatable {
   final String displayName;
@@ -59,19 +78,56 @@ class JoinRequestConsent extends Equatable {
   final bool evidenceUploaded;
   final List<ConsentGuardianRef> guardians;
 
+  /// Tiene perfil de dependiente (`consent.dependent`).
+  final bool dependent;
+
+  /// Hay un tutor (no el club) vinculado (`consent.guardian_linked`). `null` si
+  /// el servidor no lo informa: entonces no se asume custodia.
+  final bool? guardianLinked;
+
+  /// Veredicto del servidor para QUIEN CONSULTA (`consent.viewer_can_verify`).
+  /// `true` solo si hay algo que verificar (ficha vigente subida, consentimiento
+  /// pendiente) y no lo impide el cuatro ojos; `false` si lo impide
+  /// ([viewerVerifyBlock]) o si al cargar la lista aún no había nada que
+  /// verificar (sin ficha, ya verificado). `null` si el servidor no lo informa.
+  final bool? viewerCanVerify;
+
+  /// Por qué el servidor impide verificar a quien consulta; `null` si puede o si
+  /// no había nada que verificar al cargar la lista. Solo este valor desactiva
+  /// "Confirmar": `viewerCanVerify == false` sin motivo es una foto vieja (la
+  /// ficha pudo subirse después).
+  final ConsentVerifyBlock? viewerVerifyBlock;
+
   const JoinRequestConsent({
     required this.status,
     this.guardianshipId,
     this.evidenceUploaded = false,
     this.guardians = const [],
+    this.dependent = true,
+    this.guardianLinked,
+    this.viewerCanVerify,
+    this.viewerVerifyBlock,
   });
+
+  /// El menor está bajo CUSTODIA del club: tiene perfil pero ningún tutor
+  /// vinculado. Solo entonces rige el cuatro ojos (quien lo registró o subió la
+  /// ficha no puede verificar). Sin el dato del servidor, no se asume.
+  bool get isCustody => dependent && guardianLinked == false;
 
   bool get isPending => status == JoinRequestConsentStatus.pending;
   bool get isVerified => status == JoinRequestConsentStatus.verified;
 
   @override
-  List<Object?> get props =>
-      [guardianshipId, status, evidenceUploaded, guardians];
+  List<Object?> get props => [
+        guardianshipId,
+        status,
+        evidenceUploaded,
+        guardians,
+        dependent,
+        guardianLinked,
+        viewerCanVerify,
+        viewerVerifyBlock,
+      ];
 }
 
 /// Entidad que representa una solicitud de ingreso al club
@@ -103,6 +159,13 @@ class JoinRequest extends Equatable {
     this.resolvedAt,
     this.consent,
   });
+
+  /// Sección de la solicitud: el prefijo de [assignmentId]
+  /// (`<sectionId>/membership-requests/<id>`). `null` si no viene.
+  int? get clubSectionId {
+    final slash = assignmentId.indexOf('/');
+    return slash <= 0 ? null : int.tryParse(assignmentId.substring(0, slash));
+  }
 
   /// Es un menor cuya solicitud necesita el consentimiento del tutor.
   bool get isMinorWithConsent => consent != null;

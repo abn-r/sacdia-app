@@ -78,8 +78,8 @@ class FakeAuthRepository implements AuthRepository {
       throw UnimplementedError();
 
   @override
-  Future<Either<Failure, UserEntity>> signInWithEmailAndPassword({
-    required String email,
+  Future<Either<Failure, UserEntity>> signInWithIdentifier({
+    required String identifier,
     required String password,
   }) =>
       throw UnimplementedError();

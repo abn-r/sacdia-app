@@ -8,6 +8,8 @@ import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.d
 import 'package:sacdia_app/core/storage/image_cache_purge.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/logout_cleanup.dart';
 import 'package:sacdia_app/features/family/presentation/widgets/family_prompt_host.dart';
+import 'package:sacdia_app/features/teen/presentation/widgets/supervision_info_notice_host.dart';
+import 'package:sacdia_app/core/config/pending_navigation.dart';
 import 'package:sacdia_app/providers/storage_provider.dart';
 
 /// Signed-out session: invalidating user providers must not hit the network.
@@ -134,5 +136,35 @@ void main() {
     await Future<void>.delayed(Duration.zero);
 
     expect(purges, 1);
+  });
+
+  test('logout cleanup forgets the supervision note flag and any deferred push',
+      () async {
+    SharedPreferences.setMockInitialValues({
+      kSupervisionInfoSeenPrefsKey: true,
+      'unrelated_pref': 'keep',
+    });
+    final prefs = await SharedPreferences.getInstance();
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        authNotifierProvider.overrideWith(_SignedOutAuthNotifier.new),
+        imageCachePurgerProvider.overrideWithValue(() async {}),
+      ],
+    );
+    addTearDown(container.dispose);
+    container.read(pendingNavigationProvider.notifier).state =
+        const PendingNavigation(route: '/notifications');
+
+    container.read(_logoutCleanupInvoker)();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(prefs.getBool(kSupervisionInfoSeenPrefsKey), isNull);
+    expect(prefs.getString('unrelated_pref'), 'keep');
+    expect(
+      container.read(pendingNavigationProvider),
+      isNull,
+      reason: 'a push from the previous person is never delivered to the next',
+    );
   });
 }

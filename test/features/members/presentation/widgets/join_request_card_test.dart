@@ -140,6 +140,27 @@ void main() {
     expect(find.bySemanticsLabel('Rechazar'), findsNothing);
     expect(find.bySemanticsLabel('Aprobar'), findsNothing);
   });
+
+  testWidgets(
+      'the minor consent badge fits next to the actions on a phone width',
+      (tester) async {
+    tester.view.physicalSize = const Size(402 * 3, 874 * 3);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+
+    await pumpCard(
+      tester,
+      consent: const JoinRequestConsent(
+        status: JoinRequestConsentStatus.pending,
+      ),
+      onApprove: () {},
+      onReject: () {},
+    );
+
+    expect(tester.takeException(), isNull,
+        reason: 'no RenderFlex overflow beside the two actions');
+    expect(find.text('Menor · consentimiento pendiente'), findsOneWidget);
+  });
 }
 
 class _TestAssetLoader extends AssetLoader {

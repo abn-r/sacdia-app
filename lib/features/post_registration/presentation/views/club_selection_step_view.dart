@@ -16,6 +16,7 @@ import '../../data/models/class_model.dart';
 import '../providers/club_selection_providers.dart';
 import '../utils/progressive_class_logo_asset.dart';
 import '../widgets/bottom_sheet_picker.dart';
+import '../widgets/acting_consent_form_card.dart';
 import '../widgets/club_type_selector.dart';
 import '../widgets/guardian_only_exit.dart';
 import 'package:sacdia_app/core/errors/user_error_message.dart';
@@ -449,6 +450,9 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                       .tr(namedArgs: {'error': userErrorMessage(error)})),
             ),
           ],
+
+          // ── Ficha de consentimiento firmada, actuando por el menor ───────
+          if (!widget.isClubTransfer) const ActingConsentFormCard(),
 
           // ── Salida "Solo soy tutor de menores" (FP-60) ───────────────────
           if (!widget.isClubTransfer) const GuardianOnlyExit(),

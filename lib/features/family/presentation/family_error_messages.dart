@@ -30,6 +30,24 @@ const Set<String> familyErrorCodes = {
   'POST_REG_GUARDIAN_ONLY_REQUIRES_ADULT',
   'MR_CONSENT_NOT_VERIFIED',
   'LEGAL_VERSION_MISMATCH',
+  // Fase 3a: acceso propio del menor y resumen del tutor.
+  'SUPERVISED_LOGIN_NOT_ELIGIBLE',
+  'SUPERVISED_LOGIN_AGE_OUT_OF_RANGE',
+  'SUPERVISED_LOGIN_ALREADY_ENABLED',
+  'SUPERVISED_LOGIN_NOT_FOUND',
+  'SUPERVISED_LOGIN_EMAIL_UNAVAILABLE',
+  'SUPERVISED_LOGIN_PASSWORD_INVALID',
+  'GUARDIANSHIP_CONSENT_NOT_VERIFIED',
+  'FAMILY_FEATURE_DISABLED',
+  'PRINCIPAL_SCOPE_DENIED',
+  // Fase 3b: teléfonos vinculados de un menor. El motivo exacto de
+  // DEVICE_PAIRING_NOT_ELIGIBLE viaja en `details`, que no se lee jamás.
+  'DEVICE_PAIRING_NOT_ELIGIBLE',
+  'DEVICE_LIMIT_REACHED',
+  'LINKED_DEVICE_LIMIT_REACHED',
+  'LINKED_DEVICE_AGE_OUT_OF_RANGE',
+  'DEVICE_NOT_FOUND',
+  'LINKED_DEVICE_NOT_FOUND',
 };
 
 /// Llave `errors.*` de un código, o `null` si no es uno de Mi familia.
@@ -51,6 +69,9 @@ String familyErrorMessage(Object? error) {
     if (error is NetworkFailure || error is ConnectionFailure) {
       return 'errors.connection_error'.tr();
     }
+    // Un 429 del limitador (p. ej. 10 códigos de vinculación por hora) llega
+    // SIN código de negocio: mensaje de «demasiados intentos».
+    if (error.code == 429) return 'errors.too_many_attempts'.tr();
   }
   return 'family.errors.generic'.tr();
 }

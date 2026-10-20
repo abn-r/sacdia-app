@@ -23,9 +23,9 @@ abstract class AuthRemoteDataSource {
   /// Obtiene el usuario actual
   Future<UserModel?> getCurrentUser();
 
-  /// Inicia sesión con email y contraseña
-  Future<UserModel> signInWithEmailAndPassword({
-    required String email,
+  /// Inicia sesión con correo o usuario (handle) y contraseña.
+  Future<UserModel> signInWithIdentifier({
+    required String identifier,
     required String password,
   });
 
@@ -152,7 +152,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   /// `/auth/login` y `/auth/oauth/:provider/token` (misma forma).
   Future<UserModel> _persistSessionAndBuildUser(
     Map<String, dynamic>? responseData, {
-    String fallbackEmail = '',
+    String? fallbackEmail,
   }) async {
     if (responseData == null) {
       throw AuthException(message: tr('errors.invalid_response'));
@@ -185,6 +185,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       name: userData?['name'] as String? ?? '',
       avatar: userData?['image'] as String? ?? userData?['avatar'] as String?,
       postRegisterComplete: !needsPostRegistration,
+      // `data.user.principal` del login: solo kind + estado. `/auth/me` trae el
+      // resto en cuanto el arranque lo vuelve a pedir.
+      principal: UserModel.parsePrincipal(userData?['principal']),
     );
   }
 
@@ -493,42 +496,75 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
+  /// Segundos del encabezado `Retry-After` (429), o `null` si falta o no es
+  /// un entero. El cuerpo del error no se lee: ahí vive `details`.
+  static int? _retryAfterSeconds(Response<dynamic>? response) {
+    final raw = response?.headers.value('retry-after');
+    final seconds = raw == null ? null : int.tryParse(raw.trim());
+    return seconds != null && seconds > 0 ? seconds : null;
+  }
+
   @override
-  Future<UserModel> signInWithEmailAndPassword({
-    required String email,
+  Future<UserModel> signInWithIdentifier({
+    required String identifier,
     required String password,
   }) async {
+    final value = identifier.trim();
+    // Un correo viaja como `email` (campo heredado que el servidor sigue
+    // aceptando): así el login de correo sigue funcionando también contra un
+    // backend anterior a los usuarios supervisados. Un usuario (handle) viaja
+    // como `identifier`. Nunca se registra ni se valida el formato aquí.
+    final isEmail = value.contains('@');
     try {
       AppLogger.i('Login iniciado', tag: _tag);
 
       final response =
           await _dio.post('$_baseUrl${ApiEndpoints.auth}/login', data: {
-        'email': email,
+        if (isEmail) 'email': value else 'identifier': value,
         'password': password,
       });
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw AuthException(
-            message: response.data['message'] ?? tr('errors.auth_failed'));
+          message: response.data['message'] ?? tr('errors.auth_failed'),
+          code: response.statusCode,
+          errorCode: response.data['code']?.toString(),
+        );
       }
 
       final user = await _persistSessionAndBuildUser(
         response.data['data'] as Map<String, dynamic>?,
-        fallbackEmail: email,
+        fallbackEmail: isEmail ? value : null,
       );
       AppLogger.i('Login exitoso', tag: _tag);
       return user;
     } catch (e) {
-      AppLogger.e('Error en login', tag: _tag, error: e);
+      // Nunca se registra el identificador: puede ser el usuario de un menor.
+      AppLogger.e('Error en login', tag: _tag, error: e.runtimeType);
       if (e is DioException) {
-        // Leer el mensaje desde el body del servidor cuando está disponible.
-        // e.message solo contiene metadatos HTTP ("Http status error [401]"),
-        // no el payload — el API message vive en e.response.data['message'].
-        final serverMessage = e.response?.data is Map
-            ? e.response!.data['message'] as String?
+        // Sin respuesta del servidor: es un problema de red, no de credenciales.
+        if (e.response == null) {
+          final inner = e.error;
+          if (inner is ConnectionException) throw inner;
+          throw ConnectionException(
+            message: tr('errors.connection_error'),
+            stackTrace: e.stackTrace,
+          );
+        }
+        // Solo `message` y `code`: `details` nunca se lee (ruling #11528).
+        final data = e.response?.data;
+        final serverMessage = data is Map && data['message'] is String
+            ? data['message'] as String
             : null;
         throw AuthException(
-            message: serverMessage ?? tr('common.error_network'));
+          message: serverMessage ?? tr('common.error_network'),
+          code: e.response?.statusCode,
+          errorCode: data is Map && data['code'] is String
+              ? data['code'] as String
+              : null,
+          retryAfterSeconds: _retryAfterSeconds(e.response),
+          stackTrace: e.stackTrace,
+        );
       }
       if (e is AuthException) rethrow;
       throw AuthException(message: e.toString());
@@ -730,6 +766,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         AppConstants.refreshTokenKey,
         AppConstants.expiresAtKey,
         AppConstants.tokenTypeKey,
+        AppConstants.sessionModeKey,
         'cached_post_register_complete',
         AppConstants.cachedUserId,
         AppConstants.cachedUserEmail,

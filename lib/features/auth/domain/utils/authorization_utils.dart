@@ -1,4 +1,5 @@
 import '../entities/authorization_snapshot.dart';
+import '../entities/principal_info.dart';
 import '../entities/user_entity.dart';
 
 enum SensitiveUserFamily {
@@ -237,9 +238,34 @@ bool isGuardianWithoutClub(UserEntity? user) {
 /// ¿Debe pasar por el post-registro de club?
 ///
 /// Falta completarlo, salvo para el pastor sin club: su cuenta no tiene
-/// datos de club que completar.
+/// datos de club que completar. Una cuenta sin fecha de nacimiento
+/// (`profile_incomplete`) lo necesita siempre: la restricción la levanta el
+/// servidor, no la bandera local.
 bool userNeedsPostRegistration(UserEntity user) =>
-    !user.postRegisterComplete && !isPastorWithoutClub(user);
+    user.mode == AccountMode.profileIncomplete ||
+    (!user.postRegisterComplete && !isPastorWithoutClub(user));
+
+/// ¿Se ofrece «Eliminar cuenta» en el menú del post-registro?
+///
+/// La guideline 5.1.1(v) de App Store exige poder borrar la cuenta dentro de la
+/// app aunque el registro no haya terminado (un alta nueva con Apple/Google es
+/// `age_unknown_user`). Solo para quien puede borrar SU cuenta: un adulto o una
+/// cuenta sin fecha de nacimiento (`account:manage`). Nunca mientras se actúa
+/// por un dependiente, ni para un adolescente supervisado (su borrado lo
+/// gestiona el tutor o un administrador) ni para un principal desconocido.
+bool canDeleteAccountInPostRegistration(
+  UserEntity? user, {
+  required bool acting,
+}) {
+  if (user == null || acting || user.actingFor != null) return false;
+  final kind = user.principal?.kind ?? PrincipalKind.user;
+  final kindAllowed =
+      kind == PrincipalKind.user || kind == PrincipalKind.ageUnknownUser;
+  final mode = user.mode;
+  final modeAllowed =
+      mode == AccountMode.adult || mode == AccountMode.profileIncomplete;
+  return kindAllowed && modeAllowed;
+}
 
 /// ¿Debe aceptar los documentos legales vigentes antes de usar la app?
 bool userNeedsLegalAcceptance(UserEntity user) => user.legalAcceptancePending;

@@ -10,11 +10,14 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
+import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../profile/presentation/utils/run_delete_account_flow.dart';
+import '../../../auth/presentation/providers/acting_providers.dart';
 import '../providers/post_registration_flow_providers.dart';
 import '../providers/post_registration_providers.dart';
 import '../providers/personal_info_providers.dart';
@@ -73,7 +76,13 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
     final status = await ref.read(completionStatusProvider.future);
     if (status == null || !mounted) return;
 
-    if (status.isComplete) {
+    // Sin fecha de nacimiento el servidor aún no libera la cuenta, aunque el
+    // post-registro figure completo: salir al inicio rebotaría aquí otra vez.
+    // Se queda en el paso 2, que es donde se guarda la fecha.
+    final awaitingBirthday = ref.read(authNotifierProvider).valueOrNull?.mode ==
+        AccountMode.profileIncomplete;
+
+    if (status.isComplete && !awaitingBirthday) {
       ref
           .read(authNotifierProvider.notifier)
           .markPostRegisterComplete(forUserId: userId);
@@ -81,7 +90,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
       return;
     }
 
-    final step = status.currentStep;
+    final step = status.isComplete ? 2 : status.currentStep;
     _currentStep = step;
     ref.read(currentStepProvider.notifier).state = step;
 
@@ -156,6 +165,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
     final user = authState.valueOrNull;
     final userId = user?.id;
     if (userId == null) return;
+    final awaitingBirthday = user?.mode == AccountMode.profileIncomplete;
 
     final canReadSensitiveData = canReadSensitiveStep2Data(userId, user);
 
@@ -167,6 +177,25 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
 
       if (!mounted) return;
       if (result.success) {
+        // La fecha de nacimiento acaba de guardarse: el servidor reclasifica la
+        // cuenta (menor supervisado o adulto). Se vuelve a pedir `/auth/me` para
+        // que el modo y el router lo sigan sin esperar al paso 3.
+        final fresh = await ref
+            .read(authNotifierProvider.notifier)
+            .refreshCurrentUser(keepCurrentOnFailure: true);
+        if (!mounted) return;
+        // Una cuenta sin fecha de nacimiento que sigue así no puede continuar:
+        // el paso 3 sería rechazado con 403 hasta que el servidor la libere.
+        final stillRestricted = awaitingBirthday &&
+            (fresh ?? ref.read(authNotifierProvider).valueOrNull)?.mode ==
+                AccountMode.profileIncomplete;
+        if (stillRestricted) {
+          SacSnackBar.show(
+            context,
+            tr('post_registration.shell.error_step_failed'),
+          );
+          return;
+        }
         _goToStep(3);
       } else {
         SacSnackBar.show(
@@ -249,6 +278,12 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
     }
     final authUser =
         ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
+    // Mientras se actúa por un menor, o para un adolescente supervisado, la
+    // cuenta no es de quien tiene el teléfono en la mano.
+    final canDeleteAccount = canDeleteAccountInPostRegistration(
+      authUser,
+      acting: ref.watch(actingDependentProvider) != null,
+    );
     final selectedPhoto = ref.watch(selectedPhotoPathProvider);
     final isUploading = ref.watch(isUploadingPhotoProvider);
     final isSavingStep3 = ref.watch(isSavingStep3Provider);
@@ -315,6 +350,25 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
                         constraints: const BoxConstraints(),
                       ),
                     ),
+                    if (canDeleteAccount) ...[
+                      const SizedBox(width: 8),
+                      SacPressable(
+                        listenOnly: true,
+                        child: IconButton(
+                          key: const ValueKey(
+                              'post_registration_delete_account'),
+                          enableFeedback: false,
+                          onPressed: () => runDeleteAccountFlow(context, ref),
+                          icon: const HugeIcon(
+                            icon: HugeIcons.strokeRoundedDelete02,
+                          ),
+                          color: context.sac.text,
+                          tooltip: tr('profile.settings.delete_account_tile'),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ),
+                    ],
                     const SizedBox(width: 8),
                     // Step counter badge — animates value change implicitly
                     AnimatedSwitcher(

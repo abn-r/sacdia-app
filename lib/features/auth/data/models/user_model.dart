@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 
 import '../../domain/entities/acting_for_info.dart';
 import '../../domain/entities/authorization_snapshot.dart';
+import '../../domain/entities/principal_info.dart';
 import '../../domain/entities/user_entity.dart';
 
 /// Modelo de usuario para la capa de datos
@@ -20,6 +21,10 @@ class UserModel extends UserEntity {
     super.legalAcceptancePending,
     super.actingFor,
     super.family,
+    super.principal,
+    super.familyFeatures,
+    super.analyticsAnonymous,
+    super.serverMode,
   });
 
   /// Crea un UserModel a partir de la respuesta de la API personalizada
@@ -49,6 +54,10 @@ class UserModel extends UserEntity {
       legalAcceptancePending: _parseLegalPending(data['legal']),
       actingFor: _parseActingFor(data['acting_for']),
       family: _parseFamily(data['family']),
+      principal: parsePrincipal(data['principal'], club: data['club']),
+      familyFeatures: _parseFamilyFeatures(data['family_features']),
+      analyticsAnonymous: _parseAnalyticsAnonymous(data),
+      serverMode: _parseMode(data),
     );
   }
 
@@ -108,6 +117,113 @@ class UserModel extends UserEntity {
       isGuardian: value['is_guardian'] == true,
       dependentsCount: count is num ? count.toInt() : 0,
     );
+  }
+
+  /// `data.principal` (`/auth/me`) o `data.user.principal` (`/auth/login`).
+  ///
+  /// En `/auth/me` `supervision` es un objeto; en el login es solo el estado
+  /// (`"pending_guardian"` | `"active"` | `null`). Se aceptan las dos formas.
+  /// Ausente o malformado es nulo: el modo cae a adulto y la analítica queda
+  /// anónima.
+  static PrincipalInfo? parsePrincipal(dynamic value, {dynamic club}) {
+    if (value is! Map) return null;
+    final rawScopes = value['scopes'];
+    final kind = PrincipalKind.parse(value['kind']);
+    return PrincipalInfo(
+      kind: kind,
+      scopes: rawScopes is List
+          ? rawScopes.map((s) => s.toString()).toList(growable: false)
+          : null,
+      supervision: _parseSupervision(value['supervision']),
+      device: _parseDevice(
+        value['device'],
+        // Solo un teléfono vinculado trae el club fuera de `authorization`.
+        club: kind == PrincipalKind.linkedDevice ? club : null,
+      ),
+    );
+  }
+
+  /// `principal.device`: `{linked_device_id, label, paired_at}`. Ausente o
+  /// malformado es nulo.
+  static DeviceInfo? _parseDevice(dynamic value, {dynamic club}) {
+    final clubMap = club is Map ? club : null;
+    if (value is! Map && clubMap == null) return null;
+    final device = value is Map ? value : const {};
+    return DeviceInfo(
+      linkedDeviceId: device['linked_device_id']?.toString(),
+      label: device['label']?.toString(),
+      pairedAt: _parseDateTime(device['paired_at']),
+      clubId: clubMap == null
+          ? null
+          : int.tryParse(clubMap['club_id']?.toString() ?? ''),
+      clubName: clubMap?['club_name']?.toString(),
+      clubType: clubMap?['club_type']?.toString(),
+    );
+  }
+
+  static SupervisionInfo? _parseSupervision(dynamic value) {
+    if (value is String) {
+      final status = SupervisionStatus.parse(value);
+      return status == null ? null : SupervisionInfo(status: status);
+    }
+    if (value is! Map) return null;
+    final status = SupervisionStatus.parse(value['status']);
+    if (status == null) return null;
+    final guardians = value['guardians'];
+    final daysLeft = value['days_left'];
+    return SupervisionInfo(
+      status: status,
+      pendingSince: _parseDateTime(value['pending_since']),
+      guardians: guardians is List
+          ? guardians
+              .whereType<Map>()
+              .map(
+                (g) => SupervisionGuardian(
+                  displayName: g['display_name']?.toString() ?? '—',
+                  relationshipTypeName: g['relationship_type_name']?.toString(),
+                  guardianshipId: g['guardianship_id']?.toString(),
+                  consentStatus: g['consent_status']?.toString(),
+                ),
+              )
+              .toList(growable: false)
+          : const [],
+      // Solo `false` explícito lo oculta: el aviso de transparencia es el lado
+      // honesto por defecto.
+      summaryVisibleToGuardians: value['summary_visible_to_guardians'] != false,
+      serverDaysLeft: daysLeft is num ? daysLeft.toInt() : null,
+    );
+  }
+
+  /// `data.family_features`: ausente o malformado es nulo (todo apagado).
+  static FamilyFeatures? _parseFamilyFeatures(dynamic value) {
+    if (value is! Map) return null;
+    return FamilyFeatures(
+      teenLogin: value['teen_login'] == true,
+      linkedDevice: value['linked_device'] == true,
+      directorCreateMinor: value['director_create_minor'] == true,
+    );
+  }
+
+  /// `analytics_anonymous` en `data` o dentro de `data.principal`. Solo un
+  /// booleano real cuenta; todo lo demás es nulo (= anónimo, FP3-30).
+  static bool? _parseAnalyticsAnonymous(Map<String, dynamic> data) {
+    final top = data['analytics_anonymous'];
+    if (top is bool) return top;
+    final principal = data['principal'];
+    if (principal is Map && principal['analytics_anonymous'] is bool) {
+      return principal['analytics_anonymous'] as bool;
+    }
+    return null;
+  }
+
+  /// `mode` (`adult` | `teen_pending` | `teen_supervised`) en `data` o en
+  /// `data.principal`. Un valor desconocido es nulo y el modo se deriva del
+  /// principal.
+  static AccountMode? _parseMode(Map<String, dynamic> data) {
+    final top = AccountMode.parse(data['mode']);
+    if (top != null) return top;
+    final principal = data['principal'];
+    return principal is Map ? AccountMode.parse(principal['mode']) : null;
   }
 
   /// `data.legal.requires_acceptance == true`. Un bloque ausente o malformado
@@ -310,6 +426,10 @@ class UserModel extends UserEntity {
     bool? legalAcceptancePending,
     ActingForInfo? actingFor,
     FamilySummary? family,
+    PrincipalInfo? principal,
+    FamilyFeatures? familyFeatures,
+    bool? analyticsAnonymous,
+    AccountMode? serverMode,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -326,6 +446,10 @@ class UserModel extends UserEntity {
           legalAcceptancePending ?? this.legalAcceptancePending,
       actingFor: actingFor ?? this.actingFor,
       family: family ?? this.family,
+      principal: principal ?? this.principal,
+      familyFeatures: familyFeatures ?? this.familyFeatures,
+      analyticsAnonymous: analyticsAnonymous ?? this.analyticsAnonymous,
+      serverMode: serverMode ?? this.serverMode,
     );
   }
 }

@@ -49,8 +49,8 @@ class _LoginRepository extends FakeAuthRepository {
   }
 
   @override
-  Future<Either<Failure, UserEntity>> signInWithEmailAndPassword({
-    required String email,
+  Future<Either<Failure, UserEntity>> signInWithIdentifier({
+    required String identifier,
     required String password,
   }) async {
     hasToken = true;
@@ -131,7 +131,7 @@ void main() {
 
         final ok = await c
             .read(authNotifierProvider.notifier)
-            .signIn(email: 'u1@example.com', password: 'secret');
+            .signIn(identifier: 'u1@example.com', password: 'secret');
         expect(ok, isTrue);
         // The sign-in user carries no legal status yet.
         expect(_signedInUser.legalAcceptancePending, isFalse);

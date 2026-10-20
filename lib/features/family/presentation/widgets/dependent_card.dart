@@ -109,7 +109,8 @@ class DependentCard extends StatelessWidget {
                 : dependentClubLabel(dependent.clubMembership),
             style: textTheme.bodySmall?.copyWith(color: c.textSecondary),
           ),
-          if (!dependent.frozen) ...[
+          // Con acceso propio activo ya no se actúa por él (lo niega el servidor).
+          if (dependent.canActAs) ...[
             const SizedBox(height: 12),
             SacButton.outline(
               text: 'family.card.view_as'.tr(

@@ -98,13 +98,19 @@ class SacBadge extends StatelessWidget {
             buildIcon(icon, size: 14, color: fg),
             const SizedBox(width: 4),
           ],
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: fg,
-              height: 1.2,
+          // Flexible: in a narrow slot (a card row with actions) the label
+          // wraps instead of overflowing.
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: fg,
+                height: 1.2,
+              ),
             ),
           ),
         ],

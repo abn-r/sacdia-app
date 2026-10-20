@@ -232,6 +232,7 @@
     "errors": {
       "sign_in_failed": "Error al iniciar sesión",
       "sign_up_failed": "Error al registrar usuario",
+      "session_load_failed": "Iniciaste sesión, pero no pudimos cargar tu cuenta. Inténtalo de nuevo.",
       "change_password_failed": "Error al cambiar la contraseña",
       "delete_account_failed": "Error al eliminar la cuenta",
       "sign_out_failed": "Error al cerrar sesión",
@@ -258,6 +259,18 @@
         "hint": "Un adulto puede agregarte desde la sección Mi familia de su perfil.",
         "fix": "Corregir fecha de nacimiento",
         "back": "Volver"
+      },
+      "minor_notice": "Si eres menor de 18 años, tu cuenta funciona en modo supervisado: necesitarás vincular a un tutor y un director verificará su consentimiento."
+    },
+    "login": {
+      "identifier": {
+        "label": "Correo o usuario",
+        "hint": "Tu correo o tu usuario",
+        "required": "Ingresa tu correo o tu usuario",
+        "too_long": "Es demasiado largo"
+      },
+      "notice": {
+        "supervised_access_revoked": "Tu tutor desactivó o cambió tu acceso. Inicia sesión de nuevo con tus datos actualizados."
       }
     }
   },
@@ -469,7 +482,34 @@
     "file_too_large": "El archivo supera el máximo de 10 MB.",
     "guardianship_consent_already_verified": "La ficha ya fue verificada.",
     "guardianship_guardian_self_verify": "No puedes verificar el consentimiento de un menor del que eres tutor. Debe hacerlo otra persona autorizada del club.",
-    "post_reg_duplicate_membership": "Ya hay una membresía o solicitud activa en otro club. Revísala antes de enviar una nueva."
+    "post_reg_duplicate_membership": "Ya hay una membresía o solicitud activa en otro club. Revísala antes de enviar una nueva.",
+    "auth_invalid_credentials": "Correo, usuario o contraseña incorrectos.",
+    "auth_login_locked": "Demasiados intentos. Inténtalo de nuevo más tarde.",
+    "auth_login_locked_wait": "Demasiados intentos. Inténtalo de nuevo en {minutes} min.",
+    "auth_login_throttled": "Demasiados intentos. Espera un momento e inténtalo de nuevo.",
+    "auth_supervised_login_disabled": "Tu tutor desactivó este acceso. Pídele que lo vuelva a activar.",
+    "auth_account_frozen": "Esta cuenta se eliminó porque no tenía un tutor vinculado.",
+    "auth_supervised_access_revoked": "Tu tutor desactivó o cambió tu acceso.",
+    "principal_scope_denied": "Esta acción no está disponible para tu cuenta.",
+    "user_birthday_change_requires_guardian": "Solo tu tutor puede corregir tu fecha de nacimiento.",
+    "supervised_login_not_eligible": "Este perfil aún no puede tener acceso propio.",
+    "supervised_login_age_out_of_range": "El acceso propio es solo para menores desde la edad mínima y hasta antes de la mayoría de edad.",
+    "supervised_login_already_enabled": "Este perfil ya tiene acceso propio.",
+    "supervised_login_not_found": "Este perfil no tiene acceso propio.",
+    "supervised_login_email_unavailable": "Ese correo no está disponible. Prueba con otro.",
+    "supervised_login_password_invalid": "La contraseña no cumple los requisitos de seguridad.",
+    "guardianship_consent_not_verified": "El consentimiento aún no está verificado. Un director debe confirmarlo primero.",
+    "family_feature_disabled": "Esta función no está disponible por ahora.",
+    "device_pairing_token_invalid": "Este código no es válido o ya venció. Pide a tu tutor que genere uno nuevo.",
+    "device_pairing_not_eligible": "Este perfil no se puede vincular a un teléfono ahora. Revisa que el consentimiento esté verificado, que no tenga acceso propio y que sea menor de 13 años.",
+    "device_limit_reached": "Ya hay el máximo de teléfonos vinculados para este menor. Desvincula uno para agregar otro.",
+    "linked_device_limit_reached": "Ya hay el máximo de teléfonos vinculados para este menor. Desvincula uno para agregar otro.",
+    "linked_device_age_out_of_range": "Solo se pueden vincular teléfonos de menores de 13 años. Para mayores existe el acceso propio.",
+    "device_not_found": "No encontramos ese teléfono vinculado.",
+    "linked_device_not_found": "No encontramos ese teléfono vinculado.",
+    "auth_device_revoked": "Tu tutor desvinculó este teléfono.",
+    "auth_device_session_expired": "La vinculación de este teléfono venció. Pide a tu tutor que lo vincule de nuevo.",
+    "mr_approve_permission_required": "No tienes permiso para aprobar solicitudes. Solo puedes verificar el consentimiento."
   },
   "honors": {
     "errors": {
@@ -1125,7 +1165,8 @@
       "birth": {
         "label": "Fecha de nacimiento",
         "date_picker_help": "Selecciona tu fecha de nacimiento",
-        "select_date": "Seleccionar fecha"
+        "select_date": "Seleccionar fecha",
+        "read_only_hint": "Solo tu tutor puede corregir tu fecha de nacimiento."
       },
       "baptism": {
         "toggle_label": "¿Estás bautizado?",
@@ -2630,7 +2671,46 @@
       "verified_not_approved": "El consentimiento quedó verificado, pero no se pudo aprobar la solicitud: {reason}",
       "retry_approve": "Reintentar aprobación",
       "approve_blocked": "Falta verificar el consentimiento del tutor. Se abrió la verificación.",
-      "generic_error": "No se pudo verificar el consentimiento. Intenta de nuevo."
+      "generic_error": "No se pudo verificar el consentimiento. Intenta de nuevo.",
+      "another_person": "Otra persona debe verificar este consentimiento: tú registraste al menor, subiste la ficha o lo dejaste bajo custodia del club.",
+      "verify_only_hint": "Puedes verificar la ficha, pero aprobar la solicitud le corresponde a un director.",
+      "verify_only_confirm": "Confirmar verificación",
+      "verified_toast": "Consentimiento verificado. Falta que un director apruebe la solicitud de {name}."
+    },
+    "create_minor": {
+      "entry": "Registrar un menor",
+      "title": "Registrar un menor",
+      "intro": "Registra a un menor que asistirá a tu sección con la autorización firmada de su tutor. Queda bajo la custodia del club y su solicitud espera la verificación de otra persona.",
+      "name": "Nombre(s)",
+      "paternal": "Apellido paterno",
+      "maternal": "Apellido materno (opcional)",
+      "birthday": "Fecha de nacimiento",
+      "birthday_hint": "Selecciona la fecha",
+      "birthday_required": "Selecciona la fecha de nacimiento",
+      "gender_label": "Género (opcional)",
+      "gender_male": "Masculino",
+      "gender_female": "Femenino",
+      "required": "Campo obligatorio",
+      "sworn": "Declaro bajo protesta de decir verdad que el tutor del menor firmó la autorización en papel.",
+      "legal_prefix": "Acepto en nombre del menor los ",
+      "legal_unavailable": "No se pudieron cargar los documentos legales.",
+      "submit": "Registrar menor",
+      "created_toast": "{name} quedó registrado. Falta que otra persona verifique la ficha firmada.",
+      "errors": {
+        "age_out_of_range": "La edad no es válida para registrar a un menor. Debe ser menor de edad según el país del club.",
+        "no_active_year": "No hay un año eclesiástico vigente. No se registró al menor."
+      }
+    },
+    "claim_code": {
+      "section_title": "Entregar a la familia",
+      "hint": "Genera un código de un solo uso que vale 7 días. La familia lo canjea en Mi familia para hacerse cargo del menor.",
+      "action": "Generar código para los padres",
+      "code_title": "Código para la familia",
+      "expires": "Vence {when}",
+      "copy": "Copiar código",
+      "copied": "Código copiado",
+      "share": "Compartir",
+      "share_message": "Te invito a hacerte cargo de {name} en SACDIA. Código: {code}. Vence {when}. Ingrésalo en Mi familia > Tengo un código de vinculación."
     }
   },
   "certifications": {
@@ -5381,7 +5461,8 @@
     "outcome": {
       "other_guardian": "Otro tutor seguirá a cargo de {name}.",
       "club_custody": "El club quedará a cargo de {name} mientras tanto.",
-      "frozen": "{name} quedará congelado y su información se borrará en 90 días."
+      "frozen": "{name} quedará congelado y su información se borrará en 90 días.",
+      "pending_guardian": "{name} se quedará sin tutor verificado: su acceso se limitará y tendrá 90 días para vincular a otro tutor."
     },
     "link": {
       "title": "Código de vinculación",
@@ -5419,6 +5500,259 @@
       "dialog_confirm": "Cambiar",
       "dialog_cancel": "Ahora no",
       "unavailable": "Ese perfil ya no está disponible para ti."
+    },
+    "teen": {
+      "wizard": {
+        "title": "Acceso propio para {name}",
+        "step_of": "Paso {current} de {total}",
+        "method_title": "¿Cómo entrará {name}?",
+        "method_handle": "Con un usuario",
+        "method_handle_hint": "Creamos un usuario para {name}. No necesita correo electrónico.",
+        "method_email": "Con su correo",
+        "method_email_hint": "{name} entra con su propio correo electrónico.",
+        "credentials_title": "Datos de acceso",
+        "email_hint": "Correo electrónico de {name}",
+        "password_label": "Contraseña",
+        "confirm_label": "Confirmar contraseña",
+        "password_policy": "Mínimo 8 caracteres, con mayúscula, minúscula y número.",
+        "password_note": "Tú eliges la contraseña y se la das a {name}. Puedes cambiarla cuando quieras.",
+        "confirm_title": "Antes de activar",
+        "warn_acting": "Dejarás de poder actuar por {name}: usará su propio acceso.",
+        "warn_devices": "Si {name} tiene teléfonos vinculados, se desvincularán.",
+        "warn_control": "Podrás desactivar su acceso o cambiar su contraseña cuando quieras mientras sea menor.",
+        "warn_privacy": "Verás un resumen de su progreso y asistencia, nunca su información de salud.",
+        "activate": "Activar acceso",
+        "result_title": "Acceso activado",
+        "result_handle_label": "Usuario",
+        "result_email_label": "Correo",
+        "result_hint": "Dale a {name} su usuario y la contraseña que elegiste. Guárdalos en un lugar seguro: la contraseña no se vuelve a mostrar.",
+        "result_devices": "Teléfonos desvinculados: {count}",
+        "copy": "Copiar usuario",
+        "copied": "Usuario copiado",
+        "done": "Listo",
+        "not_eligible": "{name} aún no puede tener acceso propio."
+      }
+    },
+    "access": {
+      "title": "Acceso",
+      "pending_guardian": "Podrás gestionar el acceso de {name} y ver su resumen cuando un director verifique tu consentimiento. Mientras tanto solo puedes subir el formulario firmado.",
+      "active": "Acceso propio activo",
+      "disabled": "Acceso desactivado",
+      "method_handle": "Con usuario",
+      "method_email": "Con correo",
+      "handle_label": "Usuario",
+      "copy": "Copiar",
+      "copied": "Usuario copiado",
+      "enable": "Darle acceso propio",
+      "enable_hint": "{name} podrá entrar con su propio usuario o correo. Dejarás de actuar por {name}.",
+      "not_yet": "{name} podrá tener su propio acceso a partir de la edad mínima.",
+      "summary": "Ver resumen",
+      "disable": "Desactivar acceso",
+      "disable_title": "¿Desactivar el acceso de {name}?",
+      "disable_body": "{name} no podrá entrar y su sesión se cerrará de inmediato. Podrás reactivar el acceso cuando quieras mientras sea menor.",
+      "disable_confirm": "Desactivar",
+      "disabled_toast": "Acceso desactivado",
+      "reactivate": "Reactivar acceso",
+      "reactivate_title": "Reactivar el acceso de {name}",
+      "reactivate_body_handle": "Elige una contraseña nueva: la anterior dejará de servir.",
+      "reactivate_body_email": "{name} podrá volver a entrar con su correo.",
+      "reactivate_confirm": "Reactivar",
+      "reactivated_toast": "Acceso reactivado",
+      "reset_password": "Restablecer contraseña",
+      "reset_title": "Restablecer la contraseña de {name}",
+      "reset_body_handle": "Elige una contraseña nueva. Se cerrarán todas sus sesiones y los otros tutores recibirán un aviso.",
+      "reset_body_email": "Se cerrarán todas sus sesiones y {name} recibirá un correo para elegir una contraseña nueva. Tú no verás la contraseña.",
+      "reset_confirm": "Restablecer",
+      "reset_toast": "Contraseña restablecida. Sesiones cerradas: {count}.",
+      "reset_toast_email": "Sesiones cerradas: {count}. Enviamos el correo de restablecimiento a {name}.",
+      "new_password": "Contraseña nueva"
+    },
+    "summary": {
+      "title": "Resumen de {name}",
+      "subtitle": "Progreso y asistencia",
+      "classes_title": "Clases",
+      "sections_progress": "{done} de {total} secciones",
+      "no_classes": "Aún no tiene clases en curso.",
+      "honors_title": "Especialidades",
+      "honors_completed": "{count} completadas",
+      "honors_in_progress": "{count} en curso",
+      "attendance_title": "Asistencia",
+      "attendance_value": "{attended} de {total} actividades",
+      "attendance_period": "Del {from} al {to}",
+      "no_activities": "Sin actividades en este periodo.",
+      "privacy_note": "Este resumen no incluye información de salud ni notas personales."
+    },
+    "devices": {
+      "title": "Teléfonos vinculados",
+      "intro": "Vincula un teléfono para que {name} vea sus clases y actividades y suba evidencias sin crear una cuenta. Tú recibes un aviso por cada evidencia.",
+      "no_new": "Ya no se pueden vincular teléfonos nuevos para {name}. Los que existen siguen funcionando hasta que los desvincules.",
+      "empty": "Todavía no hay teléfonos vinculados.",
+      "history": "Desvinculados recientemente",
+      "paired_by": "Vinculado por {name}",
+      "last_seen": "Última actividad: {when}",
+      "never_seen": "Sin actividad todavía",
+      "revoked_on": "Desvinculado el {date}",
+      "limit_hint": "Ya hay {max} teléfonos vinculados, el máximo. Desvincula uno para agregar otro.",
+      "pair": "Vincular un teléfono",
+      "revoke": "Desvincular",
+      "revoke_title": "¿Desvincular {label}?",
+      "revoke_body": "El teléfono dejará de funcionar de inmediato y {name} tendrá que vincularlo de nuevo con un código nuevo. Los otros tutores recibirán un aviso.",
+      "revoke_confirm": "Desvincular",
+      "revoked_toast": "Teléfono desvinculado",
+      "pair_title": "Vincular un teléfono",
+      "pair_instructions": "En el teléfono del niño abre SACDIA, toca «Vincular este teléfono de un niño» y escanea este código.",
+      "qr_alt": "Código QR para vincular un teléfono",
+      "expires_in": "Vence en {time}",
+      "expired": "El código venció",
+      "regenerate": "Generar otro código",
+      "pair_warning": "Úsalo solo en el teléfono del niño y no lo compartas: sirve una sola vez. Recibirás un aviso cuando se vincule y podrás desvincularlo cuando quieras.",
+      "paired_title": "Teléfono vinculado",
+      "paired_body": "Listo: el teléfono ya puede usar SACDIA. Lo verás en la lista de teléfonos vinculados."
+    },
+    "age_nudge": {
+      "title": "{name} ya puede tener su propio acceso",
+      "body": "Alcanzó la edad mínima para tener su propio acceso. Puedes activarlo cuando quieras y seguirás supervisando su cuenta."
+    }
+  },
+  "restricted_account": {
+    "title": "Cuenta no disponible",
+    "body": "Tu cuenta usa una función que esta versión de la app todavía no reconoce. Por tu seguridad, el acceso está limitado. Actualiza la app o inicia sesión de nuevo más tarde."
+  },
+  "teen": {
+    "pending": {
+      "title": "Falta tu tutor",
+      "subtitle": "Tu cuenta está en modo restringido hasta que un tutor se vincule y un director verifique su consentimiento.",
+      "countdown": "Te quedan {days} días para vincular a un tutor. Si no, tu cuenta se eliminará.",
+      "countdown_one": "Te queda 1 día para vincular a un tutor. Si no, tu cuenta se eliminará.",
+      "countdown_today": "Hoy es el último día para vincular a un tutor. Si no, tu cuenta se eliminará.",
+      "code_title": "Código para tu tutor",
+      "code_hint": "Genera un código y compártelo con tu mamá, papá o tutor. Debe canjearlo en la app, en Mi familia. Dura 72 horas y solo se muestra una vez.",
+      "code_generate": "Generar código",
+      "code_regenerate": "Generar un código nuevo",
+      "code_expires": "Vence el {when}",
+      "code_open_existing": "Ya generaste un código que vence el {when}. Si lo perdiste, genera uno nuevo: el anterior dejará de funcionar.",
+      "code_copy": "Copiar",
+      "code_copied": "Código copiado",
+      "code_share": "Compartir",
+      "share_message": "Mi código de SACDIA para vincularte como tutor: {code}. Canjéalo en la app, en Mi familia. Vence el {when}.",
+      "guardians_title": "Tu tutor",
+      "no_guardian": "Aún no hay un tutor vinculado.",
+      "guardian_pending": "Pendiente de verificación",
+      "guardian_verified": "Verificado",
+      "guardian_pending_hint": "Un director del club debe verificar el formulario de consentimiento firmado de tu tutor. Hasta entonces tu cuenta sigue restringida.",
+      "guardian_remove": "Quitar",
+      "remove_title": "¿Quitar a {name}?",
+      "remove_body": "Dejará de estar vinculado a tu cuenta y los 90 días para vincular a un tutor empiezan de nuevo. Podrás generar un código nuevo.",
+      "remove_confirm": "Quitar",
+      "removed": "Vínculo quitado",
+      "actions_title": "Mientras tanto",
+      "actions_hint": "Puedes completar tu perfil y cambiar tu contraseña.",
+      "edit_profile": "Completar mi perfil",
+      "change_password": "Cambiar mi contraseña"
+    },
+    "info": {
+      "title": "Tu tutor y tu información",
+      "body": "Tu tutor puede ver tu progreso y tu asistencia. No puede ver tu información de salud.",
+      "understood": "Entendido"
+    },
+    "errors": {
+      "generic": "No pudimos completar la acción. Inténtalo de nuevo.",
+      "too_many_codes": "Generaste demasiados códigos. Inténtalo de nuevo más tarde.",
+      "already_linked": "Ya tienes un tutor vinculado.",
+      "link_not_found": "Ese vínculo ya no existe o un director ya lo verificó."
+    }
+  },
+  "device": {
+    "tabs": {
+      "home": "Inicio",
+      "classes": "Clases",
+      "agenda": "Agenda",
+      "notices": "Avisos"
+    },
+    "offline": "Sin conexión. Ves lo último guardado y no puedes subir ni enviar nada.",
+    "pair": {
+      "entry": "Vincular este teléfono de un niño",
+      "title": "Vincular este teléfono",
+      "subtitle": "Escanea el código QR que muestra tu tutor en su teléfono.",
+      "confirm_body": "Código leído. Revisa el nombre de este teléfono y vincúlalo.",
+      "scan": "Escanear código QR",
+      "rescan": "Escanear otro código",
+      "scanner_title": "Escanear código",
+      "scanner_hint": "Apunta al código QR del teléfono de tu tutor.",
+      "label_title": "Nombre de este teléfono",
+      "label_hint": "Ej. Tablet de Ana",
+      "label_help": "Tu tutor verá este nombre en su lista de teléfonos vinculados.",
+      "fallback_label": "Teléfono vinculado",
+      "link": "Vincular teléfono",
+      "linking": "Vinculando...",
+      "back_to_login": "Volver al inicio de sesión",
+      "refused": {
+        "title": "Cierra sesión primero",
+        "body": "Este teléfono tiene una sesión iniciada. Para vincularlo como el teléfono de un niño, cierra sesión antes.",
+        "close": "Entendido"
+      },
+      "notice": {
+        "unpaired": "Tu tutor desvinculó este teléfono. Pídele que lo vincule de nuevo.",
+        "session_expired": "La vinculación de este teléfono venció. Pide a tu tutor que lo vincule de nuevo."
+      },
+      "errors": {
+        "generic": "No pudimos vincular este teléfono. Inténtalo de nuevo.",
+        "invalid_qr": "Ese código QR no es de SACDIA. Pide a tu tutor que genere uno nuevo.",
+        "session_exists": "Este teléfono ya tiene una sesión iniciada. Cierra sesión antes de vincularlo.",
+        "session_load_failed": "Se vinculó el teléfono pero no pudimos cargar tu perfil. Pide a tu tutor un código nuevo e inténtalo otra vez."
+      }
+    },
+    "home": {
+      "greeting": "Hola, {name}",
+      "greeting_anonymous": "Hola",
+      "subtitle": "Tus clases y actividades del club",
+      "classes_title": "Mi avance",
+      "no_classes": "Todavía no tienes clases. Tu tutor o tu director te inscribirán.",
+      "next_activity": "Próxima actividad",
+      "no_activity": "Sin actividades próximas",
+      "credential_title": "Mi credencial",
+      "credential_hint": "Muéstrala cuando te la pidan en una actividad.",
+      "this_phone": "Este teléfono: {label}",
+      "unlink": "Desvincular este teléfono",
+      "unlink_title": "¿Desvincular este teléfono?",
+      "unlink_body": "Se borrará todo lo tuyo de este teléfono y tu tutor tendrá que vincularlo otra vez para usarlo.",
+      "unlink_confirm": "Desvincular",
+      "unlink_failed": "No se pudo desvincular. Inténtalo de nuevo."
+    },
+    "classes": {
+      "title": "Mis clases",
+      "empty_title": "Sin clases todavía",
+      "empty_body": "Cuando te inscriban en una clase aparecerá aquí.",
+      "error": "No pudimos cargar tus clases.",
+      "detail_error": "No pudimos cargar esta clase.",
+      "no_requirements": "Esta clase aún no tiene requisitos.",
+      "progress": "{percent}% completado"
+    },
+    "requirement": {
+      "title": "Evidencias",
+      "not_found": "No encontramos este requisito.",
+      "offline_readonly": "Sin conexión: solo puedes ver tus evidencias. Conéctate para subir o enviar.",
+      "errors": {
+        "action_failed": "No pudimos completar la acción. Inténtalo de nuevo."
+      }
+    },
+    "agenda": {
+      "title": "Agenda",
+      "empty": "No hay actividades próximas.",
+      "error": "No pudimos cargar la agenda.",
+      "no_club": "Todavía no estás en un club.",
+      "detail_title": "Actividad",
+      "detail_error": "No pudimos cargar esta actividad."
+    },
+    "legal_block": {
+      "title": "Falta un paso de tu tutor",
+      "body": "Pide a tu tutor que revise los nuevos términos desde su teléfono. Cuando los acepte podrás seguir usando la app.",
+      "refresh": "Ya los aceptó"
+    },
+    "registration_pending": {
+      "title": "Falta terminar tu registro",
+      "body": "Pide a tu tutor que termine de completar tu perfil desde su teléfono.",
+      "refresh": "Ya lo completó"
     }
   }
 }

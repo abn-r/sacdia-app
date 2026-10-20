@@ -232,6 +232,7 @@
     "errors": {
       "sign_in_failed": "Erreur de connexion",
       "sign_up_failed": "Erreur d'inscription",
+      "session_load_failed": "Vous êtes connecté, mais nous n'avons pas pu charger votre compte. Réessayez.",
       "change_password_failed": "Erreur lors du changement de mot de passe",
       "delete_account_failed": "Erreur lors de la suppression du compte",
       "sign_out_failed": "Erreur lors de la déconnexion",
@@ -258,6 +259,18 @@
         "hint": "Un adulte peut vous ajouter depuis la section Ma famille de son profil.",
         "fix": "Corriger la date de naissance",
         "back": "Retour"
+      },
+      "minor_notice": "Si vous avez moins de 18 ans, votre compte fonctionne en mode supervisé : vous devrez lier un tuteur et un directeur vérifiera son consentement."
+    },
+    "login": {
+      "identifier": {
+        "label": "E-mail ou nom d'utilisateur",
+        "hint": "Votre e-mail ou votre nom d'utilisateur",
+        "required": "Saisissez votre e-mail ou votre nom d'utilisateur",
+        "too_long": "C'est trop long"
+      },
+      "notice": {
+        "supervised_access_revoked": "Votre tuteur a désactivé ou modifié votre accès. Reconnectez-vous avec vos informations mises à jour."
       }
     }
   },
@@ -469,7 +482,34 @@
     "file_too_large": "Le fichier dépasse la limite de 10 Mo.",
     "guardianship_consent_already_verified": "La fiche a déjà été vérifiée.",
     "guardianship_guardian_self_verify": "Vous ne pouvez pas vérifier le consentement d'un mineur dont vous êtes le tuteur. Une autre personne autorisée du club doit le faire.",
-    "post_reg_duplicate_membership": "Il existe déjà une adhésion ou une demande active dans un autre club. Vérifiez-la avant d'en envoyer une nouvelle."
+    "post_reg_duplicate_membership": "Il existe déjà une adhésion ou une demande active dans un autre club. Vérifiez-la avant d'en envoyer une nouvelle.",
+    "auth_invalid_credentials": "E-mail, nom d'utilisateur ou mot de passe incorrect.",
+    "auth_login_locked": "Trop de tentatives. Réessayez plus tard.",
+    "auth_login_locked_wait": "Trop de tentatives. Réessayez dans {minutes} min.",
+    "auth_login_throttled": "Trop de tentatives. Patientez un instant puis réessayez.",
+    "auth_supervised_login_disabled": "Votre tuteur a désactivé cet accès. Demandez-lui de le réactiver.",
+    "auth_account_frozen": "Ce compte a été supprimé car aucun tuteur n'y était lié.",
+    "auth_supervised_access_revoked": "Votre tuteur a désactivé ou modifié votre accès.",
+    "principal_scope_denied": "Cette action n'est pas disponible pour votre compte.",
+    "user_birthday_change_requires_guardian": "Seul votre tuteur peut corriger votre date de naissance.",
+    "supervised_login_not_eligible": "Ce profil ne peut pas encore avoir son propre accès.",
+    "supervised_login_age_out_of_range": "L'accès personnel est réservé aux mineurs, à partir de l'âge minimum et jusqu'à la majorité.",
+    "supervised_login_already_enabled": "Ce profil a déjà son propre accès.",
+    "supervised_login_not_found": "Ce profil n'a pas d'accès personnel.",
+    "supervised_login_email_unavailable": "Cet e-mail n'est pas disponible. Essayez-en un autre.",
+    "supervised_login_password_invalid": "Le mot de passe ne respecte pas les exigences de sécurité.",
+    "guardianship_consent_not_verified": "Le consentement n'est pas encore vérifié. Un directeur doit d'abord le confirmer.",
+    "family_feature_disabled": "Cette fonctionnalité n'est pas disponible pour le moment.",
+    "device_pairing_token_invalid": "Ce code n'est pas valide ou a expiré. Demande à ton tuteur d'en générer un nouveau.",
+    "device_pairing_not_eligible": "Ce profil ne peut pas être associé à un téléphone pour le moment. Vérifie que le consentement est validé, qu'il n'a pas d'accès propre et que l'enfant a moins de 13 ans.",
+    "device_limit_reached": "Cet enfant a déjà le nombre maximal de téléphones associés. Dissocie-en un pour en ajouter un autre.",
+    "linked_device_limit_reached": "Cet enfant a déjà le nombre maximal de téléphones associés. Dissocie-en un pour en ajouter un autre.",
+    "linked_device_age_out_of_range": "Seuls les téléphones d'enfants de moins de 13 ans peuvent être associés. Les plus grands peuvent avoir leur propre accès.",
+    "device_not_found": "Nous n'avons pas trouvé ce téléphone associé.",
+    "linked_device_not_found": "Nous n'avons pas trouvé ce téléphone associé.",
+    "auth_device_revoked": "Ton tuteur a dissocié ce téléphone.",
+    "auth_device_session_expired": "L'association de ce téléphone a expiré. Demande à ton tuteur de l'associer à nouveau.",
+    "mr_approve_permission_required": "Vous n'avez pas l'autorisation d'approuver les demandes. Vous pouvez seulement vérifier le consentement."
   },
   "honors": {
     "errors": {
@@ -1125,7 +1165,8 @@
       "birth": {
         "label": "Date de naissance",
         "date_picker_help": "Sélectionnez votre date de naissance",
-        "select_date": "Sélectionner une date"
+        "select_date": "Sélectionner une date",
+        "read_only_hint": "Seul votre tuteur peut corriger votre date de naissance."
       },
       "baptism": {
         "toggle_label": "Êtes-vous baptisé ?",
@@ -2629,7 +2670,46 @@
       "verified_not_approved": "Le consentement a été vérifié, mais la demande n'a pas pu être approuvée : {reason}",
       "retry_approve": "Réessayer l'approbation",
       "approve_blocked": "Le consentement du tuteur doit d'abord être vérifié. La vérification s'est ouverte.",
-      "generic_error": "Le consentement n'a pas pu être vérifié. Réessayez."
+      "generic_error": "Le consentement n'a pas pu être vérifié. Réessayez.",
+      "another_person": "Une autre personne doit vérifier ce consentement : vous avez inscrit le mineur, téléversé la fiche ou l’avez confié à la garde du club.",
+      "verify_only_hint": "Vous pouvez vérifier la fiche, mais l'approbation de la demande revient à un directeur.",
+      "verify_only_confirm": "Confirmer la vérification",
+      "verified_toast": "Consentement vérifié. Un directeur doit encore approuver la demande de {name}."
+    },
+    "create_minor": {
+      "entry": "Inscrire un mineur",
+      "title": "Inscrire un mineur",
+      "intro": "Inscrivez un mineur qui fréquentera votre section avec l'autorisation signée de son tuteur. Le mineur reste sous la garde du club et la demande attend la vérification d'une autre personne.",
+      "name": "Prénom(s)",
+      "paternal": "Nom de famille paternel",
+      "maternal": "Nom de famille maternel (facultatif)",
+      "birthday": "Date de naissance",
+      "birthday_hint": "Sélectionnez la date",
+      "birthday_required": "Sélectionnez la date de naissance",
+      "gender_label": "Genre (facultatif)",
+      "gender_male": "Masculin",
+      "gender_female": "Féminin",
+      "required": "Champ obligatoire",
+      "sworn": "Je déclare sous serment que le tuteur du mineur a signé l'autorisation sur papier.",
+      "legal_prefix": "Au nom du mineur, j'accepte les ",
+      "legal_unavailable": "Impossible de charger les documents juridiques.",
+      "submit": "Inscrire le mineur",
+      "created_toast": "{name} est inscrit. Une autre personne doit encore vérifier la fiche signée.",
+      "errors": {
+        "age_out_of_range": "Cet âge n'est pas valide pour inscrire un mineur. La personne doit être mineure selon le pays du club.",
+        "no_active_year": "Il n'y a pas d'année ecclésiastique en cours. Le mineur n'a pas été inscrit."
+      }
+    },
+    "claim_code": {
+      "section_title": "Remettre à la famille",
+      "hint": "Générez un code à usage unique valable 7 jours. La famille le saisit dans Ma famille pour prendre en charge le mineur.",
+      "action": "Générer le code pour les parents",
+      "code_title": "Code pour la famille",
+      "expires": "Expire le {when}",
+      "copy": "Copier le code",
+      "copied": "Code copié",
+      "share": "Partager",
+      "share_message": "Je vous invite à prendre en charge {name} sur SACDIA. Code : {code}. Expire le {when}. Saisissez-le dans Ma famille > J'ai un code de liaison."
     }
   },
   "certifications": {
@@ -5379,7 +5459,8 @@
     "outcome": {
       "other_guardian": "Un autre tuteur restera responsable de {name}.",
       "club_custody": "Le club prendra {name} en charge en attendant.",
-      "frozen": "{name} sera gelé et ses informations seront supprimées dans 90 jours."
+      "frozen": "{name} sera gelé et ses informations seront supprimées dans 90 jours.",
+      "pending_guardian": "{name} se retrouvera sans tuteur vérifié : son accès sera limité et il aura 90 jours pour lier un autre tuteur."
     },
     "link": {
       "title": "Code de liaison",
@@ -5417,6 +5498,259 @@
       "dialog_confirm": "Changer",
       "dialog_cancel": "Pas maintenant",
       "unavailable": "Ce profil n'est plus disponible pour vous."
+    },
+    "teen": {
+      "wizard": {
+        "title": "Accès personnel pour {name}",
+        "step_of": "Étape {current} sur {total}",
+        "method_title": "Comment {name} se connectera-t-il ?",
+        "method_handle": "Avec un nom d'utilisateur",
+        "method_handle_hint": "Nous créons un nom d'utilisateur pour {name}. Pas besoin d'e-mail.",
+        "method_email": "Avec son e-mail",
+        "method_email_hint": "{name} se connecte avec sa propre adresse e-mail.",
+        "credentials_title": "Informations de connexion",
+        "email_hint": "Adresse e-mail de {name}",
+        "password_label": "Mot de passe",
+        "confirm_label": "Confirmer le mot de passe",
+        "password_policy": "Au moins 8 caractères, avec une majuscule, une minuscule et un chiffre.",
+        "password_note": "Vous choisissez le mot de passe et le donnez à {name}. Vous pouvez le changer quand vous voulez.",
+        "confirm_title": "Avant d'activer",
+        "warn_acting": "Vous ne pourrez plus agir pour {name} : il utilisera son propre accès.",
+        "warn_devices": "Si {name} a des téléphones liés, ils seront déliés.",
+        "warn_control": "Vous pourrez désactiver son accès ou changer son mot de passe quand vous voulez tant qu'il est mineur.",
+        "warn_privacy": "Vous verrez un résumé de sa progression et de sa présence, jamais ses informations de santé.",
+        "activate": "Activer l'accès",
+        "result_title": "Accès activé",
+        "result_handle_label": "Nom d'utilisateur",
+        "result_email_label": "E-mail",
+        "result_hint": "Donnez à {name} son nom d'utilisateur et le mot de passe que vous avez choisi. Gardez-les en lieu sûr : le mot de passe ne s'affiche plus.",
+        "result_devices": "Téléphones déliés : {count}",
+        "copy": "Copier le nom d'utilisateur",
+        "copied": "Nom d'utilisateur copié",
+        "done": "Terminé",
+        "not_eligible": "{name} ne peut pas encore avoir son propre accès."
+      }
+    },
+    "access": {
+      "title": "Accès",
+      "pending_guardian": "Vous pourrez gérer l'accès de {name} et voir son résumé quand un directeur aura vérifié votre consentement. D'ici là, vous pouvez seulement envoyer le formulaire signé.",
+      "active": "Accès personnel actif",
+      "disabled": "Accès désactivé",
+      "method_handle": "Avec nom d'utilisateur",
+      "method_email": "Avec e-mail",
+      "handle_label": "Nom d'utilisateur",
+      "copy": "Copier",
+      "copied": "Nom d'utilisateur copié",
+      "enable": "Lui donner son propre accès",
+      "enable_hint": "{name} pourra se connecter avec son propre nom d'utilisateur ou e-mail. Vous cesserez d'agir pour {name}.",
+      "not_yet": "{name} pourra avoir son propre accès à partir de l'âge minimum.",
+      "summary": "Voir le résumé",
+      "disable": "Désactiver l'accès",
+      "disable_title": "Désactiver l'accès de {name} ?",
+      "disable_body": "{name} ne pourra plus se connecter et sa session se fermera immédiatement. Vous pourrez réactiver l'accès quand vous voulez tant qu'il est mineur.",
+      "disable_confirm": "Désactiver",
+      "disabled_toast": "Accès désactivé",
+      "reactivate": "Réactiver l'accès",
+      "reactivate_title": "Réactiver l'accès de {name}",
+      "reactivate_body_handle": "Choisissez un nouveau mot de passe : l'ancien ne fonctionnera plus.",
+      "reactivate_body_email": "{name} pourra de nouveau se connecter avec son e-mail.",
+      "reactivate_confirm": "Réactiver",
+      "reactivated_toast": "Accès réactivé",
+      "reset_password": "Réinitialiser le mot de passe",
+      "reset_title": "Réinitialiser le mot de passe de {name}",
+      "reset_body_handle": "Choisissez un nouveau mot de passe. Toutes ses sessions seront fermées et les autres tuteurs recevront un avis.",
+      "reset_body_email": "Toutes ses sessions seront fermées et {name} recevra un e-mail pour choisir un nouveau mot de passe. Vous ne verrez pas le mot de passe.",
+      "reset_confirm": "Réinitialiser",
+      "reset_toast": "Mot de passe réinitialisé. Sessions fermées : {count}.",
+      "reset_toast_email": "Sessions fermées : {count}. Nous avons envoyé l'e-mail de réinitialisation à {name}.",
+      "new_password": "Nouveau mot de passe"
+    },
+    "summary": {
+      "title": "Résumé de {name}",
+      "subtitle": "Progression et présence",
+      "classes_title": "Classes",
+      "sections_progress": "{done} sections sur {total}",
+      "no_classes": "Aucune classe en cours pour le moment.",
+      "honors_title": "Spécialités",
+      "honors_completed": "{count} terminées",
+      "honors_in_progress": "{count} en cours",
+      "attendance_title": "Présence",
+      "attendance_value": "{attended} activités sur {total}",
+      "attendance_period": "Du {from} au {to}",
+      "no_activities": "Aucune activité sur cette période.",
+      "privacy_note": "Ce résumé n'inclut ni les informations de santé, ni les notes personnelles."
+    },
+    "devices": {
+      "title": "Téléphones associés",
+      "intro": "Associe un téléphone pour que {name} voie ses classes et activités et envoie des preuves sans créer de compte. Tu reçois un avis à chaque envoi.",
+      "no_new": "On ne peut plus associer de nouveaux téléphones pour {name}. Ceux qui existent fonctionnent jusqu'à ce que tu les dissocies.",
+      "empty": "Aucun téléphone associé pour l'instant.",
+      "history": "Dissociés récemment",
+      "paired_by": "Associé par {name}",
+      "last_seen": "Dernière activité : {when}",
+      "never_seen": "Pas encore d'activité",
+      "revoked_on": "Dissocié le {date}",
+      "limit_hint": "Il y a déjà {max} téléphones associés, le maximum. Dissocie-en un pour en ajouter un autre.",
+      "pair": "Associer un téléphone",
+      "revoke": "Dissocier",
+      "revoke_title": "Dissocier {label} ?",
+      "revoke_body": "Le téléphone cessera de fonctionner immédiatement et {name} devra l'associer à nouveau avec un nouveau code. Les autres tuteurs recevront un avis.",
+      "revoke_confirm": "Dissocier",
+      "revoked_toast": "Téléphone dissocié",
+      "pair_title": "Associer un téléphone",
+      "pair_instructions": "Sur le téléphone de l'enfant, ouvre SACDIA, touche « Associer le téléphone d'un enfant » et scanne ce code.",
+      "qr_alt": "Code QR pour associer un téléphone",
+      "expires_in": "Expire dans {time}",
+      "expired": "Le code a expiré",
+      "regenerate": "Générer un autre code",
+      "pair_warning": "Utilise-le seulement sur le téléphone de l'enfant et ne le partage pas : il ne sert qu'une fois. Tu recevras un avis à l'association et tu pourras dissocier quand tu veux.",
+      "paired_title": "Téléphone associé",
+      "paired_body": "C'est fait : le téléphone peut maintenant utiliser SACDIA. Tu le verras dans la liste des téléphones associés."
+    },
+    "age_nudge": {
+      "title": "{name} peut désormais avoir son propre accès",
+      "body": "Le seuil d'âge minimal pour avoir son propre accès est atteint. Vous pouvez l'activer quand vous voulez et vous continuerez à superviser son compte."
+    }
+  },
+  "restricted_account": {
+    "title": "Compte indisponible",
+    "body": "Votre compte utilise une fonction que cette version de l'application ne reconnaît pas encore. Par sécurité, l'accès est limité. Mettez l'application à jour ou reconnectez-vous plus tard."
+  },
+  "teen": {
+    "pending": {
+      "title": "Il manque votre tuteur",
+      "subtitle": "Votre compte reste restreint jusqu'à ce qu'un tuteur s'y lie et qu'un directeur vérifie son consentement.",
+      "countdown": "Il vous reste {days} jours pour lier un tuteur. Sinon, votre compte sera supprimé.",
+      "countdown_one": "Il vous reste 1 jour pour lier un tuteur. Sinon, votre compte sera supprimé.",
+      "countdown_today": "Aujourd'hui est le dernier jour pour lier un tuteur. Sinon, votre compte sera supprimé.",
+      "code_title": "Code pour votre tuteur",
+      "code_hint": "Générez un code et partagez-le avec votre mère, votre père ou votre tuteur. Il doit l'utiliser dans l'application, dans Ma famille. Il dure 72 heures et ne s'affiche qu'une fois.",
+      "code_generate": "Générer un code",
+      "code_regenerate": "Générer un nouveau code",
+      "code_expires": "Expire le {when}",
+      "code_open_existing": "Vous avez déjà généré un code qui expire le {when}. Si vous l'avez perdu, générez-en un nouveau : le précédent cessera de fonctionner.",
+      "code_copy": "Copier",
+      "code_copied": "Code copié",
+      "code_share": "Partager",
+      "share_message": "Mon code SACDIA pour vous lier comme tuteur : {code}. Utilisez-le dans l'application, dans Ma famille. Il expire le {when}.",
+      "guardians_title": "Votre tuteur",
+      "no_guardian": "Aucun tuteur n'est encore lié.",
+      "guardian_pending": "En attente de vérification",
+      "guardian_verified": "Vérifié",
+      "guardian_pending_hint": "Un directeur du club doit vérifier le formulaire de consentement signé de votre tuteur. D'ici là, votre compte reste restreint.",
+      "guardian_remove": "Retirer",
+      "remove_title": "Retirer {name} ?",
+      "remove_body": "Cette personne ne sera plus liée à votre compte et les 90 jours pour lier un tuteur recommencent. Vous pourrez générer un nouveau code.",
+      "remove_confirm": "Retirer",
+      "removed": "Lien retiré",
+      "actions_title": "En attendant",
+      "actions_hint": "Vous pouvez compléter votre profil et changer votre mot de passe.",
+      "edit_profile": "Compléter mon profil",
+      "change_password": "Changer mon mot de passe"
+    },
+    "info": {
+      "title": "Votre tuteur et vos informations",
+      "body": "Votre tuteur peut voir votre progression et votre présence. Il ne peut pas voir vos informations de santé.",
+      "understood": "Compris"
+    },
+    "errors": {
+      "generic": "Impossible de terminer l'action. Réessayez.",
+      "too_many_codes": "Vous avez généré trop de codes. Réessayez plus tard.",
+      "already_linked": "Vous avez déjà un tuteur lié.",
+      "link_not_found": "Ce lien n'existe plus ou un directeur l'a déjà vérifié."
+    }
+  },
+  "device": {
+    "tabs": {
+      "home": "Accueil",
+      "classes": "Classes",
+      "agenda": "Agenda",
+      "notices": "Avis"
+    },
+    "offline": "Pas de connexion. Tu vois la dernière version enregistrée et tu ne peux rien envoyer.",
+    "pair": {
+      "entry": "Associer le téléphone d'un enfant",
+      "title": "Associer ce téléphone",
+      "subtitle": "Scanne le code QR que ton tuteur affiche sur son téléphone.",
+      "confirm_body": "Code lu. Vérifie le nom de ce téléphone et associe-le.",
+      "scan": "Scanner le code QR",
+      "rescan": "Scanner un autre code",
+      "scanner_title": "Scanner le code",
+      "scanner_hint": "Pointe vers le code QR du téléphone de ton tuteur.",
+      "label_title": "Nom de ce téléphone",
+      "label_hint": "Ex. Tablette d'Ana",
+      "label_help": "Ton tuteur verra ce nom dans sa liste de téléphones associés.",
+      "fallback_label": "Téléphone associé",
+      "link": "Associer le téléphone",
+      "linking": "Association...",
+      "back_to_login": "Retour à la connexion",
+      "refused": {
+        "title": "Déconnecte-toi d'abord",
+        "body": "Ce téléphone est connecté. Pour l'associer comme téléphone d'enfant, déconnecte-toi d'abord.",
+        "close": "Compris"
+      },
+      "notice": {
+        "unpaired": "Ton tuteur a dissocié ce téléphone. Demande-lui de l'associer à nouveau.",
+        "session_expired": "L'association de ce téléphone a expiré. Demande à ton tuteur de l'associer à nouveau."
+      },
+      "errors": {
+        "generic": "Nous n'avons pas pu associer ce téléphone. Réessaie.",
+        "invalid_qr": "Ce code QR n'est pas de SACDIA. Demande à ton tuteur d'en générer un nouveau.",
+        "session_exists": "Ce téléphone est déjà connecté. Déconnecte-toi avant de l'associer.",
+        "session_load_failed": "Le téléphone a été associé mais nous n'avons pas pu charger ton profil. Demande un nouveau code à ton tuteur et réessaie."
+      }
+    },
+    "home": {
+      "greeting": "Salut, {name}",
+      "greeting_anonymous": "Salut",
+      "subtitle": "Tes classes et activités du club",
+      "classes_title": "Ma progression",
+      "no_classes": "Tu n'as pas encore de classes. Ton tuteur ou ton directeur t'inscrira.",
+      "next_activity": "Prochaine activité",
+      "no_activity": "Pas d'activité à venir",
+      "credential_title": "Ma carte de membre",
+      "credential_hint": "Montre-la quand on te la demande lors d'une activité.",
+      "this_phone": "Ce téléphone : {label}",
+      "unlink": "Dissocier ce téléphone",
+      "unlink_title": "Dissocier ce téléphone ?",
+      "unlink_body": "Tout ce qui est à toi sera supprimé de ce téléphone et ton tuteur devra l'associer à nouveau.",
+      "unlink_confirm": "Dissocier",
+      "unlink_failed": "Impossible de dissocier. Réessaie."
+    },
+    "classes": {
+      "title": "Mes classes",
+      "empty_title": "Pas encore de classes",
+      "empty_body": "Quand tu seras inscrit à une classe, elle apparaîtra ici.",
+      "error": "Nous n'avons pas pu charger tes classes.",
+      "detail_error": "Nous n'avons pas pu charger cette classe.",
+      "no_requirements": "Cette classe n'a pas encore d'exigences.",
+      "progress": "{percent} % terminé"
+    },
+    "requirement": {
+      "title": "Preuves",
+      "not_found": "Nous n'avons pas trouvé cette exigence.",
+      "offline_readonly": "Pas de connexion : tu peux seulement voir tes preuves. Connecte-toi pour envoyer.",
+      "errors": {
+        "action_failed": "Nous n'avons pas pu terminer l'action. Réessaie."
+      }
+    },
+    "agenda": {
+      "title": "Agenda",
+      "empty": "Il n'y a pas d'activités à venir.",
+      "error": "Nous n'avons pas pu charger l'agenda.",
+      "no_club": "Tu n'es pas encore dans un club.",
+      "detail_title": "Activité",
+      "detail_error": "Nous n'avons pas pu charger cette activité."
+    },
+    "legal_block": {
+      "title": "Une étape de ton tuteur est nécessaire",
+      "body": "Demande à ton tuteur de relire les nouvelles conditions sur son téléphone. Dès qu'il les accepte, tu pourras continuer à utiliser l'appli.",
+      "refresh": "Il les a acceptées"
+    },
+    "registration_pending": {
+      "title": "Ton inscription n'est pas terminée",
+      "body": "Demande à ton tuteur de terminer ton profil depuis son téléphone.",
+      "refresh": "Il a terminé"
     }
   }
 }

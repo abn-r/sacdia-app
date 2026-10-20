@@ -13,6 +13,7 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/constants/app_constants.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
@@ -22,6 +23,7 @@ import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_legal_consent.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/login_notice_provider.dart';
 import 'package:sacdia_app/features/auth/presentation/widgets/auth_sky_wash.dart';
 import 'package:sacdia_app/features/auth/presentation/widgets/login_club_constellation.dart';
 import 'package:sacdia_app/features/auth/presentation/widgets/sac_brand_mark.dart';
@@ -40,9 +42,9 @@ class LoginView extends ConsumerStatefulWidget {
 
 class _LoginViewState extends ConsumerState<LoginView> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _emailFocus = FocusNode();
+  final _identifierFocus = FocusNode();
   final _passwordFocus = FocusNode();
 
   static const _maxFailedAttempts = 3;
@@ -57,7 +59,10 @@ class _LoginViewState extends ConsumerState<LoginView> {
   @override
   void initState() {
     super.initState();
-    _emailFocus.addListener(_onFieldFocusChanged);
+    // Si el login falló (p. ej. `/auth/me` dio error) la pantalla se reconstruye:
+    // lo que se había escrito se recupera. La contraseña nunca se guarda.
+    _identifierController.text = ref.read(lastLoginIdentifierProvider);
+    _identifierFocus.addListener(_onFieldFocusChanged);
     _passwordFocus.addListener(_onFieldFocusChanged);
   }
 
@@ -101,11 +106,11 @@ class _LoginViewState extends ConsumerState<LoginView> {
 
   @override
   void dispose() {
-    _emailFocus.removeListener(_onFieldFocusChanged);
+    _identifierFocus.removeListener(_onFieldFocusChanged);
     _passwordFocus.removeListener(_onFieldFocusChanged);
-    _emailFocus.dispose();
+    _identifierFocus.dispose();
     _passwordFocus.dispose();
-    _emailController.dispose();
+    _identifierController.dispose();
     _passwordController.dispose();
     _cooldownTimer?.cancel();
     super.dispose();
@@ -121,7 +126,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
     if (formState == null || !formState.validate()) return;
 
     await ref.read(authNotifierProvider.notifier).signIn(
-          email: _emailController.text.trim(),
+          identifier: _identifierController.text.trim(),
           password: _passwordController.text.trim(),
         );
 
@@ -145,6 +150,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
     final errorMessage = authState.hasError
         ? (authState.error?.toString() ?? 'auth.login_error'.tr())
         : null;
+    final notice = ref.watch(loginNoticeProvider);
     final cooldownMessage = _isCoolingDown
         ? 'auth.cooldown_message'
             .tr(namedArgs: {'seconds': '$_cooldownRemaining'})
@@ -237,15 +243,21 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                         ),
                                         const SizedBox(height: 32),
                                         SacTextField(
-                                          controller: _emailController,
-                                          focusNode: _emailFocus,
-                                          label: 'auth.email_label'.tr(),
-                                          hint: 'auth.email_hint'.tr(),
-                                          keyboardType:
-                                              TextInputType.emailAddress,
+                                          controller: _identifierController,
+                                          focusNode: _identifierFocus,
+                                          label: 'auth.login.identifier.label'
+                                              .tr(),
+                                          hint:
+                                              'auth.login.identifier.hint'.tr(),
+                                          // Texto libre: un usuario no es un
+                                          // correo. Sin autocorrección ni
+                                          // mayúsculas automáticas.
+                                          keyboardType: TextInputType.text,
+                                          autocorrect: false,
                                           prefixIcon:
-                                              HugeIcons.strokeRoundedMail01,
-                                          validator: Validators.validateEmail,
+                                              HugeIcons.strokeRoundedUser,
+                                          validator: Validators
+                                              .validateLoginIdentifier,
                                           textInputAction: TextInputAction.next,
                                           onEditingComplete: _focusPassword,
                                           onTapOutside:
@@ -319,6 +331,19 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                             ),
                                           ],
                                         ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                    ],
+                                    if (notice != null) ...[
+                                      _LoginNoticeCard(
+                                        message: switch (notice) {
+                                          LoginNotice.supervisedAccessRevoked =>
+                                            'auth.login.notice.supervised_access_revoked'
+                                                .tr(),
+                                        },
+                                        onDismiss: () => ref
+                                            .read(loginNoticeProvider.notifier)
+                                            .state = null,
                                       ),
                                       const SizedBox(height: 16),
                                     ],
@@ -402,6 +427,27 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                         ),
                                       ),
                                     ),
+                                    const SizedBox(height: 12),
+                                    // Entrada del teléfono de un menor de 13:
+                                    // se vincula escaneando el QR de su tutor.
+                                    Center(
+                                      child: TextButton(
+                                        key:
+                                            const ValueKey('login_pair_device'),
+                                        onPressed: isLoading || socialInFlight
+                                            ? null
+                                            : () => context
+                                                .push(RouteNames.devicePair),
+                                        child: Text(
+                                          'device.pair.entry'.tr(),
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: context.sac.textSecondary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                     const SizedBox(height: 32),
                                   ],
                                 ),
@@ -419,13 +465,57 @@ class _LoginViewState extends ConsumerState<LoginView> {
           if (keyboardOpen)
             TextFieldTapRegion(
               child: _LoginKeyboardBar(
-                canGoNext: _emailFocus.hasFocus,
+                canGoNext: _identifierFocus.hasFocus,
                 canSubmit: !_isCoolingDown && !isLoading && !socialInFlight,
                 onNext: _focusPassword,
                 onSubmit: _submitFromKeyboard,
                 onHide: _hideKeyboard,
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Aviso de una sola vez sobre por qué se cerró la sesión (p. ej. el tutor
+/// cambió el acceso del menor). Se descarta con la X o al intentar entrar.
+class _LoginNoticeCard extends StatelessWidget {
+  const _LoginNoticeCard({required this.message, required this.onDismiss});
+
+  final String message;
+  final VoidCallback onDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = SacAccent.of(context);
+    return SacCard(
+      backgroundColor: accent.light,
+      borderColor: accent.color.withValues(alpha: 0.3),
+      padding: const EdgeInsets.fromLTRB(12, 12, 4, 12),
+      child: Row(
+        children: [
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedInformationCircle,
+            size: 20,
+            color: accent.color,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(color: context.sac.text, fontSize: 14),
+            ),
+          ),
+          IconButton(
+            tooltip: 'common.close'.tr(),
+            onPressed: onDismiss,
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedCancel01,
+              size: 18,
+              color: context.sac.textSecondary,
+            ),
+          ),
         ],
       ),
     );

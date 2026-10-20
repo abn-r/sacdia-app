@@ -178,6 +178,14 @@ class AppBootstrapNotifier extends AsyncNotifier<AppBootstrapState> {
 
   /// Checks that the user has non-empty permissions and roles.
   bool _isValidAuthorization(UserEntity user) {
+    // Una cuenta restringida (sin fecha de nacimiento o de un tipo que la app
+    // no conoce) no tiene permisos de club que validar: solo ve el
+    // post-registro o su pantalla informativa. Exigirlos la dejaría en el
+    // reintento del splash en lugar de llevarla a su destino.
+    if (user.isRestrictedAccount) return true;
+    // Un teléfono vinculado no tiene roles ni permisos de club que validar: ve
+    // su propia cáscara (clases, agenda, avisos) y el servidor decide el resto.
+    if (user.isLinkedDevice) return true;
     final auth = user.authorization;
     if (auth == null) return false;
     if (auth.effectivePermissions.isEmpty) return false;
@@ -223,6 +231,7 @@ class AppBootstrapNotifier extends AsyncNotifier<AppBootstrapState> {
       AppConstants.refreshTokenKey,
       AppConstants.expiresAtKey,
       AppConstants.tokenTypeKey,
+      AppConstants.sessionModeKey,
       AppConstants.cachedUserId,
       AppConstants.cachedUserEmail,
       AppConstants.cachedUserName,

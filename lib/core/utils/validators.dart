@@ -19,6 +19,24 @@ class Validators {
     return null;
   }
 
+  /// Máximo de caracteres del identificador de login (igual que el backend).
+  static const int loginIdentifierMaxLength = 254;
+
+  /// Valida el campo "correo o usuario" del login (FP3-08).
+  ///
+  /// NO exige formato de correo: un usuario (handle) no tiene '@'. Solo que no
+  /// esté vacío y que no exceda el máximo del servidor.
+  static String? validateLoginIdentifier(String? value) {
+    final trimmed = value?.trim() ?? '';
+    if (trimmed.isEmpty) {
+      return tr('auth.login.identifier.required');
+    }
+    if (trimmed.length > loginIdentifierMaxLength) {
+      return tr('auth.login.identifier.too_long');
+    }
+    return null;
+  }
+
   /// Valida una contraseña.
   ///
   /// Requisitos (en línea con lo que exige el backend):

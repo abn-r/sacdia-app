@@ -12,9 +12,9 @@ abstract class AuthRepository {
   /// Obtiene el usuario actual o null si no hay sesión
   Future<Either<Failure, UserEntity?>> getCurrentUser();
 
-  /// Inicia sesión con email y contraseña
-  Future<Either<Failure, UserEntity>> signInWithEmailAndPassword({
-    required String email,
+  /// Inicia sesión con correo o usuario (handle) y contraseña.
+  Future<Either<Failure, UserEntity>> signInWithIdentifier({
+    required String identifier,
     required String password,
   });
 

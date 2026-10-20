@@ -5,8 +5,10 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/annual_continuation.dart';
 import '../entities/assignable_role.dart';
+import '../entities/claim_code.dart';
 import '../entities/club_member.dart';
 import '../entities/consent_verification_result.dart';
+import '../entities/create_minor.dart';
 import '../entities/join_request.dart';
 
 /// Interfaz del repositorio de miembros
@@ -77,5 +79,15 @@ abstract class MembersRepository {
   Future<Either<Failure, ConsentVerificationResult>> verifyConsent({
     required String assignmentId,
     required bool approve,
+  });
+
+  /// Un director registra a un menor sin cuenta bajo custodia del club (solicitud
+  /// pendiente, consentimiento pendiente). Conserva el `code` de negocio.
+  Future<Either<Failure, CreatedMinor>> createMinor(CreateMinorInput input);
+
+  /// Código de 7 días para que la familia reclame a un menor bajo custodia.
+  Future<Either<Failure, IssuedClaimCode>> issueClaimCode({
+    required int clubSectionId,
+    required String dependentUserId,
   });
 }

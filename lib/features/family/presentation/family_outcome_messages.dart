@@ -15,6 +15,11 @@ DependentOutcome predictLeaveOutcome(DependentDetail detail) {
   if (membership != null && (membership.isActive || membership.isPending)) {
     return DependentOutcome.clubCustody;
   }
+  // Un menor con cuenta propia (adolescente) nunca se congela: queda en modo
+  // restringido con 90 días para vincular a otro tutor (FP3-37).
+  if (detail.summary.accessMode == AccessMode.supervisedLogin) {
+    return DependentOutcome.pendingGuardian;
+  }
   return DependentOutcome.frozen;
 }
 
@@ -27,5 +32,7 @@ String outcomeMessage(DependentOutcome outcome, String name) {
       'family.outcome.club_custody'.tr(namedArgs: {'name': name}),
     DependentOutcome.frozen =>
       'family.outcome.frozen'.tr(namedArgs: {'name': name}),
+    DependentOutcome.pendingGuardian =>
+      'family.outcome.pending_guardian'.tr(namedArgs: {'name': name}),
   };
 }

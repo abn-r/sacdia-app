@@ -36,3 +36,37 @@ class UploadGuardianConsentEvidence
         file: params.file,
       );
 }
+
+class UploadActingConsentEvidenceParams extends Equatable {
+  /// `user_id` del menor por el que se actúa (el del encabezado
+  /// `X-Acting-For` y el de la ruta).
+  final String dependentUserId;
+  final ConsentEvidenceLocalFile file;
+
+  const UploadActingConsentEvidenceParams({
+    required this.dependentUserId,
+    required this.file,
+  });
+
+  @override
+  List<Object?> get props => [dependentUserId, file];
+}
+
+/// `POST /users/:userId/post-registration/step-3/consent-evidence` (multipart
+/// `file`), ACTUANDO por el menor (alcance `consent:evidence`).
+class UploadActingConsentEvidence
+    implements
+        UseCase<ConsentEvidenceReceipt, UploadActingConsentEvidenceParams> {
+  final FamilyRepository repository;
+
+  UploadActingConsentEvidence(this.repository);
+
+  @override
+  Future<Either<Failure, ConsentEvidenceReceipt>> call(
+    UploadActingConsentEvidenceParams params,
+  ) =>
+      repository.uploadConsentEvidenceWhileActing(
+        dependentUserId: params.dependentUserId,
+        file: params.file,
+      );
+}
