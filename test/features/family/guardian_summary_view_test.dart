@@ -100,13 +100,13 @@ void main() {
     expect(find.textContaining('Del '), findsOneWidget);
   });
 
-  testWidgets('says what it does NOT include: health, messages, notes',
+  testWidgets('says what it does NOT include: health and notes',
       (tester) async {
     repo.progress = Right(_summary());
     await pump(tester);
 
     expect(
-      find.text('Este resumen no incluye salud, mensajes ni notas personales.'),
+      find.text('Este resumen no incluye información de salud ni notas personales.'),
       findsOneWidget,
     );
   });
