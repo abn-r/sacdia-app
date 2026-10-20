@@ -178,6 +178,11 @@ class AppBootstrapNotifier extends AsyncNotifier<AppBootstrapState> {
 
   /// Checks that the user has non-empty permissions and roles.
   bool _isValidAuthorization(UserEntity user) {
+    // Una cuenta restringida (sin fecha de nacimiento o de un tipo que la app
+    // no conoce) no tiene permisos de club que validar: solo ve el
+    // post-registro o su pantalla informativa. Exigirlos la dejaría en el
+    // reintento del splash en lugar de llevarla a su destino.
+    if (user.isRestrictedAccount) return true;
     final auth = user.authorization;
     if (auth == null) return false;
     if (auth.effectivePermissions.isEmpty) return false;
