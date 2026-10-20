@@ -274,6 +274,10 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     // Mientras se actúa por un menor no se ofrecen seguridad, sesiones,
     // exportación de datos ni borrado de cuenta: son del tutor (FP-56).
     final acting = ref.watch(actingDependentProvider) != null;
+    // Un adolescente supervisado no ve sesiones, exportación de datos, borrado
+    // de cuenta ni cambio de club: son del tutor (FP3-32; el cambio de club lo
+    // gestiona el tutor y el servidor lo niega). SÍ puede cambiar su contraseña.
+    final teen = user?.isSupervisedTeen ?? false;
     // Preferencias de notificación — cargadas desde el servidor con fallback a caché.
     final notifPrefsAsync = ref.watch(notificationPreferencesProvider);
     final notifPrefs = notifPrefsAsync.valueOrNull;
@@ -426,19 +430,21 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                         ),
                       ),
                     ),
-                    _groupDivider(),
-                    SettingTile(
-                      icon: HugeIcons.strokeRoundedExchange01,
-                      title: 'profile.settings.change_club_tile'.tr(),
-                      subtitle: 'profile.settings.change_club_subtitle'.tr(),
-                      iconColor: SacAccent.of(context).color,
-                      onTap: () => Navigator.push(
-                        context,
-                        SacSharedAxisRoute(
-                          builder: (_) => const TransferRequestFormView(),
+                    if (!teen) ...[
+                      _groupDivider(),
+                      SettingTile(
+                        icon: HugeIcons.strokeRoundedExchange01,
+                        title: 'profile.settings.change_club_tile'.tr(),
+                        subtitle: 'profile.settings.change_club_subtitle'.tr(),
+                        iconColor: SacAccent.of(context).color,
+                        onTap: () => Navigator.push(
+                          context,
+                          SacSharedAxisRoute(
+                            builder: (_) => const TransferRequestFormView(),
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                     if (hasAnyPermission(user, const {'attendance:manage'}) ||
                         hasAnyRole(user, _attendanceScannerRoles)) ...[
                       _groupDivider(),
@@ -454,7 +460,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                         ),
                       ),
                     ],
-                    if (!acting) ...[
+                    if (!acting && !teen) ...[
                       _groupDivider(),
                       SettingTile(
                         icon: HugeIcons.strokeRoundedDeviceAccess,
@@ -479,6 +485,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                           ),
                         ),
                       ),
+                    ],
+                    if (!acting) ...[
                       _groupDivider(),
                       SettingTile(
                         icon: HugeIcons.strokeRoundedLockPassword,
@@ -532,7 +540,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     ),
                   ],
                 ),
-                if (!acting) ...[
+                if (!acting && !teen) ...[
                   const SizedBox(height: 16),
 
                   // ── ZONA PELIGROSA ──────────────────────────────────────

@@ -33,6 +33,7 @@ import 'features/biometric/presentation/widgets/biometric_gate.dart';
 import 'features/family/presentation/widgets/acting_for_banner.dart';
 import 'features/family/presentation/widgets/family_prompt_host.dart';
 import 'features/home_widgets/data/next_activity_widget_bridge.dart';
+import 'features/teen/presentation/widgets/supervision_info_notice_host.dart';
 import 'features/home_widgets/presentation/next_activity_widget_launch.dart';
 import 'features/certifications/data/local/certification_draft_local_data_source.dart';
 import 'firebase_options.dart';
@@ -407,9 +408,12 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
               child: ActingNoticeListener(
                 // Banner "Viendo como {nombre}" sobre TODO el navegador.
                 child: FamilyPromptHost(
-                  child: ActingForBannerHost(
-                    child: BiometricGate(
-                      child: child ?? const SizedBox.shrink(),
+                  // Nota de transparencia del adolescente con tutor (una vez).
+                  child: SupervisionInfoNoticeHost(
+                    child: ActingForBannerHost(
+                      child: BiometricGate(
+                        child: child ?? const SizedBox.shrink(),
+                      ),
                     ),
                   ),
                 ),

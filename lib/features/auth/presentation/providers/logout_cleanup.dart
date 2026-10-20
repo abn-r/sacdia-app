@@ -15,6 +15,7 @@ import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../family/presentation/widgets/family_prompt_host.dart';
 import '../../../home_widgets/next_activity_widget_sync.dart';
 import '../../../post_registration/data/health_none_disk_cache.dart';
+import '../../../teen/presentation/widgets/supervision_info_notice_host.dart';
 import '../../../virtual_card/data/virtual_card_disk_cache.dart';
 import 'acting_providers.dart';
 import 'profile_scope_purge.dart';
@@ -63,6 +64,11 @@ void clearUserStateOnLogout(Ref ref) {
     ref.read(sharedPreferencesProvider).setBool(kActingDirtyPrefsKey, false),
   );
   purgeProfileScopeProviders(ref);
+  // La nota de transparencia del adolescente vuelve a mostrarse a la persona
+  // siguiente de este teléfono.
+  unawaited(
+    ref.read(sharedPreferencesProvider).remove(kSupervisionInfoSeenPrefsKey),
+  );
   // Bandera de un solo uso del tutor: no es del registro de perfil (no debe
   // reiniciarse al cambiar de perfil) pero un segundo usuario del mismo proceso
   // no puede heredarla.

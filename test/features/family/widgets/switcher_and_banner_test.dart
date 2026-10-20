@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/auth/acting_for_session.dart';
 import 'package:sacdia_app/features/auth/domain/entities/acting_for_info.dart';
+import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/acting_providers.dart';
@@ -239,6 +240,24 @@ void main() {
       );
 
       expect(find.text('Mi familia'), findsOneWidget);
+      expect(find.text('Cambiar de perfil'), findsNothing);
+    });
+
+    testWidgets('is hidden for a supervised teen (no Mi familia, no switcher)',
+        (tester) async {
+      auth.user = const UserEntity(
+        id: 'teen-1',
+        name: 'Ana',
+        postRegisterComplete: true,
+        serverMode: AccountMode.teenSupervised,
+        family: FamilySummary(isGuardian: true, dependentsCount: 2),
+      );
+      await pump(
+        tester,
+        body: const FamilyProfileEntry(horizontalPadding: 16),
+      );
+
+      expect(find.text('Mi familia'), findsNothing);
       expect(find.text('Cambiar de perfil'), findsNothing);
     });
 
