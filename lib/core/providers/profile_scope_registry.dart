@@ -161,6 +161,11 @@ const Map<String, String> nonAutoDisposeAllowlist = {
       'aviso de una sola vez del login (acceso de menor revocado): se escribe '
           'al cerrar la sesión y lo limpia el siguiente intento; sin datos de '
           'usuario',
+  'lastLoginIdentifierProvider':
+      'correo o usuario tecleado en el último intento de login, solo en '
+          'memoria y nunca la contraseña; es de antes de la sesión, se vacía '
+          'en cuanto un login termina bien y rellena el campo si el login '
+          'falla',
   'familyPromptSuppressedProvider':
       'bandera de un solo uso del tutor, la consume FamilyPromptHost; se '
           'reinicia en clearUserStateOnLogout',
