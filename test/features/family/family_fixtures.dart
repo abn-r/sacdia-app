@@ -72,14 +72,22 @@ Map<String, Object?> detailJson({
   bool evidence = false,
   Map<String, Object?>? club,
   List<Map<String, Object?>>? guardians,
+  int age = 9,
+  String accessMode = 'guardian_managed',
+  Map<String, Object?>? supervisedLogin,
+  bool ageMilestoneReached = false,
 }) =>
     {
       ...dependentJson(
         id: id,
         name: name,
+        age: age,
         consent: consent,
         evidence: evidence,
         club: club,
+        accessMode: accessMode,
+        supervisedLogin: supervisedLogin,
+        ageMilestoneReached: ageMilestoneReached,
       ),
       'guardians': guardians ?? [guardianJson()],
     };

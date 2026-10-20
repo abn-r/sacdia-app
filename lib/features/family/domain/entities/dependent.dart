@@ -189,7 +189,10 @@ class DependentSummary extends Equatable {
   }
 
   /// Se puede ver como este menor desde el selector de perfiles.
-  bool get canActAs => !frozen;
+  ///
+  /// Con acceso propio activo el servidor ya no deja actuar por él (403
+  /// `ACTING_FOR_FORBIDDEN`): no aparece en el selector ni en los push.
+  bool get canActAs => !frozen && !hasActiveOwnLogin;
 
   @override
   List<Object?> get props => [

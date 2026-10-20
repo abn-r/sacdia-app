@@ -368,6 +368,15 @@ class RouteNames {
 
   static String familyDetailPath(String dependentId) => '/family/$dependentId';
 
+  // Fase 3a: acceso propio de un menor y resumen para el tutor.
+  static const String familyTeenLogin = '/family/:dependentId/teen-login';
+  static const String familySummary = '/family/:dependentId/summary';
+
+  static String familyTeenLoginPath(String dependentId) =>
+      '/family/$dependentId/teen-login';
+  static String familySummaryPath(String dependentId) =>
+      '/family/$dependentId/summary';
+
   // Adolescente (13-17) sin tutor verificado: pantalla única del modo
   // restringido (estado, código para el tutor y cuenta atrás). Ver
   // `supervised_route_policy.dart`.

@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../../core/config/route_names.dart';
 import '../../../../core/consent/consent_error_messages.dart';
 import '../../../../core/consent/consent_evidence.dart';
 import '../../../../core/consent/consent_evidence_uploader.dart';
@@ -25,13 +26,17 @@ import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../auth/presentation/providers/acting_providers.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/dependent.dart';
+import '../../domain/entities/supervised_login.dart';
+import '../../domain/usecases/manage_supervised_login.dart';
 import '../../domain/usecases/revoke_guardianship.dart';
 import '../family_error_messages.dart';
 import '../family_outcome_messages.dart';
 import '../providers/family_providers.dart';
+import '../widgets/access_section.dart';
 import '../widgets/consent_badge.dart';
 import '../widgets/dependent_avatar.dart';
 import '../widgets/dependent_card.dart';
+import '../widgets/new_password_dialog.dart';
 import '../widgets/profile_switcher_sheet.dart';
 
 /// Detalle de un menor: tutores, consentimiento, invitar a un segundo tutor y
@@ -174,6 +179,141 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
     );
   }
 
+  // ── Acceso propio del menor (FP3-33) ────────────────────────────────────────
+
+  void _openWizard() => context.push(
+        RouteNames.familyTeenLoginPath(widget.dependentId),
+      );
+
+  void _openSummary() => context.push(
+        RouteNames.familySummaryPath(widget.dependentId),
+      );
+
+  Future<void> _copyHandle(String handle) async {
+    await Clipboard.setData(ClipboardData(text: handle));
+    _toast('family.access.copied'.tr());
+  }
+
+  Future<void> _disableAccess(DependentSummary dependent) async {
+    final name = dependent.firstName;
+    final confirmed = await SacDialog.show(
+      context,
+      title: 'family.access.disable_title'.tr(namedArgs: {'name': name}),
+      content: 'family.access.disable_body'.tr(namedArgs: {'name': name}),
+      confirmLabel: 'family.access.disable_confirm'.tr(),
+      confirmIsDestructive: true,
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _busy = true);
+    final result = await ref.read(familyActionsProvider).disableSupervisedLogin(
+          DisableSupervisedLoginParams(dependentId: widget.dependentId),
+        );
+    if (!mounted) return;
+    setState(() => _busy = false);
+    result.fold(
+      (failure) => _toast(familyErrorMessage(failure), isError: true),
+      (_) => _toast('family.access.disabled_toast'.tr()),
+    );
+  }
+
+  /// Reactivar: un acceso por usuario exige una contraseña NUEVA del tutor (la
+  /// anterior deja de servir); uno por correo solo pide confirmar.
+  Future<void> _reactivateAccess(DependentSummary dependent) async {
+    final name = dependent.firstName;
+    final isHandle =
+        (dependent.supervisedLogin?.method ?? SupervisedLoginMethod.handle) ==
+            SupervisedLoginMethod.handle;
+
+    String? password;
+    if (isHandle) {
+      password = await showNewPasswordDialog(
+        context,
+        title: 'family.access.reactivate_title'.tr(namedArgs: {'name': name}),
+        body: 'family.access.reactivate_body_handle'.tr(),
+        confirmLabel: 'family.access.reactivate_confirm'.tr(),
+      );
+      if (password == null || !mounted) return;
+    } else {
+      final confirmed = await SacDialog.show(
+        context,
+        title: 'family.access.reactivate_title'.tr(namedArgs: {'name': name}),
+        content:
+            'family.access.reactivate_body_email'.tr(namedArgs: {'name': name}),
+        confirmLabel: 'family.access.reactivate_confirm'.tr(),
+      );
+      if (confirmed != true || !mounted) return;
+    }
+
+    setState(() => _busy = true);
+    final result =
+        await ref.read(familyActionsProvider).reactivateSupervisedLogin(
+              ReactivateSupervisedLoginParams(
+                dependentId: widget.dependentId,
+                password: password,
+              ),
+            );
+    if (!mounted) return;
+    setState(() => _busy = false);
+    result.fold(
+      (failure) => _toast(familyErrorMessage(failure), isError: true),
+      (_) => _toast('family.access.reactivated_toast'.tr()),
+    );
+  }
+
+  /// Restablecer: usuario → el tutor fija una contraseña; correo → se cierran
+  /// las sesiones y el menor recibe el correo estándar (el tutor nunca ve ni
+  /// fija la contraseña).
+  Future<void> _resetAccessPassword(DependentSummary dependent) async {
+    final name = dependent.firstName;
+    final isHandle =
+        (dependent.supervisedLogin?.method ?? SupervisedLoginMethod.handle) ==
+            SupervisedLoginMethod.handle;
+
+    String? password;
+    if (isHandle) {
+      password = await showNewPasswordDialog(
+        context,
+        title: 'family.access.reset_title'.tr(namedArgs: {'name': name}),
+        body: 'family.access.reset_body_handle'.tr(),
+        confirmLabel: 'family.access.reset_confirm'.tr(),
+      );
+      if (password == null || !mounted) return;
+    } else {
+      final confirmed = await SacDialog.show(
+        context,
+        title: 'family.access.reset_title'.tr(namedArgs: {'name': name}),
+        content: 'family.access.reset_body_email'.tr(namedArgs: {'name': name}),
+        confirmLabel: 'family.access.reset_confirm'.tr(),
+        confirmIsDestructive: true,
+      );
+      if (confirmed != true || !mounted) return;
+    }
+
+    setState(() => _busy = true);
+    final result =
+        await ref.read(familyActionsProvider).resetSupervisedPassword(
+              ResetSupervisedPasswordParams(
+                dependentId: widget.dependentId,
+                password: password,
+              ),
+            );
+    if (!mounted) return;
+    setState(() => _busy = false);
+    result.fold(
+      (failure) => _toast(familyErrorMessage(failure), isError: true),
+      (reset) => _toast(
+        (isHandle
+                ? 'family.access.reset_toast'
+                : 'family.access.reset_toast_email')
+            .tr(namedArgs: {
+          'count': '${reset.sessionsRevoked}',
+          'name': name,
+        }),
+      ),
+    );
+  }
+
   Future<void> _leave(DependentDetail detail, DependentGuardian me) async {
     final name = detail.summary.firstName;
     final confirmed = await SacDialog.show(
@@ -246,6 +386,12 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
   Widget build(BuildContext context) {
     final c = context.sac;
     final detail = ref.watch(dependentDetailProvider(widget.dependentId));
+    // La gestión del acceso propio la apaga el servidor con una bandera.
+    final teenLoginEnabled = ref.watch(
+      authNotifierProvider.select(
+        (v) => v.valueOrNull?.familyFeatures?.teenLogin ?? false,
+      ),
+    );
 
     return Scaffold(
       backgroundColor: c.background,
@@ -270,6 +416,13 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
           onFormAlreadyVerified: _onFormAlreadyVerified,
           onViewForm: _viewForm,
           onViewAs: () => switchToDependent(context, ref, data.summary),
+          teenLoginEnabled: teenLoginEnabled,
+          onEnableAccess: _openWizard,
+          onDisableAccess: () => _disableAccess(data.summary),
+          onReactivateAccess: () => _reactivateAccess(data.summary),
+          onResetPassword: () => _resetAccessPassword(data.summary),
+          onOpenSummary: _openSummary,
+          onCopyHandle: _copyHandle,
           onInvite: () => _invite(data),
           onLeave: (me) => _leave(data, me),
           onRemove: _remove,
@@ -289,6 +442,13 @@ class _Body extends StatelessWidget {
     required this.onFormAlreadyVerified,
     required this.onViewForm,
     required this.onViewAs,
+    required this.teenLoginEnabled,
+    required this.onEnableAccess,
+    required this.onDisableAccess,
+    required this.onReactivateAccess,
+    required this.onResetPassword,
+    required this.onOpenSummary,
+    required this.onCopyHandle,
     required this.onInvite,
     required this.onLeave,
     required this.onRemove,
@@ -302,6 +462,13 @@ class _Body extends StatelessWidget {
   final VoidCallback onFormAlreadyVerified;
   final VoidCallback onViewForm;
   final VoidCallback onViewAs;
+  final bool teenLoginEnabled;
+  final VoidCallback onEnableAccess;
+  final VoidCallback onDisableAccess;
+  final VoidCallback onReactivateAccess;
+  final VoidCallback onResetPassword;
+  final VoidCallback onOpenSummary;
+  final ValueChanged<String> onCopyHandle;
   final VoidCallback onInvite;
   final void Function(DependentGuardian me) onLeave;
   final void Function(DependentGuardian other) onRemove;
@@ -402,6 +569,20 @@ class _Body extends StatelessWidget {
             onView: onViewForm,
           ),
         ],
+        if (!summary.frozen) ...[
+          const SizedBox(height: 20),
+          AccessSection(
+            summary: summary,
+            teenLoginEnabled: teenLoginEnabled,
+            busy: busy,
+            onEnable: onEnableAccess,
+            onDisable: onDisableAccess,
+            onReactivate: onReactivateAccess,
+            onResetPassword: onResetPassword,
+            onOpenSummary: onOpenSummary,
+            onCopyHandle: onCopyHandle,
+          ),
+        ],
         const SizedBox(height: 20),
         _SectionLabel(label: 'family.detail.guardians'.tr()),
         const SizedBox(height: 8),
@@ -417,14 +598,18 @@ class _Body extends StatelessWidget {
           ),
         const SizedBox(height: 20),
         if (!summary.frozen) ...[
-          SacButton.primary(
-            text: 'family.card.view_as'.tr(
-              namedArgs: {'name': summary.firstName},
+          // Con acceso propio activo el servidor ya no deja actuar por él
+          // (403 ACTING_FOR_FORBIDDEN): no se ofrece.
+          if (!summary.hasActiveOwnLogin) ...[
+            SacButton.primary(
+              text: 'family.card.view_as'.tr(
+                namedArgs: {'name': summary.firstName},
+              ),
+              icon: HugeIcons.strokeRoundedUserSwitch,
+              onPressed: busy ? null : onViewAs,
             ),
-            icon: HugeIcons.strokeRoundedUserSwitch,
-            onPressed: busy ? null : onViewAs,
-          ),
-          const SizedBox(height: 12),
+            const SizedBox(height: 12),
+          ],
           SacButton.outline(
             text: 'family.detail.invite'.tr(),
             icon: HugeIcons.strokeRoundedUserAdd01,
