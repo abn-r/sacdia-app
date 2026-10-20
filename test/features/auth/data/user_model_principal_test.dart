@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/auth/data/models/user_model.dart';
 import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
+import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 
 Map<String, dynamic> _payload([Map<String, dynamic>? extra]) => {
       'user_id': 'user-1',
@@ -26,6 +27,11 @@ Map<String, dynamic> _teenPrincipal({
         if (daysLeft != null) 'days_left': daysLeft,
       },
     };
+
+class UserEntityFixture {
+  static UserEntity withPrincipal(PrincipalInfo p) =>
+      UserEntity(id: 'u', principal: p);
+}
 
 void main() {
   group('absent blocks fail closed', () {
@@ -54,6 +60,98 @@ void main() {
       }));
       expect(user.principal!.kind, PrincipalKind.unknown);
       expect(user.canIdentifyInAnalytics, isFalse);
+    });
+  });
+
+  group('age unknown (no birthday, post-registration incomplete)', () {
+    Map<String, dynamic> payload() => _payload({
+          'mode': 'profile_incomplete',
+          'principal': {
+            'kind': 'age_unknown_user',
+            'scopes': ['account:manage', 'profile:write'],
+            'supervision': null,
+          },
+          'family': null,
+          'analytics_anonymous': true,
+        });
+
+    test('parses the kind and the mode', () {
+      final user = UserModel.fromCustomApi(payload());
+      expect(user.principal!.kind, PrincipalKind.ageUnknownUser);
+      expect(user.principal!.supervision, isNull);
+      expect(user.serverMode, AccountMode.profileIncomplete);
+      expect(user.mode, AccountMode.profileIncomplete);
+      expect(user.family, isNull);
+    });
+
+    test('is not an adult, not a teen, and has no family features', () {
+      final user = UserModel.fromCustomApi(payload());
+      expect(user.isSupervisedTeen, isFalse);
+      expect(user.isRestrictedAccount, isTrue);
+      expect(user.isLimitedAccount, isTrue);
+    });
+
+    test('analytics stay anonymous even if analytics_anonymous were false', () {
+      final data = payload()..['analytics_anonymous'] = false;
+      expect(UserModel.fromCustomApi(data).canIdentifyInAnalytics, isFalse);
+    });
+
+    test('the kind alone is enough: a missing mode still fails closed', () {
+      final data = payload()..remove('mode');
+      expect(
+        UserModel.fromCustomApi(data).mode,
+        AccountMode.profileIncomplete,
+      );
+    });
+
+    test('the login shape (kind only, no mode) is restricted too', () {
+      final p = UserModel.parsePrincipal(
+        {'kind': 'age_unknown_user', 'supervision': null},
+      )!;
+      expect(
+        UserEntityFixture.withPrincipal(p).mode,
+        AccountMode.profileIncomplete,
+      );
+    });
+
+    test('a server saying adult cannot override the age-unknown kind', () {
+      final data = payload()..['mode'] = 'adult';
+      expect(
+        UserModel.fromCustomApi(data).mode,
+        AccountMode.profileIncomplete,
+      );
+    });
+  });
+
+  group('unknown principal kinds fail closed', () {
+    test('an unknown kind is restricted, never adult, even if mode says adult',
+        () {
+      final user = UserModel.fromCustomApi(_payload({
+        'principal': {'kind': 'hologram'},
+        'mode': 'adult',
+        'analytics_anonymous': false,
+      }));
+      expect(user.mode, AccountMode.restricted);
+      expect(user.isRestrictedAccount, isTrue);
+      expect(user.canIdentifyInAnalytics, isFalse);
+    });
+
+    test('a principal without a kind is restricted', () {
+      final user = UserModel.fromCustomApi(_payload({
+        'principal': {'scopes': <String>[]},
+      }));
+      expect(user.mode, AccountMode.restricted);
+    });
+
+    test('a known adult is not restricted', () {
+      final user = UserModel.fromCustomApi(_payload({
+        'principal': {'kind': 'user'},
+        'mode': 'adult',
+        'analytics_anonymous': false,
+      }));
+      expect(user.mode, AccountMode.adult);
+      expect(user.isLimitedAccount, isFalse);
+      expect(user.canIdentifyInAnalytics, isTrue);
     });
   });
 
@@ -200,12 +298,13 @@ void main() {
       expect(user.mode, AccountMode.teenSupervised);
     });
 
-    test('an unknown server mode falls back to the principal', () {
+    test('an unknown server mode fails closed as restricted, never adult', () {
       final user = UserModel.fromCustomApi(_payload({
         'principal': _teenPrincipal(),
         'mode': 'robot',
       }));
-      expect(user.mode, AccountMode.teenPending);
+      expect(user.mode, AccountMode.restricted);
+      expect(user.canIdentifyInAnalytics, isFalse);
     });
   });
 

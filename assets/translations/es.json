@@ -232,6 +232,7 @@
     "errors": {
       "sign_in_failed": "Error al iniciar sesión",
       "sign_up_failed": "Error al registrar usuario",
+      "session_load_failed": "Iniciaste sesión, pero no pudimos cargar tu cuenta. Inténtalo de nuevo.",
       "change_password_failed": "Error al cambiar la contraseña",
       "delete_account_failed": "Error al eliminar la cuenta",
       "sign_out_failed": "Error al cerrar sesión",
@@ -5531,6 +5532,10 @@
       "no_activities": "Sin actividades en este periodo.",
       "privacy_note": "Este resumen no incluye salud, mensajes ni notas personales."
     }
+  },
+  "restricted_account": {
+    "title": "Cuenta no disponible",
+    "body": "Tu cuenta usa una función que esta versión de la app todavía no reconoce. Por tu seguridad, el acceso está limitado. Actualiza la app o inicia sesión de nuevo más tarde."
   },
   "teen": {
     "pending": {

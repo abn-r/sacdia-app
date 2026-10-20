@@ -232,6 +232,7 @@
     "errors": {
       "sign_in_failed": "Erreur de connexion",
       "sign_up_failed": "Erreur d'inscription",
+      "session_load_failed": "Vous êtes connecté, mais nous n'avons pas pu charger votre compte. Réessayez.",
       "change_password_failed": "Erreur lors du changement de mot de passe",
       "delete_account_failed": "Erreur lors de la suppression du compte",
       "sign_out_failed": "Erreur lors de la déconnexion",
@@ -5529,6 +5530,10 @@
       "no_activities": "Aucune activité sur cette période.",
       "privacy_note": "Ce résumé n'inclut ni la santé, ni les messages, ni les notes personnelles."
     }
+  },
+  "restricted_account": {
+    "title": "Compte indisponible",
+    "body": "Votre compte utilise une fonction que cette version de l'application ne reconnaît pas encore. Par sécurité, l'accès est limité. Mettez l'application à jour ou reconnectez-vous plus tard."
   },
   "teen": {
     "pending": {

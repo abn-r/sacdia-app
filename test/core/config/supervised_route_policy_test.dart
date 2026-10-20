@@ -18,6 +18,103 @@ UserEntity _user({
     );
 
 void main() {
+  group('profile_incomplete (no birthday): allowlist', () {
+    test('only post-registration and legal are allowed', () {
+      expect(
+          isAllowedForProfileIncomplete(RouteNames.postRegistration), isTrue);
+      expect(isAllowedForProfileIncomplete(RouteNames.legalAcceptance), isTrue);
+      for (final path in [
+        RouteNames.homeDashboard,
+        RouteNames.homeProfile,
+        RouteNames.family,
+        RouteNames.familyAdd,
+        RouteNames.teenPendingHome,
+        RouteNames.notificationsInbox,
+        '/',
+      ]) {
+        expect(isAllowedForProfileIncomplete(path), isFalse, reason: path);
+      }
+    });
+
+    test(
+        'everything else goes to post-registration, even if the local flag '
+        'says it is done', () {
+      for (final needs in [true, false]) {
+        expect(
+          supervisedRouteRedirect(
+            mode: AccountMode.profileIncomplete,
+            path: RouteNames.homeDashboard,
+            needsPostRegistration: needs,
+          ),
+          RouteNames.postRegistration,
+        );
+      }
+      expect(
+        supervisedRouteRedirect(
+          mode: AccountMode.profileIncomplete,
+          path: RouteNames.postRegistration,
+          needsPostRegistration: false,
+        ),
+        isNull,
+      );
+    });
+
+    test('a deferred push is never delivered', () {
+      final user = UserEntity(
+        id: 'u',
+        postRegisterComplete: true,
+        serverMode: AccountMode.profileIncomplete,
+      );
+      expect(
+        isPendingNavigationAllowed(
+          user: user,
+          route: RouteNames.homeDashboard,
+          acting: false,
+        ),
+        isFalse,
+      );
+    });
+  });
+
+  group('restricted (unknown principal): fails closed', () {
+    test('only its info screen and legal are allowed', () {
+      expect(
+          supervisedRouteRedirect(
+            mode: AccountMode.restricted,
+            path: RouteNames.restrictedAccount,
+            needsPostRegistration: false,
+          ),
+          isNull);
+      for (final path in [
+        RouteNames.homeDashboard,
+        RouteNames.postRegistration,
+        RouteNames.family,
+        RouteNames.teenPendingHome,
+      ]) {
+        expect(
+          supervisedRouteRedirect(
+            mode: AccountMode.restricted,
+            path: path,
+            needsPostRegistration: false,
+          ),
+          RouteNames.restrictedAccount,
+          reason: path,
+        );
+      }
+    });
+
+    test('the info screen does not exist for an adult', () {
+      expect(
+        supervisedRouteRedirect(
+          mode: AccountMode.adult,
+          path: RouteNames.restrictedAccount,
+          needsPostRegistration: false,
+        ),
+        RouteNames.homeDashboard,
+      );
+    });
+  });
+
   group('pending teen: allowlist', () {
     test('only the status screen, post-registration and legal are allowed', () {
       expect(isAllowedForPendingTeen(RouteNames.teenPendingHome), isTrue);

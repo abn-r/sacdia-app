@@ -115,6 +115,27 @@ void main() {
       expect(gateway.identifies, isEmpty);
     });
 
+    test('an age-unknown user is never identified, even if the payload says so',
+        () async {
+      await policy.apply(const UserEntity(
+        id: 'new-google',
+        principal: PrincipalInfo(kind: PrincipalKind.ageUnknownUser),
+        serverMode: AccountMode.profileIncomplete,
+        analyticsAnonymous: false,
+      ));
+      expect(gateway.identifies, isEmpty);
+    });
+
+    test('an unrecognized server mode is never identified', () async {
+      await policy.apply(const UserEntity(
+        id: 'x',
+        principal: PrincipalInfo(kind: PrincipalKind.user),
+        serverMode: AccountMode.restricted,
+        analyticsAnonymous: false,
+      ));
+      expect(gateway.identifies, isEmpty);
+    });
+
     test('a user restored without /auth/me data is never identified', () async {
       await policy.apply(const UserEntity(id: 'cached'));
       expect(gateway.identifies, isEmpty);

@@ -23,8 +23,9 @@ bool shouldPromptFamily(
   required bool acting,
 }) {
   if (acting || previous == null || next == null) return false;
-  // Un adolescente supervisado no tiene menores a su cargo (FP3-32).
-  if (next.isSupervisedTeen) return false;
+  // Un adolescente supervisado, o una cuenta que no es adulta, no tiene menores
+  // a su cargo (FP3-32).
+  if (next.isLimitedAccount) return false;
   if (previous.id != next.id) return false;
   if (next.actingFor != null) return false;
   return !previous.postRegisterComplete && next.postRegisterComplete;

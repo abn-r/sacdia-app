@@ -71,13 +71,26 @@ class UserEntity extends Equatable {
     this.serverMode,
   });
 
-  /// Modo de la cuenta para enrutar (FP3-31). Un adolescente supervisado cuyo
-  /// estado no se pudo leer cuenta como pendiente (el lado restrictivo); un
-  /// principal ausente es adulto: el servidor sigue siendo quien deniega.
+  /// Modo de la cuenta para enrutar (FP3-31). Falla cerrado:
+  ///
+  /// - Un principal de tipo desconocido es [AccountMode.restricted] aunque el
+  ///   servidor declare otro modo: la app no sabe qué es esa cuenta.
+  /// - `age_unknown_user` es [AccountMode.profileIncomplete] (no hay fecha de
+  ///   nacimiento: ni adulto ni menor).
+  /// - Un adolescente supervisado cuyo estado no se pudo leer cuenta como
+  ///   pendiente (el lado restrictivo).
+  /// - Un principal ausente es adulto (servidor anterior a la Fase 3): el
+  ///   servidor sigue siendo quien deniega.
   AccountMode get mode {
+    final p = principal;
+    if (p != null) {
+      if (p.kind == PrincipalKind.unknown) return AccountMode.restricted;
+      if (p.kind == PrincipalKind.ageUnknownUser) {
+        return AccountMode.profileIncomplete;
+      }
+    }
     final explicit = serverMode;
     if (explicit != null) return explicit;
-    final p = principal;
     if (p != null && p.kind == PrincipalKind.supervisedUser) {
       return p.supervision?.status == SupervisionStatus.active
           ? AccountMode.teenSupervised
@@ -87,13 +100,24 @@ class UserEntity extends Equatable {
   }
 
   /// Cuenta de un menor bajo supervisión (pendiente o con tutor).
-  bool get isSupervisedTeen => mode != AccountMode.adult;
+  bool get isSupervisedTeen =>
+      mode == AccountMode.teenPending || mode == AccountMode.teenSupervised;
+
+  /// Cuenta restringida que NO es un menor supervisado: sin fecha de
+  /// nacimiento (`profile_incomplete`) o de un tipo que la app no reconoce.
+  bool get isRestrictedAccount =>
+      mode == AccountMode.profileIncomplete || mode == AccountMode.restricted;
+
+  /// Cualquier cuenta que no sea adulta: no tiene Mi familia, funciones de
+  /// tutor ni selector de perfiles.
+  bool get isLimitedAccount => mode != AccountMode.adult;
 
   /// Se puede identificar a esta cuenta en analítica: solo si el servidor lo
-  /// dijo explícitamente (`analytics_anonymous == false`) y no es un menor.
+  /// dijo explícitamente (`analytics_anonymous == false`) y es un adulto
+  /// conocido. Un principal ausente cuenta como `user` (servidor antiguo).
   bool get canIdentifyInAnalytics =>
       analyticsAnonymous == false &&
-      !isSupervisedTeen &&
+      !isLimitedAccount &&
       (principal?.kind ?? PrincipalKind.user) == PrincipalKind.user;
 
   @override

@@ -3,8 +3,8 @@ import 'package:equatable/equatable.dart';
 /// Tipo de principal que el servidor resolvió para la sesión (`/auth/me`).
 ///
 /// Lo calcula SIEMPRE el servidor: la app nunca lo deduce de un claim del JWT
-/// ni de la edad. Un valor desconocido es [unknown] y se trata con el lado
-/// seguro (sin analítica identificada).
+/// ni de la edad. Un valor desconocido es [unknown] y falla cerrado: cuenta
+/// restringida (`AccountMode.restricted`), analítica anónima, nunca adulto.
 enum PrincipalKind {
   /// Adulto o cuenta sin edad conocida.
   user,
@@ -18,6 +18,11 @@ enum PrincipalKind {
   /// Teléfono vinculado de un menor de 13 (Fase 3b).
   linkedDevice,
 
+  /// Cuenta SIN fecha de nacimiento y con el post-registro incompleto (p. ej.
+  /// un alta nueva con Google o Apple): restringida hasta que el paso 2 guarde
+  /// la fecha. Sin supervisión ni familia. No es un adulto.
+  ageUnknownUser,
+
   /// Valor no reconocido (servidor más nuevo que la app).
   unknown;
 
@@ -26,6 +31,7 @@ enum PrincipalKind {
         'guardian_acting' => guardianActing,
         'supervised_user' => supervisedUser,
         'linked_device' => linkedDevice,
+        'age_unknown_user' => ageUnknownUser,
         _ => unknown,
       };
 }
@@ -163,12 +169,26 @@ enum AccountMode {
   teenPending,
 
   /// Adolescente con tutor verificado.
-  teenSupervised;
+  teenSupervised,
 
+  /// Sin fecha de nacimiento y con el post-registro incompleto (`/auth/me.mode`
+  /// = `profile_incomplete`). Solo puede completar el post-registro; en cuanto
+  /// el paso 2 guarda la fecha, el servidor lo pasa a `teen_pending` o `adult`.
+  profileIncomplete,
+
+  /// Modo o principal que la app no reconoce (servidor más nuevo). Falla
+  /// cerrado: nunca se trata como adulto.
+  restricted;
+
+  /// `null` si el valor falta (el modo se deriva del principal). Un texto que
+  /// la app no reconoce es [restricted]: fallar cerrado, no abierto.
   static AccountMode? parse(Object? raw) => switch (raw) {
+        null => null,
         'adult' => adult,
         'teen_pending' => teenPending,
         'teen_supervised' => teenSupervised,
+        'profile_incomplete' => profileIncomplete,
+        String() => restricted,
         _ => null,
       };
 }

@@ -1,4 +1,5 @@
 import '../entities/authorization_snapshot.dart';
+import '../entities/principal_info.dart';
 import '../entities/user_entity.dart';
 
 enum SensitiveUserFamily {
@@ -237,9 +238,12 @@ bool isGuardianWithoutClub(UserEntity? user) {
 /// ¿Debe pasar por el post-registro de club?
 ///
 /// Falta completarlo, salvo para el pastor sin club: su cuenta no tiene
-/// datos de club que completar.
+/// datos de club que completar. Una cuenta sin fecha de nacimiento
+/// (`profile_incomplete`) lo necesita siempre: la restricción la levanta el
+/// servidor, no la bandera local.
 bool userNeedsPostRegistration(UserEntity user) =>
-    !user.postRegisterComplete && !isPastorWithoutClub(user);
+    user.mode == AccountMode.profileIncomplete ||
+    (!user.postRegisterComplete && !isPastorWithoutClub(user));
 
 /// ¿Debe aceptar los documentos legales vigentes antes de usar la app?
 bool userNeedsLegalAcceptance(UserEntity user) => user.legalAcceptancePending;

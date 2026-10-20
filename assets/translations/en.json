@@ -232,6 +232,7 @@
     "errors": {
       "sign_in_failed": "Sign in failed",
       "sign_up_failed": "Registration failed",
+      "session_load_failed": "You signed in, but we could not load your account. Please try again.",
       "change_password_failed": "Password change failed",
       "delete_account_failed": "Account deletion failed",
       "sign_out_failed": "Sign out failed",
@@ -5531,6 +5532,10 @@
       "no_activities": "No activities in this period.",
       "privacy_note": "This summary does not include health data, messages or personal notes."
     }
+  },
+  "restricted_account": {
+    "title": "Account unavailable",
+    "body": "Your account uses a feature this version of the app does not recognize yet. For your safety, access is limited. Update the app or sign in again later."
   },
   "teen": {
     "pending": {

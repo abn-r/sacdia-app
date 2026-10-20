@@ -793,10 +793,17 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         return null;
       },
       (user) {
+        final previous = state.valueOrNull;
         if (user != null) {
           _cacheUser(user);
         }
         state = AsyncValue.data(user);
+        // Salir de una cuenta restringida (el paso 2 guardó la fecha): ahora el
+        // servidor sí atiende el inbox, que no se pidió mientras duró.
+        if ((previous?.isRestrictedAccount ?? false) &&
+            !(user?.isRestrictedAccount ?? true)) {
+          ref.read(unreadNotificationsCountProvider.notifier).refresh();
+        }
         return user;
       },
     );
@@ -1145,7 +1152,8 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   /// principal o el modo (p. ej. el director verificó el consentimiento: el
   /// adolescente pasa de pendiente a supervisado sin reiniciar la app).
   ///
-  /// Solo actúa para un adolescente supervisado, nunca mientras se actúa por un
+  /// Solo actúa para una cuenta que no es adulta (adolescente supervisado, sin
+  /// fecha de nacimiento o desconocida), nunca mientras se actúa por un
   /// menor ni durante una carga, y no sale de ningún modo "actuar por". Un
   /// fallo (sin red, 401...) no toca el estado. [minInterval] limita la
   /// frecuencia. Devuelve `true` si el estado cambió.
@@ -1154,7 +1162,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     if (current == null ||
         state.isLoading ||
         _isActing ||
-        !current.isSupervisedTeen ||
+        !current.isLimitedAccount ||
         _refreshingSupervision) {
       return false;
     }

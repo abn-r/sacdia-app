@@ -106,6 +106,7 @@ import '../../features/auth/presentation/views/login_view.dart';
 import '../../features/auth/presentation/views/register_view.dart';
 import '../../features/auth/presentation/views/splash_view.dart';
 import '../../features/teen/presentation/views/teen_pending_home_view.dart';
+import '../../features/auth/presentation/views/restricted_account_view.dart';
 import '../../features/family/presentation/views/add_dependent_view.dart';
 import '../../features/family/presentation/views/dependent_detail_view.dart';
 import '../../features/family/presentation/views/enable_teen_login_wizard.dart';
@@ -126,7 +127,6 @@ import '../../features/profile/presentation/views/medical_info_view.dart';
 import '../animations/page_transitions.dart';
 import '../utils/responsive.dart';
 import '../../features/auth/domain/entities/authorization_snapshot.dart';
-import '../../features/auth/domain/entities/principal_info.dart';
 import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/core/authorization/access_subject.dart';
@@ -279,10 +279,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
       if (currentPath == RouteNames.legalAcceptance) {
         if (!isLoggedIn) return RouteNames.login;
-        if (userNeedsPostRegistration(user)) return RouteNames.postRegistration;
-        return user.mode == AccountMode.teenPending
-            ? RouteNames.teenPendingHome
-            : RouteNames.homeDashboard;
+        return accountHomeFor(
+          user.mode,
+          needsPostRegistration: userNeedsPostRegistration(user),
+        );
       }
 
       // Splash es transitorio: una vez que la carga terminó, siempre salir.
@@ -298,15 +298,13 @@ final routerProvider = Provider<GoRouter>((ref) {
             welcomeCarouselSeen: ref.read(welcomeCarouselSeenProvider),
           );
         }
-        if (userNeedsPostRegistration(user)) {
-          return RouteNames.postRegistration;
-        }
         // Adolescente sin tutor verificado: su pantalla de estado, sin rebote
-        // por el inicio.
-        if (user.mode == AccountMode.teenPending) {
-          return RouteNames.teenPendingHome;
-        }
-        return RouteNames.homeDashboard;
+        // por el inicio. Cuenta sin fecha de nacimiento: el post-registro.
+        // Principal desconocido: su pantalla informativa.
+        return accountHomeFor(
+          user.mode,
+          needsPostRegistration: userNeedsPostRegistration(user),
+        );
       }
 
       // Sin usuario autenticado → login
@@ -320,11 +318,10 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Usuario autenticado en ruta pública → destino home compartido.
       if (isPublicRoute) {
-        if (needsPostRegistration) return RouteNames.postRegistration;
-        if (user.mode == AccountMode.teenPending) {
-          return RouteNames.teenPendingHome;
-        }
-        return RouteNames.homeDashboard;
+        return accountHomeFor(
+          user.mode,
+          needsPostRegistration: needsPostRegistration,
+        );
       }
 
       // Adolescente supervisado: pendiente = lista blanca, con tutor = lista
@@ -411,6 +408,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: RouteNames.teenPendingHome,
         pageBuilder: (context, state) =>
             _sharedAxisBuild(context, state, const TeenPendingHomeView()),
+      ),
+
+      // Cuenta con un principal desconocido: falla cerrado en una pantalla
+      // informativa.
+      GoRoute(
+        path: RouteNames.restrictedAccount,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const RestrictedAccountView()),
       ),
 
       // Gate de aceptación legal (fuera del shell, no es ruta pública).

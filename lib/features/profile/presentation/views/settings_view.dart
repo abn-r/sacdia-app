@@ -277,7 +277,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     // Un adolescente supervisado no ve sesiones, exportación de datos, borrado
     // de cuenta ni cambio de club: son del tutor (FP3-32; el cambio de club lo
     // gestiona el tutor y el servidor lo niega). SÍ puede cambiar su contraseña.
-    final teen = user?.isSupervisedTeen ?? false;
+    final teen = user?.isLimitedAccount ?? false;
     // Preferencias de notificación — cargadas desde el servidor con fallback a caché.
     final notifPrefsAsync = ref.watch(notificationPreferencesProvider);
     final notifPrefs = notifPrefsAsync.valueOrNull;

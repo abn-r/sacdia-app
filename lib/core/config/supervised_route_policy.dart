@@ -15,12 +15,32 @@ import 'route_names.dart';
 ///   ocultan leyendo el modo (ver `settings_view.dart`). Los prefijos de abajo
 ///   cubren además cualquier ruta nueva que se publique con ese nombre.
 ///
+/// - **Sin fecha de nacimiento** (`AccountMode.profileIncomplete`): LISTA
+///   BLANCA mínima. Solo el post-registro (el paso 2 guarda la fecha y el
+///   servidor cambia el modo) y la aceptación legal. Todo lo demás vuelve al
+///   post-registro, aunque la bandera local diga que ya terminó: el servidor
+///   decide cuándo se levanta la restricción.
+/// - **Principal desconocido** (`AccountMode.restricted`): falla cerrado. Solo
+///   su pantalla informativa y la aceptación legal.
+///
 /// El servidor es la autoridad: esto solo evita pantallas que acabarían en 403.
 
 /// Pestaña/pantalla que un adolescente pendiente puede abrir sin más.
 const Set<String> _pendingAllowedExact = {
   RouteNames.teenPendingHome,
   RouteNames.postRegistration,
+  RouteNames.legalAcceptance,
+};
+
+/// Lo único que abre una cuenta sin fecha de nacimiento.
+const Set<String> _profileIncompleteAllowedExact = {
+  RouteNames.postRegistration,
+  RouteNames.legalAcceptance,
+};
+
+/// Lo único que abre una cuenta con un principal desconocido.
+const Set<String> _restrictedAllowedExact = {
+  RouteNames.restrictedAccount,
   RouteNames.legalAcceptance,
 };
 
@@ -51,9 +71,42 @@ bool isBlockedForActiveTeen(String path) {
   return kSupervisedBlockedPrefixes.any((p) => _hasPrefix(normalized, p));
 }
 
+/// ¿Puede una cuenta SIN fecha de nacimiento abrir [path]?
+bool isAllowedForProfileIncomplete(String path) =>
+    _profileIncompleteAllowedExact.contains(_normalize(path));
+
+/// ¿Puede una cuenta con un principal desconocido abrir [path]?
+bool isAllowedForRestricted(String path) =>
+    _restrictedAllowedExact.contains(_normalize(path));
+
 /// Pantalla de estado del modo restringido (no es un destino para nadie más).
 bool isTeenOnlyRoute(String path) =>
     _normalize(path) == RouteNames.teenPendingHome;
+
+/// Pantalla informativa de la cuenta desconocida (no es un destino para nadie
+/// más).
+bool isRestrictedOnlyRoute(String path) =>
+    _normalize(path) == RouteNames.restrictedAccount;
+
+/// Destino «de inicio» de una cuenta según su [mode]: lo que sustituye al
+/// inicio de los adultos.
+String accountHomeFor(AccountMode mode, {required bool needsPostRegistration}) {
+  switch (mode) {
+    case AccountMode.profileIncomplete:
+      return RouteNames.postRegistration;
+    case AccountMode.restricted:
+      return RouteNames.restrictedAccount;
+    case AccountMode.teenPending:
+      return needsPostRegistration
+          ? RouteNames.postRegistration
+          : RouteNames.teenPendingHome;
+    case AccountMode.adult:
+    case AccountMode.teenSupervised:
+      return needsPostRegistration
+          ? RouteNames.postRegistration
+          : RouteNames.homeDashboard;
+  }
+}
 
 /// A dónde llevar al usuario según su [mode] y la ruta [path] a la que va, o
 /// `null` si puede seguir.
@@ -68,15 +121,25 @@ String? supervisedRouteRedirect({
 }) {
   switch (mode) {
     case AccountMode.adult:
-      // La pantalla de estado no existe para un adulto (p. ej. cumplió 18).
-      return isTeenOnlyRoute(path) ? RouteNames.homeDashboard : null;
+      // Las pantallas de estado no existen para un adulto (p. ej. cumplió 18).
+      return isTeenOnlyRoute(path) || isRestrictedOnlyRoute(path)
+          ? RouteNames.homeDashboard
+          : null;
+    case AccountMode.profileIncomplete:
+      return isAllowedForProfileIncomplete(path)
+          ? null
+          : RouteNames.postRegistration;
+    case AccountMode.restricted:
+      return isAllowedForRestricted(path) ? null : RouteNames.restrictedAccount;
     case AccountMode.teenPending:
       if (isAllowedForPendingTeen(path)) return null;
       return needsPostRegistration
           ? RouteNames.postRegistration
           : RouteNames.teenPendingHome;
     case AccountMode.teenSupervised:
-      if (isTeenOnlyRoute(path) || isBlockedForActiveTeen(path)) {
+      if (isTeenOnlyRoute(path) ||
+          isRestrictedOnlyRoute(path) ||
+          isBlockedForActiveTeen(path)) {
         return RouteNames.homeDashboard;
       }
       return null;

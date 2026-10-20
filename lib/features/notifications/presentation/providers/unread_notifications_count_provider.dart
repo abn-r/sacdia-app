@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../notifications/domain/repositories/notifications_repository.dart';
 import 'notifications_providers.dart';
 
@@ -31,7 +32,15 @@ class UnreadNotificationsCountNotifier extends Notifier<int> {
   }
 
   /// Consulta el backend y actualiza el estado con el conteo real.
+  ///
+  /// No hace nada para una cuenta restringida (sin fecha de nacimiento o de un
+  /// tipo desconocido): el servidor le niega el inbox con 403
+  /// `PRINCIPAL_SCOPE_DENIED` y solo se generaría ruido.
   Future<void> refresh() async {
+    if (ref.read(authNotifierProvider).valueOrNull?.isRestrictedAccount ??
+        false) {
+      return;
+    }
     final result = await _repository.getUnreadCount();
     result.fold(
       (_) {

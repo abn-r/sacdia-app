@@ -232,6 +232,7 @@
     "errors": {
       "sign_in_failed": "Erro ao entrar",
       "sign_up_failed": "Erro ao registrar usuário",
+      "session_load_failed": "Você entrou, mas não conseguimos carregar sua conta. Tente novamente.",
       "change_password_failed": "Erro ao alterar senha",
       "delete_account_failed": "Erro ao excluir conta",
       "sign_out_failed": "Erro ao sair",
@@ -5529,6 +5530,10 @@
       "no_activities": "Sem atividades neste período.",
       "privacy_note": "Este resumo não inclui saúde, mensagens nem anotações pessoais."
     }
+  },
+  "restricted_account": {
+    "title": "Conta indisponível",
+    "body": "Sua conta usa um recurso que esta versão do app ainda não reconhece. Por segurança, o acesso está limitado. Atualize o app ou entre novamente mais tarde."
   },
   "teen": {
     "pending": {

@@ -381,4 +381,9 @@ class RouteNames {
   // restringido (estado, código para el tutor y cuenta atrás). Ver
   // `supervised_route_policy.dart`.
   static const String teenPendingHome = '/teen/pending';
+
+  // Cuenta con un principal que la app no reconoce (servidor más nuevo): falla
+  // cerrado en una pantalla única con «Cerrar sesión». Ver
+  // `supervised_route_policy.dart`.
+  static const String restrictedAccount = '/account/restricted';
 }
