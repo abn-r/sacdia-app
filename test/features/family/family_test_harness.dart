@@ -13,6 +13,8 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/family/domain/entities/dependent.dart';
+import 'package:sacdia_app/features/family/domain/entities/dependent_progress_summary.dart';
+import 'package:sacdia_app/features/family/domain/entities/supervised_login.dart';
 import 'package:sacdia_app/features/family/domain/repositories/family_repository.dart';
 import 'package:sacdia_app/features/family/presentation/providers/family_providers.dart';
 import 'package:sacdia_app/features/legal/domain/entities/legal_document.dart';
@@ -82,6 +84,50 @@ class FakeFamilyRepository implements FamilyRepository {
       uploadedAt: DateTime.utc(2026, 10, 19, 12),
     ),
   );
+
+  Either<Failure, SupervisedLoginStatus> loginStatus = const Right(
+    SupervisedLoginStatus(eligible: true),
+  );
+  Either<Failure, EnabledSupervisedLogin> enabled = const Right(
+    EnabledSupervisedLogin(
+      supervisedLogin: SupervisedLoginInfo(
+        method: SupervisedLoginMethod.handle,
+        loginHandle: 'ana-7kq4m9',
+      ),
+      devicesRevoked: 0,
+    ),
+  );
+  Either<Failure, SupervisedLoginInfo> disabled = Right(
+    SupervisedLoginInfo(
+      method: SupervisedLoginMethod.handle,
+      loginHandle: 'ana-7kq4m9',
+      disabledAt: DateTime.utc(2026, 10, 19),
+      disabledReason: 'guardian',
+    ),
+  );
+  Either<Failure, SupervisedLoginInfo> reactivated = const Right(
+    SupervisedLoginInfo(
+      method: SupervisedLoginMethod.handle,
+      loginHandle: 'ana-7kq4m9',
+    ),
+  );
+  Either<Failure, PasswordResetResult> passwordReset =
+      const Right(PasswordResetResult(sessionsRevoked: 2));
+  Either<Failure, DependentProgressSummary> progress = const Right(
+    DependentProgressSummary(userId: 'ana-1', name: 'Ana', age: 14),
+  );
+
+  final enableCalls = <({
+    String dependentId,
+    SupervisedLoginMethod method,
+    String password,
+    String? email,
+  })>[];
+  final disableCalls = <String>[];
+  final reactivateCalls = <({String dependentId, String? password})>[];
+  final passwordCalls = <({String dependentId, String? password})>[];
+  final summaryCalls = <String>[];
+  int loginStatusCalls = 0;
 
   final createInputs = <CreateDependentInput>[];
   final redeemCalls = <({String code, String relationshipTypeId})>[];
@@ -156,6 +202,65 @@ class FakeFamilyRepository implements FamilyRepository {
   ) async {
     evidenceReads.add(dependentId);
     return evidenceAccess;
+  }
+
+  @override
+  Future<Either<Failure, SupervisedLoginStatus>> getSupervisedLogin(
+    String dependentId,
+  ) async {
+    loginStatusCalls++;
+    return loginStatus;
+  }
+
+  @override
+  Future<Either<Failure, EnabledSupervisedLogin>> enableSupervisedLogin({
+    required String dependentId,
+    required SupervisedLoginMethod method,
+    required String password,
+    String? email,
+  }) async {
+    enableCalls.add((
+      dependentId: dependentId,
+      method: method,
+      password: password,
+      email: email,
+    ));
+    return enabled;
+  }
+
+  @override
+  Future<Either<Failure, SupervisedLoginInfo>> disableSupervisedLogin({
+    required String dependentId,
+    String? reason,
+  }) async {
+    disableCalls.add(dependentId);
+    return disabled;
+  }
+
+  @override
+  Future<Either<Failure, SupervisedLoginInfo>> reactivateSupervisedLogin({
+    required String dependentId,
+    String? password,
+  }) async {
+    reactivateCalls.add((dependentId: dependentId, password: password));
+    return reactivated;
+  }
+
+  @override
+  Future<Either<Failure, PasswordResetResult>> resetSupervisedPassword({
+    required String dependentId,
+    String? password,
+  }) async {
+    passwordCalls.add((dependentId: dependentId, password: password));
+    return passwordReset;
+  }
+
+  @override
+  Future<Either<Failure, DependentProgressSummary>> getProgressSummary(
+    String dependentId,
+  ) async {
+    summaryCalls.add(dependentId);
+    return progress;
   }
 }
 

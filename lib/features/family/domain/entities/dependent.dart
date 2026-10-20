@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'supervised_login.dart';
+
 /// Estado del consentimiento de una tutoría que el cliente puede ver.
 ///
 /// El servidor nunca devuelve `revoked` en estos endpoints (una tutoría
@@ -22,11 +24,17 @@ enum DependentOutcome {
   clubCustody,
 
   /// Sin tutor ni club: se congela y se borra a los 90 días.
-  frozen;
+  frozen,
+
+  /// Menor CON cuenta propia (adolescente) que se queda sin tutor: no se
+  /// congela, vuelve al modo restringido y tiene 90 días para vincular a otro
+  /// tutor (FP3-37).
+  pendingGuardian;
 
   static DependentOutcome parse(Object? raw) => switch (raw) {
         'other_guardian' => otherGuardian,
         'club_custody' => clubCustody,
+        'pending_guardian' => pendingGuardian,
         _ => frozen,
       };
 }
@@ -99,6 +107,20 @@ class DependentClubMembership extends Equatable {
       [assignmentId, status, clubSectionId, clubName, clubTypeName];
 }
 
+/// Cómo entra el menor a la app (calculado por el servidor).
+enum AccessMode {
+  /// Sin cuenta: el tutor actúa por él (o, a futuro, un teléfono vinculado).
+  guardianManaged,
+
+  /// Con acceso propio (usuario o correo + contraseña): el tutor lo supervisa.
+  supervisedLogin;
+
+  /// Un valor ausente o desconocido es el modo más restrictivo del lado del
+  /// tutor: sin acceso propio (el tutor puede actuar).
+  static AccessMode parse(Object? raw) =>
+      raw == 'supervised_login' ? supervisedLogin : guardianManaged;
+}
+
 /// Menor sin cuenta, tal como lo ve su tutor (`DependentSummary`).
 class DependentSummary extends Equatable {
   final String userId;
@@ -116,6 +138,18 @@ class DependentSummary extends Equatable {
   final DependentGuardianship guardianship;
   final DependentClubMembership? clubMembership;
 
+  /// `guardian_managed` o `supervised_login` (FP3-33).
+  final AccessMode accessMode;
+
+  /// Acceso propio del menor (nulo si nunca se activó).
+  final SupervisedLoginInfo? supervisedLogin;
+
+  /// Teléfonos vinculados (hasta la fase 3b es siempre 0).
+  final int linkedDevicesCount;
+
+  /// Ya cumplió la edad mínima de acceso propio y todavía no lo tiene.
+  final bool ageMilestoneReached;
+
   const DependentSummary({
     required this.userId,
     required this.guardianship,
@@ -128,7 +162,16 @@ class DependentSummary extends Equatable {
     this.postRegisterComplete = false,
     this.frozen = false,
     this.clubMembership,
+    this.accessMode = AccessMode.guardianManaged,
+    this.supervisedLogin,
+    this.linkedDevicesCount = 0,
+    this.ageMilestoneReached = false,
   });
+
+  /// El menor entra con su propio acceso activo (el tutor ya no actúa por él).
+  bool get hasActiveOwnLogin =>
+      accessMode == AccessMode.supervisedLogin &&
+      !(supervisedLogin?.isDisabled ?? false);
 
   /// Nombre de pila para el banner y el selector. Nunca vacío.
   String get firstName {
@@ -161,6 +204,10 @@ class DependentSummary extends Equatable {
         frozen,
         guardianship,
         clubMembership,
+        accessMode,
+        supervisedLogin,
+        linkedDevicesCount,
+        ageMilestoneReached,
       ];
 }
 

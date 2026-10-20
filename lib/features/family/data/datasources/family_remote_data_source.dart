@@ -9,6 +9,8 @@ import '../../../../core/network/interceptors/auth_interceptor.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../post_registration/data/models/relationship_type_model.dart';
 import '../../domain/entities/dependent.dart';
+import '../../domain/entities/dependent_progress_summary.dart';
+import '../../domain/entities/supervised_login.dart';
 import '../../domain/repositories/family_repository.dart';
 import '../models/dependent_models.dart';
 
@@ -47,6 +49,32 @@ abstract class FamilyRemoteDataSource {
   });
 
   Future<ConsentEvidenceAccess> getConsentEvidence(String dependentId);
+
+  Future<SupervisedLoginStatus> getSupervisedLogin(String dependentId);
+
+  Future<EnabledSupervisedLogin> enableSupervisedLogin({
+    required String dependentId,
+    required SupervisedLoginMethod method,
+    required String password,
+    String? email,
+  });
+
+  Future<SupervisedLoginInfo> disableSupervisedLogin({
+    required String dependentId,
+    String? reason,
+  });
+
+  Future<SupervisedLoginInfo> reactivateSupervisedLogin({
+    required String dependentId,
+    String? password,
+  });
+
+  Future<PasswordResetResult> resetSupervisedPassword({
+    required String dependentId,
+    String? password,
+  });
+
+  Future<DependentProgressSummary> getProgressSummary(String dependentId);
 }
 
 class FamilyRemoteDataSourceImpl implements FamilyRemoteDataSource {
@@ -243,5 +271,95 @@ class FamilyRemoteDataSourceImpl implements FamilyRemoteDataSource {
           options: _options,
         ),
         ConsentEvidenceJson.access,
+      );
+
+  String _login(String dependentId) =>
+      '$_root/me/dependents/$dependentId/supervised-login';
+
+  @override
+  Future<SupervisedLoginStatus> getSupervisedLogin(String dependentId) => _run(
+        'getSupervisedLogin',
+        () => _dio.get(_login(dependentId), options: _options),
+        FamilyJson.supervisedLoginStatus,
+      );
+
+  @override
+  Future<EnabledSupervisedLogin> enableSupervisedLogin({
+    required String dependentId,
+    required SupervisedLoginMethod method,
+    required String password,
+    String? email,
+  }) =>
+      _run(
+        // El cuerpo lleva la contraseña: ni se registra ni se audita aquí.
+        'enableSupervisedLogin',
+        () => _dio.post(
+          _login(dependentId),
+          data: {
+            'method': method.wire,
+            if (method == SupervisedLoginMethod.email) 'email': email,
+            'password': password,
+          },
+          options: _options,
+        ),
+        FamilyJson.enabledLogin,
+      );
+
+  @override
+  Future<SupervisedLoginInfo> disableSupervisedLogin({
+    required String dependentId,
+    String? reason,
+  }) =>
+      _run(
+        'disableSupervisedLogin',
+        () => _dio.post(
+          '${_login(dependentId)}/disable',
+          data: {
+            if (reason != null && reason.trim().isNotEmpty) 'reason': reason,
+          },
+          options: _options,
+        ),
+        FamilyJson.loginInfoFromEnvelope,
+      );
+
+  @override
+  Future<SupervisedLoginInfo> reactivateSupervisedLogin({
+    required String dependentId,
+    String? password,
+  }) =>
+      _run(
+        'reactivateSupervisedLogin',
+        () => _dio.post(
+          '${_login(dependentId)}/reactivate',
+          data: {if (password != null) 'password': password},
+          options: _options,
+        ),
+        FamilyJson.loginInfoFromEnvelope,
+      );
+
+  @override
+  Future<PasswordResetResult> resetSupervisedPassword({
+    required String dependentId,
+    String? password,
+  }) =>
+      _run(
+        'resetSupervisedPassword',
+        () => _dio.post(
+          '${_login(dependentId)}/password',
+          data: {if (password != null) 'password': password},
+          options: _options,
+        ),
+        FamilyJson.passwordReset,
+      );
+
+  @override
+  Future<DependentProgressSummary> getProgressSummary(String dependentId) =>
+      _run(
+        'getProgressSummary',
+        () => _dio.get(
+          '$_root/me/dependents/$dependentId/summary',
+          options: _options,
+        ),
+        FamilyJson.progressSummary,
       );
 }

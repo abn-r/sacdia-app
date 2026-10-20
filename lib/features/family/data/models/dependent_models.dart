@@ -1,4 +1,6 @@
 import '../../domain/entities/dependent.dart';
+import '../../domain/entities/dependent_progress_summary.dart';
+import '../../domain/entities/supervised_login.dart';
 
 /// Parseo tolerante de los contratos de `/guardianships` (`data` ya sin el
 /// envelope `{status, data}`). Un campo ausente nunca debe tumbar la pantalla.
@@ -26,6 +28,7 @@ abstract final class FamilyJson {
     final guardianship = _map(json['guardianship']) ?? const {};
     final relationship = _map(guardianship['relationship_type']);
     final membership = _map(json['club_membership']);
+    final login = _map(json['supervised_login']);
 
     return DependentSummary(
       userId: json['user_id'].toString(),
@@ -37,6 +40,10 @@ abstract final class FamilyJson {
       userImage: _string(json['user_image']),
       postRegisterComplete: json['post_register_complete'] == true,
       frozen: json['frozen'] == true,
+      accessMode: AccessMode.parse(json['access_mode']),
+      supervisedLogin: login == null ? null : supervisedLoginInfo(login),
+      linkedDevicesCount: _int(json['linked_devices_count']) ?? 0,
+      ageMilestoneReached: json['age_milestone_reached'] == true,
       guardianship: DependentGuardianship(
         guardianshipId: guardianship['guardianship_id'].toString(),
         isPrimary: guardianship['is_primary'] == true,
@@ -61,6 +68,99 @@ abstract final class FamilyJson {
               clubName: _string(membership['club_name']),
               clubTypeName: _string(membership['club_type_name']),
             ),
+    );
+  }
+
+  /// Bloque `supervised_login` (de `DependentSummary` o de las respuestas de
+  /// acceso). Solo las llaves del contrato: el resto se ignora.
+  static SupervisedLoginInfo supervisedLoginInfo(Map<String, dynamic> json) {
+    return SupervisedLoginInfo(
+      method: SupervisedLoginMethod.parse(json['method']),
+      loginHandle: _string(json['login_handle']),
+      email: _string(json['email']),
+      origin: _string(json['origin']),
+      enabledAt: _date(json['enabled_at']),
+      disabledAt: _date(json['disabled_at']),
+      disabledReason: _string(json['disabled_reason']),
+      passwordSetBy: PasswordSetBy.parse(json['password_set_by']),
+    );
+  }
+
+  /// `GET .../supervised-login`.
+  static SupervisedLoginStatus supervisedLoginStatus(
+    Map<String, dynamic> json,
+  ) {
+    final login = _map(json['supervised_login']);
+    return SupervisedLoginStatus(
+      // Sin un `true` explícito no hay elegibilidad (lado seguro).
+      eligible: json['eligible'] == true,
+      ineligibleReason: IneligibleReason.parse(json['ineligible_reason']),
+      supervisedLogin: login == null ? null : supervisedLoginInfo(login),
+    );
+  }
+
+  /// `201` de activar el acceso.
+  static EnabledSupervisedLogin enabledLogin(Map<String, dynamic> json) {
+    final login = _map(json['supervised_login']);
+    if (login == null) {
+      throw const FormatException('supervised_login missing');
+    }
+    return EnabledSupervisedLogin(
+      supervisedLogin: supervisedLoginInfo(login),
+      devicesRevoked: _int(json['devices_revoked']) ?? 0,
+    );
+  }
+
+  /// `200` de desactivar / reactivar: devuelve el acceso resultante.
+  static SupervisedLoginInfo loginInfoFromEnvelope(Map<String, dynamic> json) {
+    final login = _map(json['supervised_login']);
+    if (login == null) {
+      throw const FormatException('supervised_login missing');
+    }
+    return supervisedLoginInfo(login);
+  }
+
+  static PasswordResetResult passwordReset(Map<String, dynamic> json) {
+    return PasswordResetResult(
+      sessionsRevoked: _int(json['sessions_revoked']) ?? 0,
+    );
+  }
+
+  /// `GET .../summary`. Allowlist estricta: SOLO se leen progreso de clases,
+  /// conteo de especialidades y asistencia. Si el servidor mandara algo más
+  /// (salud, evidencias, notas...) nunca llega a la pantalla.
+  static DependentProgressSummary progressSummary(Map<String, dynamic> json) {
+    final dependent = _map(json['dependent']) ?? const {};
+    final classes = json['classes'];
+    final honors = _map(json['honors']) ?? const {};
+    final attendance = _map(json['attendance']) ?? const {};
+    return DependentProgressSummary(
+      userId: dependent['user_id']?.toString() ?? '',
+      name: _string(dependent['name']),
+      age: _int(dependent['age']),
+      supervisedLogin: dependent['access_mode'] == 'supervised_login',
+      classes: classes is List
+          ? classes.whereType<Map>().map((raw) {
+              final c = Map<String, dynamic>.from(raw);
+              return ClassProgressSummary(
+                classId: _int(c['class_id']),
+                name: _string(c['name']) ?? '—',
+                progressPercent:
+                    (_int(c['progress_percent']) ?? 0).clamp(0, 100),
+                sectionsCompleted: _int(c['sections_completed']) ?? 0,
+                sectionsTotal: _int(c['sections_total']) ?? 0,
+              );
+            }).toList(growable: false)
+          : const [],
+      honorsCompleted: _int(honors['completed']) ?? 0,
+      honorsInProgress: _int(honors['in_progress']) ?? 0,
+      attendance: AttendanceSummary(
+        from: _date(attendance['from']),
+        to: _date(attendance['to']),
+        activitiesTotal: _int(attendance['activities_total']) ?? 0,
+        activitiesAttended: _int(attendance['activities_attended']) ?? 0,
+      ),
+      generatedAt: _date(json['generated_at']),
     );
   }
 

@@ -4,6 +4,8 @@ import '../../../../core/consent/consent_evidence.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/dependent.dart';
+import '../../domain/entities/dependent_progress_summary.dart';
+import '../../domain/entities/supervised_login.dart';
 import '../../domain/repositories/family_repository.dart';
 import '../datasources/family_remote_data_source.dart';
 
@@ -101,4 +103,68 @@ class FamilyRepositoryImpl implements FamilyRepository {
     String dependentId,
   ) =>
       _guard(() => remoteDataSource.getConsentEvidence(dependentId));
+
+  @override
+  Future<Either<Failure, SupervisedLoginStatus>> getSupervisedLogin(
+    String dependentId,
+  ) =>
+      _guard(() => remoteDataSource.getSupervisedLogin(dependentId));
+
+  @override
+  Future<Either<Failure, EnabledSupervisedLogin>> enableSupervisedLogin({
+    required String dependentId,
+    required SupervisedLoginMethod method,
+    required String password,
+    String? email,
+  }) =>
+      _guard(
+        () => remoteDataSource.enableSupervisedLogin(
+          dependentId: dependentId,
+          method: method,
+          password: password,
+          email: email,
+        ),
+      );
+
+  @override
+  Future<Either<Failure, SupervisedLoginInfo>> disableSupervisedLogin({
+    required String dependentId,
+    String? reason,
+  }) =>
+      _guard(
+        () => remoteDataSource.disableSupervisedLogin(
+          dependentId: dependentId,
+          reason: reason,
+        ),
+      );
+
+  @override
+  Future<Either<Failure, SupervisedLoginInfo>> reactivateSupervisedLogin({
+    required String dependentId,
+    String? password,
+  }) =>
+      _guard(
+        () => remoteDataSource.reactivateSupervisedLogin(
+          dependentId: dependentId,
+          password: password,
+        ),
+      );
+
+  @override
+  Future<Either<Failure, PasswordResetResult>> resetSupervisedPassword({
+    required String dependentId,
+    String? password,
+  }) =>
+      _guard(
+        () => remoteDataSource.resetSupervisedPassword(
+          dependentId: dependentId,
+          password: password,
+        ),
+      );
+
+  @override
+  Future<Either<Failure, DependentProgressSummary>> getProgressSummary(
+    String dependentId,
+  ) =>
+      _guard(() => remoteDataSource.getProgressSummary(dependentId));
 }

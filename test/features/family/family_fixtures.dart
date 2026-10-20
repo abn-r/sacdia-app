@@ -1,4 +1,5 @@
 import 'package:sacdia_app/features/family/domain/entities/dependent.dart';
+import 'package:sacdia_app/features/family/domain/entities/supervised_login.dart';
 
 /// JSON de `DependentSummary` tal como lo devuelve el backend.
 Map<String, Object?> dependentJson({
@@ -10,6 +11,10 @@ Map<String, Object?> dependentJson({
   bool evidence = false,
   bool frozen = false,
   Map<String, Object?>? club,
+  String accessMode = 'guardian_managed',
+  Map<String, Object?>? supervisedLogin,
+  bool ageMilestoneReached = false,
+  int linkedDevices = 0,
 }) =>
     {
       'user_id': id,
@@ -19,7 +24,10 @@ Map<String, Object?> dependentJson({
       'birthday': '2017-04-02',
       'age': age,
       'user_image': null,
-      'access_mode': 'guardian_managed',
+      'access_mode': accessMode,
+      'supervised_login': supervisedLogin,
+      'linked_devices_count': linkedDevices,
+      'age_milestone_reached': ageMilestoneReached,
       'post_register_complete': false,
       'frozen': frozen,
       'guardianship': {
@@ -90,6 +98,9 @@ DependentSummary summary({
   int age = 9,
   String consent = 'pending',
   bool frozen = false,
+  AccessMode accessMode = AccessMode.guardianManaged,
+  SupervisedLoginInfo? supervisedLogin,
+  bool ageMilestoneReached = false,
 }) =>
     DependentSummary(
       userId: id,
@@ -97,6 +108,9 @@ DependentSummary summary({
       paternalLastName: 'Pérez',
       age: age,
       frozen: frozen,
+      accessMode: accessMode,
+      supervisedLogin: supervisedLogin,
+      ageMilestoneReached: ageMilestoneReached,
       guardianship: DependentGuardianship(
         guardianshipId: 'gs-$id',
         isPrimary: true,
