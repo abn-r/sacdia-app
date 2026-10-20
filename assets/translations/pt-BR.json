@@ -491,7 +491,7 @@
     "auth_account_frozen": "Esta conta foi removida porque não tinha um responsável vinculado.",
     "auth_supervised_access_revoked": "Seu responsável desativou ou alterou seu acesso.",
     "principal_scope_denied": "Esta ação não está disponível para sua conta.",
-    "user_birthday_change_requires_guardian": "Seu responsável precisa alterar sua data de nascimento.",
+    "user_birthday_change_requires_guardian": "Somente seu responsável pode corrigir sua data de nascimento.",
     "supervised_login_not_eligible": "Este perfil ainda não pode ter acesso próprio.",
     "supervised_login_age_out_of_range": "O acesso próprio é apenas para menores, a partir da idade mínima e até antes da maioridade.",
     "supervised_login_already_enabled": "Este perfil já tem acesso próprio.",
@@ -1155,7 +1155,8 @@
       "birth": {
         "label": "Data de nascimento",
         "date_picker_help": "Selecione sua data de nascimento",
-        "select_date": "Selecionar data"
+        "select_date": "Selecionar data",
+        "read_only_hint": "Somente seu responsável pode corrigir sua data de nascimento."
       },
       "baptism": {
         "toggle_label": "Você foi batizado?",

@@ -491,7 +491,7 @@
     "auth_account_frozen": "Ce compte a été supprimé car aucun tuteur n'y était lié.",
     "auth_supervised_access_revoked": "Votre tuteur a désactivé ou modifié votre accès.",
     "principal_scope_denied": "Cette action n'est pas disponible pour votre compte.",
-    "user_birthday_change_requires_guardian": "Votre tuteur doit modifier votre date de naissance.",
+    "user_birthday_change_requires_guardian": "Seul votre tuteur peut corriger votre date de naissance.",
     "supervised_login_not_eligible": "Ce profil ne peut pas encore avoir son propre accès.",
     "supervised_login_age_out_of_range": "L'accès personnel est réservé aux mineurs, à partir de l'âge minimum et jusqu'à la majorité.",
     "supervised_login_already_enabled": "Ce profil a déjà son propre accès.",
@@ -1155,7 +1155,8 @@
       "birth": {
         "label": "Date de naissance",
         "date_picker_help": "Sélectionnez votre date de naissance",
-        "select_date": "Sélectionner une date"
+        "select_date": "Sélectionner une date",
+        "read_only_hint": "Seul votre tuteur peut corriger votre date de naissance."
       },
       "baptism": {
         "toggle_label": "Êtes-vous baptisé ?",

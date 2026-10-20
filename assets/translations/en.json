@@ -491,7 +491,7 @@
     "auth_account_frozen": "This account was removed because it had no linked guardian.",
     "auth_supervised_access_revoked": "Your guardian turned off or changed your access.",
     "principal_scope_denied": "This action is not available for your account.",
-    "user_birthday_change_requires_guardian": "Your guardian has to change your birthday.",
+    "user_birthday_change_requires_guardian": "Only your guardian can correct your birthday.",
     "supervised_login_not_eligible": "This profile cannot have its own login yet.",
     "supervised_login_age_out_of_range": "Own login is only for minors from the minimum age up to before the age of majority.",
     "supervised_login_already_enabled": "This profile already has its own login.",
@@ -1155,7 +1155,8 @@
       "birth": {
         "label": "Date of birth",
         "date_picker_help": "Select your date of birth",
-        "select_date": "Select date"
+        "select_date": "Select date",
+        "read_only_hint": "Only your guardian can correct your birthday."
       },
       "baptism": {
         "toggle_label": "Are you baptized?",
