@@ -126,16 +126,32 @@ class _TeenPendingHomeViewState extends ConsumerState<TeenPendingHomeView> {
 
   @override
   Widget build(BuildContext context) {
+    // Un código canjeado o vencido deja de existir también en memoria: si no, un
+    // código nuevo del servidor lo «resucitaría» con el texto viejo.
+    ref.listen(supervisionStatusProvider, (_, next) {
+      if (next.isLoading || next.hasError) return;
+      if (next.valueOrNull?.openLinkCode == null) {
+        ref.read(teenLinkCodeProvider.notifier).clear();
+      }
+    });
     final c = context.sac;
     final textTheme = Theme.of(context).textTheme;
     final hPad = Responsive.horizontalPadding(context);
     final user = ref.watch(authNotifierProvider).valueOrNull;
     final supervisionAsync = ref.watch(supervisionStatusProvider);
     final codeState = ref.watch(teenLinkCodeProvider);
-    final issued = codeState.valueOrNull;
     final generating = codeState.isLoading;
 
     final fromServer = supervisionAsync.valueOrNull;
+    // El servidor manda: el texto del código que se generó en esta pantalla solo
+    // se muestra mientras `open_link_code` siga abierto. Si ya se canjeó (o
+    // venció) la tarjeta desaparece, aunque la respuesta del POST siga en
+    // memoria. Mientras se relee o si la lectura falla no se sabe: se conserva.
+    final serverSaysNoOpenCode = fromServer != null &&
+        !supervisionAsync.isLoading &&
+        !supervisionAsync.hasError &&
+        fromServer.openLinkCode == null;
+    final issued = serverSaysNoOpenCode ? null : codeState.valueOrNull;
     final fromMe = user?.principal?.supervision;
     final now = widget.clock();
     // `/auth/me` ya trae el reloj y los tutores; el endpoint propio añade los
@@ -228,7 +244,9 @@ class _TeenPendingHomeViewState extends ConsumerState<TeenPendingHomeView> {
                     ],
                     const SizedBox(height: 16),
                     SacButton.primary(
-                      text: issued == null
+                      text: issued == null &&
+                              fromServer?.openLinkCode == null &&
+                              guardians.isEmpty
                           ? 'teen.pending.code_generate'.tr()
                           : 'teen.pending.code_regenerate'.tr(),
                       icon: HugeIcons.strokeRoundedKey01,

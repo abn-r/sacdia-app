@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
@@ -41,6 +42,18 @@ class _FakeTeenRepository implements TeenRepository {
   @override
   Future<Either<Failure, TeenLinkCode>> issueLinkCode() async {
     issueCalls++;
+    // Como el servidor: al generar un código queda abierto hasta que se canjee.
+    issued.fold((_) {}, (code) {
+      supervision = supervision.map(
+        (s) => TeenSupervision(
+          status: s.status,
+          pendingSince: s.pendingSince,
+          guardians: s.guardians,
+          openLinkCode: OpenTeenLinkCode(expiresAt: code.expiresAt),
+          summaryVisibleToGuardians: s.summaryVisibleToGuardians,
+        ),
+      );
+    });
     return issued;
   }
 
@@ -154,6 +167,15 @@ void main() {
     await tester.pump();
   }
 
+  /// Lo mismo que hace el pull-to-refresh: vuelve a leer la supervisión.
+  Future<void> refresh(WidgetTester tester) async {
+    ProviderScope.containerOf(tester.element(find.byType(TeenPendingHomeView)))
+        .invalidate(supervisionStatusProvider);
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+  }
+
   testWidgets('shows the restricted state and the days left', (tester) async {
     await pump(tester, _teen());
 
@@ -239,6 +261,69 @@ void main() {
       expect(shared, hasLength(1));
       expect(shared.single, contains('7KQ4-M9TX'));
       expect(shared.single, contains('Vence el'));
+    });
+
+    testWidgets(
+        'a consumed code disappears after a refresh (open_link_code: null) '
+        'and the teen can still generate a new one', (tester) async {
+      await pump(tester, _teen());
+      await tapText(tester, 'Generar código');
+      expect(find.text('7KQ4-M9TX'), findsOneWidget);
+      expect(find.textContaining('Vence el'), findsOneWidget);
+
+      // Un adulto canjeó el código: el servidor lo cierra y aparece el tutor
+      // pendiente.
+      repo.supervision = const Right(
+        TeenSupervision(
+          status: SupervisionStatus.pendingGuardian,
+          guardians: [
+            TeenGuardian(
+              guardianshipId: 'gs-1',
+              displayName: 'María Pérez',
+            ),
+          ],
+          openLinkCode: null,
+        ),
+      );
+      await refresh(tester);
+
+      expect(find.text('7KQ4-M9TX'), findsNothing);
+      expect(find.textContaining('Vence el'), findsNothing);
+      expect(find.byKey(const ValueKey('teen_pending_code')), findsNothing);
+      expect(find.text('María Pérez'), findsOneWidget);
+      // Generar otro código sigue disponible.
+      expect(find.text('Generar un código nuevo'), findsOneWidget);
+
+      await tapText(tester, 'Generar un código nuevo');
+      expect(repo.issueCalls, 2);
+      expect(find.text('7KQ4-M9TX'), findsOneWidget);
+    });
+
+    testWidgets(
+        'a consumed code is not resurrected by a later open code from the '
+        'server', (tester) async {
+      await pump(tester, _teen());
+      await tapText(tester, 'Generar código');
+
+      repo.supervision = const Right(
+        TeenSupervision(status: SupervisionStatus.pendingGuardian),
+      );
+      await refresh(tester);
+      expect(find.text('7KQ4-M9TX'), findsNothing);
+
+      // Otro dispositivo generó un código: aquí solo se sabe que existe.
+      repo.supervision = Right(
+        TeenSupervision(
+          status: SupervisionStatus.pendingGuardian,
+          openLinkCode: OpenTeenLinkCode(
+            expiresAt: DateTime.utc(2026, 10, 23, 9),
+          ),
+        ),
+      );
+      await refresh(tester);
+
+      expect(find.text('7KQ4-M9TX'), findsNothing);
+      expect(find.textContaining('Ya generaste un código'), findsOneWidget);
     });
 
     testWidgets('a code that already exists server-side is not re-shown',

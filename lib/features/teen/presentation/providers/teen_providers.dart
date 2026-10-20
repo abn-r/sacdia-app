@@ -64,6 +64,12 @@ class TeenLinkCodeNotifier extends AsyncNotifier<TeenLinkCode?> {
   @override
   Future<TeenLinkCode?> build() async => null;
 
+  /// Descarta el código en claro (el servidor ya no lo tiene abierto: se canjeó
+  /// o venció).
+  void clear() {
+    if (state.valueOrNull != null) state = const AsyncData<TeenLinkCode?>(null);
+  }
+
   /// Genera un código nuevo. Devuelve `true` si lo consiguió; si no, el error
   /// queda en el estado.
   Future<bool> issue() async {
