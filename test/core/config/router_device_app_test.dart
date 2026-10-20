@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/auth/session_mode.dart';
+import 'package:sacdia_app/core/config/device_pair_link.dart';
 import 'package:sacdia_app/core/config/pending_navigation.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/config/router.dart';
@@ -326,12 +327,15 @@ void main() {
       app.router.go(RouteNames.deviceHome);
       await _settle(tester);
       final before = _sentinelBuilds;
+      // Un enlace sin canjear tampoco sobrevive a la sesión.
+      app.container.read(pairingLinkProvider.notifier).state = 'LINK';
 
       // El tutor desvincula: la sesión termina y el router purga el registro.
       app.auth.emit(null);
       await _settle(tester);
 
       app.container.read(_sentinel);
+      expect(app.container.read(pairingLinkProvider), isNull);
       expect(_sentinelBuilds, greaterThan(before),
           reason: 'the device profile cache did not survive the logout');
       // Ya sin sesión, el login de cuentas no hereda nada del niño.

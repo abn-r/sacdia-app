@@ -30,6 +30,9 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>io.sacdia.app</string>
+				<!-- QR de vinculacion de un telefono de menor: sacdia://pair?c=...
+				     La app nunca registra la URL (FP3-51). -->
+				<string>sacdia</string>
 				<!-- REVERSED_CLIENT_ID del client ID iOS de Google Cloud. Debe
 				     coincidir con --dart-define=GOOGLE_IOS_CLIENT_ID (el client ID
 				     se entrega en runtime; este scheme recibe el callback). -->
