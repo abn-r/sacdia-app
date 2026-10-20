@@ -5658,7 +5658,10 @@
     "requirement": {
       "title": "Evidências",
       "not_found": "Não encontramos este requisito.",
-      "offline_readonly": "Sem conexão: você só pode ver suas evidências. Conecte-se para enviar."
+      "offline_readonly": "Sem conexão: você só pode ver suas evidências. Conecte-se para enviar.",
+      "errors": {
+        "action_failed": "Não foi possível concluir a ação. Tente novamente."
+      }
     },
     "agenda": {
       "title": "Agenda",

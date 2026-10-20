@@ -5658,7 +5658,10 @@
     "requirement": {
       "title": "Preuves",
       "not_found": "Nous n'avons pas trouvé cette exigence.",
-      "offline_readonly": "Pas de connexion : tu peux seulement voir tes preuves. Connecte-toi pour envoyer."
+      "offline_readonly": "Pas de connexion : tu peux seulement voir tes preuves. Connecte-toi pour envoyer.",
+      "errors": {
+        "action_failed": "Nous n'avons pas pu terminer l'action. Réessaie."
+      }
     },
     "agenda": {
       "title": "Agenda",

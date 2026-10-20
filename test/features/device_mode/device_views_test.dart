@@ -40,6 +40,14 @@ class _FakeQr extends QrMemberTokenNotifier {
   }
 }
 
+class _FakeRequirementNotifier extends RequirementNotifier {
+  @override
+  RequirementOperationState build(ClassProgressQuery arg) =>
+      const RequirementOperationState();
+
+  void emit(RequirementOperationState next) => state = next;
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(initLocalization);
@@ -338,6 +346,59 @@ void main() {
       final manager = tester
           .widget<EvidenceStagingManager>(find.byType(EvidenceStagingManager));
       expect(manager.canModify, isTrue, reason: 'observed can be corrected');
+    });
+
+    group('action errors are translated by code, never raw', () {
+      Future<void> fail(
+        WidgetTester tester,
+        String? code,
+      ) async {
+        await pump(
+          tester,
+          const DeviceRequirementView(
+              classId: 3, requirementId: 10, enrollmentId: 99),
+          overrides: [
+            ...base(),
+            requirementNotifierProvider
+                .overrideWith(_FakeRequirementNotifier.new),
+          ],
+        );
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DeviceRequirementView)),
+        );
+        const query = ClassProgressQuery(classId: 3, enrollmentId: 99);
+        (container.read(requirementNotifierProvider(query).notifier)
+                as _FakeRequirementNotifier)
+            .emit(RequirementOperationState(
+          errorMessage: 'RAW SERVER TEXT',
+          errorCode: code,
+        ));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      testWidgets('PRINCIPAL_SCOPE_DENIED gets a friendly message',
+          (tester) async {
+        await fail(tester, 'PRINCIPAL_SCOPE_DENIED');
+        expect(find.text('Esta acción no está disponible para tu cuenta.'),
+            findsOneWidget);
+        expect(find.text('RAW SERVER TEXT'), findsNothing);
+      });
+
+      testWidgets('a known file error uses its own message', (tester) async {
+        await fail(tester, 'FILE_TOO_LARGE');
+        expect(find.text('RAW SERVER TEXT'), findsNothing);
+        expect(find.byType(SnackBar), findsOneWidget);
+      });
+
+      testWidgets('an unknown or missing code is generic', (tester) async {
+        await fail(tester, null);
+        expect(
+          find.text('No pudimos completar la acción. Inténtalo de nuevo.'),
+          findsOneWidget,
+        );
+        expect(find.text('RAW SERVER TEXT'), findsNothing);
+      });
     });
 
     testWidgets('an unknown requirement says so', (tester) async {

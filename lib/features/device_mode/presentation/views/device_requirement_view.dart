@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/user_error_message.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart';
@@ -80,10 +82,17 @@ class _DeviceRequirementViewState extends ConsumerState<DeviceRequirementView> {
     final expired = async.valueOrNull?.isExpired ?? false;
 
     ref.listen(requirementNotifierProvider(_query), (_, next) {
-      final message = next.errorMessage;
-      if (message != null && message.isNotEmpty && mounted) {
-        SacSnackBar.show(context, message, isError: true);
-      }
+      if (next.errorMessage == null || !mounted) return;
+      // Nunca el texto crudo del servidor: se traduce por `code` y, sin uno
+      // conocido, un mensaje genérico (también para 403 PRINCIPAL_SCOPE_DENIED).
+      SacSnackBar.show(
+        context,
+        userErrorMessage(
+          ServerFailure(message: '', errorCode: next.errorCode),
+          fallbackKey: 'device.requirement.errors.action_failed',
+        ),
+        isError: true,
+      );
     });
 
     return PopScope(

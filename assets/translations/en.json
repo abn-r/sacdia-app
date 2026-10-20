@@ -5660,7 +5660,10 @@
     "requirement": {
       "title": "Evidence",
       "not_found": "We could not find this requirement.",
-      "offline_readonly": "No connection: you can only view your evidence. Connect to upload or send."
+      "offline_readonly": "No connection: you can only view your evidence. Connect to upload or send.",
+      "errors": {
+        "action_failed": "We could not complete the action. Please try again."
+      }
     },
     "agenda": {
       "title": "Agenda",
