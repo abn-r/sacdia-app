@@ -5539,6 +5539,33 @@
       "attendance_period": "Du {from} au {to}",
       "no_activities": "Aucune activité sur cette période.",
       "privacy_note": "Ce résumé n'inclut ni les informations de santé, ni les notes personnelles."
+    },
+    "devices": {
+      "title": "Téléphones associés",
+      "intro": "Associe un téléphone pour que {name} voie ses classes et activités et envoie des preuves sans créer de compte. Tu reçois un avis à chaque envoi.",
+      "no_new": "On ne peut plus associer de nouveaux téléphones pour {name}. Ceux qui existent fonctionnent jusqu'à ce que tu les dissocies.",
+      "empty": "Aucun téléphone associé pour l'instant.",
+      "history": "Dissociés récemment",
+      "paired_by": "Associé par {name}",
+      "last_seen": "Dernière activité : {when}",
+      "never_seen": "Pas encore d'activité",
+      "revoked_on": "Dissocié le {date}",
+      "limit_hint": "Il y a déjà {max} téléphones associés, le maximum. Dissocie-en un pour en ajouter un autre.",
+      "pair": "Associer un téléphone",
+      "revoke": "Dissocier",
+      "revoke_title": "Dissocier {label} ?",
+      "revoke_body": "Le téléphone cessera de fonctionner immédiatement et {name} devra l'associer à nouveau avec un nouveau code. Les autres tuteurs recevront un avis.",
+      "revoke_confirm": "Dissocier",
+      "revoked_toast": "Téléphone dissocié",
+      "pair_title": "Associer un téléphone",
+      "pair_instructions": "Sur le téléphone de l'enfant, ouvre SACDIA, touche « Associer le téléphone d'un enfant » et scanne ce code.",
+      "qr_alt": "Code QR pour associer un téléphone",
+      "expires_in": "Expire dans {time}",
+      "expired": "Le code a expiré",
+      "regenerate": "Générer un autre code",
+      "pair_warning": "Utilise-le seulement sur le téléphone de l'enfant et ne le partage pas : il ne sert qu'une fois. Tu recevras un avis à l'association et tu pourras dissocier quand tu veux.",
+      "paired_title": "Téléphone associé",
+      "paired_body": "C'est fait : le téléphone peut maintenant utiliser SACDIA. Tu le verras dans la liste des téléphones associés."
     }
   },
   "restricted_account": {

@@ -5541,6 +5541,33 @@
       "attendance_period": "Del {from} al {to}",
       "no_activities": "Sin actividades en este periodo.",
       "privacy_note": "Este resumen no incluye información de salud ni notas personales."
+    },
+    "devices": {
+      "title": "Teléfonos vinculados",
+      "intro": "Vincula un teléfono para que {name} vea sus clases y actividades y suba evidencias sin crear una cuenta. Tú recibes un aviso por cada evidencia.",
+      "no_new": "Ya no se pueden vincular teléfonos nuevos para {name}. Los que existen siguen funcionando hasta que los desvincules.",
+      "empty": "Todavía no hay teléfonos vinculados.",
+      "history": "Desvinculados recientemente",
+      "paired_by": "Vinculado por {name}",
+      "last_seen": "Última actividad: {when}",
+      "never_seen": "Sin actividad todavía",
+      "revoked_on": "Desvinculado el {date}",
+      "limit_hint": "Ya hay {max} teléfonos vinculados, el máximo. Desvincula uno para agregar otro.",
+      "pair": "Vincular un teléfono",
+      "revoke": "Desvincular",
+      "revoke_title": "¿Desvincular {label}?",
+      "revoke_body": "El teléfono dejará de funcionar de inmediato y {name} tendrá que vincularlo de nuevo con un código nuevo. Los otros tutores recibirán un aviso.",
+      "revoke_confirm": "Desvincular",
+      "revoked_toast": "Teléfono desvinculado",
+      "pair_title": "Vincular un teléfono",
+      "pair_instructions": "En el teléfono del niño abre SACDIA, toca «Vincular este teléfono de un niño» y escanea este código.",
+      "qr_alt": "Código QR para vincular un teléfono",
+      "expires_in": "Vence en {time}",
+      "expired": "El código venció",
+      "regenerate": "Generar otro código",
+      "pair_warning": "Úsalo solo en el teléfono del niño y no lo compartas: sirve una sola vez. Recibirás un aviso cuando se vincule y podrás desvincularlo cuando quieras.",
+      "paired_title": "Teléfono vinculado",
+      "paired_body": "Listo: el teléfono ya puede usar SACDIA. Lo verás en la lista de teléfonos vinculados."
     }
   },
   "restricted_account": {

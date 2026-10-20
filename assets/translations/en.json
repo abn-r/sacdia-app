@@ -5541,6 +5541,33 @@
       "attendance_period": "From {from} to {to}",
       "no_activities": "No activities in this period.",
       "privacy_note": "This summary does not include health data or personal notes."
+    },
+    "devices": {
+      "title": "Linked phones",
+      "intro": "Link a phone so {name} can see their classes and activities and upload evidence without creating an account. You get a notice for each upload.",
+      "no_new": "No new phones can be linked for {name} anymore. The existing ones keep working until you unlink them.",
+      "empty": "No phones linked yet.",
+      "history": "Recently unlinked",
+      "paired_by": "Linked by {name}",
+      "last_seen": "Last active: {when}",
+      "never_seen": "No activity yet",
+      "revoked_on": "Unlinked on {date}",
+      "limit_hint": "There are already {max} linked phones, the maximum. Unlink one to add another.",
+      "pair": "Link a phone",
+      "revoke": "Unlink",
+      "revoke_title": "Unlink {label}?",
+      "revoke_body": "The phone will stop working right away and {name} will have to link it again with a new code. The other guardians will get a notice.",
+      "revoke_confirm": "Unlink",
+      "revoked_toast": "Phone unlinked",
+      "pair_title": "Link a phone",
+      "pair_instructions": "On the child's phone open SACDIA, tap \"Link a child's phone\" and scan this code.",
+      "qr_alt": "QR code to link a phone",
+      "expires_in": "Expires in {time}",
+      "expired": "The code expired",
+      "regenerate": "Generate another code",
+      "pair_warning": "Use it only on the child's phone and do not share it: it works once. You will get a notice when it links and you can unlink it any time.",
+      "paired_title": "Phone linked",
+      "paired_body": "Done: the phone can now use SACDIA. You will see it in the list of linked phones."
     }
   },
   "restricted_account": {

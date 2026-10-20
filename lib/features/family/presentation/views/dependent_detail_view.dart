@@ -36,6 +36,7 @@ import '../widgets/access_section.dart';
 import '../widgets/consent_badge.dart';
 import '../widgets/dependent_avatar.dart';
 import '../widgets/dependent_card.dart';
+import '../widgets/devices_section.dart';
 import '../widgets/new_password_dialog.dart';
 import '../widgets/profile_switcher_sheet.dart';
 
@@ -393,6 +394,14 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
       ),
     );
 
+    // Vincular teléfonos de menores: la apaga el servidor con otra bandera.
+    // Desconocida cuenta como apagada.
+    final linkedDeviceEnabled = ref.watch(
+      authNotifierProvider.select(
+        (v) => v.valueOrNull?.familyFeatures?.linkedDevice ?? false,
+      ),
+    );
+
     return Scaffold(
       backgroundColor: c.background,
       appBar: SacTopBar(
@@ -417,6 +426,10 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
           onViewForm: _viewForm,
           onViewAs: () => switchToDependent(context, ref, data.summary),
           teenLoginEnabled: teenLoginEnabled,
+          linkedDeviceEnabled: linkedDeviceEnabled,
+          onPairDevice: () => context.push(
+            RouteNames.familyPairDevicePath(widget.dependentId),
+          ),
           onEnableAccess: _openWizard,
           onDisableAccess: () => _disableAccess(data.summary),
           onReactivateAccess: () => _reactivateAccess(data.summary),
@@ -443,6 +456,8 @@ class _Body extends StatelessWidget {
     required this.onViewForm,
     required this.onViewAs,
     required this.teenLoginEnabled,
+    required this.linkedDeviceEnabled,
+    required this.onPairDevice,
     required this.onEnableAccess,
     required this.onDisableAccess,
     required this.onReactivateAccess,
@@ -463,6 +478,8 @@ class _Body extends StatelessWidget {
   final VoidCallback onViewForm;
   final VoidCallback onViewAs;
   final bool teenLoginEnabled;
+  final bool linkedDeviceEnabled;
+  final VoidCallback onPairDevice;
   final VoidCallback onEnableAccess;
   final VoidCallback onDisableAccess;
   final VoidCallback onReactivateAccess;
@@ -582,6 +599,13 @@ class _Body extends StatelessWidget {
             onOpenSummary: onOpenSummary,
             onCopyHandle: onCopyHandle,
           ),
+        ],
+        if (shouldShowDevicesSection(
+          summary,
+          featureEnabled: linkedDeviceEnabled,
+        )) ...[
+          const SizedBox(height: 20),
+          DevicesSection(summary: summary, onPair: onPairDevice),
         ],
         const SizedBox(height: 20),
         _SectionLabel(label: 'family.detail.guardians'.tr()),

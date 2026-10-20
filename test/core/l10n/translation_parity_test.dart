@@ -263,16 +263,19 @@ void main() {
     }
   });
 
-  test('every device.* key used in lib exists in all locales', () {
+  test(
+      'every device.* and family.devices.* key used in lib exists in all '
+      'locales', () {
     final used = <String>{};
-    final pattern = RegExp(r"'(device\.[a-z_]+(?:\.[a-z_]+)*)'");
+    final pattern =
+        RegExp(r"'((?:family\.)?device(?:s)?\.[a-z_]+(?:\.[a-z_]+)*)'");
     for (final entity in Directory('lib').listSync(recursive: true)) {
       if (entity is! File || !entity.path.endsWith('.dart')) continue;
       for (final m in pattern.allMatches(entity.readAsStringSync())) {
         used.add(m.group(1)!);
       }
     }
-    expect(used.length, greaterThan(40));
+    expect(used.length, greaterThan(80));
     for (final key in used) {
       for (final locale in _locales) {
         expect(

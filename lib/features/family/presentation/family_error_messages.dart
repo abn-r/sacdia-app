@@ -40,6 +40,14 @@ const Set<String> familyErrorCodes = {
   'GUARDIANSHIP_CONSENT_NOT_VERIFIED',
   'FAMILY_FEATURE_DISABLED',
   'PRINCIPAL_SCOPE_DENIED',
+  // Fase 3b: teléfonos vinculados de un menor. El motivo exacto de
+  // DEVICE_PAIRING_NOT_ELIGIBLE viaja en `details`, que no se lee jamás.
+  'DEVICE_PAIRING_NOT_ELIGIBLE',
+  'DEVICE_LIMIT_REACHED',
+  'LINKED_DEVICE_LIMIT_REACHED',
+  'LINKED_DEVICE_AGE_OUT_OF_RANGE',
+  'DEVICE_NOT_FOUND',
+  'LINKED_DEVICE_NOT_FOUND',
 };
 
 /// Llave `errors.*` de un código, o `null` si no es uno de Mi familia.

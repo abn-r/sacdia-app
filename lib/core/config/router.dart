@@ -124,6 +124,7 @@ import '../../features/family/presentation/views/dependent_detail_view.dart';
 import '../../features/family/presentation/views/enable_teen_login_wizard.dart';
 import '../../features/family/presentation/views/family_view.dart';
 import '../../features/family/presentation/views/guardian_summary_view.dart';
+import '../../features/family/presentation/views/pairing_qr_view.dart';
 import '../../features/family/presentation/views/redeem_link_code_view.dart';
 import '../../features/auth/presentation/views/welcome_carousel_view.dart';
 import '../../features/legal/presentation/views/legal_acceptance_view.dart';
@@ -1662,6 +1663,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           state,
           EnableTeenLoginWizard(
               dependentId: state.pathParameters['dependentId']!),
+        ),
+      ),
+      GoRoute(
+        path: RouteNames.familyPairDevice,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          PairingQrView(dependentId: state.pathParameters['dependentId']!),
         ),
       ),
       GoRoute(

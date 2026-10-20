@@ -144,7 +144,7 @@ class DependentSummary extends Equatable {
   /// Acceso propio del menor (nulo si nunca se activó).
   final SupervisedLoginInfo? supervisedLogin;
 
-  /// Teléfonos vinculados (hasta la fase 3b es siempre 0).
+  /// Teléfonos vinculados activos (fase 3b).
   final int linkedDevicesCount;
 
   /// Ya cumplió la edad mínima de acceso propio y todavía no lo tiene.
@@ -172,6 +172,17 @@ class DependentSummary extends Equatable {
   bool get hasActiveOwnLogin =>
       accessMode == AccessMode.supervisedLogin &&
       !(supervisedLogin?.isDisabled ?? false);
+
+  /// Se puede ofrecer vincular un teléfono NUEVO a este menor (FP3-41): el
+  /// tutor tiene el consentimiento verificado, el menor no está congelado, no
+  /// tiene acceso propio y todavía no llegó a la edad de acceso propio (un
+  /// teléfono se vincula solo por debajo de ella, ruling #11591). El servidor
+  /// vuelve a validar todo; esto solo evita ofrecer un botón que daría 422.
+  bool get canPairDevice =>
+      guardianship.isVerified &&
+      !frozen &&
+      accessMode == AccessMode.guardianManaged &&
+      !ageMilestoneReached;
 
   /// Nombre de pila para el banner y el selector. Nunca vacío.
   String get firstName {
