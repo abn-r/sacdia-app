@@ -97,6 +97,25 @@ void main() {
     expect(expiredCalls, 1);
   });
 
+  test(
+      'the legacy GUARD_JWT_UNAUTHORIZED of a disabled teen still ends in a '
+      'clean logout (refresh fails too)', () async {
+    // El backend anterior responde este código genérico al token de un menor
+    // cuyo acceso se desactivó; el refresh también devuelve 401.
+    await setUpWith(401, body('GUARD_JWT_UNAUTHORIZED'));
+
+    final error = await getMe();
+
+    expect(error.response?.statusCode, 401);
+    // Petición original + intento de /auth/refresh, sin reintento.
+    expect(requests, 2);
+    expect(revokedCalls, 0);
+    expect(expiredCalls, 1);
+    const storage = FlutterSecureStorage();
+    expect(await storage.read(key: AppConstants.tokenKey), isNull);
+    expect(await storage.read(key: AppConstants.refreshTokenKey), isNull);
+  });
+
   test('another 401 code does not trigger the revoked callback', () async {
     await setUpWith(401, body('AUTH_TOKEN_EXPIRED'), withRefreshToken: false);
 
