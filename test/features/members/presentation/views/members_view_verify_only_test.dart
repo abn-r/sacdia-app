@@ -270,6 +270,33 @@ void main() {
       expect(repo.approveCalls, isEmpty);
     });
 
+    testWidgets(
+        'a form that is no longer pending (404) leaves the list with a notice',
+        (tester) async {
+      repo.requests = [minorRequest(evidence: true)];
+      repo.verifyResults = [
+        const Left(
+          ServerFailure(code: 404, message: 'x', errorCode: 'MR_NOT_FOUND'),
+        ),
+      ];
+      await openRequests(tester, perms);
+      expect(find.text('Ana Pérez'), findsOneWidget);
+
+      await tester.tap(find.bySemanticsLabel('Verificar consentimiento'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(Checkbox));
+      await tester.pumpAndSettle();
+      // Someone else verified it meanwhile: the server no longer lists it.
+      repo.requests = [];
+      await tester.tap(find.text('Confirmar verificación'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ConsentVerificationView), findsNothing);
+      expect(find.text('Ana Pérez'), findsNothing);
+      expect(find.text('Esta ficha ya no está pendiente de verificación.'),
+          findsOneWidget);
+    });
+
     testWidgets('tapping the row opens the verification, not the profile',
         (tester) async {
       repo.requests = [minorRequest(evidence: true)];

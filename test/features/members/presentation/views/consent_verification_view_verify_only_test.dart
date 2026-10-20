@@ -10,6 +10,8 @@ import 'package:sacdia_app/features/members/presentation/views/consent_verificat
 
 import '../../members_test_support.dart';
 
+const _gone = 'Esta ficha ya no está pendiente de verificación.';
+
 const _uploadNote =
     'La ficha la sube el tutor o el director del club. Aquí solo puedes '
     'revisarla y verificarla.';
@@ -135,6 +137,57 @@ void main() {
       ]);
       expect(repo.uploadCalls, isEmpty);
       expect(popped, isFalse);
+    });
+  });
+  group('404 MR_NOT_FOUND means the form is no longer pending', () {
+    const notFound = ServerFailure(
+      message: 'x',
+      code: 404,
+      errorCode: 'MR_NOT_FOUND',
+    );
+
+    testWidgets(
+        'verifying a form that left the list says so and closes with false',
+        (tester) async {
+      repo.verifyResults = [const Left(notFound)];
+      await open(tester, canApprove: false);
+
+      await tester.tap(find.byType(Checkbox));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Confirmar verificación'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ConsentVerificationView), findsNothing);
+      expect(popped, isFalse);
+      expect(find.text(_gone), findsOneWidget);
+    });
+
+    testWidgets('opening a form that is gone says so and closes with false',
+        (tester) async {
+      repo.evidenceResult = const Left(notFound);
+      await open(tester, canApprove: false);
+
+      expect(find.byType(ConsentVerificationView), findsNothing);
+      expect(popped, isFalse);
+      expect(find.text(_gone), findsOneWidget);
+    });
+
+    testWidgets('an approver keeps the inline error and stays on the screen',
+        (tester) async {
+      repo.verifyResults = [const Left(notFound)];
+      await open(tester, canApprove: true);
+
+      await tester.tap(find.byType(Checkbox));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Confirmar y aprobar'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ConsentVerificationView), findsOneWidget);
+      expect(
+        find.text('La solicitud ya no existe o no pertenece a esta sección.'),
+        findsOneWidget,
+      );
+      expect(find.text(_gone), findsNothing);
     });
   });
 }

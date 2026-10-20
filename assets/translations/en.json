@@ -2701,6 +2701,7 @@
       "verify_only_hint": "You can verify the form, but approving the request is up to a director.",
       "verify_only_confirm": "Confirm verification",
       "verify_only_upload_note": "The guardian or the club director uploads the form. Here you can only review and verify it.",
+      "no_longer_pending": "This form is no longer pending verification.",
       "verified_toast": "Consent verified. A director still has to approve {name}'s request."
     },
     "create_minor": {

@@ -2700,6 +2700,7 @@
       "verify_only_hint": "Você pode verificar a ficha, mas aprovar a solicitação cabe a um diretor.",
       "verify_only_confirm": "Confirmar verificação",
       "verify_only_upload_note": "A ficha é enviada pelo responsável ou pelo diretor do clube. Aqui você só pode revisá-la e verificá-la.",
+      "no_longer_pending": "Esta ficha não está mais pendente de verificação.",
       "verified_toast": "Consentimento verificado. Um diretor ainda precisa aprovar a solicitação de {name}."
     },
     "create_minor": {

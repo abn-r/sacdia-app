@@ -47,6 +47,11 @@ bool isConsentEvidenceUnavailable(Object? error) =>
 bool isConsentEvidenceNotFound(Object? error) =>
     error is Failure && error.errorCode == 'GUARDIANSHIP_EVIDENCE_NOT_FOUND';
 
+/// La solicitud ya no existe para quien consulta (404 `MR_NOT_FOUND`): a quien
+/// solo verifica, el servidor le responde así fuera de su lista filtrada.
+bool isRequestNotFound(Object? error) =>
+    error is Failure && error.errorCode == 'MR_NOT_FOUND';
+
 /// Verificar con el mismo usuario que subió la ficha o recibió la custodia
 /// (cuatro ojos, 403).
 bool isCustodianSelfVerify(Object? error) =>

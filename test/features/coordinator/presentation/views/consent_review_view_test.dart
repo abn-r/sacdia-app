@@ -128,6 +128,31 @@ void main() {
     expect(find.text('Bruno Pérez'), findsOneWidget);
   });
 
+  testWidgets('a form that is no longer pending (404) leaves the queue',
+      (tester) async {
+    repo.requestsBySection[1] = Right([_minor(1, 'Ana')]);
+    repo.requestsBySection[2] = Right([_minor(2, 'Bruno')]);
+    repo.verifyResults = [
+      const Left(
+        ServerFailure(code: 404, message: 'x', errorCode: 'MR_NOT_FOUND'),
+      ),
+    ];
+    await open(tester);
+
+    await tester.tap(find.text('Ana Pérez'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(Checkbox));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Confirmar verificación'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ConsentVerificationView), findsNothing);
+    expect(find.text('Ana Pérez'), findsNothing);
+    expect(find.text('Bruno Pérez'), findsOneWidget);
+    expect(find.text('Esta ficha ya no está pendiente de verificación.'),
+        findsOneWidget);
+  });
+
   testWidgets('backing out of the verification keeps the form in the list',
       (tester) async {
     repo.requestsBySection[1] = Right([_minor(1, 'Ana')]);
