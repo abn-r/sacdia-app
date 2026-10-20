@@ -311,5 +311,80 @@ void main() {
 
       expect(find.text('Solo soy tutor de menores'), findsNothing);
     });
+
+    group('consent form upload while acting (FP3-27)', () {
+      const actingUser = UserEntity(
+        id: 'ana-1',
+        name: 'Ana',
+        postRegisterComplete: false,
+        actingFor: ActingForInfo(
+          actorUserId: 'guardian-1',
+          dependentUserId: 'ana-1',
+          consentStatus: 'pending',
+          scopes: ['self:read', 'registration:write', 'consent:evidence'],
+        ),
+      );
+
+      Future<void> pumpActing(
+        WidgetTester tester, {
+        required bool isClubTransfer,
+        UserEntity user = actingUser,
+      }) async {
+        final session = ActingForSession()
+          ..enter(const ActingDependent(userId: 'ana-1', firstName: 'Ana'));
+        await pump(
+          tester,
+          auth: _RecordingAuth(user),
+          ds: _FakeClubDataSource(),
+          session: session,
+          child: Scaffold(
+            body: ClubSelectionStepView(isClubTransfer: isClubTransfer),
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      const card = ValueKey('acting_consent_form_card');
+
+      testWidgets('step 3 offers the form while acting with the scope',
+          (tester) async {
+        await pumpActing(tester, isClubTransfer: false);
+        await tester.scrollUntilVisible(
+          find.byKey(card),
+          300,
+          scrollable: find.byType(Scrollable).first,
+        );
+
+        expect(find.byKey(card), findsOneWidget);
+      });
+
+      testWidgets('not for a club transfer', (tester) async {
+        await pumpActing(tester, isClubTransfer: true);
+        expect(find.byKey(card), findsNothing);
+      });
+
+      testWidgets('not without the server scope', (tester) async {
+        await pumpActing(
+          tester,
+          isClubTransfer: false,
+          user: const UserEntity(
+            id: 'ana-1',
+            postRegisterComplete: false,
+            actingFor: ActingForInfo(
+              actorUserId: 'guardian-1',
+              dependentUserId: 'ana-1',
+              consentStatus: 'pending',
+              scopes: ['self:read'],
+            ),
+          ),
+        );
+        expect(find.byKey(card), findsNothing);
+      });
+
+      testWidgets('not when the guardian is not acting', (tester) async {
+        await pumpStep(tester, isClubTransfer: false);
+        expect(find.byKey(card), findsNothing);
+      });
+    });
   });
 }

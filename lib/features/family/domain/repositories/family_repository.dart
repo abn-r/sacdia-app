@@ -71,6 +71,16 @@ abstract class FamilyRepository {
     required ConsentEvidenceLocalFile file,
   });
 
+  /// Sube la ficha firmada ACTUANDO por el menor (paso 3 del post-registro),
+  /// con `X-Acting-For`. Reemplaza el rodeo de la Fase 2 (subir desde el perfil
+  /// propio del tutor). El tutor sigue sin poder verificar: eso lo hace el
+  /// director.
+  Future<Either<Failure, ConsentEvidenceReceipt>>
+      uploadConsentEvidenceWhileActing({
+    required String dependentUserId,
+    required ConsentEvidenceLocalFile file,
+  });
+
   /// `GET .../dependents/:id/supervised-login`: elegibilidad y estado del acceso
   /// propio. Solo un tutor verificado (403/404 en otro caso).
   Future<Either<Failure, SupervisedLoginStatus>> getSupervisedLogin(

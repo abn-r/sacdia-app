@@ -105,6 +105,19 @@ class FamilyRepositoryImpl implements FamilyRepository {
       _guard(() => remoteDataSource.getConsentEvidence(dependentId));
 
   @override
+  Future<Either<Failure, ConsentEvidenceReceipt>>
+      uploadConsentEvidenceWhileActing({
+    required String dependentUserId,
+    required ConsentEvidenceLocalFile file,
+  }) =>
+          _guard(
+            () => remoteDataSource.uploadConsentEvidenceWhileActing(
+              dependentUserId: dependentUserId,
+              file: file,
+            ),
+          );
+
+  @override
   Future<Either<Failure, SupervisedLoginStatus>> getSupervisedLogin(
     String dependentId,
   ) =>

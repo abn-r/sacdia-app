@@ -70,6 +70,10 @@ final uploadGuardianConsentEvidenceUseCaseProvider =
     Provider<UploadGuardianConsentEvidence>(
   (ref) => UploadGuardianConsentEvidence(ref.read(familyRepositoryProvider)),
 );
+final uploadActingConsentEvidenceUseCaseProvider =
+    Provider<UploadActingConsentEvidence>(
+  (ref) => UploadActingConsentEvidence(ref.read(familyRepositoryProvider)),
+);
 final getGuardianConsentEvidenceUseCaseProvider =
     Provider<GetGuardianConsentEvidence>(
   (ref) => GetGuardianConsentEvidence(ref.read(familyRepositoryProvider)),
@@ -215,6 +219,33 @@ class FamilyActions {
     if (stale) {
       _ref.invalidate(dependentDetailProvider(dependentId));
       _ref.invalidate(dependentsProvider);
+    }
+    return result;
+  }
+
+  /// Sube la ficha ACTUANDO por el menor (paso 3 del post-registro).
+  ///
+  /// A diferencia de [uploadConsentEvidence] esta llamada SÍ lleva
+  /// `X-Acting-For`: el servidor resuelve la tutoría desde el principal. Si el
+  /// director verificó mientras tanto (409 ya verificada) se vuelve a pedir
+  /// `/auth/me` para que el estado de consentimiento se actualice.
+  Future<Either<Failure, ConsentEvidenceReceipt>>
+      uploadConsentEvidenceWhileActing(
+    String dependentUserId,
+    ConsentEvidenceLocalFile file,
+  ) async {
+    final result = await _ref.read(uploadActingConsentEvidenceUseCaseProvider)(
+      UploadActingConsentEvidenceParams(
+        dependentUserId: dependentUserId,
+        file: file,
+      ),
+    );
+    if (result.fold(isConsentAlreadyVerified, (_) => false)) {
+      unawaited(
+        _ref
+            .read(authNotifierProvider.notifier)
+            .refreshCurrentUser(keepCurrentOnFailure: true),
+      );
     }
     return result;
   }

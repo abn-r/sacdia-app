@@ -50,6 +50,14 @@ abstract class FamilyRemoteDataSource {
 
   Future<ConsentEvidenceAccess> getConsentEvidence(String dependentId);
 
+  /// Sube la ficha ACTUANDO por el menor (paso 3 del post-registro). Lleva
+  /// `X-Acting-For`; el servidor deduce la tutoría del principal, nunca del
+  /// cuerpo.
+  Future<ConsentEvidenceReceipt> uploadConsentEvidenceWhileActing({
+    required String dependentUserId,
+    required ConsentEvidenceLocalFile file,
+  });
+
   Future<SupervisedLoginStatus> getSupervisedLogin(String dependentId);
 
   Future<EnabledSupervisedLogin> enableSupervisedLogin({
@@ -271,6 +279,28 @@ class FamilyRemoteDataSourceImpl implements FamilyRemoteDataSource {
           options: _options,
         ),
         ConsentEvidenceJson.access,
+      );
+
+  @override
+  Future<ConsentEvidenceReceipt> uploadConsentEvidenceWhileActing({
+    required String dependentUserId,
+    required ConsentEvidenceLocalFile file,
+  }) =>
+      _run(
+        'uploadConsentEvidenceWhileActing',
+        () async => _dio.post(
+          // `/users/:userId/post-registration/...`: el interceptor añade
+          // `X-Acting-For` (esta ruta NO está exenta, a propósito).
+          '$_baseUrl${ApiEndpoints.users}/$dependentUserId'
+          '/post-registration/step-3/consent-evidence',
+          data: await file.toFormData(),
+          options: Options(
+            headers: const {'Content-Type': 'multipart/form-data'},
+            sendTimeout: const Duration(minutes: 2),
+            receiveTimeout: const Duration(minutes: 2),
+          ),
+        ),
+        ConsentEvidenceJson.receipt,
       );
 
   String _login(String dependentId) =>

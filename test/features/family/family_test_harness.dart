@@ -117,6 +117,9 @@ class FakeFamilyRepository implements FamilyRepository {
     DependentProgressSummary(userId: 'ana-1', name: 'Ana', age: 14),
   );
 
+  Either<Failure, ConsentEvidenceReceipt>? actingEvidenceUploaded;
+  final actingEvidenceUploads = <({String dependentUserId, String fileName})>[];
+
   final enableCalls = <({
     String dependentId,
     SupervisedLoginMethod method,
@@ -202,6 +205,17 @@ class FakeFamilyRepository implements FamilyRepository {
   ) async {
     evidenceReads.add(dependentId);
     return evidenceAccess;
+  }
+
+  @override
+  Future<Either<Failure, ConsentEvidenceReceipt>>
+      uploadConsentEvidenceWhileActing({
+    required String dependentUserId,
+    required ConsentEvidenceLocalFile file,
+  }) async {
+    actingEvidenceUploads
+        .add((dependentUserId: dependentUserId, fileName: file.name));
+    return actingEvidenceUploaded ?? evidenceUploaded;
   }
 
   @override
