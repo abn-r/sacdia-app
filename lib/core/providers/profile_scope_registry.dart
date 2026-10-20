@@ -161,6 +161,19 @@ const Map<String, String> nonAutoDisposeAllowlist = {
       'aviso de una sola vez del login (acceso de menor revocado): se escribe '
           'al cerrar la sesión y lo limpia el siguiente intento; sin datos de '
           'usuario',
+  'sessionModeProvider':
+      'plomería de la sesión: AuthNotifier la escribe (arranque, emparejado, '
+          '/auth/me, cierre) y el cliente HTTP la lee para no mandar nunca '
+          'X-Acting-For desde un teléfono vinculado; se reinicia al cerrar '
+          'sesión y no guarda datos de usuario',
+  'pairingLinkProvider':
+      'token de un enlace sacdia://pair recibido mientras la app arrancaba; '
+          'solo en memoria, lo consume y borra PairDeviceView y '
+          'clearUserStateOnLogout lo descarta; es de antes de la sesión',
+  'deviceNoticeProvider':
+      'aviso de una sola vez de la pantalla de vinculación (teléfono '
+          'desvinculado); se escribe JUSTO al cerrar la sesión del dispositivo '
+          'y debe sobrevivir a la purga de perfil; sin datos de usuario',
   'lastLoginIdentifierProvider':
       'correo o usuario tecleado en el último intento de login, solo en '
           'memoria y nunca la contraseña; es de antes de la sesión, se vacía '

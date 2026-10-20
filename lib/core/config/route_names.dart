@@ -386,4 +386,41 @@ class RouteNames {
   // cerrado en una pantalla única con «Cerrar sesión». Ver
   // `supervised_route_policy.dart`.
   static const String restrictedAccount = '/account/restricted';
+
+  // Fase 3b: vinculación de un teléfono de menor por QR (lado del tutor).
+  static const String familyPairDevice = '/family/:dependentId/pair-device';
+
+  static String familyPairDevicePath(String dependentId) =>
+      '/family/$dependentId/pair-device';
+
+  // Fase 3b: cáscara del teléfono vinculado de un menor de 13. Ver
+  // `device_route_policy.dart`. Nada de esto existe para una cuenta.
+  static const String devicePair = '/device/pair';
+  static const String deviceHome = '/device/home';
+  static const String deviceClasses = '/device/classes';
+  static const String deviceClassDetail = '/device/classes/:classId';
+  static const String deviceRequirement =
+      '/device/classes/:classId/requirements/:requirementId';
+  static const String deviceAgenda = '/device/agenda';
+  static const String deviceActivityDetail = '/device/agenda/:activityId';
+  static const String deviceInbox = '/device/inbox';
+  static const String deviceLegalBlock = '/device/legal';
+  static const String deviceRegistrationPending =
+      '/device/registration-pending';
+
+  static String deviceClassDetailPath(int classId, {int? enrollmentId}) =>
+      enrollmentId == null
+          ? '/device/classes/$classId'
+          : '/device/classes/$classId?enrollmentId=$enrollmentId';
+  static String deviceRequirementPath(
+    int classId,
+    int requirementId, {
+    int? enrollmentId,
+  }) =>
+      enrollmentId == null
+          ? '/device/classes/$classId/requirements/$requirementId'
+          : '/device/classes/$classId/requirements/$requirementId'
+              '?enrollmentId=$enrollmentId';
+  static String deviceActivityDetailPath(int activityId) =>
+      '/device/agenda/$activityId';
 }

@@ -71,6 +71,27 @@ class UserEntity extends Equatable {
     this.serverMode,
   });
 
+  /// Copia con otro [principal]. Todo lo demás se conserva.
+  UserEntity withPrincipal(PrincipalInfo? newPrincipal) => UserEntity(
+        id: id,
+        email: email,
+        name: name,
+        avatar: avatar,
+        birthday: birthday,
+        metadata: metadata,
+        authorization: authorization,
+        lastSignInAt: lastSignInAt,
+        createdAt: createdAt,
+        postRegisterComplete: postRegisterComplete,
+        legalAcceptancePending: legalAcceptancePending,
+        actingFor: actingFor,
+        family: family,
+        principal: newPrincipal,
+        familyFeatures: familyFeatures,
+        analyticsAnonymous: analyticsAnonymous,
+        serverMode: serverMode,
+      );
+
   /// Modo de la cuenta para enrutar (FP3-31). Falla cerrado:
   ///
   /// - Un principal de tipo desconocido es [AccountMode.restricted] aunque el
@@ -85,6 +106,9 @@ class UserEntity extends Equatable {
     final p = principal;
     if (p != null) {
       if (p.kind == PrincipalKind.unknown) return AccountMode.restricted;
+      // El principal manda sobre cualquier `mode` declarado: un teléfono
+      // vinculado nunca se trata como cuenta.
+      if (p.kind == PrincipalKind.linkedDevice) return AccountMode.linkedDevice;
       if (p.kind == PrincipalKind.ageUnknownUser) {
         return AccountMode.profileIncomplete;
       }
@@ -98,6 +122,9 @@ class UserEntity extends Equatable {
     }
     return AccountMode.adult;
   }
+
+  /// Sesión de un teléfono vinculado de un menor (Fase 3b).
+  bool get isLinkedDevice => mode == AccountMode.linkedDevice;
 
   /// Cuenta de un menor bajo supervisión (pendiente o con tutor).
   bool get isSupervisedTeen =>

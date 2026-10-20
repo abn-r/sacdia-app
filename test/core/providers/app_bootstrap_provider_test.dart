@@ -112,6 +112,24 @@ void main() {
       }
     });
 
+    test('a linked device without roles or permissions is still Ready',
+        () async {
+      for (final authorization in const [
+        AuthorizationSnapshot(effectivePermissions: []),
+        null,
+      ]) {
+        final container = await _makeContainer(UserEntity(
+          id: 'kid-1',
+          principal: const PrincipalInfo(kind: PrincipalKind.linkedDevice),
+          authorization: authorization,
+        ));
+        addTearDown(container.dispose);
+
+        final state = await container.read(appBootstrapProvider.future);
+        expect(state, isA<AppBootstrapReady>(), reason: '$authorization');
+      }
+    });
+
     test('returns AppBootstrapUnauthenticated when user is null', () async {
       final container = await _makeContainer(null);
       addTearDown(container.dispose);

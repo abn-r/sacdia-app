@@ -499,7 +499,16 @@
     "supervised_login_email_unavailable": "That email is not available. Try another one.",
     "supervised_login_password_invalid": "The password does not meet the security requirements.",
     "guardianship_consent_not_verified": "Consent is not verified yet. A director has to confirm it first.",
-    "family_feature_disabled": "This feature is not available right now."
+    "family_feature_disabled": "This feature is not available right now.",
+    "device_pairing_token_invalid": "This code is not valid or has expired. Ask your guardian to generate a new one.",
+    "device_pairing_not_eligible": "This profile cannot be linked to a phone right now. Check that consent is verified, that it has no login of its own and that the child is under 13.",
+    "device_limit_reached": "This child already has the maximum number of linked phones. Unlink one to add another.",
+    "linked_device_limit_reached": "This child already has the maximum number of linked phones. Unlink one to add another.",
+    "linked_device_age_out_of_range": "Only phones of children under 13 can be linked. Older children can have their own login.",
+    "device_not_found": "We could not find that linked phone.",
+    "linked_device_not_found": "We could not find that linked phone.",
+    "auth_device_revoked": "Your guardian unlinked this phone.",
+    "auth_device_session_expired": "This phone link has expired. Ask your guardian to link it again."
   },
   "honors": {
     "errors": {

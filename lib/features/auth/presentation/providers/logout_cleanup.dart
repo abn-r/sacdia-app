@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/analytics/posthog_analytics.dart';
+import '../../../../core/config/device_pair_link.dart';
 import '../../../../core/config/pending_navigation.dart';
 import '../../../../core/auth/acting_for_session.dart';
 import '../../../../core/providers/app_bootstrap_provider.dart';
@@ -60,6 +61,8 @@ void clearUserStateOnLogout(Ref ref) {
   // Un push que esperaba la sesión de la persona anterior no se entrega a la
   // siguiente.
   ref.read(pendingNavigationProvider.notifier).state = null;
+  // Un enlace de vinculación sin canjear tampoco sobrevive a la sesión.
+  ref.read(pairingLinkProvider.notifier).state = null;
   unawaited(
     ref.read(sharedPreferencesProvider).setBool(kActingDirtyPrefsKey, false),
   );

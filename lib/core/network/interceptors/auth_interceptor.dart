@@ -48,6 +48,7 @@ class AuthInterceptor extends QueuedInterceptor {
     '/auth/register',
     '/auth/refresh',
     '/auth/oauth',
+    '/auth/device/pair',
     '/auth/password/reset-request',
     '/auth/reset-password',
   ];
@@ -64,6 +65,25 @@ class AuthInterceptor extends QueuedInterceptor {
 
   /// `code` del 401 de un token de menor cuyo acceso se cortó (FP3-17).
   static const supervisedAccessRevokedCode = 'AUTH_SUPERVISED_ACCESS_REVOKED';
+
+  /// Se llama cuando un teléfono vinculado pierde su sesión: 401
+  /// `AUTH_DEVICE_REVOKED`, `AUTH_DEVICE_SESSION_EXPIRED` o un refresh muerto
+  /// MIENTRAS esta instalación es un dispositivo (FP3-52). El argumento es
+  /// `true` si la causa es el tope absoluto de la vinculación. Los tokens ya se
+  /// borraron; si es nulo se usa [onAuthExpired].
+  final void Function(bool sessionExpired)? onDeviceUnpaired;
+
+  /// ¿Esta instalación es un teléfono vinculado? Un dispositivo NUNCA manda
+  /// `X-Acting-For` y, si su refresh muere, vuelve a la pantalla de
+  /// vinculación en lugar de al login.
+  final bool Function()? isDeviceSession;
+
+  /// `code` del 401 de un teléfono desvinculado (revocado, no elegible,
+  /// función apagada).
+  static const deviceRevokedCode = 'AUTH_DEVICE_REVOKED';
+
+  /// `code` del 401 de un teléfono cuya vinculación llegó al tope absoluto.
+  static const deviceSessionExpiredCode = 'AUTH_DEVICE_SESSION_EXPIRED';
 
   /// Perfil por el que se actúa (tutor -> dependiente). Nulo en tests o
   /// instancias de Dio que nunca actúan por otro usuario.
@@ -105,6 +125,8 @@ class AuthInterceptor extends QueuedInterceptor {
     Dio? dio,
     this.onAuthExpired,
     this.onSupervisedAccessRevoked,
+    this.onDeviceUnpaired,
+    this.isDeviceSession,
     ActingForSession? actingForSession,
 
     /// Solo para tests: adaptador HTTP de las llamadas de refresh y de
@@ -162,7 +184,7 @@ class AuthInterceptor extends QueuedInterceptor {
     final acting = _actingForSession;
     if (acting != null) {
       final dependentId = acting.dependentUserId;
-      if (dependentId != null && _shouldSendActingFor(options)) {
+      if (dependentId != null && !_isDevice && _shouldSendActingFor(options)) {
         options.headers[actingForHeader] = dependentId;
       } else {
         // Un reintento o una petición reutilizada no debe arrastrar el
@@ -177,6 +199,8 @@ class AuthInterceptor extends QueuedInterceptor {
 
     handler.next(options);
   }
+
+  bool get _isDevice => isDeviceSession?.call() ?? false;
 
   /// `false` para las rutas exentas y para peticiones marcadas con
   /// `extra['skipActingFor'] == true`.
@@ -253,6 +277,20 @@ class AuthInterceptor extends QueuedInterceptor {
       return handler.next(err);
     }
 
+    // Teléfono vinculado desvinculado por su tutor (o no elegible): la sesión
+    // se borró en el servidor, un refresh solo fallaría. Vuelve a la pantalla
+    // de vinculación con un aviso. Solo se lee el `code`, nunca `details`.
+    final deviceCode = _deviceSessionCode(err);
+    if (deviceCode != null) {
+      AppLogger.w('Dispositivo desvinculado, cerrando sesión', tag: _tag);
+      await _clearTokens();
+      _endSession(
+        device: true,
+        sessionExpired: deviceCode == deviceSessionExpiredCode,
+      );
+      return handler.next(err);
+    }
+
     // Si esta petición ya fue reintentada, no entrar en bucle.
     final isRetry = err.requestOptions.extra[_retryAfterRefreshKey] == true;
     if (isRetry) {
@@ -260,7 +298,7 @@ class AuthInterceptor extends QueuedInterceptor {
           'Refresh/retry fallido en segundo intento, descartando sesión',
           tag: _tag);
       await _clearTokens();
-      onAuthExpired?.call();
+      _endSession();
       return handler.next(err);
     }
 
@@ -271,7 +309,11 @@ class AuthInterceptor extends QueuedInterceptor {
     if (!refreshed) {
       AppLogger.w('Refresh reactivo fallido, limpiando tokens', tag: _tag);
       await _clearTokens();
-      onAuthExpired?.call();
+      final refreshExpired = _lastRefreshCode == deviceSessionExpiredCode;
+      _endSession(
+        device: _isDevice || refreshExpired,
+        sessionExpired: refreshExpired,
+      );
       return handler.next(err);
     }
 
@@ -316,7 +358,9 @@ class AuthInterceptor extends QueuedInterceptor {
         'Authorization': 'Bearer $newToken',
       };
       final dependentId = acting?.dependentUserId;
-      if (dependentId != null && _shouldSendActingFor(err.requestOptions)) {
+      if (dependentId != null &&
+          !_isDevice &&
+          _shouldSendActingFor(err.requestOptions)) {
         retryHeaders[actingForHeader] = dependentId;
       }
 
@@ -404,6 +448,30 @@ class AuthInterceptor extends QueuedInterceptor {
     'AUTH_INVALID_TOKEN',
   };
 
+  /// `code` del último refresh fallido, para distinguir «vinculación vencida»
+  /// de «desvinculado» cuando el refresh de un dispositivo muere.
+  String? _lastRefreshCode;
+
+  static String? _deviceSessionCode(DioException err) {
+    final data = err.response?.data;
+    if (data is! Map) return null;
+    final code = data['code'];
+    return code == deviceRevokedCode || code == deviceSessionExpiredCode
+        ? code as String
+        : null;
+  }
+
+  /// Termina la sesión local: un dispositivo vuelve a la vinculación; una
+  /// cuenta, al login.
+  void _endSession({bool? device, bool sessionExpired = false}) {
+    final unpaired = onDeviceUnpaired;
+    if ((device ?? _isDevice) && unpaired != null) {
+      unpaired(sessionExpired);
+      return;
+    }
+    onAuthExpired?.call();
+  }
+
   static bool _isSupervisedAccessRevoked(DioException err) {
     final data = err.response?.data;
     return data is Map && data['code'] == supervisedAccessRevokedCode;
@@ -434,6 +502,7 @@ class AuthInterceptor extends QueuedInterceptor {
     }
 
     _refreshCompleter = Completer<bool>();
+    _lastRefreshCode = null;
 
     try {
       final refreshToken =
@@ -483,6 +552,9 @@ class AuthInterceptor extends QueuedInterceptor {
       }
 
       AppLogger.w('Refresh token falló: ${response.statusCode}', tag: _tag);
+      final body = response.data;
+      _lastRefreshCode =
+          body is Map && body['code'] is String ? body['code'] as String : null;
       _refreshCompleter!.complete(false);
       return false;
     } catch (e) {

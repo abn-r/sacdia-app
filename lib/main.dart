@@ -14,7 +14,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'core/analytics/pairing_redaction.dart';
 import 'core/analytics/posthog_analytics.dart';
+import 'core/auth/session_mode.dart';
 import 'core/config/cache_config.dart';
 import 'core/l10n/sunday_first_material_localizations.dart';
 import 'core/config/router.dart';
@@ -59,6 +61,9 @@ const _sensitiveFields = <String>{
   'refreshToken',
   'access_token',
   'accessToken',
+  // Token de un solo uso del QR de vinculación (FP3-51).
+  'pairing_token',
+  'pairingToken',
   // Medical
   'blood',
   'birthday',
@@ -140,6 +145,7 @@ SentryEvent? _scrubEvent(SentryEvent event, Hint hint) {
     for (final crumb in breadcrumbs) {
       _scrubMapRecursive(crumb.data, _sensitiveHeaders);
       _scrubMapRecursive(crumb.data, _sensitiveFields);
+      redactPairingBreadcrumb(crumb);
     }
   }
 
@@ -180,10 +186,19 @@ Future<void> main() async {
       options.sendDefaultPii = false;
       options.debug = kDebugMode;
       options.beforeSend = _scrubEvent;
+      // El token de un enlace de vinculación (`sacdia://pair?c=...`) nunca
+      // llega a un breadcrumb (FP3-51).
+      options.beforeBreadcrumb =
+          (crumb, hint) => redactPairingBreadcrumb(crumb);
     },
     appRunner: () async {
       // Aseguramos que las dependencias de Flutter estén inicializadas
       WidgetsFlutterBinding.ensureInitialized();
+      // Teléfono vinculado de un menor de 13: PostHog ni se inicializa
+      // (privacidad §6.1, FP3-52). FCM sí se inicializa más adelante.
+      if (await readPersistedSessionMode() == SessionMode.device) {
+        blockAnalyticsForDevice();
+      }
       await setupPosthog();
       _configureDebugPerformanceFlags();
       // EasyLocalization lee los catálogos en assets/translations/* y expone

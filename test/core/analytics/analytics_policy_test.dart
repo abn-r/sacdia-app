@@ -15,6 +15,23 @@ import 'package:sacdia_app/features/profile/presentation/providers/profile_provi
 class _RecordingGateway implements AnalyticsGateway {
   final events = <String>[];
   String? _identified;
+  bool _blocked = false;
+
+  @override
+  bool get blockedForDevice => _blocked;
+
+  @override
+  Future<void> disableForDevice() async {
+    events.add('disable-device');
+    _blocked = true;
+    _identified = null;
+  }
+
+  @override
+  Future<void> enableAfterDevice() async {
+    events.add('enable-after-device');
+    _blocked = false;
+  }
 
   @override
   bool get hasIdentifiedUser => _identified != null;
@@ -104,6 +121,53 @@ void main() {
         analyticsAnonymous: false,
       ));
       expect(gateway.identifies, isEmpty);
+    });
+
+    group('linked device (FP3-52)', () {
+      const device = UserEntity(
+        id: 'kid-1',
+        principal: PrincipalInfo(kind: PrincipalKind.linkedDevice),
+        analyticsAnonymous: false,
+      );
+
+      test('PostHog is disabled, never identified nor reset-and-identified',
+          () async {
+        await policy.apply(device);
+        expect(gateway.events, ['disable-device']);
+      });
+
+      test('a phone that identified someone before forgets them', () async {
+        await gateway.identify('previous');
+        await policy.apply(device);
+        expect(gateway.hasIdentifiedUser, isFalse);
+        expect(gateway.events.last, 'disable-device');
+        expect(gateway.identifies, hasLength(1),
+            reason: 'only the earlier identify, none for the child');
+      });
+
+      test('applies even if the server says analytics are not anonymous',
+          () async {
+        await policy.apply(device);
+        await policy.apply(device);
+        expect(gateway.identifies, isEmpty);
+      });
+
+      test('after unpairing, an adult on the same phone is identified again',
+          () async {
+        await policy.apply(device);
+        await policy.apply(_adult('adult-1'));
+        expect(gateway.events, [
+          'disable-device',
+          'enable-after-device',
+          'identify:adult-1',
+        ]);
+      });
+
+      test('a guardian acting does not touch the device block', () async {
+        await policy.apply(device);
+        await policy.apply(_adult('guardian'), acting: true);
+        expect(gateway.events, ['disable-device']);
+      });
     });
 
     test('an unknown principal kind is never identified', () async {
@@ -274,6 +338,15 @@ class _ThrowingGateway implements AnalyticsGateway {
 
   @override
   Future<void> reset() async => throw StateError('offline');
+
+  @override
+  bool get blockedForDevice => false;
+
+  @override
+  Future<void> disableForDevice() async => throw StateError('offline');
+
+  @override
+  Future<void> enableAfterDevice() async => throw StateError('offline');
 }
 
 class _Auth extends AuthNotifier {

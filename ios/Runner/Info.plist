@@ -66,7 +66,7 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>SACDIA necesita acceso a la camara para tomar una foto para la actividad.</string>
+	<string>SACDIA necesita acceso a la camara para tomar fotos de evidencias y actividades y para leer el codigo QR que vincula el telefono de un menor.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>SACDIA usa Face ID para proteger tu cuenta</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

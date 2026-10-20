@@ -499,7 +499,16 @@
     "supervised_login_email_unavailable": "Cet e-mail n'est pas disponible. Essayez-en un autre.",
     "supervised_login_password_invalid": "Le mot de passe ne respecte pas les exigences de sécurité.",
     "guardianship_consent_not_verified": "Le consentement n'est pas encore vérifié. Un directeur doit d'abord le confirmer.",
-    "family_feature_disabled": "Cette fonctionnalité n'est pas disponible pour le moment."
+    "family_feature_disabled": "Cette fonctionnalité n'est pas disponible pour le moment.",
+    "device_pairing_token_invalid": "Ce code n'est pas valide ou a expiré. Demande à ton tuteur d'en générer un nouveau.",
+    "device_pairing_not_eligible": "Ce profil ne peut pas être associé à un téléphone pour le moment. Vérifie que le consentement est validé, qu'il n'a pas d'accès propre et que l'enfant a moins de 13 ans.",
+    "device_limit_reached": "Cet enfant a déjà le nombre maximal de téléphones associés. Dissocie-en un pour en ajouter un autre.",
+    "linked_device_limit_reached": "Cet enfant a déjà le nombre maximal de téléphones associés. Dissocie-en un pour en ajouter un autre.",
+    "linked_device_age_out_of_range": "Seuls les téléphones d'enfants de moins de 13 ans peuvent être associés. Les plus grands peuvent avoir leur propre accès.",
+    "device_not_found": "Nous n'avons pas trouvé ce téléphone associé.",
+    "linked_device_not_found": "Nous n'avons pas trouvé ce téléphone associé.",
+    "auth_device_revoked": "Ton tuteur a dissocié ce téléphone.",
+    "auth_device_session_expired": "L'association de ce téléphone a expiré. Demande à ton tuteur de l'associer à nouveau."
   },
   "honors": {
     "errors": {

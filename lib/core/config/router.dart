@@ -94,6 +94,8 @@ import '../analytics/analytics_policy.dart';
 import '../analytics/posthog_analytics.dart'
     show createPosthogNavigatorObserver;
 import 'acting_route_policy.dart';
+import 'device_pair_link.dart';
+import 'device_route_policy.dart';
 import 'pending_navigation.dart';
 import 'supervised_route_policy.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
@@ -106,6 +108,7 @@ import '../../features/auth/presentation/views/login_view.dart';
 import '../../features/auth/presentation/views/register_view.dart';
 import '../../features/auth/presentation/views/splash_view.dart';
 import '../../features/teen/presentation/views/teen_pending_home_view.dart';
+import '../../features/device_mode/presentation/providers/device_notice_provider.dart';
 import '../../features/auth/presentation/views/restricted_account_view.dart';
 import '../../features/family/presentation/views/add_dependent_view.dart';
 import '../../features/family/presentation/views/dependent_detail_view.dart';
@@ -201,6 +204,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       final currentPath = state.matchedLocation;
       final bootstrapAsync = ref.read(appBootstrapProvider);
 
+      // Enlace `sacdia://pair?c=<token>` (QR leído con la cámara del sistema):
+      // el token se guarda SOLO en memoria y se sigue por splash, para que
+      // sobreviva a la carga de la sesión. Nunca se vuelve a poner en una
+      // ruta (ni se registra). Un push o enlace que llegue con la sesión
+      // cargando se perdería de otro modo (lección de la Fase 2).
+      final linkedToken = pairingTokenFromUri(state.uri);
+      if (linkedToken != null) {
+        ref.read(pairingLinkProvider.notifier).state = linkedToken;
+        return RouteNames.splash;
+      }
+
       // Rutas públicas que no requieren autenticación
       const publicRoutes = [
         RouteNames.splash,
@@ -273,6 +287,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       // gate returns null for itself (no loop) and is left only once
       // `legalAcceptancePending` is false.
       if (isLoggedIn && userNeedsLegalAcceptance(user)) {
+        // Un teléfono vinculado no puede aceptar términos (no tiene
+        // `legal:accept`): ve un bloqueo que pide a su tutor revisarlos.
+        if (user.isLinkedDevice) {
+          return currentPath == RouteNames.deviceLegalBlock
+              ? null
+              : RouteNames.deviceLegalBlock;
+        }
         return currentPath == RouteNames.legalAcceptance
             ? null
             : RouteNames.legalAcceptance;
@@ -283,6 +304,25 @@ final routerProvider = Provider<GoRouter>((ref) {
           user.mode,
           needsPostRegistration: userNeedsPostRegistration(user),
         );
+      }
+
+      // Un enlace de vinculación recibido mientras la app arrancaba llega a la
+      // pantalla de vinculación. Con una sesión de cuenta la pantalla se
+      // muestra igual, pero solo para negarse («cierra sesión primero») y sin
+      // llamar a la API.
+      if (ref.read(pairingLinkProvider) != null &&
+          currentPath != RouteNames.devicePair &&
+          (currentPath == RouteNames.splash || isPublicRoute) &&
+          !(isLoggedIn && user.isLinkedDevice)) {
+        return RouteNames.devicePair;
+      }
+
+      // Un teléfono que perdió su vinculación vuelve a la pantalla de
+      // vinculación (con su aviso), no al login de cuentas.
+      if (!isLoggedIn &&
+          ref.read(deviceNoticeProvider) != null &&
+          currentPath != RouteNames.devicePair) {
+        return RouteNames.devicePair;
       }
 
       // Splash es transitorio: una vez que la carga terminó, siempre salir.
@@ -307,6 +347,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         );
       }
 
+      // Pantalla de vinculación: pública para quien no tiene sesión.
+      if (currentPath == RouteNames.devicePair) {
+        if (!isLoggedIn) return null;
+        // Ya vinculado: no hay nada que vincular. Una cuenta la abre solo para
+        // ver la negativa (sin llamadas a la API).
+        if (user.isLinkedDevice) return RouteNames.deviceHome;
+        return null;
+      }
+
       // Sin usuario autenticado → login
       if (!isLoggedIn) {
         return isPublicRoute ? null : RouteNames.login;
@@ -321,6 +370,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         return accountHomeFor(
           user.mode,
           needsPostRegistration: needsPostRegistration,
+        );
+      }
+
+      // Teléfono vinculado de un menor: lista blanca estricta (FP3-52). Va
+      // primero y NO sigue: nunca entra al post-registro (un registro
+      // incompleto va a su pantalla informativa), ni a "actuar por", ni a la
+      // regla del pastor.
+      if (user.isLinkedDevice) {
+        return deviceRouteRedirect(
+          path: currentPath,
+          legalPending: false,
+          needsRegistration: needsPostRegistration,
         );
       }
 

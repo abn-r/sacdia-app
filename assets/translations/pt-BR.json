@@ -499,7 +499,16 @@
     "supervised_login_email_unavailable": "Esse e-mail não está disponível. Tente outro.",
     "supervised_login_password_invalid": "A senha não atende aos requisitos de segurança.",
     "guardianship_consent_not_verified": "O consentimento ainda não foi verificado. Um diretor precisa confirmá-lo primeiro.",
-    "family_feature_disabled": "Este recurso não está disponível no momento."
+    "family_feature_disabled": "Este recurso não está disponível no momento.",
+    "device_pairing_token_invalid": "Este código não é válido ou já expirou. Peça ao seu responsável para gerar um novo.",
+    "device_pairing_not_eligible": "Este perfil não pode ser vinculado a um telefone agora. Confira se o consentimento está verificado, se não tem acesso próprio e se a criança tem menos de 13 anos.",
+    "device_limit_reached": "Esta criança já tem o máximo de telefones vinculados. Desvincule um para adicionar outro.",
+    "linked_device_limit_reached": "Esta criança já tem o máximo de telefones vinculados. Desvincule um para adicionar outro.",
+    "linked_device_age_out_of_range": "Só é possível vincular telefones de crianças menores de 13 anos. Os maiores podem ter acesso próprio.",
+    "device_not_found": "Não encontramos esse telefone vinculado.",
+    "linked_device_not_found": "Não encontramos esse telefone vinculado.",
+    "auth_device_revoked": "Seu responsável desvinculou este telefone.",
+    "auth_device_session_expired": "O vínculo deste telefone expirou. Peça ao seu responsável para vinculá-lo novamente."
   },
   "honors": {
     "errors": {

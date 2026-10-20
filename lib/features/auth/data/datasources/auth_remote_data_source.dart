@@ -766,6 +766,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         AppConstants.refreshTokenKey,
         AppConstants.expiresAtKey,
         AppConstants.tokenTypeKey,
+        AppConstants.sessionModeKey,
         'cached_post_register_complete',
         AppConstants.cachedUserId,
         AppConstants.cachedUserEmail,

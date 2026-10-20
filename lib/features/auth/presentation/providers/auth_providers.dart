@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/auth/acting_for_session.dart';
+import '../../../../core/auth/session_mode.dart';
 import '../../../../core/auth/social_auth_provider.dart';
 import '../../../../core/auth/social_credential.dart';
 import '../../../../core/errors/failures.dart';
@@ -36,6 +37,9 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/notifications/push_notification_provider.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../biometric/presentation/providers/biometric_provider.dart';
+import '../../../device_mode/domain/entities/device_pairing.dart';
+import '../../../device_mode/presentation/providers/device_notice_provider.dart';
+import '../../../device_mode/presentation/providers/device_pairing_providers.dart';
 import '../../../notifications/presentation/providers/unread_notifications_count_provider.dart';
 import '../login_error_messages.dart';
 import 'acting_providers.dart';
@@ -191,6 +195,9 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
 
   ActingForSession get _session => ref.read(actingForSessionProvider);
 
+  SessionModeStore get _sessionModeStore =>
+      SessionModeStore(ref.read(secureStorageProvider));
+
   bool get _isActing => _session.isActing;
 
   /// Registra el token FCM del usuario actual. Nunca mientras se actúa por un
@@ -324,8 +331,18 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
 
     if (!hasToken) {
       AppLogger.i('Sin token local, redirigiendo a login', tag: _tag);
+      // Sin sesión no hay modo: una bandera de dispositivo huérfana (sesión
+      // borrada por el servidor, app reinstalada...) no sobrevive.
+      ref.read(sessionModeProvider.notifier).state = SessionMode.account;
+      unawaited(_sessionModeStore.clear());
       return null;
     }
+
+    // La cáscara de un teléfono vinculado se elige ANTES de que `/auth/me`
+    // responda (también sin red). `/auth/me.principal.kind` manda: si dice
+    // otra cosa, se reescribe más abajo.
+    final persistedMode = await _sessionModeStore.read();
+    ref.read(sessionModeProvider.notifier).state = persistedMode;
 
     // Si la app murió actuando por un menor, sus cachés de disco se purgan
     // antes de cargar nada (sin sesión no hay nada que proteger: el logout ya
@@ -433,6 +450,12 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
               // Server is the truth; never cache pending. Offline restore
               // cannot know the legal status, so it stays false.
               legalAcceptancePending: false,
+              // Un teléfono vinculado se restaura SIEMPRE como tal: la bandera
+              // del almacenamiento seguro solo elige la cáscara (nunca otorga
+              // nada; el servidor sigue siendo quien deniega).
+              principal: persistedMode == SessionMode.device
+                  ? const PrincipalInfo(kind: PrincipalKind.linkedDevice)
+                  : null,
             );
           }
           AppLogger.i('Sin caché, redirigiendo a login', tag: _tag);
@@ -441,9 +464,13 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         AppLogger.e('Error al validar token: ${failure.message}', tag: _tag);
         return null;
       },
-      (user) {
-        if (user != null) {
+      (loaded) {
+        if (loaded != null) {
           AppLogger.i('Usuario autenticado', tag: _tag);
+          // El servidor manda sobre la bandera local: reescribe el modo y, si
+          // la bandera dice dispositivo pero el principal no llegó, falla
+          // cerrado (cuenta restringida, nunca adulto).
+          final user = _reconcileSessionMode(loaded, persistedMode);
           // Mientras se actúa: ni caché del usuario ni FCM (FP-49); ambos
           // son del tutor y `_cacheUser` ya lo respeta.
           _cacheUser(user);
@@ -1257,6 +1284,166 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     expireSession();
   }
 
+  /// Alinea la bandera `session_mode` con lo que el servidor dice de esta
+  /// sesión (`/auth/me.principal.kind` es la autoridad).
+  ///
+  /// - `linked_device`: la bandera pasa a `device`.
+  /// - Cualquier otro principal: la bandera se borra.
+  /// - Sin principal con la bandera en `device`: el servidor no confirma que
+  ///   sea un teléfono vinculado ni una cuenta, así que falla cerrado como
+  ///   principal desconocido (cuenta restringida: solo «Cerrar sesión»).
+  UserEntity _reconcileSessionMode(UserEntity user, SessionMode persisted) {
+    final kind = user.principal?.kind;
+    final modeState = ref.read(sessionModeProvider.notifier);
+    if (kind == PrincipalKind.linkedDevice) {
+      if (persisted != SessionMode.device) {
+        unawaited(_sessionModeStore.write(SessionMode.device));
+      }
+      modeState.state = SessionMode.device;
+      return user;
+    }
+    if (kind == null && persisted == SessionMode.device) {
+      AppLogger.w('Bandera de dispositivo sin principal: falla cerrado',
+          tag: _tag);
+      modeState.state = SessionMode.device;
+      return user
+          .withPrincipal(const PrincipalInfo(kind: PrincipalKind.unknown));
+    }
+    if (persisted == SessionMode.device) {
+      unawaited(_sessionModeStore.clear());
+    }
+    modeState.state = SessionMode.account;
+    return user;
+  }
+
+  /// Vincula este teléfono como dispositivo de un menor (FP3-42, FP3-52).
+  ///
+  /// Solo con la app SIN sesión (ni de cuenta ni de dispositivo). Devuelve
+  /// `null` si todo salió bien (el router lleva al inicio del dispositivo) o el
+  /// mensaje traducido por `errorCode` para mostrar en la pantalla.
+  ///
+  /// Orden: purga defensiva de todo estado de perfil por el CONTENEDOR (nunca
+  /// `Ref.invalidate`, que lanza `CircularDependencyError`) > canje del token >
+  /// tokens + bandera de modo > `/auth/me`. Si `/auth/me` falla NO queda una
+  /// sesión a medias: se cierra la sesión recién creada (tokens, bandera y
+  /// cachés locales) y se muestra el error. No pasa por `AsyncLoading`: el
+  /// router mandaría a splash y desmontaría la pantalla de vinculación.
+  Future<String?> pairDevice(DevicePairingInput input) async {
+    if (_isActing ||
+        state.isLoading ||
+        state.valueOrNull != null ||
+        await ref.read(authRepositoryProvider).hasLocalToken()) {
+      AppLogger.w('Vinculación rechazada: ya hay una sesión', tag: _tag);
+      return 'device.pair.errors.session_exists'.tr();
+    }
+
+    // Purga defensiva ANTES de que exista cualquier dato del menor.
+    purgeProfileScopeProviders(ref);
+    await purgeProfileScopeDiskCaches(
+      ref,
+      guardianUserId: null,
+      clearImages: true,
+    );
+
+    final result = await ref.read(pairDeviceUseCaseProvider)(input);
+    final failure = result.fold<Failure?>((f) => f, (_) => null);
+    if (failure != null) {
+      AppLogger.w('Vinculación fallida (${failure.errorCode ?? failure.code})',
+          tag: _tag);
+      return userErrorMessage(
+        failure,
+        fallbackKey: 'device.pair.errors.generic',
+      );
+    }
+    final paired = result.getOrElse(() => throw StateError('unreachable'));
+
+    // Tokens y bandera, juntos. Si algo de esto falla se deshace todo.
+    final secureStorage = ref.read(secureStorageProvider);
+    try {
+      await secureStorage.write(AppConstants.tokenKey, paired.accessToken);
+      await secureStorage.write(
+          AppConstants.refreshTokenKey, paired.refreshToken);
+      final expiresAt = paired.expiresAt;
+      if (expiresAt != null) {
+        await secureStorage.write(
+            AppConstants.expiresAtKey, expiresAt.toString());
+      }
+      final tokenType = paired.tokenType;
+      if (tokenType != null) {
+        await secureStorage.write(AppConstants.tokenTypeKey, tokenType);
+      }
+      await _sessionModeStore.write(SessionMode.device);
+    } catch (e) {
+      AppLogger.e('No se pudo guardar la sesión del dispositivo',
+          tag: _tag, error: e.runtimeType);
+      return _abortPairing(null);
+    }
+    ref.read(sessionModeProvider.notifier).state = SessionMode.device;
+
+    final me = await ref.read(getCurrentUserProvider)(NoParams());
+    final meFailure = me.fold<Failure?>((f) => f, (_) => null);
+    final user = me.fold<UserEntity?>((_) => null, (u) => u);
+    if (meFailure != null ||
+        user == null ||
+        user.principal?.kind != PrincipalKind.linkedDevice) {
+      AppLogger.w(
+        'Vinculación correcta pero /auth/me falló '
+        '(${meFailure?.errorCode ?? meFailure?.code ?? 'sin usuario'}); '
+        'se deshace',
+        tag: _tag,
+      );
+      return _abortPairing(meFailure);
+    }
+
+    AppLogger.i('Dispositivo vinculado', tag: _tag);
+    ref.read(deviceNoticeProvider.notifier).state = null;
+    ref
+        .read(sharedPreferencesProvider)
+        .setBool('user_manually_logged_out', false);
+    // Un teléfono vinculado guarda lo mínimo para restaurarse sin red.
+    _cacheUser(user);
+    // El token FCM del teléfono se registra con `push:register`.
+    _registerPush();
+    ref.read(unreadNotificationsCountProvider.notifier).refresh();
+    state = AsyncValue.data(user);
+    return null;
+  }
+
+  /// Deshace una vinculación a medias: cierra la sesión recién creada (en el
+  /// servidor, si responde) y borra tokens, bandera y estado local. Devuelve el
+  /// mensaje a mostrar.
+  Future<String?> _abortPairing(Failure? failure) async {
+    try {
+      await ref.read(signOutProvider)(NoParams());
+    } catch (_) {}
+    await _sessionModeStore.clear();
+    ref.read(sessionModeProvider.notifier).state = SessionMode.account;
+    ref.read(unreadNotificationsCountProvider.notifier).setZero();
+    purgeProfileScopeProviders(ref);
+    return userErrorMessage(
+      failure,
+      fallbackKey: 'device.pair.errors.session_load_failed',
+    );
+  }
+
+  /// Llamado por el interceptor ante 401 `AUTH_DEVICE_REVOKED` /
+  /// `AUTH_DEVICE_SESSION_EXPIRED` o un refresh muerto en modo dispositivo: el
+  /// tutor desvinculó el teléfono, dejó de ser elegible o la vinculación llegó
+  /// a su tope (FP3-52).
+  ///
+  /// Deja el aviso para la pantalla de vinculación y cierra la sesión local
+  /// igual que una sesión expirada ([expireSession] borra los cachés y el router
+  /// purga el registro de perfil y los cachés de disco al ver el cierre). Sin
+  /// llamadas a la API: el token ya no vale. Nada queda en cola: el teléfono no
+  /// tiene cola de subidas.
+  void onDeviceUnpaired({DeviceNotice notice = DeviceNotice.unpaired}) {
+    ref.read(deviceNoticeProvider.notifier).state = notice;
+    unawaited(
+      ref.read(pushNotificationServiceProvider).clearLocalRegistration(),
+    );
+    expireSession();
+  }
+
   /// Called by AuthInterceptor when the refresh token is dead.
   ///
   /// Clears all local tokens and cached PII then sets state to null so
@@ -1266,6 +1453,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     AppLogger.w('Sesión expirada por interceptor, limpiando estado local',
         tag: _tag);
     _clearActingForLogout();
+    _endSessionMode();
 
     final secureStorage = ref.read(secureStorageProvider);
     secureStorage.delete(AppConstants.cachedUserId);
@@ -1288,6 +1476,13 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     ref.invalidate(biometricProvider);
 
     state = const AsyncValue.data(null);
+  }
+
+  /// La sesión terminó: ni el modo en memoria ni la bandera del almacenamiento
+  /// seguro sobreviven.
+  void _endSessionMode() {
+    ref.read(sessionModeProvider.notifier).state = SessionMode.account;
+    unawaited(_sessionModeStore.clear());
   }
 
   /// Cerrar sesión
@@ -1318,6 +1513,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         return false;
       },
       (_) async {
+        _endSessionMode();
         state = const AsyncValue.data(null);
 
         final prefs = ref.read(sharedPreferencesProvider);

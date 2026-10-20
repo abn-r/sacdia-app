@@ -1,4 +1,5 @@
 import '../../features/auth/domain/entities/principal_info.dart';
+import 'device_route_policy.dart';
 import 'route_names.dart';
 
 /// Rutas de `go_router` que un adolescente supervisado puede abrir (FP3-31,
@@ -83,6 +84,14 @@ bool isAllowedForRestricted(String path) =>
 bool isTeenOnlyRoute(String path) =>
     _normalize(path) == RouteNames.teenPendingHome;
 
+/// Cáscara del teléfono vinculado (`/device/*`, salvo la pantalla de
+/// vinculación): no es un destino para ninguna cuenta.
+bool isDeviceOnlyRoute(String path) {
+  final normalized = _normalize(path);
+  return normalized != RouteNames.devicePair &&
+      _hasPrefix(normalized, '/device');
+}
+
 /// Pantalla informativa de la cuenta desconocida (no es un destino para nadie
 /// más).
 bool isRestrictedOnlyRoute(String path) =>
@@ -96,6 +105,11 @@ String accountHomeFor(AccountMode mode, {required bool needsPostRegistration}) {
       return RouteNames.postRegistration;
     case AccountMode.restricted:
       return RouteNames.restrictedAccount;
+    case AccountMode.linkedDevice:
+      return deviceHomeFor(
+        legalPending: false,
+        needsRegistration: needsPostRegistration,
+      );
     case AccountMode.teenPending:
       return needsPostRegistration
           ? RouteNames.postRegistration
@@ -122,7 +136,9 @@ String? supervisedRouteRedirect({
   switch (mode) {
     case AccountMode.adult:
       // Las pantallas de estado no existen para un adulto (p. ej. cumplió 18).
-      return isTeenOnlyRoute(path) || isRestrictedOnlyRoute(path)
+      return isTeenOnlyRoute(path) ||
+              isRestrictedOnlyRoute(path) ||
+              isDeviceOnlyRoute(path)
           ? RouteNames.homeDashboard
           : null;
     case AccountMode.profileIncomplete:
@@ -131,6 +147,14 @@ String? supervisedRouteRedirect({
           : RouteNames.postRegistration;
     case AccountMode.restricted:
       return isAllowedForRestricted(path) ? null : RouteNames.restrictedAccount;
+    case AccountMode.linkedDevice:
+      // Lista blanca del teléfono vinculado (los términos pendientes los
+      // resuelve el router antes de llegar aquí).
+      return deviceRouteRedirect(
+        path: path,
+        legalPending: false,
+        needsRegistration: needsPostRegistration,
+      );
     case AccountMode.teenPending:
       if (isAllowedForPendingTeen(path)) return null;
       return needsPostRegistration
@@ -139,6 +163,7 @@ String? supervisedRouteRedirect({
     case AccountMode.teenSupervised:
       if (isTeenOnlyRoute(path) ||
           isRestrictedOnlyRoute(path) ||
+          isDeviceOnlyRoute(path) ||
           isBlockedForActiveTeen(path)) {
         return RouteNames.homeDashboard;
       }

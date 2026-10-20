@@ -499,7 +499,16 @@
     "supervised_login_email_unavailable": "Ese correo no está disponible. Prueba con otro.",
     "supervised_login_password_invalid": "La contraseña no cumple los requisitos de seguridad.",
     "guardianship_consent_not_verified": "El consentimiento aún no está verificado. Un director debe confirmarlo primero.",
-    "family_feature_disabled": "Esta función no está disponible por ahora."
+    "family_feature_disabled": "Esta función no está disponible por ahora.",
+    "device_pairing_token_invalid": "Este código no es válido o ya venció. Pide a tu tutor que genere uno nuevo.",
+    "device_pairing_not_eligible": "Este perfil no se puede vincular a un teléfono ahora. Revisa que el consentimiento esté verificado, que no tenga acceso propio y que sea menor de 13 años.",
+    "device_limit_reached": "Ya hay el máximo de teléfonos vinculados para este menor. Desvincula uno para agregar otro.",
+    "linked_device_limit_reached": "Ya hay el máximo de teléfonos vinculados para este menor. Desvincula uno para agregar otro.",
+    "linked_device_age_out_of_range": "Solo se pueden vincular teléfonos de menores de 13 años. Para mayores existe el acceso propio.",
+    "device_not_found": "No encontramos ese teléfono vinculado.",
+    "linked_device_not_found": "No encontramos ese teléfono vinculado.",
+    "auth_device_revoked": "Tu tutor desvinculó este teléfono.",
+    "auth_device_session_expired": "La vinculación de este teléfono venció. Pide a tu tutor que lo vincule de nuevo."
   },
   "honors": {
     "errors": {

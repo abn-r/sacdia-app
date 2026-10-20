@@ -134,6 +134,18 @@ class UserModel extends UserEntity {
           ? rawScopes.map((s) => s.toString()).toList(growable: false)
           : null,
       supervision: _parseSupervision(value['supervision']),
+      device: _parseDevice(value['device']),
+    );
+  }
+
+  /// `principal.device`: `{linked_device_id, label, paired_at}`. Ausente o
+  /// malformado es nulo.
+  static DeviceInfo? _parseDevice(dynamic value) {
+    if (value is! Map) return null;
+    return DeviceInfo(
+      linkedDeviceId: value['linked_device_id']?.toString(),
+      label: value['label']?.toString(),
+      pairedAt: _parseDateTime(value['paired_at']),
     );
   }
 

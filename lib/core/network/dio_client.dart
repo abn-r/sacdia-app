@@ -29,6 +29,13 @@ class DioClient {
     /// (401 `AUTH_SUPERVISED_ACCESS_REVOKED`).
     VoidCallback? onSupervisedAccessRevoked,
 
+    /// Se llama cuando un teléfono vinculado pierde su sesión (401
+    /// `AUTH_DEVICE_REVOKED`, `AUTH_DEVICE_SESSION_EXPIRED` o refresh muerto).
+    void Function(bool sessionExpired)? onDeviceUnpaired,
+
+    /// ¿Esta instalación es un teléfono vinculado? Nunca manda `X-Acting-For`.
+    bool Function()? isDeviceSession,
+
     /// Se llama cuando el servidor responde 403 `PRINCIPAL_SCOPE_DENIED`
     /// (adolescente supervisado o teléfono vinculado en una ruta sin alcance).
     VoidCallback? onPrincipalScopeDenied,
@@ -62,6 +69,8 @@ class DioClient {
         dio: dio,
         onAuthExpired: onAuthExpired,
         onSupervisedAccessRevoked: onSupervisedAccessRevoked,
+        onDeviceUnpaired: onDeviceUnpaired,
+        isDeviceSession: isDeviceSession,
         actingForSession: actingForSession,
       ),
       // Pegado a AuthInterceptor y ANTES de ErrorInterceptor: descarta las

@@ -125,6 +125,18 @@ class SupervisionInfo extends Equatable {
       ];
 }
 
+/// Bloque `principal.device` de `GET /auth/me` para un teléfono vinculado.
+class DeviceInfo extends Equatable {
+  final String? linkedDeviceId;
+  final String? label;
+  final DateTime? pairedAt;
+
+  const DeviceInfo({this.linkedDeviceId, this.label, this.pairedAt});
+
+  @override
+  List<Object?> get props => [linkedDeviceId, label, pairedAt];
+}
+
 /// Bloque `principal` de `GET /auth/me`.
 class PrincipalInfo extends Equatable {
   final PrincipalKind kind;
@@ -133,14 +145,18 @@ class PrincipalInfo extends Equatable {
   final List<String>? scopes;
   final SupervisionInfo? supervision;
 
+  /// Solo para un teléfono vinculado (`linked_device`).
+  final DeviceInfo? device;
+
   const PrincipalInfo({
     required this.kind,
     this.scopes,
     this.supervision,
+    this.device,
   });
 
   @override
-  List<Object?> get props => [kind, scopes, supervision];
+  List<Object?> get props => [kind, scopes, supervision, device];
 }
 
 /// Banderas de la familia que el servidor expone en `/auth/me`
@@ -175,6 +191,10 @@ enum AccountMode {
   /// = `profile_incomplete`). Solo puede completar el post-registro; en cuanto
   /// el paso 2 guarda la fecha, el servidor lo pasa a `teen_pending` o `adult`.
   profileIncomplete,
+
+  /// Teléfono vinculado de un menor de 13 (Fase 3b). Cáscara propia: sin
+  /// perfil, sin Mi familia, sin cuenta (`principal.kind == linked_device`).
+  linkedDevice,
 
   /// Modo o principal que la app no reconoce (servidor más nuevo). Falla
   /// cerrado: nunca se trata como adulto.

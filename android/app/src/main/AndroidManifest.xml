@@ -52,6 +52,14 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- QR de vinculación de un teléfono de menor: sacdia://pair?c=...
+                 La app nunca registra la URL (FP3-51). -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="sacdia" android:host="pair"/>
+            </intent-filter>
             <!-- Abre la app desde el widget. No es un scheme público navegable. -->
             <intent-filter>
                 <action android:name="es.antonborri.home_widget.action.LAUNCH" />

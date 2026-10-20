@@ -11,6 +11,15 @@ abstract class AnalyticsGateway {
   Future<void> identify(String userId);
 
   Future<void> reset();
+
+  /// Teléfono de un menor: PostHog deja de capturar por completo.
+  Future<void> disableForDevice();
+
+  /// El teléfono dejó de ser un dispositivo vinculado: se reactiva la captura.
+  Future<void> enableAfterDevice();
+
+  /// ¿Se bloqueó la analítica por ser un teléfono vinculado?
+  bool get blockedForDevice;
 }
 
 /// [AnalyticsGateway] sobre PostHog.
@@ -25,6 +34,15 @@ class PosthogAnalyticsGateway implements AnalyticsGateway {
 
   @override
   Future<void> reset() => resetAnalyticsUser();
+
+  @override
+  Future<void> disableForDevice() => disableAnalyticsForDevice();
+
+  @override
+  Future<void> enableAfterDevice() => enableAnalyticsAfterDevice();
+
+  @override
+  bool get blockedForDevice => analyticsBlockedForDevice;
 }
 
 /// Quién puede identificarse en analítica (FP3-30, privacidad §6.1).
@@ -39,6 +57,9 @@ class PosthogAnalyticsGateway implements AnalyticsGateway {
 ///   atados a la identidad anterior.
 /// - Mientras un tutor actúa por un menor la analítica se queda como está: ni
 ///   se identifica al menor ni se toca la identidad del tutor.
+/// - Teléfono vinculado de un menor de 13: PostHog se DESACTIVA por completo
+///   (`disable`): ni identify, ni eventos, ni pantallas (privacidad §6.1). Al
+///   dejar de serlo (login de cuenta tras desvincular) se reactiva.
 class AnalyticsPolicy {
   const AnalyticsPolicy({
     this.gateway = const PosthogAnalyticsGateway(),
@@ -51,6 +72,13 @@ class AnalyticsPolicy {
   Future<void> apply(UserEntity? user, {bool acting = false}) async {
     if (user == null || acting) return;
     try {
+      if (user.isLinkedDevice) {
+        await gateway.disableForDevice();
+        return;
+      }
+      if (gateway.blockedForDevice) {
+        await gateway.enableAfterDevice();
+      }
       if (user.canIdentifyInAnalytics) {
         await gateway.identify(user.id);
       } else if (gateway.hasIdentifiedUser) {
