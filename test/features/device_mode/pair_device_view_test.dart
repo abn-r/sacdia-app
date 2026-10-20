@@ -246,6 +246,24 @@ void main() {
 
       expect(auth.pairCalls.single.pairingToken, 'LINK-token_9');
     });
+
+    testWidgets('a link arriving while the screen is open is adopted too',
+        (tester) async {
+      final container = await pump(tester, notice: DeviceNotice.unpaired);
+      expect(find.byKey(const ValueKey('pair_label_field')), findsNothing);
+
+      container.read(pairingLinkProvider.notifier).state = 'LATE-token_2';
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('pair_label_field')), findsOneWidget);
+      expect(container.read(pairingLinkProvider), isNull);
+
+      await tester.tap(find.byKey(const ValueKey('pair_submit')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      expect(auth.pairCalls.single.pairingToken, 'LATE-token_2');
+    });
   });
 
   group('PairDeviceView: lost link notice', () {

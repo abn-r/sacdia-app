@@ -140,6 +140,11 @@ class _PairDeviceViewState extends ConsumerState<PairDeviceView> {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    // Un enlace que llega con esta pantalla ya abierta (p. ej. tras una
+    // revocación) no la reconstruye: go_router termina en la misma ruta.
+    ref.listen<String?>(pairingLinkProvider, (_, next) {
+      if (next != null) _adoptPendingLink();
+    });
     final loggedIn =
         ref.watch(authNotifierProvider.select((v) => v.valueOrNull != null));
     final notice = ref.watch(deviceNoticeProvider);
