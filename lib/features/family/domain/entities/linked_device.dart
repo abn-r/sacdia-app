@@ -79,7 +79,7 @@ class LinkedDevices extends Equatable {
 class DevicePairingToken extends Equatable {
   final String token;
 
-  /// Lo que lleva el QR (`sacdia://pair?c=<token>`).
+  /// Lo que lleva el QR (`sacdia://pair?t=<token>`).
   final String qrPayload;
   final DateTime expiresAt;
   final DateTime issuedAt;

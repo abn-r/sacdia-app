@@ -186,7 +186,7 @@ Future<void> main() async {
       options.sendDefaultPii = false;
       options.debug = kDebugMode;
       options.beforeSend = _scrubEvent;
-      // El token de un enlace de vinculación (`sacdia://pair?c=...`) nunca
+      // El token de un enlace de vinculación (`sacdia://pair?t=...`) nunca
       // llega a un breadcrumb (FP3-51).
       options.beforeBreadcrumb =
           (crumb, hint) => redactPairingBreadcrumb(crumb);

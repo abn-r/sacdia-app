@@ -185,7 +185,7 @@ void main() {
       for (final payload in [
         null,
         'https://evil.example/pair?c=ABC',
-        'sacdia://pair?c=OTHER',
+        'sacdia://pair?t=OTHER',
         'sacdia://pair',
         '',
       ]) {
@@ -194,7 +194,7 @@ void main() {
           'qr_payload': payload,
           'expires_in': 600,
         }, now: _now);
-        expect(token.qrPayload, 'sacdia://pair?c=ABC', reason: '$payload');
+        expect(token.qrPayload, 'sacdia://pair?t=ABC', reason: '$payload');
       }
     });
 
@@ -323,6 +323,22 @@ void main() {
       expect(s(frozen: true).canPairDevice, isFalse);
       expect(s(access: 'supervised_login').canPairDevice, isFalse);
       expect(s(milestone: true).canPairDevice, isFalse);
+    });
+
+    test('the age rule is client-side: only under 13', () {
+      DependentSummary aged(int age, {bool milestone = false}) =>
+          FamilyJson.summary(dependentJson(
+            consent: 'verified',
+            age: age,
+            ageMilestoneReached: milestone,
+          ));
+
+      expect(aged(9).canPairDevice, isTrue);
+      expect(aged(12).canPairDevice, isTrue);
+      expect(aged(13).canPairDevice, isFalse);
+      expect(aged(16).canPairDevice, isFalse);
+      // El servidor puede declarar el hito antes (país con otra edad mínima).
+      expect(aged(11, milestone: true).canPairDevice, isFalse);
     });
 
     test('the count of linked phones is parsed', () {

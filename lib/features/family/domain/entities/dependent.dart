@@ -15,6 +15,10 @@ enum GuardianConsentStatus {
       raw == 'verified' ? verified : pending;
 }
 
+/// Edad (exclusiva) desde la que ya no se vinculan teléfonos nuevos: 13, la
+/// edad mínima de acceso propio (ruling #11591, confirmado por el backend).
+const int kLinkedDeviceMaxAge = 13;
+
 /// Qué pasa con un menor cuando su tutor sale o borra la cuenta.
 enum DependentOutcome {
   /// Queda otro tutor activo.
@@ -178,11 +182,17 @@ class DependentSummary extends Equatable {
   /// tiene acceso propio y todavía no llegó a la edad de acceso propio (un
   /// teléfono se vincula solo por debajo de ella, ruling #11591). El servidor
   /// vuelve a validar todo; esto solo evita ofrecer un botón que daría 422.
-  bool get canPairDevice =>
-      guardianship.isVerified &&
-      !frozen &&
-      accessMode == AccessMode.guardianManaged &&
-      !ageMilestoneReached;
+  bool get canPairDevice {
+    final years = age;
+    return guardianship.isVerified &&
+        !frozen &&
+        accessMode == AccessMode.guardianManaged &&
+        !ageMilestoneReached &&
+        // El motivo de un 422 DEVICE_PAIRING_NOT_ELIGIBLE no se expone: la
+        // elegibilidad se deduce aquí (menor de 13 y sin acceso propio). Con la
+        // edad desconocida manda `ageMilestoneReached`, que calcula el servidor.
+        (years == null || years < kLinkedDeviceMaxAge);
+  }
 
   /// Nombre de pila para el banner y el selector. Nunca vacío.
   String get firstName {

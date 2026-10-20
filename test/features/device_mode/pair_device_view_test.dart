@@ -46,7 +46,7 @@ void main() {
 
   Future<ProviderContainer> pump(
     WidgetTester tester, {
-    String? scanValue = 'sacdia://pair?c=TOKEN-1_a',
+    String? scanValue = 'sacdia://pair?t=TOKEN-1_a',
     UserEntity? user,
     DeviceNotice? notice,
     String? pendingLink,
@@ -329,7 +329,7 @@ void main() {
           GoRoute(
             path: RouteNames.devicePair,
             builder: (_, __) => PairDeviceView(
-                scannerBuilder: fakeScanner('sacdia://pair?c=T1')),
+                scannerBuilder: fakeScanner('sacdia://pair?t=T1')),
           ),
           stubRoute(RouteNames.login),
           stubRoute(RouteNames.splash),

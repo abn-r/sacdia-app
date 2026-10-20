@@ -166,6 +166,41 @@ void main() {
       expect(expiredCalls, 0);
     });
 
+    test('a refresh that fails with 503 keeps the device session (retry)',
+        () async {
+      await setUpWith({
+        '/users/kid-1/classes':
+            ResponseSpec(401, body('GUARD_JWT_UNAUTHORIZED')),
+        '/auth/refresh': ResponseSpec(503, {
+          'status': 'error',
+          'code': 'AUTH_REVOCATION_CHECK_UNAVAILABLE',
+        }),
+      });
+
+      final error = await getClasses();
+
+      expect(error.response?.statusCode, 401);
+      expect(unpaired, isEmpty, reason: 'the server did not revoke anything');
+      expect(expiredCalls, 0);
+      const storage = FlutterSecureStorage();
+      expect(await storage.read(key: AppConstants.tokenKey), 'device-access');
+      expect(await storage.read(key: AppConstants.refreshTokenKey),
+          'device-refresh');
+    });
+
+    test('AUTH_REFRESH_TOKEN_INVALID on refresh unpairs the device', () async {
+      await setUpWith({
+        '/users/kid-1/classes':
+            ResponseSpec(401, body('GUARD_JWT_UNAUTHORIZED')),
+        '/auth/refresh': ResponseSpec(401, body('AUTH_REFRESH_TOKEN_INVALID')),
+      });
+
+      await getClasses();
+
+      expect(unpaired, [false]);
+      await expectTokensCleared();
+    });
+
     test('an ACCOUNT session with a dead refresh still logs out normally',
         () async {
       await setUpWith({

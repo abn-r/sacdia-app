@@ -1,14 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Esquema y host del QR de vinculación (`sacdia://pair?c=<token>`).
+/// Esquema y host del QR de vinculación (`sacdia://pair?t=<token>`, contrato confirmado del backend).
 const String kPairLinkScheme = 'sacdia';
 const String kPairLinkHost = 'pair';
 
-/// Extrae el token de vinculación de un enlace `sacdia://pair?c=...`, o `null`
+/// Extrae el token de vinculación de un enlace `sacdia://pair?t=...`, o `null`
 /// si [uri] no es un enlace de vinculación válido.
 ///
-/// El contrato nombra el parámetro `c` (spec FP3-41) y el diseño `t`
-/// (§5.3/§8.3): se aceptan los dos. El token NUNCA se registra ni se copia a
+/// El backend confirmó `t`; la spec decía `c`: se aceptan los dos. El token NUNCA se registra ni se copia a
 /// otro sitio que no sea la memoria de [pairingLinkProvider].
 String? pairingTokenFromUri(Uri uri) {
   if (uri.scheme.toLowerCase() != kPairLinkScheme) return null;

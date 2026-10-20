@@ -23,7 +23,7 @@ import '../providers/linked_devices_providers.dart';
 /// Muestra el QR para vincular el teléfono de un menor de 13 (FP3-41).
 ///
 /// Al abrirse pide un token de un solo uso (10 min). El QR lleva
-/// `sacdia://pair?c=<token>`; el niño lo escanea desde su teléfono. Mientras el
+/// `sacdia://pair?t=<token>`; el niño lo escanea desde su teléfono. Mientras el
 /// QR está vigente se pregunta cada pocos segundos si ya apareció un teléfono
 /// nuevo para avisar al tutor. Al vencer se ofrece generar otro: un token nuevo
 /// anula al anterior.
@@ -392,7 +392,7 @@ class _PairingQrViewState extends ConsumerState<PairingQrView> {
 class PairingQrCode extends StatelessWidget {
   const PairingQrCode({super.key, required this.data});
 
-  /// `sacdia://pair?c=<token>`: un secreto de un solo uso.
+  /// `sacdia://pair?t=<token>`: un secreto de un solo uso.
   final String data;
 
   @override

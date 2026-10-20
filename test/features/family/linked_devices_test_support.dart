@@ -56,7 +56,7 @@ class FakeLinkedDevicesRepository implements LinkedDevicesRepository {
     final at = now();
     return Right(DevicePairingToken(
       token: 'TOKEN-$issued',
-      qrPayload: 'sacdia://pair?c=TOKEN-$issued',
+      qrPayload: 'sacdia://pair?t=TOKEN-$issued',
       issuedAt: at,
       expiresAt: at.add(const Duration(minutes: 10)),
     ));

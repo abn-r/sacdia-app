@@ -326,7 +326,7 @@ void main() {
   });
 
   group('REAL router: sacdia://pair deep links', () {
-    final link = Uri.parse('sacdia://pair?c=LINK_token-1');
+    final link = Uri.parse('sacdia://pair?t=LINK_token-1');
 
     testWidgets('are stashed in memory and parked on splash', (tester) async {
       final c = await setUpRouter(tester, null);

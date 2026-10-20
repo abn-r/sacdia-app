@@ -233,6 +233,42 @@ void main() {
       expect(user.isLinkedDevice, isFalse);
     });
 
+    test('the confirmed device /auth/me shape: mode device, no family', () {
+      final user = UserModel.fromCustomApi({
+        'user_id': 'kid-1',
+        'name': 'Ana',
+        'mode': 'device',
+        'analytics_anonymous': true,
+        'family': null,
+        'acting_for': null,
+        'principal': {
+          'kind': 'linked_device',
+          'scopes': [
+            'self:read',
+            'evidence:upload',
+            'evidence:submit',
+            'push:register',
+            'agenda:read',
+            'credential:read',
+          ],
+          'supervision': null,
+          'device': {
+            'linked_device_id': 'dev-1',
+            'label': 'Tablet',
+            'paired_at': '2026-10-20T10:00:00.000Z',
+          },
+        },
+      });
+
+      expect(user.mode, AccountMode.linkedDevice);
+      expect(user.serverMode, AccountMode.linkedDevice);
+      expect(user.family, isNull);
+      expect(user.actingFor, isNull);
+      expect(user.analyticsAnonymous, isTrue);
+      expect(user.principal!.scopes, contains('credential:read'));
+      expect(user.principal!.supervision, isNull);
+    });
+
     test('a missing device block is tolerated', () {
       final user = UserModel.fromCustomApi({
         'user_id': 'kid-1',

@@ -70,7 +70,7 @@ void main() {
 
     expect(repo.issueCalls, ['ana-1']);
     final qr = tester.widget<PairingQrCode>(find.byType(PairingQrCode));
-    expect(qr.data, 'sacdia://pair?c=TOKEN-1');
+    expect(qr.data, 'sacdia://pair?t=TOKEN-1');
     expect(find.text('Vence en 10:00'), findsOneWidget);
     expect(find.byKey(const ValueKey('pairing_error')), findsNothing);
   });
@@ -107,7 +107,7 @@ void main() {
 
     expect(repo.issueCalls, hasLength(2));
     expect(tester.widget<PairingQrCode>(find.byType(PairingQrCode)).data,
-        'sacdia://pair?c=TOKEN-2');
+        'sacdia://pair?t=TOKEN-2');
     expect(find.text('Vence en 10:00'), findsOneWidget);
   });
 

@@ -23,7 +23,7 @@ import 'pairing_qr_scanner_view.dart';
 /// Pantalla para vincular este teléfono como el de un menor de 13 (FP3-52).
 ///
 /// Se llega desde el login («Vincular este teléfono de un niño»), con un enlace
-/// `sacdia://pair?c=...` o al perder la vinculación. Escanea el QR que muestra
+/// `sacdia://pair?t=...` o al perder la vinculación. Escanea el QR que muestra
 /// el tutor, deja nombrar el teléfono y canjea el token.
 ///
 /// - Con una sesión de cuenta se niega («cierra sesión primero») y NO llama a

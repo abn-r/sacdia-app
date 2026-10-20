@@ -306,6 +306,14 @@ class AuthInterceptor extends QueuedInterceptor {
 
     final refreshed = await _tryRefreshToken();
 
+    if (!refreshed && _isDevice && _lastRefreshTransient) {
+      // Servidor no disponible o sin red: el dispositivo conserva su sesión y
+      // la petición falla con su error (el reintento de Dio la repite).
+      AppLogger.w('Refresh del dispositivo no disponible, sesión intacta',
+          tag: _tag);
+      return handler.next(err);
+    }
+
     if (!refreshed) {
       AppLogger.w('Refresh reactivo fallido, limpiando tokens', tag: _tag);
       await _clearTokens();
@@ -450,7 +458,12 @@ class AuthInterceptor extends QueuedInterceptor {
 
   /// `code` del último refresh fallido, para distinguir «vinculación vencida»
   /// de «desvinculado» cuando el refresh de un dispositivo muere.
-  String? _lastRefreshCode;
+  static String? _lastRefreshCode;
+
+  /// El último refresh falló por algo pasajero (5xx, p. ej. 503
+  /// `AUTH_REVOCATION_CHECK_UNAVAILABLE`, o sin red). Un teléfono vinculado NO
+  /// pierde su sesión por eso: el servidor no dijo que la revocó.
+  static bool _lastRefreshTransient = false;
 
   static String? _deviceSessionCode(DioException err) {
     final data = err.response?.data;
@@ -503,6 +516,7 @@ class AuthInterceptor extends QueuedInterceptor {
 
     _refreshCompleter = Completer<bool>();
     _lastRefreshCode = null;
+    _lastRefreshTransient = false;
 
     try {
       final refreshToken =
@@ -555,10 +569,13 @@ class AuthInterceptor extends QueuedInterceptor {
       final body = response.data;
       _lastRefreshCode =
           body is Map && body['code'] is String ? body['code'] as String : null;
+      final status = response.statusCode ?? 0;
+      _lastRefreshTransient = status >= 500 || status == 429;
       _refreshCompleter!.complete(false);
       return false;
     } catch (e) {
       AppLogger.e('Error en refresh token (interceptor)', tag: _tag, error: e);
+      _lastRefreshTransient = true;
       _refreshCompleter!.complete(false);
       return false;
     } finally {

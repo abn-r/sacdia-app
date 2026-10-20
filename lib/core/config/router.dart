@@ -214,7 +214,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final currentPath = state.matchedLocation;
       final bootstrapAsync = ref.read(appBootstrapProvider);
 
-      // Enlace `sacdia://pair?c=<token>` (QR leído con la cámara del sistema):
+      // Enlace `sacdia://pair?t=<token>` (QR leído con la cámara del sistema):
       // el token se guarda SOLO en memoria y se sigue por splash, para que
       // sobreviva a la carga de la sesión. Nunca se vuelve a poner en una
       // ruta (ni se registra). Un push o enlace que llegue con la sesión

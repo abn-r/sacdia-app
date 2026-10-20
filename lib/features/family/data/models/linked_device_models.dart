@@ -68,14 +68,14 @@ abstract final class LinkedDeviceJson {
         now.add(Duration(seconds: expiresIn ?? 600));
     // El QR solo lleva un enlace de vinculación que contenga ESTE token. Si el
     // servidor no manda el payload (o manda otra cosa) se arma con el esquema
-    // acordado: el teléfono del niño acepta `c` y `t`.
+    // acordado: el servidor usa `t` (contrato confirmado) y el teléfono del niño acepta `c` y `t`.
     final payload = _string(json['qr_payload']);
     final payloadUri = payload == null ? null : Uri.tryParse(payload);
     final qrPayload = payload != null &&
             payloadUri != null &&
             pairingTokenFromUri(payloadUri) == token
         ? payload
-        : 'sacdia://pair?c=$token';
+        : 'sacdia://pair?t=$token';
     return DevicePairingToken(
       token: token,
       qrPayload: qrPayload,

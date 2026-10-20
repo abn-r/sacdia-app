@@ -207,6 +207,7 @@ enum AccountMode {
         'adult' => adult,
         'teen_pending' => teenPending,
         'teen_supervised' => teenSupervised,
+        'device' => linkedDevice,
         'profile_incomplete' => profileIncomplete,
         String() => restricted,
         _ => null,
