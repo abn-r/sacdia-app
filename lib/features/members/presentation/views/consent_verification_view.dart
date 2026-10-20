@@ -214,7 +214,12 @@ class _ConsentVerificationViewState
           if (isCustodianSelfVerify(failure)) _custodianBlocked = true;
           // Sin `club_members:approve`: se queda en "solo verificar" (el 403 se
           // da antes de escribir nada).
-          if (isApprovePermissionRequired(failure)) _approveDenied = true;
+          if (isApprovePermissionRequired(failure)) {
+            _approveDenied = true;
+            // Sin permiso para aprobar tampoco hay subida: un archivo elegido
+            // y sin subir ya no bloquea la verificación.
+            _pendingFile = false;
+          }
         });
       },
       (verification) {
@@ -300,7 +305,16 @@ class _ConsentVerificationViewState
                   ),
             ),
           const SizedBox(height: 12),
-          if (_formAlreadyVerified)
+          if (_verifyOnly)
+            // Subir o reemplazar la ficha exige `club_members:approve` (403 en
+            // el servidor): quien solo verifica la revisa, no la sube.
+            Text(
+              'members.consent.verify_only_upload_note'.tr(),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: c.textSecondary,
+                  ),
+            )
+          else if (_formAlreadyVerified)
             Text(
               'errors.guardianship_consent_already_verified'.tr(),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(

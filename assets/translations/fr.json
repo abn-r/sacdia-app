@@ -2699,6 +2699,7 @@
       "another_person": "Une autre personne doit vérifier ce consentement : vous avez inscrit le mineur, téléversé la fiche ou l’avez confié à la garde du club.",
       "verify_only_hint": "Vous pouvez vérifier la fiche, mais l'approbation de la demande revient à un directeur.",
       "verify_only_confirm": "Confirmer la vérification",
+      "verify_only_upload_note": "La fiche est téléversée par le tuteur ou le directeur du club. Ici, vous pouvez seulement la consulter et la vérifier.",
       "verified_toast": "Consentement vérifié. Un directeur doit encore approuver la demande de {name}."
     },
     "create_minor": {

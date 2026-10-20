@@ -2699,6 +2699,7 @@
       "another_person": "Outra pessoa deve verificar este consentimento: você cadastrou o menor, enviou a ficha ou o deixou sob a custódia do clube.",
       "verify_only_hint": "Você pode verificar a ficha, mas aprovar a solicitação cabe a um diretor.",
       "verify_only_confirm": "Confirmar verificação",
+      "verify_only_upload_note": "A ficha é enviada pelo responsável ou pelo diretor do clube. Aqui você só pode revisá-la e verificá-la.",
       "verified_toast": "Consentimento verificado. Um diretor ainda precisa aprovar a solicitação de {name}."
     },
     "create_minor": {

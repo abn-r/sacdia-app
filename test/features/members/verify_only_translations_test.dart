@@ -25,6 +25,7 @@ void main() {
     'members.view.verify_only_hint',
     'members.view.verify_scope_title',
     'members.view.verify_scope_subtitle',
+    'members.consent.verify_only_upload_note',
   ];
 
   for (final locale in _locales) {
