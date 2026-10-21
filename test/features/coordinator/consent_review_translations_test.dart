@@ -30,18 +30,18 @@ void main() {
     'coordinator.consent_review.refresh_tooltip': {},
     'coordinator.consent_review.empty_title': {},
     'coordinator.consent_review.empty_subtitle': {},
-    'coordinator.consent_review.empty_more_subtitle': {},
-    'coordinator.consent_review.progress': {'checked', 'total'},
     'coordinator.consent_review.load_more': {},
+    'coordinator.consent_review.load_more_failed': {},
     'coordinator.consent_review.forms_one': {'count'},
     'coordinator.consent_review.forms_other': {'count'},
+    'coordinator.consent_review.by_section': {},
     'coordinator.consent_review.load_error': {},
     'coordinator.consent_review.retry': {},
-    'coordinator.consent_review.failed_one': {'count'},
-    'coordinator.consent_review.failed_other': {'count'},
-    'coordinator.consent_review.retry_failed': {},
-    'coordinator.consent_review.dropped_one': {'count'},
-    'coordinator.consent_review.dropped_other': {'count'},
+    'coordinator.consent_review.no_sections_title': {},
+    'coordinator.consent_review.no_sections_subtitle': {},
+    'coordinator.consent_review.denied_title': {},
+    'coordinator.consent_review.denied_subtitle': {},
+    'coordinator.errors.fetch_consent_pending': {},
   };
 
   for (final locale in _locales) {
@@ -53,6 +53,26 @@ void main() {
         expect((value as String).trim(), isNotEmpty, reason: entry.key);
         expect(_placeholders(value), entry.value,
             reason: '$locale ${entry.key}');
+      }
+    });
+  }
+
+  const removed = [
+    'empty_more_subtitle',
+    'progress',
+    'failed_one',
+    'failed_other',
+    'retry_failed',
+    'dropped_one',
+    'dropped_other',
+  ];
+
+  for (final locale in _locales) {
+    test('the per-section fan-out copy is gone from $locale', () {
+      final json = _load(locale);
+      for (final key in removed) {
+        expect(_at(json, 'coordinator.consent_review.$key'), isNull,
+            reason: '$locale $key is unused');
       }
     });
   }

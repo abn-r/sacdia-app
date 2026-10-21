@@ -13,11 +13,10 @@ import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 
-import '../../../members/domain/entities/join_request.dart';
 import '../../../members/presentation/views/consent_verification_view.dart';
 import '../../../members/presentation/widgets/join_request_card.dart';
+import '../../domain/entities/consent_pending_queue.dart';
 import '../providers/consent_review_providers.dart';
-import '../providers/coordinator_providers.dart';
 
 /// "Fichas por verificar": las fichas de consentimiento de menores que esperan
 /// verificación en las secciones que cubre el coordinador (`consent:verify`).
@@ -25,14 +24,15 @@ import '../providers/coordinator_providers.dart';
 /// Solo verifica: no hay aprobar ni rechazar (eso es de un director). La fila
 /// abre la verificación con `canApprove: false`, que manda `approve: false`.
 ///
-/// Las secciones se consultan por páginas (ver [ConsentReviewNotifier]); este
-/// widget solo pinta el avance y ofrece "Revisar más secciones".
+/// Una sola cola de todas las secciones que cubre el coordinador, de la ficha
+/// más antigua a la más nueva (ver [ConsentReviewNotifier]); este widget pinta
+/// el total, el resumen por sección y "Cargar más".
 class ConsentReviewView extends ConsumerWidget {
   const ConsentReviewView({super.key});
 
   Future<void> _refresh(WidgetRef ref) async {
-    ref.invalidate(coordinatorScopeProvider);
     ref.invalidate(consentReviewProvider);
+    ref.invalidate(consentPendingCountProvider);
     try {
       await ref.read(consentReviewProvider.future);
     } catch (_) {
@@ -101,13 +101,13 @@ class _Queue extends ConsumerWidget {
   Future<void> _open(
     BuildContext context,
     WidgetRef ref,
-    JoinRequest request,
+    ConsentPendingItem item,
   ) async {
     final verified = await Navigator.push<bool>(
       context,
       SacSharedAxisRoute<bool>(
         builder: (_) => ConsentVerificationView(
-          request: request,
+          request: item.request,
           // Un coordinador solo verifica: nunca se manda `approve: true`.
           canApprove: false,
         ),
@@ -115,7 +115,7 @@ class _Queue extends ConsumerWidget {
     );
     if (verified != null) {
       ref.read(consentReviewProvider.notifier).removeRequest(
-            request.assignmentId,
+            item.assignmentId,
           );
     }
   }
@@ -131,138 +131,138 @@ class _Queue extends ConsumerWidget {
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 32),
-        children: [
-          if (state.entries.isEmpty)
-            SacEmptyState(
-              icon: HugeIcons.strokeRoundedFileVerified,
-              title: 'coordinator.consent_review.empty_title'.tr(),
-              body: (state.hasMore
-                      ? 'coordinator.consent_review.empty_more_subtitle'
-                      : 'coordinator.consent_review.empty_subtitle')
-                  .tr(),
-            ),
-          for (final entry in state.entries) ...[
-            _SectionHeader(entry: entry),
-            for (final request in entry.requests) ...[
-              JoinRequestCard(
-                request: request,
-                onTap: () => _open(context, ref, request),
-                onVerify: () => _open(context, ref, request),
-              ),
-              const SizedBox(height: 6),
-            ],
-            const SizedBox(height: 10),
-          ],
-          if (state.droppedSectionIds.isNotEmpty)
-            _Note(
-              icon: HugeIcons.strokeRoundedLockKey,
-              text: (state.droppedSectionIds.length == 1
-                      ? 'coordinator.consent_review.dropped_one'
-                      : 'coordinator.consent_review.dropped_other')
-                  .tr(
-                namedArgs: {
-                  'count': state.droppedSectionIds.length.toString(),
-                },
-              ),
-            ),
-          if (state.failedSectionIds.isNotEmpty) ...[
-            _Note(
-              icon: HugeIcons.strokeRoundedAlert02,
-              text: (state.failedSectionIds.length == 1
-                      ? 'coordinator.consent_review.failed_one'
-                      : 'coordinator.consent_review.failed_other')
-                  .tr(
-                namedArgs: {
-                  'count': state.failedSectionIds.length.toString(),
-                },
-              ),
-            ),
-            const SizedBox(height: 8),
-            SacButton.outline(
-              text: 'coordinator.consent_review.retry_failed'.tr(),
-              icon: HugeIcons.strokeRoundedRefresh,
-              isLoading: state.loadingMore,
-              onPressed: notifier.retryFailed,
-            ),
-            const SizedBox(height: 12),
-          ],
-          if (state.sections.isNotEmpty) _Progress(state: state),
-          if (state.hasMore) ...[
-            const SizedBox(height: 8),
-            SacButton.primary(
-              text: 'coordinator.consent_review.load_more'.tr(),
-              icon: HugeIcons.strokeRoundedArrowDown01,
-              isLoading: state.loadingMore,
-              onPressed: notifier.loadMore,
-            ),
-          ],
-        ],
+        children: _content(context, ref, notifier),
       ),
     );
   }
-}
 
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.entry});
-
-  final ConsentReviewSection entry;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final section = entry.section;
-    final club = section.clubName?.trim();
-    final label = club == null || club.isEmpty
-        ? section.displayName
-        : '$club · ${section.displayName}';
-    final count = entry.requests.length;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(2, 8, 2, 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: c.text,
-              ),
-            ),
+  List<Widget> _content(
+    BuildContext context,
+    WidgetRef ref,
+    ConsentReviewNotifier notifier,
+  ) {
+    switch (state.access) {
+      case ConsentQueueAccess.noSections:
+        return [
+          SacEmptyState(
+            icon: HugeIcons.strokeRoundedBuilding04,
+            title: 'coordinator.consent_review.no_sections_title'.tr(),
+            body: 'coordinator.consent_review.no_sections_subtitle'.tr(),
           ),
-          const SizedBox(width: 8),
-          Text(
-            (count == 1
-                    ? 'coordinator.consent_review.forms_one'
-                    : 'coordinator.consent_review.forms_other')
-                .tr(namedArgs: {'count': count.toString()}),
-            style: TextStyle(fontSize: 12, color: c.textSecondary),
+        ];
+      case ConsentQueueAccess.denied:
+        return [
+          SacEmptyState(
+            icon: HugeIcons.strokeRoundedLockKey,
+            title: 'coordinator.consent_review.denied_title'.tr(),
+            body: 'coordinator.consent_review.denied_subtitle'.tr(),
           ),
-        ],
-      ),
-    );
+        ];
+      case ConsentQueueAccess.granted:
+        break;
+    }
+
+    if (state.items.isEmpty) {
+      return [
+        SacEmptyState(
+          icon: HugeIcons.strokeRoundedFileVerified,
+          title: 'coordinator.consent_review.empty_title'.tr(),
+          body: 'coordinator.consent_review.empty_subtitle'.tr(),
+        ),
+      ];
+    }
+
+    return [
+      _Summary(state: state),
+      for (final item in state.items) ...[
+        JoinRequestCard(
+          request: item.request,
+          caption: item.caption,
+          onTap: () => _open(context, ref, item),
+          onVerify: () => _open(context, ref, item),
+        ),
+        const SizedBox(height: 6),
+      ],
+      if (state.loadMoreFailed)
+        _Note(
+          icon: HugeIcons.strokeRoundedAlert02,
+          text: 'coordinator.consent_review.load_more_failed'.tr(),
+        ),
+      if (state.hasMore) ...[
+        const SizedBox(height: 8),
+        SacButton.primary(
+          text: 'coordinator.consent_review.load_more'.tr(),
+          icon: HugeIcons.strokeRoundedArrowDown01,
+          isLoading: state.loadingMore,
+          onPressed: notifier.loadMore,
+        ),
+      ],
+    ];
   }
 }
 
-class _Progress extends StatelessWidget {
-  const _Progress({required this.state});
+String _formsLabel(int count) => (count == 1
+        ? 'coordinator.consent_review.forms_one'
+        : 'coordinator.consent_review.forms_other')
+    .tr(namedArgs: {'count': count.toString()});
+
+/// El total de la cola y cuántas fichas esperan en cada sección.
+class _Summary extends StatelessWidget {
+  const _Summary({required this.state});
 
   final ConsentReviewState state;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'coordinator.consent_review.progress'.tr(
-          namedArgs: {
-            'checked': state.checkedCount.toString(),
-            'total': state.sections.length.toString(),
-          },
-        ),
-        style: TextStyle(fontSize: 12, color: context.sac.textSecondary),
+    final c = context.sac;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(2, 4, 2, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            _formsLabel(state.total),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: c.text,
+            ),
+          ),
+          if (state.bySection.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              'coordinator.consent_review.by_section'.tr(),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: c.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            for (final section in state.bySection)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        section.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 13, color: c.text),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _formsLabel(section.pendingConsentCount),
+                      style: TextStyle(fontSize: 12, color: c.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ],
       ),
     );
   }

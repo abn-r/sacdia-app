@@ -4,240 +4,372 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
-import 'package:sacdia_app/features/coordinator/domain/entities/coordinator_scope.dart';
+import 'package:sacdia_app/features/coordinator/domain/entities/consent_pending_queue.dart';
 import 'package:sacdia_app/features/coordinator/presentation/providers/consent_review_providers.dart';
 import 'package:sacdia_app/features/coordinator/presentation/providers/coordinator_providers.dart';
-import 'package:sacdia_app/features/members/domain/entities/join_request.dart';
-import 'package:sacdia_app/features/members/presentation/providers/members_providers.dart';
 
-import '../../../members/members_test_support.dart';
+import '../../coordinator_test_support.dart';
 
-CoordinatorSectionScope _section(int id) => CoordinatorSectionScope(
-      clubSectionId: id,
-      name: 'Conquistadores',
-      clubTypeId: 2,
-      clubTypeName: 'Conquistadores',
-      clubId: 100 + id,
-      clubName: 'Club $id',
-    );
+Map<String, Object?> _item(String id, int sectionId, {String name = 'Ana'}) =>
+    pendingItemJson(id: id, sectionId: sectionId, name: name);
 
-CoordinatorScope _scope(int count) => CoordinatorScope(
-      isCoordinator: count > 0,
-      clubSectionIds: [for (var i = 1; i <= count; i++) i],
-      sections: [for (var i = 1; i <= count; i++) _section(i)],
-    );
-
-JoinRequest _minor(int sectionId, {String id = 'req-1', String name = 'Ana'}) =>
-    JoinRequest(
-      assignmentId: '$sectionId/membership-requests/$id',
-      userId: 'user-$sectionId-$id',
-      name: name,
-      status: JoinRequestStatus.pending,
-      consent: const JoinRequestConsent(
-        status: JoinRequestConsentStatus.pending,
-        evidenceUploaded: true,
-      ),
-    );
-
-JoinRequest _adult(int sectionId) => JoinRequest(
-      assignmentId: '$sectionId/membership-requests/adult',
-      userId: 'adult-$sectionId',
-      name: 'Luis',
-      status: JoinRequestStatus.pending,
-    );
-
-const _outOfScope = Left<Failure, List<JoinRequest>>(
-  AuthFailure(
-    message: 'x',
-    code: 403,
-    errorCode: 'GUARD_CLUB_SCOPE_REQUIRED',
-  ),
-);
-
-const _boom = Left<Failure, List<JoinRequest>>(
-  ServerFailure(message: 'x', code: 500),
-);
+String _assignment(String id, int sectionId) =>
+    '$sectionId/membership-requests/$id';
 
 void main() {
-  late FakeMembersRepository repo;
+  late FakeCoordinatorRepository repo;
 
-  setUp(() => repo = FakeMembersRepository());
+  setUp(() => repo = FakeCoordinatorRepository());
 
-  ProviderContainer container({required CoordinatorScope scope}) {
+  ProviderContainer container() {
     final c = ProviderContainer(
-      overrides: [
-        membersRepositoryProvider.overrideWithValue(repo),
-        coordinatorScopeProvider.overrideWith((ref) async => scope),
-      ],
+      overrides: [coordinatorRepositoryProvider.overrideWithValue(repo)],
     );
     addTearDown(c.dispose);
     return c;
   }
 
-  test('loads only the first page of sections, never all of them', () async {
-    repo.requestsBySection[2] = Right([_minor(2)]);
-    final c = container(scope: _scope(12));
-
-    final state = await c.read(consentReviewProvider.future);
-
-    expect(repo.joinRequestSectionCalls,
-        List.generate(ConsentReviewNotifier.sectionsPerPage, (i) => i + 1));
-    expect(state.sections, hasLength(12));
-    expect(state.checkedCount, ConsentReviewNotifier.sectionsPerPage);
-    expect(state.hasMore, isTrue);
-  });
-
-  test('keeps the requests in flight bounded by the page size', () async {
-    repo.joinRequestsGate = Completer<void>();
-    final c = container(scope: _scope(40));
-
-    final pending = c.read(consentReviewProvider.future);
-    await pumpEventQueue();
-    expect(repo.joinRequestsInFlight, ConsentReviewNotifier.sectionsPerPage);
-
-    repo.joinRequestsGate!.complete();
-    await pending;
-    expect(repo.joinRequestsMaxInFlight, ConsentReviewNotifier.sectionsPerPage);
-  });
-
-  test('keeps only sections with a minor waiting for verification', () async {
-    repo.requestsBySection[1] = Right([_adult(1)]);
-    repo.requestsBySection[2] = Right([_minor(2), _adult(2)]);
-    repo.requestsBySection[3] = const Right([]);
-    final c = container(scope: _scope(3));
-
-    final state = await c.read(consentReviewProvider.future);
-
-    expect(state.entries.map((e) => e.section.clubSectionId), [2]);
-    expect(state.entries.single.requests.map((r) => r.name), ['Ana']);
-    expect(state.totalForms, 1);
-    expect(state.hasMore, isFalse);
-  });
-
-  test('a verified minor is not waiting for anything', () async {
-    repo.requestsBySection[1] = Right([
-      JoinRequest(
-        assignmentId: '1/membership-requests/v',
-        userId: 'v',
-        name: 'Vera',
-        status: JoinRequestStatus.pending,
-        consent: const JoinRequestConsent(
-          status: JoinRequestConsentStatus.verified,
-          evidenceUploaded: true,
+  Right<Failure, ConsentPendingPage> page({
+    required List<Map<String, Object?>> items,
+    int? total,
+    int offset = 0,
+    List<Map<String, Object?>> bySection = const [],
+  }) =>
+      Right(
+        pendingPage(
+          items: items,
+          total: total,
+          offset: offset,
+          bySection: bySection,
         ),
-      ),
-    ]);
-    final c = container(scope: _scope(1));
+      );
 
-    final state = await c.read(consentReviewProvider.future);
+  group('first load', () {
+    test('is ONE call to the aggregate endpoint, no per-section fan-out',
+        () async {
+      repo.results = [
+        page(items: [_item('a', 1), _item('b', 2)], total: 2),
+      ];
+      final c = container();
 
-    expect(state.entries, isEmpty);
-  });
+      final state = await c.read(consentReviewProvider.future);
 
-  test('loadMore asks for the next page and keeps the section order', () async {
-    repo.requestsBySection[1] = Right([_minor(1)]);
-    repo.requestsBySection[8] = Right([_minor(8)]);
-    final c = container(scope: _scope(8));
-    await c.read(consentReviewProvider.future);
-    repo.joinRequestSectionCalls.clear();
+      expect(repo.calls, [(limit: ConsentReviewNotifier.pageSize, offset: 0)]);
+      expect(state.access, ConsentQueueAccess.granted);
+      expect(state.items.map((i) => i.request.assignmentId),
+          [_assignment('a', 1), _assignment('b', 2)]);
+      expect(state.total, 2);
+      expect(state.hasMore, isFalse);
+    });
 
-    await c.read(consentReviewProvider.notifier).loadMore();
+    test('the page size is the documented default of the endpoint', () {
+      expect(ConsentReviewNotifier.pageSize, 50);
+    });
 
-    expect(repo.joinRequestSectionCalls, [6, 7, 8]);
-    final state = c.read(consentReviewProvider).requireValue;
-    expect(state.entries.map((e) => e.section.clubSectionId), [1, 8]);
-    expect(state.hasMore, isFalse);
-    expect(state.loadingMore, isFalse);
-  });
-
-  test('loadMore with nothing left does not call the server', () async {
-    final c = container(scope: _scope(2));
-    await c.read(consentReviewProvider.future);
-    repo.joinRequestSectionCalls.clear();
-
-    await c.read(consentReviewProvider.notifier).loadMore();
-
-    expect(repo.joinRequestSectionCalls, isEmpty);
-  });
-
-  test('GUARD_CLUB_SCOPE_REQUIRED drops the section and keeps the rest',
-      () async {
-    repo.requestsBySection[1] = _outOfScope;
-    repo.requestsBySection[2] = Right([_minor(2)]);
-    final c = container(scope: _scope(2));
-
-    final state = await c.read(consentReviewProvider.future);
-
-    expect(state.droppedSectionIds, {1});
-    expect(state.failedSectionIds, isEmpty);
-    expect(state.entries.map((e) => e.section.clubSectionId), [2]);
-  });
-
-  test('any other failure is kept to retry, only for those sections', () async {
-    repo.requestsBySection[1] = _boom;
-    repo.requestsBySection[2] = Right([_minor(2)]);
-    final c = container(scope: _scope(2));
-    final state = await c.read(consentReviewProvider.future);
-    expect(state.failedSectionIds, {1});
-    expect(state.droppedSectionIds, isEmpty);
-
-    repo.requestsBySection[1] = Right([_minor(1)]);
-    repo.joinRequestSectionCalls.clear();
-    await c.read(consentReviewProvider.notifier).retryFailed();
-
-    expect(repo.joinRequestSectionCalls, [1]);
-    final after = c.read(consentReviewProvider).requireValue;
-    expect(after.failedSectionIds, isEmpty);
-    expect(after.entries.map((e) => e.section.clubSectionId), [1, 2]);
-  });
-
-  test('removeRequest drops the verified form and the emptied section',
-      () async {
-    repo.requestsBySection[1] = Right([_minor(1), _minor(1, id: 'req-2')]);
-    repo.requestsBySection[2] = Right([_minor(2)]);
-    final c = container(scope: _scope(2));
-    await c.read(consentReviewProvider.future);
-    final notifier = c.read(consentReviewProvider.notifier);
-
-    notifier.removeRequest('1/membership-requests/req-1');
-    var state = c.read(consentReviewProvider).requireValue;
-    expect(state.entries.map((e) => e.section.clubSectionId), [1, 2]);
-    expect(state.totalForms, 2);
-
-    notifier.removeRequest('2/membership-requests/req-1');
-    state = c.read(consentReviewProvider).requireValue;
-    expect(state.entries.map((e) => e.section.clubSectionId), [1]);
-  });
-
-  test('someone who is not a coordinator asks for nothing', () async {
-    final c = container(
-      scope: const CoordinatorScope(isCoordinator: false),
-    );
-
-    final state = await c.read(consentReviewProvider.future);
-
-    expect(repo.joinRequestSectionCalls, isEmpty);
-    expect(state.sections, isEmpty);
-    expect(state.entries, isEmpty);
-    expect(state.hasMore, isFalse);
-  });
-
-  test('a scope that cannot be loaded is an error, not an empty list',
-      () async {
-    final c = ProviderContainer(
-      overrides: [
-        membersRepositoryProvider.overrideWithValue(repo),
-        coordinatorScopeProvider.overrideWith(
-          (ref) async => throw Exception('network'),
+    test('keeps the per-section counts for the summary', () async {
+      repo.results = [
+        page(
+          items: [_item('a', 1)],
+          total: 3,
+          bySection: [
+            pendingSectionJson(sectionId: 1, count: 2),
+            pendingSectionJson(sectionId: 5, count: 1),
+          ],
         ),
-      ],
-    );
-    addTearDown(c.dispose);
+      ];
 
-    await expectLater(
-      c.read(consentReviewProvider.future),
-      throwsA(isA<Exception>()),
-    );
-    expect(repo.joinRequestSectionCalls, isEmpty);
+      final state = await container().read(consentReviewProvider.future);
+
+      expect(
+          state.bySection.map((s) => (s.clubSectionId, s.pendingConsentCount)),
+          [(1, 2), (5, 1)]);
+    });
+
+    test('an empty queue is granted access with nothing to show', () async {
+      repo.results = [page(items: const [])];
+
+      final state = await container().read(consentReviewProvider.future);
+
+      expect(state.access, ConsentQueueAccess.granted);
+      expect(state.items, isEmpty);
+      expect(state.total, 0);
+      expect(state.hasMore, isFalse);
+    });
+  });
+
+  group('pagination', () {
+    test('has more while fewer items are loaded than the total', () async {
+      repo.results = [
+        page(items: [_item('a', 1), _item('b', 1)], total: 5),
+      ];
+
+      final state = await container().read(consentReviewProvider.future);
+
+      expect(state.hasMore, isTrue);
+      expect(state.total, 5);
+    });
+
+    test('loadMore asks for the next offset and appends in order', () async {
+      repo.results = [
+        page(items: [_item('a', 1), _item('b', 1)], total: 3),
+        page(items: [_item('c', 2)], total: 3, offset: 2),
+      ];
+      final c = container();
+      await c.read(consentReviewProvider.future);
+
+      await c.read(consentReviewProvider.notifier).loadMore();
+
+      expect(
+          repo.calls.last, (limit: ConsentReviewNotifier.pageSize, offset: 2));
+      final state = c.read(consentReviewProvider).requireValue;
+      expect(state.items.map((i) => i.request.assignmentId), [
+        _assignment('a', 1),
+        _assignment('b', 1),
+        _assignment('c', 2),
+      ]);
+      expect(state.hasMore, isFalse);
+      expect(state.loadingMore, isFalse);
+    });
+
+    test('loadMore never duplicates an item that is already listed', () async {
+      repo.results = [
+        page(items: [_item('a', 1), _item('b', 1)], total: 4),
+        page(items: [_item('b', 1), _item('c', 1)], total: 3, offset: 2),
+      ];
+      final c = container();
+      await c.read(consentReviewProvider.future);
+
+      await c.read(consentReviewProvider.notifier).loadMore();
+
+      final state = c.read(consentReviewProvider).requireValue;
+      expect(state.items.map((i) => i.request.assignmentId),
+          [_assignment('a', 1), _assignment('b', 1), _assignment('c', 1)]);
+      // The server is the authority for the total.
+      expect(state.total, 3);
+    });
+
+    test('loadMore with nothing left does not call the server', () async {
+      repo.results = [
+        page(items: [_item('a', 1)])
+      ];
+      final c = container();
+      await c.read(consentReviewProvider.future);
+
+      await c.read(consentReviewProvider.notifier).loadMore();
+
+      expect(repo.calls, hasLength(1));
+    });
+
+    test('a second loadMore while one is in flight is ignored', () async {
+      repo.results = [
+        page(items: [_item('a', 1)], total: 3),
+        page(items: [_item('b', 1)], total: 3, offset: 1),
+      ];
+      final c = container();
+      await c.read(consentReviewProvider.future);
+      // Keep the autoDispose notifier alive while the test awaits events.
+      c.listen(consentReviewProvider, (_, __) {});
+      repo.gate = Completer<void>();
+      final notifier = c.read(consentReviewProvider.notifier);
+
+      final first = notifier.loadMore();
+      await pumpEventQueue();
+      expect(c.read(consentReviewProvider).requireValue.loadingMore, isTrue);
+      await notifier.loadMore();
+      repo.gate!.complete();
+      await first;
+
+      expect(repo.calls, hasLength(2));
+    });
+
+    test('a failed loadMore keeps the loaded items and can be retried',
+        () async {
+      repo.results = [
+        page(items: [_item('a', 1)], total: 2),
+        const Left(ServerFailure(message: 'x', code: 500)),
+        page(items: [_item('b', 1)], total: 2, offset: 1),
+      ];
+      final c = container();
+      await c.read(consentReviewProvider.future);
+      final notifier = c.read(consentReviewProvider.notifier);
+
+      await notifier.loadMore();
+      var state = c.read(consentReviewProvider).requireValue;
+      expect(state.items, hasLength(1));
+      expect(state.loadMoreFailed, isTrue);
+      expect(state.loadingMore, isFalse);
+      expect(state.hasMore, isTrue);
+
+      await notifier.loadMore();
+      state = c.read(consentReviewProvider).requireValue;
+      expect(state.items, hasLength(2));
+      expect(state.loadMoreFailed, isFalse);
+    });
+  });
+
+  group('access', () {
+    test('403 GUARD_CLUB_SCOPE_REQUIRED means no assigned sections', () async {
+      repo.results = [const Left(noSectionsFailure)];
+
+      final state = await container().read(consentReviewProvider.future);
+
+      expect(state.access, ConsentQueueAccess.noSections);
+      expect(state.items, isEmpty);
+      expect(state.hasMore, isFalse);
+    });
+
+    test('403 GUARD_PERMISSION_DENIED means the queue is not for this user',
+        () async {
+      repo.results = [const Left(permissionDeniedFailure)];
+
+      final state = await container().read(consentReviewProvider.future);
+
+      expect(state.access, ConsentQueueAccess.denied);
+      expect(state.items, isEmpty);
+    });
+
+    for (final code in ['ACTING_FOR_SCOPE_DENIED', 'PRINCIPAL_SCOPE_DENIED']) {
+      test('403 $code is also denied', () async {
+        repo.results = [
+          Left(AuthFailure(message: 'x', code: 403, errorCode: code)),
+        ];
+
+        final state = await container().read(consentReviewProvider.future);
+
+        expect(state.access, ConsentQueueAccess.denied);
+      });
+    }
+
+    test('decides by the error code, never by the message', () async {
+      repo.results = [
+        const Left(
+          AuthFailure(
+            message: 'GUARD_CLUB_SCOPE_REQUIRED',
+            code: 403,
+            errorCode: 'SOMETHING_ELSE',
+          ),
+        ),
+      ];
+
+      await expectLater(
+        container().read(consentReviewProvider.future),
+        throwsA(isA<Failure>()),
+      );
+    });
+
+    test('any other failure is an error to retry, not an empty queue',
+        () async {
+      repo.results = [const Left(ServerFailure(message: 'x', code: 500))];
+
+      await expectLater(
+        container().read(consentReviewProvider.future),
+        throwsA(isA<ServerFailure>()),
+      );
+    });
+  });
+
+  group('removeRequest', () {
+    ProviderContainer loaded() {
+      repo.results = [
+        page(
+          items: [_item('a', 1), _item('b', 1), _item('c', 2)],
+          total: 7,
+          bySection: [
+            pendingSectionJson(sectionId: 1, count: 4),
+            pendingSectionJson(sectionId: 2, count: 1),
+            pendingSectionJson(sectionId: 3, count: 2),
+          ],
+        ),
+      ];
+      return container();
+    }
+
+    test('drops the item and decrements the total and its section', () async {
+      final c = loaded();
+      await c.read(consentReviewProvider.future);
+
+      c.read(consentReviewProvider.notifier).removeRequest(_assignment('a', 1));
+
+      final state = c.read(consentReviewProvider).requireValue;
+      expect(state.items.map((i) => i.request.assignmentId),
+          [_assignment('b', 1), _assignment('c', 2)]);
+      expect(state.total, 6);
+      expect(
+        state.bySection
+            .firstWhere((s) => s.clubSectionId == 1)
+            .pendingConsentCount,
+        3,
+      );
+    });
+
+    test('a section that reaches zero leaves the summary', () async {
+      final c = loaded();
+      await c.read(consentReviewProvider.future);
+
+      c.read(consentReviewProvider.notifier).removeRequest(_assignment('c', 2));
+
+      final state = c.read(consentReviewProvider).requireValue;
+      expect(state.bySection.map((s) => s.clubSectionId), [1, 3]);
+      expect(state.total, 6);
+    });
+
+    test('the next page starts after the items that are still listed',
+        () async {
+      final c = loaded();
+      await c.read(consentReviewProvider.future);
+      final notifier = c.read(consentReviewProvider.notifier);
+      notifier.removeRequest(_assignment('a', 1));
+      repo.results = [
+        page(items: [_item('d', 3)], total: 6, offset: 2)
+      ];
+      repo.calls.clear();
+
+      await notifier.loadMore();
+
+      // A verified form left the server queue too: offset = what is listed.
+      expect(repo.calls.single.offset, 2);
+    });
+
+    test('an unknown id changes nothing', () async {
+      final c = loaded();
+      final before = await c.read(consentReviewProvider.future);
+
+      c.read(consentReviewProvider.notifier).removeRequest('9/x/nope');
+
+      expect(c.read(consentReviewProvider).requireValue, before);
+    });
+
+    test('never takes the total below zero', () async {
+      repo.results = [
+        page(items: [_item('a', 1)], total: 0)
+      ];
+      final c = container();
+      await c.read(consentReviewProvider.future);
+
+      c.read(consentReviewProvider.notifier).removeRequest(_assignment('a', 1));
+
+      expect(c.read(consentReviewProvider).requireValue.total, 0);
+    });
+  });
+
+  group('pending count (hub badge)', () {
+    test('is one cheap call: limit 1, the total of the queue', () async {
+      repo.results = [
+        page(items: [_item('a', 1)], total: 42)
+      ];
+      final c = container();
+
+      final count = await c.read(consentPendingCountProvider.future);
+
+      expect(count, 42);
+      expect(repo.calls, [(limit: 1, offset: 0)]);
+    });
+
+    test('is null (no badge) when the queue cannot be read', () async {
+      repo.results = [const Left(permissionDeniedFailure)];
+
+      expect(
+          await container().read(consentPendingCountProvider.future), isNull);
+    });
   });
 }

@@ -20,6 +20,10 @@ class JoinRequestCard extends StatelessWidget {
   /// rechazar (revisor con solo `consent:verify`).
   final VoidCallback? onVerify;
 
+  /// Línea extra bajo el nombre (p. ej. "club · tipo · distrito" en la cola del
+  /// coordinador, donde las fichas de varias secciones van mezcladas).
+  final String? caption;
+
   const JoinRequestCard({
     super.key,
     required this.request,
@@ -27,6 +31,7 @@ class JoinRequestCard extends StatelessWidget {
     this.onApprove,
     this.onReject,
     this.onVerify,
+    this.caption,
   });
 
   @override
@@ -72,6 +77,19 @@ class JoinRequestCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  if (caption != null && caption!.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      caption!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.2,
+                        color: c.textSecondary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                   if (dateLabel != null) ...[
                     const SizedBox(height: 3),
                     Text(
