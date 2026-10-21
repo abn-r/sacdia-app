@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/domain/utils/authorization_utils.dart';
 import 'acting_route_policy.dart';
-import 'pastor_route_access.dart';
+import 'coordinator_route_access.dart';
 import 'supervised_route_policy.dart';
 
 /// Un destino (push tocado, enlace) que llegó cuando el router aún no podía
@@ -53,7 +53,7 @@ bool isPendingNavigationAllowed({
   if (userNeedsLegalAcceptance(user)) return false;
   if (userNeedsPostRegistration(user)) return false;
   if (acting && isBlockedWhileActing(path)) return false;
-  if (isPastorWithoutClub(user) && !isPastorAllowedPath(path)) return false;
+  if (clubLessRouteRedirect(user, path) != null) return false;
   return supervisedRouteRedirect(
         mode: user.mode,
         path: path,

@@ -10,7 +10,9 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_badge.dart';
+import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../notifications/presentation/providers/unread_notifications_count_provider.dart';
 import '../../../members/presentation/utils/consent_access.dart';
 import '../../domain/entities/coordinator_scope.dart';
 import '../../domain/entities/sla_dashboard.dart';
@@ -53,6 +55,14 @@ class CoordinatorHubView extends ConsumerWidget {
             SliverAppBar(
               automaticallyImplyLeading: false,
               leading: sacAutoBackButton(context),
+              // Sin club el panel es el inicio y no hay otra campana: la
+              // bandeja se abre desde aquí.
+              actions: [
+                if (isCoordinatorWithoutClub(user))
+                  _NotificationsAction(
+                    unreadCount: ref.watch(unreadNotificationsCountProvider),
+                  ),
+              ],
               expandedHeight: 140,
               floating: true,
               snap: true,
@@ -198,6 +208,54 @@ class CoordinatorHubView extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ── Notifications action ──────────────────────────────────────────────────────
+
+class _NotificationsAction extends StatelessWidget {
+  final int unreadCount;
+
+  const _NotificationsAction({required this.unreadCount});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        IconButton(
+          onPressed: () => context.push(RouteNames.notificationsInbox),
+          icon: const HugeIcon(
+            icon: HugeIcons.strokeRoundedNotification01,
+            size: 24,
+            color: Colors.white,
+          ),
+          tooltip: 'dashboard.notifications_tooltip'.tr(),
+        ),
+        if (unreadCount > 0)
+          Positioned(
+            top: 6,
+            right: 6,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+              decoration: BoxDecoration(
+                color: AppColors.error,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              constraints: const BoxConstraints(minWidth: 16),
+              child: Text(
+                unreadCount > 99 ? '99+' : '$unreadCount',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

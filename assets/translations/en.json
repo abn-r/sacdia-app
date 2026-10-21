@@ -4299,7 +4299,8 @@
       "classes": "Classes",
       "activities": "Activities",
       "profile": "Profile",
-      "authorizations": "Authorizations"
+      "authorizations": "Authorizations",
+      "coordination": "Coordination"
     },
     "evidence_folder": {
       "title": "Annual Evidence Folder",
