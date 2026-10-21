@@ -293,7 +293,9 @@ void main() {
     });
 
     test('survives several refreshes in a row', () async {
-      repo.results = [page(items: [_item('a', 1)], total: 1)];
+      repo.results = [
+        page(items: [_item('a', 1)], total: 1)
+      ];
       final c = container();
       c.listen(consentReviewProvider, (_, __) {});
       await c.read(consentReviewProvider.future);

@@ -10,7 +10,6 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_badge.dart';
-import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/utils/consent_access.dart';
 import '../../domain/entities/coordinator_scope.dart';
@@ -45,6 +44,7 @@ class CoordinatorHubView extends ConsumerWidget {
           ref.invalidate(slaDashboardProvider);
           ref.invalidate(coordinatorScopeProvider);
           ref.invalidate(coordinatorClubsRawProvider);
+          ref.invalidate(consentPendingCountProvider);
         },
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -160,8 +160,9 @@ class CoordinatorHubView extends ConsumerWidget {
                   const SizedBox(height: 10),
 
                   // Fichas de consentimiento de menores por verificar: solo
-                  // con `consent:verify` y secciones en el alcance.
-                  if (hasAnyPermission(user, verifyConsentPermissions) &&
+                  // con un rol de coordinación que lleve `consent:verify` y
+                  // secciones en el alcance.
+                  if (coordinatorRoleCanVerify(user) &&
                       (scopeAsync.valueOrNull?.hasAssignedSections ??
                           false)) ...[
                     _NavCard(

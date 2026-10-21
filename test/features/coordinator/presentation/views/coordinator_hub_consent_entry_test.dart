@@ -1,5 +1,6 @@
 /// The "Fichas por verificar" entry of the coordinator hub shows only for a
-/// user who holds `consent:verify` AND has sections in the coordination scope.
+/// user with a COORDINATOR global role carrying `consent:verify` AND sections in
+/// the coordination scope (what the server requires).
 library;
 
 import 'package:easy_localization/easy_localization.dart';
@@ -12,6 +13,7 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
+import 'package:sacdia_app/features/members/presentation/utils/consent_access.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/coordinator_scope.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/sla_dashboard.dart';
@@ -21,9 +23,10 @@ import 'package:sacdia_app/features/coordinator/presentation/views/coordinator_h
 import '../../coordinator_test_support.dart';
 
 class _FakeAuth extends AuthNotifier {
-  _FakeAuth(this._permissions);
+  _FakeAuth(this._permissions, this._globalGrants);
 
   final List<String> _permissions;
+  final List<AuthorizationGrant> _globalGrants;
 
   @override
   Future<UserEntity?> build() async => UserEntity(
@@ -33,9 +36,18 @@ class _FakeAuth extends AuthNotifier {
         postRegisterComplete: true,
         authorization: AuthorizationSnapshot(
           effectivePermissions: _permissions,
+          globalGrants: _globalGrants,
         ),
       );
 }
+
+/// A coordinator global role that carries `consent:verify`.
+const _coordinatorGrant = AuthorizationGrant(
+  roleName: 'coordinator',
+  permissions: ['consent:verify'],
+);
+
+const _verifyCoordinator = [_coordinatorGrant];
 
 const _sla = SlaDashboard(
   investiture: SlaStat(pending: 0, avgDays: 0, overdue: 0),
@@ -56,6 +68,7 @@ const _noSections = CoordinatorScope(isCoordinator: false);
 Future<GoRouter> _pumpHub(
   WidgetTester tester, {
   required List<String> permissions,
+  List<AuthorizationGrant> globalGrants = _verifyCoordinator,
   required CoordinatorScope scope,
   FakeCoordinatorRepository? repo,
 }) async {
@@ -77,7 +90,8 @@ Future<GoRouter> _pumpHub(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        authNotifierProvider.overrideWith(() => _FakeAuth(permissions)),
+        authNotifierProvider
+            .overrideWith(() => _FakeAuth(permissions, globalGrants)),
         slaDashboardProvider.overrideWith((ref) async => _sla),
         coordinatorScopeProvider.overrideWith((ref) async => scope),
         coordinatorRepositoryProvider.overrideWithValue(
@@ -107,10 +121,78 @@ void main() {
     expect(find.text(title), findsOneWidget);
   });
 
+  for (final role in coordinatorRoleNames) {
+    testWidgets('shows for the $role role', (tester) async {
+      await _pumpHub(
+        tester,
+        permissions: const ['consent:verify'],
+        globalGrants: [
+          AuthorizationGrant(
+              roleName: role, permissions: const ['consent:verify']),
+        ],
+        scope: _withSections,
+      );
+
+      expect(find.text(title), findsOneWidget);
+    });
+  }
+
+  testWidgets('hidden for a direct consent:verify with no coordinator role',
+      (tester) async {
+    await _pumpHub(
+      tester,
+      permissions: const ['consent:verify'],
+      globalGrants: const [],
+      scope: _withSections,
+    );
+
+    expect(find.text(title), findsNothing);
+  });
+
+  testWidgets('hidden for a non-coordinator global role with consent:verify',
+      (tester) async {
+    await _pumpHub(
+      tester,
+      permissions: const ['consent:verify'],
+      globalGrants: const [
+        AuthorizationGrant(
+          roleName: 'super_admin',
+          permissions: ['consent:verify'],
+        ),
+      ],
+      scope: _withSections,
+    );
+
+    expect(find.text(title), findsNothing);
+  });
+
+  testWidgets('hidden for a coordinator role without consent:verify',
+      (tester) async {
+    await _pumpHub(
+      tester,
+      permissions: const ['consent:verify'],
+      globalGrants: const [
+        AuthorizationGrant(
+          roleName: 'coordinator',
+          permissions: ['evidence:review'],
+        ),
+      ],
+      scope: _withSections,
+    );
+
+    expect(find.text(title), findsNothing);
+  });
+
   testWidgets('hidden without consent:verify', (tester) async {
     await _pumpHub(
       tester,
       permissions: const ['club_members:approve'],
+      globalGrants: const [
+        AuthorizationGrant(
+          roleName: 'coordinator',
+          permissions: ['club_members:approve'],
+        ),
+      ],
       scope: _withSections,
     );
 
@@ -139,6 +221,33 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('consent-review-page'), findsOneWidget);
+  });
+
+  testWidgets('pull-to-refresh re-reads the pending count', (tester) async {
+    final repo = FakeCoordinatorRepository()
+      ..results = [
+        Right(pendingPage(
+            items: [pendingItemJson(id: 'a', sectionId: 2)], total: 12)),
+        Right(pendingPage(
+            items: [pendingItemJson(id: 'a', sectionId: 2)], total: 9)),
+      ];
+    await _pumpHub(
+      tester,
+      permissions: const ['consent:verify'],
+      scope: _withSections,
+      repo: repo,
+    );
+    expect(find.text('12'), findsOneWidget);
+
+    final refresh = tester
+        .state<RefreshIndicatorState>(find.byType(RefreshIndicator))
+        .show();
+    await tester.pump();
+    await tester.pumpAndSettle();
+    await refresh;
+
+    expect(repo.calls, hasLength(2));
+    expect(find.text('9'), findsOneWidget);
   });
 
   group('pending forms badge', () {
@@ -232,6 +341,7 @@ void main() {
       await _pumpHub(
         tester,
         permissions: const ['club_members:approve'],
+        globalGrants: const [],
         scope: _withSections,
         repo: repo,
       );
