@@ -210,6 +210,43 @@ bool isPastorWithoutClub(UserEntity? user) {
   return authorization.clubAssignments.every(_isDesignated);
 }
 
+/// Roles globales de coordinación. Su `consent:verify` es autoridad de
+/// coordinador: solo abre las secciones de sus asignaciones y se ejerce desde el
+/// panel de coordinación («Fichas por verificar»), no desde la pantalla de
+/// Miembros de la sección activa. Espejo de `COORDINATOR_GLOBAL_ROLE_NAMES` del
+/// backend.
+const Set<String> coordinatorRoleNames = {
+  'coordinator',
+  'zone-coordinator',
+  'general-coordinator',
+};
+
+/// ¿Es un coordinador (rol global de [coordinatorRoleNames]) sin ninguna
+/// presencia en un club?
+///
+/// Igual que el pastor sin club: no pasa por el post-registro de club y su
+/// inicio no es el resumen de un club sino el panel de coordinación. No exige
+/// `consent:verify` ni secciones asignadas: el propio panel resuelve esos
+/// estados (alcance vacío, sin fichas). Con cualquier asignación de club
+/// visible (activa, pendiente, inactiva o vencida) deja de calificar y conserva
+/// el flujo normal; las `designated` no cuentan como pertenencia. Es falso
+/// mientras se actúa por un dependiente.
+///
+/// Precedencia: si además es tutor, el inicio es la coordinación y «Mi familia»
+/// sigue disponible desde el perfil. Si además es pastor sin club, el inicio
+/// también es la coordinación (ver `coordinator_route_access.dart`).
+bool isCoordinatorWithoutClub(UserEntity? user) {
+  if (user == null || user.actingFor != null) return false;
+  final authorization = user.authorization;
+  if (authorization == null) return false;
+  final isCoordinator = authorization.globalGrants.any((grant) {
+    final role = grant.roleName?.trim().toLowerCase();
+    return role != null && coordinatorRoleNames.contains(role);
+  });
+  if (!isCoordinator) return false;
+  return visibleClubAssignments(authorization.clubAssignments).isEmpty;
+}
+
 /// ¿Es un tutor que no pertenece a ningún club?
 ///
 /// Es el caso de quien cerró el post-registro por «solo tutor»: tiene la cuenta
@@ -237,13 +274,15 @@ bool isGuardianWithoutClub(UserEntity? user) {
 
 /// ¿Debe pasar por el post-registro de club?
 ///
-/// Falta completarlo, salvo para el pastor sin club: su cuenta no tiene
-/// datos de club que completar. Una cuenta sin fecha de nacimiento
+/// Falta completarlo, salvo para el pastor o el coordinador sin club: su
+/// cuenta no tiene datos de club que completar. Una cuenta sin fecha de nacimiento
 /// (`profile_incomplete`) lo necesita siempre: la restricción la levanta el
 /// servidor, no la bandera local.
 bool userNeedsPostRegistration(UserEntity user) =>
     user.mode == AccountMode.profileIncomplete ||
-    (!user.postRegisterComplete && !isPastorWithoutClub(user));
+    (!user.postRegisterComplete &&
+        !isPastorWithoutClub(user) &&
+        !isCoordinatorWithoutClub(user));
 
 /// ¿Se ofrece «Eliminar cuenta» en el menú del post-registro?
 ///

@@ -145,7 +145,7 @@ import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/core/authorization/access_subject.dart';
 import 'package:sacdia_app/core/authorization/screen_catalog.dart';
-import 'pastor_route_access.dart';
+import 'coordinator_route_access.dart';
 import 'route_names.dart';
 import 'package:sacdia_app/core/widgets/sac_nav_icon.dart';
 import 'package:sacdia_app/core/widgets/sac_shell_nav.dart';
@@ -372,8 +372,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         return isPublicRoute ? null : RouteNames.login;
       }
 
-      // El pastor sin club no tiene datos de club que completar: no pasa por
-      // el post-registro (la app solo le muestra «Autorizaciones» y su perfil).
+      // El pastor y el coordinador sin club no tienen datos de club que
+      // completar: no pasan por el post-registro (la app solo les muestra
+      // «Autorizaciones» o la coordinación, y su perfil).
       final needsPostRegistration = userNeedsPostRegistration(user);
 
       // Usuario autenticado en ruta pública → destino home compartido.
@@ -427,9 +428,10 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // El pastor sin club solo ve «Autorizaciones» y su perfil: cualquier otra
       // ruta (también por enlace profundo) vuelve al listado de autorizaciones.
-      if (isPastorWithoutClub(user) && !isPastorAllowedPath(currentPath)) {
-        return RouteNames.investitureAuthorize;
-      }
+      // El coordinador sin club solo ve el panel de coordinación y lo que éste
+      // necesita: lo demás vuelve a su inicio.
+      final clubLessTarget = clubLessRouteRedirect(user, currentPath);
+      if (clubLessTarget != null) return clubLessTarget;
 
       return null;
     },
@@ -1833,12 +1835,31 @@ const List<_NavItemConfig> _pastorNavItems = [
   ),
 ];
 
+/// Navegación del coordinador sin club: el panel de coordinación (su inicio) y
+/// el perfil. El resto de las pestañas pertenece a un miembro de club.
+const List<_NavItemConfig> _coordinatorNavItems = [
+  _NavItemConfig(
+    branchIndex: 0,
+    route: RouteNames.homeDashboard,
+    icon: HugeIcons.strokeRoundedUserGroup,
+    labelKey: 'router.nav.coordination',
+  ),
+  _NavItemConfig(
+    branchIndex: 3,
+    route: RouteNames.homeProfile,
+    icon: HugeIcons.strokeRoundedUser,
+    labelKey: 'router.nav.profile',
+  ),
+];
+
 List<_NavItemConfig> _filterNavItems(
   List<_NavItemConfig> items,
   UserEntity? user,
   AuthorizationSnapshot? authorization,
 ) {
   if (authorization == null) return items;
+  // Coordinación manda sobre autorizaciones si alguien es ambos.
+  if (isCoordinatorWithoutClub(user)) return _coordinatorNavItems;
   if (isPastorWithoutClub(user)) return _pastorNavItems;
   final subject = subjectFromUser(user);
 

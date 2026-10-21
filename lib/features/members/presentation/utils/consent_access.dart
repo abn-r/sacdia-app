@@ -2,6 +2,12 @@ import '../../../auth/domain/entities/authorization_snapshot.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 
+// `coordinatorRoleNames` vive con los predicados de autorización (lo usa
+// `isCoordinatorWithoutClub`); se reexporta aquí para quien ya lo importa de
+// este archivo.
+export '../../../auth/domain/utils/authorization_utils.dart'
+    show coordinatorRoleNames;
+
 /// Permiso que el servidor exige para APROBAR una solicitud
 /// (`club_members:approve`). Un revisor con solo `consent:verify` puede
 /// verificar la ficha pero no aprobar (403 `MR_APPROVE_PERMISSION_REQUIRED`).
@@ -28,17 +34,6 @@ enum JoinRequestsAccess {
   /// `club_members:approve`: vista completa de director.
   approve,
 }
-
-/// Roles globales de coordinación. Su `consent:verify` es autoridad de
-/// coordinador: solo abre las secciones de sus asignaciones y se ejerce desde el
-/// panel de coordinación («Fichas por verificar»), no desde la pantalla de
-/// Miembros de la sección activa. Espejo de `COORDINATOR_GLOBAL_ROLE_NAMES` del
-/// backend.
-const Set<String> coordinatorRoleNames = {
-  'coordinator',
-  'zone-coordinator',
-  'general-coordinator',
-};
 
 bool _grantHas(AuthorizationGrant grant, Set<String> permissions) => grant
     .permissions
