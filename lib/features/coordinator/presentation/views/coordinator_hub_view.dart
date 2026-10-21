@@ -9,11 +9,12 @@ import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
-import '../../../auth/domain/utils/authorization_utils.dart';
+import '../../../../core/widgets/sac_badge.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/utils/consent_access.dart';
 import '../../domain/entities/coordinator_scope.dart';
 import '../../domain/entities/sla_dashboard.dart';
+import '../providers/consent_review_providers.dart';
 import '../providers/coordinator_providers.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
@@ -43,6 +44,7 @@ class CoordinatorHubView extends ConsumerWidget {
           ref.invalidate(slaDashboardProvider);
           ref.invalidate(coordinatorScopeProvider);
           ref.invalidate(coordinatorClubsRawProvider);
+          ref.invalidate(consentPendingCountProvider);
         },
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -158,8 +160,9 @@ class CoordinatorHubView extends ConsumerWidget {
                   const SizedBox(height: 10),
 
                   // Fichas de consentimiento de menores por verificar: solo
-                  // con `consent:verify` y secciones en el alcance.
-                  if (hasAnyPermission(user, verifyConsentPermissions) &&
+                  // con un rol de coordinación que lleve `consent:verify` y
+                  // secciones en el alcance.
+                  if (coordinatorRoleCanVerify(user) &&
                       (scopeAsync.valueOrNull?.hasAssignedSections ??
                           false)) ...[
                     _NavCard(
@@ -167,8 +170,17 @@ class CoordinatorHubView extends ConsumerWidget {
                       color: AppColors.warning,
                       title: 'coordinator.nav.consent_title'.tr(),
                       subtitle: 'coordinator.nav.consent_subtitle'.tr(),
-                      onTap: () =>
-                          context.push(RouteNames.coordinatorConsentReview),
+                      // Barato: pide una sola ficha, solo para leer el total.
+                      badgeCount:
+                          ref.watch(consentPendingCountProvider).valueOrNull,
+                      // Al volver de la cola el total pudo cambiar (se verificaron
+                      // fichas): se vuelve a leer.
+                      onTap: () async {
+                        await context.push(RouteNames.coordinatorConsentReview);
+                        if (context.mounted) {
+                          ref.invalidate(consentPendingCountProvider);
+                        }
+                      },
                     ),
                     const SizedBox(height: 10),
                   ],
@@ -426,12 +438,16 @@ class _NavCard extends StatelessWidget {
   final String subtitle;
   final VoidCallback onTap;
 
+  /// Cuántas cosas esperan en este módulo; sin badge si es `null` o cero.
+  final int? badgeCount;
+
   const _NavCard({
     required this.icon,
     required this.color,
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.badgeCount,
   });
 
   static final _kRadius = BorderRadius.circular(16);
@@ -489,6 +505,10 @@ class _NavCard extends StatelessWidget {
                   ],
                 ),
               ),
+              if (badgeCount != null && badgeCount! > 0) ...[
+                const SizedBox(width: 8),
+                SacBadge.warning(label: badgeCount.toString()),
+              ],
               const SizedBox(width: 8),
               HugeIcon(
                 icon: HugeIcons.strokeRoundedArrowRight01,

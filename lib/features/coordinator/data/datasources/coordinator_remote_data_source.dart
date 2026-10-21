@@ -5,6 +5,7 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/evidence_review_item.dart';
 import '../../domain/entities/camporee_approval.dart';
+import '../models/consent_pending_page_model.dart';
 import '../models/coordinator_club_model.dart';
 import '../models/coordinator_scope_model.dart';
 import '../models/sla_dashboard_model.dart';
@@ -15,6 +16,13 @@ import '../models/camporee_approval_model.dart';
 abstract class CoordinatorRemoteDataSource {
   /// GET /coordination/me/scope
   Future<CoordinatorScopeModel> getMyScope({CancelToken? cancelToken});
+
+  /// GET /coordination/me/consent-pending?limit=&offset=
+  Future<ConsentPendingPageModel> getConsentPending({
+    int limit = 50,
+    int offset = 0,
+    CancelToken? cancelToken,
+  });
 
   /// Lista los clubs agrupando las secciones de /coordination/me/scope.
   Future<List<CoordinatorClubModel>> listClubs({
@@ -158,23 +166,33 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
       if (e.type == DioExceptionType.cancel) throw e;
       final msg = _extractDioMessage(e);
       final code = e.response?.statusCode;
+      // Código de negocio (`GUARD_CLUB_SCOPE_REQUIRED`, ...): la UI decide por
+      // él, nunca por el mensaje. `details` no se lee.
+      final data = e.response?.data;
+      final errorCode = data is Map ? data['code']?.toString() : null;
       if (code == 403) {
         throw AuthException(
           message: 'No tienes permiso para realizar esta acción',
           code: code,
+          errorCode: errorCode,
         );
       }
       if (code == 404) {
-        throw ServerException(message: 'Recurso no encontrado', code: code);
+        throw ServerException(
+          message: 'Recurso no encontrado',
+          code: code,
+          errorCode: errorCode,
+        );
       }
       if (code == 409) {
         throw ServerException(
           message:
               msg.isNotEmpty ? msg : 'El recurso no está en el estado correcto',
           code: code,
+          errorCode: errorCode,
         );
       }
-      throw ServerException(message: msg, code: code);
+      throw ServerException(message: msg, code: code, errorCode: errorCode);
     }
     if (e is ServerException || e is AuthException) throw e;
     throw ServerException(message: e.toString());
@@ -243,6 +261,41 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
       );
     } catch (e) {
       AppLogger.e('Error en getMyScope (coordinator)', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /coordination/me/consent-pending ───────────────────────────────────
+
+  @override
+  Future<ConsentPendingPageModel> getConsentPending({
+    int limit = 50,
+    int offset = 0,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.coordination}/me/consent-pending',
+        queryParameters: {'limit': limit, 'offset': offset},
+        cancelToken: cancelToken,
+      );
+
+      if (_isOk(response.statusCode)) {
+        final raw = response.data;
+        final data = raw is Map
+            ? raw['data'] is Map
+                ? Map<String, dynamic>.from(raw['data'] as Map)
+                : Map<String, dynamic>.from(raw)
+            : <String, dynamic>{};
+        return ConsentPendingPageModel.fromJson(data);
+      }
+      throw ServerException(
+        message: tr('coordinator.errors.fetch_consent_pending'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en getConsentPending (coordinator)',
+          tag: _tag, error: e);
       _rethrow(e);
     }
   }

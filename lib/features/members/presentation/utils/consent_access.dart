@@ -44,6 +44,21 @@ bool _grantHas(AuthorizationGrant grant, Set<String> permissions) => grant
     .permissions
     .any((permission) => permissions.contains(permission.trim().toLowerCase()));
 
+/// El usuario tiene un rol global DE COORDINACIÓN que lleva `consent:verify`:
+/// lo que exige el servidor para «Fichas por verificar» del panel de
+/// coordinación (`GET /coordination/me/consent-pending`). Un permiso suelto o de
+/// otro rol no basta. Espejo de `coordinatorRoleCanVerify` del admin.
+bool coordinatorRoleCanVerify(UserEntity? user) {
+  final authorization = user?.authorization;
+  if (authorization == null) return false;
+  return authorization.globalGrants.any((grant) {
+    final role = grant.roleName?.trim().toLowerCase();
+    return role != null &&
+        coordinatorRoleNames.contains(role) &&
+        _grantHas(grant, verifyConsentPermissions);
+  });
+}
+
 /// `consent:verify` por AUTORIDAD DE CLUB: lo trae el rol de la sección activa,
 /// un rol global que no es de coordinación o un permiso directo, igual que
 /// `clubAuthority` en el `PermissionsGuard` del backend. Un coordinador que es
