@@ -237,6 +237,84 @@ void main() {
     expect(members.verifyCalls, isEmpty);
   });
 
+  group('empty list with forms still on the server', () {
+    testWidgets('reloads from the start instead of saying "no forms"',
+        (tester) async {
+      repo.results = [
+        Right(pendingPage(items: const [], total: 1)),
+        Right(pendingPage(items: [_item('a', 1, 'Ana')], total: 1)),
+      ];
+      await open(tester);
+
+      expect(repo.calls.last.offset, 0);
+      expect(repo.calls, hasLength(2));
+      expect(find.text('No hay fichas por verificar'), findsNothing);
+      expect(find.text('Ana Pérez Soto'), findsOneWidget);
+    });
+
+    testWidgets('verifying the only loaded form fetches the rest',
+        (tester) async {
+      repo.results = [
+        Right(pendingPage(items: [_item('a', 1, 'Ana')], total: 2)),
+        Right(pendingPage(items: [_item('b', 1, 'Bruno')], total: 1)),
+      ];
+      members.verifyResults = [
+        const Right(
+          ConsentVerificationResult(guardianshipId: 'gs-a', approved: false),
+        ),
+      ];
+      await open(tester);
+
+      await tester.tap(find.text('Ana Pérez Soto'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(Checkbox));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Confirmar verificación'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.pumpAndSettle();
+
+      expect(repo.calls.last.offset, 0);
+      expect(find.text('No hay fichas por verificar'), findsNothing);
+      expect(find.text('Bruno Pérez Soto'), findsOneWidget);
+    });
+
+    testWidgets('a failed reload offers "Cargar más", not the empty state',
+        (tester) async {
+      repo.results = [
+        Right(pendingPage(items: const [], total: 3)),
+        const Left(ServerFailure(message: 'x', code: 500)),
+      ];
+      await open(tester);
+
+      expect(find.text('No hay fichas por verificar'), findsNothing);
+      expect(find.text('Cargar más'), findsOneWidget);
+      // One automatic attempt only: no loop.
+      expect(repo.calls, hasLength(2));
+    });
+
+    testWidgets('a server with nothing to list ends in the empty state',
+        (tester) async {
+      repo.results = [
+        Right(pendingPage(items: const [], total: 3)),
+        Right(pendingPage(items: const [], total: 3)),
+      ];
+      await open(tester);
+
+      expect(find.text('No hay fichas por verificar'), findsOneWidget);
+      expect(repo.calls, hasLength(2));
+    });
+
+    testWidgets('a total of zero is the empty state with no extra call',
+        (tester) async {
+      repo.results = [Right(pendingPage(items: const []))];
+      await open(tester);
+
+      expect(find.text('No hay fichas por verificar'), findsOneWidget);
+      expect(repo.calls, hasLength(1));
+    });
+  });
+
   group('pagination', () {
     testWidgets('"Cargar más" asks for the next offset and appends',
         (tester) async {

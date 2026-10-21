@@ -162,6 +162,12 @@ class _Queue extends ConsumerWidget {
         break;
     }
 
+    // Lista vacía pero con fichas por traer (se verificaron todas las cargadas):
+    // no es una cola vacía, se vuelve a pedir desde el principio.
+    if (state.items.isEmpty && state.hasMore) {
+      return [_ReloadQueue(state: state)];
+    }
+
     if (state.items.isEmpty) {
       return [
         SacEmptyState(
@@ -198,6 +204,50 @@ class _Queue extends ConsumerWidget {
         ),
       ],
     ];
+  }
+}
+
+/// La lista quedó vacía pero el servidor aún tiene fichas: pide la primera
+/// página una vez al aparecer y, si no llega nada o falla, deja "Cargar más".
+class _ReloadQueue extends ConsumerStatefulWidget {
+  const _ReloadQueue({required this.state});
+
+  final ConsentReviewState state;
+
+  @override
+  ConsumerState<_ReloadQueue> createState() => _ReloadQueueState();
+}
+
+class _ReloadQueueState extends ConsumerState<_ReloadQueue> {
+  @override
+  void initState() {
+    super.initState();
+    // Una sola vez: si la página vuelve vacía, queda el botón (sin bucle).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.read(consentReviewProvider.notifier).loadMore();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = widget.state;
+    return Column(
+      children: [
+        _Summary(state: state),
+        if (state.loadMoreFailed)
+          _Note(
+            icon: HugeIcons.strokeRoundedAlert02,
+            text: 'coordinator.consent_review.load_more_failed'.tr(),
+          ),
+        const SizedBox(height: 8),
+        SacButton.primary(
+          text: 'coordinator.consent_review.load_more'.tr(),
+          icon: HugeIcons.strokeRoundedArrowDown01,
+          isLoading: state.loadingMore,
+          onPressed: ref.read(consentReviewProvider.notifier).loadMore,
+        ),
+      ],
+    );
   }
 }
 
