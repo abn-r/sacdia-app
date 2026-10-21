@@ -16,21 +16,28 @@ class JoinRequestCard extends StatelessWidget {
   final VoidCallback? onApprove;
   final VoidCallback? onReject;
 
+  /// Abre la verificación de la ficha de un menor sin ofrecer aprobar ni
+  /// rechazar (revisor con solo `consent:verify`).
+  final VoidCallback? onVerify;
+
   const JoinRequestCard({
     super.key,
     required this.request,
     this.onTap,
     this.onApprove,
     this.onReject,
+    this.onVerify,
   });
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
     final isPending = request.status == JoinRequestStatus.pending;
-    final canAct = isPending && (onApprove != null || onReject != null);
     final consent = request.consent;
     final needsVerification = request.consentPending;
+    // `onVerify` solo aplica a un menor con la ficha por verificar.
+    final primary = needsVerification ? (onVerify ?? onApprove) : onApprove;
+    final canAct = isPending && (primary != null || onReject != null);
     final dateLabel = request.requestedAt == null
         ? null
         : DateFormat('dd MMM yyyy').format(request.requestedAt!.toLocal());
@@ -94,7 +101,7 @@ class JoinRequestCard extends StatelessWidget {
                   background: AppColors.error.withValues(alpha: 0.10),
                   onTap: onReject!,
                 ),
-              if (onApprove != null)
+              if (primary != null)
                 _IconAction(
                   // Un menor sin ficha verificada no se aprueba directo: el
                   // mismo botón abre la verificación (FP-76).
@@ -106,7 +113,7 @@ class JoinRequestCard extends StatelessWidget {
                       : HugeIcons.strokeRoundedCheckmarkCircle01,
                   color: AppColors.secondary,
                   background: AppColors.secondary.withValues(alpha: 0.12),
-                  onTap: onApprove!,
+                  onTap: primary,
                 ),
             ] else ...[
               const SizedBox(width: 8),

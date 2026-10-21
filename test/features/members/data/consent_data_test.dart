@@ -15,6 +15,7 @@ import 'package:sacdia_app/core/network/interceptors/error_interceptor.dart';
 import 'package:sacdia_app/core/network/network_info.dart';
 import 'package:sacdia_app/features/members/data/datasources/members_remote_data_source.dart';
 import 'package:sacdia_app/features/members/data/repositories/members_repository_impl.dart';
+import 'package:sacdia_app/features/members/domain/entities/join_request.dart';
 import 'package:sacdia_app/features/members/domain/repositories/members_repository.dart';
 
 class _Reply {
@@ -400,6 +401,106 @@ void main() {
 
       expect(failure.code, 409);
       expect(failure.errorCode, 'MR_CONSENT_NOT_VERIFIED');
+    });
+  });
+
+  group('membership-requests list (coordinator sections)', () {
+    const list = '/api/v1/club-sections/40/membership-requests';
+
+    test('a section outside the scope fails with its code, never details',
+        () async {
+      adapter.replies['GET $list'] =
+          _Reply(403, _err(403, 'GUARD_CLUB_SCOPE_REQUIRED'));
+
+      final failure = failureOf(await repository.getJoinRequests(
+        clubId: 3,
+        sectionId: 40,
+      ));
+
+      expect(failure.code, 403);
+      expect(failure.errorCode, 'GUARD_CLUB_SCOPE_REQUIRED');
+    });
+
+    test('returns the minors with the consent block', () async {
+      adapter.replies['GET $list'] = _Reply(
+        200,
+        _ok([
+          {
+            'assignment_id': 'req-7',
+            'club_section_id': 40,
+            'user_id': 'ana-1',
+            'users': {'user_id': 'ana-1', 'name': 'Ana'},
+            'status': 'pending',
+            'consent': {
+              'required': true,
+              'dependent': true,
+              'status': 'pending',
+              'evidence_uploaded': true,
+              'viewer_can_verify': true,
+            },
+          },
+        ]),
+      );
+
+      final requests = (await repository.getJoinRequests(
+        clubId: 3,
+        sectionId: 40,
+      ))
+          .fold((_) => <JoinRequest>[], (list) => list);
+
+      expect(requests, hasLength(1));
+      expect(requests.single.consentPending, isTrue);
+      expect(requests.single.clubSectionId, 40);
+    });
+  });
+
+  group('approve and reject routes', () {
+    // The list payload carries club_section_id, so the request id the app
+    // keeps is `<section>/membership-requests/<id>` and both actions land on
+    // the section's membership route.
+    Future<String> listedAssignmentId() async {
+      adapter.replies['GET /api/v1/club-sections/12/membership-requests'] =
+          _Reply(
+        200,
+        _ok([
+          {
+            'assignment_id': 'req-1',
+            'club_section_id': 12,
+            'status': 'pending',
+            'users': {'user_id': 'ana-1', 'name': 'Ana'},
+          },
+        ]),
+      );
+      final listed = (await repository.getJoinRequests(
+        clubId: 1,
+        sectionId: 12,
+      ))
+          .fold((f) => throw StateError(f.message), (r) => r);
+      return listed.single.assignmentId;
+    }
+
+    test('approve posts to the section membership route', () async {
+      final id = await listedAssignmentId();
+      adapter.replies['POST $base/approve'] =
+          _Reply(200, _ok({'assignment_id': 'req-1', 'status': 'active'}));
+
+      final result = await repository.approveJoinRequest(id);
+
+      expect(result.isRight(), isTrue);
+      expect(adapter.sent.last.method, 'POST');
+      expect(adapter.sent.last.uri.path, '$base/approve');
+    });
+
+    test('reject posts to the section membership route', () async {
+      final id = await listedAssignmentId();
+      adapter.replies['POST $base/reject'] =
+          _Reply(200, _ok({'assignment_id': 'req-1', 'status': 'rejected'}));
+
+      final result = await repository.rejectJoinRequest(id);
+
+      expect(result.isRight(), isTrue);
+      expect(adapter.sent.last.method, 'POST');
+      expect(adapter.sent.last.uri.path, '$base/reject');
     });
   });
 

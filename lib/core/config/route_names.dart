@@ -220,6 +220,8 @@ class RouteNames {
       '/coordinator/evidence-review';
   static const String coordinatorEvidenceReviewDetailRoute =
       '/coordinator/evidence-review/:type/:id';
+  // Fichas de consentimiento de menores por verificar (`consent:verify`).
+  static const String coordinatorConsentReview = '/coordinator/consent-review';
   // Legacy constant retained for compatibility; no active GoRoute.
   static const String coordinatorCamporeeApprovals =
       '/coordinator/camporee-approvals';

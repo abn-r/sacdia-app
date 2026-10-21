@@ -92,6 +92,9 @@ class _ConsentVerificationViewState
 
   Object? _error;
 
+  /// La ficha ya no está pendiente y la pantalla se está cerrando.
+  bool _gone = false;
+
   String get _assignmentId => widget.request.assignmentId;
 
   bool get _consentVerified => _approveError != null;
@@ -169,6 +172,18 @@ class _ConsentVerificationViewState
     _toast('members.consent.evidence_uploaded_toast'.tr());
   }
 
+  /// 404 `MR_NOT_FOUND` a quien solo verifica: la ficha dejó de estar en su
+  /// lista (otra persona la verificó, se aprobó, se rechazó o el menor ya no
+  /// espera verificación). Se avisa y se sale con `false`: la lista de
+  /// solicitudes se refresca y la cola del coordinador la quita.
+  void _dropNotPending() {
+    if (_gone || !mounted) return;
+    _gone = true;
+    ref.invalidate(membersNotifierProvider);
+    _toast('members.consent.no_longer_pending'.tr(), isError: true);
+    Navigator.of(context).pop(false);
+  }
+
   void _onAlreadyVerified() {
     // La ficha vigente y la lista cambiaron: se vuelven a pedir.
     ref.invalidate(joinRequestConsentEvidenceProvider(_assignmentId));
@@ -198,6 +213,10 @@ class _ConsentVerificationViewState
 
     result.fold(
       (failure) {
+        if (_verifyOnly && isRequestNotFound(failure)) {
+          _dropNotPending();
+          return;
+        }
         // La solicitud puede haber cambiado desde que se abrió la lista.
         if (failure.errorCode == 'MR_NOT_FOUND' ||
             failure.errorCode == 'MR_ALREADY_PENDING') {
@@ -214,7 +233,12 @@ class _ConsentVerificationViewState
           if (isCustodianSelfVerify(failure)) _custodianBlocked = true;
           // Sin `club_members:approve`: se queda en "solo verificar" (el 403 se
           // da antes de escribir nada).
-          if (isApprovePermissionRequired(failure)) _approveDenied = true;
+          if (isApprovePermissionRequired(failure)) {
+            _approveDenied = true;
+            // Sin permiso para aprobar tampoco hay subida: un archivo elegido
+            // y sin subir ya no bloquea la verificación.
+            _pendingFile = false;
+          }
         });
       },
       (verification) {
@@ -291,6 +315,7 @@ class _ConsentVerificationViewState
             _CurrentEvidence(
               assignmentId: _assignmentId,
               title: 'members.consent.evidence_title'.tr(),
+              onRequestGone: _verifyOnly ? _dropNotPending : null,
             )
           else
             Text(
@@ -300,7 +325,16 @@ class _ConsentVerificationViewState
                   ),
             ),
           const SizedBox(height: 12),
-          if (_formAlreadyVerified)
+          if (_verifyOnly)
+            // Subir o reemplazar la ficha exige `club_members:approve` (403 en
+            // el servidor): quien solo verifica la revisa, no la sube.
+            Text(
+              'members.consent.verify_only_upload_note'.tr(),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: c.textSecondary,
+                  ),
+            )
+          else if (_formAlreadyVerified)
             Text(
               'errors.guardianship_consent_already_verified'.tr(),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -433,10 +467,18 @@ class _SectionLabel extends StatelessWidget {
 /// Ficha vigente con su URL firmada. La URL se pide al abrir la pantalla y no se
 /// guarda en ningún caché.
 class _CurrentEvidence extends ConsumerWidget {
-  const _CurrentEvidence({required this.assignmentId, required this.title});
+  const _CurrentEvidence({
+    required this.assignmentId,
+    required this.title,
+    this.onRequestGone,
+  });
 
   final String assignmentId;
   final String title;
+
+  /// Quien solo verifica pidió una ficha que ya no está en su lista (404
+  /// `MR_NOT_FOUND`): la pantalla se cierra con el aviso.
+  final VoidCallback? onRequestGone;
 
   String _uploadedLabel(BuildContext context, ConsentEvidenceAccess access) {
     final at = access.uploadedAt;
@@ -459,6 +501,9 @@ class _CurrentEvidence extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final evidence =
         ref.watch(joinRequestConsentEvidenceProvider(assignmentId));
+    ref.listen(joinRequestConsentEvidenceProvider(assignmentId), (_, next) {
+      if (next.hasError && isRequestNotFound(next.error)) onRequestGone?.call();
+    });
 
     return evidence.when(
       loading: () => Row(

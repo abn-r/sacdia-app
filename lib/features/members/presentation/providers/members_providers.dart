@@ -287,6 +287,10 @@ final joinRequestFiltersProvider =
     StateProvider.autoDispose<JoinRequestFilters>(
         (ref) => const JoinRequestFilters());
 
+/// 403 de las rutas de revisión cuando la sección queda fuera del alcance de un
+/// coordinador (sus `coordinator_assignments`).
+const String clubScopeRequiredCode = 'GUARD_CLUB_SCOPE_REQUIRED';
+
 // ── Members data ──────────────────────────────────────────────────────────────
 
 /// Datos del notifier de miembros (sin estado de loading/error — lo maneja AsyncValue)
@@ -294,9 +298,16 @@ class MembersData {
   final List<ClubMember> members;
   final List<JoinRequest> joinRequests;
 
+  /// El servidor respondió 403 `GUARD_CLUB_SCOPE_REQUIRED` al pedir las
+  /// solicitudes: esta sección no está dentro del alcance de quien consulta (un
+  /// coordinador cuyo `consent:verify` no cubre la sección). No es "sin
+  /// solicitudes": la lista no se pudo ver.
+  final bool requestsScopeDenied;
+
   const MembersData({
     this.members = const [],
     this.joinRequests = const [],
+    this.requestsScopeDenied = false,
   });
 
   /// Número de solicitudes pendientes
@@ -340,6 +351,10 @@ class MembersNotifier extends AutoDisposeAsyncNotifier<MembersData> {
     return MembersData(
       members: membersResult.fold((_) => [], (m) => m),
       joinRequests: requestsResult.fold((_) => [], (r) => r),
+      requestsScopeDenied: requestsResult.fold(
+        (failure) => failure.errorCode == clubScopeRequiredCode,
+        (_) => false,
+      ),
     );
   }
 

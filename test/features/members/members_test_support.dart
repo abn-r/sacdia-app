@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -200,13 +201,37 @@ class FakeMembersRepository implements MembersRepository {
   final evidenceReads = <String>[];
   final verifyCalls = <({String assignmentId, bool approve})>[];
 
+  /// Respuesta por sección (coordinador); sin entrada se usa [requests].
+  final requestsBySection = <int, Either<Failure, List<JoinRequest>>>{};
+
+  /// Secciones pedidas a `getJoinRequests`, en orden.
+  final joinRequestSectionCalls = <int>[];
+
+  /// Mientras exista, `getJoinRequests` espera a que se complete (para medir
+  /// cuántas peticiones están en vuelo a la vez).
+  Completer<void>? joinRequestsGate;
+  int joinRequestsInFlight = 0;
+  int joinRequestsMaxInFlight = 0;
+
   @override
   Future<Either<Failure, List<JoinRequest>>> getJoinRequests({
     required int clubId,
     required int sectionId,
     RequestCancelToken? cancelToken,
-  }) async =>
-      Right(requests);
+  }) async {
+    joinRequestSectionCalls.add(sectionId);
+    joinRequestsInFlight++;
+    if (joinRequestsInFlight > joinRequestsMaxInFlight) {
+      joinRequestsMaxInFlight = joinRequestsInFlight;
+    }
+    try {
+      final gate = joinRequestsGate;
+      if (gate != null) await gate.future;
+    } finally {
+      joinRequestsInFlight--;
+    }
+    return requestsBySection[sectionId] ?? Right(requests);
+  }
 
   @override
   Future<Either<Failure, List<ClubMember>>> getClubMembers({
