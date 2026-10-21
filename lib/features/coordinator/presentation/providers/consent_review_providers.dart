@@ -94,21 +94,35 @@ class ConsentReviewNotifier
   /// Fichas por página: el valor por defecto del endpoint.
   static const int pageSize = 50;
 
-  final CancelToken _cancelToken = CancelToken();
-  bool _disposed = false;
+  /// Token de la carga vigente. El notifier SOBREVIVE a `ref.invalidate`
+  /// (Riverpod 2.6 solo vuelve a correr `build`), así que cada `build` crea el
+  /// suyo y cancela únicamente ese al descartarse: reutilizar uno ya cancelado
+  /// haría fallar toda recarga.
+  CancelToken _cancelToken = CancelToken();
+
+  /// Cuántas veces corrió `build`. Una respuesta que llega de una generación
+  /// anterior (o ya cancelada) se descarta.
+  int _generation = 0;
+
+  /// Lo verificado en esta generación, para que una página que ya venía en
+  /// camino no resucite esas filas.
+  final Set<String> _removedAssignmentIds = {};
+  final Set<String> _removedUserIds = {};
 
   @override
   Future<ConsentReviewState> build() async {
-    ref.onDispose(() {
-      _disposed = true;
-      _cancelToken.cancel();
-    });
+    final token = CancelToken();
+    _cancelToken = token;
+    _generation++;
+    _removedAssignmentIds.clear();
+    _removedUserIds.clear();
+    ref.onDispose(token.cancel);
 
     final result =
         await ref.read(coordinatorRepositoryProvider).getConsentPending(
               limit: pageSize,
               offset: 0,
-              cancelToken: _cancelToken,
+              cancelToken: token,
             );
     return result.fold(
       (failure) => switch (_accessOf(failure)) {
@@ -134,10 +148,14 @@ class ConsentReviewNotifier
     return null;
   }
 
-  /// Pide la página siguiente y la agrega al final.
+  /// Pide la página siguiente y la agrega al final. Con la lista vacía y fichas
+  /// por traer (todas las cargadas se verificaron), vuelve a pedir desde el
+  /// principio.
   Future<void> loadMore() async {
     final current = state.valueOrNull;
     if (current == null || !current.hasMore || current.loadingMore) return;
+    final generation = _generation;
+    final token = _cancelToken;
     state = AsyncData(
       current.copyWith(loadingMore: true, loadMoreFailed: false),
     );
@@ -146,23 +164,36 @@ class ConsentReviewNotifier
         await ref.read(coordinatorRepositoryProvider).getConsentPending(
               limit: pageSize,
               offset: current.items.length,
-              cancelToken: _cancelToken,
+              cancelToken: token,
             );
-    if (_disposed) return;
+    if (generation != _generation || token.isCancelled) return;
+
+    // Se parte del estado VIGENTE, no del de antes del await: mientras tanto
+    // pudo verificarse una ficha ([removeRequest]).
+    final latest = state.valueOrNull;
+    if (latest == null) return;
 
     state = AsyncData(
       result.fold(
-        (_) => current.copyWith(loadingMore: false, loadMoreFailed: true),
+        (_) => latest.copyWith(loadingMore: false, loadMoreFailed: true),
         (page) {
-          final known = {for (final item in current.items) item.assignmentId};
-          return current.copyWith(
-            items: [
-              ...current.items,
-              for (final item in page.items)
-                if (!known.contains(item.assignmentId)) item,
-            ],
-            // El servidor manda: su total y sus conteos son los vigentes.
-            total: page.total,
+          final known = {for (final item in latest.items) item.assignmentId};
+          final fresh = [
+            for (final item in page.items)
+              if (!known.contains(item.assignmentId) &&
+                  !_removedAssignmentIds.contains(item.assignmentId) &&
+                  !_removedUserIds.contains(item.request.userId))
+                item,
+          ];
+          final items = [...latest.items, ...fresh];
+          return latest.copyWith(
+            items: items,
+            // El servidor manda: su total y sus conteos son los vigentes. Una
+            // página sin nada que traer cierra la lista aunque el total diga
+            // otra cosa (si no, "Cargar más" quedaría pidiendo lo mismo).
+            total: page.items.isEmpty && page.total > items.length
+                ? items.length
+                : page.total,
             bySection: page.bySection,
             loadingMore: false,
             loadMoreFailed: false,
@@ -174,27 +205,48 @@ class ConsentReviewNotifier
 
   /// Quita una ficha ya verificada: baja el total y el conteo de su sección (que
   /// sale del resumen al llegar a cero).
+  ///
+  /// Verificar una ficha limpia en el servidor TODAS las pendientes del mismo
+  /// menor (la verificación es por usuario), así que salen todas las filas de
+  /// ese `userId`, cada una con su sección.
   void removeRequest(String assignmentId) {
     final current = state.valueOrNull;
     if (current == null) return;
-    final index =
-        current.items.indexWhere((item) => item.assignmentId == assignmentId);
-    if (index < 0) return;
+    final target = current.items
+        .where((item) => item.assignmentId == assignmentId)
+        .firstOrNull;
+    if (target == null) return;
 
-    final removed = current.items[index];
+    final userId = target.request.userId;
+    final removed = [
+      for (final item in current.items)
+        if (item.request.userId == userId) item,
+    ];
+    _removedUserIds.add(userId);
+    _removedAssignmentIds.addAll(removed.map((item) => item.assignmentId));
+
+    final perSection = <int?, int>{};
+    for (final item in removed) {
+      perSection.update(item.clubSectionId, (n) => n + 1, ifAbsent: () => 1);
+    }
     final bySection = <ConsentPendingSection>[
       for (final section in current.bySection)
-        if (section.clubSectionId != removed.clubSectionId)
-          section
-        else if (section.pendingConsentCount > 1)
+        if (section.pendingConsentCount -
+                (perSection[section.clubSectionId] ?? 0) >
+            0)
           section.copyWith(
-            pendingConsentCount: section.pendingConsentCount - 1,
+            pendingConsentCount: section.pendingConsentCount -
+                (perSection[section.clubSectionId] ?? 0),
           ),
     ];
+    final total = current.total - removed.length;
     state = AsyncData(
       current.copyWith(
-        items: [...current.items]..removeAt(index),
-        total: current.total > 0 ? current.total - 1 : 0,
+        items: [
+          for (final item in current.items)
+            if (item.request.userId != userId) item,
+        ],
+        total: total > 0 ? total : 0,
         bySection: bySection,
       ),
     );

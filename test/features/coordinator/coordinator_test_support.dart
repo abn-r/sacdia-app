@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/features/coordinator/data/models/consent_pending_page_model.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/consent_pending_queue.dart';
@@ -13,6 +14,7 @@ Map<String, Object?> pendingItemJson({
   required int sectionId,
   String name = 'Ana',
   String paternal = 'Pérez',
+  String? userId,
   String club = 'Club Águilas',
   String type = 'Conquistadores',
   String? district = 'Distrito Norte',
@@ -20,14 +22,14 @@ Map<String, Object?> pendingItemJson({
 }) =>
     {
       'assignment_id': id,
-      'user_id': 'user-$id',
+      'user_id': userId ?? 'user-$id',
       'role_id': 'role-member',
       'club_section_id': sectionId,
       'status': 'pending',
       'created_at': '2026-10-09T10:00:00.000Z',
       'expires_at': null,
       'users': {
-        'user_id': 'user-$id',
+        'user_id': userId ?? 'user-$id',
         'name': name,
         'email': null,
         'paternal_last_name': paternal,
@@ -121,6 +123,9 @@ class FakeCoordinatorRepository implements CoordinatorRepository {
 
   final calls = <({int limit, int offset})>[];
 
+  /// El token de cada llamada, en el mismo orden que [calls].
+  final cancelTokens = <Object?>[];
+
   /// Si se asigna, las llamadas esperan a que se complete.
   Completer<void>? gate;
 
@@ -131,6 +136,11 @@ class FakeCoordinatorRepository implements CoordinatorRepository {
     Object? cancelToken,
   }) async {
     calls.add((limit: limit, offset: offset));
+    cancelTokens.add(cancelToken);
+    // Como Dio: pedir con un token ya cancelado falla sin tocar la red.
+    if (cancelToken is CancelToken && cancelToken.isCancelled) {
+      return const Left(ServerFailure(message: 'cancelled', code: 0));
+    }
     final gate = this.gate;
     if (gate != null) await gate.future;
     final index = calls.length - 1;

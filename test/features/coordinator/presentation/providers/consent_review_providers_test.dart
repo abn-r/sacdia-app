@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
@@ -268,6 +269,158 @@ void main() {
     });
   });
 
+  group('refresh after invalidate', () {
+    test('a refresh uses a fresh token and loads (the old one is cancelled)',
+        () async {
+      repo.results = [
+        page(items: [_item('a', 1)], total: 1),
+        page(items: [_item('a', 1), _item('b', 1)], total: 2),
+      ];
+      final c = container();
+      c.listen(consentReviewProvider, (_, __) {});
+      await c.read(consentReviewProvider.future);
+
+      c.invalidate(consentReviewProvider);
+      final state = await c.read(consentReviewProvider.future);
+
+      // The fake FAILS when handed a cancelled token: this is data, not error.
+      expect(state.items, hasLength(2));
+      final first = repo.cancelTokens[0] as CancelToken;
+      final second = repo.cancelTokens[1] as CancelToken;
+      expect(identical(first, second), isFalse);
+      expect(first.isCancelled, isTrue);
+      expect(second.isCancelled, isFalse);
+    });
+
+    test('survives several refreshes in a row', () async {
+      repo.results = [page(items: [_item('a', 1)], total: 1)];
+      final c = container();
+      c.listen(consentReviewProvider, (_, __) {});
+      await c.read(consentReviewProvider.future);
+
+      for (var i = 0; i < 3; i++) {
+        c.invalidate(consentReviewProvider);
+        await c.read(consentReviewProvider.future);
+      }
+
+      expect(c.read(consentReviewProvider).hasError, isFalse);
+      expect(repo.calls, hasLength(4));
+    });
+
+    test('loadMore still writes after a refresh', () async {
+      repo.results = [
+        page(items: [_item('a', 1)], total: 2),
+        page(items: [_item('a', 1)], total: 2),
+        page(items: [_item('b', 1)], total: 2, offset: 1),
+      ];
+      final c = container();
+      c.listen(consentReviewProvider, (_, __) {});
+      await c.read(consentReviewProvider.future);
+      c.invalidate(consentReviewProvider);
+      await c.read(consentReviewProvider.future);
+
+      await c.read(consentReviewProvider.notifier).loadMore();
+
+      final state = c.read(consentReviewProvider).requireValue;
+      expect(state.items.map((i) => i.request.assignmentId),
+          [_assignment('a', 1), _assignment('b', 1)]);
+      expect(state.loadMoreFailed, isFalse);
+    });
+
+    test('a page that was in flight before the refresh is dropped', () async {
+      repo.results = [
+        page(items: [_item('a', 1)], total: 2),
+        page(items: [_item('z', 1)], total: 2, offset: 1),
+        page(items: [_item('x', 1)], total: 1),
+      ];
+      final c = container();
+      c.listen(consentReviewProvider, (_, __) {});
+      await c.read(consentReviewProvider.future);
+      final notifier = c.read(consentReviewProvider.notifier);
+
+      final gate = repo.gate = Completer<void>();
+      final stale = notifier.loadMore();
+      await pumpEventQueue();
+      // The refresh runs while the old page is still pending.
+      c.invalidate(consentReviewProvider);
+      gate.complete();
+      repo.gate = null;
+      await stale;
+      await c.read(consentReviewProvider.future);
+
+      final state = c.read(consentReviewProvider).requireValue;
+      expect(state.items.map((i) => i.request.assignmentId),
+          [_assignment('x', 1)]);
+    });
+  });
+
+  group('loadMore vs removeRequest', () {
+    test('does not resurrect a form verified while the page was in flight',
+        () async {
+      repo.results = [
+        page(items: [_item('a', 1), _item('b', 1)], total: 4),
+        // The page was already on its way: it still lists the verified 'a'.
+        page(items: [_item('a', 1), _item('c', 1)], total: 4, offset: 2),
+      ];
+      final c = container();
+      c.listen(consentReviewProvider, (_, __) {});
+      await c.read(consentReviewProvider.future);
+      final notifier = c.read(consentReviewProvider.notifier);
+
+      final gate = repo.gate = Completer<void>();
+      final pending = notifier.loadMore();
+      await pumpEventQueue();
+      notifier.removeRequest(_assignment('a', 1));
+      gate.complete();
+      await pending;
+
+      final state = c.read(consentReviewProvider).requireValue;
+      expect(state.items.map((i) => i.request.assignmentId),
+          [_assignment('b', 1), _assignment('c', 1)]);
+      expect(state.loadingMore, isFalse);
+    });
+
+    test('a failed page keeps what was removed meanwhile removed', () async {
+      repo.results = [
+        page(items: [_item('a', 1), _item('b', 1)], total: 4),
+        const Left(ServerFailure(message: 'x', code: 500)),
+      ];
+      final c = container();
+      c.listen(consentReviewProvider, (_, __) {});
+      await c.read(consentReviewProvider.future);
+      final notifier = c.read(consentReviewProvider.notifier);
+
+      final gate = repo.gate = Completer<void>();
+      final pending = notifier.loadMore();
+      await pumpEventQueue();
+      notifier.removeRequest(_assignment('a', 1));
+      gate.complete();
+      await pending;
+
+      final state = c.read(consentReviewProvider).requireValue;
+      expect(state.items.map((i) => i.request.assignmentId),
+          [_assignment('b', 1)]);
+      expect(state.loadMoreFailed, isTrue);
+    });
+
+    test('an empty page closes the list instead of leaving a dead "more"',
+        () async {
+      repo.results = [
+        page(items: const [], total: 3),
+        page(items: const [], total: 3),
+      ];
+      final c = container();
+      c.listen(consentReviewProvider, (_, __) {});
+      await c.read(consentReviewProvider.future);
+
+      await c.read(consentReviewProvider.notifier).loadMore();
+
+      final state = c.read(consentReviewProvider).requireValue;
+      expect(state.hasMore, isFalse);
+      expect(state.total, 0);
+    });
+  });
+
   group('removeRequest', () {
     ProviderContainer loaded() {
       repo.results = [
@@ -328,6 +481,38 @@ void main() {
 
       // A verified form left the server queue too: offset = what is listed.
       expect(repo.calls.single.offset, 2);
+    });
+
+    test('also drops every other form of the same minor', () async {
+      repo.results = [
+        page(
+          items: [
+            pendingItemJson(id: 'a', sectionId: 1, userId: 'minor'),
+            pendingItemJson(id: 'b', sectionId: 2, userId: 'other'),
+            pendingItemJson(id: 'c', sectionId: 2, userId: 'minor'),
+            pendingItemJson(id: 'd', sectionId: 1, userId: 'minor'),
+          ],
+          total: 6,
+          bySection: [
+            pendingSectionJson(sectionId: 1, count: 3),
+            pendingSectionJson(sectionId: 2, count: 2),
+            pendingSectionJson(sectionId: 3, count: 1),
+          ],
+        ),
+      ];
+      final c = container();
+      await c.read(consentReviewProvider.future);
+
+      c.read(consentReviewProvider.notifier).removeRequest(_assignment('c', 2));
+
+      final state = c.read(consentReviewProvider).requireValue;
+      expect(state.items.map((i) => i.request.assignmentId),
+          [_assignment('b', 2)]);
+      expect(state.total, 3);
+      expect(
+        state.bySection.map((s) => (s.clubSectionId, s.pendingConsentCount)),
+        [(1, 1), (2, 1), (3, 1)],
+      );
     });
 
     test('an unknown id changes nothing', () async {
