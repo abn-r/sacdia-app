@@ -668,6 +668,9 @@ SacProgressRing(
 | `SacImageViewer` | `sac_image_viewer.dart` | Full-screen image viewer with zoom |
 | `SacPdfViewer` | `sac_pdf_viewer.dart` | In-app PDF viewer |
 | `SectionSwitcherSheet` | `section_switcher_sheet.dart` | Bottom sheet for club section switching |
+| `SacEmptyState` | `sac_empty_state.dart` | Canonical empty / no-data placeholder (icon 56, title, optional body + CTA) |
+| `SacErrorState` | `sac_error_state.dart` | Full-area error placeholder: icon, title, optional message, optional retry. `SacErrorState.forbidden()` is the 403 variant (lock icon, no retry). Accepts `padding` to sit below a frosted `SacTopBar` |
+| `SacStatTile` | `sac_stat_tile.dart` | KPI tile on `SacCard`: tinted icon circle, `AnimatedCounter` value (`decimals` for fractions), label, `SacStatTone` (neutral/warning/error/success/accent), optional `onTap`; `SacStatTile.skeleton()` for loading |
 
 ### 6.10 Barrel File — sac_widgets.dart
 
@@ -899,8 +902,8 @@ loading: () => const Scaffold(
 
 ### 11.2 Empty State
 
-No shared `EmptyState` widget exists in `core/widgets/`. Feature screens implement
-their own inline empty states, typically:
+Use `SacEmptyState` (`lib/core/widgets/sac_empty_state.dart`) for new screens. Older
+feature screens implement their own inline empty states, typically:
 
 ```dart
 // Pattern A (most common — icon + text centered)
@@ -923,10 +926,14 @@ Center(
 )
 ```
 
-**Note**: pattern is inconsistent across features. Pattern A (above) is used in the
-majority of screens (dashboard, units). If adding a new screen, use Pattern A.
+**Note**: pattern is inconsistent across legacy features. For new screens use
+`SacEmptyState`, not a hand-rolled copy of Pattern A.
 
 ### 11.3 Error State
+
+Use `SacErrorState` for full-area failures (`SacErrorState.forbidden()` for 403) and a
+compact inline card with a retry button for a failing section inside a larger screen.
+Never show `error.toString()` to users; use localized copy. Legacy inline pattern:
 
 ```dart
 // In AsyncValue.when():
