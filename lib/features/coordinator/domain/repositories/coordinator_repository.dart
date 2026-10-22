@@ -5,7 +5,6 @@ import '../entities/coordinator_club.dart';
 import '../entities/coordinator_scope.dart';
 import '../entities/sla_dashboard.dart';
 import '../entities/evidence_review_item.dart';
-import '../entities/camporee_approval.dart';
 
 /// Repositorio del módulo de coordinador (interfaz del dominio).
 abstract class CoordinatorRepository {
@@ -38,9 +37,9 @@ abstract class CoordinatorRepository {
 
   /// Devuelve la lista paginada de evidencias pendientes de revisión.
   /// GET /evidence-review/pending?page=1&limit=20&type=class|honor
-  Future<Either<Failure, List<EvidenceReviewItem>>> getPendingEvidence({
+  Future<Either<Failure, EvidenceReviewPage>> getPendingEvidence({
     int page = 1,
-    int limit = 20,
+    int limit = kPendingEvidencePageSize,
     EvidenceReviewType? type,
     RequestCancelToken? cancelToken,
   });
@@ -82,90 +81,5 @@ abstract class CoordinatorRepository {
     required List<String> ids,
     required EvidenceReviewType type,
     required String rejectionReason,
-  });
-
-  // ── Camporee list ─────────────────────────────────────────────────────────
-
-  /// Devuelve la lista de camporees locales activos.
-  /// GET /camporees?active=true
-  Future<Either<Failure, List<CamporeeItem>>> listLocalCamporees({
-    bool activeOnly = true,
-    RequestCancelToken? cancelToken,
-  });
-
-  /// Devuelve la lista de camporees de unión activos.
-  /// GET /camporees/union
-  Future<Either<Failure, List<CamporeeItem>>> listUnionCamporees({
-    RequestCancelToken? cancelToken,
-  });
-
-  // ── Camporee pending approvals ────────────────────────────────────────────
-
-  /// Devuelve las inscripciones pendientes de aprobación para un camporee local.
-  /// GET /camporees/:camporeeId/pending
-  Future<Either<Failure, CamporeePendingApprovals>> getLocalCamporeePending(
-    int camporeeId, {
-    RequestCancelToken? cancelToken,
-  });
-
-  /// Devuelve las inscripciones pendientes de aprobación para un camporee de unión.
-  /// GET /camporees/union/:camporeeId/pending
-  Future<Either<Failure, CamporeePendingApprovals>> getUnionCamporeePending(
-    int camporeeId, {
-    RequestCancelToken? cancelToken,
-  });
-
-  // ── Club enrollment approve/reject ────────────────────────────────────────
-
-  /// Aprueba la inscripción tardía de un club.
-  /// PATCH /camporees/:camporeeId/clubs/:camporeeClubId/approve
-  Future<Either<Failure, void>> approveCamporeeClub({
-    required int camporeeId,
-    required int camporeeClubId,
-    required CamporeeScope scope,
-  });
-
-  /// Rechaza la inscripción tardía de un club.
-  /// PATCH /camporees/:camporeeId/clubs/:camporeeClubId/reject
-  Future<Either<Failure, void>> rejectCamporeeClub({
-    required int camporeeId,
-    required int camporeeClubId,
-    required CamporeeScope scope,
-    String? rejectionReason,
-  });
-
-  // ── Member enrollment approve/reject ──────────────────────────────────────
-
-  /// Aprueba la inscripción tardía de un miembro.
-  /// PATCH /camporees/:camporeeId/members/:camporeeMemberId/approve
-  Future<Either<Failure, void>> approveCamporeeMember({
-    required int camporeeId,
-    required int camporeeMemberId,
-    required CamporeeScope scope,
-  });
-
-  /// Rechaza la inscripción tardía de un miembro.
-  /// PATCH /camporees/:camporeeId/members/:camporeeMemberId/reject
-  Future<Either<Failure, void>> rejectCamporeeMember({
-    required int camporeeId,
-    required int camporeeMemberId,
-    required CamporeeScope scope,
-    String? rejectionReason,
-  });
-
-  // ── Payment approve/reject ────────────────────────────────────────────────
-
-  /// Aprueba un pago tardío.
-  /// PATCH /camporees/payments/:camporeePaymentId/approve
-  /// (no lleva camporeeId en la ruta — es independiente del scope)
-  Future<Either<Failure, void>> approveCamporeePayment({
-    required String camporeePaymentId,
-  });
-
-  /// Rechaza un pago tardío.
-  /// PATCH /camporees/payments/:camporeePaymentId/reject
-  Future<Either<Failure, void>> rejectCamporeePayment({
-    required String camporeePaymentId,
-    String? rejectionReason,
   });
 }

@@ -271,6 +271,15 @@ void main() {
       });
     }
 
+    // Coordination is now a main-shell tab, so the grid must not duplicate it.
+    for (final role in ['coordinator', 'admin', 'director-lf']) {
+      testWidgets('does not show a coordination shortcut to $role',
+          (tester) async {
+        await _pumpQuickAccessGrid(tester, globalUser(role));
+        expect(find.text('dashboard.quick_access.coordination'), findsNothing);
+      });
+    }
+
     testWidgets('hides both investiture shortcuts from a super-admin only',
         (tester) async {
       await _pumpQuickAccessGrid(tester, globalUser('super-admin'));

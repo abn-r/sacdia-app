@@ -1,243 +1,148 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
-import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:hugeicons/hugeicons.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/sac_colors.dart';
-import '../../domain/entities/evidence_review_item.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/instructor_avatar.dart';
+import 'package:sacdia_app/core/widgets/sac_badge.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/features/coordinator/domain/entities/evidence_review_item.dart';
+import 'package:sacdia_app/features/coordinator/presentation/widgets/evidence_age.dart';
 
-/// Card de un ítem pendiente de revisión de evidencia.
+/// Card of a pending evidence in the review queue.
 ///
-/// Muestra nombre del miembro, tipo, fecha de envío y cantidad de archivos.
+/// Member, what was submitted (context and club section) and a footer with how
+/// long it has been waiting, its type and the number of attached files.
 class EvidenceReviewCard extends StatelessWidget {
-  final EvidenceReviewItem item;
-  final VoidCallback onTap;
-
   const EvidenceReviewCard({
     super.key,
     required this.item,
     required this.onTap,
+    this.animate = false,
+    this.animationDelay = Duration.zero,
   });
+
+  final EvidenceReviewItem item;
+  final VoidCallback onTap;
+  final bool animate;
+  final Duration animationDelay;
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final typeColor = _typeColor(item.type);
+    final textTheme = Theme.of(context).textTheme;
+    final deleted = item.memberIsDeleted;
+    final contextLine = item.context?.trim() ?? '';
+    final clubLine = item.clubSectionLabel?.trim() ?? '';
 
-    return Material(
-      color: c.surface,
-      borderRadius: BorderRadius.circular(16),
-      child: SacInkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: c.border),
-            boxShadow: [
-              BoxShadow(
-                color: c.shadow,
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
+    return SacCard(
+      onTap: onTap,
+      animate: animate,
+      animationDelay: animationDelay,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InstructorAvatar(
+            name: deleted ? '?' : item.memberName,
+            photoUrl: deleted ? null : item.memberPhotoUrl,
+            size: 44,
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Avatar ──────────────────────────────────────────────────
-              _MemberAvatar(
-                name: item.displayMemberName,
-                photoUrl: item.memberPhotoUrl,
-              ),
-              const SizedBox(width: 12),
-
-              // ── Content ─────────────────────────────────────────────────
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.displayMemberName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: deleted ? c.textTertiary : c.text,
+                    fontStyle: deleted ? FontStyle.italic : null,
+                  ),
+                ),
+                if (contextLine.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    contextLine,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style:
+                        textTheme.bodySmall?.copyWith(color: c.textSecondary),
+                  ),
+                ],
+                if (clubLine.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    clubLine,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style:
+                        textTheme.bodySmall?.copyWith(color: c.textSecondary),
+                  ),
+                ],
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            item.displayMemberName,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: c.text,
-                                ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        _TypeBadge(type: item.type, color: typeColor),
-                      ],
+                    EvidenceAgeBadge(age: EvidenceAge.of(item.submittedAt)),
+                    SacBadge(
+                      variant: SacBadgeVariant.neutral,
+                      label: item.type.displayLabel,
                     ),
-                    if (item.context != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        item.context!,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: c.textSecondary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                    if (item.clubSectionLabel != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        item.clubSectionLabel!,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: c.textTertiary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        HugeIcon(
-                          icon: HugeIcons.strokeRoundedCalendar01,
-                          size: 12,
-                          color: c.textTertiary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          DateFormat('dd/MM/yyyy').format(
-                            item.submittedAt.toLocal(),
-                          ),
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: c.textTertiary,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        HugeIcon(
-                          icon: HugeIcons.strokeRoundedAttachment01,
-                          size: 12,
-                          color: c.textTertiary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          (item.fileCount == 1
-                                  ? 'coordinator.evidence_review.card.files_one'
-                                  : 'coordinator.evidence_review.card.files_other')
-                              .tr(namedArgs: {
-                            'count': item.fileCount.toString()
-                          }),
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: c.textTertiary,
-                          ),
-                        ),
-                      ],
-                    ),
+                    _AttachmentCount(count: item.fileCount),
                   ],
                 ),
-              ),
-
-              // ── Arrow ────────────────────────────────────────────────────
-              const SizedBox(width: 8),
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedArrowRight01,
-                size: 16,
-                color: c.textTertiary,
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Color _typeColor(EvidenceReviewType type) {
-    switch (type) {
-      case EvidenceReviewType.classType:
-        return AppColors.info;
-      case EvidenceReviewType.honor:
-        return AppColors.secondary;
-    }
-  }
-}
-
-class _TypeBadge extends StatelessWidget {
-  final EvidenceReviewType type;
-  final Color color;
-
-  const _TypeBadge({required this.type, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        type.displayLabel,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
+          const SizedBox(width: 8),
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowRight01,
+              size: 18,
+              color: c.textTertiary,
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _MemberAvatar extends StatelessWidget {
-  final String name;
-  final String? photoUrl;
+class _AttachmentCount extends StatelessWidget {
+  const _AttachmentCount({required this.count});
 
-  const _MemberAvatar({required this.name, this.photoUrl});
+  final int count;
 
   @override
   Widget build(BuildContext context) {
-    final initials = name.isNotEmpty
-        ? name.trim().split(' ').take(2).map((w) => w[0].toUpperCase()).join()
-        : '?';
-    final theme = Theme.of(context);
-    return ClipOval(
-      child: SizedBox(
-        width: 44,
-        height: 44,
-        child: (photoUrl != null && photoUrl!.isNotEmpty)
-            ? SacProfileImage(
-                imageUrl: photoUrl!,
-                fit: BoxFit.cover,
-                memCacheWidth: 88,
-                memCacheHeight: 88,
-                placeholder: (_, __) => _initialsWidget(theme, initials),
-                errorWidget: (_, __, ___) => _initialsWidget(theme, initials),
-              )
-            : _initialsWidget(theme, initials),
-      ),
-    );
-  }
+    final c = context.sac;
+    final label = (count == 1
+            ? 'coordinator.evidence_review.card.files_one'
+            : 'coordinator.evidence_review.card.files_other')
+        .tr(namedArgs: {'count': '$count'});
 
-  Widget _initialsWidget(ThemeData theme, String initials) {
-    return Container(
-      color: theme.colorScheme.primaryContainer,
-      alignment: Alignment.center,
-      child: Text(
-        initials,
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: theme.colorScheme.onPrimaryContainer,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        HugeIcon(
+          icon: HugeIcons.strokeRoundedAttachment01,
+          size: 14,
+          color: c.textTertiary,
         ),
-      ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: Theme.of(context)
+              .textTheme
+              .labelMedium
+              ?.copyWith(color: c.textTertiary),
+        ),
+      ],
     );
   }
 }

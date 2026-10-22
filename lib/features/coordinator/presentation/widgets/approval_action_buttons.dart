@@ -1,27 +1,22 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
-import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
-import '../../../../core/theme/app_colors.dart';
-import 'package:sacdia_app/core/theme/sac_accent.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 
-/// Barra de acciones de aprobación/rechazo para evidencias y camporees.
-///
-/// Muestra un estado de carga mientras la operación está en curso.
-/// [onApprove] y [onReject] son callbacks que se llaman con la confirmación
-/// del usuario ya obtenida.
 enum _ApprovalPending { approve, reject }
 
+/// Sticky reject / approve bar of the evidence detail.
+///
+/// Sits at the bottom of the screen inside the safe area with a hairline on
+/// top. Both buttons are at least 48 pt tall; the pressed one shows the loading
+/// state while the other stays disabled. [onApprove] and [onReject] are called
+/// on tap; the confirmation (dialog or sheet) is the caller's job.
 class ApprovalActionBar extends StatefulWidget {
-  final bool isLoading;
-  final VoidCallback onApprove;
-  final VoidCallback onReject;
-  final String? approveLabel;
-  final String? rejectLabel;
-
   const ApprovalActionBar({
     super.key,
     required this.isLoading,
@@ -30,6 +25,18 @@ class ApprovalActionBar extends StatefulWidget {
     this.approveLabel,
     this.rejectLabel,
   });
+
+  final bool isLoading;
+  final VoidCallback onApprove;
+  final VoidCallback onReject;
+  final String? approveLabel;
+  final String? rejectLabel;
+
+  /// Equal widths: at 5:7 the reject label ("Rechazar" plus its icon)
+  /// truncated on a 402pt-wide iPhone. Approve stands out by its fill, not
+  /// its width.
+  static const int rejectFlex = 1;
+  static const int approveFlex = 1;
 
   @override
   State<ApprovalActionBar> createState() => _ApprovalActionBarState();
@@ -53,170 +60,227 @@ class _ApprovalActionBarState extends State<ApprovalActionBar> {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveApproveLabel =
+    final c = context.sac;
+    final hPad = Responsive.horizontalPadding(context);
+    final approveLabel =
         widget.approveLabel ?? 'coordinator.actions.approve'.tr();
-    final effectiveRejectLabel =
-        widget.rejectLabel ?? 'coordinator.actions.reject'.tr();
+    final rejectLabel = widget.rejectLabel ?? 'coordinator.actions.reject'.tr();
     final loading = widget.isLoading;
     final approveLoading = loading && _pending == _ApprovalPending.approve;
     final rejectLoading = loading && _pending == _ApprovalPending.reject;
 
-    if (loading && _pending == null) {
-      return SizedBox(
-        height: 48,
-        child: Center(
-          child: SizedBox(
-            width: 28,
-            height: 28,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.5,
-              color: SacAccent.of(context).color,
-            ),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: c.surface,
+        border: Border(top: BorderSide(color: c.border)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 12),
+          child: Row(
+            children: [
+              Expanded(
+                flex: ApprovalActionBar.rejectFlex,
+                child: SacButton.outline(
+                  text: rejectLabel,
+                  icon: HugeIcons.strokeRoundedCancel01,
+                  textColor: c.error,
+                  borderColor: c.error.withValues(alpha: 0.5),
+                  isLoading: rejectLoading,
+                  isEnabled: !loading,
+                  onPressed: loading
+                      ? null
+                      : () => _begin(_ApprovalPending.reject, widget.onReject),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: ApprovalActionBar.approveFlex,
+                child: SacButton.success(
+                  text: approveLabel,
+                  icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+                  isLoading: approveLoading,
+                  isEnabled: !loading,
+                  onPressed: loading
+                      ? null
+                      : () =>
+                          _begin(_ApprovalPending.approve, widget.onApprove),
+                ),
+              ),
+            ],
           ),
         ),
-      );
-    }
+      ),
+    );
+  }
+}
 
-    return Row(
-      children: [
-        Expanded(
-          child: SacButton(
-            text: effectiveRejectLabel,
-            icon: HugeIcons.strokeRoundedCancel01,
-            variant: SacButtonVariant.outline,
-            fullWidth: true,
-            textColor: AppColors.error,
-            borderColor: AppColors.error.withValues(alpha: 0.5),
-            isLoading: rejectLoading,
-            isEnabled: !loading,
-            onPressed: loading
-                ? null
-                : () => _begin(_ApprovalPending.reject, widget.onReject),
-          ),
+// ── Approve confirmation ──────────────────────────────────────────────────────
+
+/// Asks the coordinator to confirm an approval, with an optional comment.
+///
+/// Returns `null` when the user cancels or dismisses, and the trimmed comment
+/// (empty when none was written) when they confirm. Callers must stop on `null`.
+Future<String?> showApproveDialog({
+  required BuildContext context,
+  required String title,
+  required String confirmMessage,
+}) {
+  return SacDialog.present<String>(
+    context,
+    builder: (_) => _ApproveDialog(title: title, message: confirmMessage),
+  );
+}
+
+class _ApproveDialog extends StatefulWidget {
+  const _ApproveDialog({required this.title, required this.message});
+
+  final String title;
+  final String message;
+
+  @override
+  State<_ApproveDialog> createState() => _ApproveDialogState();
+}
+
+class _ApproveDialogState extends State<_ApproveDialog> {
+  final _commentCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _commentCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SacDialog(
+      title: widget.title,
+      content: widget.message,
+      body: SacTextField(
+        controller: _commentCtrl,
+        label: 'coordinator.actions.comment_label'.tr(),
+        hint: 'coordinator.actions.comment_hint'.tr(),
+        maxLines: 3,
+        textCapitalization: TextCapitalization.sentences,
+      ),
+      actions: [
+        SacDialogAction(
+          label: 'coordinator.actions.cancel'.tr(),
+          style: SacDialogActionStyle.cancel,
+          onPressed: () => Navigator.pop(context),
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: SacButton.success(
-            text: effectiveApproveLabel,
-            icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-            isLoading: approveLoading,
-            isEnabled: !loading,
-            onPressed: loading
-                ? null
-                : () => _begin(_ApprovalPending.approve, widget.onApprove),
-          ),
+        SacDialogAction(
+          label: 'coordinator.actions.approve'.tr(),
+          style: SacDialogActionStyle.success,
+          onPressed: () => Navigator.pop(context, _commentCtrl.text.trim()),
         ),
       ],
     );
   }
 }
 
-/// Muestra el diálogo de aprobación con campo de comentario opcional.
+// ── Reject sheet ──────────────────────────────────────────────────────────────
+
+/// Bottom sheet that collects the (required) rejection reason.
 ///
-/// Retorna [true] si el usuario confirma, [false] o [null] si cancela.
-Future<String?> showApproveDialog({
+/// Keyboard-safe. Returns the trimmed reason when the user confirms and `null`
+/// when they cancel or dismiss. An empty reason shows an inline error and does
+/// not close the sheet.
+Future<String?> showRejectSheet({
   required BuildContext context,
   required String title,
-  required String confirmMessage,
-}) async {
-  final commentsCtrl = TextEditingController();
-
-  try {
-    final confirmed = await SacDialog.present<bool>(
-      context,
-      builder: (ctx) => SacDialog(
-        title: title,
-        content: confirmMessage,
-        body: SacTextField(
-          controller: commentsCtrl,
-          label: 'coordinator.actions.comment_label'.tr(),
-          hint: 'coordinator.actions.comment_hint'.tr(),
-          maxLines: 3,
-        ),
-        actions: [
-          SacDialogAction(
-            label: 'coordinator.actions.cancel'.tr(),
-            style: SacDialogActionStyle.cancel,
-            onPressed: () => Navigator.pop(ctx, false),
-          ),
-          SacDialogAction(
-            label: 'coordinator.actions.approve'.tr(),
-            style: SacDialogActionStyle.success,
-            onPressed: () => Navigator.pop(ctx, true),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return null;
-    return commentsCtrl.text.trim();
-  } finally {
-    commentsCtrl.dispose();
-  }
-}
-
-/// Muestra el diálogo de rechazo con campo de motivo requerido.
-///
-/// Retorna el motivo de rechazo si el usuario confirma, [null] si cancela.
-Future<String?> showRejectDialog({
-  required BuildContext context,
-  required String title,
-  required String confirmMessage,
-}) async {
-  final reasonCtrl = TextEditingController();
-  final formKey = GlobalKey<FormState>();
-
-  try {
-    final confirmed = await SacDialog.present<bool>(
-      context,
-      builder: (ctx) => SacDialog(
-        title: title,
-        content: confirmMessage,
-        body: Form(
-          key: formKey,
-          child: SacTextField(
-            controller: reasonCtrl,
-            label: 'coordinator.actions.reject_reason_label'.tr(),
-            hint: 'coordinator.actions.reject_reason_hint'.tr(),
-            maxLines: 3,
-            validator: (v) => (v == null || v.trim().isEmpty)
-                ? 'coordinator.actions.reject_reason_required'.tr()
-                : null,
-          ),
-        ),
-        actions: [
-          SacDialogAction(
-            label: 'coordinator.actions.cancel'.tr(),
-            style: SacDialogActionStyle.cancel,
-            onPressed: () => Navigator.pop(ctx, false),
-          ),
-          SacDialogAction(
-            label: 'coordinator.actions.reject'.tr(),
-            style: SacDialogActionStyle.destructive,
-            onPressed: () {
-              if (formKey.currentState!.validate()) {
-                Navigator.pop(ctx, true);
-              }
-            },
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return null;
-    return reasonCtrl.text.trim();
-  } finally {
-    reasonCtrl.dispose();
-  }
-}
-
-// ── Snackbar helper ───────────────────────────────────────────────────────────
-
-void showActionSnackbar(
-  BuildContext context, {
   required String message,
-  required bool success,
 }) {
-  if (!context.mounted) return;
-  SacSnackBar.show(context, message, isError: !success);
+  return showSacSheet<String>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (_) => _RejectSheet(title: title, message: message),
+  );
+}
+
+class _RejectSheet extends StatefulWidget {
+  const _RejectSheet({required this.title, required this.message});
+
+  final String title;
+  final String message;
+
+  @override
+  State<_RejectSheet> createState() => _RejectSheetState();
+}
+
+class _RejectSheetState extends State<_RejectSheet> {
+  final _reasonCtrl = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _reasonCtrl.dispose();
+    super.dispose();
+  }
+
+  void _confirm() {
+    if (_formKey.currentState?.validate() != true) return;
+    Navigator.pop(context, _reasonCtrl.text.trim());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SacSheetHeader(title: widget.title, subtitle: widget.message),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Form(
+                      key: _formKey,
+                      child: SacTextField(
+                        controller: _reasonCtrl,
+                        label: 'coordinator.actions.reject_reason_label'.tr(),
+                        hint: 'coordinator.actions.reject_reason_hint'.tr(),
+                        maxLines: 4,
+                        textCapitalization: TextCapitalization.sentences,
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'coordinator.actions.reject_reason_required'.tr()
+                            : null,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SacButton.outline(
+                            text: 'coordinator.actions.cancel'.tr(),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: SacButton.destructive(
+                            text: 'coordinator.actions.reject'.tr(),
+                            icon: HugeIcons.strokeRoundedCancel01,
+                            onPressed: _confirm,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

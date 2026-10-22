@@ -1,109 +1,122 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
+import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_badge.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
-import 'package:sacdia_app/core/widgets/fixed_input_icon_slot.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/coordinator_club.dart';
 import 'package:sacdia_app/features/coordinator/presentation/providers/coordinator_providers.dart';
+import 'package:sacdia_app/features/coordinator/presentation/widgets/coordinator_bone.dart';
 
-/// Vista principal de la rama Clubes del coordinador.
+/// Cards that get the staggered entrance; later ones appear without delay.
+const int _kStaggeredCards = 6;
+
+/// Skeleton cards shown while the clubs load.
+const int _kSkeletonCards = 6;
+
+/// "Mis clubes" of the coordinator: every club in scope, searchable by name.
 ///
-/// Muestra todos los clubs accesibles al coordinador con búsqueda por nombre
-/// y navega al detalle de club al tocar una tarjeta.
+/// Tapping a card opens the club detail. Pull to refresh reloads the list.
 class CoordinatorClubsListView extends ConsumerWidget {
   const CoordinatorClubsListView({super.key});
+
+  Future<void> _refresh(WidgetRef ref) async {
+    ref.invalidate(coordinatorClubsRawProvider);
+    try {
+      await ref.read(coordinatorClubsRawProvider.future);
+    } catch (_) {
+      // The error state renders the failure.
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.sac;
-    final hPad = Responsive.horizontalPadding(context);
-    final clubsAsync = ref.watch(coordinatorClubsProvider);
-
+    final accent = SacAccent.of(context);
     final rawAsync = ref.watch(coordinatorClubsRawProvider);
+    final clubsAsync = ref.watch(coordinatorClubsProvider);
+    final total = rawAsync.valueOrNull?.length ?? 0;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
         title: 'coordinator.clubs.title'.tr(),
+        subtitle: total > 0
+            ? (total == 1
+                    ? 'coordinator.hub.scope.clubs_one'
+                    : 'coordinator.hub.scope.clubs_other')
+                .tr(namedArgs: {'count': '$total'})
+            : null,
         frosted: true,
-        onBack: () {
-          if (Navigator.of(context).canPop()) {
-            Navigator.of(context).maybePop();
-            return;
-          }
-          if (GoRouter.maybeOf(context) != null) {
-            context.go(RouteNames.coordinator);
-          }
-        },
-        actions: [
-          if (rawAsync.isLoading)
-            const Padding(
-              padding: EdgeInsets.all(14),
-              child: SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            )
-          else
-            SacPressable(
-              listenOnly: true,
-              child: IconButton(
-                enableFeedback: false,
-                tooltip: 'common.retry'.tr(),
-                onPressed: () => ref.invalidate(coordinatorClubsRawProvider),
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedRefresh,
-                  color: c.textTertiary,
-                  size: 20,
-                ),
-              ),
-            ),
-        ],
+        titleIcon: HugeIcon(
+          icon: HugeIcons.strokeRoundedBuilding04,
+          size: 22,
+          color: accent.color,
+        ),
       ),
       body: SacFrostedVeil(
         child: Builder(
           builder: (context) => SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 12),
-                  child: const _ClubSearchBar(),
-                ),
-
-                // ── Content ───────────────────────────────────────────────────
-                Expanded(
-                  child: clubsAsync.when(
-                    loading: () => _ClubsLoadingSkeleton(hPad: hPad),
-                    // Raw exception text (e.g. backend guard codes) is not
-                    // user-facing; the error state shows a localized message.
-                    error: (_, __) => _ClubsErrorState(
+            top: false,
+            child: rawAsync.when(
+              skipLoadingOnReload: rawAsync.hasValue,
+              loading: () => _ClubsScroll(
+                onRefresh: () => _refresh(ref),
+                slivers: const [_SkeletonSliver()],
+              ),
+              error: (error, _) => isCoordinatorForbidden(error)
+                  ? SacErrorState.forbidden(
+                      padding: SacTopBar.paddingBelowBar(
+                        context,
+                        const EdgeInsets.all(32),
+                      ),
+                    )
+                  : SacErrorState(
+                      title: 'coordinator.clubs.error_title'.tr(),
+                      message: 'coordinator.clubs.error_message'.tr(),
                       onRetry: () =>
                           ref.invalidate(coordinatorClubsRawProvider),
+                      padding: SacTopBar.paddingBelowBar(
+                        context,
+                        const EdgeInsets.all(32),
+                      ),
                     ),
-                    data: (clubs) => clubs.isEmpty
-                        ? const _ClubsEmptyState()
-                        : _ClubsList(
-                            clubs: clubs,
-                            hPad: hPad,
-                            onRefresh: () =>
-                                ref.invalidate(coordinatorClubsRawProvider),
-                          ),
-                  ),
-                ),
-              ],
+              data: (all) {
+                final clubs = clubsAsync.valueOrNull ?? all;
+                if (all.isEmpty) {
+                  // Nothing assigned: no search bar, there is nothing to find.
+                  return _EmptyScroll(
+                    onRefresh: () => _refresh(ref),
+                    child: SacEmptyState(
+                      icon: HugeIcons.strokeRoundedBuilding04,
+                      title: 'coordinator.clubs.empty_title'.tr(),
+                      body: 'coordinator.clubs.empty_subtitle'.tr(),
+                    ),
+                  );
+                }
+                return _ClubsScroll(
+                  onRefresh: () => _refresh(ref),
+                  slivers: [
+                    if (clubs.isEmpty)
+                      const _NoResultsSliver()
+                    else
+                      _ClubsSliver(clubs: clubs),
+                  ],
+                );
+              },
             ),
           ),
         ),
@@ -112,22 +125,86 @@ class CoordinatorClubsListView extends ConsumerWidget {
   }
 }
 
-// ── Search bar ────────────────────────────────────────────────────────────────
+// ── Scroll scaffolds ──────────────────────────────────────────────────────────
 
-class _ClubSearchBar extends ConsumerStatefulWidget {
-  const _ClubSearchBar();
+/// Pull-to-refresh scroll with the search field on top of [slivers]. The field
+/// scrolls with the content so it never sits under the frosted bar.
+class _ClubsScroll extends StatelessWidget {
+  const _ClubsScroll({required this.onRefresh, required this.slivers});
+
+  final Future<void> Function() onRefresh;
+  final List<Widget> slivers;
 
   @override
-  ConsumerState<_ClubSearchBar> createState() => _ClubSearchBarState();
+  Widget build(BuildContext context) {
+    final hPad = Responsive.horizontalPadding(context);
+    return RefreshIndicator(
+      color: SacAccent.of(context).color,
+      edgeOffset: SacTopBar.frostedInset(context),
+      onRefresh: onRefresh,
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverPadding(
+            padding: SacTopBar.paddingBelowBar(
+              context,
+              EdgeInsets.fromLTRB(hPad, 12, hPad, 16),
+            ),
+            sliver: const SliverToBoxAdapter(child: _ClubSearchField()),
+          ),
+          ...slivers,
+        ],
+      ),
+    );
+  }
 }
 
-class _ClubSearchBarState extends ConsumerState<_ClubSearchBar> {
+class _EmptyScroll extends StatelessWidget {
+  const _EmptyScroll({required this.onRefresh, required this.child});
+
+  final Future<void> Function() onRefresh;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return RefreshIndicator(
+      color: SacAccent.of(context).color,
+      edgeOffset: SacTopBar.frostedInset(context),
+      onRefresh: onRefresh,
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Padding(
+              padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+              child: child,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Search ────────────────────────────────────────────────────────────────────
+
+class _ClubSearchField extends ConsumerStatefulWidget {
+  const _ClubSearchField();
+
+  @override
+  ConsumerState<_ClubSearchField> createState() => _ClubSearchFieldState();
+}
+
+class _ClubSearchFieldState extends ConsumerState<_ClubSearchField> {
   late final TextEditingController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController();
+    _controller = TextEditingController(
+      text: ref.read(coordinatorClubSearchProvider),
+    );
   }
 
   @override
@@ -136,53 +213,39 @@ class _ClubSearchBarState extends ConsumerState<_ClubSearchBar> {
     super.dispose();
   }
 
+  void _clear() {
+    _controller.clear();
+    ref.read(coordinatorClubSearchProvider.notifier).state = '';
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: c.border),
-      ),
-      child: TextField(
+    return ValueListenableBuilder<TextEditingValue>(
+      valueListenable: _controller,
+      builder: (context, value, _) => SacTextField(
         controller: _controller,
-        onChanged: (value) {
-          ref.read(coordinatorClubSearchProvider.notifier).state = value;
-        },
-        style: TextStyle(fontSize: 14, color: c.text),
-        decoration: InputDecoration(
-          hintText: 'coordinator.clubs.search_hint'.tr(),
-          hintStyle: TextStyle(color: c.textTertiary, fontSize: 14),
-          prefixIconConstraints: FixedInputIconSlot.constraints,
-          prefixIcon: FixedInputIconSlot(
-            icon: HugeIcons.strokeRoundedSearch01,
-            color: c.textTertiary,
-            iconSize: 20,
-          ),
-          suffixIcon: _controller.text.isNotEmpty
-              ? SacPressable(
-                  listenOnly: true,
-                  child: IconButton(
-                    enableFeedback: false,
-                    icon: HugeIcon(
-                      icon: HugeIcons.strokeRoundedCancel01,
-                      color: c.textTertiary,
-                      size: 18,
-                    ),
-                    onPressed: () {
-                      _controller.clear();
-                      ref.read(coordinatorClubSearchProvider.notifier).state =
-                          '';
-                    },
+        hint: 'coordinator.clubs.search_hint'.tr(),
+        prefixIcon: HugeIcons.strokeRoundedSearch01,
+        textInputAction: TextInputAction.search,
+        onChanged: (text) =>
+            ref.read(coordinatorClubSearchProvider.notifier).state = text,
+        suffix: value.text.isEmpty
+            ? null
+            : SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  tooltip: 'common.clear'.tr(),
+                  onPressed: _clear,
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedCancel01,
+                    size: 18,
+                    color: c.textTertiary,
                   ),
-                )
-              : null,
-          border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 4, vertical: 14),
-        ),
+                ),
+              ),
       ),
     );
   }
@@ -190,35 +253,42 @@ class _ClubSearchBarState extends ConsumerState<_ClubSearchBar> {
 
 // ── Clubs list ────────────────────────────────────────────────────────────────
 
-class _ClubsList extends StatelessWidget {
-  final List<CoordinatorClub> clubs;
-  final double hPad;
-  final VoidCallback onRefresh;
+class _ClubsSliver extends StatelessWidget {
+  const _ClubsSliver({required this.clubs});
 
-  const _ClubsList({
-    required this.clubs,
-    required this.hPad,
-    required this.onRefresh,
-  });
+  final List<CoordinatorClub> clubs;
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      color: SacAccent.of(context).color,
-      onRefresh: () async {
-        onRefresh();
-      },
-      child: ListView.separated(
-        padding: EdgeInsets.fromLTRB(hPad, 4, hPad, 24),
+    final hPad = Responsive.horizontalPadding(context);
+    return SliverPadding(
+      padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 32),
+      sliver: SliverList.separated(
         itemCount: clubs.length,
         separatorBuilder: (_, __) => const SizedBox(height: 10),
-        itemBuilder: (context, index) {
-          return StaggeredListItem(
-            index: index,
-            initialDelay: const Duration(milliseconds: 20),
-            child: _ClubCard(club: clubs[index]),
-          );
-        },
+        itemBuilder: (context, index) => _ClubCard(
+          club: clubs[index],
+          animate: index < _kStaggeredCards,
+          animationDelay: SacMotion.stagger * index,
+        ),
+      ),
+    );
+  }
+}
+
+class _NoResultsSliver extends ConsumerWidget {
+  const _NoResultsSliver();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final query = ref.watch(coordinatorClubSearchProvider).trim();
+    return SliverFillRemaining(
+      hasScrollBody: false,
+      child: SacEmptyState(
+        icon: HugeIcons.strokeRoundedSearch01,
+        title: 'coordinator.clubs.empty_search_title'.tr(),
+        body: 'coordinator.clubs.empty_search_body'
+            .tr(namedArgs: {'query': query}),
       ),
     );
   }
@@ -227,213 +297,175 @@ class _ClubsList extends StatelessWidget {
 // ── Club card ─────────────────────────────────────────────────────────────────
 
 class _ClubCard extends StatelessWidget {
+  const _ClubCard({
+    required this.club,
+    required this.animate,
+    required this.animationDelay,
+  });
+
   final CoordinatorClub club;
+  final bool animate;
+  final Duration animationDelay;
 
-  const _ClubCard({required this.club});
-
-  static final _kRadius = BorderRadius.circular(16);
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-
-    final accentColor = SacAccent.of(context).color;
-    final locationParts = <String>[
-      if (club.districtName != null && club.districtName!.isNotEmpty)
-        club.districtName!,
-      if (club.localFieldName != null && club.localFieldName!.isNotEmpty)
-        club.localFieldName!
+  /// "District · Local field", skipping what the backend did not send. Falls
+  /// back to the local field id when there is no name for it.
+  String get _location {
+    final parts = <String>[
+      if (club.districtName != null && club.districtName!.trim().isNotEmpty)
+        club.districtName!.trim(),
+      if (club.localFieldName != null && club.localFieldName!.trim().isNotEmpty)
+        club.localFieldName!.trim()
       else if (club.localFieldId > 0)
         'coordinator.clubs.field_id_label'
             .tr(namedArgs: {'id': '${club.localFieldId}'}),
     ];
-    final locationLabel = locationParts.join(' · ');
-    final sectionSummary = club.sectionSummary;
+    return parts.join(' · ');
+  }
 
-    return Semantics(
-      label: club.name,
-      button: true,
-      child: Material(
-        color: c.surface,
-        borderRadius: _kRadius,
-        child: SacInkWell(
-          borderRadius: _kRadius,
-          onTap: () => _openClubDetail(context, club),
-          child: Container(
-            padding: const EdgeInsets.all(16),
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final accent = SacAccent.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    final location = _location;
+    final sectionTypes = <String>{
+      for (final s in club.sections)
+        if (s.displayName.trim().isNotEmpty) s.displayName.trim(),
+    }.toList();
+    final name = club.name.trim();
+    final initial = name.isEmpty ? '?' : name[0].toUpperCase();
+
+    return SacCard(
+      animate: animate,
+      animationDelay: animationDelay,
+      onTap: () => context.push(RouteNames.clubDetailPath(club.id.toString())),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
-              borderRadius: _kRadius,
-              border: Border.all(color: c.border),
+              color: accent.light,
+              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
             ),
-            child: Row(
+            alignment: Alignment.center,
+            child: ExcludeSemantics(
+              child: Text(
+                initial,
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: accent.dark,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Club type icon badge ──────────────────────────────────
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: accentColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Center(
-                    child: HugeIcon(
-                      icon: HugeIcons.strokeRoundedBuilding04,
-                      size: 22,
-                      color: accentColor,
-                    ),
+                Text(
+                  club.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: c.text,
                   ),
                 ),
-                const SizedBox(width: 14),
-
-                // ── Club info ─────────────────────────────────────────────
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                if (location.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    location,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style:
+                        textTheme.bodySmall?.copyWith(color: c.textSecondary),
+                  ),
+                ],
+                if (sectionTypes.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
                     children: [
-                      Text(
-                        club.name,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: c.text,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      if (locationLabel.isNotEmpty) ...[
-                        Text(
-                          locationLabel,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: c.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                      ],
-                      if (sectionSummary.isNotEmpty)
-                        Text(
-                          '${(club.sectionCount == 1 ? 'coordinator.clubs.sections_label_one' : 'coordinator.clubs.sections_label_other').tr(namedArgs: {
-                                'count': '${club.sectionCount}',
-                              })}: $sectionSummary',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: c.textSecondary,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                      for (final type in sectionTypes)
+                        SacBadge(
+                          label: type,
+                          variant: SacBadgeVariant.neutral,
                         ),
                     ],
                   ),
-                ),
-                const SizedBox(width: 8),
-
-                // ── Chevron ───────────────────────────────────────────────
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedArrowRight01,
-                  size: 18,
-                  color: c.textTertiary,
-                ),
+                ],
               ],
             ),
+          ),
+          const SizedBox(width: 8),
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowRight01,
+            size: 18,
+            color: c.textTertiary,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+
+class _SkeletonSliver extends StatelessWidget {
+  const _SkeletonSliver();
+
+  @override
+  Widget build(BuildContext context) {
+    final hPad = Responsive.horizontalPadding(context);
+    return SliverPadding(
+      padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 32),
+      sliver: SliverToBoxAdapter(
+        child: ExcludeSemantics(
+          child: Column(
+            children: [
+              for (var i = 0; i < _kSkeletonCards; i++) ...[
+                if (i > 0) const SizedBox(height: 10),
+                const _CardSkeleton(),
+              ],
+            ],
           ),
         ),
       ),
     );
   }
-
-  void _openClubDetail(BuildContext context, CoordinatorClub club) {
-    // Navigate to club detail route using the club's numeric id as string.
-    // RouteNames.clubDetailPath expects a String clubId (UUID or numeric).
-    context.push(RouteNames.clubDetailPath(club.id.toString()));
-  }
 }
 
-// ── Loading skeleton ──────────────────────────────────────────────────────────
-
-class _ClubsLoadingSkeleton extends StatelessWidget {
-  final double hPad;
-  const _ClubsLoadingSkeleton({required this.hPad});
+/// Matches [_ClubCard]: initial tile, name, location and section badges.
+class _CardSkeleton extends StatelessWidget {
+  const _CardSkeleton();
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    return ListView.separated(
-      padding: EdgeInsets.fromLTRB(hPad, 4, hPad, 24),
-      itemCount: 6,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemBuilder: (_, __) => Container(
-        height: 80,
-        decoration: BoxDecoration(
-          color: c.border,
-          borderRadius: BorderRadius.circular(16),
-        ),
-      ),
-    );
-  }
-}
-
-// ── Empty state ───────────────────────────────────────────────────────────────
-
-class _ClubsEmptyState extends StatelessWidget {
-  const _ClubsEmptyState();
-
-  @override
-  Widget build(BuildContext context) {
-    return SacEmptyState(
-      icon: HugeIcons.strokeRoundedBuilding04,
-      title: 'coordinator.clubs.empty_title'.tr(),
-      body: 'coordinator.clubs.empty_subtitle'.tr(),
-    );
-  }
-}
-
-// ── Error state ───────────────────────────────────────────────────────────────
-
-class _ClubsErrorState extends StatelessWidget {
-  final VoidCallback? onRetry;
-
-  const _ClubsErrorState({this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 48,
-              color: AppColors.error,
+    return const SacCard(
+      child: Row(
+        children: [
+          CoordinatorBone(
+            width: 48,
+            height: 48,
+            radius: AppTheme.radiusSM,
+          ),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CoordinatorBone(width: 170, height: 16),
+                SizedBox(height: 8),
+                CoordinatorBone(width: 120, height: 12),
+                SizedBox(height: 10),
+                CoordinatorBone(width: 96, height: 24, radius: 12),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              'coordinator.clubs.error_load'.tr(),
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: c.text,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'coordinator.clubs.error_load_subtitle'.tr(),
-              style: TextStyle(fontSize: 13, color: c.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-            if (onRetry != null) ...[
-              const SizedBox(height: 20),
-              SacButton.primary(
-                text: 'common.retry'.tr(),
-                icon: HugeIcons.strokeRoundedRefresh,
-                onPressed: onRetry,
-              ),
-            ],
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

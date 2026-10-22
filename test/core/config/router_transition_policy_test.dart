@@ -94,7 +94,6 @@ void main() {
       }
 
       const quickAccessDestinations = {
-        RouteNames.coordinator,
         RouteNames.homeMembers,
         RouteNames.homeClub,
         RouteNames.homeEvidences,
@@ -109,6 +108,12 @@ void main() {
         RouteNames.homeReports,
         RouteNames.homeClubRankings,
         RouteNames.sectionInvestiture,
+        // Coordination tab drill-ins (relative child paths of /coordinator)
+        // and the full-screen evidence detail.
+        'evidence-review',
+        'clubs',
+        'sla',
+        RouteNames.coordinatorEvidenceReviewDetailRoute,
       };
 
       for (final path in quickAccessDestinations) {
@@ -128,6 +133,7 @@ void main() {
         RouteNames.homeClasses,
         RouteNames.homeActivities,
         RouteNames.homeProfile,
+        RouteNames.coordinator,
       };
       const dashboardPeers = {
         RouteNames.homeHonors,

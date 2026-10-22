@@ -1,5 +1,5 @@
-import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../providers/dio_provider.dart';
@@ -10,8 +10,39 @@ import '../../domain/entities/coordinator_club.dart';
 import '../../domain/entities/coordinator_scope.dart';
 import '../../domain/entities/sla_dashboard.dart';
 import '../../domain/entities/evidence_review_item.dart';
-import '../../domain/entities/camporee_approval.dart';
 import '../../domain/repositories/coordinator_repository.dart';
+
+// ── Load errors ───────────────────────────────────────────────────────────────
+
+/// Error raised by the coordinator read providers.
+///
+/// Keeps the historical `Exception: <message>` text (some views still strip
+/// that prefix) while exposing [isForbidden] so views can show the
+/// access-restricted state without sniffing the message.
+class CoordinatorLoadException implements Exception {
+  const CoordinatorLoadException(this.message, {this.isForbidden = false});
+
+  factory CoordinatorLoadException.fromFailure(Failure failure) =>
+      CoordinatorLoadException(
+        failure.message,
+        isForbidden: failure.code == 403,
+      );
+
+  final String message;
+  final bool isForbidden;
+
+  @override
+  String toString() => 'Exception: $message';
+}
+
+/// Whether [error] means the user lacks permission for the coordinator API
+/// (HTTP 403). Falls back to the legacy message match for errors that did not
+/// come through [CoordinatorLoadException].
+bool isCoordinatorForbidden(Object error) {
+  if (error is CoordinatorLoadException) return error.isForbidden;
+  final msg = error.toString();
+  return msg.contains('permiso') || msg.contains('403');
+}
 
 // ── Infrastructure providers ──────────────────────────────────────────────────
 
@@ -42,7 +73,7 @@ final coordinatorScopeProvider =
   ref.onDispose(() => cancelToken.cancel());
   final result = await repository.getMyScope(cancelToken: cancelToken);
   return result.fold(
-    (failure) => throw Exception(failure.message),
+    (failure) => throw CoordinatorLoadException.fromFailure(failure),
     (scope) => scope,
   );
 });
@@ -62,7 +93,7 @@ final coordinatorClubsRawProvider =
   ref.onDispose(() => cancelToken.cancel());
   final result = await repository.listClubs(cancelToken: cancelToken);
   return result.fold(
-    (failure) => throw Exception(failure.message),
+    (failure) => throw CoordinatorLoadException.fromFailure(failure),
     (clubs) => clubs,
   );
 });
@@ -89,7 +120,7 @@ final slaDashboardProvider =
   ref.onDispose(() => cancelToken.cancel());
   final result = await repository.getSlaDashboard(cancelToken: cancelToken);
   return result.fold(
-    (failure) => throw Exception(failure.message),
+    (failure) => throw CoordinatorLoadException.fromFailure(failure),
     (dashboard) => dashboard,
   );
 });
@@ -100,23 +131,140 @@ final slaDashboardProvider =
 final evidenceTypeFilterProvider =
     StateProvider.autoDispose<EvidenceReviewType?>((ref) => null);
 
-/// Provider para la lista paginada de evidencias pendientes.
+/// Cola de evidencias pendientes cargada página a página.
+class PendingEvidenceState {
+  const PendingEvidenceState({
+    required this.items,
+    required this.total,
+    required this.page,
+    required this.hasMore,
+    this.isLoadingMore = false,
+    this.loadMoreFailed = false,
+  });
+
+  factory PendingEvidenceState.firstPage(EvidenceReviewPage page) =>
+      PendingEvidenceState(
+        items: page.items,
+        total: page.total,
+        page: page.page,
+        hasMore: page.hasMore && page.items.isNotEmpty,
+      );
+
+  /// Evidencias cargadas hasta ahora (todas las páginas pedidas).
+  final List<EvidenceReviewItem> items;
+
+  /// Pendientes en el servidor para este filtro; null si no lo informó.
+  final int? total;
+
+  /// Última página cargada.
+  final int page;
+  final bool hasMore;
+  final bool isLoadingMore;
+
+  /// La última llamada a [PendingEvidenceNotifier.loadMore] falló; la lista
+  /// cargada sigue siendo válida.
+  final bool loadMoreFailed;
+
+  /// Agrega [next] (la página siguiente a [page]) sin duplicar ítems: con
+  /// paginación por offset, una evidencia puede repetirse si la cola cambió
+  /// entre páginas.
+  PendingEvidenceState append(EvidenceReviewPage next) {
+    final seen = {for (final i in items) (i.type, i.id)};
+    return PendingEvidenceState(
+      items: [
+        ...items,
+        ...next.items.where((i) => seen.add((i.type, i.id))),
+      ],
+      total: next.total ?? total,
+      page: page + 1,
+      hasMore: next.hasMore && next.items.isNotEmpty,
+    );
+  }
+
+  PendingEvidenceState copyWith({bool? isLoadingMore, bool? loadMoreFailed}) =>
+      PendingEvidenceState(
+        items: items,
+        total: total,
+        page: page,
+        hasMore: hasMore,
+        isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+        loadMoreFailed: loadMoreFailed ?? this.loadMoreFailed,
+      );
+}
+
+/// Cola paginada de evidencias pendientes.
 ///
-/// Family por [EvidenceReviewType?] — null significa todos los tipos.
-final pendingEvidenceProvider = FutureProvider.autoDispose
-    .family<List<EvidenceReviewItem>, EvidenceReviewType?>((ref, type) async {
-  final repository = ref.read(coordinatorRepositoryProvider);
-  final cancelToken = CancelToken();
-  ref.onDispose(() => cancelToken.cancel());
-  final result = await repository.getPendingEvidence(
-    type: type,
-    cancelToken: cancelToken,
-  );
-  return result.fold(
-    (failure) => throw Exception(failure.message),
-    (list) => list,
-  );
-});
+/// Family por [EvidenceReviewType?] — null significa todos los tipos. `build`
+/// carga la primera página; [loadMore] agrega la siguiente. Invalidar el
+/// provider (pull to refresh, aprobar/rechazar) vuelve a la página 1.
+class PendingEvidenceNotifier extends AutoDisposeFamilyAsyncNotifier<
+    PendingEvidenceState, EvidenceReviewType?> {
+  /// Token de la carga actual; se cancela al invalidar o descartar el
+  /// provider, así una página que llega tarde no pisa la lista nueva.
+  CancelToken? _cancelToken;
+
+  @override
+  Future<PendingEvidenceState> build(EvidenceReviewType? arg) async {
+    final cancelToken = CancelToken();
+    _cancelToken = cancelToken;
+    ref.onDispose(cancelToken.cancel);
+    final page = await fetchPage(1, cancelToken: cancelToken);
+    return PendingEvidenceState.firstPage(page);
+  }
+
+  /// Pide la página [page] del filtro [arg] al repositorio.
+  @visibleForOverriding
+  Future<EvidenceReviewPage> fetchPage(
+    int page, {
+    CancelToken? cancelToken,
+  }) async {
+    final result =
+        await ref.read(coordinatorRepositoryProvider).getPendingEvidence(
+              page: page,
+              type: arg,
+              cancelToken: cancelToken,
+            );
+    return result.fold(
+      (failure) => throw CoordinatorLoadException.fromFailure(failure),
+      (page) => page,
+    );
+  }
+
+  /// Carga la página siguiente. No hace nada si ya está cargando, si no hay
+  /// más páginas o si la primera página aún no llegó.
+  Future<void> loadMore() async {
+    final current = state.valueOrNull;
+    if (state.isLoading ||
+        current == null ||
+        !current.hasMore ||
+        current.isLoadingMore) {
+      return;
+    }
+
+    final cancelToken = _cancelToken;
+    bool stale() =>
+        cancelToken != _cancelToken || (cancelToken?.isCancelled ?? true);
+
+    state = AsyncData(
+      current.copyWith(isLoadingMore: true, loadMoreFailed: false),
+    );
+    try {
+      final next = await fetchPage(current.page + 1, cancelToken: cancelToken);
+      if (stale()) return;
+      state = AsyncData(current.append(next));
+    } catch (_) {
+      if (stale()) return;
+      state = AsyncData(
+        current.copyWith(isLoadingMore: false, loadMoreFailed: true),
+      );
+    }
+  }
+}
+
+final pendingEvidenceProvider = AsyncNotifierProvider.autoDispose
+    .family<PendingEvidenceNotifier, PendingEvidenceState, EvidenceReviewType?>(
+  PendingEvidenceNotifier.new,
+);
 
 /// Provider para el detalle de una evidencia específica.
 ///
@@ -134,7 +282,7 @@ final evidenceDetailProvider = FutureProvider.autoDispose
     cancelToken: cancelToken,
   );
   return result.fold(
-    (failure) => throw Exception(failure.message),
+    (failure) => throw CoordinatorLoadException.fromFailure(failure),
     (item) => item,
   );
 });
@@ -175,6 +323,14 @@ class EvidenceReviewNotifier
   EvidenceActionState build(EvidenceDetailKey arg) =>
       const EvidenceActionState();
 
+  /// Refreshes everything that shows this evidence: the pending list (every
+  /// filter), this detail and the hub/SLA counters.
+  void _invalidateAfterReview() {
+    ref.invalidate(pendingEvidenceProvider);
+    ref.invalidate(evidenceDetailProvider(arg));
+    ref.invalidate(slaDashboardProvider);
+  }
+
   Future<bool> approve({String? comment}) async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
@@ -189,8 +345,7 @@ class EvidenceReviewNotifier
       },
       (_) {
         state = state.copyWith(isLoading: false, success: true);
-        ref.invalidate(pendingEvidenceProvider);
-        ref.invalidate(evidenceDetailProvider(arg));
+        _invalidateAfterReview();
         return true;
       },
     );
@@ -212,8 +367,7 @@ class EvidenceReviewNotifier
       },
       (_) {
         state = state.copyWith(isLoading: false, success: true);
-        ref.invalidate(pendingEvidenceProvider);
-        ref.invalidate(evidenceDetailProvider(arg));
+        _invalidateAfterReview();
         return true;
       },
     );
@@ -225,340 +379,4 @@ class EvidenceReviewNotifier
 final evidenceReviewNotifierProvider = NotifierProvider.autoDispose
     .family<EvidenceReviewNotifier, EvidenceActionState, EvidenceDetailKey>(
   EvidenceReviewNotifier.new,
-);
-
-// ── Camporee list ─────────────────────────────────────────────────────────────
-
-/// Provider para la lista de camporees locales activos.
-/// GET /camporees?active=true
-final localCamporeeListProvider =
-    FutureProvider.autoDispose<List<CamporeeItem>>((ref) async {
-  final repository = ref.read(coordinatorRepositoryProvider);
-  final cancelToken = CancelToken();
-  ref.onDispose(() => cancelToken.cancel());
-  final result = await repository.listLocalCamporees(
-    activeOnly: true,
-    cancelToken: cancelToken,
-  );
-  return result.fold(
-    (failure) => throw Exception(failure.message),
-    (list) => list,
-  );
-});
-
-/// Provider para la lista de camporees de unión activos.
-/// GET /camporees/union
-final unionCamporeeListProvider =
-    FutureProvider.autoDispose<List<CamporeeItem>>((ref) async {
-  final repository = ref.read(coordinatorRepositoryProvider);
-  final cancelToken = CancelToken();
-  ref.onDispose(() => cancelToken.cancel());
-  final result = await repository.listUnionCamporees(cancelToken: cancelToken);
-  return result.fold(
-    (failure) => throw Exception(failure.message),
-    (list) => list,
-  );
-});
-
-// ── Selected camporee state ───────────────────────────────────────────────────
-
-/// Camporee seleccionado en la vista de aprobaciones.
-///
-/// Es null cuando todavía no se eligió ningún camporee.
-final selectedCamporeeProvider =
-    StateProvider.autoDispose<CamporeeItem?>((ref) => null);
-
-// ── Camporee pending approvals ────────────────────────────────────────────────
-
-/// Key para identificar qué camporee pedir al endpoint de pending.
-typedef CamporeePendingKey = ({int camporeeId, CamporeeScope scope});
-
-/// Provider para las inscripciones pendientes de un camporee específico.
-///
-/// Family por [CamporeePendingKey] — incluye el id y el scope (local/union).
-/// Devuelve el envelope completo { clubs, members, payments }.
-final camporeePendingProvider = FutureProvider.autoDispose
-    .family<CamporeePendingApprovals, CamporeePendingKey>((ref, key) async {
-  final repository = ref.read(coordinatorRepositoryProvider);
-  final cancelToken = CancelToken();
-  ref.onDispose(() => cancelToken.cancel());
-  final Either<Failure, CamporeePendingApprovals> result;
-
-  if (key.scope == CamporeeScope.union) {
-    result = await repository.getUnionCamporeePending(
-      key.camporeeId,
-      cancelToken: cancelToken,
-    );
-  } else {
-    result = await repository.getLocalCamporeePending(
-      key.camporeeId,
-      cancelToken: cancelToken,
-    );
-  }
-
-  return result.fold(
-    (failure) => throw Exception(failure.message),
-    (data) => data,
-  );
-});
-
-// ── Camporee action state ─────────────────────────────────────────────────────
-
-/// Estado de una operación de aprobación/rechazo.
-class CamporeeApprovalActionState {
-  final bool isLoading;
-  final String? errorMessage;
-  final bool success;
-
-  const CamporeeApprovalActionState({
-    this.isLoading = false,
-    this.errorMessage,
-    this.success = false,
-  });
-
-  CamporeeApprovalActionState copyWith({
-    bool? isLoading,
-    String? errorMessage,
-    bool? success,
-  }) {
-    return CamporeeApprovalActionState(
-      isLoading: isLoading ?? this.isLoading,
-      errorMessage: errorMessage,
-      success: success ?? this.success,
-    );
-  }
-}
-
-// ── Club enrollment notifier ──────────────────────────────────────────────────
-
-/// Key para identificar una inscripción de club pendiente.
-typedef CamporeeClubKey = ({
-  int camporeeId,
-  int camporeeClubId,
-  CamporeeScope scope
-});
-
-class CamporeeClubApprovalNotifier extends AutoDisposeFamilyNotifier<
-    CamporeeApprovalActionState, CamporeeClubKey> {
-  @override
-  CamporeeApprovalActionState build(CamporeeClubKey arg) =>
-      const CamporeeApprovalActionState();
-
-  Future<bool> approve() async {
-    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
-
-    final result =
-        await ref.read(coordinatorRepositoryProvider).approveCamporeeClub(
-              camporeeId: arg.camporeeId,
-              camporeeClubId: arg.camporeeClubId,
-              scope: arg.scope,
-            );
-
-    return result.fold(
-      (failure) {
-        state = state.copyWith(isLoading: false, errorMessage: failure.message);
-        return false;
-      },
-      (_) {
-        state = state.copyWith(isLoading: false, success: true);
-        _invalidatePending();
-        return true;
-      },
-    );
-  }
-
-  Future<bool> reject({String? rejectionReason}) async {
-    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
-
-    final result =
-        await ref.read(coordinatorRepositoryProvider).rejectCamporeeClub(
-              camporeeId: arg.camporeeId,
-              camporeeClubId: arg.camporeeClubId,
-              scope: arg.scope,
-              rejectionReason: rejectionReason,
-            );
-
-    return result.fold(
-      (failure) {
-        state = state.copyWith(isLoading: false, errorMessage: failure.message);
-        return false;
-      },
-      (_) {
-        state = state.copyWith(isLoading: false, success: true);
-        _invalidatePending();
-        return true;
-      },
-    );
-  }
-
-  void _invalidatePending() {
-    ref.invalidate(
-      camporeePendingProvider(
-        (camporeeId: arg.camporeeId, scope: arg.scope),
-      ),
-    );
-  }
-
-  void reset() => state = const CamporeeApprovalActionState();
-}
-
-final camporeeClubApprovalNotifierProvider = NotifierProvider.autoDispose
-    .family<CamporeeClubApprovalNotifier, CamporeeApprovalActionState,
-        CamporeeClubKey>(
-  CamporeeClubApprovalNotifier.new,
-);
-
-// ── Member enrollment notifier ────────────────────────────────────────────────
-
-/// Key para identificar una inscripción de miembro pendiente.
-typedef CamporeeMemberKey = ({
-  int camporeeId,
-  int camporeeMemberId,
-  CamporeeScope scope
-});
-
-class CamporeeMemberApprovalNotifier extends AutoDisposeFamilyNotifier<
-    CamporeeApprovalActionState, CamporeeMemberKey> {
-  @override
-  CamporeeApprovalActionState build(CamporeeMemberKey arg) =>
-      const CamporeeApprovalActionState();
-
-  Future<bool> approve() async {
-    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
-
-    final result =
-        await ref.read(coordinatorRepositoryProvider).approveCamporeeMember(
-              camporeeId: arg.camporeeId,
-              camporeeMemberId: arg.camporeeMemberId,
-              scope: arg.scope,
-            );
-
-    return result.fold(
-      (failure) {
-        state = state.copyWith(isLoading: false, errorMessage: failure.message);
-        return false;
-      },
-      (_) {
-        state = state.copyWith(isLoading: false, success: true);
-        _invalidatePending();
-        return true;
-      },
-    );
-  }
-
-  Future<bool> reject({String? rejectionReason}) async {
-    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
-
-    final result =
-        await ref.read(coordinatorRepositoryProvider).rejectCamporeeMember(
-              camporeeId: arg.camporeeId,
-              camporeeMemberId: arg.camporeeMemberId,
-              scope: arg.scope,
-              rejectionReason: rejectionReason,
-            );
-
-    return result.fold(
-      (failure) {
-        state = state.copyWith(isLoading: false, errorMessage: failure.message);
-        return false;
-      },
-      (_) {
-        state = state.copyWith(isLoading: false, success: true);
-        _invalidatePending();
-        return true;
-      },
-    );
-  }
-
-  void _invalidatePending() {
-    ref.invalidate(
-      camporeePendingProvider(
-        (camporeeId: arg.camporeeId, scope: arg.scope),
-      ),
-    );
-  }
-
-  void reset() => state = const CamporeeApprovalActionState();
-}
-
-final camporeeMemberApprovalNotifierProvider = NotifierProvider.autoDispose
-    .family<CamporeeMemberApprovalNotifier, CamporeeApprovalActionState,
-        CamporeeMemberKey>(
-  CamporeeMemberApprovalNotifier.new,
-);
-
-// ── Payment notifier ──────────────────────────────────────────────────────────
-
-/// Key para identificar un pago pendiente.
-/// [camporeePaymentId] es el ID de aprobación (String, puede ser UUID o int-string).
-typedef CamporeePaymentKey = ({
-  String camporeePaymentId,
-  int camporeeId,
-  CamporeeScope scope
-});
-
-class CamporeePaymentApprovalNotifier extends AutoDisposeFamilyNotifier<
-    CamporeeApprovalActionState, CamporeePaymentKey> {
-  @override
-  CamporeeApprovalActionState build(CamporeePaymentKey arg) =>
-      const CamporeeApprovalActionState();
-
-  Future<bool> approve() async {
-    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
-
-    final result =
-        await ref.read(coordinatorRepositoryProvider).approveCamporeePayment(
-              camporeePaymentId: arg.camporeePaymentId,
-            );
-
-    return result.fold(
-      (failure) {
-        state = state.copyWith(isLoading: false, errorMessage: failure.message);
-        return false;
-      },
-      (_) {
-        state = state.copyWith(isLoading: false, success: true);
-        _invalidatePending();
-        return true;
-      },
-    );
-  }
-
-  Future<bool> reject({String? rejectionReason}) async {
-    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
-
-    final result =
-        await ref.read(coordinatorRepositoryProvider).rejectCamporeePayment(
-              camporeePaymentId: arg.camporeePaymentId,
-              rejectionReason: rejectionReason,
-            );
-
-    return result.fold(
-      (failure) {
-        state = state.copyWith(isLoading: false, errorMessage: failure.message);
-        return false;
-      },
-      (_) {
-        state = state.copyWith(isLoading: false, success: true);
-        _invalidatePending();
-        return true;
-      },
-    );
-  }
-
-  void _invalidatePending() {
-    ref.invalidate(
-      camporeePendingProvider(
-        (camporeeId: arg.camporeeId, scope: arg.scope),
-      ),
-    );
-  }
-
-  void reset() => state = const CamporeeApprovalActionState();
-}
-
-final camporeePaymentApprovalNotifierProvider = NotifierProvider.autoDispose
-    .family<CamporeePaymentApprovalNotifier, CamporeeApprovalActionState,
-        CamporeePaymentKey>(
-  CamporeePaymentApprovalNotifier.new,
 );

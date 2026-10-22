@@ -69,6 +69,7 @@ import 'package:sacdia_app/features/coordinator/presentation/views/sla_dashboard
 import 'package:sacdia_app/features/coordinator/presentation/views/evidence_review_list_view.dart';
 import 'package:sacdia_app/features/coordinator/presentation/views/evidence_review_detail_view.dart';
 import 'package:sacdia_app/features/coordinator/presentation/views/coordinator_clubs_list_view.dart';
+import 'package:sacdia_app/features/coordinator/presentation/views/coordinator_reports_view.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/evidence_review_item.dart';
 import 'package:sacdia_app/features/notifications/presentation/views/notifications_inbox_view.dart';
 import 'package:sacdia_app/features/achievements/presentation/views/achievements_view.dart';
@@ -565,6 +566,59 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: RouteNames.homeProfile,
                 pageBuilder: (context, state) =>
                     _fadeThroughBuild(context, state, const ProfileView()),
+              ),
+            ],
+          ),
+
+          // ── Branch 4: Coordinación ───────────────────────────────────────
+          // Appended last so existing branch indexes (0-3) stay stable; its
+          // nav item is placed before Profile in [_navItemsConfig].
+          // The evidence DETAIL route is intentionally NOT nested here: it is
+          // a top-level route (below) so it covers the nav bar and its bottom
+          // action bar sits in the thumb zone.
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.coordinator,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const CoordinatorHubView(),
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'evidence-review',
+                    pageBuilder: (context, state) => _sharedAxisBuild(
+                      context,
+                      state,
+                      const EvidenceReviewListView(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'clubs',
+                    pageBuilder: (context, state) => _sharedAxisBuild(
+                      context,
+                      state,
+                      const CoordinatorClubsListView(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'sla',
+                    pageBuilder: (context, state) => _sharedAxisBuild(
+                      context,
+                      state,
+                      const SLADashboardView(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'reports',
+                    pageBuilder: (context, state) => _sharedAxisBuild(
+                      context,
+                      state,
+                      const CoordinatorReportsView(),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -1157,56 +1211,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             _sharedAxisBuild(context, state, const RoleAssignmentsView()),
       ),
 
-      // Coordinador — hub (deep-link / direct entry, fuera del shell principal).
-      GoRoute(
-        path: RouteNames.coordinator,
-        pageBuilder: (context, state) =>
-            _sharedAxisBuild(context, state, const CoordinatorHubView()),
-      ),
-
-      // Coordinador — lista de clubes
-      GoRoute(
-        path: RouteNames.coordinatorClubs,
-        pageBuilder: (context, state) =>
-            _sharedAxisBuild(context, state, const CoordinatorClubsListView()),
-      ),
-
-      // Coordinador — reportes / SLA hub
-      GoRoute(
-        path: RouteNames.coordinatorReports,
-        pageBuilder: (context, state) =>
-            _sharedAxisBuild(context, state, const SLADashboardView()),
-      ),
-
-      // Coordinador — actividades
-      GoRoute(
-        path: RouteNames.coordinatorActivities,
-        pageBuilder: (context, state) =>
-            _sharedAxisBuild(context, state, const ActivitiesListView()),
-      ),
-
-      // Coordinador — perfil
-      GoRoute(
-        path: RouteNames.coordinatorProfile,
-        pageBuilder: (context, state) =>
-            _sharedAxisBuild(context, state, const ProfileView()),
-      ),
-
-      // Coordinador: dashboard SLA operativo (deep-link / sub-view entry)
-      GoRoute(
-        path: RouteNames.coordinatorSla,
-        pageBuilder: (context, state) =>
-            _sharedAxisBuild(context, state, const SLADashboardView()),
-      ),
-
-      // Coordinador: lista de evidencias pendientes (deep-link / sub-view entry)
-      GoRoute(
-        path: RouteNames.coordinatorEvidenceReview,
-        pageBuilder: (context, state) =>
-            _sharedAxisBuild(context, state, const EvidenceReviewListView()),
-      ),
-
-      // Coordinador: detalle de evidencia
+      // Coordinador: detalle de evidencia. Top-level (fuera del shell) a
+      // propósito: pantalla completa sobre la barra de navegación. Para
+      // `/coordinator/evidence-review/:type/:id` go_router no confunde esta
+      // ruta con el hijo `evidence-review` del tab (ese solo hace match exacto
+      // de `/coordinator/evidence-review`; con más segmentos cae a esta).
       GoRoute(
         path: RouteNames.coordinatorEvidenceReviewDetailRoute,
         pageBuilder: (context, state) {
@@ -1441,12 +1450,18 @@ class _NavItemConfig {
   final String labelKey;
   final String? screenId;
 
+  /// Whether the tab also needs the club operational surface (an active club
+  /// membership). Tabs gated purely by role/permission, like coordination,
+  /// set this to false so a coordinator without a usable club keeps them.
+  final bool requiresClubSurface;
+
   const _NavItemConfig({
     required this.branchIndex,
     required this.route,
     required this.icon,
     required this.labelKey,
     this.screenId,
+    this.requiresClubSurface = true,
   });
 
   String get label => tr(labelKey);
@@ -1472,6 +1487,15 @@ const List<_NavItemConfig> _navItemsConfig = [
     icon: HugeIcons.strokeRoundedCalendar01,
     labelKey: 'router.nav.activities',
     screenId: 'activities',
+  ),
+  // Branch 4 is appended last in the shell, but the tab shows before Profile.
+  _NavItemConfig(
+    branchIndex: 4,
+    route: RouteNames.coordinator,
+    icon: HugeIcons.strokeRoundedAnalytics01,
+    labelKey: 'router.nav.coordination',
+    screenId: 'coordinator-hub',
+    requiresClubSurface: false,
   ),
   _NavItemConfig(
     branchIndex: 3,
@@ -1503,14 +1527,20 @@ List<_NavItemConfig> _filterNavItems(
   UserEntity? user,
   AuthorizationSnapshot? authorization,
 ) {
-  if (authorization == null) return items;
+  // Without an authorization snapshot the club tabs stay visible (transient
+  // state), but role-gated tabs cannot be evaluated and are hidden.
+  if (authorization == null) {
+    return items.where((item) => item.requiresClubSurface).toList();
+  }
   if (isPastorWithoutClub(user)) return _pastorNavItems;
   final subject = subjectFromUser(user);
 
   return items.where((item) {
     final screenId = item.screenId;
     if (screenId == null) return true;
-    if (!canAccessClubOperationalSurface(user)) return false;
+    if (item.requiresClubSurface && !canAccessClubOperationalSurface(user)) {
+      return false;
+    }
     return canViewScreen(subject, screenId);
   }).toList();
 }
