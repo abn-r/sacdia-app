@@ -661,7 +661,6 @@ class _ReviewSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final accent = SacAccent.of(context);
     final textTheme = Theme.of(context).textTheme;
     final label = (pending == 1
             ? 'coordinator.hub.review.label_one'
@@ -669,7 +668,6 @@ class _ReviewSummaryCard extends StatelessWidget {
         .tr();
 
     return SacCard(
-      accentColor: accent.color,
       onTap: onTap,
       animate: true,
       child: Row(
