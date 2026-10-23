@@ -1,254 +1,278 @@
-/// Tests for CoordinatorClubsListView (FR-2, branchIndex=1).
-///
-/// Tests:
-/// 1. Smoke render: view renders without throwing when clubs data is empty.
-/// 2. Loading state: skeleton placeholder is shown while loading.
-/// 3. Error state: error widget and retry button are shown on failure.
-/// 4. Data state: club cards are rendered for each club in the list.
-/// 5. RBAC gating: coordinator persona resolves correctly (T-24 alignment).
-/// 6. Router: coordinatorClubs route constant matches expected path.
+/// Tests for CoordinatorClubsListView ("Mis clubes").
 library;
+
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
-import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
-import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
-import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_badge.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/coordinator_club.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/coordinator_scope.dart';
 import 'package:sacdia_app/features/coordinator/presentation/providers/coordinator_providers.dart';
 import 'package:sacdia_app/features/coordinator/presentation/views/coordinator_clubs_list_view.dart';
-import 'package:sacdia_app/features/notifications/presentation/providers/unread_notifications_count_provider.dart';
 
-// ── Fake auth helpers ─────────────────────────────────────────────────────────
+import '../../coordinator_test_harness.dart';
 
-class _FakeAuthNotifier extends AuthNotifier {
-  final UserEntity? _user;
-  _FakeAuthNotifier(this._user);
-
-  @override
-  Future<UserEntity?> build() async => _user;
-}
-
-class _FakeCountNotifier extends UnreadNotificationsCountNotifier {
-  @override
-  int build() => 0;
-}
-
-UserEntity _coordinatorUser() {
-  return UserEntity(
-    id: 'coord-test-id',
-    email: 'coord@test.com',
-    postRegisterComplete: true,
-    authorization: AuthorizationSnapshot(
-      clubAssignments: [
-        AuthorizationGrant(
-          assignmentId: 'a1',
-          roleName: 'coordinator',
-          status: 'active',
-        ),
-      ],
-      activeAssignmentId: 'a1',
-    ),
-  );
-}
-
-// ── Stub clubs ────────────────────────────────────────────────────────────────
-
-final _stubClubs = [
-  const CoordinatorClub(
-      id: 1, name: 'Club Conquistadores Norte', localFieldId: 10),
-  const CoordinatorClub(id: 2, name: 'Club Aventureros Sur', localFieldId: 10),
+const _clubs = [
+  CoordinatorClub(
+    id: 1,
+    name: 'Club Conquistadores Norte',
+    localFieldId: 10,
+    districtName: 'Distrito Norte',
+    localFieldName: 'Campo Local 1',
+    sections: [
+      CoordinatorSectionScope(
+        clubSectionId: 7,
+        clubTypeId: 2,
+        name: 'Conquistadores',
+      ),
+      CoordinatorSectionScope(
+        clubSectionId: 8,
+        clubTypeId: 1,
+        name: 'Aventureros',
+      ),
+    ],
+  ),
+  CoordinatorClub(id: 2, name: 'Club Aventureros Sur', localFieldId: 10),
+  CoordinatorClub(id: 3, name: 'Club Guías Este', localFieldId: 11),
 ];
 
-// ── Pump helper ───────────────────────────────────────────────────────────────
-
 Future<void> _pumpView(
-  WidgetTester tester, {
-  required AsyncValue<List<CoordinatorClub>> clubsState,
-}) async {
+  WidgetTester tester,
+  FutureOr<List<CoordinatorClub>> Function() load,
+) async {
+  useTallSurface(tester);
+
+  final router = GoRouter(
+    initialLocation: '/start',
+    routes: [
+      GoRoute(
+        path: '/start',
+        builder: (context, __) => Scaffold(
+          body: TextButton(
+            onPressed: () => context.push('/clubs'),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/clubs',
+        builder: (_, __) => const CoordinatorClubsListView(),
+      ),
+      GoRoute(
+        path: '/club/:clubId',
+        builder: (_, state) =>
+            Text('page:club:${state.pathParameters['clubId']}'),
+      ),
+    ],
+  );
+
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        authNotifierProvider.overrideWith(
-          () => _FakeAuthNotifier(_coordinatorUser()),
-        ),
-        unreadNotificationsCountProvider.overrideWith(
-          () => _FakeCountNotifier(),
-        ),
-        // Override the raw clubs provider to control state in tests.
-        coordinatorClubsRawProvider.overrideWith((ref) async {
-          if (clubsState is AsyncData<List<CoordinatorClub>>) {
-            return clubsState.value;
-          }
-          if (clubsState is AsyncError) {
-            throw clubsState.error as Object;
-          }
-          // Loading: return a future that never resolves during test
-          await Future<void>.delayed(const Duration(hours: 1));
-          return [];
-        }),
+        coordinatorClubsRawProvider.overrideWith((ref) async => load()),
       ],
-      child: const MaterialApp(
-        home: CoordinatorClubsListView(),
-      ),
+      child: localized((context) => localizedRouterApp(context, router)),
     ),
   );
-  // One frame to start loading, one more to settle non-deferred states
-  await tester.pump();
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('open'));
+  await tester.pumpAndSettle();
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
-
 void main() {
-  // ── Unit: RBAC gating ─────────────────────────────────────────────────────
+  setUpAll(initCoordinatorTestLocalization);
 
-  group('RBAC: coordinator route wiring', () {
+  group('route wiring', () {
     test('coordinatorClubs route is /coordinator/clubs', () {
       expect(RouteNames.coordinatorClubs, '/coordinator/clubs');
     });
   });
 
-  // ── Widget: smoke render ──────────────────────────────────────────────────
+  group('data', () {
+    testWidgets('frosted top bar with title and club count', (tester) async {
+      await _pumpView(tester, () => _clubs);
 
-  group('CoordinatorClubsListView smoke render', () {
-    testWidgets('renders without throwing when data is empty list',
-        (tester) async {
-      await _pumpView(
-        tester,
-        clubsState: const AsyncData([]),
-      );
-      await tester.pumpAndSettle();
-
-      // View renders — no exception thrown
-      expect(find.byType(CoordinatorClubsListView), findsOneWidget);
+      final bar = tester.widget<SacTopBar>(find.byType(SacTopBar));
+      expect(bar.frosted, isTrue);
+      expect(bar.title, 'Mis clubes');
+      expect(bar.subtitle, '3 clubes');
+      // Pull to refresh replaces the refresh icon and the spinner.
+      expect(find.byType(CircularProgressIndicator), findsNothing);
     });
 
-    testWidgets('shows loading skeleton while data is loading', (tester) async {
-      // Use a delayed future that resolves quickly to avoid pending timer issues.
-      // We just need to assert the skeleton is visible before settlement.
+    testWidgets('shows a card per club', (tester) async {
+      await _pumpView(tester, () => _clubs);
+
+      expect(find.text('Club Conquistadores Norte'), findsOneWidget);
+      expect(find.text('Club Aventureros Sur'), findsOneWidget);
+      expect(find.text('Club Guías Este'), findsOneWidget);
+    });
+
+    testWidgets('a card shows district · local field and section badges',
+        (tester) async {
+      await _pumpView(tester, () => _clubs);
+
+      expect(find.text('Distrito Norte · Campo Local 1'), findsOneWidget);
+      expect(find.widgetWithText(SacBadge, 'Conquistadores'), findsOneWidget);
+      expect(find.widgetWithText(SacBadge, 'Aventureros'), findsOneWidget);
+      // The old "N secciones: ..." sentence is gone.
+      expect(find.textContaining('secciones'), findsNothing);
+    });
+
+    testWidgets('falls back to the local field id when it has no name',
+        (tester) async {
+      await _pumpView(tester, () => _clubs);
+
+      expect(find.text('Campo local #10'), findsOneWidget);
+    });
+
+    testWidgets('tapping a card opens the club detail', (tester) async {
+      await _pumpView(tester, () => _clubs);
+
+      await tester.tap(find.text('Club Aventureros Sur'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('page:club:2'), findsOneWidget);
+    });
+
+    testWidgets('the back button leaves the list', (tester) async {
+      await _pumpView(tester, () => _clubs);
+
+      await tester.tap(find.byType(SacBackButton));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CoordinatorClubsListView), findsNothing);
+      expect(find.text('open'), findsOneWidget);
+    });
+  });
+
+  group('search', () {
+    testWidgets('filters clubs by name', (tester) async {
+      await _pumpView(tester, () => _clubs);
+
+      expect(find.byType(SacTextField), findsOneWidget);
+      await tester.enterText(find.byType(TextFormField), 'aventureros');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Club Aventureros Sur'), findsOneWidget);
+      expect(find.text('Club Conquistadores Norte'), findsNothing);
+      expect(find.text('Club Guías Este'), findsNothing);
+    });
+
+    testWidgets('no matches shows a dedicated empty state with the query',
+        (tester) async {
+      await _pumpView(tester, () => _clubs);
+
+      await tester.enterText(find.byType(TextFormField), 'zzz');
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SacEmptyState), findsOneWidget);
+      expect(find.text('Sin resultados'), findsOneWidget);
+      expect(
+        find.text('No encontramos clubes con «zzz». Prueba con otro nombre.'),
+        findsOneWidget,
+      );
+      // The search field stays so the query can be corrected.
+      expect(find.byType(SacTextField), findsOneWidget);
+    });
+
+    testWidgets('the clear button restores the full list', (tester) async {
+      await _pumpView(tester, () => _clubs);
+
+      await tester.enterText(find.byType(TextFormField), 'zzz');
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Limpiar'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Club Conquistadores Norte'), findsOneWidget);
+      expect(find.byType(SacEmptyState), findsNothing);
+    });
+  });
+
+  group('states', () {
+    testWidgets('loading shows six card skeletons and no data', (tester) async {
+      final never = Completer<List<CoordinatorClub>>();
+      useTallSurface(tester);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            authNotifierProvider.overrideWith(
-              () => _FakeAuthNotifier(_coordinatorUser()),
-            ),
-            unreadNotificationsCountProvider.overrideWith(
-              () => _FakeCountNotifier(),
-            ),
-            coordinatorClubsRawProvider.overrideWith((ref) async {
-              // Delay slightly so initial frame shows loading skeleton
-              await Future<void>.delayed(Duration.zero);
-              return [];
-            }),
+            coordinatorClubsRawProvider.overrideWith((ref) => never.future),
           ],
-          child: const MaterialApp(home: CoordinatorClubsListView()),
+          child: localized(
+            (context) =>
+                localizedApp(context, const CoordinatorClubsListView()),
+          ),
         ),
       );
-      // First frame: loading skeleton should be visible
+      await tester.pump();
       await tester.pump();
 
-      // Loading state shows a ListView of skeleton containers
-      expect(find.byType(ListView), findsWidgets);
+      expect(find.byType(SacCard), findsNWidgets(6));
+      expect(find.byType(SacErrorState), findsNothing);
+      expect(find.byType(SacEmptyState), findsNothing);
+      expect(find.text('Club Conquistadores Norte'), findsNothing);
 
-      // Settle so the delayed future completes without leaking timers
+      never.complete(const []);
       await tester.pumpAndSettle();
     });
 
-    testWidgets('shows error state on failure', (tester) async {
-      await _pumpView(
-        tester,
-        clubsState: AsyncError(
-          Exception('network error'),
-          StackTrace.empty,
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // Error icon or retry button should be present
-      expect(
-          find.byType(SacButton).evaluate().isNotEmpty ||
-              find.byType(ElevatedButton).evaluate().isNotEmpty ||
-              find.byType(TextButton).evaluate().isNotEmpty ||
-              find.byIcon(Icons.refresh).evaluate().isNotEmpty ||
-              find.text('Reintentar').evaluate().isNotEmpty ||
-              find.text('Retry').evaluate().isNotEmpty,
-          isTrue);
-    });
-
-    testWidgets('does not leak raw exception text in the error state',
+    testWidgets('no assigned clubs shows the empty state without search',
         (tester) async {
-      await _pumpView(
-        tester,
-        clubsState: AsyncError(
-          Exception('Configuración RBAC incorrecta en el handler'),
-          StackTrace.empty,
-        ),
-      );
-      await tester.pumpAndSettle();
+      await _pumpView(tester, () => const []);
 
+      expect(find.byType(SacEmptyState), findsOneWidget);
+      expect(find.text('No hay clubes asignados'), findsOneWidget);
+      expect(find.byType(SacTextField), findsNothing);
+    });
+
+    testWidgets('a load failure is localized, retryable and never raw',
+        (tester) async {
+      var calls = 0;
+      await _pumpView(tester, () {
+        calls++;
+        throw Exception('Configuración RBAC incorrecta en el handler');
+      });
+
+      expect(find.byType(SacErrorState), findsOneWidget);
+      expect(find.text('No pudimos cargar tus clubes'), findsOneWidget);
       expect(find.textContaining('Exception'), findsNothing);
       expect(find.textContaining('RBAC'), findsNothing);
-      expect(
-          find.text('coordinator.clubs.error_load_subtitle'), findsOneWidget);
+
+      final before = calls;
+      await tester.tap(find.text('Reintentar'));
+      await tester.pumpAndSettle();
+      expect(calls, greaterThan(before));
     });
 
-    testWidgets('shows club cards when data is available', (tester) async {
+    testWidgets('a 403 shows access restricted without retry', (tester) async {
       await _pumpView(
         tester,
-        clubsState: AsyncData(_stubClubs),
+        () => throw const CoordinatorLoadException(
+          'No tienes permiso',
+          isForbidden: true,
+        ),
       );
-      await tester.pumpAndSettle();
 
-      // Both clubs appear in the list
-      expect(find.text('Club Conquistadores Norte'), findsOneWidget);
-      expect(find.text('Club Aventureros Sur'), findsOneWidget);
-    });
-
-    testWidgets('uses the singular section label for one section',
-        (tester) async {
-      await _pumpView(
-        tester,
-        clubsState: const AsyncData([
-          CoordinatorClub(
-            id: 3,
-            name: 'Club Una Sección',
-            localFieldId: 10,
-            sections: [
-              CoordinatorSectionScope(
-                clubSectionId: 7,
-                clubTypeId: 2,
-                name: 'Conquistadores',
-              ),
-            ],
-          ),
-        ]),
+      expect(find.text('Acceso restringido'), findsOneWidget);
+      final icon = tester.widget<HugeIcon>(
+        find.descendant(
+          of: find.byType(SacErrorState),
+          matching: find.byType(HugeIcon),
+        ),
       );
-      await tester.pumpAndSettle();
-
-      expect(
-        find.textContaining('coordinator.clubs.sections_label_one'),
-        findsOneWidget,
-      );
-      expect(
-        find.textContaining('coordinator.clubs.sections_label_other'),
-        findsNothing,
-      );
-    });
-
-    testWidgets('should show a back button to leave the clubs list',
-        (tester) async {
-      await _pumpView(
-        tester,
-        clubsState: const AsyncData([]),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byType(SacBackButton), findsOneWidget);
+      expect(icon.icon, HugeIcons.strokeRoundedLockKey);
+      expect(find.text('Reintentar'), findsNothing);
     });
   });
 }

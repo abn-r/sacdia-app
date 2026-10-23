@@ -9,7 +9,6 @@ import '../../domain/entities/consent_pending_queue.dart';
 import '../../domain/entities/coordinator_scope.dart';
 import '../../domain/entities/sla_dashboard.dart';
 import '../../domain/entities/evidence_review_item.dart';
-import '../../domain/entities/camporee_approval.dart';
 import '../../domain/repositories/coordinator_repository.dart';
 import '../datasources/coordinator_remote_data_source.dart';
 
@@ -121,20 +120,20 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
   // ── Evidence Review ───────────────────────────────────────────────────────────
 
   @override
-  Future<Either<Failure, List<EvidenceReviewItem>>> getPendingEvidence({
+  Future<Either<Failure, EvidenceReviewPage>> getPendingEvidence({
     int page = 1,
-    int limit = 20,
+    int limit = kPendingEvidencePageSize,
     EvidenceReviewType? type,
     RequestCancelToken? cancelToken,
   }) async {
     try {
-      final models = await remoteDataSource.getPendingEvidence(
+      final model = await remoteDataSource.getPendingEvidence(
         page: page,
         limit: limit,
         type: type,
         cancelToken: cancelToken.asDioCancelToken(),
       );
-      return Right(models.map((m) => m.toEntity()).toList());
+      return Right(model.toEntity());
     } on ServerException catch (e) {
       return _serverFailure(e);
     } on AuthException catch (e) {
@@ -237,224 +236,6 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
       await remoteDataSource.bulkRejectEvidence(
         ids: ids,
         type: type,
-        rejectionReason: rejectionReason,
-      );
-      return const Right(null);
-    } on ServerException catch (e) {
-      return _serverFailure(e);
-    } on AuthException catch (e) {
-      return _authFailure(e);
-    } catch (e) {
-      return _unexpectedFailure(e);
-    }
-  }
-
-  // ── Camporee list ─────────────────────────────────────────────────────────────
-
-  @override
-  Future<Either<Failure, List<CamporeeItem>>> listLocalCamporees({
-    bool activeOnly = true,
-    RequestCancelToken? cancelToken,
-  }) async {
-    try {
-      final models = await remoteDataSource.listLocalCamporees(
-        activeOnly: activeOnly,
-        cancelToken: cancelToken.asDioCancelToken(),
-      );
-      return Right(models.map((m) => m.toEntity()).toList());
-    } on ServerException catch (e) {
-      return _serverFailure(e);
-    } on AuthException catch (e) {
-      return _authFailure(e);
-    } catch (e) {
-      return _unexpectedFailure(e);
-    }
-  }
-
-  @override
-  Future<Either<Failure, List<CamporeeItem>>> listUnionCamporees({
-    RequestCancelToken? cancelToken,
-  }) async {
-    try {
-      final models = await remoteDataSource.listUnionCamporees(
-        cancelToken: cancelToken.asDioCancelToken(),
-      );
-      return Right(models.map((m) => m.toEntity()).toList());
-    } on ServerException catch (e) {
-      return _serverFailure(e);
-    } on AuthException catch (e) {
-      return _authFailure(e);
-    } catch (e) {
-      return _unexpectedFailure(e);
-    }
-  }
-
-  // ── Camporee pending approvals ────────────────────────────────────────────────
-
-  @override
-  Future<Either<Failure, CamporeePendingApprovals>> getLocalCamporeePending(
-    int camporeeId, {
-    RequestCancelToken? cancelToken,
-  }) async {
-    try {
-      final model = await remoteDataSource.getLocalCamporeePending(
-        camporeeId,
-        cancelToken: cancelToken.asDioCancelToken(),
-      );
-      return Right(model.toEntity());
-    } on ServerException catch (e) {
-      return _serverFailure(e);
-    } on AuthException catch (e) {
-      return _authFailure(e);
-    } catch (e) {
-      return _unexpectedFailure(e);
-    }
-  }
-
-  @override
-  Future<Either<Failure, CamporeePendingApprovals>> getUnionCamporeePending(
-    int camporeeId, {
-    RequestCancelToken? cancelToken,
-  }) async {
-    try {
-      final model = await remoteDataSource.getUnionCamporeePending(
-        camporeeId,
-        cancelToken: cancelToken.asDioCancelToken(),
-      );
-      return Right(model.toEntity());
-    } on ServerException catch (e) {
-      return _serverFailure(e);
-    } on AuthException catch (e) {
-      return _authFailure(e);
-    } catch (e) {
-      return _unexpectedFailure(e);
-    }
-  }
-
-  // ── Club enrollment approve/reject ────────────────────────────────────────────
-
-  @override
-  Future<Either<Failure, void>> approveCamporeeClub({
-    required int camporeeId,
-    required int camporeeClubId,
-    required CamporeeScope scope,
-  }) async {
-    try {
-      await remoteDataSource.approveCamporeeClub(
-        camporeeId: camporeeId,
-        camporeeClubId: camporeeClubId,
-        scope: scope,
-      );
-      return const Right(null);
-    } on ServerException catch (e) {
-      return _serverFailure(e);
-    } on AuthException catch (e) {
-      return _authFailure(e);
-    } catch (e) {
-      return _unexpectedFailure(e);
-    }
-  }
-
-  @override
-  Future<Either<Failure, void>> rejectCamporeeClub({
-    required int camporeeId,
-    required int camporeeClubId,
-    required CamporeeScope scope,
-    String? rejectionReason,
-  }) async {
-    try {
-      await remoteDataSource.rejectCamporeeClub(
-        camporeeId: camporeeId,
-        camporeeClubId: camporeeClubId,
-        scope: scope,
-        rejectionReason: rejectionReason,
-      );
-      return const Right(null);
-    } on ServerException catch (e) {
-      return _serverFailure(e);
-    } on AuthException catch (e) {
-      return _authFailure(e);
-    } catch (e) {
-      return _unexpectedFailure(e);
-    }
-  }
-
-  // ── Member enrollment approve/reject ──────────────────────────────────────────
-
-  @override
-  Future<Either<Failure, void>> approveCamporeeMember({
-    required int camporeeId,
-    required int camporeeMemberId,
-    required CamporeeScope scope,
-  }) async {
-    try {
-      await remoteDataSource.approveCamporeeMember(
-        camporeeId: camporeeId,
-        camporeeMemberId: camporeeMemberId,
-        scope: scope,
-      );
-      return const Right(null);
-    } on ServerException catch (e) {
-      return _serverFailure(e);
-    } on AuthException catch (e) {
-      return _authFailure(e);
-    } catch (e) {
-      return _unexpectedFailure(e);
-    }
-  }
-
-  @override
-  Future<Either<Failure, void>> rejectCamporeeMember({
-    required int camporeeId,
-    required int camporeeMemberId,
-    required CamporeeScope scope,
-    String? rejectionReason,
-  }) async {
-    try {
-      await remoteDataSource.rejectCamporeeMember(
-        camporeeId: camporeeId,
-        camporeeMemberId: camporeeMemberId,
-        scope: scope,
-        rejectionReason: rejectionReason,
-      );
-      return const Right(null);
-    } on ServerException catch (e) {
-      return _serverFailure(e);
-    } on AuthException catch (e) {
-      return _authFailure(e);
-    } catch (e) {
-      return _unexpectedFailure(e);
-    }
-  }
-
-  // ── Payment approve/reject ────────────────────────────────────────────────────
-
-  @override
-  Future<Either<Failure, void>> approveCamporeePayment({
-    required String camporeePaymentId,
-  }) async {
-    try {
-      await remoteDataSource.approveCamporeePayment(
-        camporeePaymentId: camporeePaymentId,
-      );
-      return const Right(null);
-    } on ServerException catch (e) {
-      return _serverFailure(e);
-    } on AuthException catch (e) {
-      return _authFailure(e);
-    } catch (e) {
-      return _unexpectedFailure(e);
-    }
-  }
-
-  @override
-  Future<Either<Failure, void>> rejectCamporeePayment({
-    required String camporeePaymentId,
-    String? rejectionReason,
-  }) async {
-    try {
-      await remoteDataSource.rejectCamporeePayment(
-        camporeePaymentId: camporeePaymentId,
         rejectionReason: rejectionReason,
       );
       return const Right(null);

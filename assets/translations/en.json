@@ -45,7 +45,12 @@
       "december": "December",
       "unknown": "Month {month}"
     },
-    "deleted_account": "Deleted account"
+    "deleted_account": "Deleted account",
+    "error_state": {
+      "title": "We couldn't load this information",
+      "forbidden_title": "Access restricted",
+      "forbidden_message": "Your account doesn't have permission to view this section. If you think this is a mistake, contact your administrator."
+    }
   },
   "welcome_carousel": {
     "skip": "Skip",
@@ -1674,46 +1679,51 @@
       "bulk_approve_evidence": "Error in bulk approval",
       "bulk_reject_evidence": "Error in bulk rejection",
       "fetch_scope": "Error fetching coordination scope",
-      "fetch_consent_pending": "Error fetching the forms to verify",
-      "fetch_local_camporees": "Error fetching camporees",
-      "fetch_union_camporees": "Error fetching union camporees",
-      "fetch_local_pending": "Error fetching pending approvals",
-      "fetch_union_pending": "Error fetching pending approvals (union)",
-      "approve_camporee_club": "Error approving club enrollment",
-      "reject_camporee_club": "Error rejecting club enrollment",
-      "approve_camporee_member": "Error approving member enrollment",
-      "reject_camporee_member": "Error rejecting member enrollment",
-      "approve_camporee_payment": "Error approving payment",
-      "reject_camporee_payment": "Error rejecting payment"
+      "fetch_consent_pending": "Error fetching the forms to verify"
     },
     "hub": {
       "title": "Coordination",
-      "greeting": "Hello, {name}",
-      "panel": "Coordinator panel",
-      "modules_section": "Modules"
+      "error_title": "We couldn't load your coordination panel",
+      "error_message": "Check your connection and try again.",
+      "empty_title": "You don't have any sections assigned yet",
+      "empty_body": "When clubs are assigned to you to coordinate, they will show up here. If you think one is missing, contact your administrator.",
+      "section_error": "We couldn't load this section.",
+      "scope": {
+        "clubs_one": "{count} club",
+        "clubs_other": "{count} clubs",
+        "districts_other": "{count} districts",
+        "fields_other": "{count} local fields"
+      },
+      "review": {
+        "title": "To review",
+        "see_all": "See all",
+        "label_one": "evidence item to review",
+        "label_other": "evidence items to review",
+        "overdue_one": "{count} overdue",
+        "overdue_other": "{count} overdue",
+        "avg_days": "Avg. {days} d",
+        "all_clear": "All caught up",
+        "all_clear_body": "There are no evidence items waiting for review.",
+        "oldest_first": "Oldest first"
+      },
+      "sla": {
+        "title": "Response time",
+        "see_detail": "View details"
+      },
+      "clubs": {
+        "title": "My clubs",
+        "see_all": "View {count}",
+        "empty": "There are no clubs within your coordination scope yet."
+      },
+      "reports": {
+        "title": "Reports",
+        "see_all": "See reports",
+        "forbidden": "Your role has no access to club reports."
+      }
     },
     "nav": {
-      "evidence_title": "Evidence Review",
-      "evidence_subtitle": "Approve or reject folders, classes and honors",
-      "clubs_title": "Clubs and sections",
-      "clubs_subtitle": "View clubs and sections under your coordination",
       "consent_title": "Forms to verify",
-      "consent_subtitle": "Minors' consent forms in your sections",
-      "camporees_title": "Camporee Approvals",
-      "camporees_subtitle": "Clubs, members and pending payments",
-      "dashboard_title": "Operational Dashboard",
-      "dashboard_subtitle": "Real-time KPIs and SLA metrics"
-    },
-    "summary": {
-      "evidence": "Evidence",
-      "sections": "Sections",
-      "camporees": "Camporees",
-      "overdue": "Overdue"
-    },
-    "scope": {
-      "assigned_one": "You have {count} section assigned for coordination.",
-      "assigned_other": "You have {count} sections assigned for coordination.",
-      "empty": "You do not have sections assigned as coordinator. If you are also a director, your director features still appear in the app."
+      "consent_subtitle": "Minors' consent forms in your sections"
     },
     "consent_review": {
       "title": "Forms to verify",
@@ -1732,69 +1742,25 @@
       "denied_title": "You can't verify forms",
       "denied_subtitle": "Your account isn't allowed to verify consent forms as a coordinator."
     },
-    "camporee_approvals": {
-      "title": "Camporee Approvals",
-      "no_active": "No active camporees",
-      "no_active_scope": "No active {scope} camporees",
-      "access_restricted": "Access restricted",
-      "access_restricted_msg": "Only coordinators with attendance:approve_late permission can access.",
-      "error_load": "Error loading camporees",
-      "error_load_approvals": "Error loading approvals",
-      "retry": "Retry",
-      "no_clubs_pending": "No pending clubs",
-      "no_members_pending": "No pending members",
-      "no_payments_pending": "No pending payments",
-      "count_pending_one": "{count} {type} pending",
-      "count_pending_other": "{count} {type}s pending",
-      "requested_by": "Requested by {name}",
-      "approve_club_title": "Approve club",
-      "approve_club_msg": "Confirm enrollment of {name} to the camporee?",
-      "reject_club_title": "Reject club",
-      "reject_club_msg": "Reject enrollment of {name} to the camporee?",
-      "approve_member_title": "Approve member",
-      "approve_member_msg": "Confirm enrollment of {name} to the camporee?",
-      "reject_member_title": "Reject member",
-      "reject_member_msg": "Reject enrollment of {name} to the camporee?",
-      "approve_payment_title": "Approve payment",
-      "approve_payment_msg": "Confirm payment of \\${amount} from {name}?",
-      "reject_payment_title": "Reject payment",
-      "reject_payment_msg": "Reject payment of \\${amount} from {name}?",
-      "club_approved": "Club approved",
-      "club_rejected": "Club rejected",
-      "member_approved": "Member approved",
-      "member_rejected": "Member rejected",
-      "payment_approved": "Payment approved",
-      "payment_rejected": "Payment rejected",
-      "error_approve": "Error approving",
-      "error_reject": "Error rejecting",
-      "payment_type_inscription": "Registration",
-      "payment_type_materials": "Materials",
-      "payment_type_other": "Other",
-      "unknown_club": "Unknown club"
-    },
     "evidence_review": {
       "list": {
-        "title": "Evidence Review",
-        "refresh_tooltip": "Refresh",
-        "no_pending": "No pending evidence",
-        "all_up_to_date": "All reviews are up to date",
-        "no_pending_type": "No pending {type}s",
-        "count_one": "{count} pending",
-        "count_other": "{count} pending",
+        "title": "Evidence",
         "filter_all": "All",
-        "filter_folders": "Folders",
         "filter_classes": "Classes",
         "filter_honors": "Honors",
-        "access_restricted": "Access restricted",
-        "access_restricted_msg": "Only coordinators and administrators can access this section.",
-        "error_load": "Error loading evidence",
-        "error_load_subtitle": "We couldn't load the pending evidence. Check your connection and try again.",
-        "retry": "Retry"
+        "oldest_first": "Oldest first",
+        "empty_title": "All caught up",
+        "empty_body": "There is no evidence waiting for review.",
+        "empty_filtered_title": "No pending evidence",
+        "empty_filtered_body": "There is no evidence of this type to review. Try another filter.",
+        "error_title": "We couldn't load the evidence",
+        "error_message": "Check your connection and try again.",
+        "load_more_error": "We couldn't load more evidence."
       },
       "detail": {
-        "refresh_tooltip": "Refresh",
-        "section_files": "Attached files",
-        "section_history": "Validation history",
+        "title": "Review evidence",
+        "section_files": "Files ({count})",
+        "section_history": "History",
         "approve_title": "Approve evidence",
         "approve_msg": "Confirm approval of evidence for {name}?",
         "reject_title": "Reject evidence",
@@ -1803,13 +1769,23 @@
         "rejected_ok": "Evidence rejected",
         "error_approve": "Error approving",
         "error_reject": "Error rejecting",
-        "error_load": "Error loading evidence",
-        "retry": "Retry",
-        "submitted_on": "Submitted on {date}"
+        "submitted_on": "Submitted on {date}",
+        "error_title": "We couldn't load this evidence",
+        "error_message": "Check your connection and try again."
       },
       "card": {
         "files_one": "{count} file",
-        "files_other": "{count} files"
+        "files_other": "{count} files",
+        "age_today": "Today",
+        "age_days": "{days} d ago",
+        "age_overdue": "Overdue · {days} d"
+      },
+      "history": {
+        "submitted": "Submitted for review",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "instructor_proposed": "Instructor proposal",
+        "instructor_set": "Instructor assigned"
       },
       "gallery": {
         "no_files": "No attached files",
@@ -1824,21 +1800,26 @@
     },
     "sla": {
       "dashboard": {
-        "title": "Operational Dashboard",
+        "title": "Response time",
         "refresh_tooltip": "Refresh",
         "current_status": "Current status",
         "auto_refresh_note": "Auto-refreshes every 60 sec.",
-        "access_restricted": "Access restricted",
-        "access_restricted_msg": "Only coordinators and administrators can access this section.",
-        "error_load": "Error loading dashboard",
-        "retry": "Retry"
+        "error_title": "We couldn't load the response time",
+        "error_message": "Check your connection and try again.",
+        "empty_title": "No data yet",
+        "empty_body": "Once evidence is submitted for review, you'll see your response times here."
       },
       "stat": {
         "pending": "Pending",
-        "avg_days": "Avg days",
-        "overdue": "Overdue",
-        "overdue_alert_one": "{count} overdue",
-        "overdue_alert_other": "{count} overdue"
+        "avg_days": "Average (days)",
+        "overdue": "Overdue"
+      },
+      "throughput": {
+        "title": "Reviews per week",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "not_enough": "There aren't enough weeks of reviews yet to show the trend.",
+        "week_short": "W{week}"
       }
     },
     "actions": {
@@ -1847,18 +1828,9 @@
       "cancel": "Cancel",
       "comment_label": "Comment (optional)",
       "comment_hint": "E.g.: Complete and correct documentation",
-      "reject_reason_label": "Reason for rejection *",
-      "reject_reason_hint": "A reason is required",
-      "reject_reason_required": "The reason is required"
-    },
-    "camporee_scope": {
-      "local": "Local",
-      "union": "Union"
-    },
-    "approval_type": {
-      "clubs": "Clubs",
-      "members": "Members",
-      "payments": "Payments"
+      "reject_reason_label": "Reason for rejection",
+      "reject_reason_hint": "Explain what needs to be fixed",
+      "reject_reason_required": "Enter the reason for rejection"
     },
     "evidence_type": {
       "folder": "Folder",
@@ -1866,15 +1838,56 @@
       "honor": "Honor"
     },
     "clubs": {
-      "title": "Assigned clubs",
-      "search_hint": "Search club...",
+      "title": "My clubs",
+      "search_hint": "Search club",
       "empty_title": "No assigned clubs",
       "empty_subtitle": "There are no clubs or sections inside your coordination scope.",
-      "error_load": "Error loading clubs",
-      "error_load_subtitle": "We could not load your clubs. Check your connection and try again.",
       "field_id_label": "Local field #{id}",
-      "sections_label_one": "{count} section",
-      "sections_label_other": "{count} sections"
+      "empty_search_title": "No results",
+      "empty_search_body": "We found no clubs matching \"{query}\". Try a different name.",
+      "error_title": "We couldn't load your clubs",
+      "error_message": "Check your connection and try again."
+    },
+    "reports": {
+      "title": "Reports",
+      "error_title": "Could not load the reports",
+      "error_message": "Check your connection and try again.",
+      "empty_title": "No assigned clubs",
+      "empty_body": "Once you have assigned clubs, their report compliance shows up here.",
+      "period_empty_title": "No reports in this period",
+      "period_empty_body": "No club in your scope has reports expected for this period.",
+      "clubs_title": "By club",
+      "due_on": "Due date: {date}",
+      "progress": "{submitted} of {expected} submitted",
+      "no_pdf": "No PDF available yet",
+      "view_pdf": "View PDF",
+      "view_pdf_type": "View PDF · {type}",
+      "pdf_error": "Could not open the PDF. Try again.",
+      "list_error": "Could not load the report PDFs.",
+      "quarter_label": "Q{quarter} {year}",
+      "kind": {
+        "monthly": "Monthly",
+        "quarterly": "Quarterly",
+        "annual": "Annual"
+      },
+      "stat": {
+        "submitted": "Submitted",
+        "pending": "Pending",
+        "overdue": "Overdue"
+      },
+      "status": {
+        "submitted": "Submitted",
+        "pending": "Pending",
+        "overdue": "Overdue",
+        "not_due": "In progress"
+      },
+      "errors": {
+        "fetch_compliance": "Could not load report compliance",
+        "fetch_list": "Could not load the report list",
+        "pdf_empty": "The downloaded PDF is empty",
+        "forbidden": "You do not have permission to see these reports",
+        "not_found": "Report not found"
+      }
     }
   },
   "classes": {

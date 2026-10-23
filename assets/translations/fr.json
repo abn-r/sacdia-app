@@ -45,7 +45,12 @@
       "december": "Décembre",
       "unknown": "Mois {month}"
     },
-    "deleted_account": "Compte supprimé"
+    "deleted_account": "Compte supprimé",
+    "error_state": {
+      "title": "Impossible de charger ces informations",
+      "forbidden_title": "Accès restreint",
+      "forbidden_message": "Votre compte n'a pas la permission de voir cette section. Si vous pensez qu'il s'agit d'une erreur, contactez votre administrateur."
+    }
   },
   "welcome_carousel": {
     "skip": "Passer",
@@ -1674,46 +1679,51 @@
       "bulk_approve_evidence": "Erreur lors de l'approbation en lot",
       "bulk_reject_evidence": "Erreur lors du rejet en lot",
       "fetch_scope": "Erreur lors de la récupération du périmètre de coordination",
-      "fetch_consent_pending": "Erreur lors de la récupération des fiches à vérifier",
-      "fetch_local_camporees": "Erreur lors de la récupération des camporées",
-      "fetch_union_camporees": "Erreur lors de la récupération des camporées d'union",
-      "fetch_local_pending": "Erreur lors de la récupération des approbations en attente",
-      "fetch_union_pending": "Erreur lors de la récupération des approbations en attente (union)",
-      "approve_camporee_club": "Erreur lors de l'approbation de l'inscription du club",
-      "reject_camporee_club": "Erreur lors du rejet de l'inscription du club",
-      "approve_camporee_member": "Erreur lors de l'approbation de l'inscription du membre",
-      "reject_camporee_member": "Erreur lors du rejet de l'inscription du membre",
-      "approve_camporee_payment": "Erreur lors de l'approbation du paiement",
-      "reject_camporee_payment": "Erreur lors du rejet du paiement"
+      "fetch_consent_pending": "Erreur lors de la récupération des fiches à vérifier"
     },
     "hub": {
       "title": "Coordination",
-      "greeting": "Bonjour, {name}",
-      "panel": "Panneau coordinateur",
-      "modules_section": "Modules"
+      "error_title": "Impossible de charger votre tableau de coordination",
+      "error_message": "Vérifiez votre connexion et réessayez.",
+      "empty_title": "Aucune section ne vous est encore assignée",
+      "empty_body": "Lorsque des clubs vous seront assignés à coordonner, ils apparaîtront ici. S'il en manque un, contactez votre administrateur.",
+      "section_error": "Impossible de charger cette section.",
+      "scope": {
+        "clubs_one": "{count} club",
+        "clubs_other": "{count} clubs",
+        "districts_other": "{count} districts",
+        "fields_other": "{count} champs locaux"
+      },
+      "review": {
+        "title": "À examiner",
+        "see_all": "Voir tout",
+        "label_one": "preuve à examiner",
+        "label_other": "preuves à examiner",
+        "overdue_one": "{count} en retard",
+        "overdue_other": "{count} en retard",
+        "avg_days": "Moy. {days} j",
+        "all_clear": "Tout est à jour",
+        "all_clear_body": "Aucune preuve n'est en attente d'examen.",
+        "oldest_first": "Les plus anciennes d'abord"
+      },
+      "sla": {
+        "title": "Délai de réponse",
+        "see_detail": "Voir le détail"
+      },
+      "clubs": {
+        "title": "Mes clubs",
+        "see_all": "Voir {count}",
+        "empty": "Aucun club ne fait encore partie de votre périmètre de coordination."
+      },
+      "reports": {
+        "title": "Rapports",
+        "see_all": "Voir les rapports",
+        "forbidden": "Votre rôle n'a pas accès aux rapports des clubs."
+      }
     },
     "nav": {
-      "evidence_title": "Révision des preuves",
-      "evidence_subtitle": "Approuver ou rejeter dossiers, cours et spécialités",
-      "clubs_title": "Clubs et sections",
-      "clubs_subtitle": "Voir les clubs et sections sous votre coordination",
       "consent_title": "Fiches à vérifier",
-      "consent_subtitle": "Consentements des mineurs dans vos sections",
-      "camporees_title": "Approbations de camporées",
-      "camporees_subtitle": "Clubs, membres et paiements en attente",
-      "dashboard_title": "Tableau de bord opérationnel",
-      "dashboard_subtitle": "KPIs et métriques SLA en temps réel"
-    },
-    "summary": {
-      "evidence": "Preuves",
-      "sections": "Sections",
-      "camporees": "Camporées",
-      "overdue": "En retard"
-    },
-    "scope": {
-      "assigned_one": "Vous avez {count} section assignée pour la coordination.",
-      "assigned_other": "Vous avez {count} sections assignées pour la coordination.",
-      "empty": "Vous n'avez aucune section assignée comme coordinateur. Si vous êtes aussi directeur, vos fonctions de directeur restent visibles dans l'app."
+      "consent_subtitle": "Consentements des mineurs dans vos sections"
     },
     "consent_review": {
       "title": "Fiches à vérifier",
@@ -1732,69 +1742,25 @@
       "denied_title": "Vous ne pouvez pas vérifier les fiches",
       "denied_subtitle": "Votre compte n'est pas autorisé à vérifier les fiches de consentement en tant que coordinateur."
     },
-    "camporee_approvals": {
-      "title": "Approbations de camporées",
-      "no_active": "Aucune camporée active",
-      "no_active_scope": "Aucune camporée {scope} active",
-      "access_restricted": "Accès restreint",
-      "access_restricted_msg": "Seuls les coordinateurs avec la permission attendance:approve_late peuvent accéder.",
-      "error_load": "Erreur lors du chargement des camporées",
-      "error_load_approvals": "Erreur lors du chargement des approbations",
-      "retry": "Réessayer",
-      "no_clubs_pending": "Aucun club en attente",
-      "no_members_pending": "Aucun membre en attente",
-      "no_payments_pending": "Aucun paiement en attente",
-      "count_pending_one": "{count} {type} en attente",
-      "count_pending_other": "{count} {type}s en attente",
-      "requested_by": "Demandé par {name}",
-      "approve_club_title": "Approuver le club",
-      "approve_club_msg": "Confirmer l'inscription de {name} à la camporée ?",
-      "reject_club_title": "Rejeter le club",
-      "reject_club_msg": "Rejeter l'inscription de {name} à la camporée ?",
-      "approve_member_title": "Approuver le membre",
-      "approve_member_msg": "Confirmer l'inscription de {name} à la camporée ?",
-      "reject_member_title": "Rejeter le membre",
-      "reject_member_msg": "Rejeter l'inscription de {name} à la camporée ?",
-      "approve_payment_title": "Approuver le paiement",
-      "approve_payment_msg": "Confirmer le paiement de {amount} $ de {name} ?",
-      "reject_payment_title": "Rejeter le paiement",
-      "reject_payment_msg": "Rejeter le paiement de {amount} $ de {name} ?",
-      "club_approved": "Club approuvé",
-      "club_rejected": "Club rejeté",
-      "member_approved": "Membre approuvé",
-      "member_rejected": "Membre rejeté",
-      "payment_approved": "Paiement approuvé",
-      "payment_rejected": "Paiement rejeté",
-      "error_approve": "Erreur lors de l'approbation",
-      "error_reject": "Erreur lors du rejet",
-      "payment_type_inscription": "Inscription",
-      "payment_type_materials": "Matériaux",
-      "payment_type_other": "Autre",
-      "unknown_club": "Club inconnu"
-    },
     "evidence_review": {
       "list": {
-        "title": "Révision des preuves",
-        "refresh_tooltip": "Actualiser",
-        "no_pending": "Aucune preuve en attente",
-        "all_up_to_date": "Toutes les révisions sont à jour",
-        "no_pending_type": "Aucun(e) {type} en attente",
-        "count_one": "{count} en attente",
-        "count_other": "{count} en attente",
-        "filter_all": "Tous",
-        "filter_folders": "Dossiers",
+        "title": "Preuves",
+        "filter_all": "Toutes",
         "filter_classes": "Cours",
         "filter_honors": "Spécialités",
-        "access_restricted": "Accès restreint",
-        "access_restricted_msg": "Seuls les coordinateurs et administrateurs peuvent accéder à cette section.",
-        "error_load": "Erreur lors du chargement des preuves",
-        "error_load_subtitle": "Impossible de charger les preuves en attente. Vérifiez votre connexion et réessayez.",
-        "retry": "Réessayer"
+        "oldest_first": "Les plus anciennes d'abord",
+        "empty_title": "Tout est à jour",
+        "empty_body": "Aucune preuve n'est en attente d'examen.",
+        "empty_filtered_title": "Aucune preuve en attente",
+        "empty_filtered_body": "Aucune preuve de ce type à examiner. Essayez un autre filtre.",
+        "error_title": "Impossible de charger les preuves",
+        "error_message": "Vérifiez votre connexion et réessayez.",
+        "load_more_error": "Impossible de charger plus de preuves."
       },
       "detail": {
-        "refresh_tooltip": "Actualiser",
-        "section_files": "Fichiers joints",
-        "section_history": "Historique de validation",
+        "title": "Examiner la preuve",
+        "section_files": "Fichiers ({count})",
+        "section_history": "Historique",
         "approve_title": "Approuver la preuve",
         "approve_msg": "Confirmer l'approbation de la preuve de {name} ?",
         "reject_title": "Rejeter la preuve",
@@ -1803,13 +1769,23 @@
         "rejected_ok": "Preuve rejetée",
         "error_approve": "Erreur lors de l'approbation",
         "error_reject": "Erreur lors du rejet",
-        "error_load": "Erreur lors du chargement de la preuve",
-        "retry": "Réessayer",
-        "submitted_on": "Soumis le {date}"
+        "submitted_on": "Soumis le {date}",
+        "error_title": "Impossible de charger la preuve",
+        "error_message": "Vérifiez votre connexion et réessayez."
       },
       "card": {
         "files_one": "{count} fichier",
-        "files_other": "{count} fichiers"
+        "files_other": "{count} fichiers",
+        "age_today": "Aujourd'hui",
+        "age_days": "Il y a {days} j",
+        "age_overdue": "En retard · {days} j"
+      },
+      "history": {
+        "submitted": "Soumise pour examen",
+        "approved": "Approuvée",
+        "rejected": "Rejetée",
+        "instructor_proposed": "Proposition de l'instructeur",
+        "instructor_set": "Instructeur assigné"
       },
       "gallery": {
         "no_files": "Aucun fichier joint",
@@ -1824,21 +1800,26 @@
     },
     "sla": {
       "dashboard": {
-        "title": "Tableau de bord opérationnel",
+        "title": "Délai de réponse",
         "refresh_tooltip": "Actualiser",
         "current_status": "État actuel",
         "auto_refresh_note": "Actualisation automatique toutes les 60 sec.",
-        "access_restricted": "Accès restreint",
-        "access_restricted_msg": "Seuls les coordinateurs et administrateurs peuvent accéder à cette section.",
-        "error_load": "Erreur lors du chargement du tableau de bord",
-        "retry": "Réessayer"
+        "error_title": "Impossible de charger le délai de réponse",
+        "error_message": "Vérifiez votre connexion et réessayez.",
+        "empty_title": "Pas encore de données",
+        "empty_body": "Dès que des preuves seront soumises pour examen, vous verrez ici vos délais de réponse."
       },
       "stat": {
         "pending": "En attente",
-        "avg_days": "Jours moy.",
-        "overdue": "En retard",
-        "overdue_alert_one": "{count} en retard",
-        "overdue_alert_other": "{count} en retard"
+        "avg_days": "Moyenne (jours)",
+        "overdue": "En retard"
+      },
+      "throughput": {
+        "title": "Examens par semaine",
+        "approved": "Approuvées",
+        "rejected": "Rejetées",
+        "not_enough": "Il n'y a pas encore assez de semaines d'examens pour afficher la tendance.",
+        "week_short": "S{week}"
       }
     },
     "actions": {
@@ -1847,18 +1828,9 @@
       "cancel": "Annuler",
       "comment_label": "Commentaire (facultatif)",
       "comment_hint": "Ex. : Documentation complète et correcte",
-      "reject_reason_label": "Motif du rejet *",
-      "reject_reason_hint": "Le motif est obligatoire",
-      "reject_reason_required": "Le motif est obligatoire"
-    },
-    "camporee_scope": {
-      "local": "Local",
-      "union": "Union"
-    },
-    "approval_type": {
-      "clubs": "Clubs",
-      "members": "Membres",
-      "payments": "Paiements"
+      "reject_reason_label": "Motif du rejet",
+      "reject_reason_hint": "Expliquez ce qu'il faut corriger",
+      "reject_reason_required": "Saisissez le motif du rejet"
     },
     "evidence_type": {
       "folder": "Dossier",
@@ -1866,15 +1838,56 @@
       "honor": "Spécialité"
     },
     "clubs": {
-      "title": "Clubs assignés",
-      "search_hint": "Rechercher un club...",
+      "title": "Mes clubs",
+      "search_hint": "Rechercher un club",
       "empty_title": "Aucun club assigné",
       "empty_subtitle": "Il n'y a aucun club ou section dans votre périmètre de coordination.",
-      "error_load": "Erreur lors du chargement des clubs",
-      "error_load_subtitle": "Impossible de charger vos clubs. Vérifiez votre connexion et réessayez.",
       "field_id_label": "Champ local #{id}",
-      "sections_label_one": "{count} section",
-      "sections_label_other": "{count} sections"
+      "empty_search_title": "Aucun résultat",
+      "empty_search_body": "Aucun club ne correspond à « {query} ». Essayez un autre nom.",
+      "error_title": "Impossible de charger vos clubs",
+      "error_message": "Vérifiez votre connexion et réessayez."
+    },
+    "reports": {
+      "title": "Rapports",
+      "error_title": "Impossible de charger les rapports",
+      "error_message": "Vérifiez votre connexion et réessayez.",
+      "empty_title": "Aucun club assigné",
+      "empty_body": "Lorsque des clubs vous seront assignés, la conformité de leurs rapports apparaîtra ici.",
+      "period_empty_title": "Aucun rapport pour cette période",
+      "period_empty_body": "Aucun club de votre périmètre n'a de rapport attendu pour cette période.",
+      "clubs_title": "Par club",
+      "due_on": "Date limite : {date}",
+      "progress": "{submitted} sur {expected} envoyés",
+      "no_pdf": "Pas encore de PDF disponible",
+      "view_pdf": "Voir le PDF",
+      "view_pdf_type": "Voir le PDF · {type}",
+      "pdf_error": "Impossible d'ouvrir le PDF. Réessayez.",
+      "list_error": "Impossible de charger les PDF des rapports.",
+      "quarter_label": "T{quarter} {year}",
+      "kind": {
+        "monthly": "Mensuel",
+        "quarterly": "Trimestriel",
+        "annual": "Annuel"
+      },
+      "stat": {
+        "submitted": "Envoyés",
+        "pending": "En attente",
+        "overdue": "En retard"
+      },
+      "status": {
+        "submitted": "Envoyé",
+        "pending": "En attente",
+        "overdue": "En retard",
+        "not_due": "En cours"
+      },
+      "errors": {
+        "fetch_compliance": "Impossible de charger la conformité des rapports",
+        "fetch_list": "Impossible de charger la liste des rapports",
+        "pdf_empty": "Le PDF téléchargé est vide",
+        "forbidden": "Vous n'avez pas l'autorisation de voir ces rapports",
+        "not_found": "Rapport introuvable"
+      }
     }
   },
   "classes": {

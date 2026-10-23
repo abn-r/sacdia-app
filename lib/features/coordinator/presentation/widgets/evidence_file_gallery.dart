@@ -1,294 +1,211 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import '../../../../core/theme/app_colors.dart';
-import 'package:sacdia_app/core/theme/sac_accent.dart';
-import '../../../../core/theme/sac_colors.dart';
-import '../../domain/entities/evidence_review_item.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
-import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
+import 'package:sacdia_app/core/widgets/sac_pressable.dart';
+import 'package:sacdia_app/features/coordinator/domain/entities/evidence_review_item.dart';
 
-/// Galería de archivos de evidencia.
+/// Attached files of an evidence in a 3-column grid.
 ///
-/// Muestra imágenes como miniaturas en cuadrícula y PDFs con un ícono
-/// de documento con el nombre. Al tocar una imagen se abre en pantalla completa.
+/// Images show as thumbnails and open in the full-screen viewer (swipe between
+/// the evidence images). PDFs open in the PDF viewer; any other file is shown
+/// with a file icon and its truncated name.
 class EvidenceFileGallery extends StatelessWidget {
-  final List<EvidenceFile> files;
-
   const EvidenceFileGallery({super.key, required this.files});
+
+  final List<EvidenceFile> files;
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
 
     if (files.isEmpty) {
-      return Center(
-        child: Column(
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedFolder01,
-              size: 40,
-              color: c.textTertiary,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'coordinator.evidence_review.gallery.no_files'.tr(),
-              style: TextStyle(fontSize: 13, color: c.textTertiary),
-            ),
-          ],
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Center(
+          child: Column(
+            children: [
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedFolder01,
+                size: 40,
+                color: c.textTertiary,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'coordinator.evidence_review.gallery.no_files'.tr(),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: c.textTertiary),
+              ),
+            ],
+          ),
         ),
       );
     }
 
-    final imageFiles = files.where((f) => f.isImage).toList();
-    final otherFiles = files.where((f) => !f.isImage).toList();
+    final images = files.where((f) => f.isImage).toList();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // ── Image grid ────────────────────────────────────────────────────
-        if (imageFiles.isNotEmpty) ...[
-          GridView.builder(
-            // shrinkWrap OK: imageFiles is a subset of evidence images per
-            // honor — naturally bounded. Lives inside a Column (non-scrollable)
-            // so intrinsic height is required.
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              mainAxisSpacing: 6,
-              crossAxisSpacing: 6,
-              childAspectRatio: 1,
-            ),
-            itemCount: imageFiles.length,
-            itemBuilder: (context, index) {
-              final file = imageFiles[index];
-              return _ImageThumbnail(
-                file: file,
-                allImages: imageFiles,
-                initialIndex: index,
-              );
-            },
-          ),
-        ],
+    return GridView.builder(
+      // shrinkWrap is fine here: the files of one evidence are a handful, and
+      // the grid lives inside the screen's own scroll view.
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+        childAspectRatio: 1,
+      ),
+      itemCount: files.length,
+      itemBuilder: (context, index) {
+        final file = files[index];
+        if (file.isImage) {
+          return _ImageTile(
+            file: file,
+            onTap: () => _openImages(context, images, images.indexOf(file)),
+          );
+        }
+        return _FileTile(
+          file: file,
+          onTap: file.isPdf
+              ? () => SacPdfViewer.show(
+                    context,
+                    pdfSource: file.url,
+                    title: file.name,
+                  )
+              : null,
+        );
+      },
+    );
+  }
 
-        // ── Non-image files ───────────────────────────────────────────────
-        if (otherFiles.isNotEmpty) ...[
-          if (imageFiles.isNotEmpty) const SizedBox(height: 10),
-          ...otherFiles.map((file) => _DocumentTile(file: file, c: c)),
-        ],
-      ],
+  /// Full-screen viewer without share and without disk cache: evidence URLs
+  /// are signed and expire, so they must not be persisted.
+  void _openImages(
+    BuildContext context,
+    List<EvidenceFile> images,
+    int initialIndex,
+  ) {
+    Navigator.of(context).push(
+      SacFadeThroughRoute(
+        fullscreenDialog: true,
+        builder: (_) => SacImageViewer.gallery(
+          imageUrls: [for (final f in images) f.url],
+          initialIndex: initialIndex < 0 ? 0 : initialIndex,
+          allowShare: false,
+          cacheNetwork: false,
+        ),
+      ),
     );
   }
 }
 
-class _ImageThumbnail extends StatelessWidget {
-  final EvidenceFile file;
-  final List<EvidenceFile> allImages;
-  final int initialIndex;
+String _fileLabel(EvidenceFile file) {
+  final name = file.name?.trim();
+  if (name != null && name.isNotEmpty) return name;
+  return file.isPdf
+      ? 'coordinator.evidence_review.gallery.pdf_document'.tr()
+      : 'coordinator.evidence_review.gallery.file'.tr();
+}
 
-  const _ImageThumbnail({
-    required this.file,
-    required this.allImages,
-    required this.initialIndex,
-  });
+class _ImageTile extends StatelessWidget {
+  const _ImageTile({required this.file, required this.onTap});
+
+  final EvidenceFile file;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
 
-    return GestureDetector(
-      onTap: () => _openFullscreen(context),
+    return SacPressable(
+      onTap: onTap,
+      semanticLabel: _fileLabel(file),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
-        child: Container(
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+        child: DecoratedBox(
           decoration: BoxDecoration(
             color: c.surfaceVariant,
-            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: c.border),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
           ),
           child: Image.network(
             file.url,
             fit: BoxFit.cover,
             cacheWidth: 400,
-            errorBuilder: (_, __, ___) => Container(
-              color: c.surfaceVariant,
+            errorBuilder: (_, __, ___) => Center(
               child: HugeIcon(
-                icon: HugeIcons.strokeRoundedImage01,
+                icon: HugeIcons.strokeRoundedImageNotFound01,
                 size: 24,
                 color: c.textTertiary,
               ),
             ),
-            loadingBuilder: (_, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Container(
-                color: c.surfaceVariant,
-                child: Center(
-                  child: CircularProgressIndicator(
-                    value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded /
-                            loadingProgress.expectedTotalBytes!
-                        : null,
-                    strokeWidth: 2,
-                    color: SacAccent.of(context).color,
-                  ),
-                ),
-              );
+            loadingBuilder: (_, child, progress) {
+              if (progress == null) return child;
+              return const Center(child: SacLoadingSmall());
             },
           ),
         ),
       ),
     );
   }
+}
 
-  void _openFullscreen(BuildContext context) {
-    Navigator.push(
-      context,
-      SacFadeThroughRoute(
-        builder: (_) => _FullscreenImageViewer(
-          images: allImages,
-          initialIndex: initialIndex,
+class _FileTile extends StatelessWidget {
+  const _FileTile({required this.file, this.onTap});
+
+  final EvidenceFile file;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final tile = DecoratedBox(
+      decoration: BoxDecoration(
+        color: c.surfaceVariant,
+        border: Border.all(color: c.border),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            HugeIcon(
+              icon: file.isPdf
+                  ? HugeIcons.strokeRoundedFile01
+                  : HugeIcons.strokeRoundedAttachment01,
+              size: 28,
+              color: c.textSecondary,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              _fileLabel(file),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: Theme.of(context)
+                  .textTheme
+                  .labelSmall
+                  ?.copyWith(color: c.textSecondary),
+            ),
+          ],
         ),
       ),
     );
-  }
-}
 
-class _DocumentTile extends StatelessWidget {
-  final EvidenceFile file;
-  final SacColors c;
-
-  const _DocumentTile({required this.file, required this.c});
-
-  @override
-  Widget build(BuildContext context) {
-    final isPdf = file.isPdf;
-    final icon = isPdf
-        ? HugeIcons.strokeRoundedFile01
-        : HugeIcons.strokeRoundedAttachment01;
-    final iconColor = isPdf ? AppColors.error : AppColors.info;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: c.surfaceVariant,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: c.border),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Center(
-              child: HugeIcon(icon: icon, size: 18, color: iconColor),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  file.name ??
-                      (isPdf
-                          ? 'coordinator.evidence_review.gallery.pdf_document'
-                              .tr()
-                          : 'coordinator.evidence_review.gallery.file'.tr()),
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: c.text,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (file.mimeType != null)
-                  Text(
-                    file.mimeType!,
-                    style: TextStyle(fontSize: 11, color: c.textTertiary),
-                  ),
-              ],
-            ),
-          ),
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedDownload01,
-            size: 16,
-            color: c.textTertiary,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Fullscreen image viewer ───────────────────────────────────────────────────
-
-class _FullscreenImageViewer extends StatefulWidget {
-  final List<EvidenceFile> images;
-  final int initialIndex;
-
-  const _FullscreenImageViewer({
-    required this.images,
-    required this.initialIndex,
-  });
-
-  @override
-  State<_FullscreenImageViewer> createState() => _FullscreenImageViewerState();
-}
-
-class _FullscreenImageViewerState extends State<_FullscreenImageViewer> {
-  late PageController _pageController;
-  late int _currentIndex;
-
-  @override
-  void initState() {
-    super.initState();
-    _currentIndex = widget.initialIndex;
-    _pageController = PageController(initialPage: widget.initialIndex);
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: SacTopBar(
-        title: '${_currentIndex + 1} / ${widget.images.length}',
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-      ),
-      body: PageView.builder(
-        controller: _pageController,
-        onPageChanged: (index) => setState(() => _currentIndex = index),
-        itemCount: widget.images.length,
-        itemBuilder: (context, index) {
-          final file = widget.images[index];
-          return InteractiveViewer(
-            child: Center(
-              child: Image.network(
-                file.url,
-                fit: BoxFit.contain,
-                cacheWidth: 1600,
-                errorBuilder: (_, __, ___) => const HugeIcon(
-                  icon: HugeIcons.strokeRoundedImageDelete01,
-                  color: Colors.white54,
-                  size: 64,
-                ),
-              ),
-            ),
-          );
-        },
-      ),
+    if (onTap == null) return Semantics(label: _fileLabel(file), child: tile);
+    return SacPressable(
+      onTap: onTap,
+      semanticLabel: _fileLabel(file),
+      child: tile,
     );
   }
 }

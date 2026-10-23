@@ -260,3 +260,65 @@ class EvidenceReviewItemModel extends Equatable {
         history,
       ];
 }
+
+/// Página de GET /evidence-review/pending.
+///
+/// El backend responde `{ status, data: { data: [...], total, page, limit } }`.
+/// Si la respuesta no trae `total`, queda en null: la app no lo inventa.
+class EvidenceReviewPageModel extends Equatable {
+  final List<EvidenceReviewItemModel> items;
+  final int? total;
+  final int page;
+  final int limit;
+
+  const EvidenceReviewPageModel({
+    required this.items,
+    required this.total,
+    required this.page,
+    required this.limit,
+  });
+
+  /// [page] y [limit] son los pedidos; se usan si el servidor no los repite.
+  factory EvidenceReviewPageModel.fromResponse(
+    dynamic raw, {
+    required int page,
+    required int limit,
+  }) {
+    // Desempaqueta `{ status, data: {...} }` hasta el objeto con la lista.
+    dynamic body = raw;
+    if (body is Map && body['data'] is Map) body = body['data'];
+
+    final List<dynamic> list;
+    final Map<String, dynamic> meta;
+    if (body is List) {
+      list = body;
+      meta = const {};
+    } else if (body is Map && body['data'] is List) {
+      list = body['data'] as List;
+      meta = Map<String, dynamic>.from(body);
+    } else {
+      list = const [];
+      meta = const {};
+    }
+
+    return EvidenceReviewPageModel(
+      items: list
+          .whereType<Map<String, dynamic>>()
+          .map(EvidenceReviewItemModel.fromJson)
+          .toList(),
+      total: _readInt(meta, const ['total']),
+      page: _readInt(meta, const ['page']) ?? page,
+      limit: _readInt(meta, const ['limit']) ?? limit,
+    );
+  }
+
+  EvidenceReviewPage toEntity() => EvidenceReviewPage(
+        items: items.map((m) => m.toEntity()).toList(),
+        total: total,
+        page: page,
+        limit: limit,
+      );
+
+  @override
+  List<Object?> get props => [items, total, page, limit];
+}

@@ -4,13 +4,11 @@ import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/evidence_review_item.dart';
-import '../../domain/entities/camporee_approval.dart';
 import '../models/consent_pending_page_model.dart';
 import '../models/coordinator_club_model.dart';
 import '../models/coordinator_scope_model.dart';
 import '../models/sla_dashboard_model.dart';
 import '../models/evidence_review_model.dart';
-import '../models/camporee_approval_model.dart';
 
 /// Interfaz para la fuente de datos remota del coordinador.
 abstract class CoordinatorRemoteDataSource {
@@ -34,9 +32,9 @@ abstract class CoordinatorRemoteDataSource {
   Future<SlaDashboardModel> getSlaDashboard({CancelToken? cancelToken});
 
   /// GET /evidence-review/pending?page=1&limit=20&type=class|honor
-  Future<List<EvidenceReviewItemModel>> getPendingEvidence({
+  Future<EvidenceReviewPageModel> getPendingEvidence({
     int page = 1,
-    int limit = 20,
+    int limit = kPendingEvidencePageSize,
     EvidenceReviewType? type,
     CancelToken? cancelToken,
   });
@@ -73,78 +71,6 @@ abstract class CoordinatorRemoteDataSource {
     required List<String> ids,
     required EvidenceReviewType type,
     required String rejectionReason,
-  });
-
-  // ── Camporee list ─────────────────────────────────────────────────────────
-
-  /// GET /camporees?active=true
-  Future<List<CamporeeItemModel>> listLocalCamporees({
-    bool activeOnly = true,
-    CancelToken? cancelToken,
-  });
-
-  /// GET /camporees/union
-  Future<List<CamporeeItemModel>> listUnionCamporees({
-    CancelToken? cancelToken,
-  });
-
-  // ── Camporee pending approvals ────────────────────────────────────────────
-
-  /// GET /camporees/:camporeeId/pending
-  Future<CamporeePendingApprovalsModel> getLocalCamporeePending(
-    int camporeeId, {
-    CancelToken? cancelToken,
-  });
-
-  /// GET /camporees/union/:camporeeId/pending
-  Future<CamporeePendingApprovalsModel> getUnionCamporeePending(
-    int camporeeId, {
-    CancelToken? cancelToken,
-  });
-
-  // ── Club enrollment approve/reject ────────────────────────────────────────
-
-  /// PATCH /camporees/:camporeeId/clubs/:camporeeClubId/approve
-  Future<void> approveCamporeeClub({
-    required int camporeeId,
-    required int camporeeClubId,
-    required CamporeeScope scope,
-  });
-
-  /// PATCH /camporees/:camporeeId/clubs/:camporeeClubId/reject
-  Future<void> rejectCamporeeClub({
-    required int camporeeId,
-    required int camporeeClubId,
-    required CamporeeScope scope,
-    String? rejectionReason,
-  });
-
-  // ── Member enrollment approve/reject ──────────────────────────────────────
-
-  /// PATCH /camporees/:camporeeId/members/:camporeeMemberId/approve
-  Future<void> approveCamporeeMember({
-    required int camporeeId,
-    required int camporeeMemberId,
-    required CamporeeScope scope,
-  });
-
-  /// PATCH /camporees/:camporeeId/members/:camporeeMemberId/reject
-  Future<void> rejectCamporeeMember({
-    required int camporeeId,
-    required int camporeeMemberId,
-    required CamporeeScope scope,
-    String? rejectionReason,
-  });
-
-  // ── Payment approve/reject ────────────────────────────────────────────────
-
-  /// PATCH /camporees/payments/:camporeePaymentId/approve
-  Future<void> approveCamporeePayment({required String camporeePaymentId});
-
-  /// PATCH /camporees/payments/:camporeePaymentId/reject
-  Future<void> rejectCamporeePayment({
-    required String camporeePaymentId,
-    String? rejectionReason,
   });
 }
 
@@ -209,28 +135,6 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag);
     }
     return e.message ?? tr('common.error_network');
-  }
-
-  List<T> _parseList<T>(
-    dynamic raw,
-    T Function(Map<String, dynamic>) fromJson,
-  ) {
-    final List<dynamic> list;
-    if (raw is List) {
-      list = raw;
-    } else if (raw is Map && raw['data'] is List) {
-      list = raw['data'] as List;
-    } else if (raw is Map &&
-        raw['data'] is Map &&
-        (raw['data'] as Map)['data'] is List) {
-      list = (raw['data'] as Map)['data'] as List;
-    } else {
-      list = [];
-    }
-    return list
-        .whereType<Map<String, dynamic>>()
-        .map((e) => fromJson(e))
-        .toList();
   }
 
   bool _isOk(int? code) => code == 200 || code == 201 || code == 204;
@@ -354,9 +258,9 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
   // ── GET /evidence-review/pending ─────────────────────────────────────────────
 
   @override
-  Future<List<EvidenceReviewItemModel>> getPendingEvidence({
+  Future<EvidenceReviewPageModel> getPendingEvidence({
     int page = 1,
-    int limit = 20,
+    int limit = kPendingEvidencePageSize,
     EvidenceReviewType? type,
     CancelToken? cancelToken,
   }) async {
@@ -376,7 +280,11 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
       );
 
       if (_isOk(response.statusCode)) {
-        return _parseList(response.data, EvidenceReviewItemModel.fromJson);
+        return EvidenceReviewPageModel.fromResponse(
+          response.data,
+          page: page,
+          limit: limit,
+        );
       }
       throw ServerException(
         message: tr('coordinator.errors.fetch_pending_evidence'),
@@ -526,296 +434,4 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
       _rethrow(e);
     }
   }
-
-  // ── GET /camporees?active=true ───────────────────────────────────────────────
-
-  @override
-  Future<List<CamporeeItemModel>> listLocalCamporees({
-    bool activeOnly = true,
-    CancelToken? cancelToken,
-  }) async {
-    try {
-      final response = await _dio.get(
-        '$_baseUrl${ApiEndpoints.camporees}',
-        queryParameters: activeOnly ? {'active': 'true'} : {},
-        cancelToken: cancelToken,
-      );
-
-      if (_isOk(response.statusCode)) {
-        return _parseList(
-          response.data,
-          (json) =>
-              CamporeeItemModel.fromJson(json, scope: CamporeeScope.local),
-        );
-      }
-      throw ServerException(
-        message: tr('coordinator.errors.fetch_local_camporees'),
-        code: response.statusCode,
-      );
-    } catch (e) {
-      AppLogger.e('Error en listLocalCamporees', tag: _tag, error: e);
-      _rethrow(e);
-    }
-  }
-
-  // ── GET /camporees/union ─────────────────────────────────────────────────────
-
-  @override
-  Future<List<CamporeeItemModel>> listUnionCamporees({
-    CancelToken? cancelToken,
-  }) async {
-    try {
-      final response = await _dio.get(
-        '$_baseUrl${ApiEndpoints.camporees}/union',
-        cancelToken: cancelToken,
-      );
-
-      if (_isOk(response.statusCode)) {
-        return _parseList(
-          response.data,
-          (json) =>
-              CamporeeItemModel.fromJson(json, scope: CamporeeScope.union),
-        );
-      }
-      throw ServerException(
-        message: tr('coordinator.errors.fetch_union_camporees'),
-        code: response.statusCode,
-      );
-    } catch (e) {
-      AppLogger.e('Error en listUnionCamporees', tag: _tag, error: e);
-      _rethrow(e);
-    }
-  }
-
-  // ── GET /camporees/:camporeeId/pending ───────────────────────────────────────
-
-  @override
-  Future<CamporeePendingApprovalsModel> getLocalCamporeePending(
-    int camporeeId, {
-    CancelToken? cancelToken,
-  }) async {
-    try {
-      final response = await _dio.get(
-        '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/pending',
-        cancelToken: cancelToken,
-      );
-
-      if (_isOk(response.statusCode)) {
-        final data = response.data is Map<String, dynamic>
-            ? response.data as Map<String, dynamic>
-            : <String, dynamic>{};
-        return CamporeePendingApprovalsModel.fromJson(
-          data,
-          camporeeId: camporeeId,
-        );
-      }
-      throw ServerException(
-        message: tr('coordinator.errors.fetch_local_pending'),
-        code: response.statusCode,
-      );
-    } catch (e) {
-      AppLogger.e('Error en getLocalCamporeePending', tag: _tag, error: e);
-      _rethrow(e);
-    }
-  }
-
-  // ── GET /camporees/union/:camporeeId/pending ─────────────────────────────────
-
-  @override
-  Future<CamporeePendingApprovalsModel> getUnionCamporeePending(
-    int camporeeId, {
-    CancelToken? cancelToken,
-  }) async {
-    try {
-      final response = await _dio.get(
-        '$_baseUrl${ApiEndpoints.camporees}/union/$camporeeId/pending',
-        cancelToken: cancelToken,
-      );
-
-      if (_isOk(response.statusCode)) {
-        final data = response.data is Map<String, dynamic>
-            ? response.data as Map<String, dynamic>
-            : <String, dynamic>{};
-        return CamporeePendingApprovalsModel.fromJson(
-          data,
-          camporeeId: camporeeId,
-        );
-      }
-      throw ServerException(
-        message: tr('coordinator.errors.fetch_union_pending'),
-        code: response.statusCode,
-      );
-    } catch (e) {
-      AppLogger.e('Error en getUnionCamporeePending', tag: _tag, error: e);
-      _rethrow(e);
-    }
-  }
-
-  // ── Club approve ─────────────────────────────────────────────────────────────
-
-  @override
-  Future<void> approveCamporeeClub({
-    required int camporeeId,
-    required int camporeeClubId,
-    required CamporeeScope scope,
-  }) async {
-    try {
-      final prefix = _scopePrefix(scope);
-      final response = await _dio.patch(
-        '$_baseUrl${ApiEndpoints.camporees}$prefix/$camporeeId/clubs/$camporeeClubId/approve',
-      );
-
-      if (_isOk(response.statusCode)) return;
-      throw ServerException(
-        message: tr('coordinator.errors.approve_camporee_club'),
-        code: response.statusCode,
-      );
-    } catch (e) {
-      AppLogger.e('Error en approveCamporeeClub', tag: _tag, error: e);
-      _rethrow(e);
-    }
-  }
-
-  // ── Club reject ──────────────────────────────────────────────────────────────
-
-  @override
-  Future<void> rejectCamporeeClub({
-    required int camporeeId,
-    required int camporeeClubId,
-    required CamporeeScope scope,
-    String? rejectionReason,
-  }) async {
-    try {
-      final prefix = _scopePrefix(scope);
-      final response = await _dio.patch(
-        '$_baseUrl${ApiEndpoints.camporees}$prefix/$camporeeId/clubs/$camporeeClubId/reject',
-        data: rejectionReason != null
-            ? {'rejection_reason': rejectionReason}
-            : <String, dynamic>{},
-      );
-
-      if (_isOk(response.statusCode)) return;
-      throw ServerException(
-        message: tr('coordinator.errors.reject_camporee_club'),
-        code: response.statusCode,
-      );
-    } catch (e) {
-      AppLogger.e('Error en rejectCamporeeClub', tag: _tag, error: e);
-      _rethrow(e);
-    }
-  }
-
-  // ── Member approve ───────────────────────────────────────────────────────────
-
-  @override
-  Future<void> approveCamporeeMember({
-    required int camporeeId,
-    required int camporeeMemberId,
-    required CamporeeScope scope,
-  }) async {
-    try {
-      final prefix = _scopePrefix(scope);
-      final response = await _dio.patch(
-        '$_baseUrl${ApiEndpoints.camporees}$prefix/$camporeeId/members/$camporeeMemberId/approve',
-      );
-
-      if (_isOk(response.statusCode)) return;
-      throw ServerException(
-        message: tr('coordinator.errors.approve_camporee_member'),
-        code: response.statusCode,
-      );
-    } catch (e) {
-      AppLogger.e('Error en approveCamporeeMember', tag: _tag, error: e);
-      _rethrow(e);
-    }
-  }
-
-  // ── Member reject ────────────────────────────────────────────────────────────
-
-  @override
-  Future<void> rejectCamporeeMember({
-    required int camporeeId,
-    required int camporeeMemberId,
-    required CamporeeScope scope,
-    String? rejectionReason,
-  }) async {
-    try {
-      final prefix = _scopePrefix(scope);
-      final response = await _dio.patch(
-        '$_baseUrl${ApiEndpoints.camporees}$prefix/$camporeeId/members/$camporeeMemberId/reject',
-        data: rejectionReason != null
-            ? {'rejection_reason': rejectionReason}
-            : <String, dynamic>{},
-      );
-
-      if (_isOk(response.statusCode)) return;
-      throw ServerException(
-        message: tr('coordinator.errors.reject_camporee_member'),
-        code: response.statusCode,
-      );
-    } catch (e) {
-      AppLogger.e('Error en rejectCamporeeMember', tag: _tag, error: e);
-      _rethrow(e);
-    }
-  }
-
-  // ── Payment approve ──────────────────────────────────────────────────────────
-
-  @override
-  Future<void> approveCamporeePayment({
-    required String camporeePaymentId,
-  }) async {
-    try {
-      // Payment approval route does NOT use camporeeId prefix.
-      // PATCH /camporees/payments/:camporeePaymentId/approve
-      final response = await _dio.patch(
-        '$_baseUrl${ApiEndpoints.camporees}/payments/$camporeePaymentId/approve',
-      );
-
-      if (_isOk(response.statusCode)) return;
-      throw ServerException(
-        message: tr('coordinator.errors.approve_camporee_payment'),
-        code: response.statusCode,
-      );
-    } catch (e) {
-      AppLogger.e('Error en approveCamporeePayment', tag: _tag, error: e);
-      _rethrow(e);
-    }
-  }
-
-  // ── Payment reject ───────────────────────────────────────────────────────────
-
-  @override
-  Future<void> rejectCamporeePayment({
-    required String camporeePaymentId,
-    String? rejectionReason,
-  }) async {
-    try {
-      final response = await _dio.patch(
-        '$_baseUrl${ApiEndpoints.camporees}/payments/$camporeePaymentId/reject',
-        data: rejectionReason != null
-            ? {'rejection_reason': rejectionReason}
-            : <String, dynamic>{},
-      );
-
-      if (_isOk(response.statusCode)) return;
-      throw ServerException(
-        message: tr('coordinator.errors.reject_camporee_payment'),
-        code: response.statusCode,
-      );
-    } catch (e) {
-      AppLogger.e('Error en rejectCamporeePayment', tag: _tag, error: e);
-      _rethrow(e);
-    }
-  }
-
-  // ── Helpers ──────────────────────────────────────────────────────────────────
-
-  /// Union routes use /union as an intermediate segment.
-  /// Local routes use no intermediate segment.
-  ///
-  /// Local: /camporees/:id/clubs/:cid/approve
-  /// Union: /camporees/union/:id/clubs/:cid/approve
-  String _scopePrefix(CamporeeScope scope) =>
-      scope == CamporeeScope.union ? '/union' : '';
 }

@@ -1,6 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 
+/// Tamaño de página de GET /evidence-review/pending que pide la app.
+const int kPendingEvidencePageSize = 20;
+
 /// Tipo de evidencia que puede ser revisada.
 enum EvidenceReviewType {
   classType,
@@ -162,4 +165,33 @@ class EvidenceReviewItem extends Equatable {
         files,
         history,
       ];
+}
+
+/// Una página de GET /evidence-review/pending.
+///
+/// [total] es el número de evidencias pendientes en el servidor para el filtro
+/// pedido (todas las páginas), no solo las de esta página. Es null si el
+/// servidor no lo informó.
+class EvidenceReviewPage extends Equatable {
+  final List<EvidenceReviewItem> items;
+  final int? total;
+  final int page;
+  final int limit;
+
+  const EvidenceReviewPage({
+    required this.items,
+    required this.total,
+    required this.page,
+    required this.limit,
+  });
+
+  /// Sin [total], una página llena es la única señal de que puede haber más.
+  bool get hasMore {
+    final total = this.total;
+    if (total == null) return items.length >= limit;
+    return page * limit < total;
+  }
+
+  @override
+  List<Object?> get props => [items, total, page, limit];
 }

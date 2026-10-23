@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_empty_state.dart';
@@ -265,6 +265,7 @@ class _Summary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    final textTheme = Theme.of(context).textTheme;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(2, 4, 2, 12),
@@ -273,8 +274,7 @@ class _Summary extends StatelessWidget {
         children: [
           Text(
             _formsLabel(state.total),
-            style: TextStyle(
-              fontSize: 16,
+            style: textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w800,
               color: c.text,
             ),
@@ -283,8 +283,7 @@ class _Summary extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               'coordinator.consent_review.by_section'.tr(),
-              style: TextStyle(
-                fontSize: 12,
+              style: textTheme.labelMedium?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: c.textSecondary,
               ),
@@ -300,13 +299,14 @@ class _Summary extends StatelessWidget {
                         section.label,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 13, color: c.text),
+                        style: textTheme.bodySmall?.copyWith(color: c.text),
                       ),
                     ),
                     const SizedBox(width: 8),
                     Text(
                       _formsLabel(section.pendingConsentCount),
-                      style: TextStyle(fontSize: 12, color: c.textSecondary),
+                      style: textTheme.labelMedium
+                          ?.copyWith(color: c.textSecondary),
                     ),
                   ],
                 ),
@@ -321,7 +321,7 @@ class _Summary extends StatelessWidget {
 class _Note extends StatelessWidget {
   const _Note({required this.icon, required this.text});
 
-  final List<List<dynamic>> icon;
+  final HugeIconData icon;
   final String text;
 
   @override
@@ -332,12 +332,15 @@ class _Note extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          HugeIcon(icon: icon, size: 16, color: AppColors.warning),
+          HugeIcon(icon: icon, size: 16, color: c.warning),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               text,
-              style: TextStyle(fontSize: 12, color: c.textSecondary),
+              style: Theme.of(context)
+                  .textTheme
+                  .labelMedium
+                  ?.copyWith(color: c.textSecondary),
             ),
           ),
         ],

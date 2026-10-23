@@ -45,7 +45,12 @@
       "december": "Diciembre",
       "unknown": "Mes {month}"
     },
-    "deleted_account": "Cuenta eliminada"
+    "deleted_account": "Cuenta eliminada",
+    "error_state": {
+      "title": "No pudimos cargar esta información",
+      "forbidden_title": "Acceso restringido",
+      "forbidden_message": "Tu cuenta no tiene permiso para ver esta sección. Si crees que es un error, contacta a tu administrador."
+    }
   },
   "welcome_carousel": {
     "skip": "Omitir",
@@ -1674,46 +1679,51 @@
       "bulk_approve_evidence": "Error en aprobación masiva",
       "bulk_reject_evidence": "Error en rechazo masivo",
       "fetch_scope": "Error al obtener alcance de coordinación",
-      "fetch_consent_pending": "Error al obtener las fichas por verificar",
-      "fetch_local_camporees": "Error al obtener camporees",
-      "fetch_union_camporees": "Error al obtener camporees de unión",
-      "fetch_local_pending": "Error al obtener aprobaciones pendientes",
-      "fetch_union_pending": "Error al obtener aprobaciones pendientes (unión)",
-      "approve_camporee_club": "Error al aprobar inscripción de club",
-      "reject_camporee_club": "Error al rechazar inscripción de club",
-      "approve_camporee_member": "Error al aprobar inscripción de miembro",
-      "reject_camporee_member": "Error al rechazar inscripción de miembro",
-      "approve_camporee_payment": "Error al aprobar pago",
-      "reject_camporee_payment": "Error al rechazar pago"
+      "fetch_consent_pending": "Error al obtener las fichas por verificar"
     },
     "hub": {
       "title": "Coordinación",
-      "greeting": "Hola, {name}",
-      "panel": "Panel de coordinador",
-      "modules_section": "Módulos"
+      "error_title": "No pudimos cargar tu panel de coordinación",
+      "error_message": "Revisa tu conexión e inténtalo de nuevo.",
+      "empty_title": "Aún no tienes secciones asignadas",
+      "empty_body": "Cuando te asignen clubes para coordinar, aparecerán aquí. Si crees que falta alguno, contacta a tu administrador.",
+      "section_error": "No pudimos cargar esta sección.",
+      "scope": {
+        "clubs_one": "{count} club",
+        "clubs_other": "{count} clubes",
+        "districts_other": "{count} distritos",
+        "fields_other": "{count} campos locales"
+      },
+      "review": {
+        "title": "Por revisar",
+        "see_all": "Ver todas",
+        "label_one": "evidencia por revisar",
+        "label_other": "evidencias por revisar",
+        "overdue_one": "{count} vencida",
+        "overdue_other": "{count} vencidas",
+        "avg_days": "Promedio {days} d",
+        "all_clear": "Todo al día",
+        "all_clear_body": "No hay evidencias pendientes de revisión.",
+        "oldest_first": "Las más antiguas primero"
+      },
+      "sla": {
+        "title": "Tiempo de respuesta",
+        "see_detail": "Ver detalle"
+      },
+      "clubs": {
+        "title": "Mis clubes",
+        "see_all": "Ver {count}",
+        "empty": "Aún no hay clubes dentro de tu alcance de coordinación."
+      },
+      "reports": {
+        "title": "Reportes",
+        "see_all": "Ver informes",
+        "forbidden": "Tu rol no tiene acceso a los informes de los clubes."
+      }
     },
     "nav": {
-      "evidence_title": "Revisión de Evidencias",
-      "evidence_subtitle": "Aprobar o rechazar carpetas, clases y especialidades",
-      "clubs_title": "Clubes y secciones",
-      "clubs_subtitle": "Ver clubes y secciones bajo tu coordinación",
       "consent_title": "Fichas por verificar",
-      "consent_subtitle": "Consentimientos de menores en tus secciones",
-      "camporees_title": "Aprobaciones de Camporees",
-      "camporees_subtitle": "Clubs, miembros y pagos pendientes",
-      "dashboard_title": "Dashboard Operativo",
-      "dashboard_subtitle": "KPIs y métricas SLA en tiempo real"
-    },
-    "summary": {
-      "evidence": "Evidencias",
-      "sections": "Secciones",
-      "camporees": "Camporees",
-      "overdue": "Vencidos"
-    },
-    "scope": {
-      "assigned_one": "Tienes {count} sección asignada para coordinación.",
-      "assigned_other": "Tienes {count} secciones asignadas para coordinación.",
-      "empty": "No tienes secciones asignadas como coordinador. Si también eres director, tus funciones de director siguen apareciendo en la app."
+      "consent_subtitle": "Consentimientos de menores en tus secciones"
     },
     "consent_review": {
       "title": "Fichas por verificar",
@@ -1732,69 +1742,25 @@
       "denied_title": "No puedes verificar fichas",
       "denied_subtitle": "Tu cuenta no tiene permiso para verificar fichas de consentimiento como coordinador."
     },
-    "camporee_approvals": {
-      "title": "Aprobaciones de Camporees",
-      "no_active": "Sin camporees activos",
-      "no_active_scope": "No hay camporees {scope} activos",
-      "access_restricted": "Acceso restringido",
-      "access_restricted_msg": "Solo coordinadores con permisos attendance:approve_late pueden acceder.",
-      "error_load": "Error al cargar camporees",
-      "error_load_approvals": "Error al cargar aprobaciones",
-      "retry": "Reintentar",
-      "no_clubs_pending": "Sin clubs pendientes",
-      "no_members_pending": "Sin miembros pendientes",
-      "no_payments_pending": "Sin pagos pendientes",
-      "count_pending_one": "{count} {type} pendiente",
-      "count_pending_other": "{count} {type}s pendientes",
-      "requested_by": "Solicitado por {name}",
-      "approve_club_title": "Aprobar club",
-      "approve_club_msg": "¿Confirmas la inscripción de {name} al camporee?",
-      "reject_club_title": "Rechazar club",
-      "reject_club_msg": "¿Rechazas la inscripción de {name} al camporee?",
-      "approve_member_title": "Aprobar miembro",
-      "approve_member_msg": "¿Confirmas la inscripción de {name} al camporee?",
-      "reject_member_title": "Rechazar miembro",
-      "reject_member_msg": "¿Rechazas la inscripción de {name} al camporee?",
-      "approve_payment_title": "Aprobar pago",
-      "approve_payment_msg": "¿Confirmas el pago de ${amount} de {name}?",
-      "reject_payment_title": "Rechazar pago",
-      "reject_payment_msg": "¿Rechazas el pago de ${amount} de {name}?",
-      "club_approved": "Club aprobado",
-      "club_rejected": "Club rechazado",
-      "member_approved": "Miembro aprobado",
-      "member_rejected": "Miembro rechazado",
-      "payment_approved": "Pago aprobado",
-      "payment_rejected": "Pago rechazado",
-      "error_approve": "Error al aprobar",
-      "error_reject": "Error al rechazar",
-      "payment_type_inscription": "Inscripción",
-      "payment_type_materials": "Materiales",
-      "payment_type_other": "Otro",
-      "unknown_club": "Club desconocido"
-    },
     "evidence_review": {
       "list": {
-        "title": "Revisión de Evidencias",
-        "refresh_tooltip": "Actualizar",
-        "no_pending": "Sin evidencias pendientes",
-        "all_up_to_date": "Todas las revisiones están al día",
-        "no_pending_type": "No hay {type}s pendientes",
-        "count_one": "{count} pendiente",
-        "count_other": "{count} pendientes",
-        "filter_all": "Todos",
-        "filter_folders": "Carpetas",
+        "title": "Evidencias",
+        "filter_all": "Todas",
         "filter_classes": "Clases",
         "filter_honors": "Especialidades",
-        "access_restricted": "Acceso restringido",
-        "access_restricted_msg": "Solo coordinadores y administradores pueden acceder a esta sección.",
-        "error_load": "Error al cargar evidencias",
-        "error_load_subtitle": "No pudimos cargar las evidencias pendientes. Revisa tu conexión e inténtalo de nuevo.",
-        "retry": "Reintentar"
+        "oldest_first": "Más antiguas primero",
+        "empty_title": "Todo al día",
+        "empty_body": "No hay evidencias pendientes de revisión.",
+        "empty_filtered_title": "Sin evidencias pendientes",
+        "empty_filtered_body": "No hay evidencias de este tipo por revisar. Prueba con otro filtro.",
+        "error_title": "No pudimos cargar las evidencias",
+        "error_message": "Revisa tu conexión e inténtalo de nuevo.",
+        "load_more_error": "No pudimos cargar más evidencias."
       },
       "detail": {
-        "refresh_tooltip": "Actualizar",
-        "section_files": "Archivos adjuntos",
-        "section_history": "Historial de validación",
+        "title": "Revisar evidencia",
+        "section_files": "Archivos ({count})",
+        "section_history": "Historial",
         "approve_title": "Aprobar evidencia",
         "approve_msg": "¿Confirmas la aprobación de la evidencia de {name}?",
         "reject_title": "Rechazar evidencia",
@@ -1803,13 +1769,23 @@
         "rejected_ok": "Evidencia rechazada",
         "error_approve": "Error al aprobar",
         "error_reject": "Error al rechazar",
-        "error_load": "Error al cargar la evidencia",
-        "retry": "Reintentar",
-        "submitted_on": "Enviado el {date}"
+        "submitted_on": "Enviado el {date}",
+        "error_title": "No pudimos cargar la evidencia",
+        "error_message": "Revisa tu conexión e inténtalo de nuevo."
       },
       "card": {
         "files_one": "{count} archivo",
-        "files_other": "{count} archivos"
+        "files_other": "{count} archivos",
+        "age_today": "Hoy",
+        "age_days": "Hace {days} d",
+        "age_overdue": "Vencida · {days} d"
+      },
+      "history": {
+        "submitted": "Enviada para revisión",
+        "approved": "Aprobada",
+        "rejected": "Rechazada",
+        "instructor_proposed": "Propuesta del instructor",
+        "instructor_set": "Instructor asignado"
       },
       "gallery": {
         "no_files": "Sin archivos adjuntos",
@@ -1824,21 +1800,26 @@
     },
     "sla": {
       "dashboard": {
-        "title": "Dashboard Operativo",
+        "title": "Tiempo de respuesta",
         "refresh_tooltip": "Actualizar",
         "current_status": "Estado actual",
         "auto_refresh_note": "Se actualiza automáticamente cada 60 seg.",
-        "access_restricted": "Acceso restringido",
-        "access_restricted_msg": "Solo coordinadores y administradores pueden acceder a esta sección.",
-        "error_load": "Error al cargar el dashboard",
-        "retry": "Reintentar"
+        "error_title": "No pudimos cargar el tiempo de respuesta",
+        "error_message": "Revisa tu conexión e inténtalo de nuevo.",
+        "empty_title": "Aún no hay datos",
+        "empty_body": "Cuando se envíen evidencias para revisión, aquí verás tus tiempos de respuesta."
       },
       "stat": {
         "pending": "Pendientes",
-        "avg_days": "Días prom.",
-        "overdue": "Vencidos",
-        "overdue_alert_one": "{count} vencido",
-        "overdue_alert_other": "{count} vencidos"
+        "avg_days": "Promedio (días)",
+        "overdue": "Vencidas"
+      },
+      "throughput": {
+        "title": "Revisiones por semana",
+        "approved": "Aprobadas",
+        "rejected": "Rechazadas",
+        "not_enough": "Aún no hay suficientes semanas con revisiones para mostrar la tendencia.",
+        "week_short": "S{week}"
       }
     },
     "actions": {
@@ -1847,18 +1828,9 @@
       "cancel": "Cancelar",
       "comment_label": "Comentario (opcional)",
       "comment_hint": "Ej: Documentación completa y correcta",
-      "reject_reason_label": "Motivo del rechazo *",
-      "reject_reason_hint": "Es obligatorio indicar el motivo",
-      "reject_reason_required": "El motivo es obligatorio"
-    },
-    "camporee_scope": {
-      "local": "Local",
-      "union": "Unión"
-    },
-    "approval_type": {
-      "clubs": "Clubs",
-      "members": "Miembros",
-      "payments": "Pagos"
+      "reject_reason_label": "Motivo del rechazo",
+      "reject_reason_hint": "Explica qué debe corregir",
+      "reject_reason_required": "Escribe el motivo del rechazo"
     },
     "evidence_type": {
       "folder": "Carpeta",
@@ -1866,15 +1838,56 @@
       "honor": "Especialidad"
     },
     "clubs": {
-      "title": "Clubes asignados",
-      "search_hint": "Buscar club...",
+      "title": "Mis clubes",
+      "search_hint": "Buscar club",
       "empty_title": "No hay clubes asignados",
       "empty_subtitle": "No hay clubes o secciones dentro de tu alcance de coordinación.",
-      "error_load": "Error al cargar clubes",
-      "error_load_subtitle": "No pudimos cargar tus clubes. Revisa tu conexión e intenta de nuevo.",
       "field_id_label": "Campo local #{id}",
-      "sections_label_one": "{count} sección",
-      "sections_label_other": "{count} secciones"
+      "empty_search_title": "Sin resultados",
+      "empty_search_body": "No encontramos clubes con «{query}». Prueba con otro nombre.",
+      "error_title": "No pudimos cargar tus clubes",
+      "error_message": "Revisa tu conexión e inténtalo de nuevo."
+    },
+    "reports": {
+      "title": "Informes",
+      "error_title": "No se pudieron cargar los informes",
+      "error_message": "Revisa tu conexión e inténtalo de nuevo.",
+      "empty_title": "Sin clubes asignados",
+      "empty_body": "Cuando tengas clubes asignados verás aquí el cumplimiento de sus informes.",
+      "period_empty_title": "Sin informes en este periodo",
+      "period_empty_body": "Ningún club de tu alcance tiene informes esperados para este periodo.",
+      "clubs_title": "Por club",
+      "due_on": "Fecha límite: {date}",
+      "progress": "{submitted} de {expected} enviados",
+      "no_pdf": "Sin PDF disponible todavía",
+      "view_pdf": "Ver PDF",
+      "view_pdf_type": "Ver PDF · {type}",
+      "pdf_error": "No se pudo abrir el PDF. Inténtalo de nuevo.",
+      "list_error": "No se pudieron cargar los PDF de los informes.",
+      "quarter_label": "T{quarter} {year}",
+      "kind": {
+        "monthly": "Mensual",
+        "quarterly": "Trimestral",
+        "annual": "Anual"
+      },
+      "stat": {
+        "submitted": "Enviados",
+        "pending": "Pendientes",
+        "overdue": "Vencidos"
+      },
+      "status": {
+        "submitted": "Enviado",
+        "pending": "Pendiente",
+        "overdue": "Vencido",
+        "not_due": "En curso"
+      },
+      "errors": {
+        "fetch_compliance": "No se pudo cargar el cumplimiento de informes",
+        "fetch_list": "No se pudo cargar la lista de informes",
+        "pdf_empty": "El PDF descargado está vacío",
+        "forbidden": "No tienes permiso para ver estos informes",
+        "not_found": "Informe no encontrado"
+      }
     }
   },
   "classes": {

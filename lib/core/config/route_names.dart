@@ -213,7 +213,8 @@ class RouteNames {
   // Asignaciones de rol
   static const String roleAssignments = '/role-assignments';
 
-  // Coordinación — hub y sub-módulos
+  // Coordinación — pestaña del shell principal (rama 4) y sus sub-vistas.
+  // El detalle de evidencia vive fuera del shell (pantalla completa).
   static const String coordinator = '/coordinator';
   static const String coordinatorSla = '/coordinator/sla';
   static const String coordinatorEvidenceReview =
@@ -222,20 +223,11 @@ class RouteNames {
       '/coordinator/evidence-review/:type/:id';
   // Fichas de consentimiento de menores por verificar (`consent:verify`).
   static const String coordinatorConsentReview = '/coordinator/consent-review';
-  // Legacy constant retained for compatibility; no active GoRoute.
-  static const String coordinatorCamporeeApprovals =
-      '/coordinator/camporee-approvals';
 
-  // Coordinator shell tab routes (PR-4, separate StatefulShellRoute)
-  // Branch 0: /coordinator        — Hub (reuses coordinator root)
-  // Branch 1: /coordinator/clubs  — Clubes / secciones asignadas
+  // Coordinator tab routes (children of the `/coordinator` shell branch).
   static const String coordinatorClubs = '/coordinator/clubs';
-  // Branch 2: /coordinator/reports — Reportes / SLA dashboard
+  // Read-only club reports (compliance + PDFs) of the coordinator.
   static const String coordinatorReports = '/coordinator/reports';
-  // Branch 3: /coordinator/coord-activities — Actividades (coordinator view)
-  static const String coordinatorActivities = '/coordinator/coord-activities';
-  // Branch 4: /coordinator/coord-profile  — Perfil (coordinator view)
-  static const String coordinatorProfile = '/coordinator/coord-profile';
 
   // Helpers para coordinación
   static String coordinatorEvidenceReviewDetail(String type, String id) =>

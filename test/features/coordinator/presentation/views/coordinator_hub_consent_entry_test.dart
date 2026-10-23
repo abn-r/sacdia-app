@@ -18,8 +18,10 @@ import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.d
 import 'package:sacdia_app/features/coordinator/domain/entities/coordinator_scope.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/sla_dashboard.dart';
 import 'package:sacdia_app/features/coordinator/presentation/providers/coordinator_providers.dart';
+import 'package:sacdia_app/features/coordinator/presentation/providers/coordinator_reports_providers.dart';
 import 'package:sacdia_app/features/coordinator/presentation/views/coordinator_hub_view.dart';
 
+import '../../coordinator_test_harness.dart';
 import '../../coordinator_test_support.dart';
 
 class _FakeAuth extends AuthNotifier {
@@ -94,6 +96,13 @@ Future<GoRouter> _pumpHub(
             .overrideWith(() => _FakeAuth(permissions, globalGrants)),
         slaDashboardProvider.overrideWith((ref) async => _sla),
         coordinatorScopeProvider.overrideWith((ref) async => scope),
+        // The other hub sections answer instantly (nothing pending, no clubs,
+        // no reports) so they never leave a network call hanging.
+        pendingEvidenceOverride((type, page) async => singlePage(const [])),
+        coordinatorClubsRawProvider.overrideWith((ref) async => const []),
+        reportComplianceProvider.overrideWith(
+          (ref, query) async => throw StateError('reports not under test'),
+        ),
         coordinatorRepositoryProvider.overrideWithValue(
           repo ??
               (FakeCoordinatorRepository()

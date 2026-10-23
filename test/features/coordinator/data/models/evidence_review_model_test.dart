@@ -90,4 +90,50 @@ void main() {
       expect(model.history.single.actorName, 'Ana Pérez');
     });
   });
+
+  group('EvidenceReviewPageModel.fromResponse', () {
+    Map<String, dynamic> item(int id) => {
+          'id': id,
+          'type': 'class',
+          'status': 'SUBMITTED',
+          'member_name': 'M $id',
+          'file_count': 1,
+          'submitted_at': '2026-10-01T15:30:00.000Z',
+        };
+
+    test('reads items and meta from { status, data: { data, total } }', () {
+      final page = EvidenceReviewPageModel.fromResponse(
+        {
+          'status': 'success',
+          'data': {
+            'data': [item(1), item(2)],
+            'total': 42,
+            'page': 2,
+            'limit': 20,
+          },
+        },
+        page: 2,
+        limit: 20,
+      ).toEntity();
+
+      expect(page.items.map((i) => i.id), ['1', '2']);
+      expect(page.total, 42);
+      expect(page.page, 2);
+      expect(page.limit, 20);
+      expect(page.hasMore, isTrue);
+    });
+
+    test('leaves total null when the response has no meta', () {
+      final page = EvidenceReviewPageModel.fromResponse(
+        [item(1)],
+        page: 1,
+        limit: 20,
+      ).toEntity();
+
+      expect(page.items, hasLength(1));
+      expect(page.total, isNull);
+      expect(page.page, 1);
+      expect(page.hasMore, isFalse);
+    });
+  });
 }

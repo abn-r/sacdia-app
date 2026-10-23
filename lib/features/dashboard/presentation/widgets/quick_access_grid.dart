@@ -43,13 +43,6 @@ class _QuickAccessItemConfig {
 
 List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
   _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.coordination',
-    icon: HugeIcons.strokeRoundedAnalytics01,
-    color: AppColors.info,
-    route: RouteNames.coordinator,
-    screenId: 'coordinator-hub',
-  ),
-  _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.members',
     icon: HugeIcons.strokeRoundedUserGroup,
     route: RouteNames.homeMembers,
