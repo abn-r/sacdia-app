@@ -21,6 +21,7 @@ class SignUp implements UseCase<UserEntity, SignUpParams> {
       maternalSurname: params.maternalSurname,
       acceptedTermsVersion: params.acceptedTermsVersion,
       acceptedPrivacyVersion: params.acceptedPrivacyVersion,
+      birthday: params.birthday,
     );
   }
 }
@@ -38,6 +39,10 @@ class SignUpParams extends Equatable {
   final String acceptedTermsVersion;
   final String acceptedPrivacyVersion;
 
+  /// Fecha de nacimiento `YYYY-MM-DD`. El backend la usa solo para el filtro de
+  /// edad mínima (`AUTH_REGISTRATION_AGE_BELOW_MINIMUM`); no se guarda.
+  final String? birthday;
+
   const SignUpParams({
     required this.email,
     required this.password,
@@ -46,10 +51,11 @@ class SignUpParams extends Equatable {
     required this.maternalSurname,
     required this.acceptedTermsVersion,
     required this.acceptedPrivacyVersion,
+    this.birthday,
   });
 
   @override
-  List<Object> get props => [
+  List<Object?> get props => [
         email,
         password,
         name,
@@ -57,5 +63,6 @@ class SignUpParams extends Equatable {
         maternalSurname,
         acceptedTermsVersion,
         acceptedPrivacyVersion,
+        birthday,
       ];
 }

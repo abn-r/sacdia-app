@@ -44,8 +44,8 @@ class _FakeAuthRemoteDataSource implements AuthRemoteDataSource {
   Future<UserModel> signInWithApple() => throw UnimplementedError();
 
   @override
-  Future<UserModel> signInWithEmailAndPassword({
-    required String email,
+  Future<UserModel> signInWithIdentifier({
+    required String identifier,
     required String password,
   }) =>
       throw UnimplementedError();
@@ -68,6 +68,7 @@ class _FakeAuthRemoteDataSource implements AuthRemoteDataSource {
     required String maternalSurname,
     required String acceptedTermsVersion,
     required String acceptedPrivacyVersion,
+    String? birthday,
   }) =>
       throw UnimplementedError();
 

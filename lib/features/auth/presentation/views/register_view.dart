@@ -13,8 +13,10 @@ import 'package:sacdia_app/core/utils/validators.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_legal_consent.dart';
+import 'package:sacdia_app/core/widgets/sac_picker_field.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/features/auth/domain/utils/registration_age_gate.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/auth/presentation/widgets/auth_sky_wash.dart';
 import 'package:sacdia_app/features/auth/presentation/widgets/sac_brand_mark.dart';
@@ -48,12 +50,23 @@ _LegalSnapshot? _legalSnapshot(List<LegalDocument>? documents) {
   );
 }
 
+/// Abre el selector de fecha de nacimiento y devuelve la fecha elegida.
+typedef BirthdayPicker = Future<DateTime?> Function(
+  BuildContext context, {
+  required DateTime initialDate,
+  required DateTime firstDate,
+  required DateTime lastDate,
+});
+
 /// Vista de registro.
 ///
 /// Misma atmósfera que login (cielo azul, CTA cápsula) sin marca ni
 /// logos flotantes. [SacTextField] y el acomodo del formulario no cambian.
 class RegisterView extends ConsumerStatefulWidget {
-  const RegisterView({super.key});
+  const RegisterView({super.key, @visibleForTesting this.birthdayPicker});
+
+  /// Sustituye el selector de fecha del sistema (solo pruebas).
+  final BirthdayPicker? birthdayPicker;
 
   @override
   ConsumerState<RegisterView> createState() => _RegisterViewState();
@@ -70,6 +83,15 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
 
   bool _isButtonEnabled = false;
   bool _acceptedLegal = false;
+
+  /// Fecha de nacimiento: obligatoria. Solo se envía al backend para el filtro
+  /// de edad mínima; no se guarda.
+  DateTime? _birthday;
+  bool _showBirthdayError = false;
+
+  /// El servidor rechazó el registro por edad (422): misma pantalla de bloqueo
+  /// que el filtro local, hasta que se corrija la fecha.
+  bool _blockedByServer = false;
 
   @override
   void initState() {
@@ -109,8 +131,63 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
         _passwordController.text == _confirmPasswordController.text;
 
     setState(() {
-      _isButtonEnabled = allFilled && emailValid && passwordsMatch;
+      _isButtonEnabled =
+          allFilled && emailValid && passwordsMatch && _birthday != null;
     });
+  }
+
+  /// Menor del mínimo según la fecha elegida (filtro local, sin llamar a la API).
+  bool get _blockedByAge {
+    final birthday = _birthday;
+    if (birthday == null) return false;
+    return isBelowRegistrationMinAge(birthday, DateTime.now());
+  }
+
+  bool get _ageGateActive => _blockedByServer || _blockedByAge;
+
+  /// 13-17: la cuenta nacerá en modo supervisado (necesitará un tutor).
+  bool get _showMinorNotice {
+    final birthday = _birthday;
+    if (birthday == null || _ageGateActive) return false;
+    return isSupervisedRegistrationAge(birthday, DateTime.now());
+  }
+
+  Future<void> _pickBirthday() async {
+    final now = DateTime.now();
+    final picker = widget.birthdayPicker ??
+        (
+          BuildContext context, {
+          required DateTime initialDate,
+          required DateTime firstDate,
+          required DateTime lastDate,
+        }) =>
+            showDatePicker(
+              context: context,
+              initialDate: initialDate,
+              firstDate: firstDate,
+              lastDate: lastDate,
+            );
+    final picked = await picker(
+      context,
+      firstDate: DateTime(now.year - 110, now.month, now.day),
+      lastDate: now,
+      initialDate: _birthday ?? DateTime(now.year - 18, now.month, now.day),
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _birthday = picked;
+      _showBirthdayError = false;
+      _blockedByServer = false;
+    });
+    _validateFields();
+  }
+
+  void _fixBirthday() {
+    setState(() {
+      _birthday = null;
+      _blockedByServer = false;
+    });
+    _validateFields();
   }
 
   String? _validateConfirmPassword(String? value) {
@@ -121,9 +198,20 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
   }
 
   bool _canSubmit(_LegalSnapshot? legal) =>
-      _isButtonEnabled && _acceptedLegal && legal != null;
+      _isButtonEnabled && _acceptedLegal && legal != null && !_ageGateActive;
 
   Future<void> _signUp() async {
+    final birthday = _birthday;
+    if (birthday == null) {
+      setState(() => _showBirthdayError = true);
+      return;
+    }
+    // Menor del mínimo: nunca se llama a /auth/register.
+    if (isBelowRegistrationMinAge(birthday, DateTime.now())) {
+      setState(() {});
+      return;
+    }
+
     final formState = _formKey.currentState;
     if (formState == null || !formState.validate()) return;
 
@@ -142,7 +230,15 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
           maternalSurname: _maternalController.text.trim(),
           acceptedTermsVersion: legal.termsVersion,
           acceptedPrivacyVersion: legal.privacyVersion,
+          birthday: formatBirthdayIso(birthday),
         );
+
+    if (!success &&
+        mounted &&
+        ref.read(authNotifierProvider).error is RegistrationAgeBelowMinimum) {
+      setState(() => _blockedByServer = true);
+      return;
+    }
 
     if (success && mounted) {
       context.pop();
@@ -180,9 +276,14 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
     final legal = _legalSnapshot(legalAsync.valueOrNull);
     final legalLoadFailed = legal == null && !legalAsync.isLoading;
 
-    final errorMessage = authState.hasError
-        ? (authState.error?.toString() ?? 'auth.register_error'.tr())
-        : null;
+    final errorMessage =
+        authState.hasError && authState.error is! RegistrationAgeBelowMinimum
+            ? (authState.error?.toString() ?? 'auth.register_error'.tr())
+            : null;
+    final birthdayLabel = _birthday == null
+        ? null
+        : DateFormat.yMMMMd(Localizations.localeOf(context).toString())
+            .format(_birthday!);
 
     // Responsive title: smaller on very small phones
     final isSmallPhone = Responsive.isSmallPhone(context);
@@ -293,112 +394,147 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                           ),
                           const SizedBox(height: 16),
 
-                          // Email
-                          SacTextField(
-                            controller: _emailController,
-                            label: 'auth.email_label'.tr(),
-                            hint: 'auth.email_hint'.tr(),
-                            keyboardType: TextInputType.emailAddress,
-                            prefixIcon: HugeIcons.strokeRoundedMail01,
-                            validator: Validators.validateEmail,
-                            textInputAction: TextInputAction.next,
+                          // Fecha de nacimiento (obligatoria, FP-65)
+                          SacPickerField(
+                            label: 'auth.register.birthday_label'.tr(),
+                            hint: 'auth.register.birthday_hint'.tr(),
+                            icon: HugeIcons.strokeRoundedCalendar03,
+                            selectedName: birthdayLabel,
+                            errorText: _showBirthdayError
+                                ? 'auth.register.birthday_required'.tr()
+                                : null,
+                            enabled: !isLoading,
+                            onTap: _pickBirthday,
                           ),
-                          const SizedBox(height: 16),
-
-                          // Password
-                          SacTextField(
-                            controller: _passwordController,
-                            label: 'auth.password_label'.tr(),
-                            hint: 'auth.password_hint'.tr(),
-                            obscureText: true,
-                            prefixIcon: HugeIcons.strokeRoundedLockKey,
-                            validator: Validators.validatePassword,
-                            textInputAction: TextInputAction.next,
-                            onChanged: (_) => setState(() {}),
-                          ),
-                          const SizedBox(height: 8),
-
-                          // Password strength indicator
-                          _PasswordStrengthIndicator(
-                            password: _passwordController.text,
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Confirm password
-                          SacTextField(
-                            controller: _confirmPasswordController,
-                            label: 'auth.confirm_password_label'.tr(),
-                            hint: 'auth.confirm_password_hint'.tr(),
-                            obscureText: true,
-                            prefixIcon: HugeIcons.strokeRoundedLockKey,
-                            validator: _validateConfirmPassword,
-                            textInputAction: TextInputAction.done,
-                            onSubmitted: (_) =>
-                                _canSubmit(legal) ? _signUp() : null,
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Legal consent (evidence of acceptance)
-                          if (legal != null)
-                            SacLegalConsentCheckbox(
-                              value: _acceptedLegal,
-                              enabled: !isLoading,
-                              termsUrl: legal.termsUrl,
-                              privacyUrl: legal.privacyUrl,
-                              onChanged: (value) =>
-                                  setState(() => _acceptedLegal = value),
-                            )
-                          else if (legalLoadFailed)
-                            _LegalLoadError(
-                              onRetry: () =>
-                                  ref.invalidate(currentLegalDocumentsProvider),
-                            )
-                          else
-                            const SizedBox(height: 48),
-                          const SizedBox(height: 24),
-
-                          // Error message
-                          if (errorMessage != null) ...[
-                            SacCard(
-                              backgroundColor: AppColors.errorLight,
-                              borderColor:
-                                  AppColors.error.withValues(alpha: 0.3),
-                              padding: const EdgeInsets.all(12),
-                              child: Row(
-                                children: [
-                                  HugeIcon(
-                                    icon: HugeIcons.strokeRoundedAlert02,
-                                    size: 20,
-                                    color: AppColors.errorDark,
+                          if (_showMinorNotice) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              'auth.register.minor_notice'.tr(),
+                              key: const ValueKey('register_minor_notice'),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: context.sac.textSecondary,
+                                    height: 1.4,
                                   ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      errorMessage,
-                                      style: const TextStyle(
-                                        color: AppColors.errorDark,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 16),
+
+                          if (_ageGateActive)
+                            _AgeGatePanel(
+                              onFix: _fixBirthday,
+                              onBack: () => context.pop(),
+                            )
+                          else ...[
+                            // Email
+                            SacTextField(
+                              controller: _emailController,
+                              label: 'auth.email_label'.tr(),
+                              hint: 'auth.email_hint'.tr(),
+                              keyboardType: TextInputType.emailAddress,
+                              prefixIcon: HugeIcons.strokeRoundedMail01,
+                              validator: Validators.validateEmail,
+                              textInputAction: TextInputAction.next,
                             ),
                             const SizedBox(height: 16),
-                          ],
 
-                          // Register button
-                          SacButton(
-                            text: 'auth.register_button'.tr(),
-                            variant: SacButtonVariant.primary,
-                            size: SacButtonSize.large,
-                            fullWidth: true,
-                            backgroundColor: AppColors.loginBrandBlue,
-                            borderRadius: AppTheme.radiusFull,
-                            isLoading: isLoading,
-                            isEnabled: _canSubmit(legal),
-                            onPressed: _canSubmit(legal) ? _signUp : null,
-                          ),
+                            // Password
+                            SacTextField(
+                              controller: _passwordController,
+                              label: 'auth.password_label'.tr(),
+                              hint: 'auth.password_hint'.tr(),
+                              obscureText: true,
+                              prefixIcon: HugeIcons.strokeRoundedLockKey,
+                              validator: Validators.validatePassword,
+                              textInputAction: TextInputAction.next,
+                              onChanged: (_) => setState(() {}),
+                            ),
+                            const SizedBox(height: 8),
+
+                            // Password strength indicator
+                            _PasswordStrengthIndicator(
+                              password: _passwordController.text,
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Confirm password
+                            SacTextField(
+                              controller: _confirmPasswordController,
+                              label: 'auth.confirm_password_label'.tr(),
+                              hint: 'auth.confirm_password_hint'.tr(),
+                              obscureText: true,
+                              prefixIcon: HugeIcons.strokeRoundedLockKey,
+                              validator: _validateConfirmPassword,
+                              textInputAction: TextInputAction.done,
+                              onSubmitted: (_) =>
+                                  _canSubmit(legal) ? _signUp() : null,
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Legal consent (evidence of acceptance)
+                            if (legal != null)
+                              SacLegalConsentCheckbox(
+                                value: _acceptedLegal,
+                                enabled: !isLoading,
+                                termsUrl: legal.termsUrl,
+                                privacyUrl: legal.privacyUrl,
+                                onChanged: (value) =>
+                                    setState(() => _acceptedLegal = value),
+                              )
+                            else if (legalLoadFailed)
+                              _LegalLoadError(
+                                onRetry: () => ref
+                                    .invalidate(currentLegalDocumentsProvider),
+                              )
+                            else
+                              const SizedBox(height: 48),
+                            const SizedBox(height: 24),
+
+                            // Error message
+                            if (errorMessage != null) ...[
+                              SacCard(
+                                backgroundColor: AppColors.errorLight,
+                                borderColor:
+                                    AppColors.error.withValues(alpha: 0.3),
+                                padding: const EdgeInsets.all(12),
+                                child: Row(
+                                  children: [
+                                    HugeIcon(
+                                      icon: HugeIcons.strokeRoundedAlert02,
+                                      size: 20,
+                                      color: AppColors.errorDark,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        errorMessage,
+                                        style: const TextStyle(
+                                          color: AppColors.errorDark,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+
+                            // Register button
+                            SacButton(
+                              text: 'auth.register_button'.tr(),
+                              variant: SacButtonVariant.primary,
+                              size: SacButtonSize.large,
+                              fullWidth: true,
+                              backgroundColor: AppColors.loginBrandBlue,
+                              borderRadius: AppTheme.radiusFull,
+                              isLoading: isLoading,
+                              isEnabled: _canSubmit(legal),
+                              onPressed: _canSubmit(legal) ? _signUp : null,
+                            ),
+                          ],
                           const SizedBox(height: 24),
 
                           Center(
@@ -436,6 +572,87 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Pantalla de bloqueo de registro por edad (FP-65).
+///
+/// Se muestra tanto cuando la fecha elegida da menos del mínimo (sin llamar a
+/// la API) como cuando el servidor responde 422
+/// `AUTH_REGISTRATION_AGE_BELOW_MINIMUM`.
+class _AgeGatePanel extends StatelessWidget {
+  final VoidCallback onFix;
+  final VoidCallback onBack;
+
+  const _AgeGatePanel({required this.onFix, required this.onBack});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      key: const ValueKey('register_age_gate'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SacCard(
+          backgroundColor: AppColors.accentLight,
+          borderColor: AppColors.accent.withValues(alpha: 0.3),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedUserGroup,
+                    size: 22,
+                    color: AppColors.accentDark,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'auth.register.age_gate.title'.tr(),
+                      style: const TextStyle(
+                        color: AppColors.accentDark,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'auth.register.age_gate.message'.tr(),
+                style: const TextStyle(
+                  color: AppColors.accentDark,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'auth.register.age_gate.hint'.tr(),
+                style: const TextStyle(
+                  color: AppColors.accentDark,
+                  fontSize: 13,
+                  height: 1.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        SacButton.outline(
+          text: 'auth.register.age_gate.fix'.tr(),
+          onPressed: onFix,
+        ),
+        const SizedBox(height: 8),
+        SacButton.ghost(
+          text: 'auth.register.age_gate.back'.tr(),
+          textColor: AppColors.loginBrandBlueDark,
+          onPressed: onBack,
+        ),
+      ],
     );
   }
 }

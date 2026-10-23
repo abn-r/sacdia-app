@@ -82,6 +82,10 @@ class SacLegalConsentCheckbox extends StatefulWidget {
   final String privacyUrl;
   final bool enabled;
 
+  /// Llave de traducción del texto que precede a los enlaces. Por defecto "He
+  /// leído y acepto los "; Mi familia usa la variante "en nombre del menor".
+  final String prefixKey;
+
   /// Inyectable para pruebas. Por defecto abre el navegador integrado.
   final OpenLegalDocument onOpenDocument;
 
@@ -92,6 +96,7 @@ class SacLegalConsentCheckbox extends StatefulWidget {
     required this.termsUrl,
     required this.privacyUrl,
     this.enabled = true,
+    this.prefixKey = 'auth.legal.consent_prefix',
     this.onOpenDocument = openInAppDocument,
   });
 
@@ -140,7 +145,7 @@ class _SacLegalConsentCheckboxState extends State<SacLegalConsentCheckbox> {
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Text.rich(
                 TextSpan(
-                  text: 'auth.legal.consent_prefix'.tr(),
+                  text: widget.prefixKey.tr(),
                   style: style,
                   children: _links.spans(),
                 ),

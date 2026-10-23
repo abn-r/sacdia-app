@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
+import '../../../../core/auth/session_mode.dart';
 import '../providers/notifications_providers.dart';
 import '../providers/unread_notifications_count_provider.dart';
 import '../widgets/notification_card.dart';
@@ -79,6 +80,10 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
   Widget build(BuildContext context) {
     final inboxState = ref.watch(notificationsInboxProvider);
     final unreadCount = ref.watch(unreadNotificationsCountProvider);
+    // El teléfono vinculado de un menor reutiliza esta bandeja, pero su
+    // principal no tiene alcance sobre las preferencias de notificación: la
+    // campana no lleva a ninguna parte, así que no se ofrece.
+    final isDevice = ref.watch(sessionModeProvider) == SessionMode.device;
     final c = context.sac;
 
     return Scaffold(
@@ -89,50 +94,52 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
           backgroundColor: c.surface,
           actions: [
             // Bell icon with unread badge
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                SacPressable(
-                  listenOnly: true,
-                  enabled: false,
-                  child: IconButton(
-                    enableFeedback: false,
-                    onPressed: null, // Decorative — tapping the list navigates
-                    icon: HugeIcon(
-                      icon: HugeIcons.strokeRoundedNotification01,
-                      size: 22,
-                      color: c.text,
+            if (!isDevice)
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  SacPressable(
+                    listenOnly: true,
+                    enabled: false,
+                    child: IconButton(
+                      enableFeedback: false,
+                      onPressed:
+                          null, // Decorative — tapping the list navigates
+                      icon: HugeIcon(
+                        icon: HugeIcons.strokeRoundedNotification01,
+                        size: 22,
+                        color: c.text,
+                      ),
+                      tooltip: 'notifications.inbox.tooltip_bell'.tr(),
                     ),
-                    tooltip: 'notifications.inbox.tooltip_bell'.tr(),
                   ),
-                ),
-                if (unreadCount > 0)
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 1,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.error,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      constraints: const BoxConstraints(minWidth: 16),
-                      child: Text(
-                        unreadCount > 99 ? '99+' : '$unreadCount',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
+                  if (unreadCount > 0)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 1,
                         ),
-                        textAlign: TextAlign.center,
+                        decoration: BoxDecoration(
+                          color: AppColors.error,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        constraints: const BoxConstraints(minWidth: 16),
+                        child: Text(
+                          unreadCount > 99 ? '99+' : '$unreadCount',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ),
-                  ),
-              ],
-            ),
+                ],
+              ),
             // Mark all as read
             if (unreadCount > 0)
               SacPressable(

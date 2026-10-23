@@ -34,7 +34,11 @@ class AuthRepositoryImpl implements AuthRepository {
     } on core_exceptions.ConnectionException catch (e) {
       return Left(NetworkFailure(message: e.message, stackTrace: e.stackTrace));
     } on core_exceptions.AuthException catch (e) {
-      return Left(AuthFailure(message: e.message, code: e.code));
+      return Left(AuthFailure(
+        message: e.message,
+        code: e.code,
+        errorCode: e.errorCode,
+      ));
     } on core_exceptions.ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
     } catch (e) {
@@ -43,18 +47,33 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, UserEntity>> signInWithEmailAndPassword({
-    required String email,
+  Future<Either<Failure, UserEntity>> signInWithIdentifier({
+    required String identifier,
     required String password,
   }) async {
     try {
-      final user = await remoteDataSource.signInWithEmailAndPassword(
-        email: email,
+      final user = await remoteDataSource.signInWithIdentifier(
+        identifier: identifier,
         password: password,
       );
       return Right(user);
+    } on core_exceptions.ConnectionException catch (e) {
+      return Left(NetworkFailure(message: e.message, stackTrace: e.stackTrace));
     } on core_exceptions.AuthException catch (e) {
-      return Left(AuthFailure(message: e.message, code: e.code));
+      // Se conserva el `code` de negocio y el Retry-After: la pantalla de login
+      // distingue bloqueo, acceso desactivado y cuenta congelada por ellos.
+      return Left(AuthFailure(
+        message: e.message,
+        code: e.code,
+        errorCode: e.errorCode,
+        retryAfterSeconds: e.retryAfterSeconds,
+      ));
+    } on core_exceptions.ServerException catch (e) {
+      return Left(ServerFailure(
+        message: e.message,
+        code: e.code,
+        errorCode: e.errorCode,
+      ));
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
     }
@@ -69,6 +88,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String maternalSurname,
     required String acceptedTermsVersion,
     required String acceptedPrivacyVersion,
+    String? birthday,
   }) async {
     try {
       final user = await remoteDataSource.signUpWithEmailAndPassword(
@@ -79,10 +99,15 @@ class AuthRepositoryImpl implements AuthRepository {
         maternalSurname: maternalSurname,
         acceptedTermsVersion: acceptedTermsVersion,
         acceptedPrivacyVersion: acceptedPrivacyVersion,
+        birthday: birthday,
       );
       return Right(user);
     } on core_exceptions.AuthException catch (e) {
-      return Left(AuthFailure(message: e.message, code: e.code));
+      return Left(AuthFailure(
+        message: e.message,
+        code: e.code,
+        errorCode: e.errorCode,
+      ));
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
     }
@@ -191,7 +216,11 @@ class AuthRepositoryImpl implements AuthRepository {
       await remoteDataSource.deleteAccount(reauth);
       return const Right(null);
     } on core_exceptions.AuthException catch (e) {
-      return Left(AuthFailure(message: e.message, code: e.code));
+      return Left(AuthFailure(
+        message: e.message,
+        code: e.code,
+        errorCode: e.errorCode,
+      ));
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
     }

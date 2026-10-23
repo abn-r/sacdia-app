@@ -4,8 +4,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../auth/acting_for_session.dart';
 import '../../constants/app_constants.dart';
 import '../../utils/app_logger.dart';
+import 'acting_generation_interceptor.dart';
 
 /// Interceptor responsable de:
 /// 1. Adjuntar el Bearer token a cada petición autenticada.
@@ -46,6 +48,7 @@ class AuthInterceptor extends QueuedInterceptor {
     '/auth/register',
     '/auth/refresh',
     '/auth/oauth',
+    '/auth/device/pair',
     '/auth/password/reset-request',
     '/auth/reset-password',
   ];
@@ -54,6 +57,66 @@ class AuthInterceptor extends QueuedInterceptor {
   /// recovered. Use this to invalidate the auth state without making API calls.
   final VoidCallback? onAuthExpired;
 
+  /// Se llama cuando el servidor responde 401 `AUTH_SUPERVISED_ACCESS_REVOKED`:
+  /// el tutor desactivó, restableció o cambió el acceso del menor. La sesión ya
+  /// no existe en el servidor, así que NO se intenta refrescar; si es nulo se
+  /// usa [onAuthExpired].
+  final VoidCallback? onSupervisedAccessRevoked;
+
+  /// `code` del 401 de un token de menor cuyo acceso se cortó (FP3-17).
+  static const supervisedAccessRevokedCode = 'AUTH_SUPERVISED_ACCESS_REVOKED';
+
+  /// Se llama cuando un teléfono vinculado pierde su sesión: 401
+  /// `AUTH_DEVICE_REVOKED`, `AUTH_DEVICE_SESSION_EXPIRED` o un refresh muerto
+  /// MIENTRAS esta instalación es un dispositivo (FP3-52). El argumento es
+  /// `true` si la causa es el tope absoluto de la vinculación. Los tokens ya se
+  /// borraron; si es nulo se usa [onAuthExpired].
+  final void Function(bool sessionExpired)? onDeviceUnpaired;
+
+  /// ¿Esta instalación es un teléfono vinculado? Un dispositivo NUNCA manda
+  /// `X-Acting-For` y, si su refresh muere, vuelve a la pantalla de
+  /// vinculación en lugar de al login.
+  final bool Function()? isDeviceSession;
+
+  /// `code` del 401 de un teléfono desvinculado (revocado, no elegible,
+  /// función apagada).
+  static const deviceRevokedCode = 'AUTH_DEVICE_REVOKED';
+
+  /// `code` del 401 de un teléfono cuya vinculación llegó al tope absoluto.
+  static const deviceSessionExpiredCode = 'AUTH_DEVICE_SESSION_EXPIRED';
+
+  /// Perfil por el que se actúa (tutor -> dependiente). Nulo en tests o
+  /// instancias de Dio que nunca actúan por otro usuario.
+  final ActingForSession? _actingForSession;
+
+  /// Rutas (relativas a la base de la API) que JAMÁS llevan `X-Acting-For`.
+  ///
+  /// Son cuenta/seguridad del tutor (`/auth/*` de sesión), la gestión de
+  /// familia (`/guardianships`) y lo que pertenece al dispositivo o a la
+  /// cuenta real (`/fcm-tokens`, preferencias de notificación, exportación).
+  /// El backend las rechaza si llevan el encabezado.
+  static const actingForSkipPrefixes = <String>[
+    '/auth/refresh',
+    '/auth/logout',
+    '/auth/login',
+    '/auth/register',
+    '/guardianships',
+    '/fcm-tokens',
+    // La app registra y borra el token FCM en `/users/me/fcm-tokens` (W4): el
+    // refresco de token del tutor mientras actúa no puede llevar el encabezado.
+    '/users/me/fcm-tokens',
+    '/notifications/preferences',
+    '/users/me/notification-preferences',
+    '/users/me/data-export',
+  ];
+
+  /// Nombre del encabezado que sustituye al principal en el backend.
+  static const actingForHeader = 'X-Acting-For';
+
+  /// Clave de `RequestOptions.extra` para que una petición concreta NO lleve
+  /// `X-Acting-For` aunque se esté actuando (`extra['skipActingFor'] == true`).
+  static const skipActingForKey = 'skipActingFor';
+
   AuthInterceptor({
     FlutterSecureStorage? secureStorage,
 
@@ -61,17 +124,29 @@ class AuthInterceptor extends QueuedInterceptor {
     /// reintentar la petición original después del refresh.
     Dio? dio,
     this.onAuthExpired,
-  })  : _secureStorage = secureStorage ??
+    this.onSupervisedAccessRevoked,
+    this.onDeviceUnpaired,
+    this.isDeviceSession,
+    ActingForSession? actingForSession,
+
+    /// Solo para tests: adaptador HTTP de las llamadas de refresh y de
+    /// reintento (que usan instancias de Dio propias, sin interceptores).
+    @visibleForTesting HttpClientAdapter? refreshAdapter,
+  })  : _actingForSession = actingForSession,
+        _refreshAdapter = refreshAdapter,
+        _secureStorage = secureStorage ??
             const FlutterSecureStorage(
               aOptions: AndroidOptions(encryptedSharedPreferences: true),
               iOptions: IOSOptions(
                   accessibility:
                       KeychainAccessibility.first_unlock_this_device),
             ),
-        _refreshDio = _buildRefreshDio();
+        _refreshDio = _buildRefreshDio(refreshAdapter);
 
-  static Dio _buildRefreshDio() {
-    return Dio(BaseOptions(
+  final HttpClientAdapter? _refreshAdapter;
+
+  static Dio _buildRefreshDio(HttpClientAdapter? adapter) {
+    final dio = Dio(BaseOptions(
       baseUrl: AppConstants.baseUrl,
       connectTimeout: Duration(seconds: AppConstants.connectTimeout),
       receiveTimeout: Duration(seconds: AppConstants.receiveTimeout),
@@ -82,6 +157,8 @@ class AuthInterceptor extends QueuedInterceptor {
       // No lanzar excepción para 4xx/5xx — manejar manualmente.
       validateStatus: (status) => status != null,
     ));
+    if (adapter != null) dio.httpClientAdapter = adapter;
+    return dio;
   }
 
   // ─── onRequest ────────────────────────────────────────────────────────────
@@ -97,7 +174,58 @@ class AuthInterceptor extends QueuedInterceptor {
       options.headers['Authorization'] = 'Bearer $token';
     }
 
+    // ÚNICO punto donde se inyecta X-Acting-For. La sesión se lee DESPUÉS del
+    // await y, en ESTE mismo tramo síncrono, se decide el encabezado Y se sella
+    // la generación (W2). Dio encadena los interceptores de petición con un
+    // salto al event loop, así que sellar en otro interceptor dejaría una
+    // ventana en la que un cambio de perfil marcaría con la generación NUEVA una
+    // petición que lleva el encabezado del perfil VIEJO. `putIfAbsent`: un
+    // reintento conserva el sello original (ver ActingGenerationInterceptor).
+    final acting = _actingForSession;
+    if (acting != null) {
+      final dependentId = acting.dependentUserId;
+      if (dependentId != null && !_isDevice && _shouldSendActingFor(options)) {
+        options.headers[actingForHeader] = dependentId;
+      } else {
+        // Un reintento o una petición reutilizada no debe arrastrar el
+        // encabezado de un perfil anterior.
+        options.headers.remove(actingForHeader);
+      }
+      options.extra.putIfAbsent(
+        ActingGenerationInterceptor.generationKey,
+        () => acting.generation,
+      );
+    }
+
     handler.next(options);
+  }
+
+  bool get _isDevice => isDeviceSession?.call() ?? false;
+
+  /// `false` para las rutas exentas y para peticiones marcadas con
+  /// `extra['skipActingFor'] == true`.
+  static bool _shouldSendActingFor(RequestOptions options) {
+    if (options.extra[skipActingForKey] == true) return false;
+    final path = apiPathOf(options);
+    return !actingForSkipPrefixes.any(path.startsWith);
+  }
+
+  /// Ruta de la petición relativa a la base de la API (`/users/...`).
+  ///
+  /// Los datasources de la app pasan tanto rutas relativas como URLs completas
+  /// (`'$baseUrl/auth/me'`), así que se resuelve la URI final y se le quita el
+  /// prefijo de la base (p. ej. `/api/v1`).
+  @visibleForTesting
+  static String apiPathOf(RequestOptions options) {
+    var path = options.uri.path;
+    final basePath = Uri.tryParse(options.baseUrl)?.path ?? '';
+    final trimmedBase = basePath.endsWith('/')
+        ? basePath.substring(0, basePath.length - 1)
+        : basePath;
+    if (trimmedBase.isNotEmpty && path.startsWith(trimmedBase)) {
+      path = path.substring(trimmedBase.length);
+    }
+    return path.startsWith('/') ? path : '/$path';
   }
 
   // ─── onError ──────────────────────────────────────────────────────────────
@@ -139,6 +267,30 @@ class AuthInterceptor extends QueuedInterceptor {
       return handler.next(err);
     }
 
+    // Acceso del menor cortado por su tutor: la sesión se borró en el servidor,
+    // un refresh solo fallaría. Se limpia YA y se avisa para que el login
+    // explique por qué (FP3-32). Solo se lee el `code`, nunca `details`.
+    if (_isSupervisedAccessRevoked(err)) {
+      AppLogger.w('Acceso supervisado revocado, cerrando sesión', tag: _tag);
+      await _clearTokens();
+      (onSupervisedAccessRevoked ?? onAuthExpired)?.call();
+      return handler.next(err);
+    }
+
+    // Teléfono vinculado desvinculado por su tutor (o no elegible): la sesión
+    // se borró en el servidor, un refresh solo fallaría. Vuelve a la pantalla
+    // de vinculación con un aviso. Solo se lee el `code`, nunca `details`.
+    final deviceCode = _deviceSessionCode(err);
+    if (deviceCode != null) {
+      AppLogger.w('Dispositivo desvinculado, cerrando sesión', tag: _tag);
+      await _clearTokens();
+      _endSession(
+        device: true,
+        sessionExpired: deviceCode == deviceSessionExpiredCode,
+      );
+      return handler.next(err);
+    }
+
     // Si esta petición ya fue reintentada, no entrar en bucle.
     final isRetry = err.requestOptions.extra[_retryAfterRefreshKey] == true;
     if (isRetry) {
@@ -146,7 +298,7 @@ class AuthInterceptor extends QueuedInterceptor {
           'Refresh/retry fallido en segundo intento, descartando sesión',
           tag: _tag);
       await _clearTokens();
-      onAuthExpired?.call();
+      _endSession();
       return handler.next(err);
     }
 
@@ -154,23 +306,75 @@ class AuthInterceptor extends QueuedInterceptor {
 
     final refreshed = await _tryRefreshToken();
 
+    if (!refreshed && _isDevice && _lastRefreshTransient) {
+      // Servidor no disponible o sin red: el dispositivo conserva su sesión y
+      // la petición falla con su error (el reintento de Dio la repite).
+      AppLogger.w('Refresh del dispositivo no disponible, sesión intacta',
+          tag: _tag);
+      return handler.next(err);
+    }
+
     if (!refreshed) {
       AppLogger.w('Refresh reactivo fallido, limpiando tokens', tag: _tag);
       await _clearTokens();
-      onAuthExpired?.call();
+      final refreshExpired = _lastRefreshCode == deviceSessionExpiredCode;
+      _endSession(
+        device: _isDevice || refreshExpired,
+        sessionExpired: refreshExpired,
+      );
       return handler.next(err);
     }
 
     // Refresh exitoso: reintentar la petición original UNA vez.
+    //
+    // El reintento sale por una instancia de Dio sin interceptores y se entrega
+    // con `handler.resolve`, así que ni AuthInterceptor.onRequest ni
+    // ActingGenerationInterceptor lo ven (W1). Por eso aquí se replica a mano:
+    //  - si el perfil cambió durante el refresh, NO se reenvía (ni con el
+    //    encabezado viejo) y se rechaza como cancelación obsoleta;
+    //  - el encabezado se recalcula con la sesión vigente, nunca se copia;
+    //  - si el perfil cambia mientras el reintento vuela, la respuesta se
+    //    descarta igual que lo haría ActingGenerationInterceptor.
+    final acting = _actingForSession;
+    final stamped =
+        ActingGenerationInterceptor.generationOf(err.requestOptions);
+    bool isStale() =>
+        acting != null && stamped != null && stamped != acting.generation;
+    DioException staleError() => DioException.requestCancelled(
+          requestOptions: err.requestOptions,
+          reason: ActingGenerationInterceptor.staleReason,
+        );
+
+    if (isStale()) {
+      AppLogger.d(
+        'Perfil cambiado durante el refresh, reintento descartado: '
+        '${err.requestOptions.path}',
+        tag: _tag,
+      );
+      return handler.next(staleError());
+    }
+
     try {
       final newToken = await _secureStorage.read(key: AppConstants.tokenKey);
+      // La lectura del token es asíncrona: se vuelve a comprobar el perfil.
+      if (isStale()) return handler.next(staleError());
+
+      final retryHeaders = <String, dynamic>{
+        for (final entry in err.requestOptions.headers.entries)
+          if (entry.key.toLowerCase() != actingForHeader.toLowerCase())
+            entry.key: entry.value,
+        'Authorization': 'Bearer $newToken',
+      };
+      final dependentId = acting?.dependentUserId;
+      if (dependentId != null &&
+          !_isDevice &&
+          _shouldSendActingFor(err.requestOptions)) {
+        retryHeaders[actingForHeader] = dependentId;
+      }
 
       final retryOptions = Options(
         method: err.requestOptions.method,
-        headers: {
-          ...err.requestOptions.headers,
-          'Authorization': 'Bearer $newToken',
-        },
+        headers: retryHeaders,
         extra: {
           ...err.requestOptions.extra,
           _retryAfterRefreshKey: true,
@@ -181,8 +385,8 @@ class AuthInterceptor extends QueuedInterceptor {
 
       AppLogger.i('Reintentando petición tras refresh exitoso', tag: _tag);
 
-      // Usamos _refreshDio para que el reintento no pase por QueuedInterceptor
-      // y no genere un segundo ciclo de refresh.
+      // Usamos una instancia de Dio propia para que el reintento no pase por
+      // QueuedInterceptor y no genere un segundo ciclo de refresh.
       final retryDio = Dio(BaseOptions(
         baseUrl: AppConstants.baseUrl,
         connectTimeout: Duration(seconds: AppConstants.connectTimeout),
@@ -193,6 +397,8 @@ class AuthInterceptor extends QueuedInterceptor {
         // swallowed by handler.resolve(response).
         validateStatus: (s) => s != null && s >= 200 && s < 300,
       ));
+      final adapter = _refreshAdapter;
+      if (adapter != null) retryDio.httpClientAdapter = adapter;
 
       final response = await retryDio.request(
         err.requestOptions.path,
@@ -201,8 +407,40 @@ class AuthInterceptor extends QueuedInterceptor {
         options: retryOptions,
       );
 
+      if (isStale()) {
+        AppLogger.d(
+          'Perfil cambiado durante el reintento, respuesta descartada: '
+          '${err.requestOptions.path}',
+          tag: _tag,
+        );
+        return handler.next(staleError());
+      }
+
       return handler.resolve(response);
     } catch (e) {
+      // Un 403 del reintento es la respuesta REAL del servidor (p. ej.
+      // `ACTING_FOR_FORBIDDEN`): se reenvía tal cual para que
+      // ActingErrorInterceptor saque al tutor del perfil. Reenviar el 401
+      // original la tragaría. Se conservan las `requestOptions` originales (su
+      // `X-Acting-For` es el del perfil vigente: el sello ya se comprobó) y se
+      // descarta si el perfil cambió mientras volaba.
+      if (e is DioException && e.response?.statusCode == 403) {
+        if (isStale()) return handler.next(staleError());
+        AppLogger.w(
+          '403 en el reintento tras refresh: ${err.requestOptions.path}',
+          tag: _tag,
+        );
+        return handler.next(
+          DioException(
+            requestOptions: err.requestOptions,
+            response: e.response,
+            type: e.type,
+            error: e.error,
+            stackTrace: e.stackTrace,
+            message: e.message,
+          ),
+        );
+      }
       AppLogger.e('Error al reintentar después de refresh',
           tag: _tag, error: e);
       return handler.next(err);
@@ -217,6 +455,40 @@ class AuthInterceptor extends QueuedInterceptor {
     'AUTH_INVALID_PASSWORD',
     'AUTH_INVALID_TOKEN',
   };
+
+  /// `code` del último refresh fallido, para distinguir «vinculación vencida»
+  /// de «desvinculado» cuando el refresh de un dispositivo muere.
+  static String? _lastRefreshCode;
+
+  /// El último refresh falló por algo pasajero (5xx, p. ej. 503
+  /// `AUTH_REVOCATION_CHECK_UNAVAILABLE`, o sin red). Un teléfono vinculado NO
+  /// pierde su sesión por eso: el servidor no dijo que la revocó.
+  static bool _lastRefreshTransient = false;
+
+  static String? _deviceSessionCode(DioException err) {
+    final data = err.response?.data;
+    if (data is! Map) return null;
+    final code = data['code'];
+    return code == deviceRevokedCode || code == deviceSessionExpiredCode
+        ? code as String
+        : null;
+  }
+
+  /// Termina la sesión local: un dispositivo vuelve a la vinculación; una
+  /// cuenta, al login.
+  void _endSession({bool? device, bool sessionExpired = false}) {
+    final unpaired = onDeviceUnpaired;
+    if ((device ?? _isDevice) && unpaired != null) {
+      unpaired(sessionExpired);
+      return;
+    }
+    onAuthExpired?.call();
+  }
+
+  static bool _isSupervisedAccessRevoked(DioException err) {
+    final data = err.response?.data;
+    return data is Map && data['code'] == supervisedAccessRevokedCode;
+  }
 
   static bool _isReauthRejection(DioException err) {
     final data = err.response?.data;
@@ -243,6 +515,8 @@ class AuthInterceptor extends QueuedInterceptor {
     }
 
     _refreshCompleter = Completer<bool>();
+    _lastRefreshCode = null;
+    _lastRefreshTransient = false;
 
     try {
       final refreshToken =
@@ -292,10 +566,16 @@ class AuthInterceptor extends QueuedInterceptor {
       }
 
       AppLogger.w('Refresh token falló: ${response.statusCode}', tag: _tag);
+      final body = response.data;
+      _lastRefreshCode =
+          body is Map && body['code'] is String ? body['code'] as String : null;
+      final status = response.statusCode ?? 0;
+      _lastRefreshTransient = status >= 500 || status == 429;
       _refreshCompleter!.complete(false);
       return false;
     } catch (e) {
       AppLogger.e('Error en refresh token (interceptor)', tag: _tag, error: e);
+      _lastRefreshTransient = true;
       _refreshCompleter!.complete(false);
       return false;
     } finally {

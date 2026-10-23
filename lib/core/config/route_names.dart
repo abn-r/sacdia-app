@@ -221,6 +221,10 @@ class RouteNames {
       '/coordinator/evidence-review';
   static const String coordinatorEvidenceReviewDetailRoute =
       '/coordinator/evidence-review/:type/:id';
+  // Fichas de consentimiento de menores por verificar (`consent:verify`).
+  static const String coordinatorConsentReview = '/coordinator/consent-review';
+
+  // Coordinator tab routes (children of the `/coordinator` shell branch).
   static const String coordinatorClubs = '/coordinator/clubs';
   // Read-only club reports (compliance + PDFs) of the coordinator.
   static const String coordinatorReports = '/coordinator/reports';
@@ -348,4 +352,69 @@ class RouteNames {
 
   static String memberBreakdownPath(int enrollmentId, int yearId) =>
       '/rankings/breakdown/$enrollmentId?year_id=$yearId';
+
+  // Mi familia: menores a cargo del tutor. Se gestionan desde el perfil propio
+  // del tutor; mientras se actúa por un menor estas rutas redirigen al inicio.
+  static const String family = '/family';
+  static const String familyAdd = '/family/add';
+  static const String familyLink = '/family/link';
+  static const String familyDetail = '/family/:dependentId';
+
+  static String familyDetailPath(String dependentId) => '/family/$dependentId';
+
+  // Fase 3a: acceso propio de un menor y resumen para el tutor.
+  static const String familyTeenLogin = '/family/:dependentId/teen-login';
+  static const String familySummary = '/family/:dependentId/summary';
+
+  static String familyTeenLoginPath(String dependentId) =>
+      '/family/$dependentId/teen-login';
+  static String familySummaryPath(String dependentId) =>
+      '/family/$dependentId/summary';
+
+  // Adolescente (13-17) sin tutor verificado: pantalla única del modo
+  // restringido (estado, código para el tutor y cuenta atrás). Ver
+  // `supervised_route_policy.dart`.
+  static const String teenPendingHome = '/teen/pending';
+
+  // Cuenta con un principal que la app no reconoce (servidor más nuevo): falla
+  // cerrado en una pantalla única con «Cerrar sesión». Ver
+  // `supervised_route_policy.dart`.
+  static const String restrictedAccount = '/account/restricted';
+
+  // Fase 3b: vinculación de un teléfono de menor por QR (lado del tutor).
+  static const String familyPairDevice = '/family/:dependentId/pair-device';
+
+  static String familyPairDevicePath(String dependentId) =>
+      '/family/$dependentId/pair-device';
+
+  // Fase 3b: cáscara del teléfono vinculado de un menor de 13. Ver
+  // `device_route_policy.dart`. Nada de esto existe para una cuenta.
+  static const String devicePair = '/device/pair';
+  static const String deviceHome = '/device/home';
+  static const String deviceClasses = '/device/classes';
+  static const String deviceClassDetail = '/device/classes/:classId';
+  static const String deviceRequirement =
+      '/device/classes/:classId/requirements/:requirementId';
+  static const String deviceAgenda = '/device/agenda';
+  static const String deviceActivityDetail = '/device/agenda/:activityId';
+  static const String deviceInbox = '/device/inbox';
+  static const String deviceLegalBlock = '/device/legal';
+  static const String deviceRegistrationPending =
+      '/device/registration-pending';
+
+  static String deviceClassDetailPath(int classId, {int? enrollmentId}) =>
+      enrollmentId == null
+          ? '/device/classes/$classId'
+          : '/device/classes/$classId?enrollmentId=$enrollmentId';
+  static String deviceRequirementPath(
+    int classId,
+    int requirementId, {
+    int? enrollmentId,
+  }) =>
+      enrollmentId == null
+          ? '/device/classes/$classId/requirements/$requirementId'
+          : '/device/classes/$classId/requirements/$requirementId'
+              '?enrollmentId=$enrollmentId';
+  static String deviceActivityDetailPath(int activityId) =>
+      '/device/agenda/$activityId';
 }

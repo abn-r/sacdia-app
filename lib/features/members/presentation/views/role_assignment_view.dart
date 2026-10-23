@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/consent/consent_error_messages.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
@@ -13,10 +15,14 @@ import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 
 import '../../domain/entities/assignable_role.dart';
 import '../../domain/entities/club_member.dart';
+import '../../domain/entities/join_request.dart';
 import '../providers/members_providers.dart';
+import '../utils/consent_access.dart';
+import 'consent_verification_view.dart';
 
 /// Vista de asignación de rol de club a un miembro.
 /// Accesible solo para Director y Subdirector.
@@ -24,10 +30,16 @@ class RoleAssignmentView extends ConsumerStatefulWidget {
   final ClubMember member;
   final ClubContext clubContext;
 
+  /// Solicitud de ingreso pendiente del miembro cuando es un menor con el
+  /// consentimiento sin verificar. Si el backend rechaza el cargo por
+  /// `MR_CONSENT_NOT_VERIFIED`, desde aquí se ofrece abrir la verificación.
+  final JoinRequest? pendingConsentRequest;
+
   const RoleAssignmentView({
     super.key,
     required this.member,
     required this.clubContext,
+    this.pendingConsentRequest,
   });
 
   @override
@@ -112,9 +124,46 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
           }),
           backgroundColor: AppColors.secondary);
       Navigator.pop(context, true);
+    } else if (failure.errorCode == 'MR_CONSENT_NOT_VERIFIED') {
+      _showConsentBlocked(failure);
     } else {
       SacSnackBar.show(context, _assignErrorMessage(failure), isError: true);
     }
+  }
+
+  /// El menor no tiene el consentimiento del tutor verificado (409). Se muestra
+  /// el mensaje traducido y, si hay una solicitud pendiente, se ofrece abrir la
+  /// verificación (nunca se verifica ni se asigna desde aquí).
+  void _showConsentBlocked(Failure failure) {
+    final request = widget.pendingConsentRequest;
+    SacSnackBar.show(
+      context,
+      consentErrorMessage(failure),
+      isError: true,
+      duration: request == null ? null : const Duration(seconds: 10),
+      action: request == null
+          ? null
+          : SnackBarAction(
+              label: 'members.consent.verify_action'.tr(),
+              textColor: Colors.white,
+              onPressed: () => _openConsentVerification(request),
+            ),
+    );
+  }
+
+  Future<void> _openConsentVerification(JoinRequest request) async {
+    if (!mounted) return;
+    await Navigator.push<bool>(
+      context,
+      SacSharedAxisRoute<bool>(
+        builder: (_) => ConsentVerificationView(
+          request: request,
+          canApprove: canApproveJoinRequests(
+            ref.read(authNotifierProvider).valueOrNull,
+          ),
+        ),
+      ),
+    );
   }
 
   /// Muestra el motivo del backend en rechazos de negocio (4xx, p. ej. cupo

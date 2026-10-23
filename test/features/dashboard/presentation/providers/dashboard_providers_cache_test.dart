@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sacdia_app/core/auth/acting_for_session.dart';
 import 'package:sacdia_app/core/constants/app_constants.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/usecases/usecase.dart';
@@ -100,6 +101,7 @@ Future<ProviderContainer> _buildDashboardContainer({
   required _FakeAuthNotifier authNotifier,
   required GetDashboardSummary useCase,
   required Map<String, Object> initialPrefs,
+  ActingForSession? session,
 }) async {
   SharedPreferences.setMockInitialValues(initialPrefs);
   final prefs = await SharedPreferences.getInstance();
@@ -109,6 +111,7 @@ Future<ProviderContainer> _buildDashboardContainer({
       authNotifierProvider.overrideWith(() => authNotifier),
       getDashboardSummaryProvider.overrideWithValue(useCase),
       sharedPreferencesProvider.overrideWithValue(prefs),
+      if (session != null) actingForSessionProvider.overrideWithValue(session),
     ],
   );
 }
@@ -542,6 +545,71 @@ void main() {
       final resultB = await container.read(dashboardNotifierProvider.future);
       expect(resultB?.clubName, equals('Club B'));
       expect(useCase.calls, equals(0));
+    });
+  });
+
+  group('home-screen widget while acting (W5)', () {
+    final widgetCalls = <String>[];
+
+    setUp(() {
+      widgetCalls.clear();
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(const MethodChannel('home_widget'),
+              (call) async {
+        widgetCalls.add(call.method);
+        return true;
+      });
+    });
+
+    Future<void> openDashboard({required ActingForSession session}) async {
+      final authNotifier = _FakeAuthNotifier(
+        _buildUser(userId: 'user-1', activeAssignmentId: 'assign-a'),
+      );
+      final key = _dashboardCacheKey(
+        userId: 'user-1',
+        assignmentId: 'assign-a',
+      );
+      final cached = _summary(userName: 'Ana', clubName: 'Aventura');
+      final remote = _summary(userName: 'Ana', clubName: 'Live');
+      final container = await _buildDashboardContainer(
+        authNotifier: authNotifier,
+        useCase: _FakeGetDashboardSummary(result: Right(remote)),
+        session: session,
+        initialPrefs: {
+          key: jsonEncode(_summaryJson(cached)),
+          // Caché vencido: pinta el caché y refresca detrás (2 escrituras).
+          '${key}_cached_at': DateTime.now()
+              .subtract(const Duration(minutes: 2))
+              .millisecondsSinceEpoch,
+        },
+      );
+      addTearDown(container.dispose);
+
+      await container.read(dashboardNotifierProvider.future);
+      for (var i = 0; i < 20; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(
+        container.read(dashboardNotifierProvider).value?.clubName,
+        'Live',
+        reason: 'the background refresh ran',
+      );
+    }
+
+    test('the guardian own dashboard is published to the widget (control)',
+        () async {
+      await openDashboard(session: ActingForSession());
+
+      expect(widgetCalls, contains('saveWidgetData'));
+    });
+
+    test('acting for a dependent never writes the OS widget', () async {
+      final session = ActingForSession()
+        ..enter(const ActingDependent(userId: 'ana-1', firstName: 'Ana'));
+
+      await openDashboard(session: session);
+
+      expect(widgetCalls, isEmpty);
     });
   });
 }

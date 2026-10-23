@@ -112,6 +112,51 @@ void main() {
     });
   });
 
+  group('ClassModel ecclesiastical year label', () {
+    Map<String, dynamic> json(Map<String, dynamic> extra) => {
+          'class_id': 3,
+          'name': 'Amigo',
+          'club_type_id': 2,
+          ...extra,
+        };
+
+    test('shows a single year when the year starts and ends in the same one',
+        () {
+      final model = ClassModel.fromJson(json({
+        'ecclesiastical_year': {
+          'start_date': '2026-01-01T12:00:00.000Z',
+          'end_date': '2026-12-31T12:00:00.000Z',
+        },
+      }));
+
+      expect(model.ecclesiasticalYearLabel, '2026');
+    });
+
+    test('keeps the range when the years differ', () {
+      final model = ClassModel.fromJson(json({
+        'ecclesiastical_year': {
+          'start_date': '2026-07-01T12:00:00.000Z',
+          'end_date': '2027-06-30T12:00:00.000Z',
+        },
+      }));
+
+      expect(model.ecclesiasticalYearLabel, '2026–2027');
+    });
+
+    test('a cached "2026–2026" label is collapsed when read back', () {
+      final model = ClassModel.fromJson(json({
+        'ecclesiastical_year_label': '2026–2026',
+      }));
+
+      expect(model.ecclesiasticalYearLabel, '2026');
+      expect(
+        ClassModel.fromJson(json({'ecclesiastical_year_label': '2025–2026'}))
+            .ecclesiasticalYearLabel,
+        '2025–2026',
+      );
+    });
+  });
+
   group('ClassModel prerequisites', () {
     test('defaults to an empty list when prerequisites is absent', () {
       final model = ClassModel.fromJson(const {

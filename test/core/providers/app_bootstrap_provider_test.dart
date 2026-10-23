@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/providers/app_bootstrap_provider.dart';
 import 'package:sacdia_app/core/storage/secure_storage.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
+import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/providers/storage_provider.dart';
@@ -91,6 +92,42 @@ void main() {
 
       final state = await container.read(appBootstrapProvider.future);
       expect(state, isA<AppBootstrapReady>());
+    });
+
+    test('a restricted account without club permissions is still Ready',
+        () async {
+      for (final principal in const [
+        PrincipalInfo(kind: PrincipalKind.ageUnknownUser),
+        PrincipalInfo(kind: PrincipalKind.unknown),
+      ]) {
+        final container = await _makeContainer(UserEntity(
+          id: 'restricted',
+          principal: principal,
+          authorization: const AuthorizationSnapshot(effectivePermissions: []),
+        ));
+        addTearDown(container.dispose);
+
+        final state = await container.read(appBootstrapProvider.future);
+        expect(state, isA<AppBootstrapReady>(), reason: '${principal.kind}');
+      }
+    });
+
+    test('a linked device without roles or permissions is still Ready',
+        () async {
+      for (final authorization in const [
+        AuthorizationSnapshot(effectivePermissions: []),
+        null,
+      ]) {
+        final container = await _makeContainer(UserEntity(
+          id: 'kid-1',
+          principal: const PrincipalInfo(kind: PrincipalKind.linkedDevice),
+          authorization: authorization,
+        ));
+        addTearDown(container.dispose);
+
+        final state = await container.read(appBootstrapProvider.future);
+        expect(state, isA<AppBootstrapReady>(), reason: '$authorization');
+      }
     });
 
     test('returns AppBootstrapUnauthenticated when user is null', () async {

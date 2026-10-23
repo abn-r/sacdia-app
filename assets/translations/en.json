@@ -160,7 +160,15 @@
       "other": "{} days ago"
     },
     "accessibility_tile": "Accessibility",
-    "open_document_failed": "We couldn't open this document."
+    "open_document_failed": "We couldn't open this document.",
+    "delete_account": {
+      "dependents": {
+        "title": "You have minors in your care",
+        "intro": "If you delete your account, this is what will happen to each minor:",
+        "ack": "I understand what will happen to the minors in my care",
+        "continue": "Continue"
+      }
+    }
   },
   "accessibility": {
     "title": "Accessibility",
@@ -229,6 +237,7 @@
     "errors": {
       "sign_in_failed": "Sign in failed",
       "sign_up_failed": "Registration failed",
+      "session_load_failed": "You signed in, but we could not load your account. Please try again.",
       "change_password_failed": "Password change failed",
       "delete_account_failed": "Account deletion failed",
       "sign_out_failed": "Sign out failed",
@@ -244,6 +253,30 @@
       "retry": "Retry",
       "open_failed": "The document could not be opened. Please try again.",
       "consent_semantics": "Accept the Terms and Conditions and the Privacy Notice"
+    },
+    "register": {
+      "birthday_label": "Date of birth",
+      "birthday_hint": "Select your date of birth",
+      "birthday_required": "Select your date of birth",
+      "age_gate": {
+        "title": "You can't create an account yet",
+        "message": "Ask your guardian to register you from My family.",
+        "hint": "An adult can add you from the My family section of their profile.",
+        "fix": "Correct date of birth",
+        "back": "Back"
+      },
+      "minor_notice": "If you are under 18, your account runs in supervised mode: you will need to link a guardian and a director will verify their consent."
+    },
+    "login": {
+      "identifier": {
+        "label": "Email or username",
+        "hint": "Your email or your username",
+        "required": "Enter your email or username",
+        "too_long": "That is too long"
+      },
+      "notice": {
+        "supervised_access_revoked": "Your guardian turned off or changed your access. Sign in again with your updated details."
+      }
     }
   },
   "legal_gate": {
@@ -418,7 +451,70 @@
     "social_signin_unverified": "We could not verify your {provider} account.",
     "social_signin_already_linked": "Your account is already linked to a different {provider} account. Sign in with your email and password.",
     "social_signin_provider_unavailable": "{provider} is not available right now. Try again in a few minutes.",
-    "delete_account_social_reauth_failed": "We couldn't confirm your identity with {provider}. Try again."
+    "delete_account_social_reauth_failed": "We couldn't confirm your identity with {provider}. Try again.",
+    "acting_for_forbidden": "You no longer have access to this profile. You are back on your own profile.",
+    "guardianship_not_found": "We could not find this minor.",
+    "guardianship_dependent_age_out_of_range": "You can only register children under 13 from My family. Older teens register with their own account.",
+    "guardianship_guardian_not_adult": "You must be an adult to be a guardian. Check your date of birth in your profile.",
+    "guardianship_guardian_birthday_required": "Add your date of birth to your profile to register a minor.",
+    "guardianship_dependent_limit_reached": "You've reached the maximum number of minors you can have in your care.",
+    "guardianship_guardian_limit_reached": "This minor already has the maximum number of guardians.",
+    "guardianship_link_code_invalid": "The code is not valid or is no longer available.",
+    "guardianship_link_code_locked": "Too many attempts. Please try again later.",
+    "guardianship_link_code_self_redeem": "You can't redeem a code you generated yourself.",
+    "guardianship_already_guardian": "You are already a guardian of this minor.",
+    "guardianship_revoke_forbidden": "You don't have permission to remove this guardian.",
+    "guardianship_relationship_type_invalid": "The selected relationship is not valid.",
+    "guardianship_relationship_type_not_allowed": "That relationship is not allowed for a guardian. Choose one of the options in the list.",
+    "acting_for_header_invalid": "The profile could not be identified. Go back to your profile and try again.",
+    "acting_for_scope_denied": "This action isn't available while you manage a minor's profile.",
+    "auth_delete_dependents_ack_required": "Confirm you understand what will happen to the minors in your care before deleting your account.",
+    "auth_registration_age_below_minimum": "Ask your guardian to register you from My family.",
+    "user_self_account_below_minimum_age": "That date of birth does not allow having your own account. Ask your guardian to manage you from My family.",
+    "post_reg_guardian_only_requires_adult": "Only an adult can register as a guardian only.",
+    "mr_consent_not_verified": "The guardian's consent has not been verified yet. Verify the signed form before approving.",
+    "legal_version_mismatch": "The terms have changed. Please read and accept them again.",
+    "guardianship_evidence_not_found": "The signed consent form has not been uploaded yet.",
+    "guardianship_evidence_required": "Upload the signed consent form before verifying.",
+    "guardianship_evidence_unavailable": "Consent forms are not available yet. Please try again later.",
+    "guardianship_custodian_self_verify": "This minor is in the club's custody. Another authorized person from the club must verify it, not the person who uploaded the form or who took custody.",
+    "mr_consent_confirmation_required": "Confirm that you reviewed the signed form before verifying.",
+    "mr_not_found": "The request no longer exists or does not belong to this section.",
+    "mr_already_pending": "This request has already been processed.",
+    "guard_permission_denied": "You do not have permission to do this.",
+    "file_required": "Select a file.",
+    "file_type_invalid": "File type not allowed. Use JPG, PNG, WebP or PDF.",
+    "file_too_large": "The file exceeds the 10 MB limit.",
+    "guardianship_consent_already_verified": "The form has already been verified.",
+    "guardianship_guardian_self_verify": "You cannot verify the consent of a minor you are a guardian of. Another authorized person from the club must do it.",
+    "post_reg_duplicate_membership": "There is already an active membership or request in another club. Check it before sending a new one.",
+    "auth_invalid_credentials": "Wrong email, username or password.",
+    "auth_login_locked": "Too many attempts. Try again later.",
+    "auth_login_locked_wait": "Too many attempts. Try again in {minutes} min.",
+    "auth_login_throttled": "Too many attempts. Wait a moment and try again.",
+    "auth_supervised_login_disabled": "Your guardian turned this access off. Ask them to turn it back on.",
+    "auth_account_frozen": "This account was removed because it had no linked guardian.",
+    "auth_supervised_access_revoked": "Your guardian turned off or changed your access.",
+    "principal_scope_denied": "This action is not available for your account.",
+    "user_birthday_change_requires_guardian": "Only your guardian can correct your birthday.",
+    "supervised_login_not_eligible": "This profile cannot have its own login yet.",
+    "supervised_login_age_out_of_range": "Own login is only for minors from the minimum age up to before the age of majority.",
+    "supervised_login_already_enabled": "This profile already has its own login.",
+    "supervised_login_not_found": "This profile has no own login.",
+    "supervised_login_email_unavailable": "That email is not available. Try another one.",
+    "supervised_login_password_invalid": "The password does not meet the security requirements.",
+    "guardianship_consent_not_verified": "Consent is not verified yet. A director has to confirm it first.",
+    "family_feature_disabled": "This feature is not available right now.",
+    "device_pairing_token_invalid": "This code is not valid or has expired. Ask your guardian to generate a new one.",
+    "device_pairing_not_eligible": "This profile cannot be linked to a phone right now. Check that consent is verified, that it has no login of its own and that the child is under 13.",
+    "device_limit_reached": "This child already has the maximum number of linked phones. Unlink one to add another.",
+    "linked_device_limit_reached": "This child already has the maximum number of linked phones. Unlink one to add another.",
+    "linked_device_age_out_of_range": "Only phones of children under 13 can be linked. Older children can have their own login.",
+    "device_not_found": "We could not find that linked phone.",
+    "linked_device_not_found": "We could not find that linked phone.",
+    "auth_device_revoked": "Your guardian unlinked this phone.",
+    "auth_device_session_expired": "This phone link has expired. Ask your guardian to link it again.",
+    "mr_approve_permission_required": "You are not allowed to approve requests. You can only verify the consent."
   },
   "honors": {
     "errors": {
@@ -975,6 +1071,9 @@
     }
   },
   "post_registration": {
+    "acting": {
+      "name_fallback": "this minor"
+    },
     "club_selection": {
       "errors": {
         "fetch_countries": "Error fetching countries",
@@ -986,7 +1085,9 @@
         "complete_step_3": "Error completing post-registration step 3"
       },
       "title": "Find your club",
+      "title_acting": "Choose {name}'s club",
       "subtitle": "Select your location and club to join the adventure",
+      "subtitle_acting": "Select the location and club so {name} can join the adventure",
       "location": "Location",
       "country": "Country",
       "select_country": "Select country",
@@ -1039,10 +1140,6 @@
         "update_emergency_contact": "Error updating emergency contact",
         "delete_emergency_contact": "Error deleting emergency contact",
         "fetch_relationship_types": "Error fetching relationship types",
-        "verify_legal_representative": "Error verifying legal representative",
-        "create_legal_representative": "Error creating legal representative",
-        "fetch_legal_representative": "Error fetching legal representative",
-        "update_legal_representative": "Error updating legal representative",
         "fetch_allergies_catalog": "Error fetching allergies catalog",
         "fetch_user_allergies": "Error fetching user allergies",
         "save_allergies": "Error saving allergies",
@@ -1058,7 +1155,9 @@
         "complete_step_2": "Error completing step 2"
       },
       "title": "Tell us about yourself",
+      "title_acting": "Tell us about {name}",
       "subtitle": "This information helps your club take better care of you",
+      "subtitle_acting": "This information helps the club take better care of {name}",
       "admin_restricted_notice": "Your current access only allows minimum administrative completion. Sensitive user data is not displayed.",
       "basic_data": {
         "section_title": "Basic information"
@@ -1071,10 +1170,12 @@
       "birth": {
         "label": "Date of birth",
         "date_picker_help": "Select your date of birth",
-        "select_date": "Select date"
+        "select_date": "Select date",
+        "read_only_hint": "Only your guardian can correct your birthday."
       },
       "baptism": {
         "toggle_label": "Are you baptized?",
+        "toggle_label_acting": "Is {name} baptized?",
         "label": "Baptism date",
         "date_picker_help": "Select your baptism date"
       },
@@ -1087,11 +1188,6 @@
         "hint": "Add at least one emergency contact",
         "empty": "No contacts registered",
         "required_hint": "Required: at least 1"
-      },
-      "legal_representative": {
-        "section_title": "Legal representative",
-        "minor_notice": "You are under 18 years old, you need to register a legal representative.",
-        "empty": "No representative registered"
       },
       "health": {
         "section_title": "Medical information",
@@ -1170,32 +1266,6 @@
       "save_button": "Save Contact",
       "update_button": "Update Contact",
       "info_note": "The emergency contact will be notified in case of any eventuality."
-    },
-    "legal_representative": {
-      "title": "Legal Representative",
-      "save_tooltip": "Save",
-      "save_success": "Legal representative saved successfully",
-      "error_saving": "Error: {error}",
-      "error_loading_types": "Error loading types: {error}",
-      "info_notice": "Minors under 18 years old require a legal representative.",
-      "type_label": "Representative type *",
-      "type_required": "Select a representative type",
-      "first_name_label": "First name(s) *",
-      "first_name_hint": "E.g.: John Carlos",
-      "first_name_required": "First name is required",
-      "first_name_min_length": "Name must be at least 2 characters",
-      "paternal_surname_label": "Paternal Surname *",
-      "paternal_surname_hint": "E.g.: Doe",
-      "paternal_surname_required": "Paternal surname is required",
-      "surname_min_length": "Surname must be at least 2 characters",
-      "maternal_surname_label": "Maternal Surname *",
-      "maternal_surname_hint": "E.g.: Smith",
-      "maternal_surname_required": "Maternal surname is required",
-      "phone_label": "Phone *",
-      "phone_hint": "E.g.: 5512345678",
-      "phone_required": "Phone is required",
-      "phone_invalid": "Enter a valid 10-digit phone number",
-      "save_button": "Save Legal Representative"
     },
     "health": {
       "diseases": {
@@ -1293,7 +1363,9 @@
     },
     "photo": {
       "title": "Put a face to your adventure!",
+      "title_acting": "Add a photo of {name}",
       "subtitle": "Upload a photo so your club can recognize you",
+      "subtitle_acting": "So {name} is recognized in their club",
       "add": "Add photo",
       "take": "Take photo",
       "gallery": "Gallery",
@@ -1322,6 +1394,14 @@
     },
     "dropdown": {
       "select_label": "Select {label}"
+    },
+    "guardian_only": {
+      "action": "I'm only a guardian of minors",
+      "hint": "Not joining a club? Finish your registration and manage your minors from My family.",
+      "confirm_title": "Finish your registration as a guardian?",
+      "confirm_body": "You won't pick a club for yourself. You can add and manage your minors from My family.",
+      "confirm_action": "Finish registration",
+      "error_generic": "We couldn't finish your registration. Please try again."
     }
   },
   "monthly_reports": {
@@ -1598,7 +1678,8 @@
       "reject_evidence": "Error rejecting evidence",
       "bulk_approve_evidence": "Error in bulk approval",
       "bulk_reject_evidence": "Error in bulk rejection",
-      "fetch_scope": "Error fetching coordination scope"
+      "fetch_scope": "Error fetching coordination scope",
+      "fetch_consent_pending": "Error fetching the forms to verify"
     },
     "hub": {
       "title": "Coordination",
@@ -1640,46 +1721,26 @@
         "forbidden": "Your role has no access to club reports."
       }
     },
-    "reports": {
-      "title": "Reports",
-      "error_title": "Could not load the reports",
-      "error_message": "Check your connection and try again.",
-      "empty_title": "No assigned clubs",
-      "empty_body": "Once you have assigned clubs, their report compliance shows up here.",
-      "period_empty_title": "No reports in this period",
-      "period_empty_body": "No club in your scope has reports expected for this period.",
-      "clubs_title": "By club",
-      "due_on": "Due date: {date}",
-      "progress": "{submitted} of {expected} submitted",
-      "no_pdf": "No PDF available yet",
-      "view_pdf": "View PDF",
-      "view_pdf_type": "View PDF · {type}",
-      "pdf_error": "Could not open the PDF. Try again.",
-      "list_error": "Could not load the report PDFs.",
-      "quarter_label": "Q{quarter} {year}",
-      "kind": {
-        "monthly": "Monthly",
-        "quarterly": "Quarterly",
-        "annual": "Annual"
-      },
-      "stat": {
-        "submitted": "Submitted",
-        "pending": "Pending",
-        "overdue": "Overdue"
-      },
-      "status": {
-        "submitted": "Submitted",
-        "pending": "Pending",
-        "overdue": "Overdue",
-        "not_due": "In progress"
-      },
-      "errors": {
-        "fetch_compliance": "Could not load report compliance",
-        "fetch_list": "Could not load the report list",
-        "pdf_empty": "The downloaded PDF is empty",
-        "forbidden": "You do not have permission to see these reports",
-        "not_found": "Report not found"
-      }
+    "nav": {
+      "consent_title": "Forms to verify",
+      "consent_subtitle": "Minors' consent forms in your sections"
+    },
+    "consent_review": {
+      "title": "Forms to verify",
+      "refresh_tooltip": "Refresh",
+      "empty_title": "No forms to verify",
+      "empty_subtitle": "None of your sections has forms waiting for verification.",
+      "load_more": "Load more",
+      "load_more_failed": "More forms couldn't be loaded.",
+      "forms_one": "{count} form to verify",
+      "forms_other": "{count} forms to verify",
+      "by_section": "By section",
+      "load_error": "The forms couldn't be loaded.",
+      "retry": "Retry",
+      "no_sections_title": "You have no assigned sections",
+      "no_sections_subtitle": "When you are assigned a section as coordinator, its forms to verify will appear here.",
+      "denied_title": "You can't verify forms",
+      "denied_subtitle": "Your account isn't allowed to verify consent forms as a coordinator."
     },
     "evidence_review": {
       "list": {
@@ -1786,6 +1847,47 @@
       "empty_search_body": "We found no clubs matching \"{query}\". Try a different name.",
       "error_title": "We couldn't load your clubs",
       "error_message": "Check your connection and try again."
+    },
+    "reports": {
+      "title": "Reports",
+      "error_title": "Could not load the reports",
+      "error_message": "Check your connection and try again.",
+      "empty_title": "No assigned clubs",
+      "empty_body": "Once you have assigned clubs, their report compliance shows up here.",
+      "period_empty_title": "No reports in this period",
+      "period_empty_body": "No club in your scope has reports expected for this period.",
+      "clubs_title": "By club",
+      "due_on": "Due date: {date}",
+      "progress": "{submitted} of {expected} submitted",
+      "no_pdf": "No PDF available yet",
+      "view_pdf": "View PDF",
+      "view_pdf_type": "View PDF · {type}",
+      "pdf_error": "Could not open the PDF. Try again.",
+      "list_error": "Could not load the report PDFs.",
+      "quarter_label": "Q{quarter} {year}",
+      "kind": {
+        "monthly": "Monthly",
+        "quarterly": "Quarterly",
+        "annual": "Annual"
+      },
+      "stat": {
+        "submitted": "Submitted",
+        "pending": "Pending",
+        "overdue": "Overdue"
+      },
+      "status": {
+        "submitted": "Submitted",
+        "pending": "Pending",
+        "overdue": "Overdue",
+        "not_due": "In progress"
+      },
+      "errors": {
+        "fetch_compliance": "Could not load report compliance",
+        "fetch_list": "Could not load the report list",
+        "pdf_empty": "The downloaded PDF is empty",
+        "forbidden": "You do not have permission to see these reports",
+        "not_found": "Report not found"
+      }
     }
   },
   "classes": {
@@ -2507,6 +2609,11 @@
       "no_requests_subtitle": "There are no pending join requests.",
       "no_requests_any_subtitle": "There are no join requests yet.",
       "no_requests_filtered_subtitle": "No requests match the current filters.",
+      "verify_empty_title": "No forms to verify",
+      "verify_empty_subtitle": "When a minor's signed form is ready to review, it will show up here.",
+      "verify_only_hint": "You can verify consent forms. Approving or rejecting requests is up to a director.",
+      "verify_scope_title": "No access to this section's forms",
+      "verify_scope_subtitle": "This section is outside your scope. The forms of the sections you coordinate are under “Forms to verify” in your coordination panel.",
       "request_profile_title": "Applicant Profile",
       "request_approved": "Request from {name} approved",
       "approve_error": "Error approving request",
@@ -2571,12 +2678,79 @@
         "CLASS_GM_INVESTITURE_REQUIRED": "Master Guide investiture is required",
         "CLASS_NOT_AVAILABLE_FOR_YEAR": "The class is not available this year",
         "CLASS_NOT_FOUND": "Class not found",
-        "MR_ALREADY_PENDING": "A membership request is already pending"
+        "MR_ALREADY_PENDING": "A membership request is already pending",
+        "MR_CONSENT_NOT_VERIFIED": "Minor without verified guardian consent"
       },
       "errors": {
         "fetch": "Could not load the not-enrolled list",
         "submit": "Could not complete enrollment"
       }
+    },
+    "consent": {
+      "badge_pending": "Minor · consent pending",
+      "badge_verified": "Minor · consent verified",
+      "verify_action": "Verify consent",
+      "title": "Verify consent",
+      "intro": "{name} is a minor. Review the form signed by their guardian and confirm to be able to approve the request.",
+      "guardians": "Guardians",
+      "guardian_primary": "Primary",
+      "evidence_title": "Signed form",
+      "evidence_none": "No form has been uploaded yet. Take a photo or upload the PDF of the signed form.",
+      "evidence_loading": "Loading form…",
+      "evidence_view": "View form",
+      "evidence_uploaded_by": "Uploaded by {name} · {date}",
+      "evidence_uploaded_on": "Uploaded on {date}",
+      "evidence_load_error": "The form could not be loaded.",
+      "evidence_uploaded_toast": "Form uploaded.",
+      "upload_first": "Upload the chosen file before confirming.",
+      "reviewed": "I verified the signed form",
+      "confirm": "Confirm and approve",
+      "approved": "Consent verified. {name}'s request approved.",
+      "verified_not_approved": "Consent was verified, but the request could not be approved: {reason}",
+      "retry_approve": "Retry approval",
+      "approve_blocked": "The guardian's consent still needs to be verified. Verification opened.",
+      "generic_error": "The consent could not be verified. Please try again.",
+      "another_person": "Another person must verify this consent: you registered the minor, uploaded the form or left them in the club’s custody.",
+      "verify_only_hint": "You can verify the form, but approving the request is up to a director.",
+      "verify_only_confirm": "Confirm verification",
+      "verify_only_upload_note": "The guardian or the club director uploads the form. Here you can only review and verify it.",
+      "no_longer_pending": "This form is no longer pending verification.",
+      "verified_toast": "Consent verified. A director still has to approve {name}'s request."
+    },
+    "create_minor": {
+      "entry": "Register a minor",
+      "title": "Register a minor",
+      "intro": "Register a minor who will attend your section with the guardian's signed authorization. The minor stays in the club's custody and the request waits for another person to verify it.",
+      "name": "First name(s)",
+      "paternal": "Paternal last name",
+      "maternal": "Maternal last name (optional)",
+      "birthday": "Date of birth",
+      "birthday_hint": "Select the date",
+      "birthday_required": "Select the date of birth",
+      "gender_label": "Gender (optional)",
+      "gender_male": "Male",
+      "gender_female": "Female",
+      "required": "Required field",
+      "sworn": "I declare under oath that the minor's guardian signed the authorization on paper.",
+      "legal_prefix": "On behalf of the minor, I accept the ",
+      "legal_unavailable": "The legal documents could not be loaded.",
+      "submit": "Register minor",
+      "created_toast": "{name} is registered. Another person still has to verify the signed form.",
+      "errors": {
+        "age_out_of_range": "That age is not valid to register a minor. The person must be under the age of majority in the club's country.",
+        "no_active_year": "There is no current ecclesiastical year. The minor was not registered."
+      }
+    },
+    "claim_code": {
+      "section_title": "Hand over to the family",
+      "hint": "Generate a single-use code valid for 7 days. The family redeems it in My family to take over the minor.",
+      "action": "Generate parent code",
+      "code_title": "Code for the family",
+      "expires": "Expires {when}",
+      "copy": "Copy code",
+      "copied": "Code copied",
+      "share": "Share",
+      "share_message": "I invite you to take over {name} on SACDIA. Code: {code}. Expires {when}. Enter it in My family > I have a link code."
     }
   },
   "certifications": {
@@ -3598,7 +3772,6 @@
       "diseases": "Diseases",
       "medicines": "Medicines",
       "emergency_contacts": "Emergency Contacts",
-      "legal_rep": "Legal Representative",
       "none_allergies": "No allergies on record",
       "none_diseases": "No diseases on record",
       "none_medicines": "No medicines on record",
@@ -3834,11 +4007,18 @@
       "get_summary": "Error fetching dashboard summary"
     },
     "load_null_error": "Could not load the dashboard",
+    "guardian_no_club": {
+      "title": "Your account is ready",
+      "subtitle": "You are set up as a guardian without a club of your own. From My family you can view and manage your dependents and act on their behalf.",
+      "family_action": "Go to My family"
+    },
     "load_error": "Error loading the dashboard",
     "pending_state": {
       "title": "Request sent",
       "body": "Your request to join the club has been sent. The club director will review it soon. In the meantime, you can record your personal formation from your profile.",
-      "profile_action": "Go to my profile"
+      "body_acting": "{name}'s request to join the club has been sent. The director will review it together with the signed consent form. If you haven't handed it in yet, take it to the club or upload it from My family.",
+      "profile_action": "Go to my profile",
+      "family_action_acting": "Go to My family"
     },
     "notifications_tooltip": "Notifications",
     "club_info": {
@@ -4041,6 +4221,31 @@
     "theme": {
       "dark_mode": "Dark mode",
       "light_mode": "Light mode"
+    },
+    "consent": {
+      "source_title": "Add signed form",
+      "source_camera": "Take photo",
+      "source_camera_hint": "Photograph the paper form in good light",
+      "source_gallery": "Choose from gallery",
+      "source_gallery_hint": "Use an image you already have",
+      "source_pdf": "Choose a PDF",
+      "source_pdf_hint": "Scanned form as a PDF",
+      "upload": "Upload signed form",
+      "replace": "Replace form",
+      "change": "Change",
+      "upload_action": "Upload",
+      "retry": "Retry",
+      "problems": {
+        "unsupported_type": "Only JPG, PNG, WebP or PDF files are accepted.",
+        "heic": "This image format (HEIC) is not supported. Take the photo again or choose a JPG.",
+        "too_large": "The file is over 10 MB. Choose a smaller one.",
+        "empty": "The file is empty."
+      },
+      "errors": {
+        "generic": "The action could not be completed. Please try again.",
+        "rate_limited": "Too many attempts. Wait a moment and try again.",
+        "pick_failed": "The file could not be opened. Check permissions and try again."
+      }
     }
   },
   "roles": {
@@ -5206,5 +5411,389 @@
     "semantics_user": "Instructor: {name}, person from your Local Field",
     "semantics_external": "Instructor: {name}, typed name, not verified",
     "none_registered": "No instructor on record"
+  },
+  "family": {
+    "title": "My family",
+    "add_cta": "Add a minor",
+    "have_code": "I have a link code",
+    "limit_reached": "You've reached the limit of {max} minors.",
+    "empty": {
+      "title": "You haven't added any minors yet",
+      "body": "Register a child under 13 so they can join a club under your care."
+    },
+    "frozen": "Frozen",
+    "frozen_hint": "No guardian or club. It will be deleted after 90 days.",
+    "card": {
+      "age": "{age} years old",
+      "view_as": "View as {name}"
+    },
+    "consent": {
+      "pending": "Consent pending",
+      "verified": "Consent verified"
+    },
+    "club": {
+      "none": "No club",
+      "active": "Member of {club}",
+      "pending": "Request pending at {club}",
+      "rejected": "Request rejected",
+      "expired": "Request expired",
+      "cancelled": "Request cancelled"
+    },
+    "profile": {
+      "entry_title": "My family",
+      "entry_subtitle": "Register and manage the minors in your care",
+      "entry_count": "{count} minors in your care",
+      "switch_title": "Switch profile",
+      "switch_subtitle": "View and complete a minor's profile"
+    },
+    "errors": {
+      "generic": "Something went wrong. Please try again."
+    },
+    "add": {
+      "title": "Add a minor",
+      "intro": "Register the minor in your care. You'll then complete their profile for them.",
+      "name": "First name(s)",
+      "paternal": "Paternal last name",
+      "maternal": "Maternal last name (optional)",
+      "birthday": "Date of birth",
+      "birthday_hint": "Select the date",
+      "birthday_required": "Select the date of birth",
+      "relationship": "Your relationship to the minor",
+      "relationship_hint": "I am their…",
+      "relationship_required": "Select the relationship",
+      "relationship_error": "Relationships could not be loaded. Please try again.",
+      "required": "Required field",
+      "sworn": "I declare under oath that I am the legal guardian of this minor.",
+      "legal_prefix": "On behalf of the minor, I accept the ",
+      "legal_unavailable": "The legal documents could not be loaded.",
+      "submit": "Register and continue",
+      "complete_profile": "Complete my profile"
+    },
+    "detail": {
+      "title": "Minor details",
+      "guardians": "Guardians",
+      "you": "You",
+      "primary": "Primary",
+      "custodian": "Club custody",
+      "consent_pending": "There is no verified signed form yet. The club director will verify it.",
+      "consent_form_uploaded": "Signed form uploaded. Waiting for the director's verification.",
+      "consent_verified": "The director verified the consent.",
+      "invite": "Invite another guardian",
+      "invite_hint": "Generates a single-use code valid for 72 hours.",
+      "code_title": "Link code",
+      "code_expires": "Expires {when}",
+      "copy": "Copy code",
+      "copied": "Code copied",
+      "share": "Share",
+      "share_message": "I invite you to be a guardian of {name} on SACDIA. Code: {code}. Expires {when}. Enter it in My family > I have a link code.",
+      "leave": "Stop being a guardian",
+      "leave_title": "Stop being a guardian of {name}?",
+      "leave_confirm": "Stop being a guardian",
+      "remove": "Remove {name}",
+      "remove_title": "Remove {name} as a guardian?",
+      "remove_body": "This person will no longer be able to see or manage the minor.",
+      "remove_confirm": "Remove",
+      "removed": "Guardian removed",
+      "form_title": "Consent form",
+      "form_hint": "Print and sign the club form, then upload it here as a photo or PDF. The club director will verify it.",
+      "form_view": "View uploaded form",
+      "form_uploaded_toast": "Form uploaded. Waiting for the director's verification."
+    },
+    "outcome": {
+      "other_guardian": "Another guardian will remain in charge of {name}.",
+      "club_custody": "The club will take charge of {name} in the meantime.",
+      "frozen": "{name} will be frozen and their information deleted in 90 days.",
+      "pending_guardian": "{name} will be left without a verified guardian: their access will be limited and they will have 90 days to link another guardian."
+    },
+    "link": {
+      "title": "Link code",
+      "intro": "Enter the code shared with you by the other guardian or the club director.",
+      "code_label": "Code",
+      "code_hint": "XXXX-XXXX",
+      "code_required": "Enter the code",
+      "sworn": "I declare under oath that I am the legal guardian of this minor.",
+      "submit": "Link",
+      "success": "You are now a guardian of {name}."
+    },
+    "switcher": {
+      "title": "Switch profile",
+      "you": "You",
+      "empty": "You don't have any minors to switch to.",
+      "load_error": "Your minors could not be loaded."
+    },
+    "switch": {
+      "offline": "You're offline. You're back on your profile.",
+      "failed": "Could not switch profile. Please try again."
+    },
+    "banner": {
+      "viewing_as": "Viewing as {name}",
+      "back": "Back to my profile"
+    },
+    "prompt": {
+      "title": "Do you have minors in your care?",
+      "body": "You can register them so they can join a club. You always manage them yourself from My family.",
+      "add": "Add a minor",
+      "later": "Not now"
+    },
+    "push": {
+      "dialog_title": "Notification from {name}",
+      "dialog_body": "This notification is from {name}. Switch to their profile?",
+      "dialog_confirm": "Switch",
+      "dialog_cancel": "Not now",
+      "unavailable": "That profile is no longer available to you."
+    },
+    "teen": {
+      "wizard": {
+        "title": "Own login for {name}",
+        "step_of": "Step {current} of {total}",
+        "method_title": "How will {name} sign in?",
+        "method_handle": "With a username",
+        "method_handle_hint": "We create a username for {name}. No email address needed.",
+        "method_email": "With their email",
+        "method_email_hint": "{name} signs in with their own email address.",
+        "credentials_title": "Sign-in details",
+        "email_hint": "{name}'s email address",
+        "password_label": "Password",
+        "confirm_label": "Confirm password",
+        "password_policy": "At least 8 characters, with an uppercase letter, a lowercase letter and a number.",
+        "password_note": "You choose the password and give it to {name}. You can change it whenever you want.",
+        "confirm_title": "Before turning it on",
+        "warn_acting": "You will no longer be able to act for {name}: they will use their own access.",
+        "warn_devices": "If {name} has linked phones, they will be unlinked.",
+        "warn_control": "You can turn their access off or change their password whenever you want while they are a minor.",
+        "warn_privacy": "You will see a summary of their progress and attendance, never their health information.",
+        "activate": "Turn on access",
+        "result_title": "Access turned on",
+        "result_handle_label": "Username",
+        "result_email_label": "Email",
+        "result_hint": "Give {name} their username and the password you chose. Keep them somewhere safe: the password is not shown again.",
+        "result_devices": "Phones unlinked: {count}",
+        "copy": "Copy username",
+        "copied": "Username copied",
+        "done": "Done",
+        "not_eligible": "{name} cannot have their own login yet."
+      }
+    },
+    "access": {
+      "title": "Access",
+      "pending_guardian": "You will be able to manage {name}'s access and see their summary once a director verifies your consent. Until then you can only upload the signed form.",
+      "active": "Own login on",
+      "disabled": "Access turned off",
+      "method_handle": "With username",
+      "method_email": "With email",
+      "handle_label": "Username",
+      "copy": "Copy",
+      "copied": "Username copied",
+      "enable": "Give them their own login",
+      "enable_hint": "{name} will be able to sign in with their own username or email. You will stop acting for {name}.",
+      "not_yet": "{name} will be able to have their own login from the minimum age.",
+      "summary": "View summary",
+      "disable": "Turn off access",
+      "disable_title": "Turn off {name}'s access?",
+      "disable_body": "{name} will not be able to sign in and their session will end immediately. You can turn the access back on whenever you want while they are a minor.",
+      "disable_confirm": "Turn off",
+      "disabled_toast": "Access turned off",
+      "reactivate": "Turn access back on",
+      "reactivate_title": "Turn {name}'s access back on",
+      "reactivate_body_handle": "Choose a new password: the previous one will stop working.",
+      "reactivate_body_email": "{name} will be able to sign in with their email again.",
+      "reactivate_confirm": "Turn on",
+      "reactivated_toast": "Access turned back on",
+      "reset_password": "Reset password",
+      "reset_title": "Reset {name}'s password",
+      "reset_body_handle": "Choose a new password. All their sessions will end and the other guardians will get a notice.",
+      "reset_body_email": "All their sessions will end and {name} will get an email to choose a new password. You will not see the password.",
+      "reset_confirm": "Reset",
+      "reset_toast": "Password reset. Sessions ended: {count}.",
+      "reset_toast_email": "Sessions ended: {count}. We sent the reset email to {name}.",
+      "new_password": "New password"
+    },
+    "summary": {
+      "title": "{name}'s summary",
+      "subtitle": "Progress and attendance",
+      "classes_title": "Classes",
+      "sections_progress": "{done} of {total} sections",
+      "no_classes": "No classes in progress yet.",
+      "honors_title": "Honors",
+      "honors_completed": "{count} completed",
+      "honors_in_progress": "{count} in progress",
+      "attendance_title": "Attendance",
+      "attendance_value": "{attended} of {total} activities",
+      "attendance_period": "From {from} to {to}",
+      "no_activities": "No activities in this period.",
+      "privacy_note": "This summary does not include health data or personal notes."
+    },
+    "devices": {
+      "title": "Linked phones",
+      "intro": "Link a phone so {name} can see their classes and activities and upload evidence without creating an account. You get a notice for each upload.",
+      "no_new": "No new phones can be linked for {name} anymore. The existing ones keep working until you unlink them.",
+      "empty": "No phones linked yet.",
+      "history": "Recently unlinked",
+      "paired_by": "Linked by {name}",
+      "last_seen": "Last active: {when}",
+      "never_seen": "No activity yet",
+      "revoked_on": "Unlinked on {date}",
+      "limit_hint": "There are already {max} linked phones, the maximum. Unlink one to add another.",
+      "pair": "Link a phone",
+      "revoke": "Unlink",
+      "revoke_title": "Unlink {label}?",
+      "revoke_body": "The phone will stop working right away and {name} will have to link it again with a new code. The other guardians will get a notice.",
+      "revoke_confirm": "Unlink",
+      "revoked_toast": "Phone unlinked",
+      "pair_title": "Link a phone",
+      "pair_instructions": "On the child's phone open SACDIA, tap \"Link a child's phone\" and scan this code.",
+      "qr_alt": "QR code to link a phone",
+      "expires_in": "Expires in {time}",
+      "expired": "The code expired",
+      "regenerate": "Generate another code",
+      "pair_warning": "Use it only on the child's phone and do not share it: it works once. You will get a notice when it links and you can unlink it any time.",
+      "paired_title": "Phone linked",
+      "paired_body": "Done: the phone can now use SACDIA. You will see it in the list of linked phones."
+    },
+    "age_nudge": {
+      "title": "{name} can now have their own access",
+      "body": "They reached the minimum age for their own access. You can turn it on whenever you want and you will keep supervising their account."
+    }
+  },
+  "restricted_account": {
+    "title": "Account unavailable",
+    "body": "Your account uses a feature this version of the app does not recognize yet. For your safety, access is limited. Update the app or sign in again later."
+  },
+  "teen": {
+    "pending": {
+      "title": "Your guardian is missing",
+      "subtitle": "Your account stays restricted until a guardian links to it and a director verifies their consent.",
+      "countdown": "You have {days} days left to link a guardian. Otherwise your account will be removed.",
+      "countdown_one": "You have 1 day left to link a guardian. Otherwise your account will be removed.",
+      "countdown_today": "Today is the last day to link a guardian. Otherwise your account will be removed.",
+      "code_title": "Code for your guardian",
+      "code_hint": "Generate a code and share it with your mom, dad or guardian. They have to redeem it in the app, under My family. It lasts 72 hours and is shown only once.",
+      "code_generate": "Generate code",
+      "code_regenerate": "Generate a new code",
+      "code_expires": "Expires {when}",
+      "code_open_existing": "You already generated a code that expires {when}. If you lost it, generate a new one: the previous one will stop working.",
+      "code_copy": "Copy",
+      "code_copied": "Code copied",
+      "code_share": "Share",
+      "share_message": "My SACDIA code to link you as my guardian: {code}. Redeem it in the app, under My family. It expires {when}.",
+      "guardians_title": "Your guardian",
+      "no_guardian": "No guardian is linked yet.",
+      "guardian_pending": "Pending verification",
+      "guardian_verified": "Verified",
+      "guardian_pending_hint": "A club director has to verify your guardian's signed consent form. Until then your account stays restricted.",
+      "guardian_remove": "Remove",
+      "remove_title": "Remove {name}?",
+      "remove_body": "They will no longer be linked to your account and the 90 days to link a guardian start over. You can generate a new code.",
+      "remove_confirm": "Remove",
+      "removed": "Link removed",
+      "actions_title": "In the meantime",
+      "actions_hint": "You can complete your profile and change your password.",
+      "edit_profile": "Complete my profile",
+      "change_password": "Change my password"
+    },
+    "info": {
+      "title": "Your guardian and your information",
+      "body": "Your guardian can see your progress and attendance. They cannot see your health information.",
+      "understood": "Got it"
+    },
+    "errors": {
+      "generic": "We could not complete the action. Try again.",
+      "too_many_codes": "You generated too many codes. Try again later.",
+      "already_linked": "You already have a linked guardian.",
+      "link_not_found": "That link no longer exists or a director already verified it."
+    }
+  },
+  "device": {
+    "tabs": {
+      "home": "Home",
+      "classes": "Classes",
+      "agenda": "Agenda",
+      "notices": "Notices"
+    },
+    "offline": "No connection. You see what was saved last and cannot upload or send anything.",
+    "pair": {
+      "entry": "Link a child's phone to this device",
+      "title": "Link this phone",
+      "subtitle": "Scan the QR code your guardian shows on their phone.",
+      "confirm_body": "Code read. Check the name of this phone and link it.",
+      "scan": "Scan QR code",
+      "rescan": "Scan another code",
+      "scanner_title": "Scan code",
+      "scanner_hint": "Point at the QR code on your guardian's phone.",
+      "label_title": "Name of this phone",
+      "label_hint": "E.g. Ana's tablet",
+      "label_help": "Your guardian will see this name in their list of linked phones.",
+      "fallback_label": "Linked phone",
+      "link": "Link phone",
+      "linking": "Linking...",
+      "back_to_login": "Back to sign in",
+      "refused": {
+        "title": "Sign out first",
+        "body": "This phone is signed in. To link it as a child's phone, sign out first.",
+        "close": "Got it"
+      },
+      "notice": {
+        "unpaired": "Your guardian unlinked this phone. Ask them to link it again.",
+        "session_expired": "This phone link has expired. Ask your guardian to link it again."
+      },
+      "errors": {
+        "generic": "We could not link this phone. Please try again.",
+        "invalid_qr": "That QR code is not from SACDIA. Ask your guardian to generate a new one.",
+        "session_exists": "This phone is already signed in. Sign out before linking it.",
+        "session_load_failed": "The phone was linked but we could not load your profile. Ask your guardian for a new code and try again."
+      }
+    },
+    "home": {
+      "greeting": "Hi, {name}",
+      "greeting_anonymous": "Hi",
+      "subtitle": "Your club classes and activities",
+      "classes_title": "My progress",
+      "no_classes": "You have no classes yet. Your guardian or director will enroll you.",
+      "next_activity": "Next activity",
+      "no_activity": "No upcoming activities",
+      "credential_title": "My credential",
+      "credential_hint": "Show it when you are asked for it at an activity.",
+      "this_phone": "This phone: {label}",
+      "unlink": "Unlink this phone",
+      "unlink_title": "Unlink this phone?",
+      "unlink_body": "Everything of yours will be removed from this phone and your guardian will have to link it again to use it.",
+      "unlink_confirm": "Unlink",
+      "unlink_failed": "Could not unlink. Please try again."
+    },
+    "classes": {
+      "title": "My classes",
+      "empty_title": "No classes yet",
+      "empty_body": "When you are enrolled in a class it will show up here.",
+      "error": "We could not load your classes.",
+      "detail_error": "We could not load this class.",
+      "no_requirements": "This class has no requirements yet.",
+      "progress": "{percent}% complete"
+    },
+    "requirement": {
+      "title": "Evidence",
+      "not_found": "We could not find this requirement.",
+      "offline_readonly": "No connection: you can only view your evidence. Connect to upload or send.",
+      "errors": {
+        "action_failed": "We could not complete the action. Please try again."
+      }
+    },
+    "agenda": {
+      "title": "Agenda",
+      "empty": "There are no upcoming activities.",
+      "error": "We could not load the agenda.",
+      "no_club": "You are not in a club yet.",
+      "detail_title": "Activity",
+      "detail_error": "We could not load this activity."
+    },
+    "legal_block": {
+      "title": "Your guardian has a step to do",
+      "body": "Ask your guardian to review the new terms on their phone. Once they accept them you can keep using the app.",
+      "refresh": "They accepted"
+    },
+    "registration_pending": {
+      "title": "Your registration is not finished",
+      "body": "Ask your guardian to finish completing your profile on their phone.",
+      "refresh": "They finished it"
+    }
   }
 }

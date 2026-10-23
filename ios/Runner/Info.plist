@@ -30,6 +30,9 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>io.sacdia.app</string>
+				<!-- QR de vinculacion de un telefono de menor: sacdia://pair?t=<token> (`?c=` se sigue aceptando por compatibilidad).
+				     La app nunca registra la URL (FP3-51). -->
+				<string>sacdia</string>
 				<!-- REVERSED_CLIENT_ID del client ID iOS de Google Cloud. Debe
 				     coincidir con --dart-define=GOOGLE_IOS_CLIENT_ID (el client ID
 				     se entrega en runtime; este scheme recibe el callback). -->
@@ -66,7 +69,7 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>SACDIA necesita acceso a la camara para tomar una foto para la actividad.</string>
+	<string>SACDIA necesita acceso a la camara para tomar fotos de evidencias y actividades y para leer el codigo QR que vincula el telefono de un menor.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>SACDIA usa Face ID para proteger tu cuenta</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

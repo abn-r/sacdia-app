@@ -15,6 +15,7 @@ import '../providers/personal_info_providers.dart';
 import '../widgets/contact_card.dart';
 import 'add_edit_contact_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
 
 /// Vista para gestionar contactos de emergencia
 class EmergencyContactsView extends ConsumerWidget {
@@ -50,7 +51,7 @@ class EmergencyContactsView extends ConsumerWidget {
           SacSnackBar.show(
               context,
               'post_registration.emergency_contacts.error_deleting'
-                  .tr(namedArgs: {'error': e.toString()}),
+                  .tr(namedArgs: {'error': userErrorMessage(e)}),
               isError: true);
         }
       }
@@ -127,7 +128,7 @@ class EmergencyContactsView extends ConsumerWidget {
                   const SizedBox(height: 16),
                   Text(
                     'post_registration.emergency_contacts.error_loading'
-                        .tr(namedArgs: {'error': error.toString()}),
+                        .tr(namedArgs: {'error': userErrorMessage(error)}),
                   ),
                   const SizedBox(height: 16),
                   SacButton(

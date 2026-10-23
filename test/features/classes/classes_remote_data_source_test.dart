@@ -567,5 +567,49 @@ void main() {
         ),
       );
     });
+
+    test('keeps the business code of an upload refusal (never details)',
+        () async {
+      final dio = Dio();
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            handler.reject(
+              DioException(
+                requestOptions: options,
+                response: Response(
+                  requestOptions: options,
+                  statusCode: 403,
+                  data: {
+                    'statusCode': 403,
+                    'code': 'PRINCIPAL_SCOPE_DENIED',
+                    'message': 'Raw server text',
+                    'details': {'required_scope': 'evidence:upload'},
+                  },
+                ),
+                type: DioExceptionType.badResponse,
+              ),
+            );
+          },
+        ),
+      );
+      final dataSource = ClassesRemoteDataSourceImpl(
+        dio: dio,
+        baseUrl: 'https://api.test/api/v1',
+      );
+
+      await expectLater(
+        dataSource.deleteRequirementFile(
+          userId: 'kid-1',
+          classId: 3,
+          requirementId: 10,
+          fileId: 'f1',
+        ),
+        throwsA(
+          isA<ServerException>().having((e) => e.code, 'code', 403).having(
+              (e) => e.errorCode, 'errorCode', 'PRINCIPAL_SCOPE_DENIED'),
+        ),
+      );
+    });
   });
 }

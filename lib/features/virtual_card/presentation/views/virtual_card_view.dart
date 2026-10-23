@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,7 @@ import '../widgets/credencial/credential_parallax.dart';
 import '../widgets/virtual_card_skeleton.dart';
 import '../utils/credential_image_pdf.dart';
 import '../utils/credential_share_capture.dart';
+import '../utils/credential_share_files.dart';
 import '../utils/share_position_origin.dart';
 import '../../../master_honors/presentation/widgets/master_honor_history_section.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
@@ -57,6 +59,7 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
     final sharePositionOrigin = sharePositionOriginForContext(
       _shareButtonKey.currentContext ?? context,
     );
+    final sharedFiles = <File>[];
     try {
       final pngBytes = await captureCredentialBoundaryPng(
         boundaryKey: _cardBoundaryKey,
@@ -68,8 +71,11 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
       final pngFileName = 'credencial_$safeFolio.png';
       final pdfFileName = 'credencial_$safeFolio.pdf';
       final tempDir = await getTemporaryDirectory();
+      // Restos de un compartir anterior (p. ej. la app murió en la gracia).
+      await sweepCredentialShareFiles(tempDir);
       final pngFile = File('${tempDir.path}/$pngFileName');
       final pdfFile = File('${tempDir.path}/$pdfFileName');
+      sharedFiles.addAll([pngFile, pdfFile]);
       await pngFile.writeAsBytes(pngBytes, flush: true);
       await pdfFile.writeAsBytes(pdfBytes, flush: true);
 
@@ -88,6 +94,14 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
       SacSnackBar.showMessenger(messenger, 'virtual_card.share_error'.tr(),
           isError: true);
     } finally {
+      // La credencial lleva nombre, foto y QR: no se deja en el temporal
+      // (FP-49). Con periodo de gracia por las apps destino que leen tarde.
+      unawaited(
+        deleteCredentialShareFiles(
+          sharedFiles,
+          grace: kCredentialShareCleanupGrace,
+        ),
+      );
       if (mounted) setState(() => _sharingCredential = false);
     }
   }

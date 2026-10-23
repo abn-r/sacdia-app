@@ -11,15 +11,17 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
+import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/profile/presentation/widgets/blood_type_selector.dart';
 import '../providers/personal_info_providers.dart';
 import 'emergency_contacts_view.dart';
-import 'legal_representative_view.dart';
 import 'allergies_selection_view.dart';
 import 'diseases_selection_view.dart';
 import 'medicines_selection_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import '../utils/acting_copy.dart';
 
 /// Vista del paso 2: Información Personal - Estilo "Scout Vibrante"
 ///
@@ -78,9 +80,6 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
         ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
     final formState = ref.watch(personalInfoFormProvider);
     final contactsAsync = ref.watch(emergencyContactsProvider);
-    final legalRepAsync = ref.watch(legalRepresentativeProvider);
-    final requiresLegalRepAsync =
-        ref.watch(legalRepresentativeRequiredProvider);
     final selectedAllergies = ref.watch(selectedAllergiesProvider);
     final selectedDiseases = ref.watch(selectedDiseasesProvider);
     final selectedMedicines = ref.watch(selectedMedicinesProvider);
@@ -89,11 +88,6 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
       authUser,
       targetUserId: widget.targetUserId,
       family: SensitiveUserFamily.emergencyContacts,
-    );
-    final canReadLegalRepresentative = canReadSensitiveUserFamilyForUser(
-      authUser,
-      targetUserId: widget.targetUserId,
-      family: SensitiveUserFamily.legalRepresentative,
     );
     final canReadHealth = canReadSensitiveUserFamilyForUser(
       authUser,
@@ -123,6 +117,15 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
         : Theme.of(context).textTheme.displayMedium;
 
     final hPad = Responsive.horizontalPadding(context);
+    // Tutor actuando por un menor: el texto pasa a tercera persona.
+    final actingName = actingCopyName(ref);
+    // Un adolescente supervisado no puede cambiar su fecha de nacimiento: solo
+    // su tutor. Se muestra en solo lectura.
+    final birthdayLocked = ref.watch(
+      authNotifierProvider.select(
+        (v) => v.valueOrNull?.principal?.kind == PrincipalKind.supervisedUser,
+      ),
+    );
 
     return Form(
       key: _formKey,
@@ -133,12 +136,14 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
 
           // Title
           Text(
-            tr('post_registration.personal_info.title'),
+            postRegistrationCopy('post_registration.personal_info.title',
+                actingName: actingName),
             style: titleStyle,
           ),
           const SizedBox(height: 8),
           Text(
-            tr('post_registration.personal_info.subtitle'),
+            postRegistrationCopy('post_registration.personal_info.subtitle',
+                actingName: actingName),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: context.sac.textSecondary,
                 ),
@@ -228,8 +233,19 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
               label: tr('post_registration.personal_info.birth.label'),
               icon: HugeIcons.strokeRoundedBirthdayCake,
               date: formState.birthdate,
-              onTap: () => _selectBirthdate(context),
+              onTap: birthdayLocked ? null : () => _selectBirthdate(context),
+              locked: birthdayLocked,
             ),
+            if (birthdayLocked) ...[
+              const SizedBox(height: 6),
+              Text(
+                'post_registration.personal_info.birth.read_only_hint'.tr(),
+                key: const ValueKey('birthday_read_only_hint'),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: context.sac.textSecondary,
+                    ),
+              ),
+            ],
             const SizedBox(height: 16),
             SacCard(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -238,7 +254,9 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                 child: SwitchListTile(
                   enableFeedback: false,
                   title: Text(
-                    tr('post_registration.personal_info.baptism.toggle_label'),
+                    postRegistrationCopy(
+                        'post_registration.personal_info.baptism.toggle_label',
+                        actingName: actingName),
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
@@ -307,7 +325,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                   child: SacLoadingSmall(),
                 ),
               ),
-              error: (error, _) => _ErrorCard(message: 'Error: $error'),
+              error: (error, _) => _ErrorCard(message: userErrorMessage(error)),
               data: (contacts) => SacCard(
                 onTap: () => _navigateToEmergencyContacts(),
                 child: Row(
@@ -367,107 +385,6 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
             ),
             const SizedBox(height: 24),
           ],
-
-          if (canReadLegalRepresentative)
-            requiresLegalRepAsync.when(
-              loading: () => const SizedBox.shrink(),
-              error: (_, __) => const SizedBox.shrink(),
-              data: (required) {
-                if (!required) return const SizedBox.shrink();
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _SectionHeader(
-                      icon: HugeIcons.strokeRoundedUserGroup,
-                      title: tr(
-                          'post_registration.personal_info.legal_representative.section_title'),
-                      isCompleted:
-                          legalRepAsync.hasValue && legalRepAsync.value != null,
-                    ),
-                    const SizedBox(height: 8),
-                    SacCard(
-                      backgroundColor: AppColors.accentLight,
-                      borderColor: AppColors.accent.withValues(alpha: 0.3),
-                      padding: const EdgeInsets.all(12),
-                      child: Row(
-                        children: [
-                          HugeIcon(
-                              icon: HugeIcons.strokeRoundedInformationCircle,
-                              size: 18,
-                              color: AppColors.accentDark),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              tr('post_registration.personal_info.legal_representative.minor_notice'),
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: AppColors.accentDark,
-                                height: 1.3,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    legalRepAsync.when(
-                      loading: () => const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(16),
-                          child: SacLoadingSmall(),
-                        ),
-                      ),
-                      error: (error, _) => _ErrorCard(message: 'Error: $error'),
-                      data: (rep) => SacCard(
-                        onTap: () => _navigateToLegalRepresentative(),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: rep != null
-                                    ? SacAccent.of(context).light
-                                    : context.sac.surfaceVariant,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Center(
-                                child: HugeIcon(
-                                  icon: HugeIcons.strokeRoundedUserGroup,
-                                  size: 20,
-                                  color: rep != null
-                                      ? SacAccent.of(context).color
-                                      : context.sac.textTertiary,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                rep != null
-                                    ? rep.fullName
-                                    : tr(
-                                        'post_registration.personal_info.legal_representative.empty'),
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                            HugeIcon(
-                              icon: HugeIcons.strokeRoundedArrowRight01,
-                              color: context.sac.textTertiary,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-                );
-              },
-            ),
 
           if (canReadHealth) ...[
             // === Section 3: Medical Info ===
@@ -713,14 +630,6 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
     );
   }
 
-  Future<void> _navigateToLegalRepresentative() async {
-    await Navigator.of(context).push(
-      SacSharedAxisRoute(
-        builder: (context) => const LegalRepresentativeView(),
-      ),
-    );
-  }
-
   Future<void> _navigateToAllergiesSelection() async {
     await Navigator.of(context).push(
       SacSharedAxisRoute(
@@ -870,13 +779,17 @@ class _DatePickerCard extends StatelessWidget {
   final String label;
   final dynamic icon;
   final DateTime? date;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+
+  /// Solo lectura: no se abre el selector y el candado sustituye al calendario.
+  final bool locked;
 
   const _DatePickerCard({
     required this.label,
     required this.icon,
     required this.date,
     required this.onTap,
+    this.locked = false,
   });
 
   @override
@@ -931,7 +844,9 @@ class _DatePickerCard extends StatelessWidget {
             ),
           ),
           HugeIcon(
-            icon: HugeIcons.strokeRoundedCalendar01,
+            icon: locked
+                ? HugeIcons.strokeRoundedSquareLock02
+                : HugeIcons.strokeRoundedCalendar01,
             size: 18,
             color: context.sac.textTertiary,
           ),

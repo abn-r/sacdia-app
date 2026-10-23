@@ -160,7 +160,15 @@
       "other": "il y a {} jours"
     },
     "accessibility_tile": "Accessibilité",
-    "open_document_failed": "Impossible d’ouvrir ce document."
+    "open_document_failed": "Impossible d’ouvrir ce document.",
+    "delete_account": {
+      "dependents": {
+        "title": "Vous avez des mineurs à votre charge",
+        "intro": "Si vous supprimez votre compte, voici ce qui arrivera à chaque mineur :",
+        "ack": "Je comprends ce qui arrivera aux mineurs à ma charge",
+        "continue": "Continuer"
+      }
+    }
   },
   "accessibility": {
     "title": "Accessibilité",
@@ -229,6 +237,7 @@
     "errors": {
       "sign_in_failed": "Erreur de connexion",
       "sign_up_failed": "Erreur d'inscription",
+      "session_load_failed": "Vous êtes connecté, mais nous n'avons pas pu charger votre compte. Réessayez.",
       "change_password_failed": "Erreur lors du changement de mot de passe",
       "delete_account_failed": "Erreur lors de la suppression du compte",
       "sign_out_failed": "Erreur lors de la déconnexion",
@@ -244,6 +253,30 @@
       "retry": "Réessayer",
       "open_failed": "Impossible d'ouvrir le document. Veuillez réessayer.",
       "consent_semantics": "Accepter les Conditions générales et l'Avis de confidentialité"
+    },
+    "register": {
+      "birthday_label": "Date de naissance",
+      "birthday_hint": "Sélectionnez votre date de naissance",
+      "birthday_required": "Sélectionnez votre date de naissance",
+      "age_gate": {
+        "title": "Vous ne pouvez pas encore créer de compte",
+        "message": "Demandez à votre tuteur de vous inscrire depuis Ma famille.",
+        "hint": "Un adulte peut vous ajouter depuis la section Ma famille de son profil.",
+        "fix": "Corriger la date de naissance",
+        "back": "Retour"
+      },
+      "minor_notice": "Si vous avez moins de 18 ans, votre compte fonctionne en mode supervisé : vous devrez lier un tuteur et un directeur vérifiera son consentement."
+    },
+    "login": {
+      "identifier": {
+        "label": "E-mail ou nom d'utilisateur",
+        "hint": "Votre e-mail ou votre nom d'utilisateur",
+        "required": "Saisissez votre e-mail ou votre nom d'utilisateur",
+        "too_long": "C'est trop long"
+      },
+      "notice": {
+        "supervised_access_revoked": "Votre tuteur a désactivé ou modifié votre accès. Reconnectez-vous avec vos informations mises à jour."
+      }
     }
   },
   "legal_gate": {
@@ -418,7 +451,70 @@
     "social_signin_unverified": "Nous n'avons pas pu vérifier votre compte {provider}.",
     "social_signin_already_linked": "Votre compte est déjà lié à un autre compte {provider}. Connectez-vous avec votre e-mail et votre mot de passe.",
     "social_signin_provider_unavailable": "{provider} n'est pas disponible pour le moment. Réessayez dans quelques minutes.",
-    "delete_account_social_reauth_failed": "Impossible de confirmer votre identité avec {provider}. Réessayez."
+    "delete_account_social_reauth_failed": "Impossible de confirmer votre identité avec {provider}. Réessayez.",
+    "acting_for_forbidden": "Vous n'avez plus accès à ce profil. Vous êtes revenu sur votre propre profil.",
+    "guardianship_not_found": "Nous n'avons pas trouvé ce mineur.",
+    "guardianship_dependent_age_out_of_range": "Vous ne pouvez inscrire que des enfants de moins de 13 ans depuis Ma famille. Les plus grands s'inscrivent avec leur propre compte.",
+    "guardianship_guardian_not_adult": "Vous devez être majeur pour être tuteur. Vérifiez votre date de naissance dans votre profil.",
+    "guardianship_guardian_birthday_required": "Renseignez votre date de naissance dans votre profil pour inscrire un mineur.",
+    "guardianship_dependent_limit_reached": "Vous avez atteint le nombre maximum de mineurs sous votre responsabilité.",
+    "guardianship_guardian_limit_reached": "Ce mineur a déjà le nombre maximum de tuteurs.",
+    "guardianship_link_code_invalid": "Le code n'est pas valide ou n'est plus disponible.",
+    "guardianship_link_code_locked": "Trop de tentatives. Réessayez plus tard.",
+    "guardianship_link_code_self_redeem": "Vous ne pouvez pas utiliser un code que vous avez généré.",
+    "guardianship_already_guardian": "Vous êtes déjà tuteur de ce mineur.",
+    "guardianship_revoke_forbidden": "Vous n'avez pas la permission de retirer ce tuteur.",
+    "guardianship_relationship_type_invalid": "Le lien de parenté sélectionné n'est pas valide.",
+    "guardianship_relationship_type_not_allowed": "Ce lien de parenté n'est pas autorisé pour un tuteur. Choisissez l'une des options de la liste.",
+    "acting_for_header_invalid": "Le profil n'a pas pu être identifié. Revenez à votre profil et réessayez.",
+    "acting_for_scope_denied": "Cette action n'est pas disponible pendant que vous gérez le profil d'un mineur.",
+    "auth_delete_dependents_ack_required": "Confirmez que vous comprenez ce qu'il adviendra des mineurs sous votre responsabilité avant de supprimer votre compte.",
+    "auth_registration_age_below_minimum": "Demandez à votre tuteur de vous inscrire depuis Ma famille.",
+    "user_self_account_below_minimum_age": "Cette date de naissance ne permet pas d'avoir un compte personnel. Demandez à votre tuteur de vous gérer depuis Ma famille.",
+    "post_reg_guardian_only_requires_adult": "Seul un adulte peut s'inscrire uniquement comme tuteur.",
+    "mr_consent_not_verified": "Le consentement du tuteur n'est pas encore vérifié. Vérifiez la fiche signée avant d'approuver.",
+    "legal_version_mismatch": "Les conditions ont changé. Lisez-les et acceptez-les à nouveau.",
+    "guardianship_evidence_not_found": "La fiche de consentement signée n'a pas encore été téléversée.",
+    "guardianship_evidence_required": "Téléversez la fiche de consentement signée avant de vérifier.",
+    "guardianship_evidence_unavailable": "Les fiches de consentement ne sont pas encore disponibles. Réessayez plus tard.",
+    "guardianship_custodian_self_verify": "Ce mineur est sous la garde du club. Une autre personne autorisée du club doit le vérifier, pas celle qui a téléversé la fiche ni celle qui a reçu la garde.",
+    "mr_consent_confirmation_required": "Confirmez que vous avez examiné la fiche signée avant de vérifier.",
+    "mr_not_found": "La demande n'existe plus ou n'appartient pas à cette section.",
+    "mr_already_pending": "Cette demande a déjà été traitée.",
+    "guard_permission_denied": "Vous n'avez pas la permission d'effectuer cette action.",
+    "file_required": "Sélectionnez un fichier.",
+    "file_type_invalid": "Type de fichier non autorisé. Utilisez JPG, PNG, WebP ou PDF.",
+    "file_too_large": "Le fichier dépasse la limite de 10 Mo.",
+    "guardianship_consent_already_verified": "La fiche a déjà été vérifiée.",
+    "guardianship_guardian_self_verify": "Vous ne pouvez pas vérifier le consentement d'un mineur dont vous êtes le tuteur. Une autre personne autorisée du club doit le faire.",
+    "post_reg_duplicate_membership": "Il existe déjà une adhésion ou une demande active dans un autre club. Vérifiez-la avant d'en envoyer une nouvelle.",
+    "auth_invalid_credentials": "E-mail, nom d'utilisateur ou mot de passe incorrect.",
+    "auth_login_locked": "Trop de tentatives. Réessayez plus tard.",
+    "auth_login_locked_wait": "Trop de tentatives. Réessayez dans {minutes} min.",
+    "auth_login_throttled": "Trop de tentatives. Patientez un instant puis réessayez.",
+    "auth_supervised_login_disabled": "Votre tuteur a désactivé cet accès. Demandez-lui de le réactiver.",
+    "auth_account_frozen": "Ce compte a été supprimé car aucun tuteur n'y était lié.",
+    "auth_supervised_access_revoked": "Votre tuteur a désactivé ou modifié votre accès.",
+    "principal_scope_denied": "Cette action n'est pas disponible pour votre compte.",
+    "user_birthday_change_requires_guardian": "Seul votre tuteur peut corriger votre date de naissance.",
+    "supervised_login_not_eligible": "Ce profil ne peut pas encore avoir son propre accès.",
+    "supervised_login_age_out_of_range": "L'accès personnel est réservé aux mineurs, à partir de l'âge minimum et jusqu'à la majorité.",
+    "supervised_login_already_enabled": "Ce profil a déjà son propre accès.",
+    "supervised_login_not_found": "Ce profil n'a pas d'accès personnel.",
+    "supervised_login_email_unavailable": "Cet e-mail n'est pas disponible. Essayez-en un autre.",
+    "supervised_login_password_invalid": "Le mot de passe ne respecte pas les exigences de sécurité.",
+    "guardianship_consent_not_verified": "Le consentement n'est pas encore vérifié. Un directeur doit d'abord le confirmer.",
+    "family_feature_disabled": "Cette fonctionnalité n'est pas disponible pour le moment.",
+    "device_pairing_token_invalid": "Ce code n'est pas valide ou a expiré. Demande à ton tuteur d'en générer un nouveau.",
+    "device_pairing_not_eligible": "Ce profil ne peut pas être associé à un téléphone pour le moment. Vérifie que le consentement est validé, qu'il n'a pas d'accès propre et que l'enfant a moins de 13 ans.",
+    "device_limit_reached": "Cet enfant a déjà le nombre maximal de téléphones associés. Dissocie-en un pour en ajouter un autre.",
+    "linked_device_limit_reached": "Cet enfant a déjà le nombre maximal de téléphones associés. Dissocie-en un pour en ajouter un autre.",
+    "linked_device_age_out_of_range": "Seuls les téléphones d'enfants de moins de 13 ans peuvent être associés. Les plus grands peuvent avoir leur propre accès.",
+    "device_not_found": "Nous n'avons pas trouvé ce téléphone associé.",
+    "linked_device_not_found": "Nous n'avons pas trouvé ce téléphone associé.",
+    "auth_device_revoked": "Ton tuteur a dissocié ce téléphone.",
+    "auth_device_session_expired": "L'association de ce téléphone a expiré. Demande à ton tuteur de l'associer à nouveau.",
+    "mr_approve_permission_required": "Vous n'avez pas l'autorisation d'approuver les demandes. Vous pouvez seulement vérifier le consentement."
   },
   "honors": {
     "errors": {
@@ -975,6 +1071,9 @@
     }
   },
   "post_registration": {
+    "acting": {
+      "name_fallback": "ce mineur"
+    },
     "club_selection": {
       "errors": {
         "fetch_countries": "Erreur lors de la récupération des pays",
@@ -986,7 +1085,9 @@
         "complete_step_3": "Erreur lors de la finalisation de l'étape 3 du post-inscription"
       },
       "title": "Trouvez votre club",
+      "title_acting": "Choisissez le club de {name}",
       "subtitle": "Sélectionnez votre emplacement et votre club pour rejoindre l'aventure",
+      "subtitle_acting": "Sélectionnez l'emplacement et le club pour que {name} rejoigne l'aventure",
       "location": "Emplacement",
       "country": "Pays",
       "select_country": "Sélectionner un pays",
@@ -1039,10 +1140,6 @@
         "update_emergency_contact": "Erreur lors de la mise à jour du contact d'urgence",
         "delete_emergency_contact": "Erreur lors de la suppression du contact d'urgence",
         "fetch_relationship_types": "Erreur lors de la récupération des types de relation",
-        "verify_legal_representative": "Erreur lors de la vérification du représentant légal",
-        "create_legal_representative": "Erreur lors de la création du représentant légal",
-        "fetch_legal_representative": "Erreur lors de la récupération du représentant légal",
-        "update_legal_representative": "Erreur lors de la mise à jour du représentant légal",
         "fetch_allergies_catalog": "Erreur lors de la récupération du catalogue des allergies",
         "fetch_user_allergies": "Erreur lors de la récupération des allergies de l'utilisateur",
         "save_allergies": "Erreur lors de l'enregistrement des allergies",
@@ -1058,7 +1155,9 @@
         "complete_step_2": "Erreur lors de la finalisation de l'étape 2"
       },
       "title": "Parlez-nous de vous",
+      "title_acting": "Parlez-nous de {name}",
       "subtitle": "Ces informations aident votre club à mieux prendre soin de vous",
+      "subtitle_acting": "Ces informations aident le club à mieux prendre soin de {name}",
       "admin_restricted_notice": "Votre accès actuel ne permet que la complétion administrative minimale. Les données sensibles de l’utilisateur ne sont pas affichées.",
       "basic_data": {
         "section_title": "Informations de base"
@@ -1071,10 +1170,12 @@
       "birth": {
         "label": "Date de naissance",
         "date_picker_help": "Sélectionnez votre date de naissance",
-        "select_date": "Sélectionner une date"
+        "select_date": "Sélectionner une date",
+        "read_only_hint": "Seul votre tuteur peut corriger votre date de naissance."
       },
       "baptism": {
         "toggle_label": "Êtes-vous baptisé ?",
+        "toggle_label_acting": "{name} est baptisé(e) ?",
         "label": "Date de baptême",
         "date_picker_help": "Sélectionnez votre date de baptême"
       },
@@ -1087,11 +1188,6 @@
         "hint": "Enregistrez au moins un contact d’urgence",
         "empty": "Aucun contact enregistré",
         "required_hint": "Requis : au moins 1"
-      },
-      "legal_representative": {
-        "section_title": "Représentant légal",
-        "minor_notice": "Vous avez moins de 18 ans, vous devez enregistrer un représentant légal.",
-        "empty": "Aucun représentant enregistré"
       },
       "health": {
         "section_title": "Informations médicales",
@@ -1170,32 +1266,6 @@
       "save_button": "Enregistrer le contact",
       "update_button": "Mettre à jour le contact",
       "info_note": "Le contact d’urgence sera notifié en cas d’éventualité."
-    },
-    "legal_representative": {
-      "title": "Représentant légal",
-      "save_tooltip": "Enregistrer",
-      "save_success": "Représentant légal enregistré avec succès",
-      "error_saving": "Erreur : {error}",
-      "error_loading_types": "Erreur lors du chargement des types : {error}",
-      "info_notice": "Les mineurs de moins de 18 ans nécessitent un représentant légal.",
-      "type_label": "Type de représentant *",
-      "type_required": "Sélectionnez un type de représentant",
-      "first_name_label": "Prénom(s) *",
-      "first_name_hint": "Ex. : Jean-Charles",
-      "first_name_required": "Le prénom est obligatoire",
-      "first_name_min_length": "Le prénom doit comporter au moins 2 caractères",
-      "paternal_surname_label": "Nom de famille paternel *",
-      "paternal_surname_hint": "Ex. : Dupont",
-      "paternal_surname_required": "Le nom paternel est obligatoire",
-      "surname_min_length": "Le nom de famille doit comporter au moins 2 caractères",
-      "maternal_surname_label": "Nom de famille maternel *",
-      "maternal_surname_hint": "Ex. : Martin",
-      "maternal_surname_required": "Le nom maternel est obligatoire",
-      "phone_label": "Téléphone *",
-      "phone_hint": "Ex. : 0612345678",
-      "phone_required": "Le téléphone est obligatoire",
-      "phone_invalid": "Entrez un numéro de téléphone valide à 10 chiffres",
-      "save_button": "Enregistrer le représentant légal"
     },
     "health": {
       "diseases": {
@@ -1293,7 +1363,9 @@
     },
     "photo": {
       "title": "Donnez un visage à votre aventure !",
+      "title_acting": "Ajoutez une photo de {name}",
       "subtitle": "Ajoutez une photo pour que votre club vous reconnaisse",
+      "subtitle_acting": "Pour que son club reconnaisse {name}",
       "add": "Ajouter une photo",
       "take": "Prendre une photo",
       "gallery": "Galerie",
@@ -1322,6 +1394,14 @@
     },
     "dropdown": {
       "select_label": "Sélectionner {label}"
+    },
+    "guardian_only": {
+      "action": "Je suis seulement tuteur de mineurs",
+      "hint": "Vous ne rejoignez pas de club ? Terminez votre inscription et gérez vos mineurs depuis Ma famille.",
+      "confirm_title": "Terminer votre inscription en tant que tuteur ?",
+      "confirm_body": "Vous ne choisirez pas de club pour vous-même. Vous pourrez ajouter et gérer vos mineurs depuis Ma famille.",
+      "confirm_action": "Terminer l'inscription",
+      "error_generic": "Nous n'avons pas pu terminer votre inscription. Veuillez réessayer."
     }
   },
   "monthly_reports": {
@@ -1598,7 +1678,8 @@
       "reject_evidence": "Erreur lors du rejet de la preuve",
       "bulk_approve_evidence": "Erreur lors de l'approbation en lot",
       "bulk_reject_evidence": "Erreur lors du rejet en lot",
-      "fetch_scope": "Erreur lors de la récupération du périmètre de coordination"
+      "fetch_scope": "Erreur lors de la récupération du périmètre de coordination",
+      "fetch_consent_pending": "Erreur lors de la récupération des fiches à vérifier"
     },
     "hub": {
       "title": "Coordination",
@@ -1640,46 +1721,26 @@
         "forbidden": "Votre rôle n'a pas accès aux rapports des clubs."
       }
     },
-    "reports": {
-      "title": "Rapports",
-      "error_title": "Impossible de charger les rapports",
-      "error_message": "Vérifiez votre connexion et réessayez.",
-      "empty_title": "Aucun club assigné",
-      "empty_body": "Lorsque des clubs vous seront assignés, la conformité de leurs rapports apparaîtra ici.",
-      "period_empty_title": "Aucun rapport pour cette période",
-      "period_empty_body": "Aucun club de votre périmètre n'a de rapport attendu pour cette période.",
-      "clubs_title": "Par club",
-      "due_on": "Date limite : {date}",
-      "progress": "{submitted} sur {expected} envoyés",
-      "no_pdf": "Pas encore de PDF disponible",
-      "view_pdf": "Voir le PDF",
-      "view_pdf_type": "Voir le PDF · {type}",
-      "pdf_error": "Impossible d'ouvrir le PDF. Réessayez.",
-      "list_error": "Impossible de charger les PDF des rapports.",
-      "quarter_label": "T{quarter} {year}",
-      "kind": {
-        "monthly": "Mensuel",
-        "quarterly": "Trimestriel",
-        "annual": "Annuel"
-      },
-      "stat": {
-        "submitted": "Envoyés",
-        "pending": "En attente",
-        "overdue": "En retard"
-      },
-      "status": {
-        "submitted": "Envoyé",
-        "pending": "En attente",
-        "overdue": "En retard",
-        "not_due": "En cours"
-      },
-      "errors": {
-        "fetch_compliance": "Impossible de charger la conformité des rapports",
-        "fetch_list": "Impossible de charger la liste des rapports",
-        "pdf_empty": "Le PDF téléchargé est vide",
-        "forbidden": "Vous n'avez pas l'autorisation de voir ces rapports",
-        "not_found": "Rapport introuvable"
-      }
+    "nav": {
+      "consent_title": "Fiches à vérifier",
+      "consent_subtitle": "Consentements des mineurs dans vos sections"
+    },
+    "consent_review": {
+      "title": "Fiches à vérifier",
+      "refresh_tooltip": "Actualiser",
+      "empty_title": "Aucune fiche à vérifier",
+      "empty_subtitle": "Aucune de vos sections n'a de fiche en attente de vérification.",
+      "load_more": "Charger plus",
+      "load_more_failed": "Impossible de charger d'autres fiches.",
+      "forms_one": "{count} fiche à vérifier",
+      "forms_other": "{count} fiches à vérifier",
+      "by_section": "Par section",
+      "load_error": "Impossible de charger les fiches.",
+      "retry": "Réessayer",
+      "no_sections_title": "Vous n'avez aucune section assignée",
+      "no_sections_subtitle": "Quand une section vous sera assignée comme coordinateur, ses fiches à vérifier apparaîtront ici.",
+      "denied_title": "Vous ne pouvez pas vérifier les fiches",
+      "denied_subtitle": "Votre compte n'est pas autorisé à vérifier les fiches de consentement en tant que coordinateur."
     },
     "evidence_review": {
       "list": {
@@ -1786,6 +1847,47 @@
       "empty_search_body": "Aucun club ne correspond à « {query} ». Essayez un autre nom.",
       "error_title": "Impossible de charger vos clubs",
       "error_message": "Vérifiez votre connexion et réessayez."
+    },
+    "reports": {
+      "title": "Rapports",
+      "error_title": "Impossible de charger les rapports",
+      "error_message": "Vérifiez votre connexion et réessayez.",
+      "empty_title": "Aucun club assigné",
+      "empty_body": "Lorsque des clubs vous seront assignés, la conformité de leurs rapports apparaîtra ici.",
+      "period_empty_title": "Aucun rapport pour cette période",
+      "period_empty_body": "Aucun club de votre périmètre n'a de rapport attendu pour cette période.",
+      "clubs_title": "Par club",
+      "due_on": "Date limite : {date}",
+      "progress": "{submitted} sur {expected} envoyés",
+      "no_pdf": "Pas encore de PDF disponible",
+      "view_pdf": "Voir le PDF",
+      "view_pdf_type": "Voir le PDF · {type}",
+      "pdf_error": "Impossible d'ouvrir le PDF. Réessayez.",
+      "list_error": "Impossible de charger les PDF des rapports.",
+      "quarter_label": "T{quarter} {year}",
+      "kind": {
+        "monthly": "Mensuel",
+        "quarterly": "Trimestriel",
+        "annual": "Annuel"
+      },
+      "stat": {
+        "submitted": "Envoyés",
+        "pending": "En attente",
+        "overdue": "En retard"
+      },
+      "status": {
+        "submitted": "Envoyé",
+        "pending": "En attente",
+        "overdue": "En retard",
+        "not_due": "En cours"
+      },
+      "errors": {
+        "fetch_compliance": "Impossible de charger la conformité des rapports",
+        "fetch_list": "Impossible de charger la liste des rapports",
+        "pdf_empty": "Le PDF téléchargé est vide",
+        "forbidden": "Vous n'avez pas l'autorisation de voir ces rapports",
+        "not_found": "Rapport introuvable"
+      }
     }
   },
   "classes": {
@@ -2506,6 +2608,11 @@
       "no_requests_subtitle": "Il n'y a pas de demandes d'adhésion en attente.",
       "no_requests_any_subtitle": "Il n'y a pas encore de demandes d'adhésion.",
       "no_requests_filtered_subtitle": "Aucune demande ne correspond aux filtres actuels.",
+      "verify_empty_title": "Aucune fiche à vérifier",
+      "verify_empty_subtitle": "Quand la fiche signée d'un mineur sera prête à être examinée, elle apparaîtra ici.",
+      "verify_only_hint": "Vous pouvez vérifier les fiches de consentement. Approuver ou rejeter les demandes revient à un directeur.",
+      "verify_scope_title": "Pas d'accès aux fiches de cette section",
+      "verify_scope_subtitle": "Cette section n'est pas dans votre périmètre. Les fiches des sections que vous coordonnez se trouvent dans « Fiches à vérifier », dans votre espace de coordination.",
       "request_profile_title": "Profil du demandeur",
       "request_approved": "Demande de {name} approuvée",
       "approve_error": "Erreur lors de l'approbation de la demande",
@@ -2570,12 +2677,79 @@
         "CLASS_GM_INVESTITURE_REQUIRED": "L'investiture Guides Majeurs est requise",
         "CLASS_NOT_AVAILABLE_FOR_YEAR": "La classe n'est pas disponible cette année",
         "CLASS_NOT_FOUND": "Classe introuvable",
-        "MR_ALREADY_PENDING": "Une demande d'adhésion est déjà en cours"
+        "MR_ALREADY_PENDING": "Une demande d'adhésion est déjà en cours",
+        "MR_CONSENT_NOT_VERIFIED": "Mineur dont le consentement du tuteur n'est pas encore vérifié"
       },
       "errors": {
         "fetch": "Impossible de charger la liste des non inscrits",
         "submit": "Impossible de terminer l'inscription"
       }
+    },
+    "consent": {
+      "badge_pending": "Mineur · consentement en attente",
+      "badge_verified": "Mineur · consentement vérifié",
+      "verify_action": "Vérifier le consentement",
+      "title": "Vérifier le consentement",
+      "intro": "{name} est mineur(e). Examinez la fiche signée par son tuteur et confirmez pour pouvoir approuver la demande.",
+      "guardians": "Tuteurs",
+      "guardian_primary": "Principal",
+      "evidence_title": "Fiche signée",
+      "evidence_none": "Aucune fiche n'a été téléversée. Prenez une photo ou téléversez le PDF de la fiche signée.",
+      "evidence_loading": "Chargement de la fiche…",
+      "evidence_view": "Voir la fiche",
+      "evidence_uploaded_by": "Téléversée par {name} · {date}",
+      "evidence_uploaded_on": "Téléversée le {date}",
+      "evidence_load_error": "La fiche n'a pas pu être chargée.",
+      "evidence_uploaded_toast": "Fiche téléversée.",
+      "upload_first": "Téléversez le fichier choisi avant de confirmer.",
+      "reviewed": "J'ai vérifié la fiche signée",
+      "confirm": "Confirmer et approuver",
+      "approved": "Consentement vérifié. Demande de {name} approuvée.",
+      "verified_not_approved": "Le consentement a été vérifié, mais la demande n'a pas pu être approuvée : {reason}",
+      "retry_approve": "Réessayer l'approbation",
+      "approve_blocked": "Le consentement du tuteur doit d'abord être vérifié. La vérification s'est ouverte.",
+      "generic_error": "Le consentement n'a pas pu être vérifié. Réessayez.",
+      "another_person": "Une autre personne doit vérifier ce consentement : vous avez inscrit le mineur, téléversé la fiche ou l’avez confié à la garde du club.",
+      "verify_only_hint": "Vous pouvez vérifier la fiche, mais l'approbation de la demande revient à un directeur.",
+      "verify_only_confirm": "Confirmer la vérification",
+      "verify_only_upload_note": "La fiche est téléversée par le tuteur ou le directeur du club. Ici, vous pouvez seulement la consulter et la vérifier.",
+      "no_longer_pending": "Cette fiche n'est plus en attente de vérification.",
+      "verified_toast": "Consentement vérifié. Un directeur doit encore approuver la demande de {name}."
+    },
+    "create_minor": {
+      "entry": "Inscrire un mineur",
+      "title": "Inscrire un mineur",
+      "intro": "Inscrivez un mineur qui fréquentera votre section avec l'autorisation signée de son tuteur. Le mineur reste sous la garde du club et la demande attend la vérification d'une autre personne.",
+      "name": "Prénom(s)",
+      "paternal": "Nom de famille paternel",
+      "maternal": "Nom de famille maternel (facultatif)",
+      "birthday": "Date de naissance",
+      "birthday_hint": "Sélectionnez la date",
+      "birthday_required": "Sélectionnez la date de naissance",
+      "gender_label": "Genre (facultatif)",
+      "gender_male": "Masculin",
+      "gender_female": "Féminin",
+      "required": "Champ obligatoire",
+      "sworn": "Je déclare sous serment que le tuteur du mineur a signé l'autorisation sur papier.",
+      "legal_prefix": "Au nom du mineur, j'accepte les ",
+      "legal_unavailable": "Impossible de charger les documents juridiques.",
+      "submit": "Inscrire le mineur",
+      "created_toast": "{name} est inscrit. Une autre personne doit encore vérifier la fiche signée.",
+      "errors": {
+        "age_out_of_range": "Cet âge n'est pas valide pour inscrire un mineur. La personne doit être mineure selon le pays du club.",
+        "no_active_year": "Il n'y a pas d'année ecclésiastique en cours. Le mineur n'a pas été inscrit."
+      }
+    },
+    "claim_code": {
+      "section_title": "Remettre à la famille",
+      "hint": "Générez un code à usage unique valable 7 jours. La famille le saisit dans Ma famille pour prendre en charge le mineur.",
+      "action": "Générer le code pour les parents",
+      "code_title": "Code pour la famille",
+      "expires": "Expire le {when}",
+      "copy": "Copier le code",
+      "copied": "Code copié",
+      "share": "Partager",
+      "share_message": "Je vous invite à prendre en charge {name} sur SACDIA. Code : {code}. Expire le {when}. Saisissez-le dans Ma famille > J'ai un code de liaison."
     }
   },
   "certifications": {
@@ -3597,7 +3771,6 @@
       "diseases": "Maladies",
       "medicines": "Médicaments",
       "emergency_contacts": "Contacts d’urgence",
-      "legal_rep": "Représentant légal",
       "none_allergies": "Aucune allergie enregistrée",
       "none_diseases": "Aucune maladie enregistrée",
       "none_medicines": "Aucun médicament enregistré",
@@ -3833,11 +4006,18 @@
       "get_summary": "Erreur lors de la récupération du résumé du tableau de bord"
     },
     "load_null_error": "Impossible de charger le tableau de bord",
+    "guardian_no_club": {
+      "title": "Votre compte est prêt",
+      "subtitle": "Vous êtes inscrit comme tuteur, sans club personnel. Depuis Ma famille, vous pouvez consulter et gérer vos personnes à charge et agir en leur nom.",
+      "family_action": "Aller à Ma famille"
+    },
     "load_error": "Erreur lors du chargement du tableau de bord",
     "pending_state": {
       "title": "Demande envoyée",
       "body": "Votre demande pour rejoindre le club a été envoyée. Le directeur du club l'examinera bientôt. En attendant, vous pouvez enregistrer votre formation personnelle depuis votre profil.",
-      "profile_action": "Aller à mon profil"
+      "body_acting": "La demande de {name} pour rejoindre le club a été envoyée. Le directeur l'examinera avec la fiche de consentement signée. Si vous ne l'avez pas encore remise, apportez-la au club ou téléversez-la depuis Ma famille.",
+      "profile_action": "Aller à mon profil",
+      "family_action_acting": "Aller à Ma famille"
     },
     "notifications_tooltip": "Notifications",
     "club_info": {
@@ -4039,6 +4219,31 @@
     "theme": {
       "dark_mode": "Mode sombre",
       "light_mode": "Mode clair"
+    },
+    "consent": {
+      "source_title": "Ajouter la fiche signée",
+      "source_camera": "Prendre une photo",
+      "source_camera_hint": "Photographiez la fiche papier avec une bonne lumière",
+      "source_gallery": "Choisir dans la galerie",
+      "source_gallery_hint": "Utilisez une image que vous avez déjà",
+      "source_pdf": "Choisir un PDF",
+      "source_pdf_hint": "Fiche numérisée en PDF",
+      "upload": "Téléverser la fiche signée",
+      "replace": "Remplacer la fiche",
+      "change": "Changer",
+      "upload_action": "Téléverser",
+      "retry": "Réessayer",
+      "problems": {
+        "unsupported_type": "Seuls les fichiers JPG, PNG, WebP ou PDF sont acceptés.",
+        "heic": "Ce format d'image (HEIC) n'est pas pris en charge. Reprenez la photo ou choisissez un JPG.",
+        "too_large": "Le fichier dépasse 10 Mo. Choisissez-en un plus petit.",
+        "empty": "Le fichier est vide."
+      },
+      "errors": {
+        "generic": "L'action n'a pas pu être effectuée. Réessayez.",
+        "rate_limited": "Trop de tentatives. Patientez un instant puis réessayez.",
+        "pick_failed": "Le fichier n'a pas pu être ouvert. Vérifiez les autorisations et réessayez."
+      }
     }
   },
   "roles": {
@@ -5204,5 +5409,389 @@
     "semantics_user": "Instructeur : {name}, personne de votre champ local",
     "semantics_external": "Instructeur : {name}, nom saisi, non vérifié",
     "none_registered": "Aucun instructeur enregistré"
+  },
+  "family": {
+    "title": "Ma famille",
+    "add_cta": "Ajouter un mineur",
+    "have_code": "J'ai un code de liaison",
+    "limit_reached": "Vous avez atteint la limite de {max} mineurs.",
+    "empty": {
+      "title": "Vous n'avez pas encore ajouté de mineurs",
+      "body": "Inscrivez un enfant de moins de 13 ans pour qu'il puisse rejoindre un club sous votre responsabilité."
+    },
+    "frozen": "Gelé",
+    "frozen_hint": "Sans tuteur ni club. Il sera supprimé après 90 jours.",
+    "card": {
+      "age": "{age} ans",
+      "view_as": "Voir en tant que {name}"
+    },
+    "consent": {
+      "pending": "Consentement en attente",
+      "verified": "Consentement vérifié"
+    },
+    "club": {
+      "none": "Sans club",
+      "active": "Membre de {club}",
+      "pending": "Demande en attente chez {club}",
+      "rejected": "Demande refusée",
+      "expired": "Demande expirée",
+      "cancelled": "Demande annulée"
+    },
+    "profile": {
+      "entry_title": "Ma famille",
+      "entry_subtitle": "Inscrivez et gérez les mineurs sous votre responsabilité",
+      "entry_count": "{count} mineurs sous votre responsabilité",
+      "switch_title": "Changer de profil",
+      "switch_subtitle": "Voir et compléter le profil d'un mineur"
+    },
+    "errors": {
+      "generic": "Une erreur s'est produite. Réessayez."
+    },
+    "add": {
+      "title": "Ajouter un mineur",
+      "intro": "Inscrivez le mineur sous votre responsabilité. Vous compléterez ensuite son profil à sa place.",
+      "name": "Prénom(s)",
+      "paternal": "Nom de famille paternel",
+      "maternal": "Nom de famille maternel (facultatif)",
+      "birthday": "Date de naissance",
+      "birthday_hint": "Sélectionnez la date",
+      "birthday_required": "Sélectionnez la date de naissance",
+      "relationship": "Votre lien avec le mineur",
+      "relationship_hint": "Je suis son/sa…",
+      "relationship_required": "Sélectionnez le lien de parenté",
+      "relationship_error": "Impossible de charger les liens de parenté. Réessayez.",
+      "required": "Champ obligatoire",
+      "sworn": "Je déclare sous serment être le tuteur légal de ce mineur.",
+      "legal_prefix": "Au nom du mineur, j'accepte les ",
+      "legal_unavailable": "Impossible de charger les documents juridiques.",
+      "submit": "Inscrire et continuer",
+      "complete_profile": "Compléter mon profil"
+    },
+    "detail": {
+      "title": "Détails du mineur",
+      "guardians": "Tuteurs",
+      "you": "Vous",
+      "primary": "Principal",
+      "custodian": "Garde du club",
+      "consent_pending": "Aucune fiche signée n'a encore été vérifiée. Le directeur du club la vérifiera.",
+      "consent_form_uploaded": "Fiche signée envoyée. En attente de la vérification du directeur.",
+      "consent_verified": "Le directeur a vérifié le consentement.",
+      "invite": "Inviter un autre tuteur",
+      "invite_hint": "Génère un code à usage unique valable 72 heures.",
+      "code_title": "Code de liaison",
+      "code_expires": "Expire le {when}",
+      "copy": "Copier le code",
+      "copied": "Code copié",
+      "share": "Partager",
+      "share_message": "Je vous invite à devenir tuteur de {name} sur SACDIA. Code : {code}. Expire le {when}. Saisissez-le dans Ma famille > J'ai un code de liaison.",
+      "leave": "Cesser d'être tuteur",
+      "leave_title": "Cesser d'être tuteur de {name} ?",
+      "leave_confirm": "Cesser d'être tuteur",
+      "remove": "Retirer {name}",
+      "remove_title": "Retirer {name} comme tuteur ?",
+      "remove_body": "Cette personne ne pourra plus voir ni gérer le mineur.",
+      "remove_confirm": "Retirer",
+      "removed": "Tuteur retiré",
+      "form_title": "Fiche de consentement",
+      "form_hint": "Imprimez et signez la fiche du club, puis téléversez-la ici en photo ou en PDF. Le directeur du club la vérifiera.",
+      "form_view": "Voir la fiche téléversée",
+      "form_uploaded_toast": "Fiche téléversée. En attente de la vérification du directeur."
+    },
+    "outcome": {
+      "other_guardian": "Un autre tuteur restera responsable de {name}.",
+      "club_custody": "Le club prendra {name} en charge en attendant.",
+      "frozen": "{name} sera gelé et ses informations seront supprimées dans 90 jours.",
+      "pending_guardian": "{name} se retrouvera sans tuteur vérifié : son accès sera limité et il aura 90 jours pour lier un autre tuteur."
+    },
+    "link": {
+      "title": "Code de liaison",
+      "intro": "Saisissez le code que l'autre tuteur ou le directeur du club vous a transmis.",
+      "code_label": "Code",
+      "code_hint": "XXXX-XXXX",
+      "code_required": "Saisissez le code",
+      "sworn": "Je déclare sous serment être le tuteur légal de ce mineur.",
+      "submit": "Lier",
+      "success": "Vous êtes maintenant tuteur de {name}."
+    },
+    "switcher": {
+      "title": "Changer de profil",
+      "you": "Vous",
+      "empty": "Vous n'avez aucun mineur vers lequel basculer.",
+      "load_error": "Impossible de charger vos mineurs."
+    },
+    "switch": {
+      "offline": "Hors ligne. Vous êtes revenu sur votre profil.",
+      "failed": "Impossible de changer de profil. Réessayez."
+    },
+    "banner": {
+      "viewing_as": "Vous voyez en tant que {name}",
+      "back": "Retour à mon profil"
+    },
+    "prompt": {
+      "title": "Avez-vous des mineurs sous votre responsabilité ?",
+      "body": "Vous pouvez les inscrire pour qu'ils rejoignent un club. Vous les gérez toujours vous-même depuis Ma famille.",
+      "add": "Ajouter un mineur",
+      "later": "Pas maintenant"
+    },
+    "push": {
+      "dialog_title": "Notification de {name}",
+      "dialog_body": "Cette notification concerne {name}. Passer à son profil ?",
+      "dialog_confirm": "Changer",
+      "dialog_cancel": "Pas maintenant",
+      "unavailable": "Ce profil n'est plus disponible pour vous."
+    },
+    "teen": {
+      "wizard": {
+        "title": "Accès personnel pour {name}",
+        "step_of": "Étape {current} sur {total}",
+        "method_title": "Comment {name} se connectera-t-il ?",
+        "method_handle": "Avec un nom d'utilisateur",
+        "method_handle_hint": "Nous créons un nom d'utilisateur pour {name}. Pas besoin d'e-mail.",
+        "method_email": "Avec son e-mail",
+        "method_email_hint": "{name} se connecte avec sa propre adresse e-mail.",
+        "credentials_title": "Informations de connexion",
+        "email_hint": "Adresse e-mail de {name}",
+        "password_label": "Mot de passe",
+        "confirm_label": "Confirmer le mot de passe",
+        "password_policy": "Au moins 8 caractères, avec une majuscule, une minuscule et un chiffre.",
+        "password_note": "Vous choisissez le mot de passe et le donnez à {name}. Vous pouvez le changer quand vous voulez.",
+        "confirm_title": "Avant d'activer",
+        "warn_acting": "Vous ne pourrez plus agir pour {name} : il utilisera son propre accès.",
+        "warn_devices": "Si {name} a des téléphones liés, ils seront déliés.",
+        "warn_control": "Vous pourrez désactiver son accès ou changer son mot de passe quand vous voulez tant qu'il est mineur.",
+        "warn_privacy": "Vous verrez un résumé de sa progression et de sa présence, jamais ses informations de santé.",
+        "activate": "Activer l'accès",
+        "result_title": "Accès activé",
+        "result_handle_label": "Nom d'utilisateur",
+        "result_email_label": "E-mail",
+        "result_hint": "Donnez à {name} son nom d'utilisateur et le mot de passe que vous avez choisi. Gardez-les en lieu sûr : le mot de passe ne s'affiche plus.",
+        "result_devices": "Téléphones déliés : {count}",
+        "copy": "Copier le nom d'utilisateur",
+        "copied": "Nom d'utilisateur copié",
+        "done": "Terminé",
+        "not_eligible": "{name} ne peut pas encore avoir son propre accès."
+      }
+    },
+    "access": {
+      "title": "Accès",
+      "pending_guardian": "Vous pourrez gérer l'accès de {name} et voir son résumé quand un directeur aura vérifié votre consentement. D'ici là, vous pouvez seulement envoyer le formulaire signé.",
+      "active": "Accès personnel actif",
+      "disabled": "Accès désactivé",
+      "method_handle": "Avec nom d'utilisateur",
+      "method_email": "Avec e-mail",
+      "handle_label": "Nom d'utilisateur",
+      "copy": "Copier",
+      "copied": "Nom d'utilisateur copié",
+      "enable": "Lui donner son propre accès",
+      "enable_hint": "{name} pourra se connecter avec son propre nom d'utilisateur ou e-mail. Vous cesserez d'agir pour {name}.",
+      "not_yet": "{name} pourra avoir son propre accès à partir de l'âge minimum.",
+      "summary": "Voir le résumé",
+      "disable": "Désactiver l'accès",
+      "disable_title": "Désactiver l'accès de {name} ?",
+      "disable_body": "{name} ne pourra plus se connecter et sa session se fermera immédiatement. Vous pourrez réactiver l'accès quand vous voulez tant qu'il est mineur.",
+      "disable_confirm": "Désactiver",
+      "disabled_toast": "Accès désactivé",
+      "reactivate": "Réactiver l'accès",
+      "reactivate_title": "Réactiver l'accès de {name}",
+      "reactivate_body_handle": "Choisissez un nouveau mot de passe : l'ancien ne fonctionnera plus.",
+      "reactivate_body_email": "{name} pourra de nouveau se connecter avec son e-mail.",
+      "reactivate_confirm": "Réactiver",
+      "reactivated_toast": "Accès réactivé",
+      "reset_password": "Réinitialiser le mot de passe",
+      "reset_title": "Réinitialiser le mot de passe de {name}",
+      "reset_body_handle": "Choisissez un nouveau mot de passe. Toutes ses sessions seront fermées et les autres tuteurs recevront un avis.",
+      "reset_body_email": "Toutes ses sessions seront fermées et {name} recevra un e-mail pour choisir un nouveau mot de passe. Vous ne verrez pas le mot de passe.",
+      "reset_confirm": "Réinitialiser",
+      "reset_toast": "Mot de passe réinitialisé. Sessions fermées : {count}.",
+      "reset_toast_email": "Sessions fermées : {count}. Nous avons envoyé l'e-mail de réinitialisation à {name}.",
+      "new_password": "Nouveau mot de passe"
+    },
+    "summary": {
+      "title": "Résumé de {name}",
+      "subtitle": "Progression et présence",
+      "classes_title": "Classes",
+      "sections_progress": "{done} sections sur {total}",
+      "no_classes": "Aucune classe en cours pour le moment.",
+      "honors_title": "Spécialités",
+      "honors_completed": "{count} terminées",
+      "honors_in_progress": "{count} en cours",
+      "attendance_title": "Présence",
+      "attendance_value": "{attended} activités sur {total}",
+      "attendance_period": "Du {from} au {to}",
+      "no_activities": "Aucune activité sur cette période.",
+      "privacy_note": "Ce résumé n'inclut ni les informations de santé, ni les notes personnelles."
+    },
+    "devices": {
+      "title": "Téléphones associés",
+      "intro": "Associe un téléphone pour que {name} voie ses classes et activités et envoie des preuves sans créer de compte. Tu reçois un avis à chaque envoi.",
+      "no_new": "On ne peut plus associer de nouveaux téléphones pour {name}. Ceux qui existent fonctionnent jusqu'à ce que tu les dissocies.",
+      "empty": "Aucun téléphone associé pour l'instant.",
+      "history": "Dissociés récemment",
+      "paired_by": "Associé par {name}",
+      "last_seen": "Dernière activité : {when}",
+      "never_seen": "Pas encore d'activité",
+      "revoked_on": "Dissocié le {date}",
+      "limit_hint": "Il y a déjà {max} téléphones associés, le maximum. Dissocie-en un pour en ajouter un autre.",
+      "pair": "Associer un téléphone",
+      "revoke": "Dissocier",
+      "revoke_title": "Dissocier {label} ?",
+      "revoke_body": "Le téléphone cessera de fonctionner immédiatement et {name} devra l'associer à nouveau avec un nouveau code. Les autres tuteurs recevront un avis.",
+      "revoke_confirm": "Dissocier",
+      "revoked_toast": "Téléphone dissocié",
+      "pair_title": "Associer un téléphone",
+      "pair_instructions": "Sur le téléphone de l'enfant, ouvre SACDIA, touche « Associer le téléphone d'un enfant » et scanne ce code.",
+      "qr_alt": "Code QR pour associer un téléphone",
+      "expires_in": "Expire dans {time}",
+      "expired": "Le code a expiré",
+      "regenerate": "Générer un autre code",
+      "pair_warning": "Utilise-le seulement sur le téléphone de l'enfant et ne le partage pas : il ne sert qu'une fois. Tu recevras un avis à l'association et tu pourras dissocier quand tu veux.",
+      "paired_title": "Téléphone associé",
+      "paired_body": "C'est fait : le téléphone peut maintenant utiliser SACDIA. Tu le verras dans la liste des téléphones associés."
+    },
+    "age_nudge": {
+      "title": "{name} peut désormais avoir son propre accès",
+      "body": "Le seuil d'âge minimal pour avoir son propre accès est atteint. Vous pouvez l'activer quand vous voulez et vous continuerez à superviser son compte."
+    }
+  },
+  "restricted_account": {
+    "title": "Compte indisponible",
+    "body": "Votre compte utilise une fonction que cette version de l'application ne reconnaît pas encore. Par sécurité, l'accès est limité. Mettez l'application à jour ou reconnectez-vous plus tard."
+  },
+  "teen": {
+    "pending": {
+      "title": "Il manque votre tuteur",
+      "subtitle": "Votre compte reste restreint jusqu'à ce qu'un tuteur s'y lie et qu'un directeur vérifie son consentement.",
+      "countdown": "Il vous reste {days} jours pour lier un tuteur. Sinon, votre compte sera supprimé.",
+      "countdown_one": "Il vous reste 1 jour pour lier un tuteur. Sinon, votre compte sera supprimé.",
+      "countdown_today": "Aujourd'hui est le dernier jour pour lier un tuteur. Sinon, votre compte sera supprimé.",
+      "code_title": "Code pour votre tuteur",
+      "code_hint": "Générez un code et partagez-le avec votre mère, votre père ou votre tuteur. Il doit l'utiliser dans l'application, dans Ma famille. Il dure 72 heures et ne s'affiche qu'une fois.",
+      "code_generate": "Générer un code",
+      "code_regenerate": "Générer un nouveau code",
+      "code_expires": "Expire le {when}",
+      "code_open_existing": "Vous avez déjà généré un code qui expire le {when}. Si vous l'avez perdu, générez-en un nouveau : le précédent cessera de fonctionner.",
+      "code_copy": "Copier",
+      "code_copied": "Code copié",
+      "code_share": "Partager",
+      "share_message": "Mon code SACDIA pour vous lier comme tuteur : {code}. Utilisez-le dans l'application, dans Ma famille. Il expire le {when}.",
+      "guardians_title": "Votre tuteur",
+      "no_guardian": "Aucun tuteur n'est encore lié.",
+      "guardian_pending": "En attente de vérification",
+      "guardian_verified": "Vérifié",
+      "guardian_pending_hint": "Un directeur du club doit vérifier le formulaire de consentement signé de votre tuteur. D'ici là, votre compte reste restreint.",
+      "guardian_remove": "Retirer",
+      "remove_title": "Retirer {name} ?",
+      "remove_body": "Cette personne ne sera plus liée à votre compte et les 90 jours pour lier un tuteur recommencent. Vous pourrez générer un nouveau code.",
+      "remove_confirm": "Retirer",
+      "removed": "Lien retiré",
+      "actions_title": "En attendant",
+      "actions_hint": "Vous pouvez compléter votre profil et changer votre mot de passe.",
+      "edit_profile": "Compléter mon profil",
+      "change_password": "Changer mon mot de passe"
+    },
+    "info": {
+      "title": "Votre tuteur et vos informations",
+      "body": "Votre tuteur peut voir votre progression et votre présence. Il ne peut pas voir vos informations de santé.",
+      "understood": "Compris"
+    },
+    "errors": {
+      "generic": "Impossible de terminer l'action. Réessayez.",
+      "too_many_codes": "Vous avez généré trop de codes. Réessayez plus tard.",
+      "already_linked": "Vous avez déjà un tuteur lié.",
+      "link_not_found": "Ce lien n'existe plus ou un directeur l'a déjà vérifié."
+    }
+  },
+  "device": {
+    "tabs": {
+      "home": "Accueil",
+      "classes": "Classes",
+      "agenda": "Agenda",
+      "notices": "Avis"
+    },
+    "offline": "Pas de connexion. Tu vois la dernière version enregistrée et tu ne peux rien envoyer.",
+    "pair": {
+      "entry": "Associer le téléphone d'un enfant",
+      "title": "Associer ce téléphone",
+      "subtitle": "Scanne le code QR que ton tuteur affiche sur son téléphone.",
+      "confirm_body": "Code lu. Vérifie le nom de ce téléphone et associe-le.",
+      "scan": "Scanner le code QR",
+      "rescan": "Scanner un autre code",
+      "scanner_title": "Scanner le code",
+      "scanner_hint": "Pointe vers le code QR du téléphone de ton tuteur.",
+      "label_title": "Nom de ce téléphone",
+      "label_hint": "Ex. Tablette d'Ana",
+      "label_help": "Ton tuteur verra ce nom dans sa liste de téléphones associés.",
+      "fallback_label": "Téléphone associé",
+      "link": "Associer le téléphone",
+      "linking": "Association...",
+      "back_to_login": "Retour à la connexion",
+      "refused": {
+        "title": "Déconnecte-toi d'abord",
+        "body": "Ce téléphone est connecté. Pour l'associer comme téléphone d'enfant, déconnecte-toi d'abord.",
+        "close": "Compris"
+      },
+      "notice": {
+        "unpaired": "Ton tuteur a dissocié ce téléphone. Demande-lui de l'associer à nouveau.",
+        "session_expired": "L'association de ce téléphone a expiré. Demande à ton tuteur de l'associer à nouveau."
+      },
+      "errors": {
+        "generic": "Nous n'avons pas pu associer ce téléphone. Réessaie.",
+        "invalid_qr": "Ce code QR n'est pas de SACDIA. Demande à ton tuteur d'en générer un nouveau.",
+        "session_exists": "Ce téléphone est déjà connecté. Déconnecte-toi avant de l'associer.",
+        "session_load_failed": "Le téléphone a été associé mais nous n'avons pas pu charger ton profil. Demande un nouveau code à ton tuteur et réessaie."
+      }
+    },
+    "home": {
+      "greeting": "Salut, {name}",
+      "greeting_anonymous": "Salut",
+      "subtitle": "Tes classes et activités du club",
+      "classes_title": "Ma progression",
+      "no_classes": "Tu n'as pas encore de classes. Ton tuteur ou ton directeur t'inscrira.",
+      "next_activity": "Prochaine activité",
+      "no_activity": "Pas d'activité à venir",
+      "credential_title": "Ma carte de membre",
+      "credential_hint": "Montre-la quand on te la demande lors d'une activité.",
+      "this_phone": "Ce téléphone : {label}",
+      "unlink": "Dissocier ce téléphone",
+      "unlink_title": "Dissocier ce téléphone ?",
+      "unlink_body": "Tout ce qui est à toi sera supprimé de ce téléphone et ton tuteur devra l'associer à nouveau.",
+      "unlink_confirm": "Dissocier",
+      "unlink_failed": "Impossible de dissocier. Réessaie."
+    },
+    "classes": {
+      "title": "Mes classes",
+      "empty_title": "Pas encore de classes",
+      "empty_body": "Quand tu seras inscrit à une classe, elle apparaîtra ici.",
+      "error": "Nous n'avons pas pu charger tes classes.",
+      "detail_error": "Nous n'avons pas pu charger cette classe.",
+      "no_requirements": "Cette classe n'a pas encore d'exigences.",
+      "progress": "{percent} % terminé"
+    },
+    "requirement": {
+      "title": "Preuves",
+      "not_found": "Nous n'avons pas trouvé cette exigence.",
+      "offline_readonly": "Pas de connexion : tu peux seulement voir tes preuves. Connecte-toi pour envoyer.",
+      "errors": {
+        "action_failed": "Nous n'avons pas pu terminer l'action. Réessaie."
+      }
+    },
+    "agenda": {
+      "title": "Agenda",
+      "empty": "Il n'y a pas d'activités à venir.",
+      "error": "Nous n'avons pas pu charger l'agenda.",
+      "no_club": "Tu n'es pas encore dans un club.",
+      "detail_title": "Activité",
+      "detail_error": "Nous n'avons pas pu charger cette activité."
+    },
+    "legal_block": {
+      "title": "Une étape de ton tuteur est nécessaire",
+      "body": "Demande à ton tuteur de relire les nouvelles conditions sur son téléphone. Dès qu'il les accepte, tu pourras continuer à utiliser l'appli.",
+      "refresh": "Il les a acceptées"
+    },
+    "registration_pending": {
+      "title": "Ton inscription n'est pas terminée",
+      "body": "Demande à ton tuteur de terminer ton profil depuis son téléphone.",
+      "refresh": "Il a terminé"
+    }
   }
 }

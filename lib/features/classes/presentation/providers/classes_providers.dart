@@ -389,22 +389,30 @@ final classMembersProgressProvider = FutureProvider.autoDispose
 class RequirementOperationState {
   final bool isLoading;
   final String? errorMessage;
+
+  /// Código de negocio del backend que causó [errorMessage], si lo hubo. Las
+  /// pantallas que no pueden mostrar el texto crudo del servidor (teléfono
+  /// vinculado) traducen por este código.
+  final String? errorCode;
   final bool success;
 
   const RequirementOperationState({
     this.isLoading = false,
     this.errorMessage,
+    this.errorCode,
     this.success = false,
   });
 
   RequirementOperationState copyWith({
     bool? isLoading,
     String? errorMessage,
+    String? errorCode,
     bool? success,
   }) {
     return RequirementOperationState(
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
+      errorCode: errorCode,
       success: success ?? this.success,
     );
   }
@@ -679,6 +687,7 @@ class RequirementNotifier extends AutoDisposeFamilyNotifier<
         state = state.copyWith(
           isLoading: false,
           errorMessage: failure.message,
+          errorCode: failure.errorCode,
         );
         return false;
       },
@@ -723,6 +732,7 @@ class RequirementNotifier extends AutoDisposeFamilyNotifier<
         state = state.copyWith(
           isLoading: false,
           errorMessage: failure.message,
+          errorCode: failure.errorCode,
         );
         return false;
       },
@@ -758,6 +768,7 @@ class RequirementNotifier extends AutoDisposeFamilyNotifier<
         state = state.copyWith(
           isLoading: false,
           errorMessage: failure.message,
+          errorCode: failure.errorCode,
         );
         return false;
       },

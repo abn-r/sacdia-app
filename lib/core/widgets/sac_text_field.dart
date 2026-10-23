@@ -12,6 +12,10 @@ class SacTextField extends StatefulWidget {
   final String? label;
   final String? hint;
   final String? helperText;
+
+  /// Líneas máximas del texto de ayuda. Sin valor, Flutter lo corta en una sola
+  /// línea con «…»; una ayuda larga necesita un tope mayor para envolver.
+  final int? helperMaxLines;
   final bool obscureText;
   final String? Function(String?)? validator;
   final TextInputType keyboardType;
@@ -41,12 +45,17 @@ class SacTextField extends StatefulWidget {
   final EdgeInsetsGeometry? margin;
   final TextCapitalization textCapitalization;
 
+  /// `false` para identificadores (usuario, código): sin autocorrección ni
+  /// sugerencias.
+  final bool autocorrect;
+
   const SacTextField({
     super.key,
     this.controller,
     this.label,
     this.hint,
     this.helperText,
+    this.helperMaxLines,
     this.obscureText = false,
     this.validator,
     this.keyboardType = TextInputType.text,
@@ -69,6 +78,7 @@ class SacTextField extends StatefulWidget {
     this.onTap,
     this.margin,
     this.textCapitalization = TextCapitalization.none,
+    this.autocorrect = true,
   });
 
   @override
@@ -158,6 +168,8 @@ class _SacTextFieldState extends State<SacTextField> {
                 focusNode: widget.focusNode,
                 textInputAction: widget.textInputAction,
                 textCapitalization: widget.textCapitalization,
+                autocorrect: widget.autocorrect,
+                enableSuggestions: widget.autocorrect,
                 onTap: widget.onTap,
                 style: theme.textTheme.bodyMedium,
                 autovalidateMode: AutovalidateMode.disabled,
@@ -168,6 +180,7 @@ class _SacTextFieldState extends State<SacTextField> {
                 decoration: InputDecoration(
                   hintText: widget.hint,
                   helperText: widget.helperText,
+                  helperMaxLines: widget.helperMaxLines,
                   counterText: widget.maxLength != null ? '' : null,
                   prefixText: widget.prefixText,
                   prefixStyle: theme.textTheme.bodyMedium?.copyWith(

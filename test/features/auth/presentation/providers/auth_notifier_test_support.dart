@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/notifications/push_notification_provider.dart';
 import 'package:sacdia_app/core/notifications/push_notification_service.dart';
 import 'package:sacdia_app/core/storage/secure_storage.dart';
+import 'package:sacdia_app/core/storage/image_cache_purge.dart';
 import 'package:sacdia_app/core/usecases/cancellation_token.dart';
 import 'package:sacdia_app/features/auth/domain/entities/delete_account_reauth.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
@@ -77,8 +78,8 @@ class FakeAuthRepository implements AuthRepository {
       throw UnimplementedError();
 
   @override
-  Future<Either<Failure, UserEntity>> signInWithEmailAndPassword({
-    required String email,
+  Future<Either<Failure, UserEntity>> signInWithIdentifier({
+    required String identifier,
     required String password,
   }) =>
       throw UnimplementedError();
@@ -99,6 +100,7 @@ class FakeAuthRepository implements AuthRepository {
     required String maternalSurname,
     required String acceptedTermsVersion,
     required String acceptedPrivacyVersion,
+    String? birthday,
   }) =>
       throw UnimplementedError();
 
@@ -147,8 +149,10 @@ class FakePushNotificationService extends PushNotificationService {
           navigatorKey: GlobalKey<NavigatorState>(),
         );
 
+  int initializeCalls = 0;
+
   @override
-  Future<void> initialize() async {}
+  Future<void> initialize() async => initializeCalls++;
 
   int unregisterCalls = 0;
   int disposeCalls = 0;
@@ -172,6 +176,7 @@ Future<ProviderContainer> buildAuthContainer({
   required AuthRepository repo,
   FakeSecureStorage? storage,
   SharedPreferences? prefs,
+  List<Override> extraOverrides = const [],
 }) async {
   final resolvedPrefs = prefs ??
       await (() async {
@@ -188,6 +193,9 @@ Future<ProviderContainer> buildAuthContainer({
       pushNotificationServiceProvider.overrideWith(
         (ref) => FakePushNotificationService(ref: ref, prefs: resolvedPrefs),
       ),
+      // Sin esto la purga de imágenes crea el CacheManager real (path_provider).
+      imageCachePurgerProvider.overrideWithValue(() async {}),
+      ...extraOverrides,
     ],
   );
 }

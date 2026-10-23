@@ -16,7 +16,11 @@ import '../../data/models/class_model.dart';
 import '../providers/club_selection_providers.dart';
 import '../utils/progressive_class_logo_asset.dart';
 import '../widgets/bottom_sheet_picker.dart';
+import '../widgets/acting_consent_form_card.dart';
 import '../widgets/club_type_selector.dart';
+import '../widgets/guardian_only_exit.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import '../utils/acting_copy.dart';
 
 /// Vista del paso 3: Selección de club - Estilo "Scout Vibrante"
 ///
@@ -105,6 +109,8 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
         : Theme.of(context).textTheme.displayMedium;
 
     final hPad = Responsive.horizontalPadding(context);
+    // Tutor actuando por un menor: el texto pasa a tercera persona.
+    final actingName = actingCopyName(ref);
 
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: hPad),
@@ -115,18 +121,19 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
 
           // Title
           Text(
-            (widget.isClubTransfer
-                    ? 'transfers.form.club_selection_title'
-                    : 'post_registration.club_selection.title')
-                .tr(),
+            widget.isClubTransfer
+                ? 'transfers.form.club_selection_title'.tr()
+                : postRegistrationCopy('post_registration.club_selection.title',
+                    actingName: actingName),
             style: titleStyle,
           ),
           const SizedBox(height: 8),
           Text(
-            (widget.isClubTransfer
-                    ? 'transfers.form.club_selection_subtitle'
-                    : 'post_registration.club_selection.subtitle')
-                .tr(),
+            widget.isClubTransfer
+                ? 'transfers.form.club_selection_subtitle'.tr()
+                : postRegistrationCopy(
+                    'post_registration.club_selection.subtitle',
+                    actingName: actingName),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: context.sac.textSecondary,
                 ),
@@ -190,7 +197,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
             ),
             error: (error, _) => _buildErrorText(
                 'post_registration.club_selection.error_loading_countries'
-                    .tr(namedArgs: {'error': error.toString()})),
+                    .tr(namedArgs: {'error': userErrorMessage(error)})),
           ),
 
           // ── Unión ────────────────────────────────────────────────────────
@@ -238,7 +245,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
               ),
               error: (error, _) => _buildErrorText(
                   'post_registration.club_selection.error_loading_unions'
-                      .tr(namedArgs: {'error': error.toString()})),
+                      .tr(namedArgs: {'error': userErrorMessage(error)})),
             ),
           ],
 
@@ -290,7 +297,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
               ),
               error: (error, _) => _buildErrorText(
                   'post_registration.club_selection.error_loading_local_fields'
-                      .tr(namedArgs: {'error': error.toString()})),
+                      .tr(namedArgs: {'error': userErrorMessage(error)})),
             ),
           ],
 
@@ -352,7 +359,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
               ),
               error: (error, _) => _buildErrorText(
                   'post_registration.club_selection.error_loading_clubs'
-                      .tr(namedArgs: {'error': error.toString()})),
+                      .tr(namedArgs: {'error': userErrorMessage(error)})),
             ),
           ],
 
@@ -440,9 +447,15 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
               ),
               error: (error, _) => _buildErrorText(
                   'post_registration.club_selection.error_loading_classes'
-                      .tr(namedArgs: {'error': error.toString()})),
+                      .tr(namedArgs: {'error': userErrorMessage(error)})),
             ),
           ],
+
+          // ── Ficha de consentimiento firmada, actuando por el menor ───────
+          if (!widget.isClubTransfer) const ActingConsentFormCard(),
+
+          // ── Salida "Solo soy tutor de menores" (FP-60) ───────────────────
+          if (!widget.isClubTransfer) const GuardianOnlyExit(),
 
           const SizedBox(height: 32),
         ],

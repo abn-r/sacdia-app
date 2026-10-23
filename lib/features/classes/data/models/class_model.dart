@@ -86,7 +86,8 @@ class ClassModel extends Equatable {
       submittedAt: _parseDate(json['submitted_at']),
       validatedAt: _parseDate(json['validated_at']),
       ecclesiasticalYearLabel: _yearLabel(json['ecclesiastical_year']) ??
-          safeStringOrNull(json['ecclesiastical_year_label']),
+          _collapseSameYear(
+              safeStringOrNull(json['ecclesiastical_year_label'])),
       availableFromYearId: safeIntOrNull(
           json['available_from_year_id'] ?? json['availableFromYearId']),
       availableUntilYearId: safeIntOrNull(
@@ -123,10 +124,18 @@ class ClassModel extends Equatable {
     final start = _parseDate(value['start_date'] ?? value['startDate']);
     final end = _parseDate(value['end_date'] ?? value['endDate']);
     if (start == null && end == null) return null;
-    if (start != null && end != null) {
+    if (start != null && end != null && start.year != end.year) {
       return '${start.year}–${end.year}';
     }
     return '${(start ?? end)!.year}';
+  }
+
+  /// Etiquetas ya guardadas en caché («2026–2026») se muestran con un solo año.
+  static String? _collapseSameYear(String? label) {
+    if (label == null) return null;
+    final match = RegExp(r'^\s*(\d{4})\s*[–-]\s*(\d{4})\s*$').firstMatch(label);
+    if (match == null || match.group(1) != match.group(2)) return label;
+    return match.group(1);
   }
 
   /// Convierte la instancia a JSON

@@ -16,19 +16,33 @@ class JoinRequestCard extends StatelessWidget {
   final VoidCallback? onApprove;
   final VoidCallback? onReject;
 
+  /// Abre la verificación de la ficha de un menor sin ofrecer aprobar ni
+  /// rechazar (revisor con solo `consent:verify`).
+  final VoidCallback? onVerify;
+
+  /// Línea extra bajo el nombre (p. ej. "club · tipo · distrito" en la cola del
+  /// coordinador, donde las fichas de varias secciones van mezcladas).
+  final String? caption;
+
   const JoinRequestCard({
     super.key,
     required this.request,
     this.onTap,
     this.onApprove,
     this.onReject,
+    this.onVerify,
+    this.caption,
   });
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
     final isPending = request.status == JoinRequestStatus.pending;
-    final canAct = isPending && (onApprove != null || onReject != null);
+    final consent = request.consent;
+    final needsVerification = request.consentPending;
+    // `onVerify` solo aplica a un menor con la ficha por verificar.
+    final primary = needsVerification ? (onVerify ?? onApprove) : onApprove;
+    final canAct = isPending && (primary != null || onReject != null);
     final dateLabel = request.requestedAt == null
         ? null
         : DateFormat('dd MMM yyyy').format(request.requestedAt!.toLocal());
@@ -63,6 +77,19 @@ class JoinRequestCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  if (caption != null && caption!.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      caption!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.2,
+                        color: c.textSecondary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                   if (dateLabel != null) ...[
                     const SizedBox(height: 3),
                     Text(
@@ -76,6 +103,10 @@ class JoinRequestCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
+                  if (consent != null) ...[
+                    const SizedBox(height: 6),
+                    _ConsentBadge(consent: consent),
+                  ],
                 ],
               ),
             ),
@@ -88,13 +119,19 @@ class JoinRequestCard extends StatelessWidget {
                   background: AppColors.error.withValues(alpha: 0.10),
                   onTap: onReject!,
                 ),
-              if (onApprove != null)
+              if (primary != null)
                 _IconAction(
-                  semanticLabel: 'members.join_request.approve'.tr(),
-                  icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                  // Un menor sin ficha verificada no se aprueba directo: el
+                  // mismo botón abre la verificación (FP-76).
+                  semanticLabel: needsVerification
+                      ? 'members.consent.verify_action'.tr()
+                      : 'members.join_request.approve'.tr(),
+                  icon: needsVerification
+                      ? HugeIcons.strokeRoundedFileVerified
+                      : HugeIcons.strokeRoundedCheckmarkCircle01,
                   color: AppColors.secondary,
                   background: AppColors.secondary.withValues(alpha: 0.12),
-                  onTap: onApprove!,
+                  onTap: primary,
                 ),
             ] else ...[
               const SizedBox(width: 8),
@@ -103,6 +140,29 @@ class JoinRequestCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// "Menor · consentimiento pendiente/verificado" (solo menores sin cuenta).
+class _ConsentBadge extends StatelessWidget {
+  final JoinRequestConsent consent;
+
+  const _ConsentBadge({required this.consent});
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: consent.isVerified
+          ? SacBadge.success(
+              label: 'members.consent.badge_verified'.tr(),
+              icon: HugeIcons.strokeRoundedCheckmarkBadge01,
+            )
+          : SacBadge.warning(
+              label: 'members.consent.badge_pending'.tr(),
+              icon: HugeIcons.strokeRoundedClock01,
+            ),
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/club_role_names.dart';
+import '../../../../core/consent/consent_evidence.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -24,8 +25,13 @@ import '../../domain/entities/club_member.dart';
 import '../../domain/entities/join_request.dart';
 import '../../domain/repositories/members_repository.dart';
 import '../../domain/usecases/assign_club_role.dart';
+import '../../domain/usecases/create_minor.dart';
 import '../../domain/usecases/get_club_members.dart';
+import '../../domain/usecases/get_consent_evidence.dart';
 import '../../domain/usecases/get_join_requests.dart';
+import '../../domain/usecases/issue_claim_code.dart';
+import '../../domain/usecases/upload_consent_evidence.dart';
+import '../../domain/usecases/verify_consent.dart';
 
 // ── Infrastructure providers ──────────────────────────────────────────────────
 
@@ -59,6 +65,56 @@ final getJoinRequestsUseCaseProvider = Provider<GetJoinRequests>((ref) {
 
 final assignClubRoleUseCaseProvider = Provider<AssignClubRole>((ref) {
   return AssignClubRole(ref.read(membersRepositoryProvider));
+});
+
+final uploadConsentEvidenceUseCaseProvider =
+    Provider<UploadConsentEvidence>((ref) {
+  return UploadConsentEvidence(ref.read(membersRepositoryProvider));
+});
+
+final getConsentEvidenceUseCaseProvider = Provider<GetConsentEvidence>((ref) {
+  return GetConsentEvidence(ref.read(membersRepositoryProvider));
+});
+
+final verifyConsentUseCaseProvider = Provider<VerifyConsent>((ref) {
+  return VerifyConsent(ref.read(membersRepositoryProvider));
+});
+
+final createMinorUseCaseProvider = Provider<CreateMinor>((ref) {
+  return CreateMinor(ref.read(membersRepositoryProvider));
+});
+
+final issueClaimCodeUseCaseProvider = Provider<IssueClaimCode>((ref) {
+  return IssueClaimCode(ref.read(membersRepositoryProvider));
+});
+
+/// Ids (`user_id`) de los menores que ESTE usuario registró en esta sesión.
+///
+/// Sirve para avisar de antemano que otra persona debe verificar el
+/// consentimiento (cuatro ojos, FP3-62). Es solo una ayuda de interfaz: el
+/// servidor es la autoridad y responde 403
+/// `GUARDIANSHIP_CUSTODIAN_SELF_VERIFY` si el usuario es el creador, aunque la
+/// app no lo recuerde. Vive en memoria y se purga al cambiar de perfil.
+final createdMinorUserIdsProvider =
+    StateProvider<Set<String>>((ref) => const <String>{});
+
+/// Ids (`user_id`) de los menores cuya ficha subió este usuario desde la
+/// pantalla de verificación en esta sesión. Mismo criterio que
+/// [createdMinorUserIdsProvider].
+final uploadedFormMinorUserIdsProvider =
+    StateProvider<Set<String>>((ref) => const <String>{});
+
+/// Ficha firmada vigente de una solicitud de menor, con URL firmada.
+///
+/// `autoDispose`: la URL caduca a los 15 min y no debe sobrevivir a la pantalla
+/// ni a un cambio de perfil. Falla con el [Failure] original (para distinguir
+/// `GUARDIANSHIP_EVIDENCE_NOT_FOUND` de `GUARDIANSHIP_EVIDENCE_UNAVAILABLE`).
+final joinRequestConsentEvidenceProvider = FutureProvider.autoDispose
+    .family<ConsentEvidenceAccess, String>((ref, assignmentId) async {
+  final result = await ref.read(getConsentEvidenceUseCaseProvider)(
+    assignmentId,
+  );
+  return result.fold((failure) => throw failure, (access) => access);
 });
 
 // ── Context providers — club/section values ──────────────────────────────────
@@ -231,6 +287,10 @@ final joinRequestFiltersProvider =
     StateProvider.autoDispose<JoinRequestFilters>(
         (ref) => const JoinRequestFilters());
 
+/// 403 de las rutas de revisión cuando la sección queda fuera del alcance de un
+/// coordinador (sus `coordinator_assignments`).
+const String clubScopeRequiredCode = 'GUARD_CLUB_SCOPE_REQUIRED';
+
 // ── Members data ──────────────────────────────────────────────────────────────
 
 /// Datos del notifier de miembros (sin estado de loading/error — lo maneja AsyncValue)
@@ -238,9 +298,16 @@ class MembersData {
   final List<ClubMember> members;
   final List<JoinRequest> joinRequests;
 
+  /// El servidor respondió 403 `GUARD_CLUB_SCOPE_REQUIRED` al pedir las
+  /// solicitudes: esta sección no está dentro del alcance de quien consulta (un
+  /// coordinador cuyo `consent:verify` no cubre la sección). No es "sin
+  /// solicitudes": la lista no se pudo ver.
+  final bool requestsScopeDenied;
+
   const MembersData({
     this.members = const [],
     this.joinRequests = const [],
+    this.requestsScopeDenied = false,
   });
 
   /// Número de solicitudes pendientes
@@ -284,6 +351,10 @@ class MembersNotifier extends AutoDisposeAsyncNotifier<MembersData> {
     return MembersData(
       members: membersResult.fold((_) => [], (m) => m),
       joinRequests: requestsResult.fold((_) => [], (r) => r),
+      requestsScopeDenied: requestsResult.fold(
+        (failure) => failure.errorCode == clubScopeRequiredCode,
+        (_) => false,
+      ),
     );
   }
 
@@ -324,6 +395,20 @@ class MembersNotifier extends AutoDisposeAsyncNotifier<MembersData> {
       (_) {
         ref.invalidateSelf();
         return true;
+      },
+    );
+  }
+
+  /// Como [approveRequest] pero conserva el fallo, para distinguir
+  /// `MR_CONSENT_NOT_VERIFIED` (menor sin ficha verificada) de un error genérico.
+  Future<Failure?> approveRequestOrFailure(String assignmentId) async {
+    final repo = ref.read(membersRepositoryProvider);
+    final result = await repo.approveJoinRequest(assignmentId);
+    return result.fold(
+      (failure) => failure,
+      (_) {
+        ref.invalidateSelf();
+        return null;
       },
     );
   }

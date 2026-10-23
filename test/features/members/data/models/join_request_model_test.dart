@@ -1,0 +1,148 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/features/members/data/models/join_request_model.dart';
+import 'package:sacdia_app/features/members/domain/entities/join_request.dart';
+
+import '../../members_test_support.dart';
+
+Map<String, dynamic> _item({
+  Object? consent,
+  String? email = 'luis@example.com',
+}) =>
+    {
+      'assignment_id': 'req-1',
+      'club_section_id': 12,
+      'user_id': 'user-1',
+      'status': 'pending',
+      'created_at': '2026-10-12T10:00:00.000Z',
+      'users': {
+        'user_id': 'user-1',
+        'name': 'Luis',
+        'paternal_last_name': 'Soto',
+        'email': email,
+      },
+      'consent': consent,
+    };
+
+void main() {
+  group('consent block', () {
+    test('adults have no consent block', () {
+      final request = JoinRequestModel.fromJson(_item());
+      expect(request.consent, isNull);
+      expect(request.isMinorWithConsent, isFalse);
+      expect(request.consentPending, isFalse);
+    });
+
+    test('a pending minor blocks direct approval', () {
+      final request = JoinRequestModel.fromJson(_item(
+        consent: consentJson(evidence: true),
+        email: null,
+      ));
+
+      expect(request.isMinorWithConsent, isTrue);
+      expect(request.consent?.status, JoinRequestConsentStatus.pending);
+      expect(request.consent?.guardianshipId, 'gs-1');
+      expect(request.consent?.evidenceUploaded, isTrue);
+      expect(request.consentPending, isTrue);
+      expect(request.email, isNull, reason: 'dependents have no email');
+      expect(request.consent?.guardians.single.displayName, 'María Pérez');
+      expect(request.consent?.guardians.single.relationshipTypeName, 'Madre');
+      expect(request.consent?.guardians.single.isPrimary, isTrue);
+    });
+
+    test('a verified minor can be approved directly', () {
+      final request = JoinRequestModel.fromJson(_item(
+        consent: consentJson(status: 'verified'),
+      ));
+      expect(request.consent?.isVerified, isTrue);
+      expect(request.consentPending, isFalse);
+    });
+
+    test('an unknown status is read as pending (the safe side)', () {
+      expect(
+        JoinRequestConsentStatus.parse('weird'),
+        JoinRequestConsentStatus.pending,
+      );
+      expect(
+        JoinRequestModel.fromJson(_item(consent: {'status': null}))
+            .consentPending,
+        isTrue,
+      );
+    });
+
+    test('a missing guardians list does not crash', () {
+      final request = JoinRequestModel.fromJson(_item(
+        consent: {'status': 'pending', 'guardianship_id': null},
+      ));
+      expect(request.consent?.guardians, isEmpty);
+      expect(request.consent?.guardianshipId, isNull);
+    });
+
+    test('the section prefix is kept so consent calls reuse the approve path',
+        () {
+      final request = JoinRequestModel.fromJson(_item());
+      expect(request.assignmentId, '12/membership-requests/req-1');
+    });
+
+    test('custody is dependent with NO linked guardian; unknown is not custody',
+        () {
+      JoinRequestConsent? parse(Map<String, Object?> extra) =>
+          JoinRequestModel.fromJson(_item(
+            consent: {...consentJson(), ...extra},
+          )).consent;
+
+      expect(parse({'dependent': true, 'guardian_linked': false})?.isCustody,
+          isTrue);
+      expect(parse({'dependent': true, 'guardian_linked': true})?.isCustody,
+          isFalse);
+      // Sin el dato del servidor no se asume custodia.
+      expect(parse({'dependent': true})?.isCustody, isFalse);
+      expect(parse({'dependent': false, 'guardian_linked': false})?.isCustody,
+          isFalse);
+    });
+
+    test('the server verdict on who may verify is parsed; absent stays null',
+        () {
+      JoinRequestConsent? parse(Map<String, Object?> extra) =>
+          JoinRequestModel.fromJson(_item(
+            consent: {...consentJson(), ...extra},
+          )).consent;
+
+      final absent = parse({});
+      expect(absent?.viewerCanVerify, isNull);
+      expect(absent?.viewerVerifyBlock, isNull);
+
+      final allowed =
+          parse({'viewer_can_verify': true, 'viewer_verify_block': null});
+      expect(allowed?.viewerCanVerify, isTrue);
+      expect(allowed?.viewerVerifyBlock, isNull);
+
+      expect(
+        parse({
+          'viewer_can_verify': false,
+          'viewer_verify_block': 'self_custodian',
+        })?.viewerVerifyBlock,
+        ConsentVerifyBlock.selfCustodian,
+      );
+      final guardian = parse({
+        'viewer_can_verify': false,
+        'viewer_verify_block': 'self_guardian',
+      });
+      expect(guardian?.viewerCanVerify, isFalse);
+      expect(guardian?.viewerVerifyBlock, ConsentVerifyBlock.selfGuardian);
+    });
+
+    test('an unknown block or a non-boolean verdict is ignored, never a crash',
+        () {
+      final consent = JoinRequestModel.fromJson(_item(
+        consent: {
+          ...consentJson(),
+          'viewer_can_verify': 'yes',
+          'viewer_verify_block': 'something_new',
+        },
+      )).consent;
+
+      expect(consent?.viewerCanVerify, isNull);
+      expect(consent?.viewerVerifyBlock, isNull);
+    });
+  });
+}

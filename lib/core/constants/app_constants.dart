@@ -76,6 +76,10 @@ class AppConstants {
   static const String accentKey = 'app_accent';
   static const String localeKey = 'app_locale';
 
+  /// Bandera `device` del teléfono vinculado de un menor (almacenamiento
+  /// seguro, junto a los tokens). Ver `core/auth/session_mode.dart`.
+  static const String sessionModeKey = 'session_mode';
+
   // Accessibility (MVP: SharedPreferences only)
   static const String accessibilityTextSizeKey = 'app_a11y_text_size';
   static const String accessibilityHighContrastKey = 'app_a11y_high_contrast';

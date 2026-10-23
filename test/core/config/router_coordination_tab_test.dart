@@ -87,16 +87,39 @@ void main() {
       );
     });
 
-    test('a coordinator without a club sees home, coordination and profile',
-        () {
+    test(
+        'a coordinator without a club gets the hub as home: Coordination and '
+        'Profile, with NO duplicate fifth coordination tab', () {
+      final user = _user(globalRoles: const ['coordinator']);
+      final items = shellNavItemsForTesting(user);
+
       expect(
-        _routes(_user(globalRoles: const ['coordinator'])),
-        [
-          RouteNames.homeDashboard,
-          RouteNames.coordinator,
-          RouteNames.homeProfile,
-        ],
+        items.map((i) => i.route),
+        [RouteNames.homeDashboard, RouteNames.homeProfile],
       );
+      // The home tab is the hub (the dashboard draws it) and carries the
+      // coordination label; the shell's own coordination tab is not added.
+      expect(items.first.labelKey, 'router.nav.coordination');
+      expect(
+        items.map((i) => i.route),
+        isNot(contains(RouteNames.coordinator)),
+      );
+      expect(
+        items.where((i) => i.labelKey == 'router.nav.coordination'),
+        hasLength(1),
+      );
+    });
+
+    test('a coordinator who is also a pastor without a club gets the same', () {
+      final items = shellNavItemsForTesting(
+        _user(globalRoles: const ['coordinator', 'pastor']),
+      );
+
+      expect(
+        items.map((i) => i.route),
+        [RouteNames.homeDashboard, RouteNames.homeProfile],
+      );
+      expect(items.first.labelKey, 'router.nav.coordination');
     });
 
     test(
@@ -142,10 +165,14 @@ void main() {
     });
 
     test('a pastor without a club keeps the pastor navigation', () {
+      final items = shellNavItemsForTesting(
+        _user(globalRoles: const ['pastor']),
+      );
       expect(
-        _routes(_user(globalRoles: const ['pastor'])),
+        items.map((i) => i.route),
         [RouteNames.homeDashboard, RouteNames.homeProfile],
       );
+      expect(items.first.labelKey, 'router.nav.authorizations');
     });
   });
 
@@ -178,8 +205,11 @@ void main() {
     testWidgets('coordination is the fifth shell branch rooted at /coordinator',
         (tester) async {
       final router = await setUpRouter(tester);
-      final shell =
-          router.configuration.routes.whereType<StatefulShellRoute>().single;
+      // The app has more than one shell (e.g. the linked-device one): the
+      // member shell is the one that has the coordination root branch.
+      final shell = router.configuration.routes
+          .whereType<StatefulShellRoute>()
+          .singleWhere((s) => s.branches.length == 5);
 
       expect(shell.branches, hasLength(5));
       final root = shell.branches[4].routes.single as GoRoute;

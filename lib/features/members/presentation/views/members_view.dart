@@ -5,6 +5,7 @@ import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
+import 'package:sacdia_app/core/consent/consent_error_messages.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -26,15 +27,27 @@ import '../widgets/member_card.dart';
 import '../widgets/member_class_group_header.dart';
 import '../widgets/members_filter_bar.dart';
 import '../widgets/members_mode_switcher.dart';
+import '../utils/consent_access.dart';
+import '../utils/create_minor_access.dart';
 import 'annual_continuations_view.dart';
+import 'create_minor_view.dart';
+import 'consent_verification_view.dart';
 import 'member_profile_view.dart';
 import 'role_assignment_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 
 /// The mode the members screen shows. Without `club_members:approve` only
-/// the member list (mode 0) exists.
-int effectiveMembersMode(int mode, {required bool canApprove}) =>
-    canApprove ? mode : 0;
+/// the member list (mode 0) exists; a verify-only reviewer (`consent:verify`)
+/// also gets the requests (mode 1) but never the not-enrolled list (mode 2).
+int effectiveMembersMode(
+  int mode, {
+  required bool canApprove,
+  bool canVerify = false,
+}) {
+  if (canApprove) return mode;
+  if (canVerify) return mode == 1 ? 1 : 0;
+  return 0;
+}
 
 /// Vista principal de Miembros.
 /// Modos: miembros, solicitudes, y no inscritos si hay `club_members:approve`.
@@ -59,11 +72,20 @@ class _MembersViewState extends ConsumerState<MembersView> {
     });
   }
 
-  /// Determina si el usuario puede aprobar continuaciones anuales.
-  bool _canManageContinuations(WidgetRef ref) {
-    final user = ref.read(authNotifierProvider).valueOrNull;
-    if (user == null) return false;
-    return hasAnyPermission(user, const {'club_members:approve'});
+  /// Qué puede hacer el usuario con las solicitudes de ingreso: aprobar (y las
+  /// continuaciones anuales), solo verificar fichas (`consent:verify`) o nada.
+  JoinRequestsAccess _requestsAccess(WidgetRef ref) =>
+      joinRequestsAccess(ref.read(authNotifierProvider).valueOrNull);
+
+  /// Abre el alta de un menor; al volver la lista ya se refrescó (la vista
+  /// invalida `membersNotifierProvider` al crear).
+  Future<void> _openCreateMinor(BuildContext context, int sectionId) {
+    return Navigator.push<void>(
+      context,
+      SacSharedAxisRoute<void>(
+        builder: (_) => CreateMinorView(clubSectionId: sectionId),
+      ),
+    );
   }
 
   @override
@@ -72,21 +94,34 @@ class _MembersViewState extends ConsumerState<MembersView> {
     final hPad = Responsive.horizontalPadding(context);
     final pendingCount = ref.watch(pendingRequestsCountProvider);
     final isDirector = _canManageClubRoles(ref);
-    final canContinue = _canManageContinuations(ref);
-    // Requests and continuations both need club_members:approve; without it
-    // the API answers 403 and only the member list is left.
-    if (!canContinue && _mode != 0) {
+    final access = _requestsAccess(ref);
+    final canContinue = access == JoinRequestsAccess.approve;
+    final verifyOnly = access == JoinRequestsAccess.verifyOnly;
+    final canRequests = access != JoinRequestsAccess.none;
+    // Continuations need club_members:approve and the requests need that or
+    // consent:verify; without them the API answers 403 and only the member
+    // list is left.
+    final mode = effectiveMembersMode(
+      _mode,
+      canApprove: canContinue,
+      canVerify: verifyOnly,
+    );
+    if (_mode != mode) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _mode != 0) setState(() => _mode = 0);
+        if (mounted && _mode != mode) setState(() => _mode = mode);
       });
     }
-    final mode = effectiveMembersMode(_mode, canApprove: canContinue);
     final continuationsAsync =
         canContinue ? ref.watch(annualContinuationsNotifierProvider) : null;
     final pendingContinuations =
         continuationsAsync?.valueOrNull?.items.length ?? 0;
     final clubCtxAsync = ref.watch(clubContextProvider);
     final membersAsync = ref.watch(membersNotifierProvider);
+    // "Registrar un menor": permiso `dependents:create` Y bandera del servidor.
+    final registerSectionId =
+        canRegisterMinor(ref.watch(authNotifierProvider).valueOrNull)
+            ? clubCtxAsync.valueOrNull?.sectionId
+            : null;
     final onContinuations = canContinue && mode == 2;
     final fadeDuration = SacMotion.reducedFade;
     final refreshing = onContinuations
@@ -105,6 +140,20 @@ class _MembersViewState extends ConsumerState<MembersView> {
             color: SacAccent.of(context).color,
           ),
           actions: [
+            if (registerSectionId != null)
+              SacPressable(
+                listenOnly: true,
+                child: IconButton(
+                  enableFeedback: false,
+                  tooltip: 'members.create_minor.entry'.tr(),
+                  onPressed: () => _openCreateMinor(context, registerSectionId),
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedUserAdd01,
+                    color: c.textTertiary,
+                    size: 18,
+                  ),
+                ),
+              ),
             SacPressable(
               listenOnly: true,
               child: IconButton(
@@ -141,7 +190,7 @@ class _MembersViewState extends ConsumerState<MembersView> {
           builder: (context) => SafeArea(
             child: Column(
               children: [
-                if (canContinue)
+                if (canRequests)
                   Padding(
                     padding:
                         EdgeInsets.symmetric(horizontal: hPad, vertical: 8),
@@ -165,14 +214,14 @@ class _MembersViewState extends ConsumerState<MembersView> {
                           isDirector: isDirector,
                           membersAsync: membersAsync,
                         ),
-                        if (canContinue) ...[
+                        if (canRequests)
                           _JoinRequestsTab(
                             clubContext: ctx,
                             isDirector: isDirector,
                             membersAsync: membersAsync,
+                            verifyOnly: verifyOnly,
                           ),
-                          const AnnualContinuationsBody(),
-                        ],
+                        if (canContinue) const AnnualContinuationsBody(),
                       ];
                       return Stack(
                         fit: StackFit.expand,
@@ -354,6 +403,16 @@ class _MembersTab extends ConsumerWidget {
     WidgetRef ref,
     ClubMember member,
   ) async {
+    // Un menor con solicitud pendiente y consentimiento sin verificar: si el
+    // backend rechaza el cargo (409 MR_CONSENT_NOT_VERIFIED) la vista ofrece
+    // abrir la verificación de esa solicitud.
+    final requests =
+        ref.read(membersNotifierProvider).valueOrNull?.joinRequests ??
+            const <JoinRequest>[];
+    final pendingConsent = requests
+        .where((r) => r.userId == member.userId && r.consentPending)
+        .firstOrNull;
+
     // Result is ignored here — MembersNotifier.assignRole calls invalidateSelf()
     // internally so the list auto-refreshes via the AsyncNotifier build().
     await Navigator.push<bool>(
@@ -362,6 +421,7 @@ class _MembersTab extends ConsumerWidget {
         builder: (_) => RoleAssignmentView(
           member: member,
           clubContext: clubContext,
+          pendingConsentRequest: pendingConsent,
         ),
       ),
     );
@@ -375,10 +435,15 @@ class _JoinRequestsTab extends ConsumerStatefulWidget {
   final bool isDirector;
   final AsyncValue<MembersData> membersAsync;
 
+  /// Solo `consent:verify`: el servidor entrega solo los menores con la ficha
+  /// por verificar y aquí no se aprueba ni se rechaza nada.
+  final bool verifyOnly;
+
   const _JoinRequestsTab({
     required this.clubContext,
     required this.isDirector,
     required this.membersAsync,
+    this.verifyOnly = false,
   });
 
   @override
@@ -411,6 +476,14 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
 
     return Column(
       children: [
+        if (widget.verifyOnly)
+          Padding(
+            padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 8),
+            child: Text(
+              'members.view.verify_only_hint'.tr(),
+              style: TextStyle(fontSize: 12, color: c.textSecondary),
+            ),
+          ),
         ColoredBox(
           color: c.background,
           child: Padding(
@@ -432,40 +505,72 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
                 onRetry: () =>
                     ref.read(membersNotifierProvider.notifier).refresh(),
               ),
-              data: (_) => filteredRequests.isEmpty
+              data: (data) => widget.verifyOnly && data.requestsScopeDenied
                   ? _EmptyState(
-                      icon: HugeIcons.strokeRoundedUserAdd01,
-                      title: 'members.view.no_requests_title'.tr(),
-                      subtitle: _emptySubtitleKey(filters).tr(),
+                      icon: HugeIcons.strokeRoundedLockKey,
+                      title: 'members.view.verify_scope_title'.tr(),
+                      subtitle: 'members.view.verify_scope_subtitle'.tr(),
                     )
-                  : RefreshIndicator(
-                      color: SacAccent.of(context).color,
-                      onRefresh: () =>
-                          ref.read(membersNotifierProvider.notifier).refresh(),
-                      child: ListView.separated(
-                        padding: EdgeInsets.fromLTRB(hPad, 4, hPad, 24),
-                        itemCount: filteredRequests.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 6),
-                        itemBuilder: (context, index) {
-                          final request = filteredRequests[index];
-                          final isProcessing =
-                              _processingIds.contains(request.assignmentId);
-                          final canAct = widget.isDirector &&
-                              request.status == JoinRequestStatus.pending &&
-                              !isProcessing;
-                          return JoinRequestCard(
-                            request: request,
-                            onTap: () => _openRequestProfile(context, request),
-                            onApprove: canAct
-                                ? () => _approveRequest(context, request)
-                                : null,
-                            onReject: canAct
-                                ? () => _rejectRequest(context, request)
-                                : null,
-                          );
-                        },
-                      ),
-                    ),
+                  : filteredRequests.isEmpty
+                      ? _EmptyState(
+                          icon: widget.verifyOnly
+                              ? HugeIcons.strokeRoundedFileVerified
+                              : HugeIcons.strokeRoundedUserAdd01,
+                          title: widget.verifyOnly
+                              ? 'members.view.verify_empty_title'.tr()
+                              : 'members.view.no_requests_title'.tr(),
+                          subtitle:
+                              widget.verifyOnly && filters.searchQuery.isEmpty
+                                  ? 'members.view.verify_empty_subtitle'.tr()
+                                  : _emptySubtitleKey(filters).tr(),
+                        )
+                      : RefreshIndicator(
+                          color: SacAccent.of(context).color,
+                          onRefresh: () => ref
+                              .read(membersNotifierProvider.notifier)
+                              .refresh(),
+                          child: ListView.separated(
+                            padding: EdgeInsets.fromLTRB(hPad, 4, hPad, 24),
+                            itemCount: filteredRequests.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 6),
+                            itemBuilder: (context, index) {
+                              final request = filteredRequests[index];
+                              final isProcessing =
+                                  _processingIds.contains(request.assignmentId);
+                              if (widget.verifyOnly) {
+                                // Solo se verifica la ficha: ni aprobar ni rechazar,
+                                // y la fila abre la verificación (no el perfil, que
+                                // este permiso no necesariamente puede leer).
+                                final verify = request.consentPending
+                                    ? () => _openConsentVerification(
+                                          context,
+                                          request,
+                                        )
+                                    : null;
+                                return JoinRequestCard(
+                                  request: request,
+                                  onTap: verify,
+                                  onVerify: verify,
+                                );
+                              }
+                              final canAct = widget.isDirector &&
+                                  request.status == JoinRequestStatus.pending &&
+                                  !isProcessing;
+                              return JoinRequestCard(
+                                request: request,
+                                onTap: () =>
+                                    _openRequestProfile(context, request),
+                                onApprove: canAct
+                                    ? () => _approveRequest(context, request)
+                                    : null,
+                                onReject: canAct
+                                    ? () => _rejectRequest(context, request)
+                                    : null,
+                              );
+                            },
+                          ),
+                        ),
             ),
           ),
         ),
@@ -495,26 +600,72 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
     );
   }
 
+  /// Abre la verificación de la ficha firmada de un menor (FP-76).
+  Future<void> _openConsentVerification(
+    BuildContext context,
+    JoinRequest request,
+  ) {
+    return Navigator.push<bool>(
+      context,
+      SacSharedAxisRoute<bool>(
+        builder: (_) => ConsentVerificationView(
+          request: request,
+          // Solo verificar: nunca se manda `approve: true` sin el permiso.
+          canApprove: !widget.verifyOnly &&
+              canApproveJoinRequests(
+                ref.read(authNotifierProvider).valueOrNull,
+              ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _approveRequest(
     BuildContext context,
     JoinRequest request,
   ) async {
+    // Un menor sin ficha verificada no se aprueba directo (el backend lo
+    // rechazaría con 409 MR_CONSENT_NOT_VERIFIED): se abre la verificación.
+    if (request.consentPending) {
+      await _openConsentVerification(context, request);
+      return;
+    }
+
     setState(() => _processingIds.add(request.assignmentId));
     try {
-      final success = await ref
+      final failure = await ref
           .read(membersNotifierProvider.notifier)
-          .approveRequest(request.assignmentId);
+          .approveRequestOrFailure(request.assignmentId);
 
-      if (context.mounted) {
+      if (!context.mounted) return;
+      if (failure == null) {
         SacSnackBar.show(
           context,
-          success
-              ? tr('members.view.request_approved',
-                  namedArgs: {'name': request.fullName})
-              : 'members.view.approve_error'.tr(),
-          isError: !success,
+          tr('members.view.request_approved',
+              namedArgs: {'name': request.fullName}),
         );
+        return;
       }
+
+      // La lista estaba desactualizada: era un menor con consentimiento
+      // pendiente. Se explica y se abre la verificación.
+      if (failure.errorCode == 'MR_CONSENT_NOT_VERIFIED') {
+        SacSnackBar.show(
+          context,
+          'members.consent.approve_blocked'.tr(),
+          isError: true,
+        );
+        await _openConsentVerification(context, request);
+        return;
+      }
+
+      SacSnackBar.show(
+        context,
+        consentErrorKey(failure.errorCode) != null
+            ? consentErrorMessage(failure)
+            : 'members.view.approve_error'.tr(),
+        isError: true,
+      );
     } finally {
       if (mounted) setState(() => _processingIds.remove(request.assignmentId));
     }

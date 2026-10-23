@@ -3,12 +3,13 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/datasources/personal_info_remote_data_source.dart';
+import '../../data/health_none_disk_cache.dart';
 import '../../data/models/emergency_contact_model.dart';
-import '../../data/models/legal_representative_model.dart';
 import '../../data/models/allergy_model.dart';
 import '../../data/models/disease_model.dart';
 import '../../data/models/medicine_model.dart';
 import '../../data/models/relationship_type_model.dart';
+import '../../../auth/domain/entities/principal_info.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../profile/presentation/widgets/blood_type_selector.dart';
 import '../../../../providers/dio_provider.dart';
@@ -148,8 +149,6 @@ final healthNoneStateProvider =
 
 class HealthNoneStateNotifier
     extends AutoDisposeAsyncNotifier<HealthNoneState> {
-  static const _prefix = 'post_registration.health_none';
-
   @override
   Future<HealthNoneState> build() async {
     final userId = await ref.watch(
@@ -193,7 +192,7 @@ class HealthNoneStateNotifier
   }
 
   static String _key(String userId, HealthNoneCategory category) {
-    return '$_prefix.$userId.${category.name}';
+    return healthNoneKey(userId, category.name);
   }
 }
 
@@ -507,23 +506,6 @@ final userMedicinesProvider = AsyncNotifierProvider.autoDispose<
   () => UserMedicinesNotifier(),
 );
 
-/// Provider que verifica si se requiere representante legal
-final legalRepresentativeRequiredProvider =
-    FutureProvider.autoDispose<bool>((ref) async {
-  final userId = await ref.watch(
-    authNotifierProvider.selectAsync((user) => user?.id),
-  );
-  if (userId == null) return false;
-
-  final cancelToken = CancelToken();
-  ref.onDispose(() => cancelToken.cancel());
-  final dataSource = ref.watch(personalInfoDataSourceProvider);
-  return await dataSource.checkLegalRepresentativeRequired(
-    userId,
-    cancelToken: cancelToken,
-  );
-});
-
 /// Notifier de contactos de emergencia
 class EmergencyContactsNotifier
     extends AutoDisposeAsyncNotifier<List<EmergencyContactModel>> {
@@ -621,54 +603,6 @@ final emergencyContactsProvider = AsyncNotifierProvider.autoDispose<
   () => EmergencyContactsNotifier(),
 );
 
-/// Notifier de representante legal
-class LegalRepresentativeNotifier
-    extends AutoDisposeAsyncNotifier<LegalRepresentativeModel?> {
-  @override
-  Future<LegalRepresentativeModel?> build() async {
-    final userId = await ref.watch(
-      authNotifierProvider.selectAsync((user) => user?.id),
-    );
-    if (userId == null) return null;
-
-    final cancelToken = CancelToken();
-    ref.onDispose(() => cancelToken.cancel());
-    final dataSource = ref.watch(personalInfoDataSourceProvider);
-    return await dataSource.getLegalRepresentative(userId,
-        cancelToken: cancelToken);
-  }
-
-  /// Crea o actualiza el representante legal
-  Future<void> saveRepresentative(
-      LegalRepresentativeModel representative) async {
-    state = const AsyncValue.loading();
-
-    state = await AsyncValue.guard(() async {
-      final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
-
-      if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
-
-      final dataSource = ref.read(personalInfoDataSourceProvider);
-      final existing = await dataSource.getLegalRepresentative(userId);
-
-      if (existing == null) {
-        return await dataSource.createLegalRepresentative(
-            userId, representative);
-      } else {
-        return await dataSource.updateLegalRepresentative(
-            userId, representative);
-      }
-    });
-  }
-}
-
-/// Provider de representante legal
-final legalRepresentativeProvider = AsyncNotifierProvider.autoDispose<
-    LegalRepresentativeNotifier, LegalRepresentativeModel?>(
-  () => LegalRepresentativeNotifier(),
-);
-
 /// Provider que determina si se puede completar el paso 2
 final canCompleteStep2Provider = Provider.autoDispose<bool>((ref) {
   final formState = ref.watch(personalInfoFormProvider);
@@ -686,92 +620,162 @@ final canCompleteStep2Provider = Provider.autoDispose<bool>((ref) {
     orElse: () => false,
   );
 
-  if (!hasContacts) return false;
-
-  final requiresRepAsync = ref.watch(legalRepresentativeRequiredProvider);
-  // Fail-closed: mientras la verificación carga o falla, un menor no puede
-  // saltarse el representante legal.
-  final requiresRep = requiresRepAsync.valueOrNull;
-  if (requiresRepAsync.isLoading ||
-      requiresRepAsync.hasError ||
-      requiresRep == null) {
-    return false;
-  }
-
-  if (requiresRep) {
-    final repAsync = ref.watch(legalRepresentativeProvider);
-    final hasRep = repAsync.maybeWhen(
-      data: (rep) => rep != null,
-      orElse: () => false,
-    );
-
-    if (!hasRep) return false;
-  }
-
-  return true;
+  return hasContacts;
 });
+
+/// Campos de datos personales que cambiaron respecto de lo ya guardado. Un
+/// campo nulo NO se envía.
+class PersonalInfoChanges {
+  const PersonalInfoChanges({
+    this.gender,
+    this.birthdate,
+    this.baptized,
+    this.baptismDate,
+    this.blood,
+  });
+
+  final String? gender;
+  final String? birthdate;
+  final bool? baptized;
+  final String? baptismDate;
+  final String? blood;
+
+  bool get isEmpty =>
+      gender == null &&
+      birthdate == null &&
+      baptized == null &&
+      baptismDate == null &&
+      blood == null;
+}
+
+bool _sameDay(DateTime? a, DateTime? b) =>
+    a != null &&
+    b != null &&
+    a.year == b.year &&
+    a.month == b.month &&
+    a.day == b.day;
+
+/// Compara el formulario con lo ya guardado ([saved]) y devuelve SOLO lo que
+/// cambió.
+///
+/// La fecha de nacimiento nunca se reenvía si no cambió (el backend la trata
+/// como una corrección y exige al tutor) y no se envía jamás si
+/// [birthdayLocked] (un adolescente supervisado no puede cambiarla). Sin
+/// [saved] no hay con qué comparar y se envía lo capturado, salvo la fecha
+/// bloqueada.
+PersonalInfoChanges diffPersonalInfo(
+  PersonalInfoFormState form,
+  PersonalInfoSnapshot? saved, {
+  bool birthdayLocked = false,
+}) {
+  final birthdate = form.birthdate;
+  final sendBirthdate = !birthdayLocked &&
+      birthdate != null &&
+      !_sameDay(birthdate, saved?.birthdate);
+
+  final sendBaptized = saved == null || form.baptized != saved.baptized;
+  final baptismDate = form.baptismDate;
+  final sendBaptismDate = form.baptized &&
+      baptismDate != null &&
+      !_sameDay(baptismDate, saved?.baptismDate);
+
+  final blood = form.bloodType;
+  final sendBlood =
+      blood != null && blood != BloodType.fromDisplay(saved?.blood);
+
+  return PersonalInfoChanges(
+    gender: form.gender != null && form.gender != saved?.gender
+        ? form.gender
+        : null,
+    birthdate: sendBirthdate ? birthdate.toUtc().toIso8601String() : null,
+    baptized: sendBaptized ? form.baptized : null,
+    baptismDate: sendBaptismDate ? baptismDate.toUtc().toIso8601String() : null,
+    blood: sendBlood ? blood.apiKey : null,
+  );
+}
 
 /// Notifier para guardar información personal con loading/error state
 class SavePersonalInfoNotifier extends AutoDisposeAsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
+  /// Guarda el paso 2. Si algo falla deja el error en el estado Y lo relanza:
+  /// quien llama NUNCA debe avanzar tras un guardado fallido. (Leer el estado
+  /// de este provider autoDispose después de un `await` no sirve: sin oyentes
+  /// se libera y se lee uno nuevo, sin error.)
   Future<void> save() async {
-    const tag = 'PersonalInfo';
     state = const AsyncValue.loading();
+    try {
+      await _save();
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
 
-    state = await AsyncValue.guard(() async {
-      final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
+  Future<void> _save() async {
+    const tag = 'PersonalInfo';
+    final authState = ref.read(authNotifierProvider);
+    final user = authState.valueOrNull;
+    final userId = user?.id;
 
-      if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
+    if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
-      final formState = ref.read(personalInfoFormProvider);
-      final dataSource = ref.read(personalInfoDataSourceProvider);
+    final formState = ref.read(personalInfoFormProvider);
+    final dataSource = ref.read(personalInfoDataSourceProvider);
 
-      AppLogger.d(
-        'savePersonalInfo userId=$userId gender=${formState.gender} baptized=${formState.baptized} blood=${formState.bloodType?.apiKey}',
-        tag: tag,
-      );
+    AppLogger.d(
+      'savePersonalInfo userId=$userId gender=${formState.gender} baptized=${formState.baptized} blood=${formState.bloodType?.apiKey}',
+      tag: tag,
+    );
 
+    // Solo lo que cambió; la fecha de un adolescente supervisado jamás se
+    // envía (solo su tutor puede corregirla).
+    final changes = diffPersonalInfo(
+      formState,
+      ref.read(personalInfoSnapshotProvider).valueOrNull,
+      birthdayLocked: user?.principal?.kind == PrincipalKind.supervisedUser,
+    );
+    if (!changes.isEmpty) {
       await dataSource.updatePersonalInfo(
         userId,
-        gender: formState.gender,
-        birthdate: formState.birthdate?.toUtc().toIso8601String(),
-        baptized: formState.baptized,
-        baptismDate: formState.baptismDate?.toUtc().toIso8601String(),
-        blood: formState.bloodType?.apiKey,
+        gender: changes.gender,
+        birthdate: changes.birthdate,
+        baptized: changes.baptized,
+        baptismDate: changes.baptismDate,
+        blood: changes.blood,
       );
-      ref.invalidate(personalInfoSnapshotProvider);
+    }
+    ref.invalidate(personalInfoSnapshotProvider);
 
-      final selectedAllergies = ref.read(selectedAllergiesProvider);
-      if (selectedAllergies.isNotEmpty) {
-        // Post-registration flow: no severity UI yet — default to leve
-        final allergyEntries = selectedAllergies
-            .map((id) => AllergyEntry(id: id, severity: AllergySeverity.leve))
-            .toList();
-        await dataSource.saveUserAllergies(userId, allergyEntries);
-      }
+    final selectedAllergies = ref.read(selectedAllergiesProvider);
+    if (selectedAllergies.isNotEmpty) {
+      // Post-registration flow: no severity UI yet — default to leve
+      final allergyEntries = selectedAllergies
+          .map((id) => AllergyEntry(id: id, severity: AllergySeverity.leve))
+          .toList();
+      await dataSource.saveUserAllergies(userId, allergyEntries);
+    }
 
-      final selectedDiseases = ref.read(selectedDiseasesProvider);
-      if (selectedDiseases.isNotEmpty) {
-        // Post-registration flow: no since_year UI yet — omit the field
-        final diseaseEntries =
-            selectedDiseases.map((id) => DiseaseEntry(id: id)).toList();
-        await dataSource.saveUserDiseases(userId, diseaseEntries);
-      }
+    final selectedDiseases = ref.read(selectedDiseasesProvider);
+    if (selectedDiseases.isNotEmpty) {
+      // Post-registration flow: no since_year UI yet — omit the field
+      final diseaseEntries =
+          selectedDiseases.map((id) => DiseaseEntry(id: id)).toList();
+      await dataSource.saveUserDiseases(userId, diseaseEntries);
+    }
 
-      final selectedMedicines = ref.read(selectedMedicinesProvider);
-      if (selectedMedicines.isNotEmpty) {
-        // Post-registration flow: no dose UI yet — omit the field
-        final medicineEntries =
-            selectedMedicines.map((id) => MedicineEntry(id: id)).toList();
-        await dataSource.saveUserMedicines(userId, medicineEntries);
-      }
+    final selectedMedicines = ref.read(selectedMedicinesProvider);
+    if (selectedMedicines.isNotEmpty) {
+      // Post-registration flow: no dose UI yet — omit the field
+      final medicineEntries =
+          selectedMedicines.map((id) => MedicineEntry(id: id)).toList();
+      await dataSource.saveUserMedicines(userId, medicineEntries);
+    }
 
-      await dataSource.completeStep2(userId);
-      AppLogger.i('Paso 2 completado', tag: tag);
-    });
+    await dataSource.completeStep2(userId);
+    AppLogger.i('Paso 2 completado', tag: tag);
   }
 }
 

@@ -1,0 +1,230 @@
+import 'package:equatable/equatable.dart';
+
+/// Tipo de principal que el servidor resolvió para la sesión (`/auth/me`).
+///
+/// Lo calcula SIEMPRE el servidor: la app nunca lo deduce de un claim del JWT
+/// ni de la edad. Un valor desconocido es [unknown] y falla cerrado: cuenta
+/// restringida (`AccountMode.restricted`), analítica anónima, nunca adulto.
+enum PrincipalKind {
+  /// Adulto o cuenta sin edad conocida.
+  user,
+
+  /// Tutor actuando por un dependiente (Fase 2).
+  guardianActing,
+
+  /// Menor de 13 a 17 con cuenta propia, bajo supervisión.
+  supervisedUser,
+
+  /// Teléfono vinculado de un menor de 13 (Fase 3b).
+  linkedDevice,
+
+  /// Cuenta SIN fecha de nacimiento y con el post-registro incompleto (p. ej.
+  /// un alta nueva con Google o Apple): restringida hasta que el paso 2 guarde
+  /// la fecha. Sin supervisión ni familia. No es un adulto.
+  ageUnknownUser,
+
+  /// Valor no reconocido (servidor más nuevo que la app).
+  unknown;
+
+  static PrincipalKind parse(Object? raw) => switch (raw) {
+        'user' => user,
+        'guardian_acting' => guardianActing,
+        'supervised_user' => supervisedUser,
+        'linked_device' => linkedDevice,
+        'age_unknown_user' => ageUnknownUser,
+        _ => unknown,
+      };
+}
+
+/// Estado de la supervisión de un adolescente.
+enum SupervisionStatus {
+  /// Sin tutor con consentimiento verificado: modo restringido.
+  pendingGuardian,
+
+  /// Tutor verificado: la app de miembro completa (menos lo sensible).
+  active;
+
+  /// `null` si el valor no es uno de los dos (o viene ausente).
+  static SupervisionStatus? parse(Object? raw) => switch (raw) {
+        'pending_guardian' => pendingGuardian,
+        'active' => active,
+        _ => null,
+      };
+}
+
+/// Tutor vinculado, tal como lo ve el adolescente (sin datos de contacto).
+class SupervisionGuardian extends Equatable {
+  final String displayName;
+  final String? relationshipTypeName;
+
+  /// Id de la tutoría (`guardianship_id`); nulo en servidores anteriores.
+  final String? guardianshipId;
+
+  /// `consent_status` crudo: `pending` | `verified`. Nulo si falta.
+  final String? consentStatus;
+
+  const SupervisionGuardian({
+    required this.displayName,
+    this.relationshipTypeName,
+    this.guardianshipId,
+    this.consentStatus,
+  });
+
+  @override
+  List<Object?> get props =>
+      [displayName, relationshipTypeName, guardianshipId, consentStatus];
+}
+
+/// Plazo (en días) que el servidor da a un adolescente sin tutor antes de
+/// congelar la cuenta (FP3-06).
+const int kPendingGuardianDeadlineDays = 90;
+
+/// Bloque `principal.supervision` de `GET /auth/me`.
+class SupervisionInfo extends Equatable {
+  final SupervisionStatus status;
+
+  /// Desde cuándo corre el reloj sin tutor (nulo si el servidor no lo informa).
+  final DateTime? pendingSince;
+  final List<SupervisionGuardian> guardians;
+  final bool summaryVisibleToGuardians;
+
+  /// Días restantes que informó el servidor; si falta se calcula con
+  /// [daysLeftAt].
+  final int? serverDaysLeft;
+
+  const SupervisionInfo({
+    required this.status,
+    this.pendingSince,
+    this.guardians = const [],
+    this.summaryVisibleToGuardians = true,
+    this.serverDaysLeft,
+  });
+
+  bool get isPending => status == SupervisionStatus.pendingGuardian;
+
+  /// Días que quedan antes de congelar la cuenta (nunca negativo). `null` si no
+  /// hay reloj (supervisión activa o sin fecha de inicio).
+  int? daysLeftAt(DateTime now) {
+    if (!isPending) return null;
+    final server = serverDaysLeft;
+    if (server != null) return server < 0 ? 0 : server;
+    final since = pendingSince;
+    if (since == null) return null;
+    final elapsed = now.toUtc().difference(since.toUtc()).inDays;
+    final left = kPendingGuardianDeadlineDays - elapsed;
+    return left < 0 ? 0 : left;
+  }
+
+  @override
+  List<Object?> get props => [
+        status,
+        pendingSince,
+        guardians,
+        summaryVisibleToGuardians,
+        serverDaysLeft,
+      ];
+}
+
+/// Bloque `principal.device` de `GET /auth/me` para un teléfono vinculado.
+class DeviceInfo extends Equatable {
+  final String? linkedDeviceId;
+  final String? label;
+  final DateTime? pairedAt;
+
+  /// Club del menor (`/auth/me.club{club_id, club_name, club_type}` de un
+  /// teléfono vinculado, que no trae `authorization`). Se guarda aquí para que
+  /// viaje con el principal.
+  final int? clubId;
+  final String? clubName;
+  final String? clubType;
+
+  const DeviceInfo({
+    this.linkedDeviceId,
+    this.label,
+    this.pairedAt,
+    this.clubId,
+    this.clubName,
+    this.clubType,
+  });
+
+  @override
+  List<Object?> get props =>
+      [linkedDeviceId, label, pairedAt, clubId, clubName, clubType];
+}
+
+/// Bloque `principal` de `GET /auth/me`.
+class PrincipalInfo extends Equatable {
+  final PrincipalKind kind;
+
+  /// Alcances que el servidor concede (nulo para `user`: sin restricción).
+  final List<String>? scopes;
+  final SupervisionInfo? supervision;
+
+  /// Solo para un teléfono vinculado (`linked_device`).
+  final DeviceInfo? device;
+
+  const PrincipalInfo({
+    required this.kind,
+    this.scopes,
+    this.supervision,
+    this.device,
+  });
+
+  @override
+  List<Object?> get props => [kind, scopes, supervision, device];
+}
+
+/// Banderas de la familia que el servidor expone en `/auth/me`
+/// (`family_features`). Ausentes = apagadas.
+class FamilyFeatures extends Equatable {
+  final bool teenLogin;
+  final bool linkedDevice;
+  final bool directorCreateMinor;
+
+  const FamilyFeatures({
+    this.teenLogin = false,
+    this.linkedDevice = false,
+    this.directorCreateMinor = false,
+  });
+
+  @override
+  List<Object?> get props => [teenLogin, linkedDevice, directorCreateMinor];
+}
+
+/// Modo de la cuenta para enrutar la app (FP3-31).
+enum AccountMode {
+  /// Adulto (o servidor sin soporte de supervisión).
+  adult,
+
+  /// Adolescente sin tutor verificado: modo restringido.
+  teenPending,
+
+  /// Adolescente con tutor verificado.
+  teenSupervised,
+
+  /// Sin fecha de nacimiento y con el post-registro incompleto (`/auth/me.mode`
+  /// = `profile_incomplete`). Solo puede completar el post-registro; en cuanto
+  /// el paso 2 guarda la fecha, el servidor lo pasa a `teen_pending` o `adult`.
+  profileIncomplete,
+
+  /// Teléfono vinculado de un menor de 13 (Fase 3b). Cáscara propia: sin
+  /// perfil, sin Mi familia, sin cuenta (`principal.kind == linked_device`).
+  linkedDevice,
+
+  /// Modo o principal que la app no reconoce (servidor más nuevo). Falla
+  /// cerrado: nunca se trata como adulto.
+  restricted;
+
+  /// `null` si el valor falta (el modo se deriva del principal). Un texto que
+  /// la app no reconoce es [restricted]: fallar cerrado, no abierto.
+  static AccountMode? parse(Object? raw) => switch (raw) {
+        null => null,
+        'adult' => adult,
+        'teen_pending' => teenPending,
+        'teen_supervised' => teenSupervised,
+        'device' => linkedDevice,
+        'profile_incomplete' => profileIncomplete,
+        String() => restricted,
+        _ => null,
+      };
+}

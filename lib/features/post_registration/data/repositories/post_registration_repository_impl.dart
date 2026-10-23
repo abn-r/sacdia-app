@@ -29,9 +29,11 @@ class PostRegistrationRepositoryImpl implements PostRegistrationRepository {
       );
       return Right(status);
     } on core_exceptions.ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, code: e.code));
+      return Left(ServerFailure(
+          message: e.message, code: e.code, errorCode: e.errorCode));
     } on core_exceptions.AuthException catch (e) {
-      return Left(AuthFailure(message: e.message, code: e.code));
+      return Left(AuthFailure(
+          message: e.message, code: e.code, errorCode: e.errorCode));
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
     }
@@ -49,9 +51,11 @@ class PostRegistrationRepositoryImpl implements PostRegistrationRepository {
       );
       return Right(url);
     } on core_exceptions.ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, code: e.code));
+      return Left(ServerFailure(
+          message: e.message, code: e.code, errorCode: e.errorCode));
     } on core_exceptions.AuthException catch (e) {
-      return Left(AuthFailure(message: e.message, code: e.code));
+      return Left(AuthFailure(
+          message: e.message, code: e.code, errorCode: e.errorCode));
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
     }
@@ -65,9 +69,11 @@ class PostRegistrationRepositoryImpl implements PostRegistrationRepository {
       await remoteDataSource.deleteProfilePicture(userId: userId);
       return const Right(null);
     } on core_exceptions.ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, code: e.code));
+      return Left(ServerFailure(
+          message: e.message, code: e.code, errorCode: e.errorCode));
     } on core_exceptions.AuthException catch (e) {
-      return Left(AuthFailure(message: e.message, code: e.code));
+      return Left(AuthFailure(
+          message: e.message, code: e.code, errorCode: e.errorCode));
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
     }
@@ -85,9 +91,11 @@ class PostRegistrationRepositoryImpl implements PostRegistrationRepository {
       );
       return Right(hasPhoto);
     } on core_exceptions.ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, code: e.code));
+      return Left(ServerFailure(
+          message: e.message, code: e.code, errorCode: e.errorCode));
     } on core_exceptions.AuthException catch (e) {
-      return Left(AuthFailure(message: e.message, code: e.code));
+      return Left(AuthFailure(
+          message: e.message, code: e.code, errorCode: e.errorCode));
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
     }
@@ -99,9 +107,11 @@ class PostRegistrationRepositoryImpl implements PostRegistrationRepository {
       await remoteDataSource.completeStep1(userId);
       return const Right(null);
     } on core_exceptions.ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, code: e.code));
+      return Left(ServerFailure(
+          message: e.message, code: e.code, errorCode: e.errorCode));
     } on core_exceptions.AuthException catch (e) {
-      return Left(AuthFailure(message: e.message, code: e.code));
+      return Left(AuthFailure(
+          message: e.message, code: e.code, errorCode: e.errorCode));
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
     }
@@ -115,9 +125,11 @@ class PostRegistrationRepositoryImpl implements PostRegistrationRepository {
       await remoteDataSource.cancelPendingMembershipRequest(userId: userId);
       return const Right(null);
     } on core_exceptions.ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, code: e.code));
+      return Left(ServerFailure(
+          message: e.message, code: e.code, errorCode: e.errorCode));
     } on core_exceptions.AuthException catch (e) {
-      return Left(AuthFailure(message: e.message, code: e.code));
+      return Left(AuthFailure(
+          message: e.message, code: e.code, errorCode: e.errorCode));
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
     }

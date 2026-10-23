@@ -23,6 +23,11 @@ import 'package:sacdia_app/features/coordinator/domain/entities/coordinator_club
 import 'package:sacdia_app/features/coordinator/domain/entities/coordinator_scope.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/evidence_review_item.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/sla_dashboard.dart';
+import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/features/members/presentation/utils/consent_access.dart';
+import 'package:sacdia_app/features/notifications/presentation/providers/unread_notifications_count_provider.dart';
+import 'package:sacdia_app/features/coordinator/presentation/providers/consent_review_providers.dart';
 import 'package:sacdia_app/features/coordinator/presentation/providers/coordinator_providers.dart';
 import 'package:sacdia_app/features/coordinator/presentation/providers/coordinator_reports_providers.dart';
 import 'package:sacdia_app/features/coordinator/presentation/views/coordinator_reports_view.dart';
@@ -64,6 +69,8 @@ class CoordinatorHubView extends ConsumerWidget {
     ref.invalidate(pendingEvidenceProvider);
     ref.invalidate(coordinatorClubsRawProvider);
     ref.invalidate(reportComplianceProvider);
+    // Badge of the consent-forms entry (only read while the entry is shown).
+    ref.invalidate(consentPendingCountProvider);
 
     Future<void> settle(Future<Object?> future) async {
       try {
@@ -86,6 +93,7 @@ class CoordinatorHubView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.sac;
     final accent = SacAccent.of(context);
+    final user = ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
     final scopeAsync = ref.watch(coordinatorScopeProvider);
     final clubs = ref.watch(coordinatorClubsRawProvider).valueOrNull;
     final subtitle = scopeAsync.whenOrNull(
@@ -105,6 +113,14 @@ class CoordinatorHubView extends ConsumerWidget {
           size: 22,
           color: accent.color,
         ),
+        // Without a club the hub is the dashboard home and there is no other
+        // bell: the inbox opens from here.
+        actions: [
+          if (isCoordinatorWithoutClub(user))
+            _NotificationsAction(
+              unreadCount: ref.watch(unreadNotificationsCountProvider),
+            ),
+        ],
       ),
       body: SacFrostedVeil(
         child: Builder(
@@ -163,18 +179,158 @@ class CoordinatorHubView extends ConsumerWidget {
               }
               return _HubScroll(
                 onRefresh: () => _refresh(ref),
-                children: const [
-                  _ReviewSection(),
-                  SizedBox(height: 24),
-                  _ResponseTimeSection(),
-                  SizedBox(height: 24),
-                  _ClubsSection(),
-                  SizedBox(height: 24),
-                  _ReportsSection(),
+                children: [
+                  const _ReviewSection(),
+                  // Consent forms of minors to verify: only for a coordinator
+                  // role carrying `consent:verify` (what the server requires).
+                  if (coordinatorRoleCanVerify(user)) ...const [
+                    SizedBox(height: 24),
+                    _ConsentSection(),
+                  ],
+                  const SizedBox(height: 24),
+                  const _ResponseTimeSection(),
+                  const SizedBox(height: 24),
+                  const _ClubsSection(),
+                  const SizedBox(height: 24),
+                  const _ReportsSection(),
                 ],
               );
             },
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Notifications action ────────────────────────────────────────────────────
+
+class _NotificationsAction extends StatelessWidget {
+  const _NotificationsAction({required this.unreadCount});
+
+  final int unreadCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        SacPressable(
+          listenOnly: true,
+          child: IconButton(
+            enableFeedback: false,
+            onPressed: () => context.push(RouteNames.notificationsInbox),
+            tooltip: 'dashboard.notifications_tooltip'.tr(),
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedNotification01,
+              size: 24,
+              color: c.text,
+            ),
+          ),
+        ),
+        if (unreadCount > 0)
+          Positioned(
+            top: 4,
+            right: 4,
+            child: IgnorePointer(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                decoration: BoxDecoration(
+                  color: c.error,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                constraints: const BoxConstraints(minWidth: 16),
+                child: Text(
+                  unreadCount > 99 ? '99+' : '$unreadCount',
+                  style: textTheme.labelSmall?.copyWith(
+                    color: c.onError,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// ── "Fichas por verificar" ──────────────────────────────────────────────────
+
+/// Entry to the consent-forms verification queue, with the pending total as a
+/// badge. Only built when the hub already decided the user may verify.
+class _ConsentSection extends ConsumerWidget {
+  const _ConsentSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scope = ref.watch(coordinatorScopeProvider).valueOrNull;
+    if (scope == null || !scope.hasAssignedSections) {
+      return const SizedBox.shrink();
+    }
+    final c = context.sac;
+    final textTheme = Theme.of(context).textTheme;
+    // Cheap: asks for a single form, only to read the total.
+    final count = ref.watch(consentPendingCountProvider).valueOrNull;
+
+    return Semantics(
+      container: true,
+      child: SacCard(
+        animate: true,
+        // Back from the queue the total may have changed (forms were
+        // verified): read it again.
+        onTap: () async {
+          await context.push(RouteNames.coordinatorConsentReview);
+          if (context.mounted) ref.invalidate(consentPendingCountProvider);
+        },
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: c.warning.withValues(alpha: 0.18),
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: HugeIcon(
+                icon: HugeIcons.strokeRoundedFileVerified,
+                size: 22,
+                color: c.onWarning,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'coordinator.nav.consent_title'.tr(),
+                    style: textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: c.text,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'coordinator.nav.consent_subtitle'.tr(),
+                    style:
+                        textTheme.bodySmall?.copyWith(color: c.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+            if (count != null && count > 0) ...[
+              const SizedBox(width: 8),
+              SacBadge.warning(label: count.toString()),
+            ],
+            const SizedBox(width: 8),
+            const _Chevron(),
+          ],
         ),
       ),
     );

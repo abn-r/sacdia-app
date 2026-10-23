@@ -1,10 +1,15 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../../../core/consent/consent_evidence.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/network/api_error_mapper.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/annual_continuation.dart';
 import '../../domain/entities/assignable_role.dart';
+import '../../domain/entities/claim_code.dart';
+import '../../domain/entities/consent_verification_result.dart';
+import '../../domain/entities/create_minor.dart';
 import '../models/annual_continuation_model.dart';
 import '../models/club_member_model.dart';
 import '../models/join_request_model.dart';
@@ -60,6 +65,31 @@ abstract class MembersRemoteDataSource {
   Future<ContinuationBatchResult> submitAnnualContinuations({
     required int sectionId,
     required List<String> userIds,
+  });
+
+  /// Sube la ficha firmada de un menor (director). Conserva el `code` de
+  /// negocio en [AppException.errorCode].
+  Future<ConsentEvidenceReceipt> uploadConsentEvidence({
+    required String assignmentId,
+    required ConsentEvidenceLocalFile file,
+  });
+
+  /// Ficha vigente con URL firmada.
+  Future<ConsentEvidenceAccess> getConsentEvidence(String assignmentId);
+
+  /// Verifica el consentimiento y, con [approve], aprueba la solicitud.
+  Future<ConsentVerificationResult> verifyConsent({
+    required String assignmentId,
+    required bool approve,
+  });
+
+  /// Alta de un menor por un director (custodia del club).
+  Future<CreatedMinor> createMinor(CreateMinorInput input);
+
+  /// Código de reclamo (7 días) de un menor bajo custodia del club.
+  Future<IssuedClaimCode> issueClaimCode({
+    required int clubSectionId,
+    required String dependentUserId,
   });
 }
 
@@ -274,10 +304,14 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
         return [];
       }
       AppLogger.e('Error al obtener solicitudes', tag: _tag, error: e);
+      final data = e.response?.data;
       throw ServerException(
         message:
             e.response?.data?['message'] ?? tr('members.errors.fetch_requests'),
         code: e.response?.statusCode,
+        // `GUARD_CLUB_SCOPE_REQUIRED` (sección fuera del alcance del
+        // coordinador) se distingue por código; `details` nunca se lee.
+        errorCode: data is Map ? data['code']?.toString() : null,
       );
     } catch (e) {
       if (e is AuthException || e is ServerException) rethrow;
@@ -304,10 +338,14 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       return JoinRequestModel.fromJson({...json, 'status': 'approved'});
     } on DioException catch (e) {
       AppLogger.e('Error al aprobar solicitud', tag: _tag, error: e);
+      final data = e.response?.data;
       throw ServerException(
         message: e.response?.data?['message'] ??
             tr('members.errors.approve_request'),
         code: e.response?.statusCode,
+        // `MR_CONSENT_NOT_VERIFIED` (menor sin ficha verificada) se distingue
+        // por código; `details` nunca se lee.
+        errorCode: data is Map ? data['code']?.toString() : null,
       );
     } catch (e) {
       if (e is AuthException || e is ServerException) rethrow;
@@ -375,10 +413,14 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       return response.statusCode == 200 || response.statusCode == 201;
     } on DioException catch (e) {
       AppLogger.e('Error al asignar rol', tag: _tag, error: e);
+      final data = e.response?.data;
       throw ServerException(
         message:
             e.response?.data?['message'] ?? tr('members.errors.assign_role'),
         code: e.response?.statusCode,
+        // `MR_CONSENT_NOT_VERIFIED` (menor sin ficha verificada, 409) se
+        // distingue por código; `details` nunca se lee.
+        errorCode: data is Map ? data['code']?.toString() : null,
       );
     } catch (e) {
       if (e is AuthException || e is ServerException) rethrow;
@@ -515,4 +557,167 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       throw ServerException(message: e.toString());
     }
   }
+
+  // ── Consentimiento de menores (Phase 2c) ──────────────────────────────────
+  //
+  // `assignmentId` viene de [JoinRequest.assignmentId]: `<sectionId>/
+  // membership-requests/<requestId>`, la misma ruta que usan approve/reject.
+  // Estas rutas NO son acting-scoped: si el director estuviera "viendo como" un
+  // menor, el encabezado `X-Acting-For` hace que el backend las rechace (403
+  // ACTING_FOR_SCOPE_DENIED), que es lo correcto.
+
+  Map<String, dynamic> _unwrapData(Object? raw) {
+    if (raw is Map && raw['data'] is Map) {
+      return Map<String, dynamic>.from(raw['data'] as Map);
+    }
+    throw ServerException(message: tr('errors.server_error'));
+  }
+
+  Future<T> _consentCall<T>(
+    String label,
+    Future<Response<dynamic>> Function() request,
+    T Function(Map<String, dynamic> data) parse,
+  ) async {
+    try {
+      final response = await request();
+      final status = response.statusCode;
+      if (status == null || status < 200 || status >= 300) {
+        throw appExceptionFromResponse(status, response.data);
+      }
+      return parse(_unwrapData(response.data));
+    } catch (e) {
+      AppLogger.e('Error en $label', tag: _tag, error: e);
+      rethrowApiError(e);
+    }
+  }
+
+  String _consentPath(String assignmentId, String suffix) =>
+      '$_baseUrl${ApiEndpoints.clubSections}/$assignmentId/$suffix';
+
+  @override
+  Future<ConsentEvidenceReceipt> uploadConsentEvidence({
+    required String assignmentId,
+    required ConsentEvidenceLocalFile file,
+  }) =>
+      _consentCall(
+        'uploadConsentEvidence',
+        () async => _dio.post(
+          _consentPath(assignmentId, 'consent-evidence'),
+          data: await file.toFormData(),
+          options: Options(
+            headers: const {'Content-Type': 'multipart/form-data'},
+            sendTimeout: const Duration(minutes: 2),
+            receiveTimeout: const Duration(minutes: 2),
+          ),
+        ),
+        ConsentEvidenceJson.receipt,
+      );
+
+  @override
+  Future<ConsentEvidenceAccess> getConsentEvidence(String assignmentId) =>
+      _consentCall(
+        'getConsentEvidence',
+        () => _dio.get(_consentPath(assignmentId, 'consent-evidence')),
+        ConsentEvidenceJson.access,
+      );
+
+  @override
+  Future<ConsentVerificationResult> verifyConsent({
+    required String assignmentId,
+    required bool approve,
+  }) =>
+      _consentCall(
+        'verifyConsent',
+        () => _dio.post(
+          _consentPath(assignmentId, 'verify-consent'),
+          data: {
+            'confirm_paper_form_reviewed': true,
+            'approve': approve,
+          },
+        ),
+        (data) {
+          final guardianship = data['guardianship'];
+          final g = guardianship is Map
+              ? Map<String, dynamic>.from(guardianship)
+              : const <String, dynamic>{};
+          final rawError = data['approve_error'];
+          return ConsentVerificationResult(
+            guardianshipId: g['guardianship_id']?.toString() ?? '',
+            verifiedAt: g['verified_at'] != null
+                ? DateTime.tryParse(g['verified_at'].toString())
+                : null,
+            verifiedByUserId: g['verified_by_user_id']?.toString(),
+            verificationMethod: g['verification_method']?.toString(),
+            approved: data['assignment'] != null,
+            approveError:
+                rawError is String && rawError.isNotEmpty ? rawError : null,
+          );
+        },
+      );
+
+  // ── Director registra a un menor (Phase 3c) ───────────────────────────────
+  //
+  // Rutas de usuario normal, SIN acting-scope: nunca se mandan desde un
+  // perfil actuado, un adolescente o un teléfono vinculado.
+
+  @override
+  Future<CreatedMinor> createMinor(CreateMinorInput input) => _consentCall(
+        'createMinor',
+        () => _dio.post(
+          '$_baseUrl${ApiEndpoints.clubSections}/${input.clubSectionId}/dependents',
+          data: {
+            'name': input.name,
+            'paternal_last_name': input.paternalLastName,
+            if (input.maternalLastName != null &&
+                input.maternalLastName!.trim().isNotEmpty)
+              'maternal_last_name': input.maternalLastName,
+            'birthday': input.birthday,
+            if (input.gender != null) 'gender': input.gender,
+            'sworn_declaration': input.swornDeclaration,
+            'accepted_terms_version': input.acceptedTermsVersion,
+            'accepted_privacy_version': input.acceptedPrivacyVersion,
+          },
+        ),
+        (data) {
+          Map<String, dynamic> block(Object? raw) => raw is Map
+              ? Map<String, dynamic>.from(raw)
+              : const <String, dynamic>{};
+          final dependent = block(data['dependent']);
+          final guardianship = block(data['guardianship']);
+          final assignment = block(data['assignment']);
+          final age = dependent['age'];
+          final section = assignment['club_section_id'];
+          return CreatedMinor(
+            userId: dependent['user_id']?.toString() ?? '',
+            name: dependent['name']?.toString() ?? input.name,
+            birthday: dependent['birthday']?.toString(),
+            age: age is num ? age.toInt() : null,
+            guardianshipId: guardianship['guardianship_id']?.toString() ?? '',
+            consentStatus:
+                guardianship['consent_status']?.toString() ?? 'pending',
+            assignmentId: assignment['assignment_id']?.toString() ?? '',
+            clubSectionId: section is num
+                ? section.toInt()
+                : int.tryParse(section?.toString() ?? ''),
+          );
+        },
+      );
+
+  @override
+  Future<IssuedClaimCode> issueClaimCode({
+    required int clubSectionId,
+    required String dependentUserId,
+  }) =>
+      _consentCall(
+        'issueClaimCode',
+        () => _dio.post(
+          '$_baseUrl${ApiEndpoints.clubSections}/$clubSectionId/dependents/'
+          '$dependentUserId/claim-codes',
+        ),
+        (data) => IssuedClaimCode(
+          code: data['code'].toString(),
+          expiresAt: DateTime.tryParse(data['expires_at']?.toString() ?? '') ??
+              DateTime.now().add(const Duration(days: 7)),
+        ),
+      );
 }

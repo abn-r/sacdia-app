@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/coordinator_club.dart';
+import '../entities/consent_pending_queue.dart';
 import '../entities/coordinator_scope.dart';
 import '../entities/sla_dashboard.dart';
 import '../entities/evidence_review_item.dart';
@@ -13,6 +14,20 @@ abstract class CoordinatorRepository {
   /// Devuelve el alcance efectivo del coordinador actual.
   /// GET /coordination/me/scope
   Future<Either<Failure, CoordinatorScope>> getMyScope({
+    RequestCancelToken? cancelToken,
+  });
+
+  // ── Consent forms queue ───────────────────────────────────────────────────
+
+  /// Devuelve una página de las fichas de consentimiento por verificar en todas
+  /// las secciones que cubre el coordinador, de la más antigua a la más nueva.
+  /// GET /coordination/me/consent-pending?limit=&offset=
+  ///
+  /// Los 403 conservan su `errorCode`: `GUARD_CLUB_SCOPE_REQUIRED` (sin
+  /// secciones asignadas) y `GUARD_PERMISSION_DENIED` (sin `consent:verify`).
+  Future<Either<Failure, ConsentPendingPage>> getConsentPending({
+    int limit = 50,
+    int offset = 0,
     RequestCancelToken? cancelToken,
   });
 

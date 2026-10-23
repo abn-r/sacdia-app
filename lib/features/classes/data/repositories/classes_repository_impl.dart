@@ -29,11 +29,17 @@ class ClassesRepositoryImpl implements ClassesRepository {
 
   // ── Helpers ──────────────────────────────────────────────────────────────────
 
-  Left<Failure, T> _serverFailure<T>(ServerException e) =>
-      Left(ServerFailure(message: e.message, code: e.code));
+  Left<Failure, T> _serverFailure<T>(ServerException e) => Left(ServerFailure(
+        message: e.message,
+        code: e.code,
+        errorCode: e.errorCode,
+      ));
 
-  Left<Failure, T> _authFailure<T>(AuthException e) =>
-      Left(AuthFailure(message: e.message, code: e.code));
+  Left<Failure, T> _authFailure<T>(AuthException e) => Left(AuthFailure(
+        message: e.message,
+        code: e.code,
+        errorCode: e.errorCode,
+      ));
 
   Left<Failure, T> _unexpectedFailure<T>(Object e) =>
       Left(UnexpectedFailure(message: e.toString()));

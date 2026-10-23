@@ -5,6 +5,7 @@ import '../../../../core/network/network_info.dart';
 import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/coordinator_club.dart';
+import '../../domain/entities/consent_pending_queue.dart';
 import '../../domain/entities/coordinator_scope.dart';
 import '../../domain/entities/sla_dashboard.dart';
 import '../../domain/entities/evidence_review_item.dart';
@@ -23,11 +24,13 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
 
   // ── Helpers ───────────────────────────────────────────────────────────────────
 
-  Left<Failure, T> _serverFailure<T>(ServerException e) =>
-      Left(ServerFailure(message: e.message, code: e.code));
+  // Conservan `errorCode` (`GUARD_*`, ...): la UI decide por ese código, nunca
+  // por el mensaje.
+  Left<Failure, T> _serverFailure<T>(ServerException e) => Left(
+      ServerFailure(message: e.message, code: e.code, errorCode: e.errorCode));
 
-  Left<Failure, T> _authFailure<T>(AuthException e) =>
-      Left(AuthFailure(message: e.message, code: e.code));
+  Left<Failure, T> _authFailure<T>(AuthException e) => Left(
+      AuthFailure(message: e.message, code: e.code, errorCode: e.errorCode));
 
   Left<Failure, T> _unexpectedFailure<T>(Object e) =>
       Left(UnexpectedFailure(message: e.toString()));
@@ -40,6 +43,28 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
   }) async {
     try {
       final model = await remoteDataSource.getMyScope(
+        cancelToken: cancelToken.asDioCancelToken(),
+      );
+      return Right(model);
+    } on ServerException catch (e) {
+      return _serverFailure(e);
+    } on AuthException catch (e) {
+      return _authFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, ConsentPendingPage>> getConsentPending({
+    int limit = 50,
+    int offset = 0,
+    RequestCancelToken? cancelToken,
+  }) async {
+    try {
+      final model = await remoteDataSource.getConsentPending(
+        limit: limit,
+        offset: offset,
         cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(model);

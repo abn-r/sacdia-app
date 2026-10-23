@@ -13,6 +13,7 @@ class JoinRequestModel extends JoinRequest {
     required super.status,
     super.requestedAt,
     super.resolvedAt,
+    super.consent,
   });
 
   /// Crea un JoinRequestModel a partir de la respuesta de la API
@@ -66,6 +67,40 @@ class JoinRequestModel extends JoinRequest {
       resolvedAt: json['resolved_at'] != null
           ? DateTime.tryParse(json['resolved_at'].toString())
           : null,
+      consent: _parseConsent(json['consent']),
+    );
+  }
+
+  /// `consent` es `null` para adultos. Un bloque presente con un estado que no
+  /// sea `verified` se lee como pendiente: es el lado seguro (no deja aprobar
+  /// sin verificar la ficha).
+  static JoinRequestConsent? _parseConsent(Object? raw) {
+    if (raw is! Map) return null;
+    final map = Map<String, dynamic>.from(raw);
+    final guardians = map['guardians'];
+    return JoinRequestConsent(
+      guardianshipId: map['guardianship_id']?.toString(),
+      status: JoinRequestConsentStatus.parse(map['status']),
+      evidenceUploaded: map['evidence_uploaded'] == true,
+      dependent: map['dependent'] != false,
+      guardianLinked: map['guardian_linked'] is bool
+          ? map['guardian_linked'] as bool
+          : null,
+      viewerCanVerify: map['viewer_can_verify'] is bool
+          ? map['viewer_can_verify'] as bool
+          : null,
+      viewerVerifyBlock: ConsentVerifyBlock.parse(map['viewer_verify_block']),
+      guardians: guardians is List
+          ? guardians.whereType<Map>().map((g) {
+              final guardian = Map<String, dynamic>.from(g);
+              return ConsentGuardianRef(
+                displayName: guardian['display_name']?.toString() ?? '—',
+                relationshipTypeName:
+                    guardian['relationship_type_name']?.toString(),
+                isPrimary: guardian['is_primary'] == true,
+              );
+            }).toList(growable: false)
+          : const [],
     );
   }
 }

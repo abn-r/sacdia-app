@@ -13,7 +13,10 @@ class _CountingAuthNotifier extends AuthNotifier {
   Future<UserEntity?> build() async => null;
 
   @override
-  Future<bool> signIn({required String email, required String password}) async {
+  Future<bool> signIn({
+    required String identifier,
+    required String password,
+  }) async {
     signInCalls++;
     return true;
   }

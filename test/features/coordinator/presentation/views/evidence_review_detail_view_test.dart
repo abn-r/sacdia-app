@@ -17,6 +17,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
+import 'package:sacdia_app/features/coordinator/domain/entities/consent_pending_queue.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/coordinator_club.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/coordinator_scope.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/evidence_review_item.dart';
@@ -126,6 +127,14 @@ class _FakeRepository implements CoordinatorRepository {
     required List<String> ids,
     required EvidenceReviewType type,
     required String rejectionReason,
+  }) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Either<Failure, ConsentPendingPage>> getConsentPending({
+    int limit = 50,
+    int offset = 0,
+    RequestCancelToken? cancelToken,
   }) =>
       throw UnimplementedError();
 }
