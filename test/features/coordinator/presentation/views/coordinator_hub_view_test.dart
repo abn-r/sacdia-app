@@ -314,6 +314,19 @@ void main() {
       );
     });
 
+    testWidgets('the review summary card has no left accent stripe',
+        (tester) async {
+      await _pumpHub(tester);
+
+      final card = tester.widget<SacCard>(
+        find.ancestor(
+          of: find.text('evidencias por revisar'),
+          matching: find.byType(SacCard),
+        ),
+      );
+      expect(card.accentColor, isNull);
+    });
+
     testWidgets('response time section shows three stat tiles', (tester) async {
       await _pumpHub(tester);
 
