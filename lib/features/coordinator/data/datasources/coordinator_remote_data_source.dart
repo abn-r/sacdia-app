@@ -337,8 +337,10 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
   }) async {
     try {
       final body = <String, dynamic>{};
+      // ApproveEvidenceDto names it `comments`; the backend rejects unknown
+      // fields with a 400.
       if (comment != null && comment.isNotEmpty) {
-        body['comment'] = comment;
+        body['comments'] = comment;
       }
 
       final response = await _dio.post(

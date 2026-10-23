@@ -16,6 +16,11 @@ enum _ApprovalPending { approve, reject }
 /// top. Both buttons are at least 48 pt tall; the pressed one shows the loading
 /// state while the other stays disabled. [onApprove] and [onReject] are called
 /// on tap; the confirmation (dialog or sheet) is the caller's job.
+
+/// Backend limits (ApproveEvidenceDto.comments / RejectEvidenceDto.reason).
+const int kApproveCommentMaxLength = 500;
+const int kRejectReasonMaxLength = 1000;
+
 class ApprovalActionBar extends StatefulWidget {
   const ApprovalActionBar({
     super.key,
@@ -162,6 +167,7 @@ class _ApproveDialogState extends State<_ApproveDialog> {
         label: 'coordinator.actions.comment_label'.tr(),
         hint: 'coordinator.actions.comment_hint'.tr(),
         maxLines: 3,
+        maxLength: kApproveCommentMaxLength,
         textCapitalization: TextCapitalization.sentences,
       ),
       actions: [
@@ -249,6 +255,7 @@ class _RejectSheetState extends State<_RejectSheet> {
                         label: 'coordinator.actions.reject_reason_label'.tr(),
                         hint: 'coordinator.actions.reject_reason_hint'.tr(),
                         maxLines: 4,
+                        maxLength: kRejectReasonMaxLength,
                         textCapitalization: TextCapitalization.sentences,
                         validator: (v) => (v == null || v.trim().isEmpty)
                             ? 'coordinator.actions.reject_reason_required'.tr()
