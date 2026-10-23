@@ -17,12 +17,16 @@ class EvidenceReviewCard extends StatelessWidget {
     super.key,
     required this.item,
     required this.onTap,
+    this.overdueDays = kEvidenceOverdueDays,
     this.animate = false,
     this.animationDelay = Duration.zero,
   });
 
   final EvidenceReviewItem item;
   final VoidCallback onTap;
+
+  /// Overdue threshold for the age badge (see `evidenceOverdueDaysProvider`).
+  final int overdueDays;
   final bool animate;
   final Duration animationDelay;
 
@@ -87,7 +91,12 @@ class EvidenceReviewCard extends StatelessWidget {
                   runSpacing: 6,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    EvidenceAgeBadge(age: EvidenceAge.of(item.submittedAt)),
+                    EvidenceAgeBadge(
+                      age: EvidenceAge.of(
+                        item.submittedAt,
+                        overdueDays: overdueDays,
+                      ),
+                    ),
                     SacBadge(
                       variant: SacBadgeVariant.neutral,
                       label: item.type.displayLabel,

@@ -5,19 +5,25 @@ class SlaStatModel extends Equatable {
   final int pending;
   final double avgDays;
   final int overdue;
+  final int? overdueThresholdDays;
 
   const SlaStatModel({
     required this.pending,
     required this.avgDays,
     required this.overdue,
+    this.overdueThresholdDays,
   });
 
   factory SlaStatModel.fromJson(Map<String, dynamic> json) {
+    final threshold = (json['overdueThresholdDays'] ??
+        json['overdue_threshold_days']) as num?;
     return SlaStatModel(
       pending: (json['pending'] as num?)?.toInt() ?? 0,
       avgDays:
           ((json['avgDays'] ?? json['avg_days']) as num?)?.toDouble() ?? 0.0,
       overdue: (json['overdue'] as num?)?.toInt() ?? 0,
+      overdueThresholdDays:
+          threshold != null && threshold > 0 ? threshold.toInt() : null,
     );
   }
 
@@ -25,10 +31,11 @@ class SlaStatModel extends Equatable {
         pending: pending,
         avgDays: avgDays,
         overdue: overdue,
+        overdueThresholdDays: overdueThresholdDays,
       );
 
   @override
-  List<Object?> get props => [pending, avgDays, overdue];
+  List<Object?> get props => [pending, avgDays, overdue, overdueThresholdDays];
 }
 
 class ThroughputPointModel extends Equatable {
