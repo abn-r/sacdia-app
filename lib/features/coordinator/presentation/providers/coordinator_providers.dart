@@ -11,6 +11,7 @@ import '../../domain/entities/coordinator_scope.dart';
 import '../../domain/entities/sla_dashboard.dart';
 import '../../domain/entities/evidence_review_item.dart';
 import '../../domain/repositories/coordinator_repository.dart';
+import '../widgets/evidence_age.dart' show kEvidenceOverdueDays;
 
 // ── Load errors ───────────────────────────────────────────────────────────────
 
@@ -123,6 +124,20 @@ final slaDashboardProvider =
     (failure) => throw CoordinatorLoadException.fromFailure(failure),
     (dashboard) => dashboard,
   );
+});
+
+/// Overdue threshold (days) for pending evidence, from the SLA dashboard's
+/// `evidence.overdue_threshold_days`. Falls back to [kEvidenceOverdueDays]
+/// while the dashboard loads, when it fails, or with an older backend.
+///
+/// The hub (the coordination tab root) already watches [slaDashboardProvider],
+/// so drill-ins reuse its value instead of fetching again.
+final evidenceOverdueDaysProvider = Provider.autoDispose<int>((ref) {
+  final threshold = ref.watch(
+    slaDashboardProvider
+        .select((async) => async.valueOrNull?.evidence.overdueThresholdDays),
+  );
+  return threshold ?? kEvidenceOverdueDays;
 });
 
 // ── Evidence Review ───────────────────────────────────────────────────────────

@@ -35,6 +35,41 @@ void main() {
       expect(ageOf(const Duration(days: 40)).days, 40);
     });
 
+    test('uses the backend threshold when given', () {
+      EvidenceAge at(int days, int threshold) => EvidenceAge.of(
+            now.subtract(Duration(days: days)),
+            now: now,
+            overdueDays: threshold,
+          );
+      expect(at(7, 10).level, EvidenceAgeLevel.warning);
+      expect(at(9, 10).level, EvidenceAgeLevel.warning);
+      expect(at(10, 10).level, EvidenceAgeLevel.overdue);
+      expect(at(5, 5).level, EvidenceAgeLevel.overdue);
+    });
+
+    test('with a threshold at or below 3 days, warning still precedes overdue',
+        () {
+      EvidenceAge at(int days, int threshold) => EvidenceAge.of(
+            now.subtract(Duration(days: days)),
+            now: now,
+            overdueDays: threshold,
+          );
+      expect(at(0, 2).level, EvidenceAgeLevel.fresh);
+      expect(at(1, 2).level, EvidenceAgeLevel.warning);
+      expect(at(2, 2).level, EvidenceAgeLevel.overdue);
+      expect(at(0, 1).level, EvidenceAgeLevel.fresh);
+      expect(at(1, 1).level, EvidenceAgeLevel.overdue);
+    });
+
+    test('a non-positive threshold falls back to the default', () {
+      final age = EvidenceAge.of(
+        now.subtract(const Duration(days: 7)),
+        now: now,
+        overdueDays: 0,
+      );
+      expect(age.level, EvidenceAgeLevel.overdue);
+    });
+
     test('a future submission (clock skew) counts as today', () {
       final age = EvidenceAge.of(now.add(const Duration(days: 2)), now: now);
       expect(age.days, 0);

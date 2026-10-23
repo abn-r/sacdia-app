@@ -6,14 +6,20 @@ class SlaStat extends Equatable {
   final double avgDays;
   final int overdue;
 
+  /// Days after which a pending item counts as overdue. Only the `evidence`
+  /// stat carries it (`overdue_threshold_days`); null for the others and for
+  /// older backends.
+  final int? overdueThresholdDays;
+
   const SlaStat({
     required this.pending,
     required this.avgDays,
     required this.overdue,
+    this.overdueThresholdDays,
   });
 
   @override
-  List<Object?> get props => [pending, avgDays, overdue];
+  List<Object?> get props => [pending, avgDays, overdue, overdueThresholdDays];
 }
 
 /// Punto de datos de throughput semanal.

@@ -17,6 +17,7 @@ import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/evidence_review_item.dart';
 import 'package:sacdia_app/features/coordinator/presentation/providers/coordinator_providers.dart';
+import 'package:sacdia_app/features/coordinator/presentation/widgets/evidence_age.dart';
 import 'package:sacdia_app/features/coordinator/presentation/views/evidence_review_list_view.dart';
 import 'package:sacdia_app/features/coordinator/presentation/widgets/evidence_review_card.dart';
 
@@ -66,11 +67,13 @@ Future<void> _pumpList(
   WidgetTester tester,
   FutureOr<List<EvidenceReviewItem>> Function(EvidenceReviewType? type) load, {
   EvidenceReviewType? initialFilter,
+  int overdueDays = kEvidenceOverdueDays,
 }) =>
     _pumpPaged(
       tester,
       (type, page) async => singlePage(await load(type)),
       initialFilter: initialFilter,
+      overdueDays: overdueDays,
     );
 
 Future<void> _pumpPaged(
@@ -78,6 +81,7 @@ Future<void> _pumpPaged(
   PendingPageLoader loader, {
   EvidenceReviewType? initialFilter,
   Size size = const Size(800, 2600),
+  int overdueDays = kEvidenceOverdueDays,
 }) async {
   useTallSurface(tester, size: size);
 
@@ -100,6 +104,7 @@ Future<void> _pumpPaged(
         if (initialFilter != null)
           evidenceTypeFilterProvider.overrideWith((ref) => initialFilter),
         pendingEvidenceOverride(loader),
+        evidenceOverdueDaysProvider.overrideWith((ref) => overdueDays),
       ],
       child: localized((context) => localizedRouterApp(context, router)),
     ),
@@ -143,6 +148,17 @@ void main() {
       expect(badge('Hace 5 d').variant, SacBadgeVariant.accent);
       expect(badge('Hace 2 d').variant, SacBadgeVariant.neutral);
       expect(badge('Hoy').variant, SacBadgeVariant.neutral);
+    });
+
+    testWidgets('age badge follows the backend overdue threshold',
+        (tester) async {
+      await _pumpList(tester, (_) => _items, overdueDays: 30);
+
+      SacBadge badge(String label) =>
+          tester.widget<SacBadge>(find.widgetWithText(SacBadge, label));
+
+      expect(find.text('Vencida · 20 d'), findsNothing);
+      expect(badge('Hace 20 d').variant, SacBadgeVariant.accent);
     });
 
     testWidgets('card shows member, context, club, type and attachments',

@@ -3,16 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 
-/// Days a pending evidence can wait before it counts as overdue ("Vencida").
+/// Fallback for the days a pending evidence can wait before it counts as
+/// overdue ("Vencida").
 ///
-/// The backend has no evidence-level SLA: `analytics` only flags investiture
-/// enrollments older than 30 days, and the retired investiture pipeline is not
-/// part of the mobile coordination surface. The app therefore uses a one week
-/// review target, which is also the default cadence of the weekly throughput
-/// chart. Change it here only.
+/// The real threshold comes from the SLA dashboard
+/// (`evidence.overdue_threshold_days`, see `evidenceOverdueDaysProvider`) so
+/// the queue badges and the hub's "Vencidas" count use the same rule. This
+/// value only applies until that response arrives, or with an older backend
+/// that does not send it. Keep it equal to the backend default
+/// (`EVIDENCE_REVIEW_OVERDUE_DAYS`).
 const int kEvidenceOverdueDays = 7;
 
 /// Days from which a pending evidence starts to need attention (warning tone).
+/// Never reaches the overdue threshold: see [EvidenceAge.of].
 const int kEvidenceWarningDays = 3;
 
 enum EvidenceAgeLevel { fresh, warning, overdue }
@@ -25,12 +28,23 @@ class EvidenceAge {
   final int days;
   final EvidenceAgeLevel level;
 
-  factory EvidenceAge.of(DateTime submittedAt, {DateTime? now}) {
+  /// [overdueDays] is the overdue threshold (from the backend when known).
+  /// The warning band starts at [kEvidenceWarningDays], or earlier when the
+  /// threshold is that low, so warning always comes before overdue.
+  factory EvidenceAge.of(
+    DateTime submittedAt, {
+    DateTime? now,
+    int overdueDays = kEvidenceOverdueDays,
+  }) {
     final elapsed = (now ?? DateTime.now()).difference(submittedAt).inDays;
     final days = elapsed < 0 ? 0 : elapsed;
-    final level = days >= kEvidenceOverdueDays
+    final overdueAt = overdueDays < 1 ? kEvidenceOverdueDays : overdueDays;
+    final warningAt = overdueAt > kEvidenceWarningDays
+        ? kEvidenceWarningDays
+        : (overdueAt - 1).clamp(1, overdueAt);
+    final level = days >= overdueAt
         ? EvidenceAgeLevel.overdue
-        : days >= kEvidenceWarningDays
+        : days >= warningAt
             ? EvidenceAgeLevel.warning
             : EvidenceAgeLevel.fresh;
     return EvidenceAge(days: days, level: level);

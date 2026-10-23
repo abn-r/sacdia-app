@@ -59,6 +59,38 @@ void main() {
       expect(sla.evidence.overdue, 2);
       expect(sla.investiture.pending, 2);
       expect(sla.camporee.pending, 1);
+      expect(sla.evidence.overdueThresholdDays, isNull);
+    });
+
+    test('reads the evidence SLA block, including overdue_threshold_days', () {
+      final sla = SlaDashboardModel.fromJson({
+        'validation': {'total_pending': 6},
+        'evidence': {
+          'pending': 6,
+          'overdue': 3,
+          'avg_days': 92.3,
+          'overdue_threshold_days': 10,
+        },
+      }).toEntity();
+
+      expect(sla.evidence.pending, 6);
+      expect(sla.evidence.overdue, 3);
+      expect(sla.evidence.avgDays, 92.3);
+      expect(sla.evidence.overdueThresholdDays, 10);
+    });
+
+    test('a null avg_days and a missing or invalid threshold fall back', () {
+      final sla = SlaDashboardModel.fromJson({
+        'evidence': {
+          'pending': 0,
+          'overdue': 0,
+          'avg_days': null,
+          'overdue_threshold_days': 0,
+        },
+      }).toEntity();
+
+      expect(sla.evidence.avgDays, 0.0);
+      expect(sla.evidence.overdueThresholdDays, isNull);
     });
   });
 }

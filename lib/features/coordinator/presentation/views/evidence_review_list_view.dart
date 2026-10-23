@@ -169,7 +169,7 @@ class _QueueScroll extends StatelessWidget {
 
 // ── Items ─────────────────────────────────────────────────────────────────────
 
-class _ItemsSliver extends StatelessWidget {
+class _ItemsSliver extends ConsumerWidget {
   const _ItemsSliver({required this.items, this.footer});
 
   final List<EvidenceReviewItem> items;
@@ -179,9 +179,10 @@ class _ItemsSliver extends StatelessWidget {
   final Widget? footer;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final hPad = Responsive.horizontalPadding(context);
     final c = context.sac;
+    final overdueDays = ref.watch(evidenceOverdueDaysProvider);
 
     return SliverPadding(
       padding: EdgeInsets.fromLTRB(hPad, 4, hPad, 32),
@@ -207,6 +208,7 @@ class _ItemsSliver extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 10),
             child: EvidenceReviewCard(
               item: item,
+              overdueDays: overdueDays,
               animate: cardIndex < _kStaggeredCards,
               animationDelay: SacMotion.stagger * cardIndex,
               onTap: () => context.push(
