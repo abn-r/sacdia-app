@@ -128,29 +128,34 @@ class _ImageTile extends StatelessWidget {
     return SacPressable(
       onTap: onTap,
       semanticLabel: _fileLabel(file),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
+      // The border is painted over the image: a mostly white screenshot would
+      // otherwise cover it and blend into the page, looking like loose content.
+      child: DecoratedBox(
+        position: DecorationPosition.foreground,
+        decoration: BoxDecoration(
+          border: Border.all(color: c.border),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+          child: ColoredBox(
             color: c.surfaceVariant,
-            border: Border.all(color: c.border),
-            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-          ),
-          child: Image.network(
-            file.url,
-            fit: BoxFit.cover,
-            cacheWidth: 400,
-            errorBuilder: (_, __, ___) => Center(
-              child: HugeIcon(
-                icon: HugeIcons.strokeRoundedImageNotFound01,
-                size: 24,
-                color: c.textTertiary,
+            child: Image.network(
+              file.url,
+              fit: BoxFit.cover,
+              cacheWidth: 400,
+              errorBuilder: (_, __, ___) => Center(
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedImageNotFound01,
+                  size: 24,
+                  color: c.textTertiary,
+                ),
               ),
+              loadingBuilder: (_, child, progress) {
+                if (progress == null) return child;
+                return const Center(child: SacLoadingSmall());
+              },
             ),
-            loadingBuilder: (_, child, progress) {
-              if (progress == null) return child;
-              return const Center(child: SacLoadingSmall());
-            },
           ),
         ),
       ),
