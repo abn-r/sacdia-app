@@ -4,7 +4,6 @@ import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
-import 'package:sacdia_app/core/consent/consent_error_messages.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
@@ -136,9 +135,11 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
   /// verificación (nunca se verifica ni se asigna desde aquí).
   void _showConsentBlocked(Failure failure) {
     final request = widget.pendingConsentRequest;
+    // Texto propio: el de errors.mr_consent_not_verified habla de «aprobar»
+    // una solicitud, que aquí no aplica.
     SacSnackBar.show(
       context,
-      consentErrorMessage(failure),
+      'members.role_assignment.consent_not_verified'.tr(),
       isError: true,
       duration: request == null ? null : const Duration(seconds: 10),
       action: request == null

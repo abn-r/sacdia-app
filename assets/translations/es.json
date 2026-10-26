@@ -2642,7 +2642,8 @@
       "current_role": "Cargo actual: {role}",
       "save_button": "Guardar cargo",
       "blocked_guide_major_required": "Requiere cursar o estar investido como Guía Mayor",
-      "blocked_member_in_guide_major_section": "Un Guía Mayor no puede ser miembro en esta sección"
+      "blocked_member_in_guide_major_section": "Un Guía Mayor no puede ser miembro en esta sección",
+      "consent_not_verified": "No se puede asignar un cargo a este menor: el consentimiento de su tutor aún no está verificado."
     },
     "filter_bar": {
       "search_hint": "Buscar por nombre...",

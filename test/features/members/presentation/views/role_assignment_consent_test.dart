@@ -52,7 +52,7 @@ const _notVerified = Left<Failure, bool>(
 );
 
 const _notVerifiedText =
-    'El consentimiento del tutor aún no está verificado. Verifica la ficha firmada antes de aprobar.';
+    'No se puede asignar un cargo a este menor: el consentimiento de su tutor aún no está verificado.';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

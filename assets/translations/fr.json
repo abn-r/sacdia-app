@@ -2641,7 +2641,8 @@
       "current_role": "Rôle actuel : {role}",
       "save_button": "Enregistrer le rôle",
       "blocked_guide_major_required": "Exige d'être inscrit ou investi comme Guide majeur",
-      "blocked_member_in_guide_major_section": "Un Guide majeur ne peut pas être membre dans cette section"
+      "blocked_member_in_guide_major_section": "Un Guide majeur ne peut pas être membre dans cette section",
+      "consent_not_verified": "Impossible d'attribuer une fonction à ce mineur : le consentement de son tuteur n'est pas encore vérifié."
     },
     "filter_bar": {
       "search_hint": "Rechercher par nom...",

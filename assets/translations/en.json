@@ -2642,7 +2642,8 @@
       "current_role": "Current role: {role}",
       "save_button": "Save Role",
       "blocked_guide_major_required": "Requires being enrolled or invested as a Master Guide",
-      "blocked_member_in_guide_major_section": "A Master Guide cannot be a member in this section"
+      "blocked_member_in_guide_major_section": "A Master Guide cannot be a member in this section",
+      "consent_not_verified": "You can't assign a role to this minor yet: their guardian's consent isn't verified."
     },
     "filter_bar": {
       "search_hint": "Search by name...",

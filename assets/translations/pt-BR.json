@@ -2641,7 +2641,8 @@
       "current_role": "Função atual: {role}",
       "save_button": "Salvar função",
       "blocked_guide_major_required": "Exige cursar ou ser investido como Guia Maior",
-      "blocked_member_in_guide_major_section": "Um Guia Maior não pode ser membro nesta seção"
+      "blocked_member_in_guide_major_section": "Um Guia Maior não pode ser membro nesta seção",
+      "consent_not_verified": "Não é possível atribuir um cargo a este menor: o consentimento do responsável ainda não foi verificado."
     },
     "filter_bar": {
       "search_hint": "Buscar por nome...",
