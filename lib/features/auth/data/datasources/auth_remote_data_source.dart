@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,6 +9,7 @@ import '../../../../core/auth/social_auth_client.dart';
 import '../../../../core/auth/social_credential.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/errors/business_error.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/network/interceptors/auth_interceptor.dart';
 import '../../../../core/storage/secure_storage.dart';
@@ -640,15 +642,24 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error en registro', tag: _tag, error: e);
       if (e is DioException) {
-        final message = e.response?.data?['message'] ??
-            e.message ??
-            tr('common.error_network');
         // Solo `code`: `details` no existe en producción (ruling #11528).
         final data = e.response?.data;
+        // Un 400 de validación trae `message` como LISTA; leerlo como String
+        // lanzaba un TypeError y el usuario veía un error genérico.
+        final errorCode = data is Map ? data['code']?.toString() : null;
+        // El backend responde AUTH_INVALID_CREDENTIALS si el correo ya existe,
+        // para no revelar qué correos tienen cuenta. «Credenciales inválidas»
+        // no tiene sentido en un registro: se muestra un texto propio.
+        final message = errorCode == 'AUTH_INVALID_CREDENTIALS'
+            ? tr('errors.register_email_unavailable')
+            : (data is Map ? readableErrorMessage(data['message']) : null) ??
+                (e.response == null
+                    ? tr('common.error_network')
+                    : tr('errors.register_failed'));
         throw AuthException(
           message: message,
           code: e.response?.statusCode,
-          errorCode: data is Map ? data['code']?.toString() : null,
+          errorCode: errorCode,
         );
       }
       if (e is AuthException) rethrow;
@@ -715,12 +726,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error en reset password', tag: _tag, error: e);
       if (e is DioException) {
+        final status = e.response?.statusCode;
         throw AuthException(
-          message:
-              e.response?.data?['message'] ?? tr('errors.password_reset_sent'),
+          message: resetPasswordErrorMessage(status, e.response != null),
+          code: status,
         );
       }
-      throw AuthException(message: e.toString());
+      throw AuthException(message: tr('auth.forgot_password_error'));
     }
   }
 
@@ -1091,4 +1103,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       throw AuthException(message: e.toString());
     }
   }
+}
+
+/// Mensaje para el usuario cuando falla `POST /auth/password/reset-request`.
+///
+/// Se elige por el status y nunca se muestra el texto del backend: ese
+/// endpoint responde en inglés (p. ej. el 503 cuando el envío de correos está
+/// apagado). Un correo inexistente no es un error: el backend responde 200
+/// para no revelar qué cuentas existen.
+@visibleForTesting
+String resetPasswordErrorMessage(int? status, bool hasResponse) {
+  if (!hasResponse) return tr('common.error_network');
+  if (status == 503) return tr('auth.forgot_password_unavailable');
+  if (status == 429) return tr('errors.too_many_attempts');
+  return tr('auth.forgot_password_error');
 }

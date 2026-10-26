@@ -93,6 +93,13 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
   /// que el filtro local, hasta que se corrija la fecha.
   bool _blockedByServer = false;
 
+  /// Registro en curso. Es local: `signUp` no pasa el auth a AsyncLoading.
+  bool _submitting = false;
+
+  /// Error del último intento. Se copia aquí y se limpia del auth global:
+  /// si no, el login lo mostraba al volver.
+  String? _serverError;
+
   @override
   void initState() {
     super.initState();
@@ -220,27 +227,41 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
     final legal = _legalSnapshot(
       ref.read(currentLegalDocumentsProvider).valueOrNull,
     );
-    if (legal == null || !_acceptedLegal) return;
+    if (legal == null || !_acceptedLegal || _submitting) return;
 
-    final success = await ref.read(authNotifierProvider.notifier).signUp(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-          name: _nameController.text.trim(),
-          paternalSurname: _paternalController.text.trim(),
-          maternalSurname: _maternalController.text.trim(),
-          acceptedTermsVersion: legal.termsVersion,
-          acceptedPrivacyVersion: legal.privacyVersion,
-          birthday: formatBirthdayIso(birthday),
-        );
+    setState(() {
+      _submitting = true;
+      _serverError = null;
+    });
+    final bool success;
+    try {
+      success = await ref.read(authNotifierProvider.notifier).signUp(
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+            name: _nameController.text.trim(),
+            paternalSurname: _paternalController.text.trim(),
+            maternalSurname: _maternalController.text.trim(),
+            acceptedTermsVersion: legal.termsVersion,
+            acceptedPrivacyVersion: legal.privacyVersion,
+            birthday: formatBirthdayIso(birthday),
+          );
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+    if (!mounted) return;
 
-    if (!success &&
-        mounted &&
-        ref.read(authNotifierProvider).error is RegistrationAgeBelowMinimum) {
-      setState(() => _blockedByServer = true);
-      return;
+    if (!success) {
+      final error = ref.read(authNotifierProvider).error;
+      ref.read(authNotifierProvider.notifier).clearError();
+      if (error is RegistrationAgeBelowMinimum) {
+        setState(() => _blockedByServer = true);
+        return;
+      }
+      setState(
+          () => _serverError = error?.toString() ?? 'auth.register_error'.tr());
     }
 
-    if (success && mounted) {
+    if (success) {
       context.pop();
       SacSnackBar.show(context, 'auth.register_success'.tr(),
           backgroundColor: AppColors.secondary);
@@ -250,13 +271,11 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
     // means they changed while the form was open. The ref.listen in build()
     // clears the checkbox when the versions differ.
     ref.invalidate(currentLegalDocumentsProvider);
-    // Error is surfaced via ref.watch in build().
   }
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authNotifierProvider);
-    final isLoading = authState.isLoading;
+    final isLoading = _submitting;
 
     // Reset the consent when the backend publishes different versions than
     // the ones the user checked.
@@ -276,10 +295,7 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
     final legal = _legalSnapshot(legalAsync.valueOrNull);
     final legalLoadFailed = legal == null && !legalAsync.isLoading;
 
-    final errorMessage =
-        authState.hasError && authState.error is! RegistrationAgeBelowMinimum
-            ? (authState.error?.toString() ?? 'auth.register_error'.tr())
-            : null;
+    final errorMessage = _serverError;
     final birthdayLabel = _birthday == null
         ? null
         : DateFormat.yMMMMd(Localizations.localeOf(context).toString())

@@ -683,6 +683,12 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     );
   }
 
+  /// Quita un error que ya mostró otra pantalla (el registro), para que el
+  /// login no lo herede al volver.
+  void clearError() {
+    if (state is AsyncError) state = const AsyncValue.data(null);
+  }
+
   /// Registrar un nuevo usuario
   Future<bool> signUp({
     required String email,
@@ -694,7 +700,13 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     required String acceptedPrivacyVersion,
     String? birthday,
   }) async {
-    state = const AsyncValue.loading();
+    // No se pasa por AsyncLoading: el registro se abre con push sobre el
+    // login y el redirect ve '/login', así que mandaría a /splash y
+    // desmontaría el formulario (se perdían los datos y el error). La vista
+    // muestra su propio estado de carga. Un error previo se limpia aquí.
+    if (state is AsyncError) {
+      state = const AsyncValue.data(null);
+    }
 
     final result = await ref.read(signUpProvider)(
       SignUpParams(

@@ -46,7 +46,7 @@ AppException businessErrorFromResponse(
   String? message;
   String? errorCode;
   if (data is Map) {
-    message = data['message']?.toString();
+    message = readableErrorMessage(data['message']);
     errorCode = data['code']?.toString();
   }
   final resolved = message ?? fallbackMessage ?? tr('errors.server_error');
@@ -62,4 +62,42 @@ AppException businessErrorFromResponse(
     code: status,
     errorCode: errorCode,
   );
+}
+
+/// Texto legible del campo `message` de un error del backend.
+///
+/// Casi siempre es un String, pero un 400 de validación (class-validator)
+/// trae una LISTA de errores por campo (`[{property, constraints: {...}}]`) o
+/// de textos. Se toma el primer mensaje de las restricciones para mostrarlo
+/// tal cual al usuario. Devuelve `null` si no hay texto aprovechable.
+String? readableErrorMessage(Object? message) {
+  if (message == null) return null;
+  if (message is String) {
+    final trimmed = message.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+  if (message is List) {
+    for (final item in message) {
+      final text =
+          item is Map ? _firstConstraint(item) : readableErrorMessage(item);
+      if (text != null) return text;
+    }
+    return null;
+  }
+  return null;
+}
+
+String? _firstConstraint(Map<dynamic, dynamic> error) {
+  final constraints = error['constraints'];
+  if (constraints is Map) {
+    for (final value in constraints.values) {
+      final text = readableErrorMessage(value);
+      if (text != null) return text;
+    }
+  }
+  final children = error['children'];
+  if (children is List && children.isNotEmpty) {
+    return readableErrorMessage(children);
+  }
+  return readableErrorMessage(error['message']);
 }

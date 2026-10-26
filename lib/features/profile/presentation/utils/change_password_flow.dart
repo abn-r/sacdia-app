@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/validators.dart';
 import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
@@ -50,9 +51,11 @@ Future<void> runChangePasswordFlow(
                   errorText = 'profile.settings.error_passwords_mismatch'.tr());
               return;
             }
-            if (next.length < 8) {
-              setDialogState(() =>
-                  errorText = 'profile.settings.error_password_too_short'.tr());
+            // Misma política que el registro y el backend (12+, mayúscula,
+            // minúscula, número y carácter especial).
+            final policyError = Validators.validatePassword(next);
+            if (policyError != null) {
+              setDialogState(() => errorText = policyError);
               return;
             }
             setDialogState(() => errorText = null);

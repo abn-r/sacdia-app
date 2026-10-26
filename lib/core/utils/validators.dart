@@ -37,20 +37,42 @@ class Validators {
     return null;
   }
 
-  /// Valida una contraseña.
+  /// Mínimo y máximo de una contraseña NUEVA (backend `password-policy.ts`).
+  static const int newPasswordMinLength = 12;
+  static const int newPasswordMaxLength = 128;
+
+  /// Caracteres especiales que el backend acepta en una contraseña nueva.
+  static const String newPasswordSpecialChars = r'@$!%*?&';
+
+  /// Valida la contraseña del LOGIN: solo que no esté vacía. Las cuentas
+  /// creadas antes de la política de 12 caracteres siguen pudiendo entrar,
+  /// así que aquí no se aplica la política de contraseña nueva.
+  static String? validateLoginPassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return tr('core.validators.password_required');
+    }
+    return null;
+  }
+
+  /// Valida una contraseña NUEVA (registro, cambio, acceso de un menor).
   ///
-  /// Requisitos (en línea con lo que exige el backend):
-  ///   - Mínimo 8 caracteres
-  ///   - Al menos una letra mayúscula
-  ///   - Al menos una letra minúscula
-  ///   - Al menos un dígito
+  /// Espejo exacto de `NEW_PASSWORD_COMPLEXITY` del backend, para que la app
+  /// nunca mande una contraseña que el servidor rechace:
+  ///   - 12 a 128 caracteres
+  ///   - al menos una mayúscula, una minúscula y un dígito
+  ///   - al menos un carácter especial de `@$!%*?&`
+  ///   - el primer carácter es una letra, un dígito o uno de `@$!%*?&`
   static String? validatePassword(String? value) {
     if (value == null || value.isEmpty) {
       return tr('core.validators.password_required');
     }
 
-    if (value.length < 8) {
+    if (value.length < newPasswordMinLength) {
       return tr('core.validators.password_min_length');
+    }
+
+    if (value.length > newPasswordMaxLength) {
+      return tr('core.validators.password_max_length');
     }
 
     if (!RegExp(r'[A-Z]').hasMatch(value)) {
@@ -63,6 +85,14 @@ class Validators {
 
     if (!RegExp(r'[0-9]').hasMatch(value)) {
       return tr('core.validators.password_number');
+    }
+
+    if (!RegExp(r'[@$!%*?&]').hasMatch(value)) {
+      return tr('core.validators.password_special');
+    }
+
+    if (!RegExp(r'^[A-Za-z0-9@$!%*?&]').hasMatch(value)) {
+      return tr('core.validators.password_first_char');
     }
 
     return null;

@@ -101,6 +101,11 @@ Future<_Auth> _pump(WidgetTester tester, {_Auth? auth}) async {
       ),
     ),
   );
+  // La vista ya no observa el auth (en la app el router lo inicializa al
+  // arrancar). Se lee aquí para que el build() del fake termine antes del
+  // envío y no pise el error que deja signUp.
+  ProviderScope.containerOf(tester.element(find.byType(RegisterView)))
+      .read(authNotifierProvider);
   await tester.pump(const Duration(seconds: 2));
   return notifier;
 }
@@ -111,8 +116,8 @@ Future<void> _fillText(WidgetTester tester) async {
   await tester.enterText(fields.at(1), 'Perez');
   await tester.enterText(fields.at(2), 'Lopez');
   await tester.enterText(fields.at(3), 'ana@example.com');
-  await tester.enterText(fields.at(4), 'Password123');
-  await tester.enterText(fields.at(5), 'Password123');
+  await tester.enterText(fields.at(4), 'Password123!x');
+  await tester.enterText(fields.at(5), 'Password123!x');
   await tester.pump();
 }
 
@@ -216,6 +221,25 @@ void main() {
     expect(find.text('auth.register.age_gate.message'), findsOneWidget);
     // No se muestra además la tarjeta de error genérica con el texto crudo.
     expect(find.text('AUTH_REGISTRATION_AGE_BELOW_MINIMUM'), findsNothing);
+  });
+
+  testWidgets(
+      'a server error shows on the form and is cleared from the auth state '
+      '(the login must not inherit it)', (tester) async {
+    await _pump(tester);
+    await _fillText(tester);
+    await _pickBirthday(tester, _yearsAgo(20));
+    await _acceptLegal(tester);
+
+    tester.widget<SacButton>(_registerButton()).onPressed!();
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('boom'), findsOneWidget);
+    final container =
+        ProviderScope.containerOf(tester.element(find.byType(RegisterView)));
+    expect(container.read(authNotifierProvider).hasError, isFalse);
   });
 
   testWidgets('correcting the birthday brings the form back', (tester) async {

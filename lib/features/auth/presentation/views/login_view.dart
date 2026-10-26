@@ -273,7 +273,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                           prefixIcon:
                                               HugeIcons.strokeRoundedLockKey,
                                           validator:
-                                              Validators.validatePassword,
+                                              Validators.validateLoginPassword,
                                           textInputAction: TextInputAction.send,
                                           onEditingComplete: _hideKeyboard,
                                           onSubmitted: (_) => _signIn(),

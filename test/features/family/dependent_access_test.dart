@@ -328,13 +328,13 @@ void main() {
       expect(find.text('Restablecer la contraseña de Ana'), findsOneWidget);
 
       final fields = find.byType(TextFormField);
-      await tester.enterText(fields.at(0), 'NuevaClave9');
-      await tester.enterText(fields.at(1), 'NuevaClave9');
+      await tester.enterText(fields.at(0), 'NuevaClave9!xy');
+      await tester.enterText(fields.at(1), 'NuevaClave9!xy');
       await tester.tap(find.text('Restablecer').last);
       await tester.pumpAndSettle();
 
       expect(repo.passwordCalls, [
-        (dependentId: 'ana-1', password: 'NuevaClave9'),
+        (dependentId: 'ana-1', password: 'NuevaClave9!xy'),
       ]);
       expect(
         find.text('Contraseña restablecida. Sesiones cerradas: 2.'),
@@ -418,13 +418,13 @@ void main() {
       expect(find.text('Reactivar el acceso de Ana'), findsOneWidget);
 
       final fields = find.byType(TextFormField);
-      await tester.enterText(fields.at(0), 'OtraClave7');
-      await tester.enterText(fields.at(1), 'OtraClave7');
+      await tester.enterText(fields.at(0), 'OtraClave7!xyz');
+      await tester.enterText(fields.at(1), 'OtraClave7!xyz');
       await tester.tap(find.text('Reactivar').last);
       await tester.pumpAndSettle();
 
       expect(repo.reactivateCalls, [
-        (dependentId: 'ana-1', password: 'OtraClave7'),
+        (dependentId: 'ana-1', password: 'OtraClave7!xyz'),
       ]);
       expect(find.text('Acceso reactivado'), findsOneWidget);
     });

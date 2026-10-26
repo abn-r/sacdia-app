@@ -117,8 +117,8 @@ Future<void> _fillForm(WidgetTester tester) async {
   await tester.enterText(fields.at(1), 'Perez');
   await tester.enterText(fields.at(2), 'Lopez');
   await tester.enterText(fields.at(3), 'ana@example.com');
-  await tester.enterText(fields.at(4), 'Password123');
-  await tester.enterText(fields.at(5), 'Password123');
+  await tester.enterText(fields.at(4), 'Password123!x');
+  await tester.enterText(fields.at(5), 'Password123!x');
   await tester.pump();
   // Fecha de nacimiento obligatoria: el selector abre en hace 18 años.
   await tester.tap(find.byType(SacPickerField));

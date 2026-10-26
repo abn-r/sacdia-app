@@ -101,8 +101,8 @@ void main() {
 
   Future<void> fillPasswords(
     WidgetTester tester, {
-    String password = 'Password123',
-    String confirm = 'Password123',
+    String password = 'Password123!x',
+    String confirm = 'Password123!x',
     String? email,
   }) async {
     final fields = find.byType(TextFormField);
@@ -162,7 +162,10 @@ void main() {
       expect(find.text('Paso 2 de 4'), findsOneWidget);
       expect(find.byType(TextFormField), findsNWidgets(2));
       expect(
-        find.text('Mínimo 8 caracteres, con mayúscula, minúscula y número.'),
+        find.text(
+          'Mínimo 12 caracteres, con mayúscula, minúscula, número y un '
+          'símbolo (@ \$ ! % * ? &).',
+        ),
         findsOneWidget,
       );
       await fillPasswords(tester);
@@ -186,7 +189,7 @@ void main() {
         (
           dependentId: 'ana-1',
           method: SupervisedLoginMethod.handle,
-          password: 'Password123',
+          password: 'Password123!x',
           email: null,
         ),
       ]);
@@ -222,7 +225,7 @@ void main() {
         (tester) async {
       await pump(tester);
       await tapText(tester, 'Siguiente');
-      await fillPasswords(tester, confirm: 'Password124');
+      await fillPasswords(tester, confirm: 'Password124!x');
       await tapText(tester, 'Siguiente');
 
       expect(find.text('Paso 2 de 4'), findsOneWidget);
@@ -398,7 +401,7 @@ void main() {
 
       // Ya no queda ningún campo con la contraseña en pantalla.
       expect(find.byType(TextFormField), findsNothing);
-      expect(find.text('Password123'), findsNothing);
+      expect(find.text('Password123!x'), findsNothing);
     });
   });
 }
