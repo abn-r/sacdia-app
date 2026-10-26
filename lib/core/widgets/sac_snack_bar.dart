@@ -68,6 +68,10 @@ abstract final class SacSnackBar {
               : DismissDirection.horizontal,
           showCloseIcon: reduce,
           action: action,
+          // Since Flutter 3.29 a SnackBar with an action persists by default
+          // (`persist = action != null`) and never auto-dismisses. Ours are
+          // transient confirmations: always respect [duration].
+          persist: false,
         ),
       );
   }

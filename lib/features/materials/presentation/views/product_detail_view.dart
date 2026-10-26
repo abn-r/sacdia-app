@@ -1,8 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -290,6 +292,7 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
   }
 
   void _addToCart(MaterialItem item, BuildContext context) {
+    final router = GoRouter.maybeOf(context);
     ref.read(cartProvider.notifier).addLine(
           item,
           variantOption: _selectedVariant,
@@ -305,10 +308,9 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
         action: SnackBarAction(
           label: 'materials.product.view_cart'.tr(),
           textColor: Colors.white,
-          onPressed: () {
-            SacSnackBar.hide(context);
-            // Navigate back and let the cart icon guide the user
-          },
+          // The action can fire after this page was popped, so use the
+          // router captured now instead of this page's context.
+          onPressed: () => router?.push(RouteNames.materialsCart),
         ));
   }
 }

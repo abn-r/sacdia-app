@@ -108,5 +108,34 @@ void main() {
       expect(find.text('Undo'), findsOneWidget);
       expect(find.byIcon(Icons.info_outline), findsOneWidget);
     });
+
+    testWidgets('a toast with an action still auto-dismisses', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => SacSnackBar.show(
+                  context,
+                  'agregado',
+                  duration: const Duration(seconds: 2),
+                  action: SnackBarAction(label: 'Ver', onPressed: () {}),
+                ),
+                child: const Text('go'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      expect(find.text('agregado'), findsOneWidget);
+
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
+      expect(find.text('agregado'), findsNothing);
+    });
   });
 }
