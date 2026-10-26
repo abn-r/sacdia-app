@@ -4807,7 +4807,7 @@
       "qty": "Quantity:",
       "add_to_cart": "Add to cart",
       "out_of_stock": "Out of stock",
-      "added_snackbar": "{title} added to cart",
+      "added_snackbar": "Added {title} to cart",
       "view_cart": "View cart"
     },
     "summary": {

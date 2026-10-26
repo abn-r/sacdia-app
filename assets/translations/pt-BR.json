@@ -4805,7 +4805,7 @@
       "qty": "Quantidade:",
       "add_to_cart": "Adicionar ao carrinho",
       "out_of_stock": "Produto esgotado",
-      "added_snackbar": "{title} adicionado ao carrinho",
+      "added_snackbar": "Adicionado ao carrinho: {title}",
       "view_cart": "Ver carrinho"
     },
     "summary": {
