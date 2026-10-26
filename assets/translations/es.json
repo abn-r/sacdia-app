@@ -1904,6 +1904,7 @@
       "upload_file": "Error al subir el archivo de evidencia",
       "delete_file": "Error al eliminar el archivo de evidencia",
       "upload_failed": "Error al subir el archivo de evidencia",
+      "progress_locked": "Esta clase ya está cerrada (investida o vencida); su progreso no se puede modificar.",
       "fetch_honors": "Error al obtener las especialidades de la clase",
       "prerequisite_not_met": "Debes estar investido en las clases previas requeridas para inscribirte."
     },
@@ -1946,7 +1947,8 @@
       "honor_completed": "Completada",
       "honor_pending": "Pendiente",
       "semantics_status": "Estado del requisito: {status}. Tocar para ver historial.",
-      "expired_banner": "Vencida · Esta clase se conserva en tu trayectoria, pero ya no puede completarse para investidura."
+      "expired_banner": "Vencida · Esta clase se conserva en tu trayectoria, pero ya no puede completarse para investidura.",
+      "invested_banner": "Investida · Esta clase ya está cerrada: puedes ver tus evidencias, pero no cambiarlas."
     },
     "section_detail": {
       "title": "Detalle de Sección",

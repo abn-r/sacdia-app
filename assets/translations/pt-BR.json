@@ -1904,6 +1904,7 @@
       "upload_file": "Erro ao enviar arquivo de evidência",
       "delete_file": "Erro ao excluir arquivo de evidência",
       "upload_failed": "Erro ao enviar arquivo de evidência",
+      "progress_locked": "Esta classe está encerrada (investida ou expirada); seu progresso não pode ser alterado.",
       "fetch_honors": "Erro ao buscar as especialidades da turma",
       "prerequisite_not_met": "Você deve estar investido nas turmas anteriores exigidas para se inscrever."
     },
@@ -1946,7 +1947,8 @@
       "honor_completed": "Concluída",
       "honor_pending": "Pendente",
       "semantics_status": "Status do requisito: {status}. Toque para ver o histórico.",
-      "expired_banner": "Expirada · Esta classe permanece no seu histórico, mas não pode mais ser concluída para investidura."
+      "expired_banner": "Expirada · Esta classe permanece no seu histórico, mas não pode mais ser concluída para investidura.",
+      "invested_banner": "Investida · Esta classe está encerrada: você pode ver suas evidências, mas não alterá-las."
     },
     "section_detail": {
       "title": "Detalhe da Seção",

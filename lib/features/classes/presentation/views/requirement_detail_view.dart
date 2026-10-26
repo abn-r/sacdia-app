@@ -4,6 +4,7 @@ import 'package:sacdia_app/core/widgets/sac_pressable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/errors/exceptions.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart';
@@ -38,6 +39,9 @@ class RequirementDetailView extends ConsumerStatefulWidget {
   final String? targetUserId;
   final bool isClassExpired;
 
+  /// La clase ya está investida: el progreso queda en solo lectura.
+  final bool isClassInvested;
+
   const RequirementDetailView({
     super.key,
     required this.requirement,
@@ -45,6 +49,7 @@ class RequirementDetailView extends ConsumerStatefulWidget {
     this.enrollmentId,
     this.targetUserId,
     this.isClassExpired = false,
+    this.isClassInvested = false,
   });
 
   @override
@@ -116,8 +121,11 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
     final requirement = _liveRequirement(classAsync);
     final isClassExpired =
         widget.isClassExpired || (classAsync.valueOrNull?.isExpired ?? false);
-    final canModify =
-        requirement.canUploadForClass(isClassExpired: isClassExpired);
+    final isClassInvested =
+        widget.isClassInvested || (classAsync.valueOrNull?.isInvested ?? false);
+    // El backend bloquea el progreso de una clase vencida o investida.
+    final isReadOnly = isClassExpired || isClassInvested;
+    final canModify = requirement.canUploadForClass(isClassExpired: isReadOnly);
     final isLoading = notifierState.isLoading;
 
     // Find module index for eyebrow "X / Y"
@@ -253,7 +261,16 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                                 const SizedBox(height: 16),
 
                                 if (isClassExpired)
-                                  const _ExpiredRequirementBanner(),
+                                  const _ClosedRequirementBanner(
+                                    messageKey: 'classes.requirement_detail'
+                                        '.expired_banner',
+                                  )
+                                else if (isClassInvested)
+                                  const _ClosedRequirementBanner(
+                                    messageKey: 'classes.requirement_detail'
+                                        '.invested_banner',
+                                    tone: _BannerTone.info,
+                                  ),
 
                                 // Status banner (observed / rejected only)
                                 if (requirement.status ==
@@ -369,9 +386,10 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                                     isLoading: notifierState.isLoading,
                                     onUpload:
                                         (xFile, mimeType, onProgress) async {
-                                      if (isClassExpired) {
-                                        throw StateError(
-                                          'Cannot upload evidence for an expired class',
+                                      if (isReadOnly) {
+                                        throw AppException(
+                                          message: tr(
+                                              'classes.errors.progress_locked'),
                                         );
                                       }
                                       final success = await ref
@@ -386,12 +404,15 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                                             skipInvalidation: true,
                                           );
                                       if (!success) {
-                                        throw Exception(
-                                            tr('classes.errors.upload_failed'));
+                                        throw AppException(
+                                          message: _uploadErrorMessage(ref.read(
+                                              requirementNotifierProvider(
+                                                  _progressQuery))),
+                                        );
                                       }
                                     },
                                     onDeleteRemote: (fileId) async {
-                                      if (isClassExpired) return;
+                                      if (isReadOnly) return;
                                       await ref
                                           .read(requirementNotifierProvider(
                                                   _progressQuery)
@@ -402,7 +423,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                                           );
                                     },
                                     onSubmit: () async {
-                                      if (isClassExpired) return;
+                                      if (isReadOnly) return;
                                       final success = await ref
                                           .read(requirementNotifierProvider(
                                                   _progressQuery)
@@ -520,9 +541,11 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
 
   Future<void> _handleSubmit(ClassRequirement req) async {
     final classAsync = ref.read(classWithProgressProvider(_progressQuery));
-    final isClassExpired =
-        widget.isClassExpired || (classAsync.valueOrNull?.isExpired ?? false);
-    if (!req.canSubmitForClass(isClassExpired: isClassExpired)) return;
+    final isReadOnly = widget.isClassExpired ||
+        widget.isClassInvested ||
+        (classAsync.valueOrNull?.isExpired ?? false) ||
+        (classAsync.valueOrNull?.isInvested ?? false);
+    if (!req.canSubmitForClass(isClassExpired: isReadOnly)) return;
 
     final success = await ref
         .read(requirementNotifierProvider(_progressQuery).notifier)
@@ -543,29 +566,53 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
   }
 }
 
-class _ExpiredRequirementBanner extends StatelessWidget {
-  const _ExpiredRequirementBanner();
+/// Mensaje que se muestra junto al archivo que no se pudo subir. Solo se lee
+/// el `code` de negocio; el texto del backend sirve de respaldo.
+String _uploadErrorMessage(RequirementOperationState state) {
+  if (state.errorCode == 'CLASS_PROGRESS_LOCKED') {
+    return tr('classes.errors.progress_locked');
+  }
+  final message = state.errorMessage?.trim();
+  return (message == null || message.isEmpty)
+      ? tr('classes.errors.upload_failed')
+      : message;
+}
+
+enum _BannerTone { error, info }
+
+/// Aviso de clase cerrada (vencida o investida): el progreso es de solo
+/// lectura y la app no deja subir ni enviar evidencias.
+class _ClosedRequirementBanner extends StatelessWidget {
+  final String messageKey;
+  final _BannerTone tone;
+
+  const _ClosedRequirementBanner({
+    required this.messageKey,
+    this.tone = _BannerTone.error,
+  });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isError = tone == _BannerTone.error;
+    final accent = isError ? AppColors.error : AppColors.secondary;
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isDark
-            ? AppColors.error.withValues(alpha: 0.2)
-            : const Color(0xFFFFF1F2),
+            ? accent.withValues(alpha: 0.2)
+            : accent.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.35)),
+        border: Border.all(color: accent.withValues(alpha: 0.35)),
       ),
       child: Text(
-        'classes.requirement_detail.expired_banner'.tr(),
+        messageKey.tr(),
         style: TextStyle(
           fontSize: 12.5,
           fontWeight: FontWeight.w600,
-          color: AppColors.errorDark,
+          color: isError ? AppColors.errorDark : AppColors.secondaryDark,
           height: 1.35,
         ),
       ),

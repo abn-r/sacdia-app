@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../errors/exceptions.dart';
 import '../../theme/sac_colors.dart';
 import '../../utils/app_logger.dart';
 import '../sac_button.dart';
@@ -480,7 +481,7 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
         _updateFileStatus(
           file.id,
           StagedFileStatus.error,
-          errorMessage: e.toString(),
+          errorMessage: stagedUploadErrorMessage(e),
         );
         streamController.add(_queueFiles);
       }
@@ -866,4 +867,14 @@ class EvidenceStagingActionBar extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Texto legible para el error de un archivo: el mensaje de una
+/// [AppException] tal cual, y nunca el prefijo técnico `Exception: `.
+@visibleForTesting
+String stagedUploadErrorMessage(Object error) {
+  if (error is AppException) return error.message;
+  final text = error.toString();
+  const prefix = 'Exception: ';
+  return text.startsWith(prefix) ? text.substring(prefix.length) : text;
 }

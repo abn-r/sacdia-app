@@ -1904,6 +1904,7 @@
       "upload_file": "Error uploading evidence file",
       "delete_file": "Error deleting evidence file",
       "upload_failed": "Upload failed",
+      "progress_locked": "This class is closed (invested or expired); its progress can't be changed.",
       "fetch_honors": "Error fetching class honors",
       "prerequisite_not_met": "You must be invested in the required previous classes to enroll."
     },
@@ -1946,7 +1947,8 @@
       "honor_completed": "Completed",
       "honor_pending": "Pending",
       "semantics_status": "Requirement status: {status}. Tap to view history.",
-      "expired_banner": "Expired · This class remains in your history, but it can no longer be completed for investiture."
+      "expired_banner": "Expired · This class remains in your history, but it can no longer be completed for investiture.",
+      "invested_banner": "Invested · This class is closed: you can view your evidence, but not change it."
     },
     "section_detail": {
       "title": "Section Detail",

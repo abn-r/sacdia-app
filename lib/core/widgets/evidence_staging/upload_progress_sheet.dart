@@ -319,17 +319,37 @@ class _FileProgressRow extends StatelessWidget {
           ),
           const SizedBox(width: 10),
 
-          // File name
+          // File name (+ motivo del fallo, si lo hubo)
           Expanded(
-            child: Text(
-              file.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: c.text,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  file.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: c.text,
+                  ),
+                ),
+                if (file.status == StagedFileStatus.error &&
+                    (file.errorMessage?.isNotEmpty ?? false)) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    file.errorMessage!,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.error,
+                      height: 1.3,
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
           const SizedBox(width: 8),

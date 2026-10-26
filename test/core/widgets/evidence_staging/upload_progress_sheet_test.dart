@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/core/errors/exceptions.dart';
+import 'package:sacdia_app/core/widgets/evidence_staging/evidence_staging_manager.dart';
 import 'package:sacdia_app/core/widgets/evidence_staging/staged_file.dart';
 import 'package:sacdia_app/core/widgets/evidence_staging/upload_progress_sheet.dart';
 
@@ -91,5 +93,57 @@ void main() {
       closeTo(0.75, 0.001),
     );
     expect(find.text('75%'), findsOneWidget);
+  });
+
+  testWidgets('shows why a file failed under its name', (tester) async {
+    final progressController = StreamController<List<StagedFile>>.broadcast();
+    addTearDown(progressController.close);
+
+    const failedFile = StagedFile(
+      id: 'failed-file',
+      name: 'evidencia-qa.pdf',
+      type: 'pdf',
+      status: StagedFileStatus.error,
+      errorMessage: 'Esta clase ya está cerrada.',
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: FilledButton(
+                onPressed: () => showUploadProgressSheet(
+                  context: context,
+                  initialFiles: const [failedFile],
+                  uploadStream: progressController.stream,
+                ),
+                child: const Text('Mostrar progreso'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Mostrar progreso'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('evidencia-qa.pdf'), findsOneWidget);
+    expect(find.text('Esta clase ya está cerrada.'), findsOneWidget);
+  });
+
+  group('stagedUploadErrorMessage', () {
+    test('uses the AppException message as is', () {
+      expect(
+        stagedUploadErrorMessage(ServerException(message: 'Sin permiso')),
+        'Sin permiso',
+      );
+    });
+
+    test('drops the technical "Exception: " prefix', () {
+      expect(stagedUploadErrorMessage(Exception('Falló')), 'Falló');
+    });
   });
 }

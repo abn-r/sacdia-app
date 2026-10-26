@@ -63,6 +63,10 @@ class ClassWithProgress extends Equatable {
 
   bool get isExpired => investitureStatus?.trim().toUpperCase() == 'EXPIRED';
 
+  /// Ya investida: el backend rechaza cualquier cambio de progreso
+  /// (`CLASS_PROGRESS_LOCKED`), igual que con una clase vencida.
+  bool get isInvested => investitureStatus?.trim().toUpperCase() == 'INVESTIDO';
+
   /// Tiene información de `advanced_eligibility` habilitada.
   bool get hasAdvancedEligibility => advancedEligibility?.isEnabled == true;
 

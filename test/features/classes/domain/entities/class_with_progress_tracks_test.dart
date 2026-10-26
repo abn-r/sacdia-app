@@ -85,4 +85,25 @@ void main() {
       expect(classData.hasAdvancedTrackData, isTrue);
     });
   });
+
+  group('ClassWithProgress closed states', () {
+    ClassWithProgress withStatus(String? status) => ClassWithProgress(
+          id: 1,
+          name: 'Guía Mayor',
+          clubTypeId: 3,
+          investitureStatus: status,
+          modules: const [],
+        );
+
+    test('INVESTIDO is invested and not expired', () {
+      final c = withStatus(' investido ');
+      expect(c.isInvested, isTrue);
+      expect(c.isExpired, isFalse);
+    });
+
+    test('in-progress or missing status is open', () {
+      expect(withStatus('IN_PROGRESS').isInvested, isFalse);
+      expect(withStatus(null).isInvested, isFalse);
+    });
+  });
 }

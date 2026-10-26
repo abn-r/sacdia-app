@@ -269,6 +269,7 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
               widget.enrollmentId ?? widget.classWithProgress.enrollmentId,
           targetUserId: widget.targetUserId,
           isClassExpired: widget.classWithProgress.isExpired,
+          isClassInvested: widget.classWithProgress.isInvested,
         ),
       ),
     );
