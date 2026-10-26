@@ -15,6 +15,7 @@ import '../../domain/entities/material_status.dart';
 import '../../domain/entities/order.dart';
 import '../../domain/entities/order_line.dart';
 import '../providers/cancel_order_provider.dart';
+import '../providers/history_provider.dart';
 import '../providers/receipts_provider.dart';
 import '../providers/order_detail_provider.dart';
 import '../utils/money_format.dart';
@@ -477,6 +478,8 @@ class _ActionCard extends ConsumerWidget {
           ref.invalidate(
             orderDetailProvider(orden.folioReferencia ?? orden.id),
           );
+          // La lista de pedidos sigue montada debajo del detalle.
+          ref.invalidate(historyProvider);
           SacSnackBar.show(context, 'materials.order.cancelled_snackbar'.tr());
         },
       );

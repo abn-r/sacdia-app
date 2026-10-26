@@ -349,7 +349,7 @@ class MaterialsRemoteDataSourceImpl implements MaterialsRemoteDataSource {
   Future<OrderModel> cancelOrder(String folioOrId, String reason) async {
     try {
       final response = await _dio.post(
-        '$_baseUrl${ApiEndpoints.materials}/orders//cancel',
+        '$_baseUrl${ApiEndpoints.materials}/orders/${Uri.encodeComponent(folioOrId)}/cancel',
         data: {'cancel_reason': reason},
       );
 
