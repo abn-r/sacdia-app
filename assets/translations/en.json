@@ -2979,7 +2979,6 @@
       "delete_confirm": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
       "deleted_success": "Item deleted successfully",
       "delete_error": "Could not delete the item",
-      "edit_button": "Edit item",
       "no_photo": "No photo",
       "category": "Category",
       "condition": "Condition",
@@ -3004,7 +3003,9 @@
       "empty_subtitle_can_add": "Start by registering the first item\nof your club",
       "empty_subtitle_cannot_add": "The club inventory is empty.",
       "add_first_item": "Add first item",
-      "add_button": "Add"
+      "add_button": "Add",
+      "no_results_title": "No results",
+      "no_results_subtitle": "No items match your search or filters."
     },
     "form": {
       "title_edit": "Edit Item",

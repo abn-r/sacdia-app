@@ -148,6 +148,7 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
                       if (items.isEmpty) {
                         return SliverToBoxAdapter(
                           child: _EmptyState(
+                            hasActiveFilters: filters.hasActiveFilters,
                             canAdd: canManage && !filters.hasActiveFilters,
                             onAddTap:
                                 canManage ? () => _openAddSheet(context) : null,
@@ -545,13 +546,28 @@ class _ErrorBody extends StatelessWidget {
 // ── Empty state ─────────────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
+  /// True cuando hay búsqueda o filtros activos: la lista está vacía por el
+  /// filtro, no porque el club no tenga artículos.
+  final bool hasActiveFilters;
   final bool canAdd;
   final VoidCallback? onAddTap;
 
-  const _EmptyState({required this.canAdd, this.onAddTap});
+  const _EmptyState({
+    required this.hasActiveFilters,
+    required this.canAdd,
+    this.onAddTap,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (hasActiveFilters) {
+      return SacEmptyState(
+        icon: HugeIcons.strokeRoundedSearch01,
+        title: 'inventory.view.no_results_title'.tr(),
+        body: 'inventory.view.no_results_subtitle'.tr(),
+      );
+    }
+
     return SacEmptyState(
       icon: HugeIcons.strokeRoundedBoxingBag,
       title: 'inventory.view.empty_title'.tr(),

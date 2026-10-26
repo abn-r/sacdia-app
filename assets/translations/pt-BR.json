@@ -2978,7 +2978,6 @@
       "delete_confirm": "Tem certeza de que deseja excluir \"{name}\"? Esta ação não pode ser desfeita.",
       "deleted_success": "Artigo excluído com sucesso",
       "delete_error": "Não foi possível excluir o artigo",
-      "edit_button": "Editar artigo",
       "no_photo": "Sem foto",
       "category": "Categoria",
       "condition": "Estado de conservação",
@@ -3003,7 +3002,9 @@
       "empty_subtitle_can_add": "Comece registrando o primeiro artigo\ndo seu clube",
       "empty_subtitle_cannot_add": "O inventário do clube está vazio.",
       "add_first_item": "Adicionar primeiro artigo",
-      "add_button": "Adicionar"
+      "add_button": "Adicionar",
+      "no_results_title": "Sem resultados",
+      "no_results_subtitle": "Nenhum artigo corresponde à sua busca ou filtros."
     },
     "form": {
       "title_edit": "Editar Artigo",

@@ -2978,7 +2978,6 @@
       "delete_confirm": "Êtes-vous sûr de vouloir supprimer \"{name}\" ? Cette action est irréversible.",
       "deleted_success": "Article supprimé avec succès",
       "delete_error": "Impossible de supprimer l'article",
-      "edit_button": "Modifier l'article",
       "no_photo": "Pas de photo",
       "category": "Catégorie",
       "condition": "État de conservation",
@@ -3003,7 +3002,9 @@
       "empty_subtitle_can_add": "Commencez par enregistrer le premier article\nde votre club",
       "empty_subtitle_cannot_add": "L'inventaire du club est vide.",
       "add_first_item": "Ajouter le premier article",
-      "add_button": "Ajouter"
+      "add_button": "Ajouter",
+      "no_results_title": "Aucun résultat",
+      "no_results_subtitle": "Aucun article ne correspond à votre recherche ou à vos filtres."
     },
     "form": {
       "title_edit": "Modifier l'article",

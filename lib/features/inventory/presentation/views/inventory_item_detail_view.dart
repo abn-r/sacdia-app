@@ -359,6 +359,11 @@ String _joinNonEmpty(List<String?> values) {
 // ── Bottom action bar ───────────────────────────────────────────────────────────
 
 class _BottomActionBar extends StatelessWidget {
+  /// Dos botones grandes comparten el ancho: el padding horizontal por defecto
+  /// del tamaño `large` (32) deja muy poco espacio para el texto a 402pt.
+  static const _actionPadding =
+      EdgeInsets.symmetric(horizontal: 16, vertical: 18);
+
   final bool isDeleting;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -386,6 +391,7 @@ class _BottomActionBar extends StatelessWidget {
                 icon: HugeIcons.strokeRoundedDelete02,
                 variant: SacButtonVariant.outline,
                 size: SacButtonSize.large,
+                padding: _actionPadding,
                 fullWidth: true,
                 isLoading: isDeleting,
                 textColor: AppColors.error,
@@ -396,10 +402,11 @@ class _BottomActionBar extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: SacButton(
-                text: 'inventory.detail.edit_button'.tr(),
+                text: 'common.edit'.tr(),
                 icon: HugeIcons.strokeRoundedEdit02,
                 variant: SacButtonVariant.primary,
                 size: SacButtonSize.large,
+                padding: _actionPadding,
                 fullWidth: true,
                 onPressed: onEdit,
               ),
