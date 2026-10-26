@@ -4821,7 +4821,10 @@
       "notes_hint": "Instructions spéciales, observations…",
       "shipping": "Frais de livraison",
       "total": "Total",
-      "confirm": "Confirmer la commande"
+      "confirm": "Confirmer la commande",
+      "order_sent": "Commande envoyée",
+      "order_sent_folio": "Commande {folio} envoyée",
+      "view_order": "Voir la commande"
     },
     "order": {
       "title": "Détail de la commande",

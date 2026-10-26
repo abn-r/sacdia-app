@@ -4823,7 +4823,10 @@
       "notes_hint": "Instrucciones especiales, observaciones…",
       "shipping": "Costo de envío",
       "total": "Total",
-      "confirm": "Confirmar pedido"
+      "confirm": "Confirmar pedido",
+      "order_sent": "Pedido enviado",
+      "order_sent_folio": "Pedido {folio} enviado",
+      "view_order": "Ver pedido"
     },
     "order": {
       "title": "Detalle del pedido",

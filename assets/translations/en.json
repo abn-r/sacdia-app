@@ -4823,7 +4823,10 @@
       "notes_hint": "Special instructions, comments…",
       "shipping": "Shipping cost",
       "total": "Total",
-      "confirm": "Confirm order"
+      "confirm": "Confirm order",
+      "order_sent": "Order sent",
+      "order_sent_folio": "Order {folio} sent",
+      "view_order": "View order"
     },
     "order": {
       "title": "Order details",

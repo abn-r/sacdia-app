@@ -35,6 +35,11 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
   MaterialDelivery _entrega = MaterialDelivery.recoger;
   final _notasController = TextEditingController();
 
+  /// True once the order was created. The cart is cleared right after, and the
+  /// empty-cart guard in [build] must not redirect (that `go` replaced the
+  /// whole stack and swallowed the navigation below).
+  bool _submitted = false;
+
   @override
   void dispose() {
     _notasController.dispose();
@@ -46,6 +51,9 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
     final cart = ref.watch(cartProvider);
 
     // Redirect to catalog if cart is empty (e.g. after a back navigation).
+    if (cart.lines.isEmpty && _submitted) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     if (cart.lines.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) context.go(RouteNames.homeMaterials);
@@ -283,8 +291,41 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
         SacSnackBar.show(context, failure.message, isError: true);
       },
       (order) {
+        // Capture everything that needs the context before leaving the screen.
+        final router = GoRouter.of(context);
+        final messenger = ScaffoldMessenger.of(context);
+        final folio = order.folioReferencia;
+        final message = folio == null || folio.isEmpty
+            ? 'materials.summary.order_sent'.tr()
+            : 'materials.summary.order_sent_folio'
+                .tr(namedArgs: {'folio': folio});
+        final viewLabel = 'materials.summary.view_order'.tr();
+
+        setState(() => _submitted = true);
         ref.read(cartProvider.notifier).clear();
-        context.go(RouteNames.materialsOrderDetail(order.id));
+
+        // Summary and cart were pushed on top of the catalog: pop both so the
+        // catalog keeps its back arrow. Fall back to `go` on a cold deep link.
+        if (router.canPop()) {
+          router.pop();
+          if (router.canPop()) router.pop();
+        } else {
+          router.go(RouteNames.homeMaterials);
+        }
+
+        SacSnackBar.showMessenger(
+          messenger,
+          message,
+          backgroundColor: AppColors.secondary,
+          action: SnackBarAction(
+            label: viewLabel,
+            textColor: Colors.white,
+            onPressed: () {
+              SacSnackBar.hideMessenger(messenger);
+              router.push(RouteNames.materialsOrderDetail(order.id));
+            },
+          ),
+        );
       },
     );
   }
