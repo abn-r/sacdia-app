@@ -51,6 +51,11 @@ class SacDialog extends StatelessWidget {
   ///
   /// Returns `true` when the user taps the confirm action, `false` for cancel,
   /// and `null` when dismissed by tapping the barrier.
+  ///
+  /// [confirmIsDestructive] paints the confirm action red (delete, leave).
+  /// [confirmIsSuccess] paints it green for positive actions (send, approve);
+  /// the default coral confirm reads as destructive for those. Destructive
+  /// wins if both are set.
   static Future<bool?> show(
     BuildContext context, {
     required String title,
@@ -58,6 +63,7 @@ class SacDialog extends StatelessWidget {
     required String confirmLabel,
     String? cancelLabel,
     bool confirmIsDestructive = false,
+    bool confirmIsSuccess = false,
     String? highlight,
     Widget? body,
     List<List<dynamic>>? icon,
@@ -78,9 +84,17 @@ class SacDialog extends StatelessWidget {
                 ? HugeIcons.strokeRoundedAlert02
                 : HugeIcons.strokeRoundedCheckmarkCircle02),
         iconColor: iconColor ??
-            (confirmIsDestructive ? AppColors.error : AppColors.coral700),
+            (confirmIsDestructive
+                ? AppColors.error
+                : confirmIsSuccess
+                    ? AppColors.success
+                    : AppColors.coral700),
         iconBackgroundColor: iconBackgroundColor ??
-            (confirmIsDestructive ? AppColors.errorLight : AppColors.coral50),
+            (confirmIsDestructive
+                ? AppColors.errorLight
+                : confirmIsSuccess
+                    ? AppColors.success.withValues(alpha: 0.12)
+                    : AppColors.coral50),
         actions: [
           SacDialogAction(
             label: cancelLabel ?? tr('core.dialog.cancel'),
@@ -92,7 +106,9 @@ class SacDialog extends StatelessWidget {
             onPressed: () => Navigator.of(context).pop(true),
             style: confirmIsDestructive
                 ? SacDialogActionStyle.destructive
-                : SacDialogActionStyle.confirm,
+                : confirmIsSuccess
+                    ? SacDialogActionStyle.success
+                    : SacDialogActionStyle.confirm,
           ),
         ],
       ),

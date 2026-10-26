@@ -6,6 +6,30 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 
 void main() {
+  testWidgets('confirmIsSuccess renders a green, non-destructive confirm',
+      (tester) async {
+    final confirm = await _pumpConfirmDialog(tester, success: true);
+
+    expect(confirm.variant, SacButtonVariant.success);
+  });
+
+  testWidgets('confirmIsDestructive still renders the destructive confirm',
+      (tester) async {
+    final confirm = await _pumpConfirmDialog(tester, destructive: true);
+
+    expect(confirm.variant, SacButtonVariant.destructive);
+  });
+
+  testWidgets('destructive wins when both flags are set', (tester) async {
+    final confirm = await _pumpConfirmDialog(
+      tester,
+      destructive: true,
+      success: true,
+    );
+
+    expect(confirm.variant, SacButtonVariant.destructive);
+  });
+
   testWidgets('normal dialog enters from the shared scale over modal duration',
       (
     tester,
@@ -161,6 +185,38 @@ double _dialogScaleValue(WidgetTester tester) {
   final scaleTransition = find.byKey(const ValueKey('sac_dialog_scale'));
   if (scaleTransition.evaluate().isEmpty) return 1;
   return tester.widget<ScaleTransition>(scaleTransition).scale.value;
+}
+
+Future<SacButton> _pumpConfirmDialog(
+  WidgetTester tester, {
+  bool destructive = false,
+  bool success = false,
+}) async {
+  await tester.pumpWidget(
+    MaterialApp(
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: TextButton(
+            onPressed: () => SacDialog.show(
+              context,
+              title: 'Confirmar',
+              confirmLabel: 'Enviar',
+              cancelLabel: 'Cancelar',
+              confirmIsDestructive: destructive,
+              confirmIsSuccess: success,
+            ),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    ),
+  );
+  await tester.tap(find.text('open'));
+  await tester.pump();
+  await tester.pump(SacMotion.modal);
+  return tester.widget<SacButton>(
+    find.widgetWithText(SacButton, 'Enviar'),
+  );
 }
 
 class _DialogHarness extends StatelessWidget {

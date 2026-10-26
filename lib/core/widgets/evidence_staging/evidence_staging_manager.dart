@@ -637,6 +637,9 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
       icon: HugeIcons.strokeRoundedMailSend01,
       cancelLabel: tr('core.evidence_staging.cancel'),
       confirmLabel: tr('core.evidence_staging.submit'),
+      // Sending to validation is a positive action: do not use the coral
+      // confirm (reads as destructive).
+      confirmIsSuccess: true,
     );
     return result ?? false;
   }
