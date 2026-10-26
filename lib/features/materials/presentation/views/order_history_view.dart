@@ -30,21 +30,33 @@ class OrderHistoryView extends ConsumerWidget {
         child: Builder(
           builder: (context) => historialAsync.when(
             loading: () => const _HistorySkeleton(),
-            error: (e, _) => _ErrorBody(
-              message: e.toString(),
-              onRetry: () => ref.invalidate(historyProvider),
+            error: (e, _) => _RefreshableBody(
+              onRefresh: () => _refresh(ref),
+              child: _ErrorBody(
+                message: e.toString(),
+                onRetry: () => ref.invalidate(historyProvider),
+              ),
             ),
             data: (ordenes) {
               if (ordenes.isEmpty) {
-                return _EmptyHistorial(
-                  onGoCatalog: () => context.go(RouteNames.homeMaterials),
+                return _RefreshableBody(
+                  onRefresh: () => _refresh(ref),
+                  child: _EmptyHistorial(
+                    onGoCatalog: () => context.go(RouteNames.homeMaterials),
+                  ),
                 );
               }
 
               return RefreshIndicator(
                 color: SacAccent.of(context).color,
-                onRefresh: () async => ref.invalidate(historyProvider),
+                edgeOffset: SacTopBar.frostedInset(context),
+                onRefresh: () => _refresh(ref),
                 child: ListView.separated(
+                  // Always scrollable: with a short list the default physics
+                  // cannot overscroll, so pull-to-refresh would never fire.
+                  physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
+                  ),
                   padding: SacTopBar.paddingBelowBar(
                       context, const EdgeInsets.all(16)),
                   itemCount: ordenes.length,
@@ -62,6 +74,48 @@ class OrderHistoryView extends ConsumerWidget {
                 ),
               );
             },
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Invalidates [historyProvider] and waits for the new fetch so the
+  /// indicator stays visible until the data arrives.
+  Future<void> _refresh(WidgetRef ref) async {
+    ref.invalidate(historyProvider);
+    try {
+      await ref.read(historyProvider.future);
+    } catch (_) {
+      // The error state is rendered by the view; nothing to do here.
+    }
+  }
+}
+
+/// Wraps a non-list body (empty / error) so pull-to-refresh still works.
+class _RefreshableBody extends StatelessWidget {
+  final Future<void> Function() onRefresh;
+  final Widget child;
+
+  const _RefreshableBody({required this.onRefresh, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return RefreshIndicator(
+      color: SacAccent.of(context).color,
+      edgeOffset: SacTopBar.frostedInset(context),
+      onRefresh: onRefresh,
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Padding(
+              padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+              child: child,
+            ),
           ),
         ),
       ),
