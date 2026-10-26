@@ -164,6 +164,34 @@ void main() {
     );
   });
 
+  testWidgets('general evidence grid sits right under its header (no gap)',
+      (tester) async {
+    await pumpEvidence(
+      tester,
+      userHonor(
+        document: 'https://example.com/completed.pdf',
+        images: const ['batches/b1/sealed/f1.pdf'],
+      ),
+    );
+
+    final headerBottom = tester
+        .getBottomLeft(find.text('honors.evidence.general_section_title'))
+        .dy;
+    final firstTileTop = tester
+        .getTopLeft(
+          find
+              .descendant(
+                of: find.byType(GridView),
+                matching: find.byType(GestureDetector),
+              )
+              .first,
+        )
+        .dy;
+
+    // Header is followed by a 12pt spacer; the top-bar inset must not leak in.
+    expect(firstTileTop - headerBottom, lessThan(24));
+  });
+
   group('general evidence files', () {
     const signedPdf =
         'https://files.example.com/batches/b1/sealed/f1.pdf?X-Amz-Signature=abc&X-Amz-Expires=3600';

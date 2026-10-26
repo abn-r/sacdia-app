@@ -1248,7 +1248,10 @@ class _EvidenceGrid extends StatelessWidget {
     final itemCount = images.length + (showAddCell ? 1 : 0);
 
     return GridView.builder(
-      padding: EdgeInsets.only(top: SacTopBar.frostedInset(context)),
+      // Zero on purpose: this grid lives inside a card, below the section
+      // header. The frosted top-bar inset only belongs to the page's first
+      // sliver (a leftover here opened a ~150pt gap under the header).
+      padding: EdgeInsets.zero,
       // shrinkWrap OK: lives inside SliverToBoxAdapter > Column (non-scrollable).
       // Item count is bounded by the evidence images a user uploads per honor.
       shrinkWrap: true,
