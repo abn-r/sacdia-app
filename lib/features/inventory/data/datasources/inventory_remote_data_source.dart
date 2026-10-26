@@ -200,8 +200,15 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
         'inventory_category_id': categoryId,
         'amount': quantity,
         'instanceType': instanceType,
+        'condition': InventoryItemModel.conditionToString(condition),
         if (description != null && description.isNotEmpty)
           'description': description,
+        if (serialNumber != null) 'serial_number': serialNumber,
+        if (purchaseDate != null) 'purchase_date': _dateOnly(purchaseDate),
+        if (estimatedValue != null) 'estimated_value': estimatedValue,
+        if (location != null) 'location': location,
+        if (assignedTo != null) 'assigned_to': assignedTo,
+        if (notes != null) 'notes': notes,
       };
 
       final response = await _dio.post(
@@ -245,11 +252,21 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
     String? notes,
   }) async {
     try {
+      // El formulario de edición siempre manda el estado completo: un campo
+      // opcional en null significa "borrarlo", así que se envía como null.
       final body = <String, dynamic>{
         if (name != null) 'name': name,
         if (categoryId != null) 'inventory_category_id': categoryId,
         if (quantity != null) 'amount': quantity,
-        if (description != null) 'description': description,
+        if (condition != null)
+          'condition': InventoryItemModel.conditionToString(condition),
+        'description': description,
+        'serial_number': serialNumber,
+        'purchase_date': purchaseDate == null ? null : _dateOnly(purchaseDate),
+        'estimated_value': estimatedValue,
+        'location': location,
+        'assigned_to': assignedTo,
+        'notes': notes,
       };
 
       final response = await _dio.patch(
@@ -342,6 +359,12 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
   }
 
   // ── Error helper ──────────────────────────────────────────────────────────
+
+  /// Fecha sin hora (`YYYY-MM-DD`), como la guarda el backend (columna DATE).
+  static String _dateOnly(DateTime date) =>
+      '${date.year.toString().padLeft(4, '0')}-'
+      '${date.month.toString().padLeft(2, '0')}-'
+      '${date.day.toString().padLeft(2, '0')}';
 
   Never _rethrow(Object e) {
     if (e is DioException) {

@@ -129,9 +129,7 @@ class InventoryItemModel extends InventoryItem {
       photoUrl: json['photo_url']?.toString() ??
           (evidences.isNotEmpty ? evidences.first.url : null),
       evidences: evidences,
-      purchaseDate: json['purchase_date'] != null
-          ? _parseDate(json['purchase_date'])
-          : null,
+      purchaseDate: _parseCalendarDate(json['purchase_date']),
       estimatedValue: json['estimated_value'] != null
           ? _parseDouble(json['estimated_value'])
           : null,
@@ -146,6 +144,18 @@ class InventoryItemModel extends InventoryItem {
       modifiedAt:
           json['updated_at'] != null ? _parseDate(json['updated_at']) : null,
     );
+  }
+
+  /// `purchase_date` es una fecha de calendario (columna DATE). Se toma solo
+  /// `YYYY-MM-DD` y se arma en hora local para que no cambie de día al
+  /// mostrarla, aunque el backend la mande como `...T00:00:00.000Z`.
+  static DateTime? _parseCalendarDate(dynamic raw) {
+    if (raw == null) return null;
+    final text = raw.toString();
+    if (text.length < 10) return null;
+    final parsed = DateTime.tryParse(text.substring(0, 10));
+    if (parsed == null) return null;
+    return DateTime(parsed.year, parsed.month, parsed.day);
   }
 
   static ItemCondition _parseCondition(String? raw) {

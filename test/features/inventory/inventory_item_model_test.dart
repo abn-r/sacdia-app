@@ -15,6 +15,34 @@ void main() {
       expect(item.quantity, 7);
     });
 
+    test('parses condition and extended fields from the backend', () {
+      final item = InventoryItemModel.fromJson(const {
+        'inventory_id': 10,
+        'name': 'Brújula',
+        'amount': 2,
+        'condition': 'regular',
+        'serial_number': 'SN-1',
+        'purchase_date': '2026-03-05T00:00:00.000Z',
+        'estimated_value': 350.5,
+        'location': 'Bodega',
+        'assigned_to': 'Ana',
+        'notes': 'Con estuche',
+        'category': {'category_id': 4, 'name': 'Herramientas'},
+        'created_at': '2026-06-18T22:48:04.568Z',
+      });
+
+      expect(item.condition.name, 'regular');
+      expect(item.serialNumber, 'SN-1');
+      expect(item.estimatedValue, 350.5);
+      expect(item.location, 'Bodega');
+      expect(item.assignedTo, 'Ana');
+      expect(item.notes, 'Con estuche');
+      // Es una fecha de calendario: no debe moverse al día anterior al
+      // convertirla a la zona horaria local.
+      final local = item.purchaseDate!.toLocal();
+      expect([local.year, local.month, local.day], [2026, 3, 5]);
+    });
+
     test('parses evidence photos and uses first evidence as photoUrl', () {
       final item = InventoryItemModel.fromJson(const {
         'inventory_id': 10,
