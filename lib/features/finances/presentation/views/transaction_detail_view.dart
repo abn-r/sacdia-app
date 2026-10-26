@@ -31,7 +31,12 @@ class TransactionDetailView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isIncome = transaction.type.isIncome;
+    // Se vuelve a pedir al backend para reflejar ediciones; mientras carga
+    // se muestra la copia con la que se abrió la pantalla.
+    final current =
+        ref.watch(transactionDetailProvider(transaction.id)).valueOrNull ??
+            transaction;
+    final isIncome = current.type.isIncome;
     final color = isIncome ? AppColors.secondary : AppColors.error;
     final canManageAsync = ref.watch(canManageFinancesProvider);
     final financeMonthAsync = ref.watch(financeMonthProvider);
@@ -62,7 +67,7 @@ class TransactionDetailView extends ConsumerWidget {
                 listenOnly: true,
                 child: IconButton(
                   enableFeedback: false,
-                  onPressed: () => _openEditSheet(context),
+                  onPressed: () => _openEditSheet(context, ref, current),
                   icon: HugeIcon(
                     icon: HugeIcons.strokeRoundedEdit02,
                     size: 20,
@@ -82,7 +87,7 @@ class TransactionDetailView extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Type + amount hero
-                _AmountHero(transaction: transaction, color: color),
+                _AmountHero(transaction: current, color: color),
 
                 const SizedBox(height: 20),
 
@@ -92,28 +97,27 @@ class TransactionDetailView extends ConsumerWidget {
                     _DetailRow(
                       icon: HugeIcons.strokeRoundedNote01,
                       label: 'finances.transaction_detail.concept'.tr(),
-                      value: transaction.description,
+                      value: current.description,
                     ),
                     _divider(),
                     _DetailRow(
                       icon: HugeIcons.strokeRoundedTag01,
                       label: 'finances.transaction_detail.category'.tr(),
-                      value: transaction.category.name,
+                      value: current.category.name,
                     ),
                     _divider(),
                     _DetailRow(
                       icon: HugeIcons.strokeRoundedCalendar01,
                       label: 'finances.transaction_detail.date'.tr(),
                       value: DateFormat('dd \'de\' MMMM \'de\' yyyy', 'es')
-                          .format(transaction.date.toLocal()),
+                          .format(current.date.toLocal()),
                     ),
-                    if (transaction.notes != null &&
-                        transaction.notes!.isNotEmpty) ...[
+                    if (current.notes != null && current.notes!.isNotEmpty) ...[
                       _divider(),
                       _DetailRow(
                         icon: HugeIcons.strokeRoundedInformationCircle,
                         label: 'finances.transaction_detail.notes'.tr(),
-                        value: transaction.notes!,
+                        value: current.notes!,
                         multiline: true,
                       ),
                     ],
@@ -122,8 +126,8 @@ class TransactionDetailView extends ConsumerWidget {
 
                 const SizedBox(height: 16),
 
-                if (transaction.evidences.isNotEmpty) ...[
-                  _EvidenceCard(evidences: transaction.evidences),
+                if (current.evidences.isNotEmpty) ...[
+                  _EvidenceCard(evidences: current.evidences),
                   const SizedBox(height: 16),
                 ],
 
@@ -133,7 +137,7 @@ class TransactionDetailView extends ConsumerWidget {
                     _DetailRow(
                       icon: HugeIcons.strokeRoundedUser,
                       label: 'finances.transaction_detail.registered_by'.tr(),
-                      value: transaction.registeredByName,
+                      value: current.registeredByName,
                     ),
                     _divider(),
                     _DetailRow(
@@ -141,23 +145,23 @@ class TransactionDetailView extends ConsumerWidget {
                       label:
                           'finances.transaction_detail.registration_date'.tr(),
                       value: DateFormat('dd/MM/yyyy HH:mm')
-                          .format(transaction.registeredAt.toLocal()),
+                          .format(current.registeredAt.toLocal()),
                     ),
-                    if (transaction.modifiedByName != null) ...[
+                    if (current.modifiedByName != null) ...[
                       _divider(),
                       _DetailRow(
                         icon: HugeIcons.strokeRoundedEdit02,
                         label: 'finances.transaction_detail.modified_by'.tr(),
-                        value: transaction.modifiedByName!,
+                        value: current.modifiedByName!,
                       ),
-                      if (transaction.modifiedAt != null) ...[
+                      if (current.modifiedAt != null) ...[
                         _divider(),
                         _DetailRow(
                           icon: HugeIcons.strokeRoundedClock01,
                           label: 'finances.transaction_detail.modification_date'
                               .tr(),
                           value: DateFormat('dd/MM/yyyy HH:mm')
-                              .format(transaction.modifiedAt!.toLocal()),
+                              .format(current.modifiedAt!.toLocal()),
                         ),
                       ],
                     ],
@@ -173,14 +177,23 @@ class TransactionDetailView extends ConsumerWidget {
     );
   }
 
-  void _openEditSheet(BuildContext context) {
-    showSacSheet(
+  Future<void> _openEditSheet(
+    BuildContext context,
+    WidgetRef ref,
+    FinanceTransaction current,
+  ) async {
+    await showSacSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => AddTransactionSheet(existing: transaction),
+      builder: (_) => AddTransactionSheet(existing: current),
     );
+    // Recarga el detalle al cerrar la hoja, haya guardado o no: es barato y
+    // evita depender de qué devuelve la hoja.
+    if (context.mounted) {
+      ref.invalidate(transactionDetailProvider(transaction.id));
+    }
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {

@@ -21,6 +21,28 @@ void main() {
   });
 
   group('FinanceTransactionModel', () {
+    test('keeps the category id when the embedded category omits it', () {
+      // Forma real de GET /clubs/:id/finances: el id va en la raíz y el
+      // objeto anidado solo trae nombre y tipo.
+      final transaction = FinanceTransactionModel.fromJson(const {
+        'finance_id': 13,
+        'amount': 150,
+        'description': 'QA ingreso prueba',
+        'finance_date': '2026-10-26T00:00:00.000Z',
+        'year': 2026,
+        'month': 10,
+        'finance_category_id': 13,
+        'finances_categories': {'name': 'Inscripción', 'type': 0},
+      });
+
+      expect(transaction.category.id, 13);
+      expect(transaction.category.name, 'Inscripción');
+      expect(transaction.type, TransactionType.income);
+      // El día no cambia al mostrarlo en hora local.
+      final local = transaction.date.toLocal();
+      expect([local.year, local.month, local.day], [2026, 10, 26]);
+    });
+
     test('infers expense from backend category type 1', () {
       final transaction = FinanceTransactionModel.fromJson(const {
         'finance_id': 10,

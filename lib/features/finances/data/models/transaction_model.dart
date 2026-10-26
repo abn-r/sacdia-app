@@ -73,13 +73,22 @@ class FinanceTransactionModel extends FinanceTransaction {
   factory FinanceTransactionModel.fromJson(Map<String, dynamic> json) {
     // La BD tiene amount como Int (puede representar centavos o la cantidad directa).
     // El backend puede devolver la categoría embebida o solo el ID.
-    final categoryJson = json['finances_categories'] as Map<String, dynamic>? ??
-        json['category'] as Map<String, dynamic>? ??
-        {
-          'finance_category_id': json['finance_category_id'] ?? 0,
-          'name': 'General',
-          'type': 0
-        };
+    // El objeto anidado de GET /clubs/:id/finances trae nombre y tipo pero no
+    // el id; el id va en la raíz. Sin él, editar no puede preseleccionar la
+    // categoría.
+    final embedded = json['finances_categories'] as Map<String, dynamic>? ??
+        json['category'] as Map<String, dynamic>?;
+    final categoryJson = embedded == null
+        ? {
+            'finance_category_id': json['finance_category_id'] ?? 0,
+            'name': 'General',
+            'type': 0
+          }
+        : {
+            if (json['finance_category_id'] != null)
+              'finance_category_id': json['finance_category_id'],
+            ...embedded,
+          };
 
     final category = FinanceCategoryModel.fromJson(categoryJson).toEntity();
 
@@ -106,7 +115,7 @@ class FinanceTransactionModel extends FinanceTransaction {
       amount: _parseDouble(json['amount'] ?? 0),
       description: (json['description'] ?? 'Sin descripción').toString(),
       notes: json['notes']?.toString(),
-      date: _parseDate(json['finance_date'] ?? json['date']),
+      date: _parseCalendarDate(json['finance_date'] ?? json['date']),
       year: _parseInt(json['year'] ?? DateTime.now().year),
       month: _parseInt(json['month'] ?? DateTime.now().month),
       category: category,
@@ -167,6 +176,18 @@ class FinanceTransactionModel extends FinanceTransaction {
   }
 
   static DateTime _parseDateTime(dynamic v) => _parseDate(v);
+
+  /// `finance_date` es un día de calendario que el backend manda como
+  /// medianoche UTC. Se arma en hora local con solo `YYYY-MM-DD` para que
+  /// `toLocal()` no lo mueva al día anterior en México.
+  static DateTime _parseCalendarDate(dynamic v) {
+    if (v is DateTime) return DateTime(v.year, v.month, v.day);
+    final text = v?.toString() ?? '';
+    final parsed =
+        text.length >= 10 ? DateTime.tryParse(text.substring(0, 10)) : null;
+    if (parsed == null) return _parseDate(v);
+    return DateTime(parsed.year, parsed.month, parsed.day);
+  }
 
   FinanceTransaction toEntity() => FinanceTransaction(
         id: id,
