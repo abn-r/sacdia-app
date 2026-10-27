@@ -137,13 +137,16 @@ void main() {
       expect(find.text('Campo local #10'), findsOneWidget);
     });
 
-    testWidgets('tapping a card opens the club detail', (tester) async {
+    testWidgets(
+        'a card does not open the club detail (members only: the router and '
+        'the API reject it for a coordinator)', (tester) async {
       await _pumpView(tester, () => _clubs);
 
       await tester.tap(find.text('Club Aventureros Sur'));
       await tester.pumpAndSettle();
 
-      expect(find.text('page:club:2'), findsOneWidget);
+      expect(find.text('page:club:2'), findsNothing);
+      expect(find.text('Club Aventureros Sur'), findsOneWidget);
     });
 
     testWidgets('the back button leaves the list', (tester) async {

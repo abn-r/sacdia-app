@@ -1,10 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
-import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -338,7 +336,9 @@ class _ClubCard extends StatelessWidget {
     return SacCard(
       animate: animate,
       animationDelay: animationDelay,
-      onTap: () => context.push(RouteNames.clubDetailPath(club.id.toString())),
+      // Sin onTap: el detalle de club (/club/:id) es de los miembros; el router
+      // y la API (403) se lo niegan al coordinador, así que el toque no llevaba
+      // a ninguna parte.
       child: Row(
         children: [
           Container(
@@ -399,12 +399,6 @@ class _ClubCard extends StatelessWidget {
                 ],
               ],
             ),
-          ),
-          const SizedBox(width: 8),
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowRight01,
-            size: 18,
-            color: c.textTertiary,
           ),
         ],
       ),

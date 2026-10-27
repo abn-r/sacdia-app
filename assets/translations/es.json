@@ -874,7 +874,7 @@
     },
     "detail": {
       "delete_title": "Eliminar actividad",
-      "delete_confirm": "¿Estás seguro que quieres eliminar esta actividad? Esta acción no se puede deshacer.",
+      "delete_confirm": "¿Estás seguro de que quieres eliminar esta actividad? Esta acción no se puede deshacer.",
       "delete_button": "Eliminar",
       "deleted_ok": "Actividad eliminada correctamente",
       "error_delete": "Error al eliminar",
@@ -3714,7 +3714,7 @@
       "settings_tile_title": "Configuración",
       "settings_tile_subtitle": "Tema, notificaciones y más",
       "logout_title": "Cerrar sesión",
-      "logout_confirm": "¿Estás seguro que deseas cerrar sesión?",
+      "logout_confirm": "¿Estás seguro de que deseas cerrar sesión?",
       "logout_confirm_action": "Cerrar sesión",
       "update_profile": "Actualizar perfil",
       "club_label": "Club: {name}",
@@ -3912,7 +3912,7 @@
       "privacy_policy": "Política de privacidad",
       "terms": "Términos y condiciones",
       "logout_tile": "Cerrar sesión",
-      "logout_confirm": "¿Estás seguro que deseas cerrar sesión?",
+      "logout_confirm": "¿Estás seguro de que deseas cerrar sesión?",
       "logout_confirm_action": "Cerrar sesión",
       "delete_account_tile": "Eliminar cuenta",
       "delete_account_confirmation_word": "ELIMINAR"

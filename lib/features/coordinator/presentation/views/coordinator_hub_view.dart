@@ -1050,7 +1050,7 @@ class _ClubRow extends StatelessWidget {
     return SacCard(
       animate: true,
       animationDelay: delay,
-      onTap: () => context.push(RouteNames.clubDetailPath(club.id.toString())),
+      // Sin onTap: el coordinador no puede abrir /club/:id (router y API 403).
       child: Row(
         children: [
           Container(
@@ -1112,8 +1112,6 @@ class _ClubRow extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          const _Chevron(),
         ],
       ),
     );

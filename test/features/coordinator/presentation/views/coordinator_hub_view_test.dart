@@ -439,12 +439,12 @@ void main() {
       expect(find.text('page:sla'), findsOneWidget);
     });
 
-    testWidgets('clubs link opens the full list and a row opens the club',
+    testWidgets('a club row does not open the members-only club detail',
         (tester) async {
       await _pumpHub(tester);
       await tester.tap(find.text('Club Beta'));
       await tester.pumpAndSettle();
-      expect(find.text('page:club:11'), findsOneWidget);
+      expect(find.text('page:club:11'), findsNothing);
     });
 
     testWidgets('"view N" opens the clubs list', (tester) async {
