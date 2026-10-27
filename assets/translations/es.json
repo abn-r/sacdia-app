@@ -3549,7 +3549,12 @@
     "errors": {
       "create": "Error al crear la solicitud de traslado.",
       "get_list": "Error al obtener las solicitudes de traslado.",
-      "get_detail": "Error al obtener el detalle de la solicitud de traslado."
+      "get_detail": "Error al obtener el detalle de la solicitud de traslado.",
+      "pending_exists": "Ya tienes una solicitud de traslado pendiente. Espera a que la revisen antes de enviar otra.",
+      "same_section": "Ya perteneces a ese club. Elige uno diferente.",
+      "type_mismatch": "El club elegido no tiene una sección del mismo tipo que la tuya.",
+      "section_not_found": "El club elegido ya no está disponible. Elige otro.",
+      "not_in_section": "No encontramos tu club actual. Actualiza la app e inténtalo de nuevo."
     },
     "detail": {
       "title": "Detalle de traslado",

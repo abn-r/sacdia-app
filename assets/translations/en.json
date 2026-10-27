@@ -3549,7 +3549,12 @@
     "errors": {
       "create": "Error creating the transfer request.",
       "get_list": "Error fetching transfer requests.",
-      "get_detail": "Error fetching the transfer request detail."
+      "get_detail": "Error fetching the transfer request detail.",
+      "pending_exists": "You already have a pending transfer request. Wait for it to be reviewed before sending another.",
+      "same_section": "You already belong to that club. Choose a different one.",
+      "type_mismatch": "The chosen club doesn't have a section of your type.",
+      "section_not_found": "The chosen club is no longer available. Choose another one.",
+      "not_in_section": "We couldn't find your current club. Refresh the app and try again."
     },
     "detail": {
       "title": "Transfer detail",

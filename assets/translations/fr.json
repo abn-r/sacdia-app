@@ -3548,7 +3548,12 @@
     "errors": {
       "create": "Erreur lors de la création de la demande de transfert.",
       "get_list": "Erreur lors de la récupération des demandes de transfert.",
-      "get_detail": "Erreur lors de la récupération du détail de la demande de transfert."
+      "get_detail": "Erreur lors de la récupération du détail de la demande de transfert.",
+      "pending_exists": "Vous avez déjà une demande de transfert en attente. Attendez qu'elle soit examinée avant d'en envoyer une autre.",
+      "same_section": "Vous faites déjà partie de ce club. Choisissez-en un autre.",
+      "type_mismatch": "Le club choisi n'a pas de section du même type que la vôtre.",
+      "section_not_found": "Le club choisi n'est plus disponible. Choisissez-en un autre.",
+      "not_in_section": "Nous n'avons pas trouvé votre club actuel. Actualisez l'application et réessayez."
     },
     "detail": {
       "title": "Détail du transfert",

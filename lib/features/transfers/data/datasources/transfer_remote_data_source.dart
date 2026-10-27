@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import '../../../../core/constants/api_endpoints.dart';
+import '../../../../core/errors/business_error.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/transfer_request_model.dart';
@@ -84,13 +86,15 @@ class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
       );
     } on DioException catch (e) {
       AppLogger.e('DioException en createTransferRequest', tag: _tag, error: e);
-      final msg = e.response?.data is Map
-          ? (e.response!.data['message'] ??
-              e.message ??
-              tr('common.error_network'))
-          : (e.message ?? tr('common.error_network'));
+      final data = e.response?.data;
       throw ServerException(
-          message: msg.toString(), code: e.response?.statusCode);
+        message: transferCreateErrorMessage(
+          code: data is Map ? data['code']?.toString() : null,
+          message: data is Map ? data['message'] : null,
+          hasResponse: e.response != null,
+        ),
+        code: e.response?.statusCode,
+      );
     } catch (e) {
       if (e is AuthException || e is ServerException) rethrow;
       AppLogger.e('Error inesperado en createTransferRequest',
@@ -172,4 +176,30 @@ class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
       throw ServerException(message: e.toString());
     }
   }
+}
+
+/// Texto para un error al crear un traslado. Los códigos conocidos usan un
+/// texto propio en segunda persona (el del servidor habla de «el usuario»);
+/// el resto pasa por [readableErrorMessage], que también lee el `message` en
+/// forma de lista de un 400 de validación.
+@visibleForTesting
+String transferCreateErrorMessage({
+  String? code,
+  Object? message,
+  required bool hasResponse,
+}) {
+  switch (code) {
+    case 'REQUEST_TRANSFER_PENDING_EXISTS':
+      return tr('transfers.errors.pending_exists');
+    case 'REQUEST_TRANSFER_SAME_SECTION':
+      return tr('transfers.errors.same_section');
+    case 'REQUEST_TRANSFER_TYPE_MISMATCH':
+      return tr('transfers.errors.type_mismatch');
+    case 'REQUEST_TRANSFER_SECTION_NOT_FOUND':
+      return tr('transfers.errors.section_not_found');
+    case 'REQUEST_TRANSFER_USER_NOT_IN_SECTION':
+      return tr('transfers.errors.not_in_section');
+  }
+  if (!hasResponse) return tr('common.error_network');
+  return readableErrorMessage(message) ?? tr('transfers.errors.create');
 }

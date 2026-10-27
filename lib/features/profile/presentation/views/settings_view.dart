@@ -328,7 +328,10 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                         onTap: () => Navigator.push(
                           context,
                           SacSharedAxisRoute(
-                            builder: (_) => const TransferRequestFormView(),
+                            // «Mis solicitudes»: muestra la pendiente (si hay)
+                            // y desde ahí se crea una nueva. Ir directo al
+                            // formulario ocultaba la solicitud en trámite.
+                            builder: (_) => const TransferRequestsView(),
                           ),
                         ),
                       ),

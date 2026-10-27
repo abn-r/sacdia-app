@@ -3548,7 +3548,12 @@
     "errors": {
       "create": "Erro ao criar a solicitação de transferência.",
       "get_list": "Erro ao obter as solicitações de transferência.",
-      "get_detail": "Erro ao obter o detalhe da solicitação de transferência."
+      "get_detail": "Erro ao obter o detalhe da solicitação de transferência.",
+      "pending_exists": "Você já tem uma solicitação de transferência pendente. Aguarde a análise antes de enviar outra.",
+      "same_section": "Você já pertence a esse clube. Escolha outro.",
+      "type_mismatch": "O clube escolhido não tem uma seção do mesmo tipo que a sua.",
+      "section_not_found": "O clube escolhido não está mais disponível. Escolha outro.",
+      "not_in_section": "Não encontramos seu clube atual. Atualize o app e tente novamente."
     },
     "detail": {
       "title": "Detalhe da transferência",
