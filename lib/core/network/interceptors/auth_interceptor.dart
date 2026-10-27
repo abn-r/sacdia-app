@@ -50,7 +50,7 @@ class AuthInterceptor extends QueuedInterceptor {
     '/auth/oauth',
     '/auth/device/pair',
     '/auth/password/reset-request',
-    '/auth/reset-password',
+    '/auth/password/reset',
   ];
 
   /// Called once when the refresh token is dead and the session cannot be
