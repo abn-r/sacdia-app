@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
+import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/units/domain/entities/scoring_category.dart';
@@ -104,6 +105,30 @@ void main() {
       expect(canRegisterUnitPoints(counselor, _unit(captainId: 'x')), isFalse);
       expect(
           canRegisterUnitPoints(counselor, _unit(advisorId: 'user-1')), isTrue);
+    });
+
+    test('a supervised teen with a guardian captures the unit they lead', () {
+      final teen = UserEntity(
+        id: 'user-1',
+        authorization:
+            const AuthorizationSnapshot(effectivePermissions: ['units:read']),
+        principal: const PrincipalInfo(
+          kind: PrincipalKind.supervisedUser,
+          supervision: SupervisionInfo(status: SupervisionStatus.active),
+        ),
+      );
+      expect(canRegisterUnitPoints(teen, _unit(captainId: 'user-1')), isTrue);
+      expect(canRegisterUnitPoints(teen, _unit(captainId: 'other')), isFalse);
+    });
+
+    test('a pending teen never captures, even when leading the unit', () {
+      final teen = UserEntity(
+        id: 'user-1',
+        authorization:
+            const AuthorizationSnapshot(effectivePermissions: ['units:read']),
+        principal: const PrincipalInfo(kind: PrincipalKind.supervisedUser),
+      );
+      expect(canRegisterUnitPoints(teen, _unit(captainId: 'user-1')), isFalse);
     });
 
     test('no user never captures', () {
