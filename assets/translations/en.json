@@ -1249,7 +1249,6 @@
     "contact_form": {
       "add_title": "Add Contact",
       "edit_title": "Edit Contact",
-      "save_tooltip": "Save",
       "error_loading": "Error: {error}",
       "error_saving": "Error: {error}",
       "error_no_id": "Could not get the contact ID. Try closing and reopening the screen.",

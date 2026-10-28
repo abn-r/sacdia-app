@@ -1249,7 +1249,6 @@
     "contact_form": {
       "add_title": "Ajouter un contact",
       "edit_title": "Modifier le contact",
-      "save_tooltip": "Enregistrer",
       "error_loading": "Erreur : {error}",
       "error_saving": "Erreur : {error}",
       "error_no_id": "Impossible d’obtenir l’identifiant du contact. Essayez de fermer et de rouvrir l’écran.",
