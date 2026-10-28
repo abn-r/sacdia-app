@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -185,6 +186,17 @@ enum SwitchProfileOutcome {
 }
 
 /// Notifier para manejar la autenticación y sus estados
+/// ¿Ya se puede pedir el permiso de notificaciones para [user]?
+///
+/// Solo cuando terminó el post-registro y aceptó los documentos legales: antes
+/// el aviso del sistema tapaba el registro. Un teléfono vinculado no tiene
+/// post-registro de cuenta, así que siempre está listo.
+@visibleForTesting
+bool pushReadyFor(UserEntity user) {
+  if (user.isLinkedDevice) return true;
+  return user.postRegisterComplete && !user.legalAcceptancePending;
+}
+
 class AuthNotifier extends AsyncNotifier<UserEntity?> {
   static const _tag = 'AuthNotifier';
 
@@ -202,8 +214,16 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
 
   /// Registra el token FCM del usuario actual. Nunca mientras se actúa por un
   /// dependiente: el dispositivo y sus notificaciones son del tutor (FP-49).
-  void _registerPush() {
+  ///
+  /// Pedir el permiso de notificaciones (lo hace `initialize`) espera a que la
+  /// cuenta termine el post-registro y acepte los documentos legales: así el
+  /// aviso del sistema no aparece encima del registro. [markPostRegisterComplete]
+  /// y [markLegalAccepted] vuelven a llamar aquí. Un teléfono vinculado no
+  /// pasa por el post-registro de cuenta y se registra de inmediato.
+  void _registerPush([UserEntity? user]) {
     if (_isActing) return;
+    final current = user ?? state.valueOrNull;
+    if (current != null && !pushReadyFor(current)) return;
     ref.read(pushNotificationServiceProvider).initialize();
   }
 
@@ -412,9 +432,6 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
           AppLogger.w('Sin conectividad, intentando caché', tag: _tag);
           if (cachedId != null) {
             AppLogger.i('Sesión restaurada desde caché', tag: _tag);
-            // Session restored from cache — initialize FCM so token is
-            // registered even when the backend was temporarily unreachable.
-            _registerPush();
             ref.read(unreadNotificationsCountProvider.notifier).refresh();
 
             // Reconstruct active grant from cached flat strings so widgets
@@ -439,7 +456,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
               );
             }
 
-            return UserEntity(
+            final cachedUser = UserEntity(
               id: cachedId,
               email: cachedEmail,
               name: cachedName,
@@ -457,6 +474,10 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
                   ? const PrincipalInfo(kind: PrincipalKind.linkedDevice)
                   : null,
             );
+            // Session restored from cache — initialize FCM so token is
+            // registered even when the backend was temporarily unreachable.
+            _registerPush(cachedUser);
+            return cachedUser;
           }
           AppLogger.i('Sin caché, redirigiendo a login', tag: _tag);
           return null;
@@ -475,7 +496,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
           // son del tutor y `_cacheUser` ya lo respeta.
           _cacheUser(user);
           // User already authenticated on startup — register FCM token.
-          _registerPush();
+          _registerPush(user);
           ref.read(unreadNotificationsCountProvider.notifier).refresh();
           return user;
         }
@@ -646,7 +667,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         .setBool('user_manually_logged_out', false);
     _cacheUser(user);
     // Register FCM token after successful login (fire-and-forget).
-    _registerPush();
+    _registerPush(user);
     ref.read(unreadNotificationsCountProvider.notifier).refresh();
     state = AsyncValue.data(user);
     return true;
@@ -787,6 +808,8 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     );
     state = AsyncValue.data(updatedUser);
     _cacheUser(updatedUser);
+    // Terminó el post-registro: ahora sí se pide el permiso de notificaciones.
+    _registerPush(updatedUser);
   }
 
   /// Clears the legal-acceptance gate in the in-memory auth state after the
@@ -814,7 +837,9 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       analyticsAnonymous: current.analyticsAnonymous,
       serverMode: current.serverMode,
     );
-    state = AsyncValue.data(updatedUser);
+    state = AsyncValue.data(
+        updatedUser); // Aceptó los documentos: si ya terminó el registro, pide el permiso.
+    _registerPush(updatedUser);
   }
 
   void markPostRegisterIncomplete({String? forUserId}) {
@@ -946,7 +971,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         .setBool('user_manually_logged_out', false);
     _cacheUser(user);
     // Mismos efectos que signIn(): FCM y badge de notificaciones.
-    _registerPush();
+    _registerPush(user);
     ref.read(unreadNotificationsCountProvider.notifier).refresh();
     state = AsyncValue.data(user);
     return SocialSignInResult.success;
@@ -1419,7 +1444,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     // Un teléfono vinculado guarda lo mínimo para restaurarse sin red.
     _cacheUser(user);
     // El token FCM del teléfono se registra con `push:register`.
-    _registerPush();
+    _registerPush(user);
     ref.read(unreadNotificationsCountProvider.notifier).refresh();
     state = AsyncValue.data(user);
     return null;
