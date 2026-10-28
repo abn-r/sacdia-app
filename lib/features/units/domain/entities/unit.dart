@@ -57,6 +57,16 @@ class Unit {
     this.members = const [],
   });
 
+  /// ¿[userId] dirige esta unidad? Capitán, secretario, consejero o consejero
+  /// suplente. Un id nulo o vacío nunca dirige (falla cerrado).
+  bool isLedBy(String? userId) {
+    if (userId == null || userId.isEmpty) return false;
+    return captainId == userId ||
+        secretaryId == userId ||
+        advisorId == userId ||
+        substituteAdvisorId == userId;
+  }
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) || other is Unit && other.id == id;

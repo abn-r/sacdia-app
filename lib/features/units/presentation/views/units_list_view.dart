@@ -41,15 +41,7 @@ List<Unit> _filterUnitsByRole(
   if (canSeeAllSectionUnits) {
     return scopedUnits;
   }
-  return scopedUnits
-      .where(
-        (u) =>
-            u.advisorId == userId ||
-            u.substituteAdvisorId == userId ||
-            u.captainId == userId ||
-            u.secretaryId == userId,
-      )
-      .toList();
+  return scopedUnits.where((u) => u.isLedBy(userId)).toList();
 }
 
 /// Vista de lista de unidades disponibles para el usuario.

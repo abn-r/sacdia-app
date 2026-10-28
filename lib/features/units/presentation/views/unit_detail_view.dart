@@ -21,7 +21,6 @@ import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
-import '../../../../features/auth/domain/utils/authorization_utils.dart';
 import '../../../../features/auth/presentation/providers/auth_providers.dart';
 import '../../../../core/utils/scoring_week.dart';
 import '../../../activities/domain/entities/activity.dart';
@@ -30,6 +29,7 @@ import '../../../members/presentation/providers/members_providers.dart';
 import '../../domain/entities/scoring_category.dart';
 import '../../domain/entities/unit.dart';
 import '../../domain/entities/unit_member.dart';
+import '../../domain/unit_access.dart';
 import '../../domain/week_activities.dart';
 import '../providers/units_providers.dart';
 import 'unit_points_history_view.dart';
@@ -181,17 +181,7 @@ class UnitDetailView extends ConsumerWidget {
 
   bool _canRegisterPoints(WidgetRef ref, Unit unit) {
     final user = ref.watch(authNotifierProvider).valueOrNull;
-    if (!hasAnyPermission(user, const {'units:update'})) {
-      return false;
-    }
-    if (hasAnyPermission(user, const {'units:create'})) {
-      return true;
-    }
-    final userId = user?.id ?? '';
-    if (userId.isEmpty) return false;
-    return unit.advisorId == userId ||
-        unit.substituteAdvisorId == userId ||
-        unit.captainId == userId;
+    return canRegisterUnitPoints(user, unit);
   }
 
   void _handleSave(BuildContext context, UnitsNotifier notifier) {
