@@ -1,7 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/widgets/sac_network_image.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
@@ -97,6 +99,7 @@ class CurrentClassCard extends ConsumerWidget {
         initialIsExpired || (classState?.valueOrNull?.isExpired ?? false);
 
     return SacCard(
+      onTap: currentClassId == null ? null : () => _openDetail(context, ref),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -156,6 +159,31 @@ class CurrentClassCard extends ConsumerWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  // ─── Navigation ───────────────────────────────────────────────────────────
+
+  /// Opens the same class detail the Clases tab opens for its current class,
+  /// carrying the enrollment id when the user's classes are already loaded.
+  void _openDetail(BuildContext context, WidgetRef ref) {
+    final classId = currentClassId;
+    if (classId == null) return;
+    final classes = ref.read(userClassesProvider).valueOrNull;
+    int? enrollmentId;
+    if (classes != null) {
+      for (final progressiveClass in classes) {
+        if (progressiveClass.id == classId) {
+          enrollmentId = progressiveClass.enrollmentId;
+          break;
+        }
+      }
+    }
+    context.push(
+      RouteNames.classDetailPath(
+        classId.toString(),
+        enrollmentId: enrollmentId,
       ),
     );
   }
