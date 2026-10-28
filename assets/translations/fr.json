@@ -2453,8 +2453,7 @@
       "empty_subtitle": "Ajoutez le premier mouvement.",
       "error_title": "Erreur lors du chargement des finances",
       "recent_transactions": "Transactions récentes",
-      "view_all": "Voir tout →",
-      "view_all_link": "Voir toutes les transactions →"
+      "view_all": "Voir tout →"
     },
     "add_transaction": {
       "edit_title": "Modifier le mouvement",

@@ -2454,8 +2454,7 @@
       "empty_subtitle": "Agrega el primer movimiento.",
       "error_title": "Error al cargar finanzas",
       "recent_transactions": "Transacciones Recientes",
-      "view_all": "Ver todo →",
-      "view_all_link": "Ver todas las transacciones →"
+      "view_all": "Ver todo →"
     },
     "add_transaction": {
       "edit_title": "Editar Movimiento",

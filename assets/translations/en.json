@@ -2454,8 +2454,7 @@
       "empty_subtitle": "Add the first record.",
       "error_title": "Error loading finances",
       "recent_transactions": "Recent Transactions",
-      "view_all": "View all →",
-      "view_all_link": "View all transactions →"
+      "view_all": "View all →"
     },
     "add_transaction": {
       "edit_title": "Edit Movement",
