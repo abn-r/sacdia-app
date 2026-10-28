@@ -576,7 +576,13 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
                         ? 'activities.form.type_loading'.tr()
                         : 'activities.form.type_hint'.tr(),
                     icon: HugeIcons.strokeRoundedLabel,
-                    selectedName: _selectedActivityTypeName,
+                    // Sin elección explícita se envía el tipo por defecto
+                    // (Regular): mostrarlo en lugar del placeholder.
+                    selectedName: _selectedActivityTypeName ??
+                        activityTypeItems
+                            .where((i) => i.id == _selectedActivityType)
+                            .firstOrNull
+                            ?.name,
                     enabled: !isLoading &&
                         !activityTypesAsync.isLoading &&
                         activityTypeItems.isNotEmpty,
@@ -587,9 +593,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
                         context: context,
                         title: 'activities.form.type_picker_title'.tr(),
                         items: activityTypeItems,
-                        selectedId: _selectedActivityTypeName == null
-                            ? null
-                            : _selectedActivityType,
+                        selectedId: _selectedActivityType,
                         icon: HugeIcons.strokeRoundedLabel,
                       );
                       if (selected != null && mounted) {
