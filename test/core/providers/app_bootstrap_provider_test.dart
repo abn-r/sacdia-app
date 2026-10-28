@@ -130,6 +130,38 @@ void main() {
       }
     });
 
+    test('a teen waiting for a guardian without club roles is still Ready',
+        () async {
+      final container = await _makeContainer(UserEntity(
+        id: 'teen-pending',
+        principal: const PrincipalInfo(
+          kind: PrincipalKind.supervisedUser,
+          supervision:
+              SupervisionInfo(status: SupervisionStatus.pendingGuardian),
+        ),
+        authorization: const AuthorizationSnapshot(effectivePermissions: []),
+      ));
+      addTearDown(container.dispose);
+
+      final state = await container.read(appBootstrapProvider.future);
+      expect(state, isA<AppBootstrapReady>());
+    });
+
+    test('a supervised teen without club roles still needs them', () async {
+      final container = await _makeContainer(UserEntity(
+        id: 'teen-active',
+        principal: const PrincipalInfo(
+          kind: PrincipalKind.supervisedUser,
+          supervision: SupervisionInfo(status: SupervisionStatus.active),
+        ),
+        authorization: const AuthorizationSnapshot(effectivePermissions: []),
+      ));
+      addTearDown(container.dispose);
+
+      final state = await container.read(appBootstrapProvider.future);
+      expect(state, isA<AppBootstrapError>());
+    });
+
     test('returns AppBootstrapUnauthenticated when user is null', () async {
       final container = await _makeContainer(null);
       addTearDown(container.dispose);
