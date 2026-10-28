@@ -131,6 +131,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
 
           Flexible(
             child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               padding: EdgeInsets.fromLTRB(
                 20,
                 16,
@@ -160,6 +161,10 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
+                      textInputAction: TextInputAction.done,
+                      // The iOS decimal pad has no Done key: tapping outside is
+                      // the only way to close it.
+                      onTapOutside: (_) => FocusScope.of(context).unfocus(),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
                           RegExp(r'^\d*\.?\d{0,2}'),
