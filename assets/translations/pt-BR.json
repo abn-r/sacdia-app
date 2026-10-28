@@ -915,7 +915,7 @@
       "date_label": "Data",
       "time_label": "Hora",
       "end_date_label": "Data de término (opcional)",
-      "modality_label": "Tipo de atividade",
+      "modality_label": "Como será?",
       "modality_in_person": "Presencial",
       "modality_virtual": "Virtual",
       "link_meet_label": "Link de videoconferência",

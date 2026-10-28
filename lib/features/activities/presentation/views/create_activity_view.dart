@@ -586,7 +586,9 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
                         context: context,
                         title: 'activities.form.type_picker_title'.tr(),
                         items: activityTypeItems,
-                        selectedId: _selectedActivityType,
+                        selectedId: _selectedActivityTypeName == null
+                            ? null
+                            : _selectedActivityType,
                         icon: HugeIcons.strokeRoundedLabel,
                       );
                       if (selected != null && mounted) {

@@ -915,7 +915,7 @@
       "date_label": "Date",
       "time_label": "Time",
       "end_date_label": "End date (optional)",
-      "modality_label": "Activity type",
+      "modality_label": "How will it be held?",
       "modality_in_person": "In-person",
       "modality_virtual": "Virtual",
       "link_meet_label": "Video conference link",
