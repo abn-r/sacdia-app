@@ -929,6 +929,7 @@
       "sections_empty": "No sections available",
       "sections_min_hint": "Select at least 1 additional section",
       "error_no_location": "Select the activity location on the map",
+      "error_no_date": "Choose the activity date",
       "error_virtual_no_image": "Select an image for the virtual activity",
       "error_joint_min_sections": "Select at least 2 sections for a joint activity",
       "audience_label": "Who is it for?",

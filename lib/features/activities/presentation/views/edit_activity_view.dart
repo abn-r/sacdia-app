@@ -271,6 +271,13 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
       return;
     }
 
+    // Sin fecha la actividad no aparece en el calendario: una actividad vieja
+    // sin fecha debe recibir una al editarse.
+    if (_activityDate == null) {
+      _showError('activities.form.error_no_date'.tr());
+      return;
+    }
+
     // Validate joint activity sections when the user is a director
     final clubCtx = ref.read(clubContextProvider).valueOrNull;
     final isDirector = clubCtx?.isDirector ?? false;
@@ -294,9 +301,6 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
       clearFields.add('description');
     }
 
-    if (a.activityDate != null && _activityDate == null) {
-      clearFields.add('activity_date');
-    }
     if (a.activityEndDate != null && _activityEndDate == null) {
       clearFields.add('activity_end_date');
     }
@@ -607,16 +611,13 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
 
                   // Fecha de inicio
                   ActivityDatePickerField(
-                    label: 'activities.form.date_label'.tr(),
+                    label: '${'activities.form.date_label'.tr()} *',
                     value: _activityDate,
                     enabled: !isLoading,
                     onTap: isLoading ? null : _pickActivityDate,
-                    onClear: _activityDate == null
-                        ? null
-                        : () => setState(() {
-                              _activityDate = null;
-                              _activityEndDate = null;
-                            }),
+                    errorText: _locationTouched && _activityDate == null
+                        ? 'activities.form.error_no_date'.tr()
+                        : null,
                   ),
                   const SizedBox(height: 16),
 

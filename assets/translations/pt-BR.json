@@ -929,6 +929,7 @@
       "sections_empty": "Nenhuma seção disponível",
       "sections_min_hint": "Selecione pelo menos 1 seção adicional",
       "error_no_location": "Selecione o local da atividade no mapa",
+      "error_no_date": "Escolha a data da atividade",
       "error_virtual_no_image": "Selecione uma imagem para a atividade virtual",
       "error_joint_min_sections": "Selecione pelo menos 2 seções para uma atividade conjunta",
       "audience_label": "Para quem é?",
