@@ -123,7 +123,14 @@ Future<void> _fillForm(WidgetTester tester) async {
   // Fecha de nacimiento obligatoria: el selector abre en hace 18 años.
   await tester.tap(find.byType(SacPickerField));
   await tester.pumpAndSettle();
-  await tester.tap(find.text('OK'));
+  await tester.tap(
+    find
+        .descendant(
+          of: find.byType(DatePickerDialog),
+          matching: find.byType(TextButton),
+        )
+        .last,
+  );
   await tester.pumpAndSettle();
 }
 

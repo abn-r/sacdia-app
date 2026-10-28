@@ -288,7 +288,7 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
       duration: SacMotion.standard,
       value: _expanded ? 1.0 : 0.0,
     );
-    _chevronAngle = Tween<double>(begin: 0.0, end: 0.5).animate(
+    _chevronAngle = Tween<double>(begin: 0.0, end: 0.25).animate(
       CurvedAnimation(parent: _chevronController, curve: SacMotion.easeOut),
     );
     _expandAnimation = CurvedAnimation(
@@ -387,7 +387,8 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
                             ),
                           ),
                           Text(
-                            '$pending pendientes',
+                            'classes.detail_with_progress.module_pending_count'
+                                .plural(pending),
                             style: TextStyle(
                               fontSize: 12,
                               color: c.ink500,
@@ -406,9 +407,8 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
                               ),
                             ),
                             Text(
-                              widget.honors.length == 1
-                                  ? '1 especialidad'
-                                  : '${widget.honors.length} especialidades',
+                              'classes.detail_with_progress.module_honors_count'
+                                  .plural(widget.honors.length),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: c.ink500,

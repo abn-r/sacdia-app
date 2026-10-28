@@ -16,6 +16,7 @@ import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../domain/entities/camporee_payment.dart';
 import '../providers/camporees_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 /// Vista de pagos de un miembro en un camporee.
 ///
@@ -658,7 +659,7 @@ class _CamporeePaymentFormSheetState
   }
 
   Future<void> _pickDate(BuildContext context) async {
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       initialDate: _paymentDate ?? DateTime.now(),
       firstDate: DateTime(2020),

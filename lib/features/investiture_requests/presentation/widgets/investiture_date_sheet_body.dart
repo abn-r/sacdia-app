@@ -7,6 +7,7 @@ import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_sheet.dart';
 import '../../../activities/presentation/widgets/activity_form_widgets.dart';
 import '../utils/investiture_dates.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 /// Cuerpo común de las hojas de fecha de investidura: encabezado, selector de
 /// fecha (obligatorio) y botón de confirmar.
@@ -64,7 +65,7 @@ class _InvestitureDateSheetBodyState extends State<InvestitureDateSheetBody> {
   Future<void> _pickDate() async {
     final first = civilDay(widget.firstDate);
     final last = civilDay(widget.lastDate);
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       initialDate:
           clampCivilDay(_date ?? civilDay(DateTime.now()), first, last),

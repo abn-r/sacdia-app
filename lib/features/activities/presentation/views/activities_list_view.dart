@@ -22,6 +22,7 @@ import '../widgets/activities_loading_skeleton.dart';
 import '../widgets/activity_card.dart';
 import 'activity_detail_view.dart';
 import 'create_activity_view.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 /// Vista de lista de actividades - Estilo "Scout Vibrante"
 ///
@@ -211,7 +212,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
     final initial =
         _selectedDate.value ?? DateTime(now.year, now.month, now.day);
 
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       initialDate: initial.isBefore(yearStart)
           ? yearStart

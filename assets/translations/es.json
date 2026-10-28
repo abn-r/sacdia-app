@@ -4,6 +4,7 @@
     "retry": "Reintentar",
     "cancel": "Cancelar",
     "confirm": "Confirmar",
+    "picker_confirm": "Aceptar",
     "ok": "OK",
     "done": "Listo",
     "save": "Guardar",
@@ -16,7 +17,7 @@
     "search": "Buscar",
     "yes": "Sí",
     "no": "No",
-    "error_generic": "Ocurrió un error. Intente nuevamente.",
+    "error_generic": "Ocurrió un error. Inténtalo de nuevo.",
     "error_network": "Sin conexión con el servidor.",
     "language": "Idioma",
     "no_results": "No se encontraron resultados",
@@ -184,14 +185,14 @@
   },
   "auth": {
     "login_title": "Bienvenido",
-    "login_description": "Ingrese sus credenciales para continuar",
+    "login_description": "Ingresa tus credenciales para continuar",
     "email_label": "Correo electrónico",
     "password_label": "Contraseña",
     "submit_idle": "Iniciar sesión",
     "submit_loading": "Verificando…",
-    "forgot_password": "¿Olvidó su contraseña?",
+    "forgot_password": "¿Olvidaste tu contraseña?",
     "logout_confirm_title": "¿Cerrar sesión?",
-    "logout_confirm_message": "Su sesión actual se cerrará en este dispositivo.",
+    "logout_confirm_message": "Tu sesión actual se cerrará en este dispositivo.",
     "error_title": "Error de autenticación",
     "error_unexpected": "Ocurrió un error inesperado",
     "login_error": "Error al iniciar sesión",
@@ -303,11 +304,11 @@
     "how_it_works": "Cómo funciona",
     "usage_tip_1": "El token se rota cada 24 h; manténgalo activo solo el tiempo necesario.",
     "usage_tip_2": "Un director o coordinador puede escanearlo para registrar asistencia.",
-    "usage_tip_3": "No comparta su QR con personas externas a su club.",
+    "usage_tip_3": "No compartas tu QR con personas externas a tu club.",
     "scan_title": "Escanear credencial",
     "scan_attendance_title": "Asistencia por QR",
-    "scan_hint_attendance": "Apunte la cámara al QR del miembro para registrar asistencia",
-    "scan_hint_lookup": "Apunte la cámara al QR del miembro",
+    "scan_hint_attendance": "Apunta la cámara al QR del miembro para registrar asistencia",
+    "scan_hint_lookup": "Apunta la cámara al QR del miembro",
     "scan_another": "Escanear otro",
     "scan_success_registered": "Asistencia registrada",
     "scan_success_already_present": "Ya estaba marcado como asistente",
@@ -430,7 +431,7 @@
     "missing_user_id": "No se recibió ID de usuario",
     "no_active_session": "No hay sesión activa",
     "refresh_user_failed": "No se pudo obtener el usuario actualizado",
-    "too_many_attempts": "Demasiados intentos. Intente más tarde.",
+    "too_many_attempts": "Demasiados intentos. Inténtalo más tarde.",
     "unexpected": "Error inesperado: {details}",
     "update_password": "Error al actualizar contraseña",
     "switch_context": "Error al cambiar contexto",
@@ -441,10 +442,10 @@
     "wrong_password": "Contraseña incorrecta",
     "invalid_user_response": "La respuesta del servidor no contiene un ID de usuario válido",
     "user_not_authenticated": "Usuario no autenticado",
-    "connection_timeout": "Tiempo de espera agotado. Compruebe su conexión.",
+    "connection_timeout": "Tiempo de espera agotado. Comprueba tu conexión.",
     "server_error": "Error del servidor",
     "request_cancelled": "Solicitud cancelada",
-    "connection_error": "Error de conexión. Compruebe su red.",
+    "connection_error": "Error de conexión. Comprueba tu red.",
     "no_internet": "No hay conexión a Internet",
     "ssl_invalid": "Certificado SSL no válido",
     "social_signin_cancelled": "Inicio de sesión cancelado",
@@ -915,7 +916,7 @@
       "date_label": "Fecha",
       "time_label": "Hora",
       "end_date_label": "Fecha de fin (opcional)",
-      "modality_label": "Tipo de actividad",
+      "modality_label": "¿Cómo será?",
       "modality_in_person": "Presencial",
       "modality_virtual": "Virtual",
       "link_meet_label": "Link de videoconferencia",
@@ -1989,6 +1990,14 @@
       "stat_pending": "pend.",
       "stat_sent": "env.",
       "stat_validated": "val.",
+      "module_pending_count": {
+        "one": "{} pendiente",
+        "other": "{} pendientes"
+      },
+      "module_honors_count": {
+        "one": "{} especialidad",
+        "other": "{} especialidades"
+      },
       "empty_requirements": "No hay requerimientos en este modulo.",
       "empty_modules_title": "Sin módulos aún",
       "empty_modules_body": "Los módulos aparecerán cuando estén disponibles para esta clase.",
@@ -2445,8 +2454,7 @@
       "empty_subtitle": "Agrega el primer movimiento.",
       "error_title": "Error al cargar finanzas",
       "recent_transactions": "Transacciones Recientes",
-      "view_all": "Ver todo →",
-      "view_all_link": "Ver todas las transacciones →"
+      "view_all": "Ver todo →"
     },
     "add_transaction": {
       "edit_title": "Editar Movimiento",
@@ -3209,7 +3217,7 @@
       "delete_file": "Error al eliminar el archivo",
       "upload_failed": "Error al subir el archivo",
       "folder_not_exists": "La carpeta no existe aún. No se pueden realizar operaciones sin una carpeta creada.",
-      "folder_not_loaded": "La carpeta no está cargada. Asegúrese de que evidenceFolderProvider haya completado antes de invocar operaciones de mutación.",
+      "folder_not_loaded": "La carpeta no está cargada. Asegúrate de que evidenceFolderProvider haya completado antes de invocar operaciones de mutación.",
       "create_folder": "Error al crear la Carpeta Anual de Evidencias",
       "create_folder_empty": "La carpeta fue solicitada, pero aún no está disponible. Intenta actualizar."
     },
@@ -3273,7 +3281,7 @@
     },
     "closed_banner": {
       "title": "Carpeta cerrada",
-      "description": "La Carpeta Anual de Evidencias ha sido cerrada. Para modificar sus evidencias, contacte a la administración del campo local."
+      "description": "La Carpeta Anual de Evidencias ha sido cerrada. Para modificar tus evidencias, contacta a la administración del campo local."
     },
     "no_folder": {
       "title": "Carpeta no disponible",
@@ -4150,7 +4158,7 @@
   "core": {
     "validators": {
       "email_required": "El email es requerido",
-      "email_invalid": "Por favor, ingrese un email válido",
+      "email_invalid": "Por favor, ingresa un email válido",
       "password_required": "La contraseña es requerida",
       "password_min_length": "La contraseña debe tener al menos 12 caracteres",
       "password_max_length": "La contraseña no puede tener más de 128 caracteres",
@@ -4159,12 +4167,12 @@
       "password_number": "La contraseña debe incluir al menos un número",
       "password_special": "La contraseña debe incluir al menos un carácter especial (@ $ ! % * ? &)",
       "password_first_char": "La contraseña debe empezar con una letra, un número o un carácter especial (@ $ ! % * ? &)",
-      "confirm_password_required": "Por favor, confirme su contraseña",
+      "confirm_password_required": "Por favor, confirma tu contraseña",
       "passwords_mismatch": "Las contraseñas no coinciden",
       "name_required": "El nombre es requerido",
       "name_min_length": "El nombre debe tener al menos 2 caracteres",
-      "phone_invalid": "Por favor, ingrese un número de teléfono válido",
-      "url_invalid": "Por favor, ingrese una URL válida"
+      "phone_invalid": "Por favor, ingresa un número de teléfono válido",
+      "url_invalid": "Por favor, ingresa una URL válida"
     },
     "bootstrap": {
       "unexpected_session_error": "Error inesperado al verificar sesión",
@@ -5391,7 +5399,7 @@
         "invest": "Investir",
         "reject": "Rechazar",
         "comment_label": "Comentario (opcional)",
-        "comment_helper": "Si lo escribís, la persona lo ve en su estado de investidura.",
+        "comment_helper": "Si lo escribes, la persona lo ve en su estado de investidura.",
         "reason_label": "Motivo del rechazo",
         "reason_helper": "Lo ve la directiva de la sección. La persona solo recibe «Falta de requisitos para investidura».",
         "reason_required": "Escribe el motivo para poder rechazar.",

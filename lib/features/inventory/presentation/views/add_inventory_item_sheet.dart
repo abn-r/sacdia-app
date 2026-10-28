@@ -22,6 +22,7 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/inventory_category.dart';
 import '../../domain/entities/inventory_item.dart';
 import '../providers/inventory_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 /// Bottom sheet para agregar o editar un ítem de inventario.
 ///
@@ -777,7 +778,7 @@ class _DatePickerField extends StatelessWidget {
   }
 
   Future<void> _pickDate(BuildContext context) async {
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       initialDate: selectedDate ?? DateTime.now(),
       firstDate: DateTime(2000),

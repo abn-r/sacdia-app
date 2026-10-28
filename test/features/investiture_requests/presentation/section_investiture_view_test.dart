@@ -247,7 +247,7 @@ void main() {
 
       await _pickDateInSheet(tester);
       await settle(tester);
-      await tester.tap(find.text('ACEPTAR'));
+      await tester.tap(find.text('Aceptar'));
       await settle(tester);
 
       await tester.tap(find.widgetWithText(SacButton, 'Presentar'));

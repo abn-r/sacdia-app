@@ -20,6 +20,7 @@ import 'package:sacdia_app/core/widgets/sac_tweened_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 // ── Constantes de validación ──────────────────────────────────────────────────
 
@@ -98,7 +99,7 @@ class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       initialDate: _fechaPago ?? now,
       firstDate: DateTime(now.year - 1),

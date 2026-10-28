@@ -21,6 +21,7 @@ import '../../../../core/widgets/evidence_staging/image_source_dialog.dart';
 import '../../domain/entities/finance_category.dart';
 import '../../domain/entities/transaction.dart';
 import '../providers/finances_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 /// Bottom sheet para agregar o editar un movimiento financiero.
 ///
@@ -131,6 +132,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
 
           Flexible(
             child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               padding: EdgeInsets.fromLTRB(
                 20,
                 16,
@@ -160,6 +162,10 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
+                      textInputAction: TextInputAction.done,
+                      // The iOS decimal pad has no Done key: tapping outside is
+                      // the only way to close it.
+                      onTapOutside: (_) => FocusScope.of(context).unfocus(),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
                           RegExp(r'^\d*\.?\d{0,2}'),
@@ -1073,7 +1079,7 @@ class _DatePickerField extends StatelessWidget {
   }
 
   Future<void> _pickDate(BuildContext context) async {
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       initialDate: selectedDate,
       firstDate: DateTime(2020),

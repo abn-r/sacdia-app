@@ -166,7 +166,7 @@ void main() {
         ?.call();
     await _settle(tester);
 
-    expect(find.text('Error de conexión. Compruebe su red.'), findsOneWidget);
+    expect(find.text('Error de conexión. Comprueba tu red.'), findsOneWidget);
     expect(
       tester.widget<TextFormField>(fields.at(0)).controller?.text,
       'ana@example.com',

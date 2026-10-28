@@ -4,6 +4,7 @@
     "retry": "Retry",
     "cancel": "Cancel",
     "confirm": "Confirm",
+    "picker_confirm": "OK",
     "ok": "OK",
     "done": "Done",
     "save": "Save",
@@ -915,7 +916,7 @@
       "date_label": "Date",
       "time_label": "Time",
       "end_date_label": "End date (optional)",
-      "modality_label": "Activity type",
+      "modality_label": "How will it be held?",
       "modality_in_person": "In-person",
       "modality_virtual": "Virtual",
       "link_meet_label": "Video conference link",
@@ -1989,6 +1990,14 @@
       "stat_pending": "pend.",
       "stat_sent": "sent",
       "stat_validated": "val.",
+      "module_pending_count": {
+        "one": "{} pending",
+        "other": "{} pending"
+      },
+      "module_honors_count": {
+        "one": "{} honor",
+        "other": "{} honors"
+      },
       "empty_requirements": "No requirements in this module.",
       "empty_modules_title": "No modules yet",
       "empty_modules_body": "Modules will appear when available for this class.",
@@ -2445,8 +2454,7 @@
       "empty_subtitle": "Add the first record.",
       "error_title": "Error loading finances",
       "recent_transactions": "Recent Transactions",
-      "view_all": "View all →",
-      "view_all_link": "View all transactions →"
+      "view_all": "View all →"
     },
     "add_transaction": {
       "edit_title": "Edit Movement",

@@ -18,6 +18,7 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/member_insurance.dart';
 import '../providers/insurance_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 /// Bottom sheet para registrar o editar el seguro de un miembro.
 ///
@@ -488,7 +489,7 @@ class _DatePickerField extends StatelessWidget {
   }
 
   Future<void> _pickDate(BuildContext context) async {
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       initialDate: selectedDate ?? DateTime.now(),
       firstDate: firstDate,

@@ -13,6 +13,7 @@ import 'package:sacdia_app/features/activities/presentation/widgets/activity_for
 import '../../domain/entities/user_honor.dart';
 import '../../domain/entities/user_honor_update.dart';
 import '../providers/honors_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 bool _sameInstructor(InstructorSelection a, InstructorSelection b) =>
     a.kind == b.kind &&
@@ -157,7 +158,7 @@ class _HonorCompletionDateCardState
     var initial = _shown ?? last;
     if (initial.isBefore(first)) initial = first;
     if (initial.isAfter(last)) initial = last;
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       initialDate: initial,
       firstDate: first,

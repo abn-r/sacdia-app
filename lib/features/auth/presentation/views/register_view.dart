@@ -22,6 +22,7 @@ import 'package:sacdia_app/features/auth/presentation/widgets/auth_sky_wash.dart
 import 'package:sacdia_app/features/auth/presentation/widgets/sac_brand_mark.dart';
 import 'package:sacdia_app/features/legal/domain/entities/legal_document.dart';
 import 'package:sacdia_app/features/legal/presentation/providers/legal_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 /// Versiones y URLs de los documentos legales vigentes, listas para enviar.
 typedef _LegalSnapshot = ({
@@ -168,7 +169,7 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
           required DateTime firstDate,
           required DateTime lastDate,
         }) =>
-            showDatePicker(
+            showSacDatePicker(
               context: context,
               initialDate: initialDate,
               firstDate: firstDate,

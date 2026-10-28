@@ -52,7 +52,7 @@ class TransactionTile extends StatelessWidget {
     symbol: '\$',
     decimalDigits: 2,
   );
-  static final _timeFormatter = DateFormat('hh:mm a');
+  static final _timeFormatter = DateFormat('HH:mm');
 
   @override
   Widget build(BuildContext context) {

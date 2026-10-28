@@ -30,6 +30,7 @@ import 'honor_picker_sheet.dart';
 import 'import_class_section.dart';
 import 'import_date_field.dart';
 import 'import_error_banner.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 /// Row editor sheet. Separates what the system read (a read-only quote) from
 /// what the member chooses (catalog pickers), so no catalog id is ever typed.
@@ -331,7 +332,7 @@ class _CertificateImportItemEditorSheetState
     var initial = _date ?? last;
     if (initial.isBefore(first)) initial = first;
     if (initial.isAfter(last)) initial = last;
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       initialDate: initial,
       firstDate: first,

@@ -164,42 +164,48 @@ class SacPickerField extends StatelessWidget {
         ),
       );
     }
-    return Column(
+    return Align(
       key: ValueKey('picker-$selectedName'),
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          selectedName!,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.bodyMedium?.copyWith(color: c.text),
-        ),
-        if (selectedSubtitle != null)
+      alignment: Alignment.centerLeft,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Text(
-            selectedSubtitle!,
-            style: theme.textTheme.bodySmall?.copyWith(color: c.textSecondary),
+            selectedName!,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodyMedium?.copyWith(color: c.text),
           ),
-        if (badge != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: c.surfaceVariant,
-                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                child: Text(
-                  badge!,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: c.textSecondary,
-                    fontWeight: FontWeight.w600,
+          if (selectedSubtitle != null)
+            Text(
+              selectedSubtitle!,
+              style:
+                  theme.textTheme.bodySmall?.copyWith(color: c.textSecondary),
+            ),
+          if (badge != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: c.surfaceVariant,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                ),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  child: Text(
+                    badge!,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: c.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }

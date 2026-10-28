@@ -144,7 +144,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
 
     expect(
-        find.text('Demasiados intentos. Intente más tarde.'), findsOneWidget);
+        find.text('Demasiados intentos. Inténtalo más tarde.'), findsOneWidget);
     await tester.pumpAndSettle();
   });
 

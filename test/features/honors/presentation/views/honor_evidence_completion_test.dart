@@ -179,7 +179,7 @@ void main() {
 
       await tester.tap(find.text('Seleccionar fecha'));
       await _settle(tester);
-      await tester.tap(find.text('ACEPTAR'));
+      await tester.tap(find.text('Aceptar'));
       await _settle(tester);
 
       expect(repo.patches, [
@@ -214,7 +214,7 @@ void main() {
 
       await tester.tap(find.text('Seleccionar fecha'));
       await _settle(tester);
-      await tester.tap(find.text('ACEPTAR'));
+      await tester.tap(find.text('Aceptar'));
       await _settle(tester);
 
       expect(
@@ -231,7 +231,7 @@ void main() {
 
       await tester.tap(find.text('Seleccionar fecha'));
       await _settle(tester);
-      await tester.tap(find.text('ACEPTAR'));
+      await tester.tap(find.text('Aceptar'));
       await _settle(tester);
 
       expect(find.text('No pudimos guardar la fecha. Inténtalo de nuevo'),
@@ -250,7 +250,7 @@ void main() {
 
       await tester.tap(find.text('Seleccionar fecha'));
       await _settle(tester);
-      await tester.tap(find.text('ACEPTAR'));
+      await tester.tap(find.text('Aceptar'));
       await _settle(tester);
 
       expect(

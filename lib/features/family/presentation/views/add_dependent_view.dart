@@ -23,6 +23,7 @@ import '../family_error_messages.dart';
 import '../legal_versions.dart';
 import '../providers/family_providers.dart';
 import '../widgets/profile_switcher_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 /// Paso 0: alta de un menor sin cuenta (FP-58, FP-59).
 ///
@@ -71,7 +72,7 @@ class _AddDependentViewState extends ConsumerState<AddDependentView> {
 
   Future<void> _pickBirthday() async {
     final now = DateTime.now();
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       // Se permite un rango amplio: el servidor decide el corte por país y
       // responde GUARDIANSHIP_DEPENDENT_AGE_OUT_OF_RANGE si no corresponde.

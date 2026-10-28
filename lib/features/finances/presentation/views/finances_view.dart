@@ -200,10 +200,6 @@ class _FinanceBody extends ConsumerWidget {
         else
           ..._buildGroupedTransactions(context, transactions),
 
-        // "Ver todo" link at the bottom
-        if (transactions.isNotEmpty)
-          _VerTodoLink(onTap: () => _openFullTransactionList(context)),
-
         // Bottom navigation clearance
         const SizedBox(height: 40),
       ],
@@ -419,36 +415,6 @@ class _TransactionsSectionHeader extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ── Ver todo link ──────────────────────────────────────────────────────────────
-
-class _VerTodoLink extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _VerTodoLink({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Center(
-        child: GestureDetector(
-          onTap: onTap,
-          child: Text(
-            'finances.view.view_all_link'.tr(),
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: context.sac.textSecondary,
-              decoration: TextDecoration.underline,
-              decorationColor: context.sac.textTertiary,
-            ),
-          ),
-        ),
       ),
     );
   }

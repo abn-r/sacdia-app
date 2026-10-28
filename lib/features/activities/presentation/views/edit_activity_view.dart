@@ -27,6 +27,7 @@ import '../widgets/activity_form_widgets.dart';
 import 'location_picker_view.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 /// Vista para editar una actividad existente.
 ///
@@ -177,7 +178,7 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
 
   Future<void> _pickActivityDate() async {
     final now = DateTime.now();
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       initialDate: _activityDate ?? now,
       firstDate: DateTime(now.year - 2),
@@ -197,7 +198,7 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
   Future<void> _pickActivityEndDate() async {
     final now = DateTime.now();
     final minDate = _activityDate ?? now;
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       initialDate: _activityEndDate ?? minDate,
       firstDate: minDate,

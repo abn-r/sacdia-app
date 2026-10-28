@@ -23,6 +23,7 @@ import '../../../post_registration/presentation/providers/post_registration_prov
 import '../providers/profile_providers.dart';
 import '../widgets/gender_selector.dart';
 import '../utils/profile_update_payload.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 /// Vista para editar el perfil del usuario.
 ///
@@ -268,7 +269,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
     final maxDate = DateTime(now.year - 3, now.month, now.day);
     final initialDate = _birthdate ?? maxDate;
 
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       initialDate: initialDate.isBefore(minDate)
           ? minDate
@@ -298,7 +299,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
     final firstDate = _birthdate ?? DateTime(1900);
     final initialDate = _baptismDate ?? now;
 
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       initialDate: initialDate.isBefore(firstDate) ? firstDate : initialDate,
       firstDate: firstDate,

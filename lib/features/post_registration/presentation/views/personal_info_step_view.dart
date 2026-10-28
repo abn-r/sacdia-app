@@ -22,6 +22,7 @@ import 'medicines_selection_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/errors/user_error_message.dart';
 import '../utils/acting_copy.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 /// Vista del paso 2: Información Personal - Estilo "Scout Vibrante"
 ///
@@ -579,7 +580,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
     final maxDate = DateTime(now.year - 3, now.month, now.day);
     final initialDate = ref.read(personalInfoFormProvider).birthdate ?? maxDate;
 
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       initialDate: initialDate,
       firstDate: minDate,
@@ -607,7 +608,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
     final now = DateTime.now();
     final initialDate = ref.read(personalInfoFormProvider).baptismDate ?? now;
 
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       initialDate: initialDate,
       firstDate: birthdate ?? DateTime(1900),

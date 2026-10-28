@@ -19,6 +19,7 @@ import '../../../legal/presentation/providers/legal_providers.dart';
 import '../../domain/entities/create_minor.dart';
 import '../providers/members_providers.dart';
 import '../utils/create_minor_errors.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 /// Alta de un menor por un director desde una sección del club (FP3-61/64).
 ///
@@ -73,7 +74,7 @@ class _CreateMinorViewState extends ConsumerState<CreateMinorView> {
 
   Future<void> _pickBirthday() async {
     final now = DateTime.now();
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       // Rango amplio: el servidor decide el corte por país del club y responde
       // GUARDIANSHIP_DEPENDENT_AGE_OUT_OF_RANGE si no corresponde.

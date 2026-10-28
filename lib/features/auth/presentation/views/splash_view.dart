@@ -98,12 +98,15 @@ class _SplashViewState extends ConsumerState<SplashView>
           size: 40,
         ),
         const SizedBox(height: 12),
-        Text(
-          message,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: context.sac.textSecondary,
-              ),
-          textAlign: TextAlign.center,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Text(
+            message,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: context.sac.textSecondary,
+                ),
+            textAlign: TextAlign.center,
+          ),
         ),
         const SizedBox(height: 16),
         SacButton(

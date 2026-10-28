@@ -4,6 +4,7 @@
     "retry": "Tentar de novo",
     "cancel": "Cancelar",
     "confirm": "Confirmar",
+    "picker_confirm": "OK",
     "ok": "OK",
     "done": "Concluir",
     "save": "Salvar",
@@ -915,7 +916,7 @@
       "date_label": "Data",
       "time_label": "Hora",
       "end_date_label": "Data de término (opcional)",
-      "modality_label": "Tipo de atividade",
+      "modality_label": "Como será?",
       "modality_in_person": "Presencial",
       "modality_virtual": "Virtual",
       "link_meet_label": "Link de videoconferência",
@@ -1989,6 +1990,14 @@
       "stat_pending": "pend.",
       "stat_sent": "env.",
       "stat_validated": "val.",
+      "module_pending_count": {
+        "one": "{} pendente",
+        "other": "{} pendentes"
+      },
+      "module_honors_count": {
+        "one": "{} especialidade",
+        "other": "{} especialidades"
+      },
       "empty_requirements": "Não há requisitos neste módulo.",
       "empty_modules_title": "Sem módulos ainda",
       "empty_modules_body": "Os módulos aparecerão quando estiverem disponíveis para esta classe.",
@@ -2444,8 +2453,7 @@
       "empty_subtitle": "Adicione o primeiro movimento.",
       "error_title": "Erro ao carregar finanças",
       "recent_transactions": "Transações Recentes",
-      "view_all": "Ver tudo →",
-      "view_all_link": "Ver todas as transações →"
+      "view_all": "Ver tudo →"
     },
     "add_transaction": {
       "edit_title": "Editar Movimento",

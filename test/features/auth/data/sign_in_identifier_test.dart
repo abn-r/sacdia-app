@@ -478,7 +478,7 @@ void main() {
       expect(out[4], contains('15 min'));
       // Un 401 sin código (backend anterior) también es "credenciales".
       expect(out[5], out[0]);
-      expect(out[6], 'Error de conexión. Compruebe su red.');
+      expect(out[6], 'Error de conexión. Comprueba tu red.');
       expect(out[7], 'Error al iniciar sesión');
       for (final message in out) {
         expect(message, isNot(contains('RAW')));

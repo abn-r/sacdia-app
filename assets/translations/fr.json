@@ -4,6 +4,7 @@
     "retry": "Réessayer",
     "cancel": "Annuler",
     "confirm": "Confirmer",
+    "picker_confirm": "OK",
     "ok": "OK",
     "done": "Terminé",
     "save": "Enregistrer",
@@ -915,7 +916,7 @@
       "date_label": "Date",
       "time_label": "Heure",
       "end_date_label": "Date de fin (facultatif)",
-      "modality_label": "Type d'activité",
+      "modality_label": "Comment se déroulera-t-elle ?",
       "modality_in_person": "Présentiel",
       "modality_virtual": "Virtuelle",
       "link_meet_label": "Lien de visioconférence",
@@ -1989,6 +1990,14 @@
       "stat_pending": "en att.",
       "stat_sent": "env.",
       "stat_validated": "valid.",
+      "module_pending_count": {
+        "one": "{} en attente",
+        "other": "{} en attente"
+      },
+      "module_honors_count": {
+        "one": "{} spécialité",
+        "other": "{} spécialités"
+      },
       "empty_requirements": "Aucune exigence dans ce module.",
       "empty_modules_title": "Pas encore de modules",
       "empty_modules_body": "Les modules apparaîtront lorsqu'ils seront disponibles pour cette classe.",
@@ -2444,8 +2453,7 @@
       "empty_subtitle": "Ajoutez le premier mouvement.",
       "error_title": "Erreur lors du chargement des finances",
       "recent_transactions": "Transactions récentes",
-      "view_all": "Voir tout →",
-      "view_all_link": "Voir toutes les transactions →"
+      "view_all": "Voir tout →"
     },
     "add_transaction": {
       "edit_title": "Modifier le mouvement",

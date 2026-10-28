@@ -69,15 +69,15 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>SACDIA necesita acceso a la camara para tomar fotos de evidencias y actividades y para leer el codigo QR que vincula el telefono de un menor.</string>
+	<string>SACDIA necesita acceso a la cámara para tomar fotos de evidencias y actividades y para leer el código QR que vincula el teléfono de un menor.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>SACDIA usa Face ID para proteger tu cuenta</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>SACDIA necesita acceso a tu ubicacion para mostrar el mapa y seleccionar el lugar de la actividad.</string>
+	<string>SACDIA necesita acceso a tu ubicación para mostrar el mapa y seleccionar el lugar de la actividad.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>SACDIA necesita permiso para guardar imagenes en tu galeria.</string>
+	<string>SACDIA necesita permiso para guardar imágenes en tu galería.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>SACDIA necesita acceso a tu galeria para seleccionar una imagen para la actividad.</string>
+	<string>SACDIA necesita acceso a tu galería para seleccionar una imagen para la actividad.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
