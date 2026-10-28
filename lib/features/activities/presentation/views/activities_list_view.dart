@@ -1,4 +1,3 @@
-import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
@@ -23,6 +22,7 @@ import '../widgets/activities_loading_skeleton.dart';
 import '../widgets/activity_card.dart';
 import 'activity_detail_view.dart';
 import 'create_activity_view.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 /// Vista de lista de actividades - Estilo "Scout Vibrante"
 ///

@@ -1,4 +1,3 @@
-import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
@@ -24,6 +23,7 @@ import '../../../post_registration/presentation/providers/post_registration_prov
 import '../providers/profile_providers.dart';
 import '../widgets/gender_selector.dart';
 import '../utils/profile_update_payload.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 /// Vista para editar el perfil del usuario.
 ///

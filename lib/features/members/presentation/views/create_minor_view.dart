@@ -1,4 +1,3 @@
-import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,6 +19,7 @@ import '../../../legal/presentation/providers/legal_providers.dart';
 import '../../domain/entities/create_minor.dart';
 import '../providers/members_providers.dart';
 import '../utils/create_minor_errors.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 /// Alta de un menor por un director desde una sección del club (FP3-61/64).
 ///

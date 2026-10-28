@@ -1,4 +1,3 @@
-import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
@@ -23,6 +22,7 @@ import 'medicines_selection_view.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/errors/user_error_message.dart';
 import '../utils/acting_copy.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 /// Vista del paso 2: Información Personal - Estilo "Scout Vibrante"
 ///

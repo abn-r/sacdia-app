@@ -1,4 +1,3 @@
-import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
@@ -8,6 +7,7 @@ import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_sheet.dart';
 import '../../../activities/presentation/widgets/activity_form_widgets.dart';
 import '../utils/investiture_dates.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 /// Cuerpo común de las hojas de fecha de investidura: encabezado, selector de
 /// fecha (obligatorio) y botón de confirmar.

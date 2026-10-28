@@ -1,4 +1,3 @@
-import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -30,6 +29,7 @@ import '../widgets/activity_series_form_section.dart';
 import 'location_picker_view.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 /// Vista para crear una nueva actividad en el club.
 ///

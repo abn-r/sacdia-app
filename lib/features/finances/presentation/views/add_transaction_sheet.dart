@@ -1,4 +1,3 @@
-import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
@@ -22,6 +21,7 @@ import '../../../../core/widgets/evidence_staging/image_source_dialog.dart';
 import '../../domain/entities/finance_category.dart';
 import '../../domain/entities/transaction.dart';
 import '../providers/finances_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 /// Bottom sheet para agregar o editar un movimiento financiero.
 ///

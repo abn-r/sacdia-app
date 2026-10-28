@@ -1,4 +1,3 @@
-import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
@@ -31,6 +30,7 @@ import 'honor_picker_sheet.dart';
 import 'import_class_section.dart';
 import 'import_date_field.dart';
 import 'import_error_banner.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 /// Row editor sheet. Separates what the system read (a read-only quote) from
 /// what the member chooses (catalog pickers), so no catalog id is ever typed.

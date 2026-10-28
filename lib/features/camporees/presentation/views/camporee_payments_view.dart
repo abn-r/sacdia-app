@@ -1,4 +1,3 @@
-import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
@@ -17,6 +16,7 @@ import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../domain/entities/camporee_payment.dart';
 import '../providers/camporees_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 /// Vista de pagos de un miembro en un camporee.
 ///

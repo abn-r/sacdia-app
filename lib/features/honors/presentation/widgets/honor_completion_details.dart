@@ -1,4 +1,3 @@
-import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,6 +13,7 @@ import 'package:sacdia_app/features/activities/presentation/widgets/activity_for
 import '../../domain/entities/user_honor.dart';
 import '../../domain/entities/user_honor_update.dart';
 import '../providers/honors_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 bool _sameInstructor(InstructorSelection a, InstructorSelection b) =>
     a.kind == b.kind &&

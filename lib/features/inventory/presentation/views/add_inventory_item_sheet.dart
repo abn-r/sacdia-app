@@ -1,4 +1,3 @@
-import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
@@ -23,6 +22,7 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/inventory_category.dart';
 import '../../domain/entities/inventory_item.dart';
 import '../providers/inventory_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 
 /// Bottom sheet para agregar o editar un ítem de inventario.
 ///
