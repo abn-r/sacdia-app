@@ -1191,7 +1191,11 @@
         "section_title": "Contacts d’urgence",
         "hint": "Enregistrez au moins un contact d’urgence",
         "empty": "Aucun contact enregistré",
-        "required_hint": "Requis : au moins 1"
+        "required_hint": "Requis : au moins 1",
+        "count": {
+          "one": "{count} contact",
+          "other": "{count} contacts"
+        }
       },
       "health": {
         "section_title": "Informations médicales",

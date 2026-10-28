@@ -359,7 +359,8 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                             contacts.isEmpty
                                 ? tr(
                                     'post_registration.personal_info.emergency_contacts.empty')
-                                : '${contacts.length} contacto(s)',
+                                : 'post_registration.personal_info.emergency_contacts.count'
+                                    .plural(contacts.length, name: 'count'),
                             style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w500,
