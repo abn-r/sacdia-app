@@ -7,6 +7,9 @@ export 'sac_sheet_header.dart';
 ///
 /// Enter [SacMotion.modal] (240ms), exit [SacMotion.routeExit] (200ms),
 /// both [SacMotion.drawer]. Reduced motion skips the slide.
+///
+/// Shown on the root navigator by default so the sheet (and its barrier) cover
+/// the shell's bottom navigation bar instead of rendering underneath it.
 Future<T?> showSacSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
@@ -16,7 +19,7 @@ Future<T?> showSacSheet<T>({
   bool isDismissible = true,
   bool enableDrag = true,
   bool useSafeArea = false,
-  bool useRootNavigator = false,
+  bool useRootNavigator = true,
   BoxConstraints? constraints,
   bool? showDragHandle,
   ShapeBorder? shape,
