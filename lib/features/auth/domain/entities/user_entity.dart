@@ -131,6 +131,16 @@ class UserEntity extends Equatable {
   /// Sesión de un teléfono vinculado de un menor (Fase 3b).
   bool get isLinkedDevice => mode == AccountMode.linkedDevice;
 
+  /// La cuenta tiene un correo que nunca se confirmó (`/auth/me.email_verified`
+  /// = `false` explícito). Ausente o nulo (servidor anterior, perfil sin
+  /// correo) no pide nada. Nunca mientras se actúa por un menor ni en un
+  /// teléfono vinculado: no es su correo.
+  bool get needsEmailVerification =>
+      email != null &&
+      metadata?['email_verified'] == false &&
+      actingFor == null &&
+      !isLinkedDevice;
+
   /// Cuenta de un menor bajo supervisión (pendiente o con tutor).
   bool get isSupervisedTeen =>
       mode == AccountMode.teenPending || mode == AccountMode.teenSupervised;

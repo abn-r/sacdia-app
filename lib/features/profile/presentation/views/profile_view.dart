@@ -26,6 +26,7 @@ import 'package:sacdia_app/features/post_registration/presentation/providers/pos
 
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../family/presentation/widgets/family_profile_entry.dart';
+import '../widgets/email_verification_prompt.dart';
 import '../../../teen/presentation/widgets/supervision_info_card.dart';
 import '../../../certifications/presentation/providers/certifications_providers.dart';
 import '../../domain/entities/user_detail.dart';
@@ -410,6 +411,9 @@ class _ProfileScrollBody extends StatelessWidget {
                 },
               ),
             ),
+
+            // ── 1b. Correo sin verificar: reenviar el enlace ──────
+            EmailVerificationPrompt(horizontalPadding: hPad),
 
             // ── 2. Información médica (inline entry) ──────────────
             Padding(

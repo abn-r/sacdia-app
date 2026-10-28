@@ -3593,6 +3593,14 @@
     }
   },
   "profile": {
+    "email_verification": {
+      "title": "Vérifiez votre e-mail",
+      "subtitle": "Vous n'avez pas encore confirmé {email}. Touchez pour recevoir un nouveau lien.",
+      "sent": "Nous avons envoyé un lien à {email}. Vérifiez votre boîte de réception et vos spams.",
+      "already_verified": "Votre e-mail est déjà vérifié.",
+      "too_many": "Vous avez déjà demandé plusieurs liens. Attendez une minute et réessayez.",
+      "error": "Nous n'avons pas pu envoyer l'e-mail. Réessayez dans quelques minutes."
+    },
     "notification_preferences": {
       "errors": {
         "get_status": "Erreur lors de la récupération des préférences de notification",

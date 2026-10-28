@@ -3594,6 +3594,14 @@
     }
   },
   "profile": {
+    "email_verification": {
+      "title": "Verifica tu correo",
+      "subtitle": "Aún no confirmas {email}. Toca para recibir un enlace nuevo.",
+      "sent": "Te enviamos un enlace a {email}. Revisa tu bandeja de entrada y la carpeta de spam.",
+      "already_verified": "Tu correo ya está verificado.",
+      "too_many": "Ya pediste varios enlaces. Espera un minuto e inténtalo de nuevo.",
+      "error": "No pudimos enviar el correo. Inténtalo de nuevo en unos minutos."
+    },
     "notification_preferences": {
       "errors": {
         "get_status": "Error al obtener preferencias de notificación",
