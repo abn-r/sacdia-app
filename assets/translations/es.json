@@ -4320,6 +4320,11 @@
     }
   },
   "router": {
+    "not_found": {
+      "title": "No encontramos esta pantalla",
+      "body": "El enlace que abriste no existe o ya no está disponible.",
+      "action": "Ir al inicio"
+    },
     "nav": {
       "home": "Inicio",
       "classes": "Clases",

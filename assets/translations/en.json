@@ -4320,6 +4320,11 @@
     }
   },
   "router": {
+    "not_found": {
+      "title": "We couldn't find this screen",
+      "body": "The link you opened doesn't exist or is no longer available.",
+      "action": "Go to home"
+    },
     "nav": {
       "home": "Home",
       "classes": "Classes",

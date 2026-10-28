@@ -97,6 +97,7 @@ import '../analytics/posthog_analytics.dart'
     show createPosthogNavigatorObserver;
 import 'acting_route_policy.dart';
 import 'device_pair_link.dart';
+import 'route_not_found_view.dart';
 import 'device_route_policy.dart';
 import 'pending_navigation.dart';
 import 'supervised_route_policy.dart';
@@ -206,6 +207,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: RouteNames.splash,
     debugLogDiagnostics: kDebugMode,
     observers: [createPosthogNavigatorObserver()],
+    errorBuilder: (context, state) => const RouteNotFoundView(),
     redirect: (context, state) {
       // Read the current auth state snapshot without watching it here —
       // watching would cause the Provider to rebuild and recreate the router.

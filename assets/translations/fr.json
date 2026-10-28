@@ -4318,6 +4318,11 @@
     }
   },
   "router": {
+    "not_found": {
+      "title": "Nous n'avons pas trouvé cet écran",
+      "body": "Le lien que vous avez ouvert n'existe pas ou n'est plus disponible.",
+      "action": "Aller à l'accueil"
+    },
     "nav": {
       "home": "Accueil",
       "classes": "Classes",
