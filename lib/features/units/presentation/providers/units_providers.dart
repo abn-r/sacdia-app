@@ -1013,8 +1013,10 @@ final leadsUnitInActiveSectionProvider = Provider<bool>((ref) {
       final eligible = user != null &&
           !auth.isLoading &&
           user.actingFor == null &&
-          (user.mode == AccountMode.adult ||
-              user.mode == AccountMode.teenSupervised);
+          // Solo adultos: el backend aún niega a los adolescentes supervisados
+          // las rutas de registro semanal (sin `@ActingScope`), así que verían
+          // la planilla y el guardado fallaría.
+          user.mode == AccountMode.adult;
       return (userId: eligible ? user.id : null);
     }),
   );

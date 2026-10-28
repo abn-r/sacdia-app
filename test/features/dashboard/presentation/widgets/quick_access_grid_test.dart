@@ -482,6 +482,22 @@ void main() {
       expect(find.text(unitsLabel), findsNothing);
     });
 
+    testWidgets('does not show it to a supervised teen with a guardian',
+        (tester) async {
+      // The backend still denies weekly-record writes to supervised teens.
+      await pump(
+        tester,
+        member(
+          principal: const PrincipalInfo(
+            kind: PrincipalKind.supervisedUser,
+            supervision: SupervisionInfo(status: SupervisionStatus.active),
+          ),
+        ),
+        UnitsState(units: [_unit(captainId: 'user-1')]),
+      );
+      expect(find.text(unitsLabel), findsNothing);
+    });
+
     testWidgets('director with units:update keeps the tile as before',
         (tester) async {
       await pump(

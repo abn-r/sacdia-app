@@ -17,5 +17,9 @@ bool canRegisterUnitPoints(UserEntity? user, Unit unit) {
       hasAnyPermission(user, const {'units:create'})) {
     return true;
   }
+  // El backend todavía rechaza el registro semanal de un adolescente
+  // supervisado y de un tutor que actúa por un menor (rutas sin
+  // `@ActingScope`): no ofrecer una planilla que no se podría guardar.
+  if (user.isSupervisedTeen || user.actingFor != null) return false;
   return unit.isLedBy(user.id);
 }
