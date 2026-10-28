@@ -25,6 +25,7 @@ class RouteNotFoundView extends StatelessWidget {
               title: 'router.not_found.title'.tr(),
               body: 'router.not_found.body'.tr(),
               actionLabel: 'router.not_found.action'.tr(),
+              actionIcon: HugeIcons.strokeRoundedHome01,
               // Splash sends each session mode (account, teen, linked device,
               // signed out) to its own start screen.
               onAction: () => context.go(RouteNames.splash),
