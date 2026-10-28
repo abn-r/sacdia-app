@@ -1989,6 +1989,14 @@
       "stat_pending": "pend.",
       "stat_sent": "sent",
       "stat_validated": "val.",
+      "module_pending_count": {
+        "one": "{} pending",
+        "other": "{} pending"
+      },
+      "module_honors_count": {
+        "one": "{} honor",
+        "other": "{} honors"
+      },
       "empty_requirements": "No requirements in this module.",
       "empty_modules_title": "No modules yet",
       "empty_modules_body": "Modules will appear when available for this class.",

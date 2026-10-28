@@ -387,7 +387,8 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
                             ),
                           ),
                           Text(
-                            '$pending pendientes',
+                            'classes.detail_with_progress.module_pending_count'
+                                .plural(pending),
                             style: TextStyle(
                               fontSize: 12,
                               color: c.ink500,
@@ -406,9 +407,8 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
                               ),
                             ),
                             Text(
-                              widget.honors.length == 1
-                                  ? '1 especialidad'
-                                  : '${widget.honors.length} especialidades',
+                              'classes.detail_with_progress.module_honors_count'
+                                  .plural(widget.honors.length),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: c.ink500,

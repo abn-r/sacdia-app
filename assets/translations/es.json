@@ -1989,6 +1989,14 @@
       "stat_pending": "pend.",
       "stat_sent": "env.",
       "stat_validated": "val.",
+      "module_pending_count": {
+        "one": "{} pendiente",
+        "other": "{} pendientes"
+      },
+      "module_honors_count": {
+        "one": "{} especialidad",
+        "other": "{} especialidades"
+      },
       "empty_requirements": "No hay requerimientos en este modulo.",
       "empty_modules_title": "Sin módulos aún",
       "empty_modules_body": "Los módulos aparecerán cuando estén disponibles para esta clase.",
