@@ -44,6 +44,9 @@ class _GuardianOnlyExitState extends ConsumerState<GuardianOnlyExit> {
       content: 'post_registration.guardian_only.confirm_body'.tr(),
       confirmLabel: 'post_registration.guardian_only.confirm_action'.tr(),
       icon: HugeIcons.strokeRoundedUserGroup,
+      // Finishing as guardian is a positive action: the default coral confirm
+      // reads as destructive.
+      confirmIsSuccess: true,
     );
     if (confirmed != true || !mounted) return;
 

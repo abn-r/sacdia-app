@@ -123,29 +123,6 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
           title: _isEditing
               ? 'post_registration.contact_form.edit_title'.tr()
               : 'post_registration.contact_form.add_title'.tr(),
-          actions: [
-            if (_isLoading)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: SacLoadingSmall(),
-                  ),
-                ),
-              )
-            else
-              SacPressable(
-                listenOnly: true,
-                child: IconButton(
-                  enableFeedback: false,
-                  icon: HugeIcon(icon: HugeIcons.strokeRoundedTick02, size: 24),
-                  onPressed: _handleSave,
-                  tooltip: 'post_registration.contact_form.save_tooltip'.tr(),
-                ),
-              ),
-          ],
           frosted: true),
       body: SacFrostedVeil(
         child: Builder(

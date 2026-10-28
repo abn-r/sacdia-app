@@ -523,62 +523,63 @@ class EmergencyContactsNotifier
         cancelToken: cancelToken);
   }
 
-  /// Agrega un nuevo contacto de emergencia
-  Future<void> addContact(EmergencyContactModel contact) async {
-    final currentContacts = state.valueOrNull ?? [];
+  /// Ejecuta una mutación y recarga la lista.
+  ///
+  /// Si la mutación falla, la lista conserva los contactos anteriores (la
+  /// pantalla de lista sigue usable, sin error a pantalla completa) y el error
+  /// se relanza para que el formulario o la lista lo muestren. Con
+  /// `AsyncValue.guard` solo, el fallo quedaba en `state` y el llamador creía
+  /// que había salido bien.
+  Future<void> _mutate(
+    Future<void> Function(
+            PersonalInfoRemoteDataSource dataSource, String userId)
+        action,
+  ) async {
+    final previous = state;
 
     state = const AsyncValue.loading();
 
-    state = await AsyncValue.guard(() async {
-      final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
-
+    try {
+      final userId = ref.read(authNotifierProvider).valueOrNull?.id;
       if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
+      final dataSource = ref.read(personalInfoDataSourceProvider);
+      await action(dataSource, userId);
+      state = AsyncValue.data(await dataSource.getEmergencyContacts(userId));
+    } catch (error) {
+      // Restaura la lista previa (si el notifier ya no está montado, no hay
+      // nada que restaurar).
+      if (ref.exists(emergencyContactsProvider)) {
+        state = previous.hasValue
+            ? AsyncValue.data(previous.requireValue)
+            : previous;
+      }
+      rethrow;
+    }
+  }
+
+  /// Agrega un nuevo contacto de emergencia
+  Future<void> addContact(EmergencyContactModel contact) {
+    final currentContacts = state.valueOrNull ?? [];
+
+    return _mutate((dataSource, userId) async {
       if (currentContacts.length >= 5) {
         throw Exception(tr('post_registration.errors.max_emergency_contacts'));
       }
-
-      final dataSource = ref.read(personalInfoDataSourceProvider);
       await dataSource.addEmergencyContact(userId, contact);
-
-      return await dataSource.getEmergencyContacts(userId);
     });
   }
 
   /// Actualiza un contacto de emergencia existente
-  Future<void> updateContact(
-      int contactId, EmergencyContactModel contact) async {
-    state = const AsyncValue.loading();
-
-    state = await AsyncValue.guard(() async {
-      final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
-
-      if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
-
-      final dataSource = ref.read(personalInfoDataSourceProvider);
-      await dataSource.updateEmergencyContact(userId, contactId, contact);
-
-      return await dataSource.getEmergencyContacts(userId);
-    });
+  Future<void> updateContact(int contactId, EmergencyContactModel contact) {
+    return _mutate((dataSource, userId) =>
+        dataSource.updateEmergencyContact(userId, contactId, contact));
   }
 
   /// Elimina un contacto de emergencia
-  Future<void> deleteContact(int contactId) async {
-    state = const AsyncValue.loading();
-
-    state = await AsyncValue.guard(() async {
-      final authState = ref.read(authNotifierProvider);
-      final userId = authState.valueOrNull?.id;
-
-      if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
-
-      final dataSource = ref.read(personalInfoDataSourceProvider);
-      await dataSource.deleteEmergencyContact(userId, contactId);
-
-      return await dataSource.getEmergencyContacts(userId);
-    });
+  Future<void> deleteContact(int contactId) {
+    return _mutate((dataSource, userId) =>
+        dataSource.deleteEmergencyContact(userId, contactId));
   }
 
   /// Recarga la lista de contactos

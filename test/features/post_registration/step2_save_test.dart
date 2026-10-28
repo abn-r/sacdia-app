@@ -327,14 +327,14 @@ void main() {
     testWidgets('is read-only for a supervised teen', (tester) async {
       await pump(tester, _teen);
 
-      expect(find.text('2011-03-09'), findsOneWidget);
+      expect(find.text('9 de marzo de 2011'), findsOneWidget);
       expect(
         find.text('Solo tu tutor puede corregir tu fecha de nacimiento.'),
         findsOneWidget,
       );
 
       // Tocar la tarjeta no abre el selector de fecha.
-      await tester.tap(find.text('2011-03-09'));
+      await tester.tap(find.text('9 de marzo de 2011'));
       await tester.pumpAndSettle();
       expect(find.byType(DatePickerDialog), findsNothing);
     });
@@ -344,7 +344,7 @@ void main() {
 
       expect(
           find.byKey(const ValueKey('birthday_read_only_hint')), findsNothing);
-      await tester.tap(find.text('2011-03-09'));
+      await tester.tap(find.text('9 de marzo de 2011'));
       await tester.pumpAndSettle();
       expect(find.byType(DatePickerDialog), findsOneWidget);
     });

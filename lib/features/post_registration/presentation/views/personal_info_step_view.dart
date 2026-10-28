@@ -359,7 +359,8 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                             contacts.isEmpty
                                 ? tr(
                                     'post_registration.personal_info.emergency_contacts.empty')
-                                : '${contacts.length} contacto(s)',
+                                : 'post_registration.personal_info.emergency_contacts.count'
+                                    .plural(contacts.length, name: 'count'),
                             style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w500,
@@ -831,7 +832,9 @@ class _DatePickerCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   date != null
-                      ? DateFormat('yyyy-MM-dd').format(date!)
+                      ? DateFormat.yMMMMd(
+                          Localizations.localeOf(context).toString(),
+                        ).format(date!)
                       : tr('post_registration.personal_info.birth.select_date'),
                   style: TextStyle(
                     fontSize: 15,

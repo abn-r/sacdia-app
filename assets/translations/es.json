@@ -1191,7 +1191,11 @@
         "section_title": "Contactos de emergencia",
         "hint": "Registra al menos un contacto de emergencia",
         "empty": "Sin contactos registrados",
-        "required_hint": "Requerido: al menos 1"
+        "required_hint": "Requerido: al menos 1",
+        "count": {
+          "one": "{count} contacto",
+          "other": "{count} contactos"
+        }
       },
       "health": {
         "section_title": "Información médica",
@@ -1245,7 +1249,6 @@
     "contact_form": {
       "add_title": "Agregar Contacto",
       "edit_title": "Editar Contacto",
-      "save_tooltip": "Guardar",
       "error_loading": "Error: {error}",
       "error_saving": "Error: {error}",
       "error_no_id": "No se pudo obtener el ID del contacto. Intenta cerrar y abrir la pantalla.",
