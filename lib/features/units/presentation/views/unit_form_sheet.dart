@@ -471,6 +471,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                                 _SectionLabel(
                                   icon: HugeIcons.strokeRoundedEdit02,
                                   label: 'units.form.name_label'.tr(),
+                                  required: true,
                                 ),
                                 const SizedBox(height: 8),
                                 SacTextField(
