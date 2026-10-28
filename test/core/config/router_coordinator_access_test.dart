@@ -391,16 +391,17 @@ void main() {
       );
     });
 
-    testWidgets('a pastor without a club is still sent to authorizations',
+    testWidgets(
+        'a pastor without a club is still sent to home (authorizations tab)',
         (tester) async {
       final container = await setUpRouter(tester, _user(roles: ['pastor']));
       expect(
         await redirectFor(container, RouteNames.homeHonors),
-        RouteNames.investitureAuthorize,
+        RouteNames.homeDashboard,
       );
       expect(
         await redirectFor(container, RouteNames.coordinator),
-        RouteNames.investitureAuthorize,
+        RouteNames.homeDashboard,
       );
     });
   });

@@ -177,7 +177,7 @@ void main() {
       }
     });
 
-    testWidgets('any other route is redirected to the authorizations list',
+    testWidgets('any other route is redirected to home (authorizations tab)',
         (tester) async {
       final container = await setUpRouter(tester, _user(role: 'pastor'));
       for (final blocked in [
@@ -200,7 +200,7 @@ void main() {
       ]) {
         expect(
           await redirectFor(container, blocked),
-          RouteNames.investitureAuthorize,
+          RouteNames.homeDashboard,
           reason: blocked,
         );
       }

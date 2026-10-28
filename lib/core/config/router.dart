@@ -430,7 +430,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       // El pastor sin club solo ve «Autorizaciones» y su perfil: cualquier otra
-      // ruta (también por enlace profundo) vuelve al listado de autorizaciones.
+      // ruta (también por enlace profundo) vuelve a su inicio, con las pestañas.
       // El coordinador sin club solo ve el panel de coordinación y lo que éste
       // necesita: lo demás vuelve a su inicio.
       final clubLessTarget = clubLessRouteRedirect(user, currentPath);

@@ -54,15 +54,18 @@ bool isCoordinatorAllowedPath(String path) {
 /// Un coordinador sin club vuelve a su inicio (el panel de coordinación). Si
 /// además es pastor sin club, conserva también las rutas de «Autorizaciones»
 /// (se llega por notificación o enlace; su inicio es la coordinación). Un
-/// pastor sin club que no coordina vuelve al listado de autorizaciones.
+/// pastor sin club que no coordina vuelve a su inicio (`/home/dashboard`, que
+/// dibuja el listado de autorizaciones dentro de las pestañas).
 String? clubLessRouteRedirect(UserEntity? user, String path) {
   if (isCoordinatorWithoutClub(user)) {
     if (isCoordinatorAllowedPath(path)) return null;
     if (isPastorWithoutClub(user) && isPastorAllowedPath(path)) return null;
     return RouteNames.homeDashboard;
   }
+  // Home, not `/investiture/authorize`: that route sits outside the tab
+  // shell, so a redirect there left the pastor with no tabs and no way back.
   if (isPastorWithoutClub(user) && !isPastorAllowedPath(path)) {
-    return RouteNames.investitureAuthorize;
+    return RouteNames.homeDashboard;
   }
   return null;
 }
