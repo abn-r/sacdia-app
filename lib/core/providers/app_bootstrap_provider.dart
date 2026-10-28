@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/auth/domain/entities/principal_info.dart';
 import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../constants/app_constants.dart';
@@ -186,6 +187,11 @@ class AppBootstrapNotifier extends AsyncNotifier<AppBootstrapState> {
     // Un teléfono vinculado no tiene roles ni permisos de club que validar: ve
     // su propia cáscara (clases, agenda, avisos) y el servidor decide el resto.
     if (user.isLinkedDevice) return true;
+    // Un adolescente pendiente de tutor no tiene roles de club hasta que su
+    // tutor se verifique: el servidor no se los da. Ve su pantalla de estado y
+    // el post-registro; exigirle permisos lo dejaba en el aviso de "sin rol" y
+    // el reintento lo devolvía al login.
+    if (user.mode == AccountMode.teenPending) return true;
     final auth = user.authorization;
     if (auth == null) return false;
     if (auth.effectivePermissions.isEmpty) return false;
