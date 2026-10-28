@@ -545,11 +545,7 @@ class _ProfileScrollBody extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   _SectionLabel(label: 'profile.view.section_honors'.tr()),
-                  _SectionHeaderActions(
-                    addSemanticLabel: 'profile.honors_section.add_honor'.tr(),
-                    onAdd: () => context.push(RouteNames.homeHonors),
-                    onRefresh: onRefreshHonors,
-                  ),
+                  _HonorsHeaderActions(onRefresh: onRefreshHonors),
                 ],
               ),
             ),
@@ -1046,6 +1042,29 @@ class _MetaRow extends StatelessWidget {
   }
 }
 
+/// Especialidades header actions. The empty state of [ProfileHonorsSection]
+/// already carries an "Agregar" chip, so the header one is hidden then to keep
+/// a single call to action.
+class _HonorsHeaderActions extends ConsumerWidget {
+  final VoidCallback onRefresh;
+
+  const _HonorsHeaderActions({required this.onRefresh});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isEmpty = ref.watch(
+      sectionScopedUserHonorsProvider
+          .select((honors) => honors.hasValue && honors.requireValue.isEmpty),
+    );
+    return _SectionHeaderActions(
+      addSemanticLabel: 'profile.honors_section.add_honor'.tr(),
+      onAdd: () => context.push(RouteNames.homeHonors),
+      onRefresh: onRefresh,
+      showAdd: !isEmpty,
+    );
+  }
+}
+
 /// Quiet "+ Agregar" plus the existing refresh icon, shared by Clases,
 /// Certificaciones and Especialidades headers.
 class _SectionHeaderActions extends StatelessWidget {
@@ -1053,10 +1072,14 @@ class _SectionHeaderActions extends StatelessWidget {
   final VoidCallback onAdd;
   final VoidCallback onRefresh;
 
+  /// `false` when the section's empty state already offers the add action.
+  final bool showAdd;
+
   const _SectionHeaderActions({
     required this.addSemanticLabel,
     required this.onAdd,
     required this.onRefresh,
+    this.showAdd = true,
   });
 
   @override
@@ -1064,11 +1087,13 @@ class _SectionHeaderActions extends StatelessWidget {
     final c = context.sac;
     return Row(
       children: [
-        ProfileQuietAddChip(
-          semanticLabel: addSemanticLabel,
-          onTap: onAdd,
-        ),
-        const SizedBox(width: 8),
+        if (showAdd) ...[
+          ProfileQuietAddChip(
+            semanticLabel: addSemanticLabel,
+            onTap: onAdd,
+          ),
+          const SizedBox(width: 8),
+        ],
         SizedBox(
           width: 32,
           height: 32,
