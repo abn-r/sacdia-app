@@ -83,7 +83,70 @@ void main() {
       expect(find.text('El nombre es requerido'), findsOneWidget);
     },
   );
+
+  testWidgets('the date is required: saving without one flags the field',
+      (tester) async {
+    tester.view.physicalSize = const Size(400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(_app(translations));
+    await tester.pumpAndSettle();
+
+    final dateLabel = find.text('Fecha *');
+    await tester.scrollUntilVisible(
+      dateLabel,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Elige la fecha de la actividad'), findsNothing);
+
+    final saveButton = find.text('Crear Actividad');
+    await tester.scrollUntilVisible(
+      saveButton,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(saveButton);
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.text('Elige la fecha de la actividad'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Elige la fecha de la actividad'), findsOneWidget);
+  });
 }
+
+Widget _app(Map<String, dynamic> translations) => ProviderScope(
+      overrides: [
+        activityTypesProvider.overrideWith(
+          (ref) async => const [
+            ActivityTypeModel(activityTypeId: 1, code: 'R', name: 'Regular'),
+          ],
+        ),
+        currentEcclesiasticalYearProvider.overrideWith((ref) async => null),
+        clubContextProvider.overrideWith((ref) async => null),
+        clubSectionsForActivityProvider.overrideWith((ref) async => []),
+      ],
+      child: EasyLocalization(
+        supportedLocales: const [Locale('es')],
+        path: 'assets/translations',
+        fallbackLocale: const Locale('es'),
+        assetLoader: _TestAssetLoader(translations),
+        child: Builder(
+          builder: (context) => MaterialApp(
+            locale: context.locale,
+            localizationsDelegates: context.localizationDelegates,
+            supportedLocales: context.supportedLocales,
+            home: const CreateActivityView(clubId: 1, clubSectionId: 2),
+          ),
+        ),
+      ),
+    );
 
 class _TestAssetLoader extends AssetLoader {
   const _TestAssetLoader(this.translations);

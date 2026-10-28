@@ -331,6 +331,13 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
       return;
     }
 
+    if (_activityDate == null) {
+      _showError(_repeat
+          ? 'activities.series.date_required'.tr()
+          : 'activities.form.error_no_date'.tr());
+      return;
+    }
+
     // Para actividades virtuales se requiere imagen
     if (_selectedPlatform == 1 && _pickedImageFile == null) {
       _showError('activities.form.error_virtual_no_image'.tr());
@@ -345,11 +352,6 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
 
     if (_audience == 'classes' && _selectedClassIds.isEmpty) {
       _showError('activities.form.audience_classes_required'.tr());
-      return;
-    }
-
-    if (_repeat && _activityDate == null) {
-      _showError('activities.series.date_required'.tr());
       return;
     }
 
@@ -685,20 +687,20 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Fecha de inicio
+                  // Fecha de inicio (obligatoria: sin fecha la actividad no
+                  // aparece en el calendario).
                   ActivityDatePickerField(
                     label: _repeat
-                        ? 'activities.series.first_date'.tr()
-                        : 'activities.form.date_label'.tr(),
+                        ? '${'activities.series.first_date'.tr()} *'
+                        : '${'activities.form.date_label'.tr()} *',
                     value: _activityDate,
                     enabled: !isLoading,
                     onTap: isLoading ? null : _pickActivityDate,
-                    onClear: _activityDate == null
-                        ? null
-                        : () => setState(() {
-                              _activityDate = null;
-                              _activityEndDate = null;
-                            }),
+                    errorText: _locationTouched && _activityDate == null
+                        ? (_repeat
+                            ? 'activities.series.date_required'.tr()
+                            : 'activities.form.error_no_date'.tr())
+                        : null,
                   ),
                   const SizedBox(height: 16),
 

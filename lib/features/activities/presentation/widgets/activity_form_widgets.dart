@@ -431,6 +431,9 @@ class ActivityDatePickerField extends StatelessWidget {
   /// The trailing chevron says "tap to change". Read-only callers hide it.
   final bool showChevron;
 
+  /// Validation message; when set the field gets an error border and shows it.
+  final String? errorText;
+
   const ActivityDatePickerField({
     super.key,
     required this.label,
@@ -439,6 +442,7 @@ class ActivityDatePickerField extends StatelessWidget {
     this.onTap,
     this.onClear,
     this.showChevron = true,
+    this.errorText,
   });
 
   @override
@@ -475,12 +479,16 @@ class ActivityDatePickerField extends StatelessWidget {
                 ),
               ],
               borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-              border: hasValue
-                  ? Border.all(
-                      color: SacAccent.of(context).color.withValues(alpha: 0.4),
-                      width: 1.5,
-                    )
-                  : null,
+              border: errorText != null
+                  ? Border.all(color: theme.colorScheme.error, width: 1.5)
+                  : hasValue
+                      ? Border.all(
+                          color: SacAccent.of(context)
+                              .color
+                              .withValues(alpha: 0.4),
+                          width: 1.5,
+                        )
+                      : null,
             ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
@@ -522,6 +530,18 @@ class ActivityDatePickerField extends StatelessWidget {
             ),
           ),
         ),
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 6),
+            child: Text(
+              errorText!,
+              style: TextStyle(
+                color: theme.colorScheme.error,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
       ],
     );
   }
