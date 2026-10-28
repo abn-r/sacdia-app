@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../providers/dio_provider.dart';
+import '../../../auth/domain/entities/principal_info.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import '../../data/datasources/units_remote_data_source.dart';
@@ -222,6 +223,11 @@ class UnitsState {
 class UnitsNotifier extends Notifier<UnitsState> {
   @override
   UnitsState build() {
+    // Las unidades son del club activo: al cambiar de club se recarga. El
+    // cambio de sección dentro del mismo club no cambia la lista (se filtra
+    // en cliente por sección).
+    ref.watch(clubContextProvider.select((v) => v.valueOrNull?.clubId));
+
     // Cargar las unidades del club en cuanto se construye el notifier.
     // isLoading arranca en true para que la primera pintura sea el indicador
     // de carga y no el estado vacío.
@@ -988,6 +994,48 @@ class UnitsNotifier extends Notifier<UnitsState> {
 final unitsNotifierProvider = NotifierProvider<UnitsNotifier, UnitsState>(
   UnitsNotifier.new,
 );
+
+// ── Liderazgo de unidad ────────────────────────────────────────────────────────
+
+/// ¿El usuario actual dirige (capitán, secretario, consejero o suplente) al
+/// menos una unidad de la sección activa?
+///
+/// Deriva de [unitsNotifierProvider] (`GET /clubs/:clubId/units`, que ya trae
+/// solo unidades activas); no hace otra petición. Falla cerrado: es `false`
+/// mientras carga (usuario, contexto de club o unidades), si la carga falló
+/// (lista vacía), al actuar por un menor y en los modos que no usan el
+/// inicio de miembro (adolescente pendiente, cuenta restringida, dispositivo).
+/// Es un derivado (sin estado propio), por eso no va en el registro de perfil.
+final leadsUnitInActiveSectionProvider = Provider<bool>((ref) {
+  final identity = ref.watch(
+    authNotifierProvider.select((auth) {
+      final user = auth.valueOrNull;
+      final eligible = user != null &&
+          !auth.isLoading &&
+          user.actingFor == null &&
+          (user.mode == AccountMode.adult ||
+              user.mode == AccountMode.teenSupervised);
+      return (userId: eligible ? user.id : null);
+    }),
+  );
+  final userId = identity.userId;
+  if (userId == null) return false;
+
+  final sectionId = ref.watch(
+    clubContextProvider.select((ctx) => ctx.valueOrNull?.sectionId),
+  );
+  if (sectionId == null) return false;
+
+  final units = ref.watch(
+    unitsNotifierProvider
+        .select((state) => state.isLoading ? null : state.units),
+  );
+  if (units == null) return false;
+
+  return units.any(
+    (unit) => unit.clubSectionId == sectionId && unit.isLedBy(userId),
+  );
+});
 
 // ── Member of Month History Provider ──────────────────────────────────────────
 

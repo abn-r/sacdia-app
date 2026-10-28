@@ -13,6 +13,7 @@ import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/camporees/presentation/providers/camporees_providers.dart';
+import 'package:sacdia_app/features/units/presentation/providers/units_providers.dart';
 
 class _QuickAccessItemConfig {
   /// Translation key resolved at render time via tr(labelKey).
@@ -40,6 +41,10 @@ class _QuickAccessItemConfig {
     this.ignoreSuperAdminBypass = false,
   });
 }
+
+/// Pantalla del catálogo que abre «Unidades» (`units:update`). Un líder de
+/// unidad sin ese permiso entra por otra vía: ver [leadsUnitInActiveSectionProvider].
+const _unitsScreenId = 'app-units';
 
 List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
   _QuickAccessItemConfig(
@@ -81,7 +86,7 @@ List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
     icon: HugeIcons.strokeRoundedCompass01,
     color: AppColors.secondary,
     route: RouteNames.homeUnits,
-    screenId: 'app-units',
+    screenId: _unitsScreenId,
   ),
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.grouped_class',
@@ -201,9 +206,19 @@ class QuickAccessGrid extends ConsumerWidget {
       roles: subject.roles,
       isSuperAdmin: false,
     );
+    // El catálogo (`app-units` -> `units:update`) no cambia. Un líder de unidad
+    // (capitán, secretario, consejero o suplente) con solo `units:read` ve el
+    // acceso a SU unidad. Solo se consulta si el catálogo no lo concede ya, y
+    // falla cerrado mientras carga o si falla (ver el provider).
+    final unitsViaCatalog = canViewScreen(subject, _unitsScreenId);
+    final unitsViaLeadership = !unitsViaCatalog &&
+        hasAnyPermission(user, const {'units:read'}) &&
+        ref.watch(leadsUnitInActiveSectionProvider);
+
     final filteredItems = _quickAccessItemsConfig.where((item) {
       final screenId = item.screenId;
       if (screenId == null) return true;
+      if (screenId == _unitsScreenId && unitsViaLeadership) return true;
       return canViewScreen(
         item.ignoreSuperAdminBypass ? withoutSuperAdminBypass : subject,
         screenId,
