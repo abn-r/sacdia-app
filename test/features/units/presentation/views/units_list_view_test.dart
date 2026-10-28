@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -33,6 +34,10 @@ class _StaticUnitsNotifier extends UnitsNotifier {
   @override
   UnitsState build() => initial;
 }
+
+final _manageMenus = find.byWidgetPredicate(
+  (w) => w is HugeIcon && w.icon == HugeIcons.strokeRoundedMoreHorizontal,
+);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -107,16 +112,74 @@ void main() {
     );
     expect(find.text('Halcones'), findsOneWidget);
   });
+
+  group('lider de unidad sin units:update', () {
+    UserEntity leader({List<String> permissions = const ['units:read']}) =>
+        _member(permissions: permissions);
+
+    testWidgets('ve solo sus unidades, sin crear ni gestionar', (tester) async {
+      await _pumpUnits(
+        tester,
+        user: leader(),
+        units: UnitsState(
+          units: [
+            _unit('Centinelas', id: 1, captainId: 'user-1'),
+            _unit('Exploradores', id: 2, secretaryId: 'user-1'),
+            _unit('Ajenos', id: 3, captainId: 'otro'),
+          ],
+        ),
+      );
+
+      expect(find.text('Centinelas'), findsOneWidget);
+      expect(find.text('Exploradores'), findsOneWidget);
+      expect(find.text('Ajenos'), findsNothing);
+      // Sin boton "+" (crear unidad) en la barra.
+      expect(find.byTooltip('Crear unidad'), findsNothing);
+      // Sin menu "Gestionar unidad" (los tres puntos de cada tarjeta).
+      expect(_manageMenus, findsNothing);
+    });
+
+    testWidgets('la directiva con units:update/create sigue gestionando',
+        (tester) async {
+      await _pumpUnits(
+        tester,
+        user: leader(
+          permissions: const ['units:read', 'units:update', 'units:create'],
+        ),
+        units: UnitsState(
+          units: [
+            _unit('Centinelas', id: 1, captainId: 'otro'),
+            _unit('Ajenos', id: 3, captainId: 'otro'),
+          ],
+        ),
+      );
+
+      expect(find.text('Centinelas'), findsOneWidget);
+      expect(find.text('Ajenos'), findsOneWidget);
+      expect(find.byTooltip('Crear unidad'), findsOneWidget);
+      expect(_manageMenus, findsNWidgets(2));
+    });
+  });
 }
 
-Unit _unit(String name, {int id = 1}) {
+Unit _unit(
+  String name, {
+  int id = 1,
+  String? captainId,
+  String? secretaryId,
+  String? advisorId,
+}) {
+  final noLeaderGiven =
+      captainId == null && secretaryId == null && advisorId == null;
   return Unit(
     id: id,
     name: name,
     type: 'Conquistadores',
     memberCount: 4,
     clubSectionId: 2,
-    advisorId: 'user-1',
+    captainId: captainId,
+    secretaryId: secretaryId,
+    advisorId: noLeaderGiven ? 'user-1' : advisorId,
   );
 }
 

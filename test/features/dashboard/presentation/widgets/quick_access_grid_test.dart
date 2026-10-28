@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/features/auth/domain/entities/acting_for_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
+import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_judge_assignment.dart';
 import 'package:sacdia_app/features/camporees/presentation/providers/camporees_providers.dart';
 import 'package:sacdia_app/features/dashboard/presentation/widgets/quick_access_grid.dart';
+import 'package:sacdia_app/features/units/domain/entities/unit.dart';
+import 'package:sacdia_app/features/units/presentation/providers/units_providers.dart';
 
 class _FakeAuthNotifier extends AuthNotifier {
   _FakeAuthNotifier(this._user);
@@ -16,6 +20,36 @@ class _FakeAuthNotifier extends AuthNotifier {
 
   @override
   Future<UserEntity?> build() async => _user;
+}
+
+class _StaticUnitsNotifier extends UnitsNotifier {
+  _StaticUnitsNotifier(this.initial);
+
+  final UnitsState initial;
+
+  @override
+  UnitsState build() => initial;
+}
+
+Unit _unit({
+  int id = 1,
+  int sectionId = 2,
+  String? captainId,
+  String? secretaryId,
+  String? advisorId,
+  String? substituteAdvisorId,
+}) {
+  return Unit(
+    id: id,
+    name: 'Centinelas',
+    type: 'Guias Mayores',
+    memberCount: 3,
+    clubSectionId: sectionId,
+    captainId: captainId,
+    secretaryId: secretaryId,
+    advisorId: advisorId,
+    substituteAdvisorId: substituteAdvisorId,
+  );
 }
 
 UserEntity _userWithPermissions(
@@ -320,6 +354,171 @@ void main() {
         _userWithPermissions(const ['reports:read']),
       );
       expect(find.text('dashboard.quick_access.authorizations'), findsNothing);
+    });
+  });
+
+  group('QuickAccessGrid units shortcut for unit leaders', () {
+    const unitsLabel = 'dashboard.quick_access.units';
+
+    // Un miembro sin `units:update`, solo con lectura de unidades.
+    UserEntity member({
+      List<String> permissions = const ['units:read'],
+      ActingForInfo? actingFor,
+      PrincipalInfo? principal,
+    }) {
+      final base = _userWithPermissions(permissions, roleName: 'member');
+      return UserEntity(
+        id: base.id,
+        email: base.email,
+        authorization: base.authorization,
+        actingFor: actingFor,
+        principal: principal,
+      );
+    }
+
+    Future<void> pump(
+      WidgetTester tester,
+      UserEntity user,
+      UnitsState units,
+    ) {
+      return _pumpQuickAccessGrid(
+        tester,
+        user,
+        extraOverrides: [
+          unitsNotifierProvider.overrideWith(() => _StaticUnitsNotifier(units)),
+        ],
+      );
+    }
+
+    for (final (label, led) in <(String, Unit)>[
+      ('captain', _unit(captainId: 'user-1')),
+      ('secretary', _unit(secretaryId: 'user-1')),
+      ('advisor', _unit(advisorId: 'user-1')),
+      ('substitute advisor', _unit(substituteAdvisorId: 'user-1')),
+    ]) {
+      testWidgets('shows the tile to a member who is the unit $label',
+          (tester) async {
+        await pump(tester, member(), UnitsState(units: [led]));
+        expect(find.text(unitsLabel), findsOne);
+      });
+    }
+
+    testWidgets('hides the tile from a plain member who leads no unit',
+        (tester) async {
+      await pump(
+        tester,
+        member(),
+        UnitsState(units: [_unit(captainId: 'someone-else')]),
+      );
+      expect(find.text(unitsLabel), findsNothing);
+    });
+
+    testWidgets('hides the tile when the led unit is in another section',
+        (tester) async {
+      await pump(
+        tester,
+        member(),
+        UnitsState(units: [_unit(sectionId: 99, captainId: 'user-1')]),
+      );
+      expect(find.text(unitsLabel), findsNothing);
+    });
+
+    testWidgets('hides the tile while the units are loading', (tester) async {
+      await pump(
+        tester,
+        member(),
+        UnitsState(
+          units: [_unit(captainId: 'user-1')],
+          isLoading: true,
+        ),
+      );
+      expect(find.text(unitsLabel), findsNothing);
+      // The rest of the grid is not broken.
+      expect(find.byType(QuickAccessGrid), findsOne);
+    });
+
+    testWidgets('hides the tile when the units failed to load', (tester) async {
+      await pump(
+        tester,
+        member(),
+        const UnitsState(units: [], errorMessage: 'boom'),
+      );
+      expect(find.text(unitsLabel), findsNothing);
+    });
+
+    testWidgets('does not show it without units:read even if leader',
+        (tester) async {
+      await pump(
+        tester,
+        member(permissions: const ['reports:read']),
+        UnitsState(units: [_unit(captainId: 'user-1')]),
+      );
+      expect(find.text(unitsLabel), findsNothing);
+    });
+
+    testWidgets('does not show it while acting for a minor', (tester) async {
+      await pump(
+        tester,
+        member(
+          actingFor: const ActingForInfo(
+            actorUserId: 'guardian-1',
+            dependentUserId: 'user-1',
+          ),
+        ),
+        UnitsState(units: [_unit(captainId: 'user-1')]),
+      );
+      expect(find.text(unitsLabel), findsNothing);
+    });
+
+    testWidgets('does not show it to a pending (restricted) teen',
+        (tester) async {
+      await pump(
+        tester,
+        member(
+          principal: const PrincipalInfo(kind: PrincipalKind.supervisedUser),
+        ),
+        UnitsState(units: [_unit(captainId: 'user-1')]),
+      );
+      expect(find.text(unitsLabel), findsNothing);
+    });
+
+    testWidgets('does not show it to a supervised teen with a guardian',
+        (tester) async {
+      // The backend still denies weekly-record writes to supervised teens.
+      await pump(
+        tester,
+        member(
+          principal: const PrincipalInfo(
+            kind: PrincipalKind.supervisedUser,
+            supervision: SupervisionInfo(status: SupervisionStatus.active),
+          ),
+        ),
+        UnitsState(units: [_unit(captainId: 'user-1')]),
+      );
+      expect(find.text(unitsLabel), findsNothing);
+    });
+
+    testWidgets('director with units:update keeps the tile as before',
+        (tester) async {
+      await pump(
+        tester,
+        _userWithPermissions(
+          const ['units:read', 'units:update', 'units:create'],
+          roleName: 'director',
+        ),
+        const UnitsState(units: []),
+      );
+      expect(find.text(unitsLabel), findsOne);
+    });
+
+    testWidgets('units:update alone (no leadership) still opens the tile',
+        (tester) async {
+      await pump(
+        tester,
+        _userWithPermissions(const ['units:update']),
+        const UnitsState(units: []),
+      );
+      expect(find.text(unitsLabel), findsOne);
     });
   });
 }
