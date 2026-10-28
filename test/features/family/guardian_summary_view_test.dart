@@ -181,7 +181,7 @@ void main() {
       repo.progress = const Left(NetworkFailure(message: 'offline'));
       await pump(tester);
 
-      expect(find.text('Error de conexión. Compruebe su red.'), findsOneWidget);
+      expect(find.text('Error de conexión. Comprueba tu red.'), findsOneWidget);
       expect(find.text('Reintentar'), findsOneWidget);
 
       repo.progress = Right(_summary());

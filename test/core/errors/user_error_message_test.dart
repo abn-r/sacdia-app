@@ -62,7 +62,7 @@ void main() {
       ConnectionException(message: 'raw socket text'),
       const ConnectionFailure(message: 'raw socket text'),
     ]);
-    expect(out, everyElement('Error de conexión. Compruebe su red.'));
+    expect(out, everyElement('Error de conexión. Comprueba tu red.'));
   });
 
   testWidgets('an unknown code or a bare exception never leaks the raw text',
@@ -73,7 +73,7 @@ void main() {
       Exception('boom'),
       'boom',
     ]);
-    expect(out, everyElement('Ocurrió un error. Intente nuevamente.'));
+    expect(out, everyElement('Ocurrió un error. Inténtalo de nuevo.'));
   });
 
   test('ACTING_FOR_SCOPE_DENIED is translated in all 4 locales', () {

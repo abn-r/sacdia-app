@@ -512,7 +512,7 @@ void main() {
       expect(find.text('María Pérez'), findsOneWidget);
       // Sin id de tutoría no se puede quitar el vínculo.
       expect(find.text('Quitar'), findsNothing);
-      expect(find.text('Error de conexión. Compruebe su red.'), findsOneWidget);
+      expect(find.text('Error de conexión. Comprueba tu red.'), findsOneWidget);
     });
 
     testWidgets('with nobody linked it says so', (tester) async {
