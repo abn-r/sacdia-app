@@ -1,3 +1,4 @@
+import '../../auth/domain/entities/principal_info.dart';
 import '../../auth/domain/entities/user_entity.dart';
 import '../../auth/domain/utils/authorization_utils.dart';
 import 'entities/unit.dart';
@@ -17,9 +18,11 @@ bool canRegisterUnitPoints(UserEntity? user, Unit unit) {
       hasAnyPermission(user, const {'units:create'})) {
     return true;
   }
-  // El backend todavía rechaza el registro semanal de un adolescente
-  // supervisado y de un tutor que actúa por un menor (rutas sin
-  // `@ActingScope`): no ofrecer una planilla que no se podría guardar.
-  if (user.isSupervisedTeen || user.actingFor != null) return false;
+  // El backend abre el registro semanal al adolescente con tutor verificado
+  // (`member:write`), pero no al adolescente pendiente ni a un tutor que actúa
+  // por un menor: no ofrecer una planilla que no se podría guardar.
+  if (user.mode == AccountMode.teenPending || user.actingFor != null) {
+    return false;
+  }
   return unit.isLedBy(user.id);
 }

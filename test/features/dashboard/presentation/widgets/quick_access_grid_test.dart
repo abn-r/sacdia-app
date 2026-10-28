@@ -482,9 +482,11 @@ void main() {
       expect(find.text(unitsLabel), findsNothing);
     });
 
-    testWidgets('does not show it to a supervised teen with a guardian',
+    testWidgets(
+        'shows it to a supervised teen with a guardian who leads a unit',
         (tester) async {
-      // The backend still denies weekly-record writes to supervised teens.
+      // The backend lets supervised teen leaders write weekly records
+      // (member:write).
       await pump(
         tester,
         member(
@@ -495,7 +497,7 @@ void main() {
         ),
         UnitsState(units: [_unit(captainId: 'user-1')]),
       );
-      expect(find.text(unitsLabel), findsNothing);
+      expect(find.text(unitsLabel), findsOne);
     });
 
     testWidgets('director with units:update keeps the tile as before',
