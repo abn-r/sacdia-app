@@ -5105,7 +5105,7 @@
       "submit_confirm_action": "Send",
       "submit_error": "We could not send it. Check your connection and try again.",
       "empty_empty_title": "We did not find any honors or classes",
-      "empty_empty_body": "This can happen if the photo is blurry or the text is handwritten. You can add them yourself by looking at your receipt.",
+      "empty_empty_body": "Automatic reading only recognizes lines that start with “Especialidad:”, “Honor:” or “Clase:”. If your receipt doesn’t have them, or if the photo is blurry or the text is handwritten, add them yourself by looking at your receipt.",
       "empty_reading_title": "We are still reading your receipt",
       "empty_reading_body": "Multi-page PDFs take a little longer. You will see what we find here.",
       "empty_none_title": "No rows yet",

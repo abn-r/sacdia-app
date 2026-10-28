@@ -445,35 +445,38 @@ class _ProfileScrollBody extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: hPad),
-              child: StaggeredColumn(
-                initialDelay: const Duration(milliseconds: 100),
-                staggerDelay: SacMotion.stagger,
-                children: [
-                  // ── 4. Clases Progresivas ─────────────────────────
-                  _SectionLabel(
-                      label: 'profile.view.section_progressive_classes'.tr()),
-                  const SizedBox(height: 8),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: c.surface,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: c.border,
-                        width: 1,
+            // Progress circles only make sense inside a club. Pastors,
+            // coordinators and guardian-only adults have no club type.
+            if (resolvedClubType != null)
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: hPad),
+                child: StaggeredColumn(
+                  initialDelay: const Duration(milliseconds: 100),
+                  staggerDelay: SacMotion.stagger,
+                  children: [
+                    // ── 4. Clases Progresivas ─────────────────────────
+                    _SectionLabel(
+                        label: 'profile.view.section_progressive_classes'.tr()),
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: c.surface,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: c.border,
+                          width: 1,
+                        ),
                       ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 16,
+                      ),
+                      child: ClassStatusCircles(clubType: resolvedClubType),
                     ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 16,
-                    ),
-                    child: ClassStatusCircles(clubType: resolvedClubType),
-                  ),
-                  const SizedBox(height: 20),
-                ],
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
-            ),
 
             // ── 5. Clases del Usuario ────────────────────────────
             Padding(

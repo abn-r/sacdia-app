@@ -451,6 +451,7 @@ class _TransferRequestFormViewState
                         child: ClubSelectionStepView(
                           isClubTransfer: true,
                           preservedClassName: currentClassName,
+                          excludedClubId: activeGrant.clubId,
                         ),
                       ),
                       if (formState.errorMessage != null)

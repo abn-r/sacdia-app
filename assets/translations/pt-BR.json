@@ -5103,7 +5103,7 @@
       "submit_confirm_action": "Enviar",
       "submit_error": "Não conseguimos enviar. Verifique sua conexão e tente novamente.",
       "empty_empty_title": "Não encontramos especialidades nem classes",
-      "empty_empty_body": "Isso pode acontecer se a foto estiver borrada ou o texto for manuscrito. Você pode adicioná-las olhando seu comprovante.",
+      "empty_empty_body": "A leitura automática só reconhece linhas que começam com “Especialidad:”, “Honor:” ou “Clase:”. Se o seu comprovante não as tiver, se a foto estiver borrada ou se o texto for manuscrito, adicione-as olhando seu comprovante.",
       "empty_reading_title": "Ainda estamos lendo seu comprovante",
       "empty_reading_body": "PDFs com várias páginas demoram um pouco mais. Aqui você verá o que encontrarmos.",
       "empty_none_title": "Ainda não há linhas",

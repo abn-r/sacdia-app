@@ -5105,7 +5105,7 @@
       "submit_confirm_action": "Enviar",
       "submit_error": "No pudimos enviarlo. Revisa tu conexión e inténtalo de nuevo.",
       "empty_empty_title": "No encontramos especialidades ni clases",
-      "empty_empty_body": "Puede pasar si la foto salió borrosa o el texto está escrito a mano. Puedes agregarlas tú mismo mirando tu comprobante.",
+      "empty_empty_body": "La lectura automática solo reconoce renglones que empiezan con «Especialidad:» o «Clase:». Si tu comprobante no los tiene, si la foto salió borrosa o si el texto está escrito a mano, agrégalas tú mismo mirando tu comprobante.",
       "empty_reading_title": "Seguimos leyendo tu comprobante",
       "empty_reading_body": "Los PDF de varias páginas tardan un poco más. Aquí verás lo que encontremos.",
       "empty_none_title": "No hay filas todavía",

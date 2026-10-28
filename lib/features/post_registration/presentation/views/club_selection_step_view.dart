@@ -31,10 +31,15 @@ class ClubSelectionStepView extends ConsumerStatefulWidget {
   final bool isClubTransfer;
   final String? preservedClassName;
 
+  /// Club hidden from the club list. A transfer passes the member's current
+  /// club: moving to it is never valid (same section or another club type).
+  final int? excludedClubId;
+
   const ClubSelectionStepView({
     super.key,
     this.isClubTransfer = false,
     this.preservedClassName,
+    this.excludedClubId,
   });
 
   @override
@@ -321,7 +326,12 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
             ),
             const SizedBox(height: 16),
             clubsAsync.when(
-              data: (clubs) {
+              data: (allClubs) {
+                final clubs = widget.excludedClubId == null
+                    ? allClubs
+                    : allClubs
+                        .where((c) => c.id != widget.excludedClubId)
+                        .toList();
                 if (clubs.isEmpty) {
                   return _buildEmptyText(
                       'post_registration.club_selection.no_clubs'.tr());

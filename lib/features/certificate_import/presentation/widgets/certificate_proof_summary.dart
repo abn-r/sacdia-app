@@ -31,6 +31,19 @@ class CertificateProofSummary extends StatelessWidget {
   static bool isPdf(CertificateImportFile file) =>
       '${file.type} ${file.name}'.toLowerCase().contains('pdf');
 
+  static final _generatedName = RegExp(
+    r'^(scaled_)?(image_picker_|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-)',
+    caseSensitive: false,
+  );
+
+  /// The file name worth showing, or null when the phone made it up
+  /// (`image_picker_<uuid>.jpg`, a bare UUID): it means nothing to the user.
+  static String? displayName(String name) {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty || _generatedName.hasMatch(trimmed)) return null;
+    return trimmed;
+  }
+
   String _meta(CertificateImportFile file) {
     final base = !isPdf(file)
         ? 'certificate_import.viewer.kind_image'.tr()
@@ -115,9 +128,9 @@ class CertificateProofSummary extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  if (file.name.isNotEmpty)
+                  if (displayName(file.name) case final name?)
                     Text(
-                      file.name,
+                      name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.bodySmall?.copyWith(color: c.textSecondary),

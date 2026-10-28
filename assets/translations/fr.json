@@ -5103,7 +5103,7 @@
       "submit_confirm_action": "Envoyer",
       "submit_error": "Nous n’avons pas pu l’envoyer. Vérifiez votre connexion et réessayez.",
       "empty_empty_title": "Nous n’avons trouvé aucune spécialité ni classe",
-      "empty_empty_body": "Cela peut arriver si la photo est floue ou si le texte est manuscrit. Vous pouvez les ajouter vous-même en regardant votre justificatif.",
+      "empty_empty_body": "La lecture automatique ne reconnaît que les lignes qui commencent par « Especialidad: », « Honor: » ou « Clase: ». Si votre justificatif ne les contient pas, si la photo est floue ou si le texte est manuscrit, ajoutez-les vous-même en regardant votre justificatif.",
       "empty_reading_title": "Nous lisons encore votre justificatif",
       "empty_reading_body": "Les PDF de plusieurs pages prennent un peu plus de temps. Vous verrez ici ce que nous trouvons.",
       "empty_none_title": "Aucune ligne pour le moment",
