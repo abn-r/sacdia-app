@@ -1,3 +1,4 @@
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -168,7 +169,7 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
           required DateTime firstDate,
           required DateTime lastDate,
         }) =>
-            showDatePicker(
+            showSacDatePicker(
               context: context,
               initialDate: initialDate,
               firstDate: firstDate,

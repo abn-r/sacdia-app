@@ -1,3 +1,4 @@
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
@@ -331,7 +332,7 @@ class _CertificateImportItemEditorSheetState
     var initial = _date ?? last;
     if (initial.isBefore(first)) initial = first;
     if (initial.isAfter(last)) initial = last;
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       initialDate: initial,
       firstDate: first,

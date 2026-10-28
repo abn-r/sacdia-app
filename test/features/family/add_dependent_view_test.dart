@@ -45,10 +45,7 @@ void main() {
     if (pickDate) {
       await tester.tap(find.text('Selecciona la fecha'));
       await tester.pumpAndSettle();
-      final ok = MaterialLocalizations.of(
-        tester.element(find.byType(DatePickerDialog)),
-      ).okButtonLabel;
-      await tester.tap(find.text(ok));
+      await tester.tap(find.text('Aceptar'));
       await tester.pumpAndSettle();
     }
     await tester.tap(find.byType(RelationshipTypePickerField));

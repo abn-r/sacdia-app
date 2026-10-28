@@ -1,3 +1,4 @@
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -71,7 +72,7 @@ class _AddDependentViewState extends ConsumerState<AddDependentView> {
 
   Future<void> _pickBirthday() async {
     final now = DateTime.now();
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       // Se permite un rango amplio: el servidor decide el corte por país y
       // responde GUARDIANSHIP_DEPENDENT_AGE_OUT_OF_RANGE si no corresponde.

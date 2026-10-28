@@ -1,3 +1,4 @@
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
@@ -268,7 +269,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
     final maxDate = DateTime(now.year - 3, now.month, now.day);
     final initialDate = _birthdate ?? maxDate;
 
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       initialDate: initialDate.isBefore(minDate)
           ? minDate
@@ -298,7 +299,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
     final firstDate = _birthdate ?? DateTime(1900);
     final initialDate = _baptismDate ?? now;
 
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       initialDate: initialDate.isBefore(firstDate) ? firstDate : initialDate,
       firstDate: firstDate,

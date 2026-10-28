@@ -1,3 +1,4 @@
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
@@ -1078,7 +1079,7 @@ class _DatePickerField extends StatelessWidget {
   }
 
   Future<void> _pickDate(BuildContext context) async {
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       initialDate: selectedDate,
       firstDate: DateTime(2020),

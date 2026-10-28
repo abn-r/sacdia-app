@@ -1,3 +1,4 @@
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
@@ -64,7 +65,7 @@ class _InvestitureDateSheetBodyState extends State<InvestitureDateSheetBody> {
   Future<void> _pickDate() async {
     final first = civilDay(widget.firstDate);
     final last = civilDay(widget.lastDate);
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       initialDate:
           clampCivilDay(_date ?? civilDay(DateTime.now()), first, last),

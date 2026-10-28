@@ -4,6 +4,7 @@
     "retry": "Retry",
     "cancel": "Cancel",
     "confirm": "Confirm",
+    "picker_confirm": "OK",
     "ok": "OK",
     "done": "Done",
     "save": "Save",

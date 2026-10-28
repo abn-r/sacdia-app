@@ -363,7 +363,14 @@ void main() {
 
     await tester.tap(find.text('Seleccionar fecha'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('ACEPTAR'));
+    await tester.tap(
+      find
+          .descendant(
+            of: find.byType(DatePickerDialog),
+            matching: find.byType(TextButton),
+          )
+          .last,
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(SacButton, 'Guardar'));
     await tester.pumpAndSettle();

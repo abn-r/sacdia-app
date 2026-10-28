@@ -1,3 +1,4 @@
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/widgets/sac_pressable.dart';
@@ -658,7 +659,7 @@ class _CamporeePaymentFormSheetState
   }
 
   Future<void> _pickDate(BuildContext context) async {
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       initialDate: _paymentDate ?? DateTime.now(),
       firstDate: DateTime(2020),

@@ -1,3 +1,4 @@
+import 'package:sacdia_app/core/widgets/sac_date_picker.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -134,7 +135,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
     final today = _today();
     final last = _yearEnd();
     final initial = _activityDate ?? today;
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       initialDate: initial.isBefore(today)
           ? today
@@ -158,7 +159,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
     final today = _today();
     final last = _yearEnd();
     final minDate = _activityDate ?? today;
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       initialDate: _activityEndDate ?? minDate,
       firstDate: minDate,
@@ -175,7 +176,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
     final today = _today();
     final last = _yearEnd();
     final minDate = _activityDate ?? today;
-    final picked = await showDatePicker(
+    final picked = await showSacDatePicker(
       context: context,
       initialDate: _until ?? last,
       firstDate: minDate,
