@@ -1999,6 +1999,10 @@
     },
     "detail_with_progress": {
       "modules_header": "Modulos y Requerimientos",
+      "track_basic": "Desarrollo de clase",
+      "track_advanced": "Avanzado",
+      "track_extra": "Actividades complementarias",
+      "track_unknown": "Otros requisitos",
       "search_hint": "Buscar modulo o requerimiento...",
       "no_results": "Sin resultados para \"{query}\"",
       "stat_requirements": "requisitos",
