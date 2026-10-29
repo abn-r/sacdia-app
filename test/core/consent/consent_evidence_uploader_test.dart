@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dartz/dartz.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:sacdia_app/core/consent/consent_evidence.dart';
 import 'package:sacdia_app/core/consent/consent_evidence_uploader.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
@@ -396,6 +399,60 @@ void main() {
 
       expect(uploads, isEmpty);
       expect(uploading, isEmpty);
+    });
+  });
+
+  group('file label', () {
+    const generated = 'image_picker_E1F03742-B4FC-4A4B-9E0D-8F0A1B2C3D4E';
+
+    testWidgets('a made-up photo name shows "Ficha firmada · Foto"',
+        (tester) async {
+      final dir = Directory.systemTemp.createTempSync('consent_label');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final file = File('${dir.path}/$generated.jpg')
+        ..writeAsBytesSync(Uint8List.fromList(List.filled(2048, 1)));
+      await pump(
+        tester,
+        picker: ConsentEvidencePicker(
+          pickImage: (_) async => XFile(file.path, name: '$generated.jpg'),
+        ),
+        onUpload: (_) async => const Right(_receipt),
+      );
+
+      await tester.tap(find.text('Subir ficha firmada'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Elegir de la galería'));
+      // `XFile.length()` es E/S real: no avanza con el reloj falso.
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 100)),
+      );
+      await tester.pump();
+
+      expect(find.text('Ficha firmada · Foto'), findsOneWidget);
+      expect(find.textContaining('image_picker_'), findsNothing);
+    });
+
+    testWidgets('a made-up PDF name shows "Ficha firmada · PDF"',
+        (tester) async {
+      await pump(
+        tester,
+        picker: _picker(name: '$generated.pdf'),
+        onUpload: (_) async => const Right(_receipt),
+      );
+
+      await choosePdf(tester);
+
+      expect(find.text('Ficha firmada · PDF'), findsOneWidget);
+      expect(find.textContaining('image_picker_'), findsNothing);
+    });
+
+    testWidgets('a real file name is kept', (tester) async {
+      await pump(tester, onUpload: (_) async => const Right(_receipt));
+
+      await choosePdf(tester);
+
+      expect(find.text('ficha.pdf'), findsOneWidget);
+      expect(find.text('Ficha firmada · PDF'), findsNothing);
     });
   });
 }

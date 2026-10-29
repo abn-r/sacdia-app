@@ -4289,7 +4289,10 @@
         "generic": "No se pudo completar la acción. Intenta de nuevo.",
         "rate_limited": "Demasiados intentos. Espera un momento e intenta de nuevo.",
         "pick_failed": "No se pudo abrir el archivo. Revisa los permisos e intenta de nuevo."
-      }
+      },
+      "file_label_photo": "Ficha firmada · Foto",
+      "file_label_pdf": "Ficha firmada · PDF",
+      "file_label_other": "Ficha firmada"
     }
   },
   "roles": {

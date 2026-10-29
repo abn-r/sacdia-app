@@ -4287,7 +4287,10 @@
         "generic": "L'action n'a pas pu être effectuée. Réessayez.",
         "rate_limited": "Trop de tentatives. Patientez un instant puis réessayez.",
         "pick_failed": "Le fichier n'a pas pu être ouvert. Vérifiez les autorisations et réessayez."
-      }
+      },
+      "file_label_photo": "Fiche signée · Photo",
+      "file_label_pdf": "Fiche signée · PDF",
+      "file_label_other": "Fiche signée"
     }
   },
   "roles": {

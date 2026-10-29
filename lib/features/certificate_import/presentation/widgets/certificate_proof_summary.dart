@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/motion_tokens.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/utils/file_display_name.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
 import '../../domain/entities/certificate_import_file.dart';
@@ -31,18 +32,10 @@ class CertificateProofSummary extends StatelessWidget {
   static bool isPdf(CertificateImportFile file) =>
       '${file.type} ${file.name}'.toLowerCase().contains('pdf');
 
-  static final _generatedName = RegExp(
-    r'^(scaled_)?(image_picker_|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-)',
-    caseSensitive: false,
-  );
-
   /// The file name worth showing, or null when the phone made it up
-  /// (`image_picker_<uuid>.jpg`, a bare UUID): it means nothing to the user.
-  static String? displayName(String name) {
-    final trimmed = name.trim();
-    if (trimmed.isEmpty || _generatedName.hasMatch(trimmed)) return null;
-    return trimmed;
-  }
+  /// (`image_picker_<uuid>.jpg`, a bare UUID). Shared rule: see
+  /// [meaningfulFileName].
+  static String? displayName(String name) => meaningfulFileName(name);
 
   String _meta(CertificateImportFile file) {
     final base = !isPdf(file)

@@ -4289,7 +4289,10 @@
         "generic": "The action could not be completed. Please try again.",
         "rate_limited": "Too many attempts. Wait a moment and try again.",
         "pick_failed": "The file could not be opened. Check permissions and try again."
-      }
+      },
+      "file_label_photo": "Signed form · Photo",
+      "file_label_pdf": "Signed form · PDF",
+      "file_label_other": "Signed form"
     }
   },
   "roles": {

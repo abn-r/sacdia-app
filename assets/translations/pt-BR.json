@@ -4287,7 +4287,10 @@
         "generic": "Não foi possível concluir a ação. Tente novamente.",
         "rate_limited": "Muitas tentativas. Aguarde um momento e tente novamente.",
         "pick_failed": "Não foi possível abrir o arquivo. Verifique as permissões e tente novamente."
-      }
+      },
+      "file_label_photo": "Ficha assinada · Foto",
+      "file_label_pdf": "Ficha assinada · PDF",
+      "file_label_other": "Ficha assinada"
     }
   },
   "roles": {

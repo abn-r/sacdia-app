@@ -10,6 +10,7 @@ import '../errors/failures.dart';
 import '../theme/app_colors.dart';
 import '../theme/sac_accent.dart';
 import '../theme/sac_colors.dart';
+import '../utils/file_display_name.dart';
 import '../utils/icon_helper.dart';
 import '../widgets/sac_button.dart';
 import '../widgets/sac_card.dart';
@@ -303,6 +304,16 @@ class _FilePreview extends StatelessWidget {
 
   final ConsentEvidenceLocalFile file;
 
+  /// Nombre real del archivo o, si lo inventó el teléfono (`image_picker_...`),
+  /// una etiqueta que dice qué es.
+  String get _title =>
+      meaningfulFileName(file.name) ??
+      (file.isPdf
+          ? 'core.consent.file_label_pdf'.tr()
+          : file.isImage
+              ? 'core.consent.file_label_photo'.tr()
+              : 'core.consent.file_label_other'.tr());
+
   String get _size {
     final mb = file.sizeBytes / (1024 * 1024);
     if (mb >= 1) return '${mb.toStringAsFixed(1)} MB';
@@ -352,7 +363,7 @@ class _FilePreview extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  file.name,
+                  _title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: textTheme.bodyMedium?.copyWith(
