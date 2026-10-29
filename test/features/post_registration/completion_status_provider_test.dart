@@ -84,4 +84,49 @@ void main() {
     expect((await container.read(completionStatusProvider.future))?.currentStep,
         1);
   });
+
+  test('a failure surfaces as an error (never a null "no status")', () async {
+    final container = ProviderContainer(
+      overrides: [
+        authNotifierProvider.overrideWith(_SwitchableAuthNotifier.new),
+        postRegistrationRepositoryProvider.overrideWith(
+          (ref) => _FailingRepository(
+            const ServerFailure(
+              message: 'Post-registration has not been started',
+              code: 400,
+              errorCode: 'AUTH_POST_REGISTRATION_NOT_STARTED',
+            ),
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    await container.read(authNotifierProvider.future);
+
+    await expectLater(
+      container.read(completionStatusProvider.future),
+      throwsA(
+        isA<ServerFailure>().having(
+          (f) => f.errorCode,
+          'errorCode',
+          'AUTH_POST_REGISTRATION_NOT_STARTED',
+        ),
+      ),
+    );
+  });
+}
+
+class _FailingRepository implements PostRegistrationRepository {
+  _FailingRepository(this.failure);
+
+  final Failure failure;
+
+  @override
+  Future<Either<Failure, CompletionStatus>> getCompletionStatus({
+    RequestCancelToken? cancelToken,
+  }) async =>
+      Left(failure);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

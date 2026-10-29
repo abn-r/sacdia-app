@@ -517,7 +517,9 @@
     "auth_device_revoked": "Ton tuteur a dissocié ce téléphone.",
     "auth_device_session_expired": "L'association de ce téléphone a expiré. Demande à ton tuteur de l'associer à nouveau.",
     "mr_approve_permission_required": "Vous n'avez pas l'autorisation d'approuver les demandes. Vous pouvez seulement vérifier le consentement.",
-    "register_email_unavailable": "Impossible de créer un compte avec cet e-mail. Si vous avez déjà un compte, connectez-vous ou réinitialisez votre mot de passe."
+    "register_email_unavailable": "Impossible de créer un compte avec cet e-mail. Si vous avez déjà un compte, connectez-vous ou réinitialisez votre mot de passe.",
+    "auth_post_registration_not_started": "Votre compte n'a pas encore démarré l'enregistrement initial. Déconnectez-vous et reconnectez-vous ; si le problème persiste, contactez le support.",
+    "post_reg_not_initiated": "Votre compte n'a pas encore démarré l'enregistrement initial. Déconnectez-vous et reconnectez-vous ; si le problème persiste, contactez le support."
   },
   "honors": {
     "errors": {
@@ -1220,7 +1222,9 @@
       "logout_dialog_body": "Si vous vous déconnectez maintenant, vous devrez compléter ce processus lors de votre prochaine connexion.",
       "logout_dialog_confirm": "Se déconnecter",
       "error_step_failed": "Impossible de terminer cette étape. Veuillez réessayer.",
-      "error_logout_failed": "Impossible de se déconnecter. Veuillez réessayer."
+      "error_logout_failed": "Impossible de se déconnecter. Veuillez réessayer.",
+      "load_error_title": "Impossible de charger votre progression",
+      "load_error_body": "Vérifiez votre connexion et réessayez. Si le problème persiste, déconnectez-vous puis reconnectez-vous."
     },
     "navigation": {
       "back": "Précédent",
@@ -1409,6 +1413,13 @@
       "confirm_body": "Vous ne choisirez pas de club pour vous-même. Vous pourrez ajouter et gérer vos mineurs depuis Ma famille.",
       "confirm_action": "Terminer l'inscription",
       "error_generic": "Nous n'avons pas pu terminer votre inscription. Veuillez réessayer."
+    },
+    "consent_form": {
+      "uploading_block": "La fiche signée est en cours d'envoi. Attendez la fin de l'envoi avant de terminer.",
+      "pending_title": "La fiche signée n'a pas été envoyée",
+      "pending_body": "Vous avez choisi une fiche signée, mais elle n'a pas pu être envoyée. Si vous terminez maintenant, elle sera perdue ; vous pourrez la renvoyer plus tard depuis Ma famille.",
+      "pending_confirm": "Terminer sans l'envoyer",
+      "pending_cancel": "Revenir et réessayer"
     }
   },
   "monthly_reports": {
@@ -4047,7 +4058,8 @@
       "body": "Votre demande pour rejoindre le club a été envoyée. Le directeur du club l'examinera bientôt. En attendant, vous pouvez enregistrer votre formation personnelle depuis votre profil.",
       "body_acting": "La demande de {name} pour rejoindre le club a été envoyée. Le directeur l'examinera avec la fiche de consentement signée. Si vous ne l'avez pas encore remise, apportez-la au club ou téléversez-la depuis Ma famille.",
       "profile_action": "Aller à mon profil",
-      "family_action_acting": "Aller à Ma famille"
+      "family_action_acting": "Aller à Ma famille",
+      "body_acting_form_received": "La demande de {name} pour rejoindre le club a été envoyée. La fiche de consentement signée a bien été reçue et le directeur l'examinera."
     },
     "notifications_tooltip": "Notifications",
     "club_info": {
@@ -4276,7 +4288,10 @@
         "generic": "L'action n'a pas pu être effectuée. Réessayez.",
         "rate_limited": "Trop de tentatives. Patientez un instant puis réessayez.",
         "pick_failed": "Le fichier n'a pas pu être ouvert. Vérifiez les autorisations et réessayez."
-      }
+      },
+      "file_label_photo": "Fiche signée · Photo",
+      "file_label_pdf": "Fiche signée · PDF",
+      "file_label_other": "Fiche signée"
     }
   },
   "roles": {

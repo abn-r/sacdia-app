@@ -517,7 +517,9 @@
     "auth_device_revoked": "Your guardian unlinked this phone.",
     "auth_device_session_expired": "This phone link has expired. Ask your guardian to link it again.",
     "mr_approve_permission_required": "You are not allowed to approve requests. You can only verify the consent.",
-    "register_email_unavailable": "We couldn't create an account with this email. If you already have an account, sign in or reset your password."
+    "register_email_unavailable": "We couldn't create an account with this email. If you already have an account, sign in or reset your password.",
+    "auth_post_registration_not_started": "Your account has not started its initial registration yet. Sign out and sign back in; if the problem continues, contact support.",
+    "post_reg_not_initiated": "Your account has not started its initial registration yet. Sign out and sign back in; if the problem continues, contact support."
   },
   "honors": {
     "errors": {
@@ -1220,7 +1222,9 @@
       "logout_dialog_body": "If you sign out now, you will need to complete this process when you sign in again.",
       "logout_dialog_confirm": "Sign out",
       "error_step_failed": "Could not complete this step. Please try again.",
-      "error_logout_failed": "Could not sign out. Please try again."
+      "error_logout_failed": "Could not sign out. Please try again.",
+      "load_error_title": "We couldn't load your progress",
+      "load_error_body": "Check your connection and try again. If the problem continues, sign out and sign back in."
     },
     "navigation": {
       "back": "Back",
@@ -1409,6 +1413,13 @@
       "confirm_body": "You won't pick a club for yourself. You can add and manage your minors from My family.",
       "confirm_action": "Finish registration",
       "error_generic": "We couldn't finish your registration. Please try again."
+    },
+    "consent_form": {
+      "uploading_block": "The signed form is uploading. Wait for it to finish before completing.",
+      "pending_title": "The signed form was not uploaded",
+      "pending_body": "You picked a signed form, but it could not be uploaded. If you finish now it will be lost; you can upload it again later from My family.",
+      "pending_confirm": "Finish without uploading",
+      "pending_cancel": "Go back and retry"
     }
   },
   "monthly_reports": {
@@ -4048,7 +4059,8 @@
       "body": "Your request to join the club has been sent. The club director will review it soon. In the meantime, you can record your personal formation from your profile.",
       "body_acting": "{name}'s request to join the club has been sent. The director will review it together with the signed consent form. If you haven't handed it in yet, take it to the club or upload it from My family.",
       "profile_action": "Go to my profile",
-      "family_action_acting": "Go to My family"
+      "family_action_acting": "Go to My family",
+      "body_acting_form_received": "{name}'s request to join the club has been sent. The signed consent form has been received and the director will review it."
     },
     "notifications_tooltip": "Notifications",
     "club_info": {
@@ -4278,7 +4290,10 @@
         "generic": "The action could not be completed. Please try again.",
         "rate_limited": "Too many attempts. Wait a moment and try again.",
         "pick_failed": "The file could not be opened. Check permissions and try again."
-      }
+      },
+      "file_label_photo": "Signed form · Photo",
+      "file_label_pdf": "Signed form · PDF",
+      "file_label_other": "Signed form"
     }
   },
   "roles": {

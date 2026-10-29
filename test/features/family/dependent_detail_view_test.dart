@@ -94,6 +94,33 @@ void main() {
       expect(find.text('Consentimiento verificado'), findsOneWidget);
     });
 
+    testWidgets('pulling down refetches, so a verification shows up',
+        (tester) async {
+      repo.detail = Right(_detail(evidence: true));
+      await pump(tester);
+      expect(repo.detailFetches, 1);
+      expect(
+        find.text(
+            'Ficha firmada subida. Esperando la verificación del director.'),
+        findsOneWidget,
+      );
+
+      // El director verifica con la pantalla abierta.
+      repo.detail = Right(_detail(consent: 'verified', evidence: true));
+      final refresh = tester
+          .state<RefreshIndicatorState>(find.byType(RefreshIndicator))
+          .show();
+      await tester.pump();
+      await tester.pumpAndSettle();
+      await refresh;
+
+      expect(repo.detailFetches, 2);
+      expect(
+        find.text('El director verificó el consentimiento.'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('consent text follows evidence and status', (tester) async {
       repo.detail = Right(_detail());
       await pump(tester);

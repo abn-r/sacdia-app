@@ -54,6 +54,7 @@ class FakeFamilyRepository implements FamilyRepository {
   Either<Failure, FamilyOverview> overview = Right(
     FamilyOverview(dependents: [summary()], maxDependents: 10),
   );
+  int detailFetches = 0;
   Either<Failure, DependentDetail> detail =
       const Left(ServerFailure(message: 'unset'));
   Either<Failure, DependentSummary> created = Right(summary());
@@ -147,8 +148,10 @@ class FakeFamilyRepository implements FamilyRepository {
   }
 
   @override
-  Future<Either<Failure, DependentDetail>> getDependent(String id) async =>
-      detail;
+  Future<Either<Failure, DependentDetail>> getDependent(String id) async {
+    detailFetches++;
+    return detail;
+  }
 
   @override
   Future<Either<Failure, DependentSummary>> createDependent(

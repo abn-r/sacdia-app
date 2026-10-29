@@ -12,6 +12,7 @@ import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/presentation/providers/acting_providers.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../family/presentation/providers/family_providers.dart';
+import '../providers/post_registration_providers.dart';
 
 /// Alcance que el servidor concede solo a un tutor actuando (`consent:evidence`).
 const String kConsentEvidenceScope = 'consent:evidence';
@@ -56,9 +57,43 @@ class ActingConsentFormCard extends ConsumerStatefulWidget {
 
 class _ActingConsentFormCardState extends ConsumerState<ActingConsentFormCard> {
   bool _uploaded = false;
+  bool _pending = false;
+  bool _uploading = false;
+  late final StateController<ConsentFormPhase> _phase;
+  late final StateController<Set<String>> _uploadedIds;
+
+  @override
+  void initState() {
+    super.initState();
+    _phase = ref.read(consentFormPhaseProvider.notifier);
+    _uploadedIds = ref.read(actingConsentFormUploadedProvider.notifier);
+  }
+
+  @override
+  void dispose() {
+    // Sin la tarjeta (otro paso, o el servidor ya verificó) el archivo elegido
+    // se descarta: "Finalizar" no debe seguir esperándolo. Se difiere porque
+    // un provider no se escribe mientras el árbol se desmonta.
+    final phase = _phase;
+    Future.microtask(() {
+      if (phase.mounted) phase.state = ConsentFormPhase.idle;
+    });
+    super.dispose();
+  }
+
+  void _syncPhase() {
+    if (!_phase.mounted) return;
+    _phase.state = _uploading
+        ? ConsentFormPhase.uploading
+        : _pending
+            ? ConsentFormPhase.pendingFile
+            : ConsentFormPhase.idle;
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Mantiene vivo el provider (es autoDispose) mientras la tarjeta existe.
+    ref.watch(consentFormPhaseProvider);
     final acting = ref.watch(actingDependentProvider);
     final user = ref.watch(authNotifierProvider).valueOrNull;
     if (!canUploadConsentWhileActing(user, acting: acting)) {
@@ -93,9 +128,28 @@ class _ActingConsentFormCardState extends ConsumerState<ActingConsentFormCard> {
             ConsentEvidenceUploader(
               picker: widget.picker,
               hasExisting: _uploaded,
-              onUpload: (file) => ref
-                  .read(familyActionsProvider)
-                  .uploadConsentEvidenceWhileActing(dependent.userId, file),
+              // Sube al elegir: el botón "Subir" quedaría bajo la barra fija
+              // "Finalizar" y la ficha se perdería al terminar el post-registro.
+              autoUpload: true,
+              onPendingChanged: (pending) {
+                _pending = pending;
+                _syncPhase();
+              },
+              onUploadingChanged: (uploading) {
+                _uploading = uploading;
+                _syncPhase();
+              },
+              onUpload: (file) async {
+                final result = await ref
+                    .read(familyActionsProvider)
+                    .uploadConsentEvidenceWhileActing(dependent.userId, file);
+                // Se anota aunque la tarjeta ya no esté (otro paso): la ficha
+                // sí llegó y la pantalla final lo dice.
+                if (result.isRight() && _uploadedIds.mounted) {
+                  _uploadedIds.update((ids) => {...ids, dependent.userId});
+                }
+                return result;
+              },
               onUploaded: (ConsentEvidenceReceipt receipt) {
                 if (!mounted) return;
                 setState(() => _uploaded = true);

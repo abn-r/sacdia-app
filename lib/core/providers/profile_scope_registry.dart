@@ -141,6 +141,9 @@ final Map<String, ProviderOrFamily> profileScopedStateEntries = {
   // (aviso de cuatro ojos). Otro perfil no debe heredarlos.
   'createdMinorUserIdsProvider': createdMinorUserIdsProvider,
   'uploadedFormMinorUserIdsProvider': uploadedFormMinorUserIdsProvider,
+  // Tutor: ids de los menores cuya ficha subió desde el paso 3 (copy de
+  // "Solicitud enviada"). Otro perfil no debe heredarlos.
+  'actingConsentFormUploadedProvider': actingConsentFormUploadedProvider,
 };
 
 /// Estado sin `autoDispose` que NO depende del perfil, con el porqué.

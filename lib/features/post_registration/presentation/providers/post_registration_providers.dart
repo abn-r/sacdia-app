@@ -125,8 +125,12 @@ class CompletionStatusNotifier
     final result = await ref
         .read(postRegistrationRepositoryProvider)
         .getCompletionStatus(cancelToken: cancelToken);
+    // Un fallo NO es "sin estado": se propaga como AsyncError para que el shell
+    // muestre reintentar / cerrar sesión. Antes se devolvía null y la vista
+    // se quedaba en un spinner para siempre (p. ej. un usuario sin fila de
+    // post-registro recibe 400 AUTH_POST_REGISTRATION_NOT_STARTED).
     return result.fold(
-      (failure) => null,
+      (failure) => throw failure,
       (status) => status,
     );
   }
@@ -143,6 +147,32 @@ class CompletionStatusNotifier
     );
   }
 }
+
+/// Estado de la ficha de consentimiento firmada del paso 3 (tutor actuando).
+enum ConsentFormPhase {
+  /// Nada elegido, o ya subida.
+  idle,
+
+  /// Subiendo el archivo elegido.
+  uploading,
+
+  /// Hay un archivo elegido que NO se subió (falló o no es válido).
+  pendingFile,
+}
+
+/// Lo escribe `ActingConsentFormCard`; "Finalizar" lo lee para no dejar que la
+/// ficha se pierda en silencio. `autoDispose`: vive mientras el shell lo
+/// observa, así que no sobrevive al post-registro ni al cambio de perfil.
+final consentFormPhaseProvider =
+    StateProvider.autoDispose<ConsentFormPhase>((ref) => ConsentFormPhase.idle);
+
+/// Ids (`user_id`) de los menores cuya ficha de consentimiento firmada se subió
+/// desde el paso 3 en esta sesión, para que la pantalla de "Solicitud enviada"
+/// no diga "si aún no la entregas". Solo memoria; el servidor sigue siendo la
+/// autoridad del estado del consentimiento. Registrado en
+/// `profileScopedStateEntries`: no sobrevive al cambio de perfil.
+final actingConsentFormUploadedProvider =
+    StateProvider<Set<String>>((ref) => const <String>{});
 
 /// Provider para el paso actual del post-registro
 final currentStepProvider = StateProvider.autoDispose<int>((ref) => 1);

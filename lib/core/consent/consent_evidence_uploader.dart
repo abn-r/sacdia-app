@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dartz/dartz.dart' show Either;
@@ -9,6 +10,7 @@ import '../errors/failures.dart';
 import '../theme/app_colors.dart';
 import '../theme/sac_accent.dart';
 import '../theme/sac_colors.dart';
+import '../utils/file_display_name.dart';
 import '../utils/icon_helper.dart';
 import '../widgets/sac_button.dart';
 import '../widgets/sac_card.dart';
@@ -111,21 +113,29 @@ class _SourceTile extends StatelessWidget {
 ///   estado y deja de ofrecer subir (no tiene sentido reintentar).
 /// - [onPendingChanged] avisa cuando hay un archivo elegido sin subir, para que
 ///   la pantalla no deje confirmar con una ficha vieja mientras tanto.
+/// - [onUploadingChanged] avisa cuando una subida empieza o termina.
+/// - [autoUpload] sube en cuanto se elige un archivo válido, sin segundo toque.
+///   Es para pantallas donde el botón "Subir" quedaría tapado por una barra
+///   fija (paso 3 del post-registro). Si falla, el archivo queda elegido con el
+///   motivo y "Reintentar"; [onPendingChanged] sigue en `true` hasta que suba.
 class ConsentEvidenceUploader extends StatefulWidget {
   const ConsentEvidenceUploader({
     super.key,
     required this.onUpload,
     this.onUploaded,
     this.onPendingChanged,
+    this.onUploadingChanged,
     this.onAlreadyVerified,
     this.picker = const ConsentEvidencePicker(),
     this.hasExisting = false,
     this.enabled = true,
+    this.autoUpload = false,
   });
 
   final ConsentUploadCallback onUpload;
   final ValueChanged<ConsentEvidenceReceipt>? onUploaded;
   final ValueChanged<bool>? onPendingChanged;
+  final ValueChanged<bool>? onUploadingChanged;
 
   /// La subida fue rechazada porque el consentimiento ya está verificado.
   final VoidCallback? onAlreadyVerified;
@@ -134,6 +144,9 @@ class ConsentEvidenceUploader extends StatefulWidget {
   /// Ya hay una ficha vigente: el botón dice "Reemplazar".
   final bool hasExisting;
   final bool enabled;
+
+  /// Sube nada más elegir el archivo (si es válido).
+  final bool autoUpload;
 
   @override
   State<ConsentEvidenceUploader> createState() =>
@@ -165,6 +178,7 @@ class _ConsentEvidenceUploaderState extends State<ConsentEvidenceUploader> {
         _error = null;
         _pickFailed = false;
       });
+      if (widget.autoUpload && picked.problem == null) unawaited(_upload());
     } catch (_) {
       if (!mounted) return;
       setState(() => _pickFailed = true);
@@ -178,6 +192,7 @@ class _ConsentEvidenceUploaderState extends State<ConsentEvidenceUploader> {
       _uploading = true;
       _error = null;
     });
+    widget.onUploadingChanged?.call(true);
     final result = await widget.onUpload(file);
     if (!mounted) return;
     result.fold(
@@ -189,16 +204,32 @@ class _ConsentEvidenceUploaderState extends State<ConsentEvidenceUploader> {
           // Ya no hay nada que reintentar: se descarta el archivo.
           if (alreadyVerified) _setFile(null);
         });
+        widget.onUploadingChanged?.call(false);
         if (alreadyVerified) widget.onAlreadyVerified?.call();
+        if (widget.autoUpload && !alreadyVerified) _revealRetry();
       },
       (receipt) {
         setState(() {
           _uploading = false;
           _setFile(null);
         });
+        widget.onUploadingChanged?.call(false);
         widget.onUploaded?.call(receipt);
       },
     );
+  }
+
+  /// Con subida automática el aviso de fallo puede quedar fuera de pantalla:
+  /// se acerca el motivo y "Reintentar" a la vista.
+  void _revealRetry() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 250),
+        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+      );
+    });
   }
 
   String _problemText(ConsentFileProblem problem) => switch (problem) {
@@ -273,6 +304,16 @@ class _FilePreview extends StatelessWidget {
 
   final ConsentEvidenceLocalFile file;
 
+  /// Nombre real del archivo o, si lo inventó el teléfono (`image_picker_...`),
+  /// una etiqueta que dice qué es.
+  String get _title =>
+      meaningfulFileName(file.name) ??
+      (file.isPdf
+          ? 'core.consent.file_label_pdf'.tr()
+          : file.isImage
+              ? 'core.consent.file_label_photo'.tr()
+              : 'core.consent.file_label_other'.tr());
+
   String get _size {
     final mb = file.sizeBytes / (1024 * 1024);
     if (mb >= 1) return '${mb.toStringAsFixed(1)} MB';
@@ -322,7 +363,7 @@ class _FilePreview extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  file.name,
+                  _title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: textTheme.bodyMedium?.copyWith(

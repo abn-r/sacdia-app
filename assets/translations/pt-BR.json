@@ -517,7 +517,9 @@
     "auth_device_revoked": "Seu responsável desvinculou este telefone.",
     "auth_device_session_expired": "O vínculo deste telefone expirou. Peça ao seu responsável para vinculá-lo novamente.",
     "mr_approve_permission_required": "Você não tem permissão para aprovar solicitações. Só pode verificar o consentimento.",
-    "register_email_unavailable": "Não foi possível criar a conta com este e-mail. Se você já tem uma conta, entre ou recupere sua senha."
+    "register_email_unavailable": "Não foi possível criar a conta com este e-mail. Se você já tem uma conta, entre ou recupere sua senha.",
+    "auth_post_registration_not_started": "Sua conta ainda não iniciou o cadastro inicial. Saia e entre novamente; se o problema continuar, entre em contato com o suporte.",
+    "post_reg_not_initiated": "Sua conta ainda não iniciou o cadastro inicial. Saia e entre novamente; se o problema continuar, entre em contato com o suporte."
   },
   "honors": {
     "errors": {
@@ -1220,7 +1222,9 @@
       "logout_dialog_body": "Se sair agora, você precisará completar este processo quando entrar novamente.",
       "logout_dialog_confirm": "Sair",
       "error_step_failed": "Não foi possível concluir esta etapa. Por favor, tente novamente.",
-      "error_logout_failed": "Não foi possível sair. Tente novamente."
+      "error_logout_failed": "Não foi possível sair. Tente novamente.",
+      "load_error_title": "Não foi possível carregar seu progresso",
+      "load_error_body": "Verifique sua conexão e tente novamente. Se o problema continuar, saia e entre novamente."
     },
     "navigation": {
       "back": "Voltar",
@@ -1409,6 +1413,13 @@
       "confirm_body": "Você não escolherá um clube para si. Poderá adicionar e gerenciar seus menores em Minha família.",
       "confirm_action": "Concluir cadastro",
       "error_generic": "Não conseguimos concluir seu cadastro. Tente novamente."
+    },
+    "consent_form": {
+      "uploading_block": "A ficha assinada está sendo enviada. Aguarde o envio terminar para finalizar.",
+      "pending_title": "A ficha assinada não foi enviada",
+      "pending_body": "Você escolheu uma ficha assinada, mas não foi possível enviá-la. Se finalizar agora, ela será perdida; depois você poderá enviá-la de novo em Minha família.",
+      "pending_confirm": "Finalizar sem enviar",
+      "pending_cancel": "Voltar e tentar de novo"
     }
   },
   "monthly_reports": {
@@ -4047,7 +4058,8 @@
       "body": "Sua solicitação para entrar no clube foi enviada. O diretor do clube a analisará em breve. Enquanto isso, você pode registrar sua formação pessoal pelo seu perfil.",
       "body_acting": "A solicitação de {name} para entrar no clube foi enviada. O diretor a analisará junto com a ficha de consentimento assinada. Se você ainda não a entregou, leve-a ao clube ou envie-a por Minha família.",
       "profile_action": "Ir para meu perfil",
-      "family_action_acting": "Ir para Minha família"
+      "family_action_acting": "Ir para Minha família",
+      "body_acting_form_received": "A solicitação de {name} para entrar no clube foi enviada. A ficha de consentimento assinada foi recebida e o diretor a analisará."
     },
     "notifications_tooltip": "Notificações",
     "club_info": {
@@ -4276,7 +4288,10 @@
         "generic": "Não foi possível concluir a ação. Tente novamente.",
         "rate_limited": "Muitas tentativas. Aguarde um momento e tente novamente.",
         "pick_failed": "Não foi possível abrir o arquivo. Verifique as permissões e tente novamente."
-      }
+      },
+      "file_label_photo": "Ficha assinada · Foto",
+      "file_label_pdf": "Ficha assinada · PDF",
+      "file_label_other": "Ficha assinada"
     }
   },
   "roles": {

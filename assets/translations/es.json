@@ -517,7 +517,9 @@
     "auth_device_revoked": "Tu tutor desvinculó este teléfono.",
     "auth_device_session_expired": "La vinculación de este teléfono venció. Pide a tu tutor que lo vincule de nuevo.",
     "mr_approve_permission_required": "No tienes permiso para aprobar solicitudes. Solo puedes verificar el consentimiento.",
-    "register_email_unavailable": "No pudimos crear la cuenta con este correo. Si ya tienes una cuenta, inicia sesión o recupera tu contraseña."
+    "register_email_unavailable": "No pudimos crear la cuenta con este correo. Si ya tienes una cuenta, inicia sesión o recupera tu contraseña.",
+    "auth_post_registration_not_started": "Tu cuenta aún no tiene iniciado el registro inicial. Cierra sesión y vuelve a ingresar; si el problema continúa, contacta a soporte.",
+    "post_reg_not_initiated": "Tu cuenta aún no tiene iniciado el registro inicial. Cierra sesión y vuelve a ingresar; si el problema continúa, contacta a soporte."
   },
   "honors": {
     "errors": {
@@ -1220,7 +1222,9 @@
       "logout_dialog_body": "Si cierras sesión ahora, deberás completar este proceso cuando vuelvas a ingresar.",
       "logout_dialog_confirm": "Cerrar sesión",
       "error_step_failed": "No se pudo completar este paso. Por favor intenta de nuevo.",
-      "error_logout_failed": "No se pudo cerrar la sesión. Intenta de nuevo."
+      "error_logout_failed": "No se pudo cerrar la sesión. Intenta de nuevo.",
+      "load_error_title": "No pudimos cargar tu avance",
+      "load_error_body": "Revisa tu conexión e intenta de nuevo. Si el problema continúa, cierra sesión y vuelve a ingresar."
     },
     "navigation": {
       "back": "Atrás",
@@ -1409,6 +1413,13 @@
       "confirm_body": "No elegirás un club para ti. Podrás agregar y gestionar a tus menores desde Mi familia.",
       "confirm_action": "Terminar registro",
       "error_generic": "No pudimos terminar tu registro. Intenta de nuevo."
+    },
+    "consent_form": {
+      "uploading_block": "Se está subiendo la ficha firmada. Espera a que termine para finalizar.",
+      "pending_title": "La ficha firmada no se subió",
+      "pending_body": "Elegiste una ficha firmada, pero no se pudo subir. Si finalizas ahora se perderá; después podrás subirla de nuevo desde Mi familia.",
+      "pending_confirm": "Finalizar sin subirla",
+      "pending_cancel": "Volver y reintentar"
     }
   },
   "monthly_reports": {
@@ -4048,7 +4059,8 @@
       "body": "Tu solicitud para unirte al club fue enviada. El director del club la revisará pronto. Mientras tanto, puedes registrar tu formación personal desde tu perfil.",
       "body_acting": "La solicitud de {name} para unirse al club fue enviada. El director la revisará junto con la ficha de consentimiento firmada. Si aún no la entregas, llévala al club o súbela desde Mi familia.",
       "profile_action": "Ir a mi perfil",
-      "family_action_acting": "Ir a Mi familia"
+      "family_action_acting": "Ir a Mi familia",
+      "body_acting_form_received": "La solicitud de {name} para unirse al club fue enviada. La ficha de consentimiento firmada ya fue recibida y el director la revisará."
     },
     "notifications_tooltip": "Notificaciones",
     "club_info": {
@@ -4278,7 +4290,10 @@
         "generic": "No se pudo completar la acción. Intenta de nuevo.",
         "rate_limited": "Demasiados intentos. Espera un momento e intenta de nuevo.",
         "pick_failed": "No se pudo abrir el archivo. Revisa los permisos e intenta de nuevo."
-      }
+      },
+      "file_label_photo": "Ficha firmada · Foto",
+      "file_label_pdf": "Ficha firmada · PDF",
+      "file_label_other": "Ficha firmada"
     }
   },
   "roles": {

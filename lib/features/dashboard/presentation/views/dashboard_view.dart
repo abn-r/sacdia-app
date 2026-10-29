@@ -15,6 +15,8 @@ import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../auth/presentation/providers/acting_providers.dart';
+import '../../../post_registration/presentation/providers/post_registration_providers.dart';
 import '../../../post_registration/presentation/utils/acting_copy.dart';
 import '../../../notifications/presentation/providers/unread_notifications_count_provider.dart';
 import '../providers/dashboard_providers.dart';
@@ -296,6 +298,11 @@ class _PendingMembershipDashboardState extends ConsumerWidget {
     final c = context.sac;
     final actingName = actingCopyName(ref);
     final acting = actingName != null;
+    // Si la ficha firmada ya se subió en el paso 3, no se dice "si aún no la
+    // entregas".
+    final actingUserId = ref.watch(actingDependentProvider)?.userId;
+    final formReceived = actingUserId != null &&
+        ref.watch(actingConsentFormUploadedProvider).contains(actingUserId);
 
     return Center(
       child: SingleChildScrollView(
@@ -330,7 +337,10 @@ class _PendingMembershipDashboardState extends ConsumerWidget {
             const SizedBox(height: 12),
             Text(
               acting
-                  ? tr('dashboard.pending_state.body_acting',
+                  ? tr(
+                      formReceived
+                          ? 'dashboard.pending_state.body_acting_form_received'
+                          : 'dashboard.pending_state.body_acting',
                       namedArgs: {'name': actingName})
                   : tr('dashboard.pending_state.body'),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(

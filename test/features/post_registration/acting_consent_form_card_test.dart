@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/auth/acting_for_session.dart';
@@ -15,6 +17,7 @@ import 'package:sacdia_app/core/network/interceptors/auth_interceptor.dart';
 import 'package:sacdia_app/features/auth/domain/entities/acting_for_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/family/data/datasources/family_remote_data_source.dart';
+import 'package:sacdia_app/features/post_registration/presentation/providers/post_registration_providers.dart';
 import 'package:sacdia_app/features/post_registration/presentation/widgets/acting_consent_form_card.dart';
 
 import '../family/family_test_harness.dart';
@@ -51,6 +54,29 @@ class _RefreshCountingAuth extends FakeAuthNotifier {
   }) async {
     refreshes++;
     return user;
+  }
+}
+
+/// Repositorio cuya subida "actuando" se resuelve a mano.
+class _GatedRepository extends FakeFamilyRepository {
+  Completer<Either<Failure, ConsentEvidenceReceipt>>? gate;
+
+  @override
+  Future<Either<Failure, ConsentEvidenceReceipt>>
+      uploadConsentEvidenceWhileActing({
+    required String dependentUserId,
+    required ConsentEvidenceLocalFile file,
+  }) {
+    final g = gate;
+    if (g == null) {
+      return super.uploadConsentEvidenceWhileActing(
+        dependentUserId: dependentUserId,
+        file: file,
+      );
+    }
+    actingEvidenceUploads
+        .add((dependentUserId: dependentUserId, fileName: file.name));
+    return g.future;
   }
 }
 
@@ -114,11 +140,12 @@ void main() {
       WidgetTester tester, {
       UserEntity? user,
       ActingForSession? session,
+      FakeFamilyRepository? repository,
     }) async {
       tester.view.physicalSize = const Size(800, 2000);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
-      repo = FakeFamilyRepository();
+      repo = repository ?? FakeFamilyRepository();
       auth = _RefreshCountingAuth(user ?? _acting());
       final acting = session ??
           (ActingForSession()
@@ -148,15 +175,22 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    /// Elige el PDF. La subida arranca sola (sin segundo toque en "Subir").
     Future<void> pickAndUpload(WidgetTester tester) async {
       await tester.tap(find.text('Subir ficha firmada'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Elegir un PDF'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Subir'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
     }
+
+    Set<String> uploadedIds(WidgetTester tester) => ProviderScope.containerOf(
+          tester.element(find.byType(ActingConsentFormCard)),
+        ).read(actingConsentFormUploadedProvider);
+
+    ConsentFormPhase phase(WidgetTester tester) => ProviderScope.containerOf(
+          tester.element(find.byType(ActingConsentFormCard)),
+        ).read(consentFormPhaseProvider);
 
     testWidgets('an acting guardian uploads through the ACTING route',
         (tester) async {
@@ -179,6 +213,61 @@ void main() {
         ),
         findsOneWidget,
       );
+    });
+
+    testWidgets('uploads right after picking, without a second tap',
+        (tester) async {
+      await pump(tester);
+
+      await pickAndUpload(tester);
+
+      expect(repo.actingEvidenceUploads, hasLength(1));
+      // Terminó: ya no queda un archivo esperando el botón "Subir".
+      expect(find.text('Subir'), findsNothing);
+      expect(find.text('Cambiar'), findsNothing);
+      expect(phase(tester), ConsentFormPhase.idle);
+      // Queda anotado para que la pantalla final diga que la ficha llegó.
+      expect(uploadedIds(tester), {'ana-1'});
+    });
+
+    testWidgets('reports uploading while the request is in flight',
+        (tester) async {
+      final gated = _GatedRepository()
+        ..gate = Completer<Either<Failure, ConsentEvidenceReceipt>>();
+      await pump(tester, repository: gated);
+
+      await pickAndUpload(tester);
+
+      expect(gated.actingEvidenceUploads, hasLength(1));
+      expect(phase(tester), ConsentFormPhase.uploading);
+
+      gated.gate!.complete(gated.evidenceUploaded);
+      await tester.pumpAndSettle();
+      expect(phase(tester), ConsentFormPhase.idle);
+    });
+
+    testWidgets('a failed upload keeps the file as pending until a retry works',
+        (tester) async {
+      await pump(tester);
+      repo.actingEvidenceUploaded = const Left(
+        ServerFailure(message: 'RAW', code: 500),
+      );
+
+      await pickAndUpload(tester);
+      await tester.pumpAndSettle();
+
+      expect(phase(tester), ConsentFormPhase.pendingFile);
+      expect(find.text('Reintentar'), findsOneWidget);
+      expect(uploadedIds(tester), isEmpty);
+
+      repo.actingEvidenceUploaded = null;
+      await tester.tap(find.text('Reintentar'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.pumpAndSettle();
+
+      expect(repo.actingEvidenceUploads, hasLength(2));
+      expect(phase(tester), ConsentFormPhase.idle);
     });
 
     testWidgets('a verified consent mid-upload refreshes the user (409)',
