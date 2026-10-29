@@ -1952,6 +1952,7 @@
       "stay_button": "Stay",
       "leave_button": "Leave",
       "requirement_title": "Requirement: {name}",
+      "title": "Requirement",
       "detail_header": "Requirement detail",
       "status_header": "Requirement status",
       "evidence_files_header": "Evidence files",

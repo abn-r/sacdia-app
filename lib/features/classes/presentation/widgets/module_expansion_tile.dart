@@ -454,7 +454,7 @@ class _ModuleDetailRowState extends State<ModuleDetailRow>
                       vertical: 14,
                     ),
                     child: Text(
-                      'Sin requerimientos cargados',
+                      'classes.detail_with_progress.empty_requirements'.tr(),
                       style: TextStyle(
                         fontSize: 12.5,
                         color: c.ink400,

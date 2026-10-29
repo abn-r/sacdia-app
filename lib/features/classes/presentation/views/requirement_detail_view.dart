@@ -163,7 +163,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
         extendBodyBehindAppBar: true,
         backgroundColor: c.canvas,
         appBar: SacTopBar(
-            title: 'Requerimiento',
+            title: 'classes.requirement_detail.title'.tr(),
             centerTitle: true,
             backgroundColor: c.canvas,
             leading: SacPressable(
