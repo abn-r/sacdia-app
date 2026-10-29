@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 
 import '../../../../providers/dio_provider.dart';
+import '../../../auth/domain/entities/principal_info.dart';
+import '../../../auth/presentation/providers/acting_providers.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/datasources/master_honors_remote_data_source.dart';
 import '../../data/repositories/master_honors_repository_impl.dart';
@@ -29,6 +31,16 @@ final masterHonorsRepositoryProvider = Provider<MasterHonorsRepository>((ref) {
   );
 });
 
+/// Master honors are reachable only from the user's own adult account. The
+/// server denies `/users/:id/master-honors*` to every other principal (teen,
+/// linked device, guardian acting for a minor), so the app must not ask.
+final masterHonorsAvailableProvider = Provider<bool>((ref) {
+  final user = ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
+  if (user == null) return false;
+  if (user.mode != AccountMode.adult || user.actingFor != null) return false;
+  return ref.watch(actingDependentProvider) == null;
+});
+
 final userMasterHonorsProvider =
     FutureProvider.autoDispose<List<UserMasterHonor>>((ref) async {
   ref.keepAlive();
@@ -42,6 +54,8 @@ final userMasterHonorsProvider =
   if (userId == null) {
     throw Exception(tr('errors.user_not_authenticated'));
   }
+
+  if (!ref.watch(masterHonorsAvailableProvider)) return const [];
 
   final repository = ref.read(masterHonorsRepositoryProvider);
   final result = await repository.getUserMasterHonors(
