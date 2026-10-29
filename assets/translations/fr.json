@@ -1999,6 +1999,10 @@
     },
     "detail_with_progress": {
       "modules_header": "Modules et exigences",
+      "track_basic": "Développement de la classe",
+      "track_advanced": "Avancé",
+      "track_extra": "Activités complémentaires",
+      "track_unknown": "Autres exigences",
       "search_hint": "Rechercher un module ou une exigence...",
       "no_results": "Aucun résultat pour \"{query}\"",
       "stat_requirements": "exigences",
@@ -5548,6 +5552,7 @@
       "remove_body": "Cette personne ne pourra plus voir ni gérer le mineur.",
       "remove_confirm": "Retirer",
       "removed": "Tuteur retiré",
+      "left": "Vous ne gérez plus le profil de {name}.",
       "form_title": "Fiche de consentement",
       "form_hint": "Imprimez et signez la fiche du club, puis téléversez-la ici en photo ou en PDF. Le directeur du club la vérifiera.",
       "form_view": "Voir la fiche téléversée",
@@ -5567,7 +5572,7 @@
       "code_required": "Saisissez le code",
       "sworn": "Je déclare sous serment être le tuteur légal de ce mineur.",
       "submit": "Lier",
-      "success": "Vous êtes maintenant tuteur de {name}."
+      "success": "Vous pouvez désormais gérer le profil de {name}."
     },
     "switcher": {
       "title": "Changer de profil",

@@ -1999,6 +1999,10 @@
     },
     "detail_with_progress": {
       "modules_header": "Modulos y Requerimientos",
+      "track_basic": "Desarrollo de clase",
+      "track_advanced": "Avanzado",
+      "track_extra": "Actividades complementarias",
+      "track_unknown": "Otros requisitos",
       "search_hint": "Buscar modulo o requerimiento...",
       "no_results": "Sin resultados para \"{query}\"",
       "stat_requirements": "requisitos",
@@ -5550,6 +5554,7 @@
       "remove_body": "Esta persona dejará de poder ver y administrar al menor.",
       "remove_confirm": "Quitar",
       "removed": "Tutor quitado",
+      "left": "Dejaste de gestionar el perfil de {name}.",
       "form_title": "Ficha de consentimiento",
       "form_hint": "Imprime y firma la ficha del club; luego súbela aquí como foto o PDF. El director del club la verificará.",
       "form_view": "Ver ficha subida",
@@ -5569,7 +5574,7 @@
       "code_required": "Ingresa el código",
       "sworn": "Declaro bajo protesta de decir verdad que soy el tutor legal de este menor.",
       "submit": "Vincular",
-      "success": "Ahora eres tutor de {name}."
+      "success": "Ya puedes gestionar el perfil de {name}."
     },
     "switcher": {
       "title": "Cambiar de perfil",

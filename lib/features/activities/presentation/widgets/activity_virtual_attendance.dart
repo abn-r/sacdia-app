@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_profile_image.dart';
+import 'package:sacdia_app/core/widgets/sac_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 
 import '../../domain/entities/activity_rsvp.dart';
@@ -105,7 +106,7 @@ class _ActivityVirtualAttendanceState
   }
 
   Future<void> _openRoster() async {
-    final saved = await showModalBottomSheet<bool>(
+    final saved = await showSacSheet<bool>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,

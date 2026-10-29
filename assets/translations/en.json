@@ -1999,6 +1999,10 @@
     },
     "detail_with_progress": {
       "modules_header": "Modules and Requirements",
+      "track_basic": "Class development",
+      "track_advanced": "Advanced",
+      "track_extra": "Complementary activities",
+      "track_unknown": "Other requirements",
       "search_hint": "Search module or requirement...",
       "no_results": "No results for \"{query}\"",
       "stat_requirements": "requirements",
@@ -5550,6 +5554,7 @@
       "remove_body": "This person will no longer be able to see or manage the minor.",
       "remove_confirm": "Remove",
       "removed": "Guardian removed",
+      "left": "You stopped managing {name}'s profile.",
       "form_title": "Consent form",
       "form_hint": "Print and sign the club form, then upload it here as a photo or PDF. The club director will verify it.",
       "form_view": "View uploaded form",
@@ -5569,7 +5574,7 @@
       "code_required": "Enter the code",
       "sworn": "I declare under oath that I am the legal guardian of this minor.",
       "submit": "Link",
-      "success": "You are now a guardian of {name}."
+      "success": "You can now manage {name}'s profile."
     },
     "switcher": {
       "title": "Switch profile",

@@ -184,7 +184,7 @@ class ModuleExpansionTile extends StatelessWidget {
 
       final isAdvanced = track == RequirementTrack.advanced;
       children.add(_TrackSectionHeader(
-        label: RequirementTrackMeta.toLabel(track),
+        label: RequirementTrackMeta.labelKey(track).tr(),
         isAdvanced: isAdvanced,
       ));
 
@@ -215,7 +215,8 @@ class _TrackSectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final subtitle = isAdvanced ? 'Avanzado' : null;
+    final subtitle =
+        isAdvanced ? 'classes.detail_with_progress.track_advanced'.tr() : null;
     final c = context.sac;
     return Padding(
       padding: const EdgeInsets.only(left: 2, top: 8, bottom: 6),

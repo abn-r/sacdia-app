@@ -30,16 +30,17 @@ class RequirementTrackMeta extends Equatable {
     }
   }
 
-  static String toLabel(RequirementTrack track) {
+  /// i18n key for the track's section label.
+  static String labelKey(RequirementTrack track) {
     switch (track) {
       case RequirementTrack.basic:
-        return 'Desarrollo de clase';
+        return 'classes.detail_with_progress.track_basic';
       case RequirementTrack.advanced:
-        return 'Avanzado';
+        return 'classes.detail_with_progress.track_advanced';
       case RequirementTrack.extra:
-        return 'Actividades complementarias';
+        return 'classes.detail_with_progress.track_extra';
       case RequirementTrack.unknown:
-        return 'Sin track';
+        return 'classes.detail_with_progress.track_unknown';
     }
   }
 

@@ -20,7 +20,6 @@ import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
-import 'package:sacdia_app/features/classes/presentation/views/classes_list_view.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/post_registration/presentation/providers/post_registration_providers.dart';
 
@@ -37,7 +36,7 @@ import '../widgets/class_status_circles.dart';
 import '../widgets/profile_classes_section.dart';
 import '../widgets/profile_certifications_section.dart';
 import '../widgets/profile_honors_section.dart';
-import '../widgets/profile_quiet_add_chip.dart';
+import '../widgets/profile_section_header_actions.dart';
 import '../widgets/setting_tile.dart';
 import '../../../virtual_card/presentation/views/virtual_card_view.dart';
 import 'edit_profile_view.dart';
@@ -490,19 +489,7 @@ class _ProfileScrollBody extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   _SectionLabel(label: 'profile.view.section_my_classes'.tr()),
-                  _SectionHeaderActions(
-                    addSemanticLabel:
-                        'profile.classes_section.browse_classes'.tr(),
-                    onAdd: () {
-                      Navigator.push(
-                        context,
-                        SacSharedAxisRoute(
-                          builder: (_) => const ClassesListView(),
-                        ),
-                      );
-                    },
-                    onRefresh: onRefreshClasses,
-                  ),
+                  ProfileClassesHeaderActions(onRefresh: onRefreshClasses),
                 ],
               ),
             ),
@@ -522,11 +509,7 @@ class _ProfileScrollBody extends StatelessWidget {
                   children: [
                     _SectionLabel(
                         label: 'profile.view.section_my_certifications'.tr()),
-                    _SectionHeaderActions(
-                      addSemanticLabel:
-                          'profile.certifications_section.browse_certifications'
-                              .tr(),
-                      onAdd: () => context.push(RouteNames.homeCertifications),
+                    ProfileCertificationsHeaderActions(
                       onRefresh: onRefreshCertifications,
                     ),
                   ],
@@ -545,7 +528,7 @@ class _ProfileScrollBody extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   _SectionLabel(label: 'profile.view.section_honors'.tr()),
-                  _HonorsHeaderActions(onRefresh: onRefreshHonors),
+                  ProfileHonorsHeaderActions(onRefresh: onRefreshHonors),
                 ],
               ),
             ),
@@ -1035,89 +1018,6 @@ class _MetaRow extends StatelessWidget {
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// Especialidades header actions. The empty state of [ProfileHonorsSection]
-/// already carries an "Agregar" chip, so the header one is hidden then to keep
-/// a single call to action.
-class _HonorsHeaderActions extends ConsumerWidget {
-  final VoidCallback onRefresh;
-
-  const _HonorsHeaderActions({required this.onRefresh});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isEmpty = ref.watch(
-      sectionScopedUserHonorsProvider
-          .select((honors) => honors.hasValue && honors.requireValue.isEmpty),
-    );
-    return _SectionHeaderActions(
-      addSemanticLabel: 'profile.honors_section.add_honor'.tr(),
-      onAdd: () => context.push(RouteNames.homeHonors),
-      onRefresh: onRefresh,
-      showAdd: !isEmpty,
-    );
-  }
-}
-
-/// Quiet "+ Agregar" plus the existing refresh icon, shared by Clases,
-/// Certificaciones and Especialidades headers.
-class _SectionHeaderActions extends StatelessWidget {
-  final String addSemanticLabel;
-  final VoidCallback onAdd;
-  final VoidCallback onRefresh;
-
-  /// `false` when the section's empty state already offers the add action.
-  final bool showAdd;
-
-  const _SectionHeaderActions({
-    required this.addSemanticLabel,
-    required this.onAdd,
-    required this.onRefresh,
-    this.showAdd = true,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Row(
-      children: [
-        if (showAdd) ...[
-          ProfileQuietAddChip(
-            semanticLabel: addSemanticLabel,
-            onTap: onAdd,
-          ),
-          const SizedBox(width: 8),
-        ],
-        SizedBox(
-          width: 32,
-          height: 32,
-          child: Material(
-            color: c.surface,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-              side: BorderSide(color: c.border),
-            ),
-            child: SacInkWell(
-              borderRadius: BorderRadius.circular(8),
-              onTap: onRefresh,
-              child: Semantics(
-                label: 'common.retry'.tr(),
-                button: true,
-                child: Center(
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedRefresh,
-                    color: c.textTertiary,
-                    size: 16,
-                  ),
-                ),
-              ),
-            ),
           ),
         ),
       ],

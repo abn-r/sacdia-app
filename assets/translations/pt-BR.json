@@ -1999,6 +1999,10 @@
     },
     "detail_with_progress": {
       "modules_header": "Módulos e Requisitos",
+      "track_basic": "Desenvolvimento da classe",
+      "track_advanced": "Avançado",
+      "track_extra": "Atividades complementares",
+      "track_unknown": "Outros requisitos",
       "search_hint": "Buscar módulo ou requisito...",
       "no_results": "Sem resultados para \"{query}\"",
       "stat_requirements": "requisitos",
@@ -5548,6 +5552,7 @@
       "remove_body": "Esta pessoa não poderá mais ver nem gerenciar o menor.",
       "remove_confirm": "Remover",
       "removed": "Responsável removido",
+      "left": "Você deixou de gerenciar o perfil de {name}.",
       "form_title": "Ficha de consentimento",
       "form_hint": "Imprima e assine a ficha do clube; depois envie aqui como foto ou PDF. O diretor do clube a verificará.",
       "form_view": "Ver ficha enviada",
@@ -5567,7 +5572,7 @@
       "code_required": "Digite o código",
       "sworn": "Declaro sob juramento que sou o responsável legal por este menor.",
       "submit": "Vincular",
-      "success": "Agora você é responsável por {name}."
+      "success": "Agora você pode gerenciar o perfil de {name}."
     },
     "switcher": {
       "title": "Trocar de perfil",

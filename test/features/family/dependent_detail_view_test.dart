@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/consent/consent_evidence.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
 import 'package:sacdia_app/features/family/data/models/dependent_models.dart';
 import 'package:sacdia_app/features/family/domain/entities/dependent.dart';
@@ -215,6 +216,19 @@ void main() {
       expect(find.text('Compartir'), findsOneWidget);
     });
 
+    testWidgets('"Compartir" is a positive action, not the destructive style',
+        (tester) async {
+      repo.detail = Right(_detail());
+      await pump(tester);
+
+      await tester.tap(find.text('Invitar a otro tutor'));
+      await tester.pumpAndSettle();
+
+      final share =
+          tester.widget<SacButton>(find.widgetWithText(SacButton, 'Compartir'));
+      expect(share.variant, SacButtonVariant.success);
+    });
+
     testWidgets('the guardian limit shows its own message', (tester) async {
       repo.detail = Right(_detail());
       repo.issued = const Left(
@@ -303,9 +317,13 @@ void main() {
         (guardianshipId: 'gs-1', removedByPrimary: false),
       ]);
       expect(
-        find.text('El club quedará a cargo de Ana mientras tanto.'),
+        find.text(
+          'Dejaste de gestionar el perfil de Ana. '
+          'El club quedará a cargo de Ana mientras tanto.',
+        ),
         findsOneWidget,
-        reason: 'snackbar with the outcome the server returned',
+        reason: 'snackbar with the confirmation and the real outcome, shown '
+            'on the screen we returned to',
       );
       expect(router.state.uri.path, '/family');
     });
