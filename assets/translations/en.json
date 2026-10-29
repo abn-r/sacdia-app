@@ -1955,7 +1955,7 @@
       "detail_header": "Requirement detail",
       "status_header": "Requirement status",
       "evidence_files_header": "Evidence files",
-      "submit_success": "Requirement submitted for validation successfully",
+      "submit_success": "Requirement submitted for validation.",
       "file_limit_label": "File limit",
       "type_label": "Type",
       "type_honor": "Honor",

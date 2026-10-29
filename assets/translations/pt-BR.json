@@ -1955,7 +1955,7 @@
       "detail_header": "Detalhe do requisito",
       "status_header": "Status do requisito",
       "evidence_files_header": "Arquivos de evidência",
-      "submit_success": "Requisito enviado para validação com sucesso",
+      "submit_success": "Requisito enviado para validação.",
       "file_limit_label": "Limite de arquivos",
       "type_label": "Tipo",
       "type_honor": "Especialidade",

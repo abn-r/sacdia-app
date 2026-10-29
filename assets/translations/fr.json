@@ -1955,7 +1955,7 @@
       "detail_header": "Détail de l'exigence",
       "status_header": "Statut de l'exigence",
       "evidence_files_header": "Fichiers de preuve",
-      "submit_success": "Exigence soumise pour validation avec succès",
+      "submit_success": "Exigence soumise pour validation.",
       "file_limit_label": "Limite de fichiers",
       "type_label": "Type",
       "type_honor": "Spécialité",
