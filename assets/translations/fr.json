@@ -1952,6 +1952,7 @@
       "stay_button": "Rester",
       "leave_button": "Quitter",
       "requirement_title": "Exigence : {name}",
+      "title": "Exigence",
       "detail_header": "Détail de l'exigence",
       "status_header": "Statut de l'exigence",
       "evidence_files_header": "Fichiers de preuve",

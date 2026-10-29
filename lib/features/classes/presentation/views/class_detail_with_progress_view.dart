@@ -967,7 +967,7 @@ class _SearchBar extends StatelessWidget {
                 color: c.ink800,
               ),
               decoration: InputDecoration(
-                hintText: 'Buscar requerimiento o módulo…',
+                hintText: 'classes.detail_with_progress.search_hint'.tr(),
                 hintStyle: TextStyle(
                   fontSize: 13.5,
                   color: c.ink400,

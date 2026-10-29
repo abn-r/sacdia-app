@@ -1952,6 +1952,7 @@
       "stay_button": "Quedarme",
       "leave_button": "Salir",
       "requirement_title": "Requisito: {name}",
+      "title": "Requisito",
       "detail_header": "Detalle del requisito",
       "status_header": "Estado del requisito",
       "evidence_files_header": "Archivos de evidencia",
