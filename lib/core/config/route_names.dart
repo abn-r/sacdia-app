@@ -31,6 +31,9 @@ class RouteNames {
 
   // Módulos de acceso rápido (dentro del shell)
   static const String homeMembers = '/home/members';
+
+  /// Miembros abierto en la pestaña Solicitudes (`?tab=requests`).
+  static const String homeMemberRequests = '/home/members?tab=requests';
   static const String homeClub = '/home/club';
   static const String homeEvidences = '/home/evidences';
   static const String homeFinances = '/home/finances';

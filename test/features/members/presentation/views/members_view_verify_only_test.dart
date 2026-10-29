@@ -8,6 +8,7 @@ import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.d
 import 'package:sacdia_app/features/members/domain/entities/consent_verification_result.dart';
 import 'package:sacdia_app/features/members/presentation/providers/members_providers.dart';
 import 'package:sacdia_app/features/members/presentation/utils/consent_access.dart';
+import 'package:sacdia_app/features/members/presentation/utils/member_requests_notification_route.dart';
 import 'package:sacdia_app/features/members/presentation/views/consent_verification_view.dart';
 import 'package:sacdia_app/features/members/presentation/views/members_view.dart';
 
@@ -76,6 +77,7 @@ void main() {
     WidgetTester tester,
     List<String> permissions, {
     UserEntity? user,
+    int initialMode = 0,
   }) async {
     await pumpMembersApp(
       tester,
@@ -88,7 +90,7 @@ void main() {
           _EmptyContinuations.new,
         ),
       ],
-      home: const MembersView(),
+      home: MembersView(initialMode: initialMode),
     );
     await tester.pumpAndSettle();
   }
@@ -172,6 +174,33 @@ void main() {
 
       expect(find.bySemanticsLabel('Aprobar'), findsOneWidget);
       expect(find.bySemanticsLabel('Rechazar'), findsOneWidget);
+    });
+  });
+
+  group('opening from a notification (initialMode)', () {
+    testWidgets('initialMode 1 shows the requests without tapping the tab',
+        (tester) async {
+      repo.requests = [minorRequest(evidence: true)];
+      await openMembers(
+        tester,
+        ['club_members:approve'],
+        initialMode: membersRequestsMode,
+      );
+
+      expect(find.text('Ana Pérez'), findsOneWidget);
+    });
+
+    testWidgets('initialMode 1 without access falls back to the member list',
+        (tester) async {
+      repo.requests = [minorRequest(evidence: true)];
+      await openMembers(
+        tester,
+        ['members:read'],
+        initialMode: membersRequestsMode,
+      );
+
+      expect(find.text('Ana Pérez'), findsNothing);
+      expect(find.text('Solicitudes'), findsNothing);
     });
   });
 

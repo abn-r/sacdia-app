@@ -52,14 +52,18 @@ int effectiveMembersMode(
 /// Vista principal de Miembros.
 /// Modos: miembros, solicitudes, y no inscritos si hay `club_members:approve`.
 class MembersView extends ConsumerStatefulWidget {
-  const MembersView({super.key});
+  /// Modo con el que abre (0 miembros, 1 solicitudes). Si el usuario no tiene
+  /// acceso al modo, [effectiveMembersMode] lo devuelve a la lista.
+  final int initialMode;
+
+  const MembersView({super.key, this.initialMode = 0});
 
   @override
   ConsumerState<MembersView> createState() => _MembersViewState();
 }
 
 class _MembersViewState extends ConsumerState<MembersView> {
-  int _mode = 0;
+  late int _mode = widget.initialMode;
 
   /// Determina si el usuario actual puede asignar/revocar roles de club.
   bool _canManageClubRoles(WidgetRef ref) {
