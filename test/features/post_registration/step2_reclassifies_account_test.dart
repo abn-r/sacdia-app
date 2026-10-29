@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/providers/storage_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
+import 'package:sacdia_app/core/notifications/push_notification_provider.dart';
 import 'package:sacdia_app/core/config/router.dart';
 import 'package:sacdia_app/core/providers/app_bootstrap_provider.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
@@ -29,7 +30,10 @@ import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:dartz/dartz.dart';
 
 import '../../features/auth/presentation/providers/auth_notifier_test_support.dart'
-    show FakeNotificationsRepository, FakeSecureStorage;
+    show
+        FakeNotificationsRepository,
+        FakePushNotificationService,
+        FakeSecureStorage;
 import '../family/family_test_harness.dart';
 
 /// Un alta nueva con Google/Apple no trae fecha de nacimiento (modo
@@ -203,6 +207,9 @@ void main() {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         secureStorageProvider.overrideWithValue(FakeSecureStorage()),
+        pushNotificationServiceProvider.overrideWith(
+          (ref) => FakePushNotificationService(ref: ref, prefs: prefs),
+        ),
         authNotifierProvider.overrideWith(() => auth),
         appBootstrapProvider.overrideWith(_Ready.new),
         postRegistrationFlowNotifierProvider.overrideWith(() => _Flow(flow)),

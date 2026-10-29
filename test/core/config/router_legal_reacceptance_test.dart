@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/auth/acting_for_session.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
+import 'package:sacdia_app/core/notifications/push_notification_provider.dart';
 import 'package:sacdia_app/core/config/router.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/providers/app_bootstrap_provider.dart';
@@ -26,8 +27,10 @@ import 'package:sacdia_app/features/teen/domain/repositories/teen_repository.dar
 import 'package:sacdia_app/features/teen/presentation/providers/teen_providers.dart';
 import 'package:sacdia_app/features/teen/presentation/views/teen_pending_home_view.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../features/auth/presentation/providers/auth_notifier_test_support.dart'
-    show FakeNotificationsRepository;
+    show FakeNotificationsRepository, FakePushNotificationService;
 import '../../features/family/family_test_harness.dart';
 
 /// FP3-28: tras subir la versión de Términos y Privacidad TODOS pasan por un
@@ -178,8 +181,13 @@ void main() {
     addTearDown(tester.view.reset);
     legal = _Legal();
     final auth = _Auth(user);
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
     final c = ProviderContainer(
       overrides: [
+        pushNotificationServiceProvider.overrideWith(
+          (ref) => FakePushNotificationService(ref: ref, prefs: prefs),
+        ),
         authNotifierProvider.overrideWith(() => auth),
         appBootstrapProvider.overrideWith(_Ready.new),
         legalRepositoryProvider.overrideWithValue(legal),
