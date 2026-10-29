@@ -222,6 +222,25 @@ final selectedClubSectionProvider = Provider.autoDispose<int?>((ref) {
         .firstOrNull;
   }
 
+  // Someone who already holds an active role in one of this club's sections
+  // (a director created by an admin or a seed) joins through that section:
+  // the backend accepts the existing role as the club selection. Picking by
+  // age would send a 42-year-old Pathfinder director to Master Guides.
+  final heldSectionIds = ref.watch(
+    authNotifierProvider.select(
+      (value) =>
+          value.valueOrNull?.authorization?.clubAssignments
+              .where((grant) => grant.status == 'active')
+              .map((grant) => grant.sectionId)
+              .whereType<int>()
+              .toSet() ??
+          const <int>{},
+    ),
+  );
+  final heldSection =
+      sections.where((section) => heldSectionIds.contains(section.id));
+  if (heldSection.isNotEmpty) return heldSection.first.id;
+
   if (sections.length == 1) return sections.first.id;
 
   final age = ref.watch(userAgeProvider);

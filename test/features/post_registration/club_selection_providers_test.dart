@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/post_registration/data/models/class_model.dart';
@@ -13,6 +14,30 @@ class _FakeAuthNotifier extends AuthNotifier {
   @override
   Future<UserEntity?> build() async => null;
 }
+
+class _UserAuthNotifier extends AuthNotifier {
+  _UserAuthNotifier(this._user);
+
+  final UserEntity _user;
+
+  @override
+  Future<UserEntity?> build() async => _user;
+}
+
+List<ClubSectionModel> _threeSections() => [
+      ClubSectionModel.fromJson({
+        'club_section_id': 1,
+        'club_types': {'club_type_id': 1, 'name': 'Aventureros'},
+      }),
+      ClubSectionModel.fromJson({
+        'club_section_id': 2,
+        'club_types': {'club_type_id': 2, 'name': 'Conquistadores'},
+      }),
+      ClubSectionModel.fromJson({
+        'club_section_id': 3,
+        'club_types': {'club_type_id': 3, 'name': 'Guías Mayores'},
+      }),
+    ];
 
 void main() {
   group('club selection providers', () {
@@ -103,6 +128,71 @@ void main() {
 
       expect(container.read(selectedClubSectionProvider), 2);
       expect(container.read(selectedClubTypeSlugProvider), 'pathfinders');
+    });
+
+    test('prefers the section where the user already holds an active role',
+        () async {
+      const director = UserEntity(
+        id: 'director-1',
+        authorization: AuthorizationSnapshot(
+          clubAssignments: [
+            AuthorizationGrant(
+              assignmentId: 'a-1',
+              roleName: 'director',
+              clubId: 10,
+              sectionId: 2,
+              status: 'active',
+            ),
+          ],
+        ),
+      );
+      final container = ProviderContainer(
+        overrides: [
+          authNotifierProvider.overrideWith(() => _UserAuthNotifier(director)),
+          // 42 years old: age alone would pick Master Guides (section 3).
+          userAgeProvider.overrideWith((ref) => 42),
+          selectedClubProvider.overrideWith((ref) => 10),
+          clubSectionsProvider.overrideWith((ref) async => _threeSections()),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(authNotifierProvider.future);
+      await container.read(clubSectionsProvider.future);
+
+      expect(container.read(selectedClubSectionProvider), 2);
+      expect(container.read(selectedClubTypeSlugProvider), 'pathfinders');
+    });
+
+    test('an inactive role does not override the age rule', () async {
+      const former = UserEntity(
+        id: 'former-1',
+        authorization: AuthorizationSnapshot(
+          clubAssignments: [
+            AuthorizationGrant(
+              assignmentId: 'a-2',
+              roleName: 'director',
+              clubId: 10,
+              sectionId: 2,
+              status: 'inactive',
+            ),
+          ],
+        ),
+      );
+      final container = ProviderContainer(
+        overrides: [
+          authNotifierProvider.overrideWith(() => _UserAuthNotifier(former)),
+          userAgeProvider.overrideWith((ref) => 42),
+          selectedClubProvider.overrideWith((ref) => 10),
+          clubSectionsProvider.overrideWith((ref) async => _threeSections()),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(authNotifierProvider.future);
+      await container.read(clubSectionsProvider.future);
+
+      expect(container.read(selectedClubSectionProvider), 3);
     });
 
     test('derive progressive class from age without a manual override state',
