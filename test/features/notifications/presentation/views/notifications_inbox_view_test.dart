@@ -69,4 +69,19 @@ void main() {
     expect(find.byTooltip('Actualizar'), findsOneWidget,
         reason: 'the rest of the actions stay');
   });
+
+  testWidgets('an account keeps the "Notificaciones" title', (tester) async {
+    await open(tester, mode: SessionMode.account);
+
+    expect(find.text('Notificaciones'), findsOneWidget);
+    expect(find.text('Avisos'), findsNothing);
+  });
+
+  testWidgets('a linked device titles the screen "Avisos", like its tab',
+      (tester) async {
+    await open(tester, mode: SessionMode.device);
+
+    expect(find.text('Avisos'), findsOneWidget);
+    expect(find.text('Notificaciones'), findsNothing);
+  });
 }
