@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_accent.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import '../../data/models/country_model.dart';
@@ -118,6 +119,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
     final actingName = actingCopyName(ref);
 
     return SingleChildScrollView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       padding: EdgeInsets.symmetric(horizontal: hPad),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -206,8 +208,17 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
           ),
 
           // ── Unión ────────────────────────────────────────────────────────
-          if (selectedCountryId != null) ...[
-            const SizedBox(height: 16),
+          // Cada slot se queda siempre en el árbol (deshabilitado hasta que
+          // tiene su padre): insertarlo o quitarlo al cargar mueve los campos
+          // bajo el dedo y desplaza el scroll.
+          const SizedBox(height: 16),
+          if (selectedCountryId == null)
+            _buildPlaceholderField(
+              label: 'post_registration.club_selection.union'.tr(),
+              hint: 'post_registration.club_selection.select_union'.tr(),
+              icon: HugeIcons.strokeRoundedHierarchyCircle01,
+            )
+          else
             unionsAsync.when(
               data: (unions) {
                 if (unions.isEmpty) {
@@ -252,11 +263,16 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                   'post_registration.club_selection.error_loading_unions'
                       .tr(namedArgs: {'error': userErrorMessage(error)})),
             ),
-          ],
 
           // ── Campo Local ──────────────────────────────────────────────────
-          if (selectedUnionId != null) ...[
-            const SizedBox(height: 16),
+          const SizedBox(height: 16),
+          if (selectedUnionId == null)
+            _buildPlaceholderField(
+              label: 'post_registration.club_selection.local_field'.tr(),
+              hint: 'post_registration.club_selection.select_local_field'.tr(),
+              icon: HugeIcons.strokeRoundedLocation01,
+            )
+          else
             localFieldsAsync.when(
               data: (localFields) {
                 if (localFields.isEmpty) {
@@ -304,27 +320,32 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                   'post_registration.club_selection.error_loading_local_fields'
                       .tr(namedArgs: {'error': userErrorMessage(error)})),
             ),
-          ],
 
           // ── Club section ─────────────────────────────────────────────────
-          if (selectedLocalFieldId != null) ...[
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                HugeIcon(
-                    icon: HugeIcons.strokeRoundedUserGroup,
-                    size: 20,
-                    color: SacAccent.of(context).color),
-                const SizedBox(width: 8),
-                Text(
-                  'post_registration.club_selection.your_club'.tr(),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              HugeIcon(
+                  icon: HugeIcons.strokeRoundedUserGroup,
+                  size: 20,
+                  color: SacAccent.of(context).color),
+              const SizedBox(width: 8),
+              Text(
+                'post_registration.club_selection.your_club'.tr(),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (selectedLocalFieldId == null)
+            _buildPlaceholderField(
+              label: 'post_registration.club_selection.club'.tr(),
+              hint: 'post_registration.club_selection.select_club'.tr(),
+              icon: HugeIcons.strokeRoundedUserGroup,
+            )
+          else
             clubsAsync.when(
               data: (allClubs) {
                 final clubs = widget.excludedClubId == null
@@ -371,38 +392,54 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                   'post_registration.club_selection.error_loading_clubs'
                       .tr(namedArgs: {'error': userErrorMessage(error)})),
             ),
-          ],
 
           // ── Tipo de Club ─────────────────────────────────────────────────
-          if (selectedClubId != null) ...[
-            const SizedBox(height: 24),
-            // Row(
-            //   children: [
-            //     HugeIcon(
-            //         icon: HugeIcons.strokeRoundedUserGroup,
-            //         size: 20,
-            //         color: SacAccent.of(context).color),
-            //     const SizedBox(width: 8),
-            //     Text(
-            //       'post_registration.club_selection.club_type_section'.tr(),
-            //       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            //             fontWeight: FontWeight.w600,
-            //           ),
-            //     ),
-            //   ],
-            // ),
-            //const SizedBox(height: 12),
+          const SizedBox(height: 24),
+          // Row(
+          //   children: [
+          //     HugeIcon(
+          //         icon: HugeIcons.strokeRoundedUserGroup,
+          //         size: 20,
+          //         color: SacAccent.of(context).color),
+          //     const SizedBox(width: 8),
+          //     Text(
+          //       'post_registration.club_selection.club_type_section'.tr(),
+          //       style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          //             fontWeight: FontWeight.w600,
+          //           ),
+          //     ),
+          //   ],
+          // ),
+          //const SizedBox(height: 12),
+          if (selectedClubId == null)
+            _buildPlaceholderField(
+              label: 'post_registration.club_type.label'.tr(),
+              hint: 'post_registration.dropdown.select_label'.tr(namedArgs: {
+                'label': 'post_registration.club_type.label'.tr().toLowerCase(),
+              }),
+              icon: HugeIcons.strokeRoundedUserGroup,
+              showChevron: false,
+            )
+          else
             const ClubTypeSelector(),
-            if (widget.isClubTransfer)
-              _buildMissingTransferSectionMessage(
-                clubSectionsAsync: ref.watch(clubSectionsProvider),
-                selectedClubSectionId: ref.watch(selectedClubSectionProvider),
-              ),
-          ],
+          if (widget.isClubTransfer)
+            _buildMissingTransferSectionMessage(
+              clubSectionsAsync: ref.watch(clubSectionsProvider),
+              selectedClubSectionId: ref.watch(selectedClubSectionProvider),
+            ),
 
           // ── Clase progresiva ─────────────────────────────────────────────
-          if (widget.isClubTransfer &&
-              ref.watch(selectedClubSectionProvider) != null) ...[
+          if (ref.watch(selectedClubSectionProvider) == null) ...[
+            const SizedBox(height: 24),
+            _buildPlaceholderField(
+              label: 'post_registration.club_selection.progressive_class'.tr(),
+              hint: widget.isClubTransfer
+                  ? 'transfers.form.class_preserved_hint'.tr()
+                  : 'post_registration.club_selection.select_class'.tr(),
+              icon: HugeIcons.strokeRoundedSchool,
+              showChevron: false,
+            ),
+          ] else if (widget.isClubTransfer) ...[
             const SizedBox(height: 24),
             PickerField(
               label: 'post_registration.club_selection.progressive_class'.tr(),
@@ -413,7 +450,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
               enabled: false,
               showChevron: false,
             ),
-          ] else if (ref.watch(selectedClubSectionProvider) != null) ...[
+          ] else ...[
             const SizedBox(height: 24),
             // Row(
             //   children: [
@@ -474,6 +511,23 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
   }
 
   // ─── helper widgets ──────────────────────────────────────────────────────────
+
+  /// Slot deshabilitado con la misma altura que el campo real, para que el
+  /// layout no cambie cuando llegan los datos del nivel anterior.
+  Widget _buildPlaceholderField({
+    required String label,
+    required String hint,
+    required HugeIconData icon,
+    bool showChevron = true,
+  }) {
+    return PickerField(
+      label: label,
+      hint: hint,
+      icon: icon,
+      enabled: false,
+      showChevron: showChevron,
+    );
+  }
 
   Widget _buildErrorText(String message) {
     return SacCard(
