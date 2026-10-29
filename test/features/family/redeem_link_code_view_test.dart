@@ -89,7 +89,7 @@ void main() {
     expect(repo.redeemCalls.single.code, '7kq4 m9tx');
     expect(repo.redeemCalls.single.relationshipTypeId, 'rel-1');
     expect(router.state.uri.path, '/family');
-    expect(find.text('Ahora eres tutor de Ana.'), findsOneWidget);
+    expect(find.text('Ya puedes gestionar el perfil de Ana.'), findsOneWidget);
   });
 
   testWidgets('an invalid code shows ONE generic message', (tester) async {

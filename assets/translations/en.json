@@ -5569,7 +5569,7 @@
       "code_required": "Enter the code",
       "sworn": "I declare under oath that I am the legal guardian of this minor.",
       "submit": "Link",
-      "success": "You are now a guardian of {name}."
+      "success": "You can now manage {name}'s profile."
     },
     "switcher": {
       "title": "Switch profile",

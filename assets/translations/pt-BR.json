@@ -5567,7 +5567,7 @@
       "code_required": "Digite o código",
       "sworn": "Declaro sob juramento que sou o responsável legal por este menor.",
       "submit": "Vincular",
-      "success": "Agora você é responsável por {name}."
+      "success": "Agora você pode gerenciar o perfil de {name}."
     },
     "switcher": {
       "title": "Trocar de perfil",

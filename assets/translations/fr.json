@@ -5567,7 +5567,7 @@
       "code_required": "Saisissez le code",
       "sworn": "Je déclare sous serment être le tuteur légal de ce mineur.",
       "submit": "Lier",
-      "success": "Vous êtes maintenant tuteur de {name}."
+      "success": "Vous pouvez désormais gérer le profil de {name}."
     },
     "switcher": {
       "title": "Changer de profil",

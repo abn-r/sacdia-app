@@ -5569,7 +5569,7 @@
       "code_required": "Ingresa el código",
       "sworn": "Declaro bajo protesta de decir verdad que soy el tutor legal de este menor.",
       "submit": "Vincular",
-      "success": "Ahora eres tutor de {name}."
+      "success": "Ya puedes gestionar el perfil de {name}."
     },
     "switcher": {
       "title": "Cambiar de perfil",
