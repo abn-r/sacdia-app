@@ -4058,7 +4058,8 @@
       "body": "Votre demande pour rejoindre le club a été envoyée. Le directeur du club l'examinera bientôt. En attendant, vous pouvez enregistrer votre formation personnelle depuis votre profil.",
       "body_acting": "La demande de {name} pour rejoindre le club a été envoyée. Le directeur l'examinera avec la fiche de consentement signée. Si vous ne l'avez pas encore remise, apportez-la au club ou téléversez-la depuis Ma famille.",
       "profile_action": "Aller à mon profil",
-      "family_action_acting": "Aller à Ma famille"
+      "family_action_acting": "Aller à Ma famille",
+      "body_acting_form_received": "La demande de {name} pour rejoindre le club a été envoyée. La fiche de consentement signée a bien été reçue et le directeur l'examinera."
     },
     "notifications_tooltip": "Notifications",
     "club_info": {

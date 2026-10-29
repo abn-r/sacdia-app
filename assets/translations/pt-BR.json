@@ -4058,7 +4058,8 @@
       "body": "Sua solicitação para entrar no clube foi enviada. O diretor do clube a analisará em breve. Enquanto isso, você pode registrar sua formação pessoal pelo seu perfil.",
       "body_acting": "A solicitação de {name} para entrar no clube foi enviada. O diretor a analisará junto com a ficha de consentimento assinada. Se você ainda não a entregou, leve-a ao clube ou envie-a por Minha família.",
       "profile_action": "Ir para meu perfil",
-      "family_action_acting": "Ir para Minha família"
+      "family_action_acting": "Ir para Minha família",
+      "body_acting_form_received": "A solicitação de {name} para entrar no clube foi enviada. A ficha de consentimento assinada foi recebida e o diretor a analisará."
     },
     "notifications_tooltip": "Notificações",
     "club_info": {

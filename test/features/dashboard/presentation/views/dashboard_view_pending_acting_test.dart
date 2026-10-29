@@ -12,6 +12,7 @@ import 'package:sacdia_app/features/dashboard/domain/entities/dashboard_summary.
 import 'package:sacdia_app/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:sacdia_app/features/dashboard/presentation/views/dashboard_view.dart';
 import 'package:sacdia_app/features/profile/domain/entities/user_detail.dart';
+import 'package:sacdia_app/features/post_registration/presentation/providers/post_registration_providers.dart';
 import 'package:sacdia_app/features/profile/presentation/providers/profile_providers.dart';
 
 import '../../../family/family_test_harness.dart';
@@ -50,7 +51,11 @@ void main() {
 
   setUp(() => auth = FakeAuthNotifier(_pendingMinor));
 
-  Future<void> pump(WidgetTester tester, {ActingForSession? session}) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    ActingForSession? session,
+    Set<String> uploadedForms = const {},
+  }) async {
     await pumpFamilyApp(
       tester,
       overrides: [
@@ -59,6 +64,7 @@ void main() {
         profileNotifierProvider.overrideWith(_NullProfileNotifier.new),
         if (session != null)
           actingForSessionProvider.overrideWithValue(session),
+        actingConsentFormUploadedProvider.overrideWith((ref) => uploadedForms),
       ],
       routes: [
         GoRoute(path: '/', builder: (_, __) => const DashboardView()),
@@ -104,6 +110,38 @@ void main() {
     expect(find.text('Ir a Mi familia'), findsOneWidget);
   });
 
+  testWidgets(
+      'acting after the form was uploaded in step 3: says it was received, '
+      'never "si aún no la entregas"', (tester) async {
+    await pump(
+      tester,
+      session: ActingForSession()
+        ..enter(const ActingDependent(userId: 'ana-1', firstName: 'Ana')),
+      uploadedForms: const {'ana-1'},
+    );
+
+    expect(
+      find.text(
+        'La solicitud de Ana para unirse al club fue enviada. La ficha de '
+        'consentimiento firmada ya fue recibida y el director la revisará.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('aún no la entregas'), findsNothing);
+  });
+
+  testWidgets('a form uploaded for ANOTHER minor does not change the copy',
+      (tester) async {
+    await pump(
+      tester,
+      session: ActingForSession()
+        ..enter(const ActingDependent(userId: 'ana-1', firstName: 'Ana')),
+      uploadedForms: const {'luis-1'},
+    );
+
+    expect(find.textContaining('aún no la entregas'), findsOneWidget);
+  });
+
   testWidgets('the CTA exits acting first and then opens Mi familia',
       (tester) async {
     auth.outcome = SwitchProfileOutcome.exited;
@@ -128,6 +166,8 @@ void main() {
       final pending = (json['dashboard']
           as Map<String, dynamic>)['pending_state'] as Map<String, dynamic>;
       expect(pending['body_acting'], contains('{name}'), reason: locale);
+      expect(pending['body_acting_form_received'], contains('{name}'),
+          reason: locale);
       expect(pending['family_action_acting'], isNotEmpty, reason: locale);
     }
   });

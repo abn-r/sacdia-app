@@ -60,11 +60,13 @@ class _ActingConsentFormCardState extends ConsumerState<ActingConsentFormCard> {
   bool _pending = false;
   bool _uploading = false;
   late final StateController<ConsentFormPhase> _phase;
+  late final StateController<Set<String>> _uploadedIds;
 
   @override
   void initState() {
     super.initState();
     _phase = ref.read(consentFormPhaseProvider.notifier);
+    _uploadedIds = ref.read(actingConsentFormUploadedProvider.notifier);
   }
 
   @override
@@ -137,9 +139,17 @@ class _ActingConsentFormCardState extends ConsumerState<ActingConsentFormCard> {
                 _uploading = uploading;
                 _syncPhase();
               },
-              onUpload: (file) => ref
-                  .read(familyActionsProvider)
-                  .uploadConsentEvidenceWhileActing(dependent.userId, file),
+              onUpload: (file) async {
+                final result = await ref
+                    .read(familyActionsProvider)
+                    .uploadConsentEvidenceWhileActing(dependent.userId, file);
+                // Se anota aunque la tarjeta ya no esté (otro paso): la ficha
+                // sí llegó y la pantalla final lo dice.
+                if (result.isRight() && _uploadedIds.mounted) {
+                  _uploadedIds.update((ids) => {...ids, dependent.userId});
+                }
+                return result;
+              },
               onUploaded: (ConsentEvidenceReceipt receipt) {
                 if (!mounted) return;
                 setState(() => _uploaded = true);

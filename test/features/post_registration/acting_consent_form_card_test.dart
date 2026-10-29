@@ -184,6 +184,10 @@ void main() {
       await tester.pump(const Duration(milliseconds: 600));
     }
 
+    Set<String> uploadedIds(WidgetTester tester) => ProviderScope.containerOf(
+          tester.element(find.byType(ActingConsentFormCard)),
+        ).read(actingConsentFormUploadedProvider);
+
     ConsentFormPhase phase(WidgetTester tester) => ProviderScope.containerOf(
           tester.element(find.byType(ActingConsentFormCard)),
         ).read(consentFormPhaseProvider);
@@ -222,6 +226,8 @@ void main() {
       expect(find.text('Subir'), findsNothing);
       expect(find.text('Cambiar'), findsNothing);
       expect(phase(tester), ConsentFormPhase.idle);
+      // Queda anotado para que la pantalla final diga que la ficha llegó.
+      expect(uploadedIds(tester), {'ana-1'});
     });
 
     testWidgets('reports uploading while the request is in flight',
@@ -252,6 +258,7 @@ void main() {
 
       expect(phase(tester), ConsentFormPhase.pendingFile);
       expect(find.text('Reintentar'), findsOneWidget);
+      expect(uploadedIds(tester), isEmpty);
 
       repo.actingEvidenceUploaded = null;
       await tester.tap(find.text('Reintentar'));

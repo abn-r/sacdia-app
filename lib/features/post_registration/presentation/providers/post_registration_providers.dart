@@ -166,6 +166,14 @@ enum ConsentFormPhase {
 final consentFormPhaseProvider =
     StateProvider.autoDispose<ConsentFormPhase>((ref) => ConsentFormPhase.idle);
 
+/// Ids (`user_id`) de los menores cuya ficha de consentimiento firmada se subió
+/// desde el paso 3 en esta sesión, para que la pantalla de "Solicitud enviada"
+/// no diga "si aún no la entregas". Solo memoria; el servidor sigue siendo la
+/// autoridad del estado del consentimiento. Registrado en
+/// `profileScopedStateEntries`: no sobrevive al cambio de perfil.
+final actingConsentFormUploadedProvider =
+    StateProvider<Set<String>>((ref) => const <String>{});
+
 /// Provider para el paso actual del post-registro
 final currentStepProvider = StateProvider.autoDispose<int>((ref) => 1);
 

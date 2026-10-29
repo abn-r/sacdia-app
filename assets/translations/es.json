@@ -4059,7 +4059,8 @@
       "body": "Tu solicitud para unirte al club fue enviada. El director del club la revisará pronto. Mientras tanto, puedes registrar tu formación personal desde tu perfil.",
       "body_acting": "La solicitud de {name} para unirse al club fue enviada. El director la revisará junto con la ficha de consentimiento firmada. Si aún no la entregas, llévala al club o súbela desde Mi familia.",
       "profile_action": "Ir a mi perfil",
-      "family_action_acting": "Ir a Mi familia"
+      "family_action_acting": "Ir a Mi familia",
+      "body_acting_form_received": "La solicitud de {name} para unirse al club fue enviada. La ficha de consentimiento firmada ya fue recibida y el director la revisará."
     },
     "notifications_tooltip": "Notificaciones",
     "club_info": {
