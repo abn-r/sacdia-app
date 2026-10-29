@@ -165,6 +165,35 @@ void main() {
       expect(find.text('Este teléfono: Tablet de Ana'), findsOneWidget);
     });
 
+    testWidgets('pull-to-refresh and app resume re-fetch the home data',
+        (tester) async {
+      var loads = 0;
+      await pump(
+        tester,
+        const DeviceHomeView(),
+        overrides: [
+          ...base(),
+          userClassesProvider.overrideWith((ref) async {
+            loads++;
+            return const [mathClass];
+          }),
+        ],
+      );
+      expect(loads, 1);
+
+      await tester.fling(
+        find.byKey(const ValueKey('device_home_list')),
+        const Offset(0, 400),
+        1000,
+      );
+      await tester.pumpAndSettle();
+      expect(loads, 2);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      expect(loads, 3);
+    });
+
     testWidgets('the credential card disappears when the server denies it',
         (tester) async {
       await pump(tester, const DeviceHomeView(),
