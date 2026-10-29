@@ -23,6 +23,9 @@ class MasterHonorBadgeStrip extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (!ref.watch(masterHonorsAvailableProvider)) {
+      return const SizedBox.shrink();
+    }
     final honorsAsync = ref.watch(userMasterHonorsProvider);
 
     return honorsAsync.when(
@@ -54,6 +57,9 @@ class MasterHonorHistorySection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (!ref.watch(masterHonorsAvailableProvider)) {
+      return const SizedBox.shrink();
+    }
     final honorsAsync = ref.watch(userMasterHonorsProvider);
 
     return AnimatedSwitcher(

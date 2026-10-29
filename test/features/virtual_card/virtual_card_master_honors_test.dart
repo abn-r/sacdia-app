@@ -100,6 +100,7 @@ void main() {
           authNotifierProvider
               .overrideWith(() => _FakeAuthNotifier(buildUser())),
           virtualCardFetcherProvider.overrideWith((ref) async => buildCard()),
+          masterHonorsAvailableProvider.overrideWithValue(true),
           userMasterHonorsProvider.overrideWith(
             (ref) async => buildVirtualCardHonors(),
           ),
@@ -123,6 +124,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          masterHonorsAvailableProvider.overrideWithValue(true),
           userMasterHonorsProvider.overrideWith((ref) async => buildHonors()),
         ],
         child: MaterialApp(

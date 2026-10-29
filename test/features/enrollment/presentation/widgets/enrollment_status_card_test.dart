@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
+import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/enrollment/domain/entities/enrollment.dart';
@@ -22,12 +23,14 @@ class _FakeAuthNotifier extends AuthNotifier {
 UserEntity _user({
   required String roleName,
   required List<String> permissions,
+  PrincipalInfo? principal,
 }) {
   const activeAssignmentId = 'assignment-1';
 
   return UserEntity(
     id: 'user-1',
     email: 'user@example.com',
+    principal: principal,
     authorization: AuthorizationSnapshot(
       effectivePermissions: permissions,
       activeAssignmentId: activeAssignmentId,
@@ -97,6 +100,22 @@ const _pendingValidationEnrollment = Enrollment(
 
 void main() {
   group('EnrollmentStatusCard', () {
+    testWidgets('stays hidden for a supervised teen', (tester) async {
+      await _pumpCard(
+        tester,
+        _user(
+          roleName: 'member',
+          permissions: const ['club_instances:read'],
+          principal: const PrincipalInfo(
+            kind: PrincipalKind.supervisedUser,
+            supervision: SupervisionInfo(status: SupervisionStatus.active),
+          ),
+        ),
+      );
+
+      expect(find.text('enrollment.status.title_pending'), findsNothing);
+    });
+
     testWidgets(
       'shows enrollment action for canonical club instance creators',
       (tester) async {

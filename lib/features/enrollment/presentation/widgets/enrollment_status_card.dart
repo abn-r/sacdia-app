@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
+import '../../../auth/presentation/providers/acting_providers.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import '../../domain/entities/enrollment.dart';
@@ -33,6 +34,12 @@ class EnrollmentStatusCard extends ConsumerWidget {
     final enrollmentAsync = ref.watch(currentEnrollmentProvider);
     final clubContextAsync = ref.watch(clubContextProvider);
     final user = ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
+    final acting = ref.watch(actingDependentProvider) != null;
+    // The club's yearly enrollment is staff business: a supervised teen or a
+    // guardian viewing as a minor can't act on it, so the banner is noise.
+    if (user == null || user.isLimitedAccount || acting) {
+      return const SizedBox.shrink();
+    }
     final canEnroll = hasAnyPermission(user, _enrollmentCreatePermissions);
 
     return enrollmentAsync.when(
