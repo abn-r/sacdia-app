@@ -14,6 +14,7 @@ import '../../../../core/consent/consent_evidence_uploader.dart';
 import '../../../../core/consent/consent_evidence_viewer.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_badge.dart';
@@ -383,6 +384,18 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
     );
   }
 
+  /// Tirar para refrescar: el director pudo verificar el consentimiento (o el
+  /// otro tutor cambiar algo) con la pantalla abierta. Se vuelve a pedir el
+  /// detalle y la lista (que muestra el mismo estado); un fallo lo muestra el
+  /// propio estado de error con "Reintentar".
+  Future<void> _refresh() async {
+    ref.invalidate(dependentsProvider);
+    ref.invalidate(dependentDetailProvider(widget.dependentId));
+    await ref
+        .read(dependentDetailProvider(widget.dependentId).future)
+        .then<void>((_) {}, onError: (_) {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
@@ -416,29 +429,33 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
           onRetry: () =>
               ref.invalidate(dependentDetailProvider(widget.dependentId)),
         ),
-        data: (data) => _Body(
-          detail: data,
-          busy: _busy,
-          picker: widget.picker,
-          onUploadForm: _uploadForm,
-          onFormUploaded: _onFormUploaded,
-          onFormAlreadyVerified: _onFormAlreadyVerified,
-          onViewForm: _viewForm,
-          onViewAs: () => switchToDependent(context, ref, data.summary),
-          teenLoginEnabled: teenLoginEnabled,
-          linkedDeviceEnabled: linkedDeviceEnabled,
-          onPairDevice: () => context.push(
-            RouteNames.familyPairDevicePath(widget.dependentId),
+        data: (data) => RefreshIndicator(
+          color: SacAccent.of(context).color,
+          onRefresh: _refresh,
+          child: _Body(
+            detail: data,
+            busy: _busy,
+            picker: widget.picker,
+            onUploadForm: _uploadForm,
+            onFormUploaded: _onFormUploaded,
+            onFormAlreadyVerified: _onFormAlreadyVerified,
+            onViewForm: _viewForm,
+            onViewAs: () => switchToDependent(context, ref, data.summary),
+            teenLoginEnabled: teenLoginEnabled,
+            linkedDeviceEnabled: linkedDeviceEnabled,
+            onPairDevice: () => context.push(
+              RouteNames.familyPairDevicePath(widget.dependentId),
+            ),
+            onEnableAccess: _openWizard,
+            onDisableAccess: () => _disableAccess(data.summary),
+            onReactivateAccess: () => _reactivateAccess(data.summary),
+            onResetPassword: () => _resetAccessPassword(data.summary),
+            onOpenSummary: _openSummary,
+            onCopyHandle: _copyHandle,
+            onInvite: () => _invite(data),
+            onLeave: (me) => _leave(data, me),
+            onRemove: _remove,
           ),
-          onEnableAccess: _openWizard,
-          onDisableAccess: () => _disableAccess(data.summary),
-          onReactivateAccess: () => _reactivateAccess(data.summary),
-          onResetPassword: () => _resetAccessPassword(data.summary),
-          onOpenSummary: _openSummary,
-          onCopyHandle: _copyHandle,
-          onInvite: () => _invite(data),
-          onLeave: (me) => _leave(data, me),
-          onRemove: _remove,
         ),
       ),
     );
@@ -507,6 +524,9 @@ class _Body extends StatelessWidget {
     final iAmPrimary = me?.isPrimary ?? false;
 
     return ListView(
+      // Siempre desplazable: con poco contenido el gesto de refrescar debe
+      // seguir funcionando.
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 32),
       children: [
         SacCard(
