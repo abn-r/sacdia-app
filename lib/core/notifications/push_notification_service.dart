@@ -839,6 +839,7 @@ class PushNotificationService {
     RouteNames.homeActivities,
     RouteNames.homeProfile,
     RouteNames.homeMembers,
+    RouteNames.homeMemberRequests,
     RouteNames.homeClub,
     RouteNames.homeEvidences,
     RouteNames.homeFinances,

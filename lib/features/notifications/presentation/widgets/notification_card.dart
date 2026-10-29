@@ -236,7 +236,9 @@ class NotificationCard extends ConsumerWidget {
         ref.read(authNotifierProvider).valueOrNull,
       );
       if (route != null) {
-        context.push(route);
+        // `go`, not `push`: the inbox is a root route and Members lives in the
+        // shell, so a push would land underneath the inbox.
+        context.go(route);
         return;
       }
     }
