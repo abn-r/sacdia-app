@@ -28,10 +28,17 @@ class DeviceClassDetailView extends ConsumerWidget {
     super.key,
     required this.classId,
     this.enrollmentId,
+    this.className,
   });
 
   final int classId;
   final int? enrollmentId;
+
+  /// Nombre de la clase si ya se conoce (la lista lo pasa como `extra` al
+  /// navegar). Se usa como título mientras carga; sin él (enlace profundo o
+  /// push) el título queda vacío hasta que llega el detalle. Nunca se muestra
+  /// el título de la lista.
+  final String? className;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -45,7 +52,7 @@ class DeviceClassDetailView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: c.background,
       appBar: SacTopBar(
-        title: async.valueOrNull?.name ?? 'device.classes.title'.tr(),
+        title: async.valueOrNull?.name ?? className ?? '',
       ),
       body: async.when(
         loading: () => const Center(child: SacLoading()),

@@ -34,6 +34,9 @@ class DeviceAgendaView extends ConsumerWidget {
         title: 'device.agenda.title'.tr(),
         automaticallyImplyLeading: false,
       ),
+      // `/auth/me` solo trae el club de la asignación activa: el teléfono no
+      // distingue «sin club» de «solicitud pendiente», así que el texto vale
+      // para ambos casos.
       body: clubId == null
           ? SacEmptyState(
               key: const ValueKey('device_agenda_no_club'),

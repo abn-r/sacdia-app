@@ -76,6 +76,7 @@ class DeviceClassesView extends ConsumerWidget {
                       klass.id,
                       enrollmentId: klass.enrollmentId,
                     ),
+                    extra: klass.name,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

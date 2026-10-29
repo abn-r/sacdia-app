@@ -90,7 +90,11 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
       extendBodyBehindAppBar: true,
       backgroundColor: c.background,
       appBar: SacTopBar(
-          title: 'notifications.inbox.title'.tr(),
+          // En el teléfono vinculado la pestaña se llama «Avisos»: el título
+          // coincide con ella.
+          title: isDevice
+              ? 'device.tabs.notices'.tr()
+              : 'notifications.inbox.title'.tr(),
           backgroundColor: c.surface,
           actions: [
             // Bell icon with unread badge

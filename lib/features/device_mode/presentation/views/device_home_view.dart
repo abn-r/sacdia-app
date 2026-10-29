@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,11 +30,62 @@ import '../../domain/utils/next_activity.dart';
 ///
 /// Nada de esto se puede editar desde aquí: no hay perfil, ni seguridad, ni
 /// familia.
-class DeviceHomeView extends ConsumerWidget {
+class DeviceHomeView extends ConsumerStatefulWidget {
   const DeviceHomeView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DeviceHomeView> createState() => _DeviceHomeViewState();
+}
+
+class _DeviceHomeViewState extends ConsumerState<DeviceHomeView>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Al volver del segundo plano se relee todo: si el tutor revocó el teléfono
+  /// mientras tanto, alguna de estas peticiones recibe el 401 y el manejo
+  /// existente devuelve la app a la pantalla de vinculación.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_reload());
+    }
+  }
+
+  /// Invalida lo que el inicio observa y espera a que termine. Los errores se
+  /// tragan aquí: la tarjeta de cada bloque ya los muestra, y un 401 lo
+  /// resuelve el interceptor de sesión.
+  Future<void> _reload() async {
+    final clubId = ref.read(authNotifierProvider).valueOrNull?.deviceClubId;
+    ref.invalidate(userClassesProvider);
+    ref.invalidate(qrMemberTokenProvider);
+    final pending = <Future<Object?>>[
+      ref.read(userClassesProvider.future),
+      ref.read(qrMemberTokenProvider.future),
+    ];
+    if (clubId != null) {
+      final params = ClubActivitiesParams(clubId: clubId);
+      ref.invalidate(clubActivitiesProvider(params));
+      pending.add(ref.read(clubActivitiesProvider(params).future));
+    }
+    for (final future in pending) {
+      try {
+        await future;
+      } catch (_) {}
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final c = context.sac;
     final user = ref.watch(authNotifierProvider).valueOrNull;
     final name = (user?.name ?? '').trim();
@@ -43,53 +96,58 @@ class DeviceHomeView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: c.background,
       body: SafeArea(
-        child: ListView(
-          key: const ValueKey('device_home_list'),
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-          children: [
-            Text(
-              name.isEmpty
-                  ? 'device.home.greeting_anonymous'.tr()
-                  : 'device.home.greeting'.tr(namedArgs: {'name': name}),
-              key: const ValueKey('device_home_greeting'),
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: c.text,
-                  ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'device.home.subtitle'.tr(),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: c.textSecondary,
-                  ),
-            ),
-            const SizedBox(height: 20),
-            _ClassesSummary(classes: classes),
-            const SizedBox(height: 16),
-            if (clubId != null) _NextActivityCard(clubId: clubId),
-            const SizedBox(height: 16),
-            const _CredentialCard(),
-            const SizedBox(height: 24),
-            if (label != null && label.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Text(
-                  'device.home.this_phone'.tr(namedArgs: {'label': label}),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: c.textTertiary,
-                      ),
-                ),
+        child: RefreshIndicator(
+          color: SacAccent.of(context).color,
+          onRefresh: _reload,
+          child: ListView(
+            key: const ValueKey('device_home_list'),
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+            children: [
+              Text(
+                name.isEmpty
+                    ? 'device.home.greeting_anonymous'.tr()
+                    : 'device.home.greeting'.tr(namedArgs: {'name': name}),
+                key: const ValueKey('device_home_greeting'),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: c.text,
+                    ),
               ),
-            SacButton.ghost(
-              key: const ValueKey('device_unlink'),
-              text: 'device.home.unlink'.tr(),
-              icon: HugeIcons.strokeRoundedLinkBackward,
-              textColor: AppColors.error,
-              onPressed: () => _confirmUnlink(context, ref),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                'device.home.subtitle'.tr(),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: c.textSecondary,
+                    ),
+              ),
+              const SizedBox(height: 20),
+              _ClassesSummary(classes: classes),
+              const SizedBox(height: 16),
+              if (clubId != null) _NextActivityCard(clubId: clubId),
+              const SizedBox(height: 16),
+              const _CredentialCard(),
+              const SizedBox(height: 24),
+              if (label != null && label.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    'device.home.this_phone'.tr(namedArgs: {'label': label}),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: c.textTertiary,
+                        ),
+                  ),
+                ),
+              SacButton.ghost(
+                key: const ValueKey('device_unlink'),
+                text: 'device.home.unlink'.tr(),
+                icon: HugeIcons.strokeRoundedLinkBackward,
+                textColor: AppColors.error,
+                onPressed: () => _confirmUnlink(context, ref),
+              ),
+            ],
+          ),
         ),
       ),
     );

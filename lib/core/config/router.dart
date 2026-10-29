@@ -564,6 +564,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             classId: int.tryParse(state.pathParameters['classId'] ?? '') ?? 0,
             enrollmentId:
                 int.tryParse(state.uri.queryParameters['enrollmentId'] ?? ''),
+            className: state.extra is String ? state.extra as String : null,
           ),
         ),
       ),

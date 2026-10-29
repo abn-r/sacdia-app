@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +10,7 @@ import 'package:sacdia_app/features/activities/domain/entities/activity.dart';
 import 'package:sacdia_app/features/activities/presentation/providers/activities_providers.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/classes/domain/entities/class_requirement.dart';
+import 'package:sacdia_app/features/classes/domain/entities/class_with_progress.dart';
 import 'package:sacdia_app/features/classes/domain/entities/progressive_class.dart';
 import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
 import 'package:sacdia_app/features/device_mode/presentation/providers/device_connectivity_provider.dart';
@@ -129,6 +132,25 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  Future<void> pumpLoading(
+    WidgetTester tester,
+    Widget view,
+    Completer<ClassWithProgress> pending,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 2600);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+    await pumpFamilyApp(
+      tester,
+      overrides: [
+        ...base(),
+        classWithProgressProvider.overrideWith((ref, query) => pending.future),
+      ],
+      routes: [GoRoute(path: '/', builder: (_, __) => view)],
+    );
+    await tester.pump();
+  }
+
   group('DeviceHomeView', () {
     testWidgets('greets the child and shows progress, activity and credential',
         (tester) async {
@@ -141,6 +163,35 @@ void main() {
       expect(
           find.byKey(const ValueKey('device_home_credential')), findsOneWidget);
       expect(find.text('Este teléfono: Tablet de Ana'), findsOneWidget);
+    });
+
+    testWidgets('pull-to-refresh and app resume re-fetch the home data',
+        (tester) async {
+      var loads = 0;
+      await pump(
+        tester,
+        const DeviceHomeView(),
+        overrides: [
+          ...base(),
+          userClassesProvider.overrideWith((ref) async {
+            loads++;
+            return const [mathClass];
+          }),
+        ],
+      );
+      expect(loads, 1);
+
+      await tester.fling(
+        find.byKey(const ValueKey('device_home_list')),
+        const Offset(0, 400),
+        1000,
+      );
+      await tester.pumpAndSettle();
+      expect(loads, 2);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      expect(loads, 3);
     });
 
     testWidgets('the credential card disappears when the server denies it',
@@ -273,6 +324,36 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('req:10'), findsOneWidget);
+    });
+
+    testWidgets(
+        'while loading, the title is the known class name, never the '
+        "list's title", (tester) async {
+      final pending = Completer<ClassWithProgress>();
+      await pumpLoading(
+        tester,
+        const DeviceClassDetailView(
+          classId: 3,
+          enrollmentId: 99,
+          className: 'Aves Madrugadoras',
+        ),
+        pending,
+      );
+
+      expect(find.text('Aves Madrugadoras'), findsOneWidget);
+      expect(find.text('Mis clases'), findsNothing);
+    });
+
+    testWidgets('while loading without a known name, the title is neutral',
+        (tester) async {
+      final pending = Completer<ClassWithProgress>();
+      await pumpLoading(
+        tester,
+        const DeviceClassDetailView(classId: 3, enrollmentId: 99),
+        pending,
+      );
+
+      expect(find.text('Mis clases'), findsNothing);
     });
   });
 

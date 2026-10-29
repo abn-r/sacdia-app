@@ -277,9 +277,9 @@ class _UploadProgressSheetContentState
     final confirm = await SacDialog.show(
       ctx,
       title: tr('core.evidence_staging.partial_dialog_title'),
-      content: tr(
-        'core.evidence_staging.partial_dialog_body',
-        namedArgs: {'count': '$_errorCount'},
+      content: 'core.evidence_staging.partial_dialog_body'.plural(
+        _errorCount,
+        name: 'count',
       ),
       icon: HugeIcons.strokeRoundedAlert02,
       iconColor: AppColors.observedDark,

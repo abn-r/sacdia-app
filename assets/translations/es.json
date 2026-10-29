@@ -1918,7 +1918,7 @@
       "fetch_progress": "Error al obtener progreso de clase",
       "update_progress": "Error al actualizar progreso de clase",
       "fetch_with_progress": "Error al obtener clase con progreso",
-      "submit_requirement": "Error al enviar el requerimiento a validación",
+      "submit_requirement": "Error al enviar el requisito a validación",
       "upload_file": "Error al subir el archivo de evidencia",
       "delete_file": "Error al eliminar el archivo de evidencia",
       "upload_failed": "Error al subir el archivo de evidencia",
@@ -1955,7 +1955,7 @@
       "detail_header": "Detalle del requisito",
       "status_header": "Estado del requisito",
       "evidence_files_header": "Archivos de evidencia",
-      "submit_success": "Requerimiento enviado a validación exitosamente",
+      "submit_success": "Requisito enviado a validación.",
       "file_limit_label": "Limite archivos",
       "type_label": "Tipo",
       "type_honor": "Especialidad",
@@ -1998,12 +1998,12 @@
       "error_loading": "Error al cargar detalle"
     },
     "detail_with_progress": {
-      "modules_header": "Modulos y Requerimientos",
+      "modules_header": "Módulos y requisitos",
       "track_basic": "Desarrollo de clase",
       "track_advanced": "Avanzado",
       "track_extra": "Actividades complementarias",
       "track_unknown": "Otros requisitos",
-      "search_hint": "Buscar modulo o requerimiento...",
+      "search_hint": "Buscar módulo o requisito...",
       "no_results": "Sin resultados para \"{query}\"",
       "stat_requirements": "requisitos",
       "stat_pending": "pend.",
@@ -2017,7 +2017,7 @@
         "one": "{} especialidad",
         "other": "{} especialidades"
       },
-      "empty_requirements": "No hay requerimientos en este modulo.",
+      "empty_requirements": "No hay requisitos en este módulo.",
       "empty_modules_title": "Sin módulos aún",
       "empty_modules_body": "Los módulos aparecerán cuando estén disponibles para esta clase.",
       "error_loading": "Error al cargar la clase"
@@ -4230,14 +4230,20 @@
       "image_source_gallery": "Galería",
       "image_source_gallery_sub": "Elegir de la galería de fotos",
       "image_source_title": "Seleccionar imagen",
-      "partial_dialog_body": "Los {count} archivos que fallaron no se incluirán en la validación.",
+      "partial_dialog_body": {
+        "one": "El archivo que falló no se incluirá en la validación.",
+        "other": "Los {count} archivos que fallaron no se incluirán en la validación."
+      },
       "partial_dialog_title": "Continuar sin todos los archivos",
       "pdf_size_exceeded_one": "{count} PDF excede el límite de 10 MB y no se agregó.",
       "pdf_size_exceeded_other": "{count} PDFs exceden el límite de 10 MB y no se agregaron.",
       "submit": "Enviar",
       "submit_dialog_body": "Una vez enviado, no podrás modificar los archivos hasta recibir retroalimentación.",
       "submit_dialog_file_count": "Archivos totales: {total}",
-      "submit_dialog_file_count_with_new": "Archivos totales: {total} ({new_files} nuevos por subir)",
+      "submit_dialog_file_count_with_new": {
+        "one": "Archivos totales: {total} ({count} nuevo por subir)",
+        "other": "Archivos totales: {total} ({count} nuevos por subir)"
+      },
       "submit_dialog_title": "Enviar a validación",
       "upload_all_failed": "Todos los archivos fallaron",
       "upload_all_success": "Todos los archivos subidos",
@@ -5842,7 +5848,7 @@
       "title": "Agenda",
       "empty": "No hay actividades próximas.",
       "error": "No pudimos cargar la agenda.",
-      "no_club": "Todavía no estás en un club.",
+      "no_club": "Verás aquí las actividades de tu club cuando te acepten.",
       "detail_title": "Actividad",
       "detail_error": "No pudimos cargar esta actividad."
     },
