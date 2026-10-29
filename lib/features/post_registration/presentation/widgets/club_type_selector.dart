@@ -1,6 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -79,11 +78,14 @@ class ClubTypeSelector extends ConsumerWidget {
           showChevron: false,
         );
       },
-      loading: () => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: const SacLoading(),
-        ),
+      // Mismo alto que el campo ya cargado: un spinner con otro alto movería
+      // todo lo de abajo cuando llegan las secciones.
+      loading: () => PickerField(
+        label: 'post_registration.club_type.label'.tr(),
+        hint: 'post_registration.club_type.label'.tr(),
+        icon: HugeIcons.strokeRoundedUserGroup,
+        showChevron: false,
+        isLoading: true,
       ),
       error: (error, stack) => Padding(
         padding: const EdgeInsets.all(16),

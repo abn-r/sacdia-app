@@ -3,8 +3,81 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
+import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
+import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/notifications/domain/entities/notification_item.dart';
 import 'package:sacdia_app/features/notifications/presentation/widgets/notification_card.dart';
+
+class _FakeAuth extends AuthNotifier {
+  _FakeAuth(this.user);
+
+  final UserEntity? user;
+
+  @override
+  Future<UserEntity?> build() async => user;
+}
+
+UserEntity _userWith(List<String> permissions) => UserEntity(
+      id: 'u-1',
+      email: 'a@b.c',
+      name: 'Laura',
+      postRegisterComplete: true,
+      authorization: AuthorizationSnapshot(effectivePermissions: permissions),
+    );
+
+NotificationItem _consentNotification() => NotificationItem(
+      logId: 9,
+      title: 'Menor · consentimiento pendiente',
+      body: 'Hay una solicitud de un menor lista para revisar.',
+      type: 'SECTION_ROLE',
+      source: 'membership_requests:new_request',
+      targetType: NotificationTargetType.sectionRole,
+      targetId: '167',
+      sentBy: 'system',
+      tokensSent: 1,
+      tokensFailed: 0,
+      createdAt: DateTime(2026, 6, 1, 9),
+      isRead: true,
+    );
+
+Future<void> _pumpConsentCard(
+  WidgetTester tester,
+  UserEntity user,
+) async {
+  final router = GoRouter(
+    initialLocation: '/inbox',
+    routes: [
+      GoRoute(
+        path: '/inbox',
+        builder: (context, state) => Scaffold(
+          body: NotificationCard(notification: _consentNotification()),
+        ),
+      ),
+      GoRoute(
+        path: RouteNames.homeMembers,
+        builder: (context, state) =>
+            Scaffold(body: Text('members-screen ${state.uri}')),
+      ),
+    ],
+  );
+  addTearDown(router.dispose);
+
+  final container = ProviderContainer(
+    overrides: [authNotifierProvider.overrideWith(() => _FakeAuth(user))],
+  );
+  addTearDown(container.dispose);
+  // La sesión ya está cargada cuando se toca una notificación en la app real.
+  await container.read(authNotifierProvider.future);
+
+  await tester.pumpWidget(
+    UncontrolledProviderScope(
+      container: container,
+      child: MaterialApp.router(routerConfig: router),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
 
 void main() {
   testWidgets('opens a detail sheet when tapping a notification',
@@ -126,6 +199,30 @@ void main() {
       find.byKey(const ValueKey('notification-detail-action')),
       findsNothing,
     );
+    expect(find.text('notifications.inbox.detail_accept'), findsOneWidget);
+  });
+
+  testWidgets('membership request opens Members on the requests tab',
+      (tester) async {
+    await _pumpConsentCard(tester, _userWith(['club_members:approve']));
+
+    await tester.tap(find.text('Menor · consentimiento pendiente'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('members-screen ${RouteNames.homeMemberRequests}'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('membership request without access keeps the info sheet',
+      (tester) async {
+    await _pumpConsentCard(tester, _userWith(['club_members:read']));
+
+    await tester.tap(find.text('Menor · consentimiento pendiente'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('members-screen'), findsNothing);
     expect(find.text('notifications.inbox.detail_accept'), findsOneWidget);
   });
 }

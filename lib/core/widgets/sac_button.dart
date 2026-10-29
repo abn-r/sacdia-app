@@ -388,7 +388,9 @@ class _SacButtonState extends State<SacButton> {
             child: loadingFace,
           )
         : _labelRow(effectiveFg, key: const ValueKey('sac-button-label'));
-    // Invisible label keeps the control from collapsing onto the spinner.
+    // Invisible label keeps the control from collapsing onto the spinner. The
+    // outgoing face is not kept during the fade, so label and spinner never
+    // paint on top of each other.
     final child = Stack(
       alignment: Alignment.center,
       children: [
@@ -399,7 +401,7 @@ class _SacButtonState extends State<SacButton> {
               child: IgnorePointer(child: _labelRow(effectiveFg)),
             ),
           ),
-        SacStateSwap(child: shown),
+        SacStateSwap(overlapOutgoing: false, child: shown),
       ],
     );
 

@@ -30,6 +30,7 @@ import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/family/presentation/providers/family_providers.dart';
 import '../../features/teen/presentation/providers/teen_providers.dart';
 import '../../features/investiture_requests/presentation/utils/investiture_notification_routes.dart';
+import '../../features/members/presentation/utils/member_requests_notification_route.dart';
 import '../../features/master_honors/presentation/providers/master_honor_modal_queue_provider.dart';
 import '../../features/master_honors/presentation/providers/master_honors_providers.dart';
 import '../../features/master_honors/presentation/widgets/master_honor_change_modal.dart';
@@ -838,6 +839,7 @@ class PushNotificationService {
     RouteNames.homeActivities,
     RouteNames.homeProfile,
     RouteNames.homeMembers,
+    RouteNames.homeMemberRequests,
     RouteNames.homeClub,
     RouteNames.homeEvidences,
     RouteNames.homeFinances,
@@ -896,6 +898,7 @@ class PushNotificationService {
     'achievement_unlocked',
     'master_honor_changed',
     'investiture_result',
+    membershipRequestPushType,
   };
 
   /// RegExp patterns for routes that carry path parameters.
@@ -1003,7 +1006,8 @@ class PushNotificationService {
     // de la cuenta): en un arranque en frío se espera a que cargue.
     final data = message.data;
     final needsSession = familyPushKindOf(data) != null ||
-        DependentPushTapHandler.dependentIdOf(data) != null;
+        DependentPushTapHandler.dependentIdOf(data) != null ||
+        isMembershipRequestPushType(data['type']?.toString());
     if (!needsSession) {
       _dispatchTap(data, null);
       return;
@@ -1203,6 +1207,16 @@ class PushNotificationService {
         // classId? }. La persona puede no traer classId (filas viejas): en ese
         // caso va a su lista de investiduras.
         _pushRoute(investitureResultPushRoute(data));
+        return;
+
+      case membershipRequestPushType:
+        // Payload: { type, userId, assignmentId, clubSectionId }. Misma
+        // resolución que el toque en la bandeja: Miembros > Solicitudes solo si
+        // la sesión puede verlas; si no, no hay destino.
+        final requestsRoute = memberRequestsRouteFor(
+          _ref.read(authNotifierProvider).valueOrNull,
+        );
+        if (requestsRoute != null) _pushRoute(requestsRoute);
         return;
 
       default:

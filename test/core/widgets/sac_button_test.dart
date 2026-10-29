@@ -87,6 +87,59 @@ void main() {
     expect(find.byType(SacStateSwap), findsOneWidget);
   });
 
+  testWidgets('loading muestra el spinner en lugar del label, sin solaparlos',
+      (tester) async {
+    const label = 'Aceptar';
+    await _pumpButton(
+      tester,
+      SacButton(text: label, onPressed: () {}),
+    );
+    expect(_visibleLabels(tester, label), 1);
+
+    await _pumpButton(
+      tester,
+      const SacButton(text: label, isLoading: true),
+    );
+    // A mitad del cambio de estado el label saliente no debe seguir pintado
+    // debajo del spinner entrante.
+    await tester.pump(const Duration(milliseconds: 60));
+    expect(_visibleLabels(tester, label), 0);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    // El spinner anima sin parar: no se puede usar pumpAndSettle.
+    await tester.pump(const Duration(seconds: 1));
+    expect(_visibleLabels(tester, label), 0);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    // Al terminar de cargar vuelve el label y desaparece el spinner.
+    await _pumpButton(
+      tester,
+      SacButton(text: label, onPressed: () {}),
+    );
+    await tester.pump(const Duration(seconds: 1));
+    expect(_visibleLabels(tester, label), 1);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+
+  for (final variant in SacButtonVariant.values) {
+    testWidgets('loading oculta el label en la variante ${variant.name}',
+        (tester) async {
+      const label = 'Guardar';
+      await _pumpButton(
+        tester,
+        SacButton(text: label, variant: variant, onPressed: () {}),
+      );
+      await _pumpButton(
+        tester,
+        SacButton(text: label, variant: variant, isLoading: true),
+      );
+      await tester.pump(const Duration(milliseconds: 60));
+
+      expect(_visibleLabels(tester, label), 0);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+  }
+
   testWidgets('loading anuncia estado traducido como live region',
       (tester) async {
     await _pumpButton(
@@ -171,6 +224,20 @@ void main() {
     expect(scale.scale, SacMotion.pressScale);
     await gesture.up();
   });
+}
+
+/// Textos del label que realmente se pintan: excluye la copia con opacidad 0
+/// que solo reserva el ancho del botón mientras carga.
+int _visibleLabels(WidgetTester tester, String label) {
+  final all = find.text(label).evaluate().length;
+  final hidden = find
+      .descendant(
+        of: find.byWidgetPredicate((w) => w is Opacity && w.opacity == 0),
+        matching: find.text(label),
+      )
+      .evaluate()
+      .length;
+  return all - hidden;
 }
 
 BoxDecoration _buttonDecoration(WidgetTester tester, [String? label]) {

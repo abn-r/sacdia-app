@@ -11,7 +11,9 @@ import 'package:sacdia_app/core/theme/sac_accent.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../investiture_requests/presentation/utils/investiture_notification_routes.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
+import '../../../members/presentation/utils/member_requests_notification_route.dart';
 import '../../domain/entities/notification_item.dart';
 import '../../domain/notification_action.dart';
 import '../../domain/notification_body_parser.dart';
@@ -224,6 +226,21 @@ class NotificationCard extends ConsumerWidget {
       if (!context.mounted) return;
       context.push(investitureInboxRoute(isBoard: isBoard));
       return;
+    }
+
+    // Solicitud de ingreso (incluye la de un menor con consentimiento
+    // pendiente): lleva a Miembros > Solicitudes si el usuario puede verlas; si
+    // no, queda el detalle informativo.
+    if (isMembershipRequestSource(notification.source)) {
+      final route = memberRequestsRouteFor(
+        ref.read(authNotifierProvider).valueOrNull,
+      );
+      if (route != null) {
+        // `go`, not `push`: the inbox is a root route and Members lives in the
+        // shell, so a push would land underneath the inbox.
+        context.go(route);
+        return;
+      }
     }
 
     await _showDetailsSheet(context);

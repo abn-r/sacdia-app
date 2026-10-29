@@ -137,6 +137,7 @@ import '../../features/classes/presentation/views/classes_tabs_view.dart';
 import '../../features/classes/presentation/views/class_detail_with_progress_view.dart';
 import '../../features/classes/presentation/views/roadmap_full_screen_view.dart';
 import '../../features/classes/presentation/views/teaching_scope_view.dart';
+import '../../features/members/presentation/utils/member_requests_notification_route.dart';
 import '../../features/members/presentation/views/members_view.dart';
 import '../../features/profile/presentation/views/profile_view.dart';
 import '../../features/profile/presentation/views/medical_info_view.dart';
@@ -628,8 +629,15 @@ final routerProvider = Provider<GoRouter>((ref) {
               // Quick-access modules: shell-visible, but not branch-preserved.
               GoRoute(
                 path: RouteNames.homeMembers,
-                pageBuilder: (context, state) =>
-                    _sharedAxisBuild(context, state, const MembersView()),
+                pageBuilder: (context, state) => _sharedAxisBuild(
+                  context,
+                  state,
+                  MembersView(
+                    initialMode: membersInitialModeForTab(
+                      state.uri.queryParameters['tab'],
+                    ),
+                  ),
+                ),
               ),
               GoRoute(
                 path: RouteNames.homeClub,

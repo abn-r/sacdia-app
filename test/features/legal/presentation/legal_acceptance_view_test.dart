@@ -165,6 +165,20 @@ Finder get _acceptByWidget => find.byWidgetPredicate(
       (w) => w is SacButton && w.text == 'legal_gate.accept_button',
     );
 
+/// Accept-button label texts that are actually painted (excludes the
+/// zero-opacity copy that only reserves the button width while loading).
+int _visibleAcceptLabels(WidgetTester tester) {
+  final label = find.descendant(
+    of: _acceptByWidget,
+    matching: find.text('legal_gate.accept_button'),
+  );
+  final hidden = find.descendant(
+    of: find.byWidgetPredicate((w) => w is Opacity && w.opacity == 0),
+    matching: label,
+  );
+  return label.evaluate().length - hidden.evaluate().length;
+}
+
 void main() {
   testWidgets('is a blocking route (PopScope canPop false)', (tester) async {
     await _pump(tester, _FakeLegalRepository());
@@ -336,6 +350,40 @@ void main() {
 
     expect(h.repo.sent, hasLength(1));
     expect(h.auth.accepted, 1);
+  });
+
+  testWidgets('while accept is in flight the spinner replaces the label',
+      (tester) async {
+    final gate = Completer<void>();
+    final repo = _FakeLegalRepository()
+      ..acceptGate = gate
+      ..acceptResult = Right(_status(requiresAcceptance: false));
+    await _pump(tester, repo);
+
+    await tester.tap(find.byType(Checkbox));
+    await tester.pump();
+    expect(_visibleAcceptLabels(tester), 1);
+
+    tester.widget<SacButton>(_acceptByWidget).onPressed!();
+    // Mid cross-fade: the outgoing label must not stay painted under the spinner.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 60));
+
+    expect(_visibleAcceptLabels(tester), 0);
+    expect(
+      find.descendant(
+        of: _acceptByWidget,
+        matching: find.byType(CircularProgressIndicator),
+      ),
+      findsOneWidget,
+    );
+
+    await tester.pump(const Duration(seconds: 1));
+    expect(_visibleAcceptLabels(tester), 0);
+
+    gate.complete();
+    await tester.pump();
+    await tester.pump();
   });
 
   group('while acting for a dependent (S4)', () {
