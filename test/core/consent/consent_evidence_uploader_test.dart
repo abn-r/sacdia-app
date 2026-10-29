@@ -38,11 +38,13 @@ void main() {
   final uploads = <ConsentEvidenceLocalFile>[];
   final uploaded = <ConsentEvidenceReceipt>[];
   final pending = <bool>[];
+  final uploading = <bool>[];
 
   setUp(() {
     uploads.clear();
     uploaded.clear();
     pending.clear();
+    uploading.clear();
   });
 
   Future<void> pump(
@@ -51,6 +53,7 @@ void main() {
     ConsentEvidencePicker? picker,
     bool hasExisting = false,
     bool enabled = true,
+    bool autoUpload = false,
   }) async {
     tester.view.physicalSize = const Size(800, 2000);
     tester.view.devicePixelRatio = 1;
@@ -80,6 +83,8 @@ void main() {
                   picker: picker ?? _picker(),
                   hasExisting: hasExisting,
                   enabled: enabled,
+                  autoUpload: autoUpload,
+                  onUploadingChanged: uploading.add,
                   onUpload: onUpload,
                   onUploaded: uploaded.add,
                   onPendingChanged: pending.add,
@@ -301,5 +306,96 @@ void main() {
 
     expect(uploaded, isEmpty);
     expect(tester.takeException(), isNull);
+  });
+
+  group('autoUpload', () {
+    testWidgets('uploads once right after picking, with no second tap',
+        (tester) async {
+      await pump(
+        tester,
+        autoUpload: true,
+        onUpload: (file) async {
+          uploads.add(file);
+          return const Right(_receipt);
+        },
+      );
+
+      await choosePdf(tester);
+      await tester.pumpAndSettle();
+
+      expect(uploads, hasLength(1));
+      expect(uploads.single.name, 'ficha.pdf');
+      expect(uploaded, [_receipt]);
+      expect(uploading, [true, false]);
+      expect(pending, [true, false]);
+    });
+
+    testWidgets('a failure keeps the file pending and offers a retry',
+        (tester) async {
+      var attempts = 0;
+      await pump(
+        tester,
+        autoUpload: true,
+        onUpload: (file) async {
+          attempts++;
+          if (attempts == 1) {
+            return const Left(ServerFailure(message: 'x', code: 500));
+          }
+          return const Right(_receipt);
+        },
+      );
+
+      await choosePdf(tester);
+      await tester.pumpAndSettle();
+
+      expect(attempts, 1);
+      expect(find.text('ficha.pdf'), findsOneWidget);
+      expect(find.text('Reintentar'), findsOneWidget);
+      expect(pending, [true]);
+
+      await tester.tap(find.text('Reintentar'));
+      await tester.pumpAndSettle();
+
+      expect(attempts, 2);
+      expect(uploaded, [_receipt]);
+      expect(pending, [true, false]);
+    });
+
+    testWidgets('an invalid file is NOT sent and stays pending',
+        (tester) async {
+      await pump(
+        tester,
+        autoUpload: true,
+        picker: _picker(size: consentEvidenceMaxBytes + 1),
+        onUpload: (file) async {
+          uploads.add(file);
+          return const Right(_receipt);
+        },
+      );
+
+      await choosePdf(tester);
+      await tester.pumpAndSettle();
+
+      expect(uploads, isEmpty);
+      expect(uploading, isEmpty);
+      expect(pending, [true]);
+    });
+
+    testWidgets('without the flag nothing is sent until "Subir"',
+        (tester) async {
+      await pump(
+        tester,
+        onUpload: (file) async {
+          uploads.add(file);
+          return const Right(_receipt);
+        },
+      );
+
+      await choosePdf(tester);
+      await tester.pumpAndSettle();
+
+      expect(uploads, isEmpty);
+      expect(uploading, isEmpty);
+    });
   });
 }

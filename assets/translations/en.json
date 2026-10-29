@@ -1409,6 +1409,13 @@
       "confirm_body": "You won't pick a club for yourself. You can add and manage your minors from My family.",
       "confirm_action": "Finish registration",
       "error_generic": "We couldn't finish your registration. Please try again."
+    },
+    "consent_form": {
+      "uploading_block": "The signed form is uploading. Wait for it to finish before completing.",
+      "pending_title": "The signed form was not uploaded",
+      "pending_body": "You picked a signed form, but it could not be uploaded. If you finish now it will be lost; you can upload it again later from My family.",
+      "pending_confirm": "Finish without uploading",
+      "pending_cancel": "Go back and retry"
     }
   },
   "monthly_reports": {

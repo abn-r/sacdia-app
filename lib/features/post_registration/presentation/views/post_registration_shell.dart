@@ -60,6 +60,7 @@ class PostRegistrationShell extends ConsumerStatefulWidget {
 class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
   PageController? _pageController;
   bool _isCompletingStep = false;
+  bool _confirmingFinish = false;
   bool _statusLoaded = false;
   int _currentStep = 1;
 
@@ -208,7 +209,45 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
     }
   }
 
+  /// ¿Se puede finalizar sin perder la ficha firmada del menor (paso 3)?
+  ///
+  /// Subiendo: se espera (aviso). Elegida pero sin subir (falló o no es
+  /// válida): se pide confirmar, para no dejar un callejón sin salida si el
+  /// almacén no responde; la ficha se puede subir luego desde Mi familia.
+  Future<bool> _consentFormAllowsFinish() async {
+    switch (ref.read(consentFormPhaseProvider)) {
+      case ConsentFormPhase.idle:
+        return true;
+      case ConsentFormPhase.uploading:
+        SacSnackBar.show(
+          context,
+          tr('post_registration.consent_form.uploading_block'),
+        );
+        return false;
+      case ConsentFormPhase.pendingFile:
+        final confirmed = await SacDialog.show(
+          context,
+          title: tr('post_registration.consent_form.pending_title'),
+          content: tr('post_registration.consent_form.pending_body'),
+          confirmLabel: tr('post_registration.consent_form.pending_confirm'),
+          cancelLabel: tr('post_registration.consent_form.pending_cancel'),
+          confirmIsDestructive: true,
+        );
+        return confirmed == true && mounted;
+    }
+  }
+
   Future<void> _completeStep3() async {
+    if (_confirmingFinish) return;
+    _confirmingFinish = true;
+    final bool canFinish;
+    try {
+      canFinish = await _consentFormAllowsFinish();
+    } finally {
+      _confirmingFinish = false;
+    }
+    if (!canFinish || !mounted) return;
+
     final userId = ref.read(authNotifierProvider).valueOrNull?.id;
     final result = await ref
         .read(postRegistrationFlowNotifierProvider.notifier)

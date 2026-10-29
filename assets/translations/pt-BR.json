@@ -1409,6 +1409,13 @@
       "confirm_body": "Você não escolherá um clube para si. Poderá adicionar e gerenciar seus menores em Minha família.",
       "confirm_action": "Concluir cadastro",
       "error_generic": "Não conseguimos concluir seu cadastro. Tente novamente."
+    },
+    "consent_form": {
+      "uploading_block": "A ficha assinada está sendo enviada. Aguarde o envio terminar para finalizar.",
+      "pending_title": "A ficha assinada não foi enviada",
+      "pending_body": "Você escolheu uma ficha assinada, mas não foi possível enviá-la. Se finalizar agora, ela será perdida; depois você poderá enviá-la de novo em Minha família.",
+      "pending_confirm": "Finalizar sem enviar",
+      "pending_cancel": "Voltar e tentar de novo"
     }
   },
   "monthly_reports": {

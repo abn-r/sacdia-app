@@ -1409,6 +1409,13 @@
       "confirm_body": "No elegirás un club para ti. Podrás agregar y gestionar a tus menores desde Mi familia.",
       "confirm_action": "Terminar registro",
       "error_generic": "No pudimos terminar tu registro. Intenta de nuevo."
+    },
+    "consent_form": {
+      "uploading_block": "Se está subiendo la ficha firmada. Espera a que termine para finalizar.",
+      "pending_title": "La ficha firmada no se subió",
+      "pending_body": "Elegiste una ficha firmada, pero no se pudo subir. Si finalizas ahora se perderá; después podrás subirla de nuevo desde Mi familia.",
+      "pending_confirm": "Finalizar sin subirla",
+      "pending_cancel": "Volver y reintentar"
     }
   },
   "monthly_reports": {

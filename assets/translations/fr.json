@@ -1409,6 +1409,13 @@
       "confirm_body": "Vous ne choisirez pas de club pour vous-même. Vous pourrez ajouter et gérer vos mineurs depuis Ma famille.",
       "confirm_action": "Terminer l'inscription",
       "error_generic": "Nous n'avons pas pu terminer votre inscription. Veuillez réessayer."
+    },
+    "consent_form": {
+      "uploading_block": "La fiche signée est en cours d'envoi. Attendez la fin de l'envoi avant de terminer.",
+      "pending_title": "La fiche signée n'a pas été envoyée",
+      "pending_body": "Vous avez choisi une fiche signée, mais elle n'a pas pu être envoyée. Si vous terminez maintenant, elle sera perdue ; vous pourrez la renvoyer plus tard depuis Ma famille.",
+      "pending_confirm": "Terminer sans l'envoyer",
+      "pending_cancel": "Revenir et réessayer"
     }
   },
   "monthly_reports": {

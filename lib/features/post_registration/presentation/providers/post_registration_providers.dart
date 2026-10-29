@@ -144,6 +144,24 @@ class CompletionStatusNotifier
   }
 }
 
+/// Estado de la ficha de consentimiento firmada del paso 3 (tutor actuando).
+enum ConsentFormPhase {
+  /// Nada elegido, o ya subida.
+  idle,
+
+  /// Subiendo el archivo elegido.
+  uploading,
+
+  /// Hay un archivo elegido que NO se subió (falló o no es válido).
+  pendingFile,
+}
+
+/// Lo escribe `ActingConsentFormCard`; "Finalizar" lo lee para no dejar que la
+/// ficha se pierda en silencio. `autoDispose`: vive mientras el shell lo
+/// observa, así que no sobrevive al post-registro ni al cambio de perfil.
+final consentFormPhaseProvider =
+    StateProvider.autoDispose<ConsentFormPhase>((ref) => ConsentFormPhase.idle);
+
 /// Provider para el paso actual del post-registro
 final currentStepProvider = StateProvider.autoDispose<int>((ref) => 1);
 
