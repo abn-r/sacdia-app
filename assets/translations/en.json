@@ -5848,7 +5848,7 @@
       "title": "Agenda",
       "empty": "There are no upcoming activities.",
       "error": "We could not load the agenda.",
-      "no_club": "You are not in a club yet.",
+      "no_club": "You will see your club's activities here once the club accepts you.",
       "detail_title": "Activity",
       "detail_error": "We could not load this activity."
     },

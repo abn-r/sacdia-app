@@ -5846,7 +5846,7 @@
       "title": "Agenda",
       "empty": "Il n'y a pas d'activités à venir.",
       "error": "Nous n'avons pas pu charger l'agenda.",
-      "no_club": "Tu n'es pas encore dans un club.",
+      "no_club": "Tu verras ici les activités de ton club dès que celui-ci t'aura accepté.",
       "detail_title": "Activité",
       "detail_error": "Nous n'avons pas pu charger cette activité."
     },

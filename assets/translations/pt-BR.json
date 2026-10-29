@@ -5846,7 +5846,7 @@
       "title": "Agenda",
       "empty": "Não há atividades próximas.",
       "error": "Não foi possível carregar a agenda.",
-      "no_club": "Você ainda não está em um clube.",
+      "no_club": "Você verá aqui as atividades do seu clube quando o clube aceitar você.",
       "detail_title": "Atividade",
       "detail_error": "Não foi possível carregar esta atividade."
     },
