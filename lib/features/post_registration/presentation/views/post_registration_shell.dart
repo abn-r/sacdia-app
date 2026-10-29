@@ -13,11 +13,15 @@ import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
+import 'package:sacdia_app/core/errors/user_error_message.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/widgets/sac_error_state.dart';
 import 'package:sacdia_app/core/widgets/sac_snack_bar.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../profile/presentation/utils/run_delete_account_flow.dart';
 import '../../../auth/presentation/providers/acting_providers.dart';
+import '../../domain/entities/completion_status.dart';
 import '../providers/post_registration_flow_providers.dart';
 import '../providers/post_registration_providers.dart';
 import '../providers/personal_info_providers.dart';
@@ -27,6 +31,11 @@ import 'club_selection_step_view.dart';
 import 'personal_info_step_view.dart';
 import 'photo_step_view.dart';
 import '../providers/club_selection_providers.dart';
+
+/// El avance llegó vacío (sin error): se trata igual que un fallo.
+class _NoCompletionStatus implements Exception {
+  const _NoCompletionStatus();
+}
 
 bool canReadSensitiveStep2Data(String targetUserId, UserEntity? user) {
   return canAccessSensitiveUserDataForUser(user, targetUserId: targetUserId) ||
@@ -62,6 +71,9 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
   bool _isCompletingStep = false;
   bool _confirmingFinish = false;
   bool _statusLoaded = false;
+
+  /// Por qué no se pudo leer el avance (null = cargando o ya cargado).
+  Object? _loadError;
   int _currentStep = 1;
 
   @override
@@ -74,8 +86,19 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
 
   Future<void> _loadCompletionStatus() async {
     final userId = ref.read(authNotifierProvider).valueOrNull?.id;
-    final status = await ref.read(completionStatusProvider.future);
-    if (status == null || !mounted) return;
+    final CompletionStatus? status;
+    try {
+      status = await ref.read(completionStatusProvider.future);
+    } catch (error) {
+      // Nunca un spinner infinito: error con reintentar y cerrar sesión.
+      if (mounted) setState(() => _loadError = error);
+      return;
+    }
+    if (!mounted) return;
+    if (status == null) {
+      setState(() => _loadError = const _NoCompletionStatus());
+      return;
+    }
 
     // Sin fecha de nacimiento el servidor aún no libera la cuenta, aunque el
     // post-registro figure completo: salir al inicio rebotaría aquí otra vez.
@@ -98,6 +121,20 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
     // Create PageController at the correct initial page BEFORE building
     _pageController = PageController(initialPage: step - 1);
     setState(() => _statusLoaded = true);
+  }
+
+  void _retryLoad() {
+    setState(() => _loadError = null);
+    ref.invalidate(completionStatusProvider);
+    _loadCompletionStatus();
+  }
+
+  Future<void> _signOutFromError() async {
+    final success = await ref.read(authNotifierProvider.notifier).signOut();
+    if (!success && mounted) {
+      SacSnackBar.show(
+          context, tr('post_registration.shell.error_logout_failed'));
+    }
   }
 
   @override
@@ -297,6 +334,44 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
 
   @override
   Widget build(BuildContext context) {
+    final loadError = _loadError;
+    if (!_statusLoaded && loadError != null) {
+      return Scaffold(
+        backgroundColor: context.sac.surface,
+        body: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: SacErrorState(
+                  key: const ValueKey('post_registration_load_error'),
+                  title: tr('post_registration.shell.load_error_title'),
+                  message: userErrorMessage(
+                    loadError,
+                    fallbackKey: 'post_registration.shell.load_error_body',
+                  ),
+                  onRetry: _retryLoad,
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  Responsive.horizontalPadding(context),
+                  0,
+                  Responsive.horizontalPadding(context),
+                  16,
+                ),
+                child: SacButton.outline(
+                  key: const ValueKey('post_registration_load_error_logout'),
+                  text: tr('post_registration.shell.logout_tooltip'),
+                  icon: HugeIcons.strokeRoundedLogout01,
+                  onPressed: _signOutFromError,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     // Show loading until completion status is fetched and we know the correct step
     if (!_statusLoaded) {
       return Scaffold(

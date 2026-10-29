@@ -517,7 +517,9 @@
     "auth_device_revoked": "Tu tutor desvinculó este teléfono.",
     "auth_device_session_expired": "La vinculación de este teléfono venció. Pide a tu tutor que lo vincule de nuevo.",
     "mr_approve_permission_required": "No tienes permiso para aprobar solicitudes. Solo puedes verificar el consentimiento.",
-    "register_email_unavailable": "No pudimos crear la cuenta con este correo. Si ya tienes una cuenta, inicia sesión o recupera tu contraseña."
+    "register_email_unavailable": "No pudimos crear la cuenta con este correo. Si ya tienes una cuenta, inicia sesión o recupera tu contraseña.",
+    "auth_post_registration_not_started": "Tu cuenta aún no tiene iniciado el registro inicial. Cierra sesión y vuelve a ingresar; si el problema continúa, contacta a soporte.",
+    "post_reg_not_initiated": "Tu cuenta aún no tiene iniciado el registro inicial. Cierra sesión y vuelve a ingresar; si el problema continúa, contacta a soporte."
   },
   "honors": {
     "errors": {
@@ -1220,7 +1222,9 @@
       "logout_dialog_body": "Si cierras sesión ahora, deberás completar este proceso cuando vuelvas a ingresar.",
       "logout_dialog_confirm": "Cerrar sesión",
       "error_step_failed": "No se pudo completar este paso. Por favor intenta de nuevo.",
-      "error_logout_failed": "No se pudo cerrar la sesión. Intenta de nuevo."
+      "error_logout_failed": "No se pudo cerrar la sesión. Intenta de nuevo.",
+      "load_error_title": "No pudimos cargar tu avance",
+      "load_error_body": "Revisa tu conexión e intenta de nuevo. Si el problema continúa, cierra sesión y vuelve a ingresar."
     },
     "navigation": {
       "back": "Atrás",

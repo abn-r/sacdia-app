@@ -517,7 +517,9 @@
     "auth_device_revoked": "Seu responsável desvinculou este telefone.",
     "auth_device_session_expired": "O vínculo deste telefone expirou. Peça ao seu responsável para vinculá-lo novamente.",
     "mr_approve_permission_required": "Você não tem permissão para aprovar solicitações. Só pode verificar o consentimento.",
-    "register_email_unavailable": "Não foi possível criar a conta com este e-mail. Se você já tem uma conta, entre ou recupere sua senha."
+    "register_email_unavailable": "Não foi possível criar a conta com este e-mail. Se você já tem uma conta, entre ou recupere sua senha.",
+    "auth_post_registration_not_started": "Sua conta ainda não iniciou o cadastro inicial. Saia e entre novamente; se o problema continuar, entre em contato com o suporte.",
+    "post_reg_not_initiated": "Sua conta ainda não iniciou o cadastro inicial. Saia e entre novamente; se o problema continuar, entre em contato com o suporte."
   },
   "honors": {
     "errors": {
@@ -1220,7 +1222,9 @@
       "logout_dialog_body": "Se sair agora, você precisará completar este processo quando entrar novamente.",
       "logout_dialog_confirm": "Sair",
       "error_step_failed": "Não foi possível concluir esta etapa. Por favor, tente novamente.",
-      "error_logout_failed": "Não foi possível sair. Tente novamente."
+      "error_logout_failed": "Não foi possível sair. Tente novamente.",
+      "load_error_title": "Não foi possível carregar seu progresso",
+      "load_error_body": "Verifique sua conexão e tente novamente. Se o problema continuar, saia e entre novamente."
     },
     "navigation": {
       "back": "Voltar",

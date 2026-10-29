@@ -517,7 +517,9 @@
     "auth_device_revoked": "Your guardian unlinked this phone.",
     "auth_device_session_expired": "This phone link has expired. Ask your guardian to link it again.",
     "mr_approve_permission_required": "You are not allowed to approve requests. You can only verify the consent.",
-    "register_email_unavailable": "We couldn't create an account with this email. If you already have an account, sign in or reset your password."
+    "register_email_unavailable": "We couldn't create an account with this email. If you already have an account, sign in or reset your password.",
+    "auth_post_registration_not_started": "Your account has not started its initial registration yet. Sign out and sign back in; if the problem continues, contact support.",
+    "post_reg_not_initiated": "Your account has not started its initial registration yet. Sign out and sign back in; if the problem continues, contact support."
   },
   "honors": {
     "errors": {
@@ -1220,7 +1222,9 @@
       "logout_dialog_body": "If you sign out now, you will need to complete this process when you sign in again.",
       "logout_dialog_confirm": "Sign out",
       "error_step_failed": "Could not complete this step. Please try again.",
-      "error_logout_failed": "Could not sign out. Please try again."
+      "error_logout_failed": "Could not sign out. Please try again.",
+      "load_error_title": "We couldn't load your progress",
+      "load_error_body": "Check your connection and try again. If the problem continues, sign out and sign back in."
     },
     "navigation": {
       "back": "Back",

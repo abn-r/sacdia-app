@@ -125,8 +125,12 @@ class CompletionStatusNotifier
     final result = await ref
         .read(postRegistrationRepositoryProvider)
         .getCompletionStatus(cancelToken: cancelToken);
+    // Un fallo NO es "sin estado": se propaga como AsyncError para que el shell
+    // muestre reintentar / cerrar sesión. Antes se devolvía null y la vista
+    // se quedaba en un spinner para siempre (p. ej. un usuario sin fila de
+    // post-registro recibe 400 AUTH_POST_REGISTRATION_NOT_STARTED).
     return result.fold(
-      (failure) => null,
+      (failure) => throw failure,
       (status) => status,
     );
   }
