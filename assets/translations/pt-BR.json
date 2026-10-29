@@ -5548,6 +5548,7 @@
       "remove_body": "Esta pessoa não poderá mais ver nem gerenciar o menor.",
       "remove_confirm": "Remover",
       "removed": "Responsável removido",
+      "left": "Você deixou de gerenciar o perfil de {name}.",
       "form_title": "Ficha de consentimento",
       "form_hint": "Imprima e assine a ficha do clube; depois envie aqui como foto ou PDF. O diretor do clube a verificará.",
       "form_view": "Ver ficha enviada",

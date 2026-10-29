@@ -317,9 +317,13 @@ void main() {
         (guardianshipId: 'gs-1', removedByPrimary: false),
       ]);
       expect(
-        find.text('El club quedará a cargo de Ana mientras tanto.'),
+        find.text(
+          'Dejaste de gestionar el perfil de Ana. '
+          'El club quedará a cargo de Ana mientras tanto.',
+        ),
         findsOneWidget,
-        reason: 'snackbar with the outcome the server returned',
+        reason: 'snackbar with the confirmation and the real outcome, shown '
+            'on the screen we returned to',
       );
       expect(router.state.uri.path, '/family');
     });

@@ -5548,6 +5548,7 @@
       "remove_body": "Cette personne ne pourra plus voir ni gérer le mineur.",
       "remove_confirm": "Retirer",
       "removed": "Tuteur retiré",
+      "left": "Vous ne gérez plus le profil de {name}.",
       "form_title": "Fiche de consentement",
       "form_hint": "Imprimez et signez la fiche du club, puis téléversez-la ici en photo ou en PDF. Le directeur du club la vérifiera.",
       "form_view": "Voir la fiche téléversée",

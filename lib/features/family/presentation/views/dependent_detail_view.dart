@@ -355,6 +355,9 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
             ?.summary
             .firstName ??
         '—';
+    // El mensajero raíz sobrevive a la pantalla: tras salir se hace pop() y este
+    // contexto deja de estar montado.
+    final messenger = ScaffoldMessenger.of(context);
     setState(() => _busy = true);
     final result = await ref.read(familyActionsProvider).revoke(
           RevokeGuardianshipParams(
@@ -375,8 +378,13 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
           ref.read(authNotifierProvider.notifier).switchProfile(null);
         }
         if (leaving) {
-          _toast(outcomeMessage(revoked.outcome, name));
+          // Confirmación + lo que pasará con el menor, en un solo aviso. Se
+          // muestra después del pop() con el mensajero capturado, para que lo
+          // vea la pantalla a la que se vuelve.
+          final left = 'family.detail.left'.tr(namedArgs: {'name': name});
+          final message = '$left ${outcomeMessage(revoked.outcome, name)}';
           context.pop();
+          SacSnackBar.showMessenger(messenger, message);
         } else {
           ref.invalidate(dependentDetailProvider(widget.dependentId));
           _toast('family.detail.removed'.tr());

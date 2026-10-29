@@ -5550,6 +5550,7 @@
       "remove_body": "This person will no longer be able to see or manage the minor.",
       "remove_confirm": "Remove",
       "removed": "Guardian removed",
+      "left": "You stopped managing {name}'s profile.",
       "form_title": "Consent form",
       "form_hint": "Print and sign the club form, then upload it here as a photo or PDF. The club director will verify it.",
       "form_view": "View uploaded form",
