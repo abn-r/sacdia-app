@@ -130,6 +130,7 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
           ),
           SacDialogAction(
             label: 'family.detail.share'.tr(),
+            style: SacDialogActionStyle.success,
             onPressed: () async {
               Navigator.of(dialogContext).pop();
               await Share.share(message);
