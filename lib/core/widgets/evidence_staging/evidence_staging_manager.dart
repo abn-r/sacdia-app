@@ -617,12 +617,10 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
     final totalFiles = _allFiles.length;
     final newFiles = _localFiles.length;
     final fileCountLabel = newFiles > 0
-        ? tr(
-            'core.evidence_staging.submit_dialog_file_count_with_new',
-            namedArgs: {
-              'total': '$totalFiles',
-              'new_files': '$newFiles',
-            },
+        ? 'core.evidence_staging.submit_dialog_file_count_with_new'.plural(
+            newFiles,
+            name: 'count',
+            namedArgs: {'total': '$totalFiles'},
           )
         : tr(
             'core.evidence_staging.submit_dialog_file_count',

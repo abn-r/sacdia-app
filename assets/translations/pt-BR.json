@@ -4228,14 +4228,20 @@
       "image_source_gallery": "Galeria",
       "image_source_gallery_sub": "Escolher da galeria de fotos",
       "image_source_title": "Selecionar imagem",
-      "partial_dialog_body": "Os {count} arquivos que falharam não serão incluídos na validação.",
+      "partial_dialog_body": {
+        "one": "O arquivo que falhou não será incluído na validação.",
+        "other": "Os {count} arquivos que falharam não serão incluídos na validação."
+      },
       "partial_dialog_title": "Continuar sem todos os arquivos",
       "pdf_size_exceeded_one": "{count} PDF excede o limite de 10 MB e não foi adicionado.",
       "pdf_size_exceeded_other": "{count} PDFs excedem o limite de 10 MB e não foram adicionados.",
       "submit": "Enviar",
       "submit_dialog_body": "Após o envio, você não poderá modificar os arquivos até receber um retorno.",
       "submit_dialog_file_count": "Total de arquivos: {total}",
-      "submit_dialog_file_count_with_new": "Total de arquivos: {total} ({new_files} novos para enviar)",
+      "submit_dialog_file_count_with_new": {
+        "one": "Total de arquivos: {total} ({count} novo para enviar)",
+        "other": "Total de arquivos: {total} ({count} novos para enviar)"
+      },
       "submit_dialog_title": "Enviar para validação",
       "upload_all_failed": "Todos os arquivos falharam",
       "upload_all_success": "Todos os arquivos foram enviados",

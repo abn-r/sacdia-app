@@ -4230,14 +4230,20 @@
       "image_source_gallery": "Gallery",
       "image_source_gallery_sub": "Choose from photo gallery",
       "image_source_title": "Select image",
-      "partial_dialog_body": "The {count} files that failed will not be included in the validation.",
+      "partial_dialog_body": {
+        "one": "The file that failed will not be included in the validation.",
+        "other": "The {count} files that failed will not be included in the validation."
+      },
       "partial_dialog_title": "Continue without all files",
       "pdf_size_exceeded_one": "{count} PDF exceeds the 10 MB limit and was not added.",
       "pdf_size_exceeded_other": "{count} PDFs exceed the 10 MB limit and were not added.",
       "submit": "Submit",
       "submit_dialog_body": "Once submitted, you will not be able to modify the files until you receive feedback.",
       "submit_dialog_file_count": "Total files: {total}",
-      "submit_dialog_file_count_with_new": "Total files: {total} ({new_files} new to upload)",
+      "submit_dialog_file_count_with_new": {
+        "one": "Total files: {total} ({count} new to upload)",
+        "other": "Total files: {total} ({count} new to upload)"
+      },
       "submit_dialog_title": "Submit for validation",
       "upload_all_failed": "All files failed",
       "upload_all_success": "All files uploaded",
