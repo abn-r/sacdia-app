@@ -17,6 +17,7 @@ import 'package:sacdia_app/features/honors/domain/usecases/register_user_honor.d
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/honors/domain/entities/instructor_proposal.dart';
 import 'package:sacdia_app/core/widgets/instructor_selection.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _StaleCompletionModeRepository implements HonorsRepository {
   int callCount = 0;
@@ -217,7 +218,7 @@ void main() {
     'uses the confirmed mode as effective state when backend returns stale mode',
     () async {
       final repository = _StaleCompletionModeRepository();
-      final container = ProviderContainer(
+      final container = createTestContainer(
         overrides: [
           honorsRepositoryProvider.overrideWithValue(repository),
           userHonorsProvider.overrideWith(
@@ -234,7 +235,6 @@ void main() {
           ),
         ],
       );
-      addTearDown(container.dispose);
 
       await container.read(userHonorsProvider.future);
 

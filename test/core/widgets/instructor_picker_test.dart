@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/widgets/instructor_candidates_provider.dart';
 import 'package:sacdia_app/core/widgets/instructor_picker.dart';
@@ -15,6 +14,7 @@ import 'package:sacdia_app/providers/dio_provider.dart';
 
 import '../../features/certificate_import/support/test_app.dart';
 import '../../support/instructor_fakes.dart';
+import '../../support/riverpod_test_support.dart';
 
 /// Opens the picker from a button; [picked] receives what the sheet returns.
 Future<void> _open(
@@ -321,10 +321,9 @@ void main() {
         ],
       };
     });
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [dioProvider.overrideWithValue(dio)],
     );
-    addTearDown(container.dispose);
 
     final provider = instructorCandidatesProvider('Ana');
     container.listen(provider, (_, __) {});
@@ -339,10 +338,9 @@ void main() {
   test('the real search maps 429 to a rate limit', () async {
     final dio = Dio(BaseOptions(baseUrl: 'https://api.test'));
     dio.httpClientAdapter = _StubAdapter((_) => {}, status: 429);
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [dioProvider.overrideWithValue(dio)],
     );
-    addTearDown(container.dispose);
 
     final provider = instructorCandidatesProvider('Ana');
     container.listen(provider, (_, __) {});

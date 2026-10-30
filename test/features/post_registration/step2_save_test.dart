@@ -18,6 +18,7 @@ import 'package:sacdia_app/features/post_registration/presentation/providers/pos
 import 'package:sacdia_app/features/post_registration/presentation/views/personal_info_step_view.dart';
 
 import '../family/family_test_harness.dart';
+import '../../support/riverpod_test_support.dart';
 
 class _Datasource implements PersonalInfoRemoteDataSource {
   _Datasource({this.updateError});
@@ -155,14 +156,13 @@ void main() {
       PersonalInfoFormState? form,
     }) async {
       final ds = _Datasource(updateError: updateError);
-      final c = ProviderContainer(
+      final c = createTestContainer(
         overrides: [
           authNotifierProvider.overrideWith(() => FakeAuthNotifier(user)),
           personalInfoDataSourceProvider.overrideWithValue(ds),
           personalInfoSnapshotProvider.overrideWith((ref) async => _saved),
         ],
       );
-      addTearDown(c.dispose);
       await c.read(authNotifierProvider.future);
       await c.read(personalInfoSnapshotProvider.future);
       c.read(personalInfoFormProvider.notifier).state =

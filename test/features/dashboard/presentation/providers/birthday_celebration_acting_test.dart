@@ -7,6 +7,7 @@ import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.d
 import 'package:sacdia_app/features/dashboard/presentation/providers/birthday_celebration_provider.dart';
 import 'package:sacdia_app/providers/storage_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 /// S6 (re-verify 2b): mientras se actúa por un menor, descartar el aviso de
 /// cumpleaños no deja ninguna bandera en disco (FP-49).
@@ -32,7 +33,7 @@ void main() {
   });
 
   ProviderContainer build(String userId, ActingForSession session) {
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         actingForSessionProvider.overrideWithValue(session),
@@ -43,7 +44,6 @@ void main() {
         ),
       ],
     );
-    addTearDown(container.dispose);
     return container;
   }
 

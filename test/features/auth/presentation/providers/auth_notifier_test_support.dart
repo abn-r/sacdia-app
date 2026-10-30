@@ -20,6 +20,7 @@ import 'package:sacdia_app/features/notifications/domain/repositories/notificati
 import 'package:sacdia_app/features/notifications/presentation/providers/notifications_providers.dart';
 import 'package:sacdia_app/providers/storage_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 /// Fakes y builder compartidos por los tests de `AuthNotifier`.
 
@@ -185,7 +186,7 @@ Future<ProviderContainer> buildAuthContainer({
         SharedPreferences.setMockInitialValues({});
         return SharedPreferences.getInstance();
       })();
-  return ProviderContainer(
+  return createTestContainer(
     overrides: [
       authRepositoryProvider.overrideWithValue(repo),
       secureStorageProvider.overrideWithValue(storage ?? FakeSecureStorage()),

@@ -86,7 +86,6 @@ void main() {
     );
     addTearDown(() {
       container.read(routerProvider).dispose();
-      container.dispose();
     });
     container.listen(appBootstrapProvider, (_, __) {});
     await container.read(authNotifierProvider.future);
@@ -146,7 +145,6 @@ void main() {
     );
     addTearDown(() {
       container.read(routerProvider).dispose();
-      container.dispose();
     });
     container.listen(appBootstrapProvider, (_, __) {});
     await container.read(authNotifierProvider.future);

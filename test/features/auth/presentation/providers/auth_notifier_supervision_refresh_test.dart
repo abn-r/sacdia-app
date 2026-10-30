@@ -87,9 +87,6 @@ void main() {
         ...extra,
       ],
     );
-    addTearDown(() {
-      container.dispose();
-    });
     await container.read(authNotifierProvider.future);
     return container;
   }

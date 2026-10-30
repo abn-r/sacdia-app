@@ -16,6 +16,7 @@ import 'package:sacdia_app/features/auth/presentation/providers/profile_scope_pu
 import 'package:sacdia_app/providers/json_file_cache_provider.dart';
 
 import 'auth_notifier_test_support.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 /// El purge corre DENTRO del `Ref` de `AuthNotifier` (switchProfile, salir de
 /// actuar, logout). Los providers del registro observan `authNotifierProvider`,
@@ -119,10 +120,9 @@ void main() {
 
   group('purgeProfileScopeProviders', () {
     ProviderContainer build(List<ProviderOrFamily> registry) {
-      final container = ProviderContainer(
+      final container = createTestContainer(
         overrides: [profileScopedProvidersProvider.overrideWithValue(registry)],
       );
-      addTearDown(container.dispose);
       return container;
     }
 
@@ -169,7 +169,6 @@ void main() {
           // NO se sobreescribe profileScopedProvidersProvider: registro real.
         ],
       );
-      addTearDown(container.dispose);
       await container.read(authNotifierProvider.future);
 
       // `userAchievementsProvider` está en el registro real y hace

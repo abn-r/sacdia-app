@@ -1,9 +1,9 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/master_honors/presentation/providers/master_honors_providers.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _FakeAuthNotifier extends AuthNotifier {
   _FakeAuthNotifier(this._user);
@@ -15,12 +15,11 @@ class _FakeAuthNotifier extends AuthNotifier {
 }
 
 Future<bool> _available(UserEntity? user) async {
-  final container = ProviderContainer(
+  final container = createTestContainer(
     overrides: [
       authNotifierProvider.overrideWith(() => _FakeAuthNotifier(user)),
     ],
   );
-  addTearDown(container.dispose);
   await container.read(authNotifierProvider.future);
   return container.read(masterHonorsAvailableProvider);
 }

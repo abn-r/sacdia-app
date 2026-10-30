@@ -5,6 +5,7 @@ import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.d
 import 'package:sacdia_app/features/post_registration/data/datasources/personal_info_remote_data_source.dart';
 import 'package:sacdia_app/features/post_registration/data/models/emergency_contact_model.dart';
 import 'package:sacdia_app/features/post_registration/presentation/providers/personal_info_providers.dart';
+import '../../support/riverpod_test_support.dart';
 
 class _FakeAuthNotifier extends AuthNotifier {
   @override
@@ -69,11 +70,10 @@ void main() {
 
   setUp(() async {
     datasource = _Datasource([_contact(1, 'Ana'), _contact(2, 'Luis')]);
-    container = ProviderContainer(overrides: [
+    container = createTestContainer(overrides: [
       authNotifierProvider.overrideWith(_FakeAuthNotifier.new),
       personalInfoDataSourceProvider.overrideWithValue(datasource),
     ]);
-    addTearDown(container.dispose);
     // Mantiene vivo el autoDispose durante la prueba.
     container.listen(emergencyContactsProvider, (_, __) {});
     await container.read(emergencyContactsProvider.future);

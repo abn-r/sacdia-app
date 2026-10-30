@@ -12,6 +12,7 @@ import 'package:sacdia_app/features/qr/presentation/providers/qr_member_token_pr
 import 'package:sacdia_app/features/virtual_card/domain/entities/virtual_card.dart';
 import 'package:sacdia_app/features/virtual_card/domain/repositories/virtual_card_repository.dart';
 import 'package:sacdia_app/features/virtual_card/presentation/providers/virtual_card_providers.dart';
+import '../../support/riverpod_test_support.dart';
 
 class _FakeAuthNotifier extends AuthNotifier {
   _FakeAuthNotifier(this.user);
@@ -111,7 +112,7 @@ ProviderContainer _buildContainer({
   UserDetail? profile,
   QrMemberToken? qrToken,
 }) {
-  return ProviderContainer(
+  return createTestContainer(
     overrides: [
       authNotifierProvider.overrideWith(
         () => _FakeAuthNotifier(user ?? _sampleUser()),
@@ -148,7 +149,6 @@ void main() {
         repository: repository,
         connected: true,
       );
-      addTearDown(container.dispose);
 
       final card = await container.read(virtualCardFetcherProvider.future);
 
@@ -171,7 +171,6 @@ void main() {
         repository: repository,
         connected: true,
       );
-      addTearDown(container.dispose);
 
       await expectLater(
         container.read(virtualCardFetcherProvider.future),
@@ -198,7 +197,6 @@ void main() {
         repository: repository,
         connected: true,
       );
-      addTearDown(container.dispose);
 
       final card = await container.read(virtualCardFetcherProvider.future);
 
@@ -245,7 +243,6 @@ void main() {
         user: user,
         profile: profile,
       );
-      addTearDown(container.dispose);
 
       final card = await container.read(virtualCardFetcherProvider.future);
 
@@ -291,7 +288,6 @@ void main() {
         connected: true,
         user: user,
       );
-      addTearDown(container.dispose);
 
       final card = await container.read(virtualCardFetcherProvider.future);
 

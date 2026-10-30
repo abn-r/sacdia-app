@@ -9,6 +9,7 @@ import 'package:sacdia_app/providers/storage_provider.dart';
 import 'package:sacdia_app/providers/catalogs_provider.dart';
 import 'package:sacdia_app/shared/data/datasources/catalogs_remote_data_source.dart';
 import 'package:sacdia_app/shared/models/catalogs/catalogs.dart';
+import '../support/riverpod_test_support.dart';
 
 class _FakeCatalogsRemoteDataSource implements CatalogsRemoteDataSource {
   _FakeCatalogsRemoteDataSource({
@@ -95,7 +96,7 @@ Future<ProviderContainer> _buildCatalogsContainer({
 }) async {
   SharedPreferences.setMockInitialValues(initialPrefs);
   final prefs = await SharedPreferences.getInstance();
-  return ProviderContainer(
+  return createTestContainer(
     overrides: [
       catalogsDataSourceProvider.overrideWithValue(dataSource),
       sharedPreferencesProvider.overrideWithValue(prefs),
@@ -131,7 +132,6 @@ void main() {
           'unrelated_pref': 'keep',
         },
       );
-      addTearDown(container.dispose);
 
       final result = await container.read(clubTypesProvider.future);
 
@@ -157,7 +157,6 @@ void main() {
           '${AppConstants.catalogClubTypesCacheKey}_cached_at': now,
         },
       );
-      addTearDown(container.dispose);
 
       final result = await container.read(clubTypesProvider.future);
 
@@ -180,7 +179,6 @@ void main() {
               DateTime.now().millisecondsSinceEpoch,
         },
       );
-      addTearDown(container.dispose);
 
       final result = await container.read(clubTypesProvider.future);
 
@@ -203,7 +201,6 @@ void main() {
               now,
         },
       );
-      addTearDown(container.dispose);
 
       final result =
           await container.read(currentEcclesiasticalYearProvider.future);
@@ -229,7 +226,6 @@ void main() {
           '${AppConstants.catalogClubTypesCacheKey}_cached_at': now,
         },
       );
-      addTearDown(container.dispose);
 
       final first = await container.read(clubTypesProvider.future);
       expect(first.first.clubTypeId, cached.clubTypeId);
@@ -272,7 +268,6 @@ void main() {
               now,
         },
       );
-      addTearDown(container.dispose);
 
       await bumpCatalogCacheGeneration(container.read(localStorageProvider));
       container.invalidate(currentEcclesiasticalYearProvider);

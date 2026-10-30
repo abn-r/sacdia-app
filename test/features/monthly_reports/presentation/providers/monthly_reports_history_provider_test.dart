@@ -1,10 +1,10 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/enrollment/domain/entities/enrollment.dart';
 import 'package:sacdia_app/features/enrollment/presentation/providers/enrollment_providers.dart';
 import 'package:sacdia_app/features/members/presentation/providers/members_providers.dart';
 import 'package:sacdia_app/features/monthly_reports/domain/entities/monthly_report.dart';
 import 'package:sacdia_app/features/monthly_reports/presentation/providers/monthly_reports_providers.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 const _gmEnrollment = Enrollment(
   id: 12,
@@ -45,7 +45,7 @@ void main() {
   test('a club role sees the active section enrollment reports', () async {
     final requestedEnrollments = <String>[];
     var visibleReads = 0;
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         clubContextProvider.overrideWith(
           (ref) async => const ClubContext(
@@ -69,7 +69,6 @@ void main() {
         }),
       ],
     );
-    addTearDown(container.dispose);
 
     final history = await container.read(monthlyReportsHistoryProvider.future);
 
@@ -81,7 +80,7 @@ void main() {
   });
 
   test('a club role without enrollment gets an empty history', () async {
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         clubContextProvider.overrideWith(
           (ref) async => const ClubContext(clubId: 1, sectionId: 1),
@@ -91,20 +90,18 @@ void main() {
             .overrideWith((ref) async => _otherSectionPage),
       ],
     );
-    addTearDown(container.dispose);
 
     expect(await container.read(monthlyReportsHistoryProvider.future), isEmpty);
   });
 
   test('without club context the multi-club list is used', () async {
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         clubContextProvider.overrideWith((ref) async => null),
         visibleMonthlyReportsProvider
             .overrideWith((ref) async => _otherSectionPage),
       ],
     );
-    addTearDown(container.dispose);
 
     final history = await container.read(monthlyReportsHistoryProvider.future);
 

@@ -8,6 +8,7 @@ import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/notifications/domain/entities/notification_item.dart';
 import 'package:sacdia_app/features/notifications/presentation/widgets/notification_card.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _FakeAuth extends AuthNotifier {
   _FakeAuth(this.user);
@@ -104,10 +105,9 @@ Future<_FakeAuth> _pumpConsentCard(
   );
   addTearDown(router.dispose);
 
-  final container = ProviderContainer(
+  final container = createTestContainer(
     overrides: [authNotifierProvider.overrideWith(() => auth)],
   );
-  addTearDown(container.dispose);
   // La sesión ya está cargada cuando se toca una notificación en la app real.
   await container.read(authNotifierProvider.future);
 

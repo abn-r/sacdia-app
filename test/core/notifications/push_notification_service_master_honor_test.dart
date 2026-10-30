@@ -14,6 +14,7 @@ import 'package:sacdia_app/features/notifications/domain/entities/notification_i
 import 'package:sacdia_app/features/notifications/domain/repositories/notifications_repository.dart';
 import 'package:sacdia_app/features/notifications/presentation/providers/notifications_providers.dart';
 import 'package:sacdia_app/features/notifications/presentation/providers/unread_notifications_count_provider.dart';
+import '../../support/riverpod_test_support.dart';
 
 class _FakeNotificationsRepository implements NotificationsRepository {
   @override
@@ -81,7 +82,7 @@ void main() {
       repository = _FakeNotificationsRepository();
       navigatorKey = GlobalKey<NavigatorState>();
       masterHonorInvalidations = 0;
-      container = ProviderContainer(
+      container = createTestContainer(
         overrides: [
           notificationsRepositoryProvider.overrideWithValue(repository),
           masterHonorsInvalidationProvider.overrideWithValue(
@@ -89,10 +90,6 @@ void main() {
           ),
         ],
       );
-    });
-
-    tearDown(() {
-      container.dispose();
     });
 
     testWidgets(

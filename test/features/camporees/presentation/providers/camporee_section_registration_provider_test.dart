@@ -12,6 +12,7 @@ import 'package:sacdia_app/features/camporees/domain/entities/camporee_payment.d
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_section_registration.dart';
 import 'package:sacdia_app/features/camporees/domain/repositories/camporees_repository.dart';
 import 'package:sacdia_app/features/camporees/presentation/providers/camporees_providers.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 const _camporeeId = 41;
 
@@ -379,12 +380,11 @@ void main() {
 }
 
 ProviderContainer _container(_FakeCamporeesRepository repository) {
-  final container = ProviderContainer(
+  final container = createTestContainer(
     overrides: [
       camporeesRepositoryProvider.overrideWithValue(repository),
     ],
   );
-  addTearDown(container.dispose);
   return container;
 }
 

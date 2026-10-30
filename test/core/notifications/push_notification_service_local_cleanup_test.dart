@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/notifications/push_notification_service.dart';
 
 import '../../support/http_adapters.dart';
+import '../../support/riverpod_test_support.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -21,8 +22,7 @@ void main() {
       final provider = Provider(
         (ref) => PushNotificationService(dio: dio, ref: ref),
       );
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+      final container = createTestContainer();
 
       // Firebase no está inicializado en tests: deleteToken() falla y el
       // servicio debe tragarse el error (best-effort).

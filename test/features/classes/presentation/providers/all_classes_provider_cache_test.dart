@@ -9,6 +9,7 @@ import 'package:sacdia_app/features/classes/domain/entities/progressive_class.da
 import 'package:sacdia_app/features/classes/domain/repositories/classes_repository.dart';
 import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
 import 'package:sacdia_app/providers/json_file_cache_provider.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _FakeClassesRepository implements ClassesRepository {
   int getClassesCalls = 0;
@@ -39,13 +40,12 @@ void main() {
     final cache = MemoryJsonFileCache();
     await cache.write(kAllClassesCacheKey, encodeClassCache([_seedClass]));
     final repository = _FakeClassesRepository()..catalog = [_realClass];
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         jsonFileCacheProvider.overrideWithValue(cache),
         classesRepositoryProvider.overrideWithValue(repository),
       ],
     );
-    addTearDown(container.dispose);
     container.listen(allClassesProvider, (_, __) {});
 
     final first = await container.read(allClassesProvider.future);
@@ -66,13 +66,12 @@ void main() {
   test('invalidate after the first read goes to the network', () async {
     final cache = MemoryJsonFileCache();
     final repository = _FakeClassesRepository()..catalog = [_seedClass];
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         jsonFileCacheProvider.overrideWithValue(cache),
         classesRepositoryProvider.overrideWithValue(repository),
       ],
     );
-    addTearDown(container.dispose);
     container.listen(allClassesProvider, (_, __) {});
 
     await container.read(allClassesProvider.future);

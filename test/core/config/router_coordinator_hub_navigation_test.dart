@@ -21,6 +21,7 @@ import 'package:sacdia_app/features/coordinator/presentation/views/coordinator_h
 import 'package:sacdia_app/features/coordinator/presentation/views/sla_dashboard_view.dart';
 
 import '../../features/coordinator/coordinator_test_harness.dart';
+import '../../support/riverpod_test_support.dart';
 
 const _user = UserEntity(
   id: 'u1',
@@ -63,7 +64,7 @@ void main() {
       'the hub is the home of a coordinator without a club and its drill-ins '
       'open from there', (tester) async {
     useTallSurface(tester);
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         authNotifierProvider.overrideWith(_FakeAuthNotifier.new),
         appBootstrapProvider.overrideWith(_ReadyBootstrap.new),
@@ -79,7 +80,6 @@ void main() {
     final router = container.read(routerProvider);
     addTearDown(() {
       router.dispose();
-      container.dispose();
     });
     await container.read(authNotifierProvider.future);
     await container.read(appBootstrapProvider.future);

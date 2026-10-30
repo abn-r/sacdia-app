@@ -8,6 +8,7 @@ import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.d
 import 'package:sacdia_app/features/post_registration/domain/entities/completion_status.dart';
 import 'package:sacdia_app/features/post_registration/domain/repositories/post_registration_repository.dart';
 import 'package:sacdia_app/features/post_registration/presentation/providers/post_registration_providers.dart';
+import '../../support/riverpod_test_support.dart';
 
 class _SwitchableAuthNotifier extends AuthNotifier {
   @override
@@ -46,7 +47,7 @@ void main() {
     String currentUserId() =>
         container.read(authNotifierProvider).valueOrNull!.id;
 
-    container = ProviderContainer(
+    container = createTestContainer(
       overrides: [
         authNotifierProvider.overrideWith(_SwitchableAuthNotifier.new),
         postRegistrationRepositoryProvider.overrideWith(
@@ -72,7 +73,6 @@ void main() {
         ),
       ],
     );
-    addTearDown(container.dispose);
 
     await container.read(authNotifierProvider.future);
     expect((await container.read(completionStatusProvider.future))?.currentStep,
@@ -86,7 +86,7 @@ void main() {
   });
 
   test('a failure surfaces as an error (never a null "no status")', () async {
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         authNotifierProvider.overrideWith(_SwitchableAuthNotifier.new),
         postRegistrationRepositoryProvider.overrideWith(
@@ -100,7 +100,6 @@ void main() {
         ),
       ],
     );
-    addTearDown(container.dispose);
     await container.read(authNotifierProvider.future);
 
     await expectLater(

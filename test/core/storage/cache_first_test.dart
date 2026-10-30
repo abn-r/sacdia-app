@@ -13,6 +13,7 @@ import 'package:sacdia_app/features/honors/domain/entities/honor.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor_category.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor_group.dart';
 import 'package:sacdia_app/providers/json_file_cache_provider.dart';
+import '../../support/riverpod_test_support.dart';
 
 int fetchCalls = 0;
 String fetchValue = 'fresh';
@@ -49,7 +50,6 @@ void main() {
     final cache = MemoryJsonFileCache();
     await cache.write('probe', 'saved');
     final container = _container(cache);
-    addTearDown(container.dispose);
 
     final value = await container.read(probeProvider.future);
 
@@ -62,7 +62,6 @@ void main() {
     await cache.write('probe', 'saved');
     fetchValue = 'live';
     final container = _container(cache);
-    addTearDown(container.dispose);
 
     expect(await container.read(probeProvider.future), 'saved');
     container.invalidate(probeProvider);
@@ -79,7 +78,6 @@ void main() {
     );
     fetchValue = 'new';
     final container = _container(cache);
-    addTearDown(container.dispose);
     container.listen(probeProvider, (_, __) {});
     container.listen(childProvider, (_, __) {});
 
@@ -105,7 +103,6 @@ void main() {
     );
     fetchFails = true;
     final container = _container(cache);
-    addTearDown(container.dispose);
     container.listen(probeProvider, (_, __) {});
 
     expect(await container.read(probeProvider.future), 'old');
@@ -180,7 +177,7 @@ void main() {
 }
 
 ProviderContainer _container(JsonFileCache cache) {
-  return ProviderContainer(
+  return createTestContainer(
     overrides: [
       jsonFileCacheProvider.overrideWithValue(cache),
     ],

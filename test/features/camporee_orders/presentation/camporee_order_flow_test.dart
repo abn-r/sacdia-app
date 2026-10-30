@@ -29,6 +29,7 @@ import 'package:sacdia_app/features/payment_orders/domain/entities/payment_order
 import 'package:sacdia_app/features/payment_orders/presentation/providers/payment_orders_providers.dart';
 import 'package:sacdia_app/features/payment_orders/presentation/views/payment_orders_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../support/riverpod_test_support.dart';
 
 const _scope = CamporeeOrdersScope(camporeeId: 41);
 
@@ -326,12 +327,11 @@ void main() {
   group('CamporeeOrderDraftNotifier', () {
     test('el payload de create no incluye montos ni ids de club', () async {
       final repository = _FakeOrdersRepository();
-      final container = ProviderContainer(
+      final container = createTestContainer(
         overrides: [
           camporeeOrdersRepositoryProvider.overrideWithValue(repository),
         ],
       );
-      addTearDown(container.dispose);
 
       final notifier =
           container.read(camporeeOrderDraftProvider(_scope).notifier);
@@ -377,12 +377,11 @@ void main() {
 
     test('bloquea un segundo submit mientras isSubmitting', () async {
       final repository = _FakeOrdersRepository();
-      final container = ProviderContainer(
+      final container = createTestContainer(
         overrides: [
           camporeeOrdersRepositoryProvider.overrideWithValue(repository),
         ],
       );
-      addTearDown(container.dispose);
       final notifier =
           container.read(camporeeOrderDraftProvider(_scope).notifier);
       notifier.upsertLine(

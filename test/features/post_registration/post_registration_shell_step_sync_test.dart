@@ -10,6 +10,7 @@ import 'package:sacdia_app/features/post_registration/presentation/providers/pos
 import 'package:sacdia_app/features/post_registration/presentation/views/post_registration_shell.dart';
 import 'package:sacdia_app/providers/storage_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../support/riverpod_test_support.dart';
 
 class _FakeAuthNotifier extends AuthNotifier {
   @override
@@ -47,7 +48,7 @@ void main() {
   testWidgets('keeps footer navigation in sync with the visible club step',
       (tester) async {
     final prefs = await SharedPreferences.getInstance();
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         authNotifierProvider.overrideWith(_FakeAuthNotifier.new),
         sharedPreferencesProvider.overrideWithValue(prefs),
@@ -57,7 +58,6 @@ void main() {
         countriesProvider.overrideWith((ref) async => const []),
       ],
     );
-    addTearDown(container.dispose);
 
     await tester.pumpWidget(
       UncontrolledProviderScope(

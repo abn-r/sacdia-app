@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/notifications/push_notification_service.dart';
+import '../../support/riverpod_test_support.dart';
 
 void main() {
   group('PushNotificationService investiture results', () {
@@ -16,7 +17,7 @@ void main() {
 
     setUp(() {
       navigatorKey = GlobalKey<NavigatorState>();
-      container = ProviderContainer();
+      container = createTestContainer();
       service = container.read(
         Provider<PushNotificationService>(
           (ref) => PushNotificationService(
@@ -28,8 +29,6 @@ void main() {
       );
       visited = [];
     });
-
-    tearDown(() => container.dispose());
 
     Future<void> pumpApp(WidgetTester tester) async {
       Page<void> stub(GoRouterState state) {

@@ -23,6 +23,7 @@ import 'package:sacdia_app/features/materials/presentation/providers/create_orde
 import 'package:sacdia_app/features/materials/presentation/views/order_summary_view.dart';
 import 'package:sacdia_app/features/members/presentation/providers/members_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _FileAssetLoader extends AssetLoader {
   const _FileAssetLoader();
@@ -88,7 +89,7 @@ void main() {
   });
 
   Future<GoRouter> pumpFlow(WidgetTester tester, {String? folio}) async {
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         createOrderProvider.overrideWith(() => _FakeCreateOrder(folio)),
         clubContextProvider.overrideWith(
@@ -103,7 +104,6 @@ void main() {
         ),
       ],
     );
-    addTearDown(container.dispose);
     container.listen(cartProvider, (_, __) {});
     container.read(cartProvider.notifier).addLine(_item);
 

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 void main() {
   const catalog = [
@@ -27,7 +28,7 @@ void main() {
   ];
 
   ProviderContainer createContainer({int? activeClubTypeId}) {
-    return ProviderContainer(
+    return createTestContainer(
       overrides: [
         activeHonorCatalogClubTypeIdProvider.overrideWith(
           (ref) => AsyncValue.data(activeClubTypeId),
@@ -40,7 +41,6 @@ void main() {
   test('falls back to all honors when there is no active section context',
       () async {
     final container = createContainer();
-    addTearDown(container.dispose);
 
     await container.read(allHonorsProvider.future);
 
@@ -58,7 +58,6 @@ void main() {
 
   test('locks catalog to exact active Adventurer club type', () async {
     final container = createContainer(activeClubTypeId: 1);
-    addTearDown(container.dispose);
 
     await container.read(allHonorsProvider.future);
     container.read(selectedCategoryProvider.notifier).state = 7;
@@ -71,7 +70,6 @@ void main() {
 
   test('locks catalog to exact active Pathfinder club type', () async {
     final container = createContainer(activeClubTypeId: 2);
-    addTearDown(container.dispose);
 
     await container.read(allHonorsProvider.future);
 
@@ -84,7 +82,6 @@ void main() {
   test('allows Master Guide section to see Pathfinder and Master Guide honors',
       () async {
     final container = createContainer(activeClubTypeId: 3);
-    addTearDown(container.dispose);
 
     await container.read(allHonorsProvider.future);
 
@@ -96,7 +93,7 @@ void main() {
 
   test('filters user honor progress by active Master Guide section', () async {
     final now = DateTime(2026, 6, 12);
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         activeHonorCatalogClubTypeIdProvider.overrideWith(
           (ref) => const AsyncValue.data(3),
@@ -128,7 +125,6 @@ void main() {
         ),
       ],
     );
-    addTearDown(container.dispose);
 
     await container.read(userHonorsProvider.future);
     final honors = container.read(sectionScopedUserHonorsProvider).requireValue;

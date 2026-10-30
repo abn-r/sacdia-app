@@ -37,7 +37,6 @@ void main() {
   test('markLegalAccepted clears the flag and keeps the rest of the user',
       () async {
     final container = await buildAuthContainer(repo: _OnlineRepository());
-    addTearDown(container.dispose);
     final states = <AsyncValue<UserEntity?>>[];
     container.listen(authNotifierProvider, (_, next) => states.add(next));
 
@@ -57,7 +56,6 @@ void main() {
 
   test('markPostRegisterComplete/Incomplete carry the pending flag', () async {
     final container = await buildAuthContainer(repo: _OnlineRepository());
-    addTearDown(container.dispose);
     await container.read(authNotifierProvider.future);
     final notifier = container.read(authNotifierProvider.notifier);
 
@@ -85,7 +83,6 @@ void main() {
       storage: storage,
       prefs: prefs,
     );
-    addTearDown(container.dispose);
 
     final user = await container.read(authNotifierProvider.future);
 

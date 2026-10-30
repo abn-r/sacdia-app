@@ -32,6 +32,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../features/auth/presentation/providers/auth_notifier_test_support.dart'
     show FakeNotificationsRepository, FakePushNotificationService;
 import '../../features/family/family_test_harness.dart';
+import '../../support/riverpod_test_support.dart';
 
 /// FP3-28: tras subir la versión de Términos y Privacidad TODOS pasan por un
 /// gate duro: el adulto, el adolescente pendiente de tutor y el tutor que
@@ -183,7 +184,7 @@ void main() {
     final auth = _Auth(user);
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
-    final c = ProviderContainer(
+    final c = createTestContainer(
       overrides: [
         pushNotificationServiceProvider.overrideWith(
           (ref) => FakePushNotificationService(ref: ref, prefs: prefs),
@@ -201,7 +202,6 @@ void main() {
     );
     addTearDown(() {
       c.read(routerProvider).dispose();
-      c.dispose();
     });
     await c.read(authNotifierProvider.future);
     final router = c.read(routerProvider);

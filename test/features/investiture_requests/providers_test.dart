@@ -7,16 +7,16 @@ import 'package:sacdia_app/features/investiture_requests/domain/entities/person_
 import 'package:sacdia_app/features/investiture_requests/presentation/providers/investiture_requests_providers.dart';
 
 import 'fake_investiture_requests_repository.dart';
+import '../../support/riverpod_test_support.dart';
 
 const _query = SectionYearQuery(sectionId: 4, yearId: 9);
 
 ProviderContainer _container(FakeInvestitureRequestsRepository repo) {
-  final container = ProviderContainer(
+  final container = createTestContainer(
     overrides: [
       investitureRequestsRepositoryProvider.overrideWithValue(repo),
     ],
   );
-  addTearDown(container.dispose);
   return container;
 }
 

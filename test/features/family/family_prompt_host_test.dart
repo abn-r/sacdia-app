@@ -9,6 +9,7 @@ import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/family/presentation/widgets/family_prompt_host.dart';
 
 import 'family_test_harness.dart';
+import '../../support/riverpod_test_support.dart';
 
 UserEntity _user({
   String id = 'guardian-1',
@@ -118,10 +119,9 @@ void hostTests() {
       auth = _MutableAuth(
         const UserEntity(id: 'guardian-1', name: 'María'),
       );
-      final container = ProviderContainer(
+      final container = createTestContainer(
         overrides: [authNotifierProvider.overrideWith(() => auth)],
       );
-      addTearDown(container.dispose);
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,

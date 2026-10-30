@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/usecases/cancellation_token.dart';
 import 'package:sacdia_app/features/payment_orders/domain/entities/payment_order.dart';
 import 'package:sacdia_app/features/payment_orders/domain/repositories/payment_orders_repository.dart';
 import 'package:sacdia_app/features/payment_orders/presentation/providers/payment_orders_providers.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 PaymentOrder _order({String id = 'order-1'}) => PaymentOrder(
       orderId: id,
@@ -134,12 +135,11 @@ void main() {
 
   setUp(() {
     repository = _FakeRepository();
-    container = ProviderContainer(
+    container = createTestContainer(
       overrides: [
         paymentOrdersRepositoryProvider.overrideWithValue(repository),
       ],
     );
-    addTearDown(container.dispose);
   });
 
   group('IssueOrderNotifier', () {

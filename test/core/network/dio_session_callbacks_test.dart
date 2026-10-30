@@ -13,6 +13,7 @@ import 'package:sacdia_app/features/virtual_card/presentation/providers/virtual_
 import 'package:sacdia_app/providers/dio_provider.dart';
 
 import '../../support/http_adapters.dart';
+import '../../support/riverpod_test_support.dart';
 
 /// S3 (verify 2b): las instancias de Dio de la credencial virtual y de QR se
 /// creaban sin `onAuthExpired` / `onActingForbidden`. Un 403
@@ -56,7 +57,7 @@ void main() {
     FlutterSecureStorage.setMockInitialValues({});
     auth = _RecordingAuth();
     session = ActingForSession();
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         authNotifierProvider.overrideWith(() => auth),
         actingForSessionProvider.overrideWithValue(session),
@@ -64,7 +65,6 @@ void main() {
           sessionModeProvider.overrideWith((ref) => SessionMode.device),
       ],
     );
-    addTearDown(container.dispose);
     return container;
   }
 

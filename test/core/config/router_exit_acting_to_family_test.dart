@@ -17,6 +17,7 @@ import 'package:sacdia_app/features/profile/domain/entities/user_detail.dart';
 import 'package:sacdia_app/features/profile/presentation/providers/profile_providers.dart';
 
 import '../../features/family/family_test_harness.dart';
+import '../../support/riverpod_test_support.dart';
 
 /// Sale de "actuar por" como el AuthNotifier real: la sesión sale, el estado
 /// pasa a carga y `/auth/me` del tutor se vuelve a pedir DESPUÉS de que
@@ -110,7 +111,7 @@ void main() {
       ..enter(const ActingDependent(userId: 'ana-1', firstName: 'Ana'));
     final auth = _ExitingAuth(session, _guardian, _pendingMinor);
 
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         authNotifierProvider.overrideWith(() => auth),
         appBootstrapProvider.overrideWith(_ReadyBootstrap.new),
@@ -121,7 +122,6 @@ void main() {
     );
     addTearDown(() {
       container.read(routerProvider).dispose();
-      container.dispose();
     });
     await container.read(authNotifierProvider.future);
 

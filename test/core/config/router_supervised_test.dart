@@ -28,6 +28,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../features/auth/presentation/providers/auth_notifier_test_support.dart'
     show FakeNotificationsRepository;
 import '../../features/family/family_test_harness.dart';
+import '../../support/riverpod_test_support.dart';
 
 UserEntity _user({
   required AccountMode mode,
@@ -112,7 +113,7 @@ void main() {
         ),
       ),
     );
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         authNotifierProvider.overrideWith(() => _GatedAuth(user)),
         appBootstrapProvider.overrideWith(_ReadyBootstrap.new),
@@ -122,7 +123,6 @@ void main() {
     );
     addTearDown(() {
       container.read(routerProvider).dispose();
-      container.dispose();
     });
     await container.read(authNotifierProvider.future);
     await container.read(appBootstrapProvider.future);
@@ -285,7 +285,7 @@ void main() {
       addTearDown(tester.view.reset);
 
       final gate = Completer<void>();
-      final container = ProviderContainer(
+      final container = createTestContainer(
         overrides: [
           authNotifierProvider.overrideWith(() => _GatedAuth(user, gate: gate)),
           appBootstrapProvider.overrideWith(_ReadyBootstrap.new),
@@ -297,7 +297,6 @@ void main() {
       );
       addTearDown(() {
         container.read(routerProvider).dispose();
-        container.dispose();
       });
       final push = PushNotificationService(
         dio: Dio(),
@@ -357,7 +356,7 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
       final gate = Completer<void>();
-      final container = ProviderContainer(
+      final container = createTestContainer(
         overrides: [
           authNotifierProvider.overrideWith(() => _GatedAuth(null, gate: gate)),
           appBootstrapProvider.overrideWith(_ReadyBootstrap.new),
@@ -366,7 +365,6 @@ void main() {
       );
       addTearDown(() {
         container.read(routerProvider).dispose();
-        container.dispose();
       });
       final router = container.read(routerProvider);
       await pumpLocalizedRouterApp(tester, container, router);

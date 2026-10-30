@@ -36,6 +36,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../features/auth/presentation/providers/auth_notifier_test_support.dart'
     show FakeNotificationsRepository, FakeSecureStorage;
 import '../family/family_test_harness.dart';
+import '../../support/riverpod_test_support.dart';
 
 /// App Store 5.1.1(v): quien se registra con Apple/Google (`age_unknown_user`)
 /// debe poder borrar su cuenta desde el post-registro. Router y shell REALES.
@@ -176,7 +177,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     final auth = _Auth(user);
-    final c = ProviderContainer(
+    final c = createTestContainer(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         secureStorageProvider.overrideWithValue(FakeSecureStorage()),
@@ -198,7 +199,6 @@ void main() {
     );
     addTearDown(() {
       c.read(routerProvider).dispose();
-      c.dispose();
     });
     await c.read(authNotifierProvider.future);
     final router = c.read(routerProvider);

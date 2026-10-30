@@ -9,6 +9,7 @@ import 'package:sacdia_app/features/coordinator/domain/entities/evidence_review_
 import 'package:sacdia_app/features/coordinator/presentation/providers/coordinator_providers.dart';
 
 import '../../coordinator_test_harness.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 EvidenceReviewItem _item(int i) => EvidenceReviewItem(
       id: '$i',
@@ -22,10 +23,9 @@ EvidenceReviewItem _item(int i) => EvidenceReviewItem(
 final _all = [for (var i = 0; i < 45; i++) _item(i)];
 
 ProviderContainer _container(PendingPageLoader loader) {
-  final container = ProviderContainer(
+  final container = createTestContainer(
     overrides: [pendingEvidenceOverride(loader)],
   );
-  addTearDown(container.dispose);
   // Keep the autoDispose family alive between reads.
   container.listen(pendingEvidenceProvider(null), (_, __) {});
   return container;

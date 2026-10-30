@@ -45,7 +45,6 @@ void main() {
     test('passes the handle through untouched and succeeds', () async {
       final repo = _Repo(const Right(_teen));
       final container = await buildAuthContainer(repo: repo);
-      addTearDown(container.dispose);
       await container.read(authNotifierProvider.future);
 
       final ok = await container
@@ -67,7 +66,6 @@ void main() {
         ),
       ));
       final container = await buildAuthContainer(repo: repo);
-      addTearDown(container.dispose);
       await container.read(authNotifierProvider.future);
 
       final ok = await container
@@ -83,7 +81,6 @@ void main() {
     test('a new attempt clears the pending revoked-access notice', () async {
       final repo = _Repo(const Right(_teen));
       final container = await buildAuthContainer(repo: repo);
-      addTearDown(container.dispose);
       await container.read(authNotifierProvider.future);
       container.read(loginNoticeProvider.notifier).state =
           LoginNotice.supervisedAccessRevoked;
@@ -105,7 +102,6 @@ void main() {
       await storage.write(AppConstants.cachedUserName, 'Ana');
       await storage.write(AppConstants.cachedActiveAssignmentId, 'a-1');
       final container = await buildAuthContainer(repo: repo, storage: storage);
-      addTearDown(container.dispose);
       expect(
         (await container.read(authNotifierProvider.future))?.id,
         'teen-1',

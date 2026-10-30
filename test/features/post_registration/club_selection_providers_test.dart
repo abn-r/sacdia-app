@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
@@ -9,6 +8,7 @@ import 'package:sacdia_app/features/post_registration/presentation/providers/clu
 import 'package:sacdia_app/features/post_registration/presentation/providers/personal_info_providers.dart';
 import 'package:sacdia_app/providers/catalogs_provider.dart';
 import 'package:sacdia_app/shared/models/catalogs/ecclesiastical_year_model.dart';
+import '../../support/riverpod_test_support.dart';
 
 class _FakeAuthNotifier extends AuthNotifier {
   @override
@@ -44,7 +44,7 @@ void main() {
     test(
         'user age falls back to the saved personal info snapshot once the '
         'personal info form is disposed', () async {
-      final container = ProviderContainer(
+      final container = createTestContainer(
         overrides: [
           authNotifierProvider.overrideWith(_FakeAuthNotifier.new),
           currentEcclesiasticalYearProvider.overrideWith((ref) async {
@@ -61,7 +61,6 @@ void main() {
           }),
         ],
       );
-      addTearDown(container.dispose);
 
       final subscription = container.listen(userAgeProvider, (_, __) {});
       addTearDown(subscription.close);
@@ -91,7 +90,7 @@ void main() {
 
     test('derive club section from age without a manual override state',
         () async {
-      final container = ProviderContainer(
+      final container = createTestContainer(
         overrides: [
           userAgeProvider.overrideWith((ref) => 12),
           selectedClubProvider.overrideWith((ref) => 10),
@@ -122,7 +121,6 @@ void main() {
           }),
         ],
       );
-      addTearDown(container.dispose);
 
       await container.read(clubSectionsProvider.future);
 
@@ -146,7 +144,7 @@ void main() {
           ],
         ),
       );
-      final container = ProviderContainer(
+      final container = createTestContainer(
         overrides: [
           authNotifierProvider.overrideWith(() => _UserAuthNotifier(director)),
           // 42 years old: age alone would pick Master Guides (section 3).
@@ -155,7 +153,6 @@ void main() {
           clubSectionsProvider.overrideWith((ref) async => _threeSections()),
         ],
       );
-      addTearDown(container.dispose);
 
       await container.read(authNotifierProvider.future);
       await container.read(clubSectionsProvider.future);
@@ -179,7 +176,7 @@ void main() {
           ],
         ),
       );
-      final container = ProviderContainer(
+      final container = createTestContainer(
         overrides: [
           authNotifierProvider.overrideWith(() => _UserAuthNotifier(former)),
           userAgeProvider.overrideWith((ref) => 42),
@@ -187,7 +184,6 @@ void main() {
           clubSectionsProvider.overrideWith((ref) async => _threeSections()),
         ],
       );
-      addTearDown(container.dispose);
 
       await container.read(authNotifierProvider.future);
       await container.read(clubSectionsProvider.future);
@@ -197,7 +193,7 @@ void main() {
 
     test('derive progressive class from age without a manual override state',
         () async {
-      final container = ProviderContainer(
+      final container = createTestContainer(
         overrides: [
           userAgeProvider.overrideWith((ref) => 12),
           selectedClubProvider.overrideWith((ref) => 10),
@@ -242,7 +238,6 @@ void main() {
           }),
         ],
       );
-      addTearDown(container.dispose);
 
       await container.read(clubSectionsProvider.future);
       await container.read(classesProvider.future);

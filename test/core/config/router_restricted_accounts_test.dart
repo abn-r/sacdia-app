@@ -30,6 +30,7 @@ import 'package:sacdia_app/features/teen/presentation/views/teen_pending_home_vi
 import '../../features/auth/presentation/providers/auth_notifier_test_support.dart'
     show FakeNotificationsRepository;
 import '../../features/family/family_test_harness.dart';
+import '../../support/riverpod_test_support.dart';
 
 /// Cuenta sin fecha de nacimiento (alta nueva con Google/Apple) y cuenta con un
 /// principal que la app no conoce: ambas fallan cerrado en el router REAL.
@@ -149,7 +150,7 @@ void main() {
     tester.view.devicePixelRatio = 2;
     addTearDown(tester.view.reset);
     final auth = _Auth(user);
-    final c = ProviderContainer(
+    final c = createTestContainer(
       overrides: [
         authNotifierProvider.overrideWith(() => auth),
         appBootstrapProvider.overrideWith(_Ready.new),
@@ -164,7 +165,6 @@ void main() {
     );
     addTearDown(() {
       c.read(routerProvider).dispose();
-      c.dispose();
     });
     await c.read(authNotifierProvider.future);
     final router = c.read(routerProvider);

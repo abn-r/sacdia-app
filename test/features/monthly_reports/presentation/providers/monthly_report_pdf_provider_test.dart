@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/usecases/cancellation_token.dart';
 import 'package:sacdia_app/features/monthly_reports/domain/entities/monthly_report.dart';
 import 'package:sacdia_app/features/monthly_reports/domain/repositories/monthly_reports_repository.dart';
 import 'package:sacdia_app/features/monthly_reports/presentation/providers/monthly_reports_providers.dart';
+import '../../../../support/riverpod_test_support.dart';
 
 class _SlowPdfRepository implements MonthlyReportsRepository {
   final Completer<String> _downloadCompleter = Completer<String>();
@@ -80,12 +80,11 @@ void main() {
     'keeps the PDF download alive when it is started from an imperative read',
     () async {
       final repository = _SlowPdfRepository();
-      final container = ProviderContainer(
+      final container = createTestContainer(
         overrides: [
           monthlyReportsRepositoryProvider.overrideWithValue(repository),
         ],
       );
-      addTearDown(container.dispose);
 
       final future =
           container.read(monthlyReportPdfProvider('report-1').future);

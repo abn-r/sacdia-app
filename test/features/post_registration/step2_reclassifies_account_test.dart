@@ -35,6 +35,7 @@ import '../../features/auth/presentation/providers/auth_notifier_test_support.da
         FakePushNotificationService,
         FakeSecureStorage;
 import '../family/family_test_harness.dart';
+import '../../support/riverpod_test_support.dart';
 
 /// Un alta nueva con Google/Apple no trae fecha de nacimiento (modo
 /// `profile_incomplete`). Al guardar el paso 2 el cliente vuelve a pedir
@@ -203,7 +204,7 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     final auth = _Auth(afterStep2: afterStep2);
     final flow = _FlowCalls();
-    final c = ProviderContainer(
+    final c = createTestContainer(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         secureStorageProvider.overrideWithValue(FakeSecureStorage()),
@@ -228,7 +229,6 @@ void main() {
     );
     addTearDown(() {
       c.read(routerProvider).dispose();
-      c.dispose();
     });
     await c.read(authNotifierProvider.future);
     final router = c.read(routerProvider);

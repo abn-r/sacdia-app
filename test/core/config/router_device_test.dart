@@ -16,6 +16,7 @@ import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.d
 import 'package:sacdia_app/features/device_mode/presentation/providers/device_notice_provider.dart';
 import 'package:sacdia_app/providers/storage_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../support/riverpod_test_support.dart';
 
 UserEntity _device({
   bool postRegisterComplete = true,
@@ -84,7 +85,7 @@ void main() {
     );
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
-    final container = ProviderContainer(
+    final container = createTestContainer(
       overrides: [
         authNotifierProvider.overrideWith(() => _GatedAuth(user, gate: gate)),
         appBootstrapProvider.overrideWith(_ReadyBootstrap.new),
@@ -93,7 +94,6 @@ void main() {
     );
     addTearDown(() {
       container.read(routerProvider).dispose();
-      container.dispose();
     });
     if (gate == null) await container.read(authNotifierProvider.future);
     await container.read(appBootstrapProvider.future);

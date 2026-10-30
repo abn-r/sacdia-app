@@ -58,7 +58,6 @@ void main() {
       setUp() async {
     final repo = _Repo();
     final container = await buildAuthContainer(repo: repo);
-    addTearDown(container.dispose);
     await container.read(authNotifierProvider.future);
     return (
       repo: repo,

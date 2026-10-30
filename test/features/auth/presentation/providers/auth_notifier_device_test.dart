@@ -163,7 +163,6 @@ void main() {
             .overrideWithValue([...profileScopedProviders, _sentinel]),
       ],
     );
-    addTearDown(container.dispose);
     await container.read(authNotifierProvider.future);
     return (
       container: container,
@@ -497,7 +496,6 @@ void main() {
     final repo = _Repo(storage)..me = const Right(_deviceUser);
     await storage.write(AppConstants.tokenKey, 't');
     final container = await buildAuthContainer(repo: repo, storage: storage);
-    addTearDown(container.dispose);
     await container.read(authNotifierProvider.future);
 
     final outcome = await container

@@ -56,7 +56,6 @@ void main() {
 
     Future<void> boot(UserEntity user) async {
       container = await buildAuthContainer(repo: _SessionRepo(user));
-      addTearDown(container.dispose);
       await container.read(authNotifierProvider.future);
     }
 

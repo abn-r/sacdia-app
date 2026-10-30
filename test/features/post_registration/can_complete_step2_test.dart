@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/post_registration/data/models/emergency_contact_model.dart';
 import 'package:sacdia_app/features/post_registration/presentation/providers/personal_info_providers.dart';
+import '../../support/riverpod_test_support.dart';
 
 class _FakeContacts extends EmergencyContactsNotifier {
   _FakeContacts(this._contacts);
@@ -21,7 +22,7 @@ ProviderContainer _container({
   PersonalInfoFormState? form,
   List<EmergencyContactModel> contacts = const [_contact],
 }) {
-  final container = ProviderContainer(
+  final container = createTestContainer(
     overrides: [
       personalInfoFormProvider.overrideWith(
         (ref) =>
@@ -34,7 +35,6 @@ ProviderContainer _container({
       emergencyContactsProvider.overrideWith(() => _FakeContacts(contacts)),
     ],
   );
-  addTearDown(container.dispose);
   return container;
 }
 

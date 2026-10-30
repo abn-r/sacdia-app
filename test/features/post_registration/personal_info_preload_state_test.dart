@@ -5,6 +5,7 @@ import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.d
 import 'package:sacdia_app/features/post_registration/presentation/providers/personal_info_providers.dart';
 import 'package:sacdia_app/providers/storage_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../support/riverpod_test_support.dart';
 
 class _FakeAuthNotifier extends AuthNotifier {
   @override
@@ -43,13 +44,12 @@ void main() {
 
     test('persists explicit none declarations per user and category', () async {
       final prefs = await SharedPreferences.getInstance();
-      final container = ProviderContainer(
+      final container = createTestContainer(
         overrides: [
           authNotifierProvider.overrideWith(_FakeAuthNotifier.new),
           sharedPreferencesProvider.overrideWithValue(prefs),
         ],
       );
-      addTearDown(container.dispose);
 
       final initial = await container.read(healthNoneStateProvider.future);
       expect(initial.allergies, isFalse);

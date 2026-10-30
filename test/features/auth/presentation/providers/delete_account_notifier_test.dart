@@ -44,7 +44,6 @@ void main() {
 
   Future<ProviderContainer> build(_DeleteRepo repo) async {
     final container = await buildAuthContainer(repo: repo);
-    addTearDown(container.dispose);
     await container.read(authNotifierProvider.future);
     return container;
   }
