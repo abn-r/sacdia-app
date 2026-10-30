@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/widgets/evidence_staging/evidence_staging_manager.dart';
 import 'package:sacdia_app/features/activities/domain/entities/activity.dart';
 import 'package:sacdia_app/features/activities/presentation/providers/activities_providers.dart';
+import 'package:sacdia_app/features/auth/domain/entities/pending_club_membership.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/classes/domain/entities/class_requirement.dart';
 import 'package:sacdia_app/features/classes/domain/entities/class_with_progress.dart';
@@ -65,8 +66,12 @@ void main() {
     bool qrFails = false,
     FakeDeviceAuth? authOverride,
     int? clubId = 7,
+    PendingClubMembership? pending,
   }) {
-    auth = authOverride ?? FakeDeviceAuth(deviceUser(clubId: clubId));
+    auth = authOverride ??
+        FakeDeviceAuth(
+          deviceUser(clubId: clubId, pendingClubMembership: pending),
+        );
     return [
       authNotifierProvider.overrideWith(() => auth),
       userClassesProvider.overrideWith((ref) async {
@@ -525,6 +530,65 @@ void main() {
           overrides: base(clubId: null));
       expect(
           find.byKey(const ValueKey('device_agenda_no_club')), findsOneWidget);
+    });
+
+    testWidgets('without a club but with a pending request it says so',
+        (tester) async {
+      await pump(
+        tester,
+        const DeviceAgendaView(),
+        overrides: base(
+          clubId: null,
+          pending: const PendingClubMembership(
+            clubName: 'Club Panteras',
+            clubTypeName: 'Aventureros',
+            clubSectionId: 166,
+          ),
+        ),
+      );
+      expect(
+          find.byKey(const ValueKey('device_agenda_pending')), findsOneWidget);
+      expect(find.text('Tu solicitud está en revisión'), findsOneWidget);
+      expect(
+        find.text(
+          'Pediste unirte a Club Panteras (Aventureros). Verás aquí sus '
+          'actividades cuando te acepten.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(const ValueKey('device_agenda_no_club')), findsNothing);
+    });
+
+    testWidgets('a pending request without a type uses the short body',
+        (tester) async {
+      await pump(
+        tester,
+        const DeviceAgendaView(),
+        overrides: base(
+          clubId: null,
+          pending: const PendingClubMembership(clubName: 'Club Panteras'),
+        ),
+      );
+      expect(
+        find.text(
+          'Pediste unirte a Club Panteras. Verás aquí sus actividades cuando '
+          'te acepten.',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a pending request never hides an active club agenda',
+        (tester) async {
+      await pump(
+        tester,
+        const DeviceAgendaView(),
+        overrides: base(
+          pending: const PendingClubMembership(clubName: 'Club Panteras'),
+        ),
+      );
+      expect(find.byKey(const ValueKey('device_agenda_pending')), findsNothing);
+      expect(find.text('Campamento'), findsOneWidget);
     });
 
     testWidgets('with nothing coming up it says so', (tester) async {

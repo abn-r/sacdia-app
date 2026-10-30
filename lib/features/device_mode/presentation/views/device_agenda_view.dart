@@ -13,6 +13,7 @@ import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../activities/domain/entities/activity.dart';
 import '../../../activities/presentation/providers/activities_providers.dart';
+import '../../../auth/domain/entities/pending_club_membership.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 
 /// Agenda del club del menor: fecha, título y lugar. Sin listas de asistentes
@@ -27,6 +28,9 @@ class DeviceAgendaView extends ConsumerWidget {
     final clubId = ref.watch(
       authNotifierProvider.select((v) => v.valueOrNull?.deviceClubId),
     );
+    final pending = ref.watch(
+      authNotifierProvider.select((v) => v.valueOrNull?.pendingClubMembership),
+    );
 
     return Scaffold(
       backgroundColor: c.background,
@@ -34,16 +38,45 @@ class DeviceAgendaView extends ConsumerWidget {
         title: 'device.agenda.title'.tr(),
         automaticallyImplyLeading: false,
       ),
-      // `/auth/me` solo trae el club de la asignación activa: el teléfono no
-      // distingue «sin club» de «solicitud pendiente», así que el texto vale
-      // para ambos casos.
-      body: clubId == null
-          ? SacEmptyState(
-              key: const ValueKey('device_agenda_no_club'),
-              title: 'device.agenda.no_club'.tr(),
-              icon: HugeIcons.strokeRoundedCalendar01,
-            )
-          : _AgendaList(clubId: clubId),
+      // `/auth/me` solo trae el club de la asignación activa. Sin club, la
+      // solicitud propia pendiente (`pending_club_membership`, ausente en un
+      // servidor anterior) distingue «en revisión» de «sin club».
+      body: clubId != null
+          ? _AgendaList(clubId: clubId)
+          : pending != null
+              ? _PendingRequest(pending: pending)
+              : SacEmptyState(
+                  key: const ValueKey('device_agenda_no_club'),
+                  title: 'device.agenda.no_club'.tr(),
+                  icon: HugeIcons.strokeRoundedCalendar01,
+                ),
+    );
+  }
+}
+
+/// Sin club activo pero con una solicitud de ingreso en revisión.
+class _PendingRequest extends StatelessWidget {
+  const _PendingRequest({required this.pending});
+
+  final PendingClubMembership pending;
+
+  @override
+  Widget build(BuildContext context) {
+    final type = pending.clubTypeName;
+    final hasType = type != null && type.isNotEmpty;
+    return SacEmptyState(
+      key: const ValueKey('device_agenda_pending'),
+      title: 'device.agenda.pending_title'.tr(),
+      body: (hasType
+              ? 'device.agenda.pending_body'
+              : 'device.agenda.pending_body_no_type')
+          .tr(
+        namedArgs: {
+          'club': pending.clubName,
+          if (hasType) 'type': type,
+        },
+      ),
+      icon: HugeIcons.strokeRoundedClock01,
     );
   }
 }

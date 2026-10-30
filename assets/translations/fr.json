@@ -4061,6 +4061,8 @@
     "pending_state": {
       "title": "Demande envoyée",
       "body": "Votre demande pour rejoindre le club a été envoyée. Le directeur du club l'examinera bientôt. En attendant, vous pouvez enregistrer votre formation personnelle depuis votre profil.",
+      "body_club": "Vous avez demandé à rejoindre {club} ({type}). Le directeur du club examinera bientôt votre demande. En attendant, vous pouvez enregistrer votre formation personnelle depuis votre profil.",
+      "body_club_no_type": "Vous avez demandé à rejoindre {club}. Le directeur du club examinera bientôt votre demande. En attendant, vous pouvez enregistrer votre formation personnelle depuis votre profil.",
       "body_acting": "La demande de {name} pour rejoindre le club a été envoyée. Le directeur l'examinera avec la fiche de consentement signée. Si vous ne l'avez pas encore remise, apportez-la au club ou téléversez-la depuis Ma famille.",
       "profile_action": "Aller à mon profil",
       "family_action_acting": "Aller à Ma famille",
@@ -5848,6 +5850,9 @@
       "empty": "Il n'y a pas d'activités à venir.",
       "error": "Nous n'avons pas pu charger l'agenda.",
       "no_club": "Tu verras ici les activités de ton club dès que celui-ci t'aura accepté.",
+      "pending_title": "Ta demande est en cours d'examen",
+      "pending_body": "Tu as demandé à rejoindre {club} ({type}). Tu verras ici ses activités dès que tu auras été accepté.",
+      "pending_body_no_type": "Tu as demandé à rejoindre {club}. Tu verras ici ses activités dès que tu auras été accepté.",
       "detail_title": "Activité",
       "detail_error": "Nous n'avons pas pu charger cette activité."
     },

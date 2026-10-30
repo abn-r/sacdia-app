@@ -4062,6 +4062,8 @@
     "pending_state": {
       "title": "Solicitud enviada",
       "body": "Tu solicitud para unirte al club fue enviada. El director del club la revisará pronto. Mientras tanto, puedes registrar tu formación personal desde tu perfil.",
+      "body_club": "Pediste unirte a {club} ({type}). El director del club revisará tu solicitud pronto. Mientras tanto, puedes registrar tu formación personal desde tu perfil.",
+      "body_club_no_type": "Pediste unirte a {club}. El director del club revisará tu solicitud pronto. Mientras tanto, puedes registrar tu formación personal desde tu perfil.",
       "body_acting": "La solicitud de {name} para unirse al club fue enviada. El director la revisará junto con la ficha de consentimiento firmada. Si aún no la entregas, llévala al club o súbela desde Mi familia.",
       "profile_action": "Ir a mi perfil",
       "family_action_acting": "Ir a Mi familia",
@@ -5850,6 +5852,9 @@
       "empty": "No hay actividades próximas.",
       "error": "No pudimos cargar la agenda.",
       "no_club": "Verás aquí las actividades de tu club cuando te acepten.",
+      "pending_title": "Tu solicitud está en revisión",
+      "pending_body": "Pediste unirte a {club} ({type}). Verás aquí sus actividades cuando te acepten.",
+      "pending_body_no_type": "Pediste unirte a {club}. Verás aquí sus actividades cuando te acepten.",
       "detail_title": "Actividad",
       "detail_error": "No pudimos cargar esta actividad."
     },

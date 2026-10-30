@@ -13,6 +13,7 @@ import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
+import '../../../auth/domain/entities/pending_club_membership.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../auth/presentation/providers/acting_providers.dart';
@@ -70,6 +71,14 @@ class DashboardView extends ConsumerWidget {
               );
               if (statusGrant?.isPending ?? false) {
                 return const _PendingMembershipDashboardState();
+              }
+              // Adolescente supervisado sin club con solicitud propia en
+              // revisión (`/auth/me.pending_club_membership`): sin concesión
+              // pendiente en `authorization`, así se evita el error genérico.
+              final pendingClub = user?.pendingClubMembership;
+              if (pendingClub != null && (user?.isSupervisedTeen ?? false)) {
+                return _PendingMembershipDashboardState(
+                    pendingClub: pendingClub);
               }
               if (statusGrant?.isInactive ?? false) {
                 // Ghost: member belongs to a club but not enrolled this year.
@@ -261,7 +270,11 @@ class DashboardView extends ConsumerWidget {
 /// formación personal y la acción lleva a Mi familia: primero se sale de
 /// "actuar por" porque esas rutas están bloqueadas con un menor activo.
 class _PendingMembershipDashboardState extends ConsumerWidget {
-  const _PendingMembershipDashboardState();
+  const _PendingMembershipDashboardState({this.pendingClub});
+
+  /// Solicitud propia con el nombre del club (adolescente supervisado sin
+  /// club). Nulo en el resto de casos: se usa el texto genérico.
+  final PendingClubMembership? pendingClub;
 
   /// Sale de "actuar por" y abre Mi familia del tutor.
   ///
@@ -291,6 +304,22 @@ class _PendingMembershipDashboardState extends ConsumerWidget {
       return;
     }
     router.push(RouteNames.family);
+  }
+
+  String _ownBody() {
+    final pending = pendingClub;
+    if (pending == null) return tr('dashboard.pending_state.body');
+    final type = pending.clubTypeName;
+    final hasType = type != null && type.isNotEmpty;
+    return tr(
+      hasType
+          ? 'dashboard.pending_state.body_club'
+          : 'dashboard.pending_state.body_club_no_type',
+      namedArgs: {
+        'club': pending.clubName,
+        if (hasType) 'type': type,
+      },
+    );
   }
 
   @override
@@ -342,7 +371,7 @@ class _PendingMembershipDashboardState extends ConsumerWidget {
                           ? 'dashboard.pending_state.body_acting_form_received'
                           : 'dashboard.pending_state.body_acting',
                       namedArgs: {'name': actingName})
-                  : tr('dashboard.pending_state.body'),
+                  : _ownBody(),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: c.textSecondary,
                     height: 1.45,

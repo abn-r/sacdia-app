@@ -39,6 +39,15 @@ bool _grantHas(AuthorizationGrant grant, Set<String> permissions) => grant
     .permissions
     .any((permission) => permissions.contains(permission.trim().toLowerCase()));
 
+/// ¿El rol de esta asignación de club permite ver las solicitudes de ingreso
+/// (`club_members:approve` o `consent:verify`)?
+///
+/// Se evalúa sobre los permisos de LA asignación, no sobre los efectivos del
+/// contexto activo: sirve para decidir si vale la pena cambiar a otra sección.
+bool grantCanReviewJoinRequests(AuthorizationGrant grant) =>
+    _grantHas(grant, approveJoinRequestPermissions) ||
+    _grantHas(grant, verifyConsentPermissions);
+
 /// El usuario tiene un rol global DE COORDINACIÓN que lleva `consent:verify`:
 /// lo que exige el servidor para «Fichas por verificar» del panel de
 /// coordinación (`GET /coordination/me/consent-pending`). Un permiso suelto o de

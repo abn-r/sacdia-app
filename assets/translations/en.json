@@ -4062,6 +4062,8 @@
     "pending_state": {
       "title": "Request sent",
       "body": "Your request to join the club has been sent. The club director will review it soon. In the meantime, you can record your personal formation from your profile.",
+      "body_club": "You asked to join {club} ({type}). The club director will review your request soon. In the meantime, you can record your personal formation from your profile.",
+      "body_club_no_type": "You asked to join {club}. The club director will review your request soon. In the meantime, you can record your personal formation from your profile.",
       "body_acting": "{name}'s request to join the club has been sent. The director will review it together with the signed consent form. If you haven't handed it in yet, take it to the club or upload it from My family.",
       "profile_action": "Go to my profile",
       "family_action_acting": "Go to My family",
@@ -5850,6 +5852,9 @@
       "empty": "There are no upcoming activities.",
       "error": "We could not load the agenda.",
       "no_club": "You will see your club's activities here once the club accepts you.",
+      "pending_title": "Your request is under review",
+      "pending_body": "You asked to join {club} ({type}). You will see its activities here once you are accepted.",
+      "pending_body_no_type": "You asked to join {club}. You will see its activities here once you are accepted.",
       "detail_title": "Activity",
       "detail_error": "We could not load this activity."
     },

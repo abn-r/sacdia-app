@@ -30,6 +30,7 @@ import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/family/presentation/providers/family_providers.dart';
 import '../../features/teen/presentation/providers/teen_providers.dart';
 import '../../features/investiture_requests/presentation/utils/investiture_notification_routes.dart';
+import '../../features/dashboard/presentation/providers/dashboard_providers.dart';
 import '../../features/members/presentation/utils/member_requests_notification_route.dart';
 import '../../features/master_honors/presentation/providers/master_honor_modal_queue_provider.dart';
 import '../../features/master_honors/presentation/providers/master_honors_providers.dart';
@@ -1212,16 +1213,36 @@ class PushNotificationService {
       case membershipRequestPushType:
         // Payload: { type, userId, assignmentId, clubSectionId }. Misma
         // resolución que el toque en la bandeja: Miembros > Solicitudes solo si
-        // la sesión puede verlas; si no, no hay destino.
-        final requestsRoute = memberRequestsRouteFor(
-          _ref.read(authNotifierProvider).valueOrNull,
-        );
-        if (requestsRoute != null) _pushRoute(requestsRoute);
+        // la sesión puede verlas (cambiando antes a la sección del aviso si el
+        // usuario tiene asignación en ella); si no, no hay destino.
+        unawaited(_openMembershipRequests(_parseInt(data['clubSectionId'])));
         return;
 
       default:
         AppLogger.w('Tipo de notificación no manejado: $type', tag: _tag);
     }
+  }
+
+  Future<void> _openMembershipRequests(int? clubSectionId) async {
+    final String? route;
+    try {
+      route = await resolveMemberRequestsRoute(
+        readUser: () => _ref.read(authNotifierProvider).valueOrNull,
+        switchContext: (assignmentId) async {
+          final switched = await _ref
+              .read(authNotifierProvider.notifier)
+              .switchContext(assignmentId);
+          if (switched) _ref.invalidate(dashboardNotifierProvider);
+          return switched;
+        },
+        clubSectionId: clubSectionId,
+      );
+    } catch (e) {
+      AppLogger.w('No se pudo resolver el destino de la solicitud de ingreso',
+          tag: _tag, error: e);
+      return;
+    }
+    if (route != null) _pushRoute(route);
   }
 
   static int? _parseInt(dynamic v) {

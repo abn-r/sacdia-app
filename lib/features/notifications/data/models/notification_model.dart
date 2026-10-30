@@ -98,7 +98,9 @@ class NotificationModel extends Equatable {
       type: (json['type'] as String?) ?? '',
       source: json['source'] as String?,
       targetType: (json['target_type'] as String?) ?? 'all',
-      targetId: json['target_id'] as String?,
+      // El servidor lo manda como texto, pero un número no debe romper el
+      // historial entero.
+      targetId: json['target_id']?.toString(),
       sentBy: (json['sent_by'] as String?) ?? '',
       tokensSent: (json['tokens_sent'] as num?)?.toInt() ?? 0,
       tokensFailed: (json['tokens_failed'] as num?)?.toInt() ?? 0,

@@ -4061,6 +4061,8 @@
     "pending_state": {
       "title": "Solicitação enviada",
       "body": "Sua solicitação para entrar no clube foi enviada. O diretor do clube a analisará em breve. Enquanto isso, você pode registrar sua formação pessoal pelo seu perfil.",
+      "body_club": "Você pediu para entrar em {club} ({type}). O diretor do clube analisará sua solicitação em breve. Enquanto isso, você pode registrar sua formação pessoal pelo seu perfil.",
+      "body_club_no_type": "Você pediu para entrar em {club}. O diretor do clube analisará sua solicitação em breve. Enquanto isso, você pode registrar sua formação pessoal pelo seu perfil.",
       "body_acting": "A solicitação de {name} para entrar no clube foi enviada. O diretor a analisará junto com a ficha de consentimento assinada. Se você ainda não a entregou, leve-a ao clube ou envie-a por Minha família.",
       "profile_action": "Ir para meu perfil",
       "family_action_acting": "Ir para Minha família",
@@ -5848,6 +5850,9 @@
       "empty": "Não há atividades próximas.",
       "error": "Não foi possível carregar a agenda.",
       "no_club": "Você verá aqui as atividades do seu clube quando o clube aceitar você.",
+      "pending_title": "Sua solicitação está em análise",
+      "pending_body": "Você pediu para entrar em {club} ({type}). Você verá aqui as atividades do clube quando for aceito.",
+      "pending_body_no_type": "Você pediu para entrar em {club}. Você verá aqui as atividades do clube quando for aceito.",
       "detail_title": "Atividade",
       "detail_error": "Não foi possível carregar esta atividade."
     },

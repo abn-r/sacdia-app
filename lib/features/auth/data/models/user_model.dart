@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 
 import '../../domain/entities/acting_for_info.dart';
 import '../../domain/entities/authorization_snapshot.dart';
+import '../../domain/entities/pending_club_membership.dart';
 import '../../domain/entities/principal_info.dart';
 import '../../domain/entities/user_entity.dart';
 
@@ -25,6 +26,7 @@ class UserModel extends UserEntity {
     super.familyFeatures,
     super.analyticsAnonymous,
     super.serverMode,
+    super.pendingClubMembership,
   });
 
   /// Crea un UserModel a partir de la respuesta de la API personalizada
@@ -58,6 +60,8 @@ class UserModel extends UserEntity {
       familyFeatures: _parseFamilyFeatures(data['family_features']),
       analyticsAnonymous: _parseAnalyticsAnonymous(data),
       serverMode: _parseMode(data),
+      pendingClubMembership:
+          _parsePendingClubMembership(data['pending_club_membership']),
     );
   }
 
@@ -191,6 +195,22 @@ class UserModel extends UserEntity {
       // honesto por defecto.
       summaryVisibleToGuardians: value['summary_visible_to_guardians'] != false,
       serverDaysLeft: daysLeft is num ? daysLeft.toInt() : null,
+    );
+  }
+
+  /// `data.pending_club_membership`: `{club_name, club_type_name,
+  /// club_section_id, requested_at}`. Ausente (servidor anterior), `null`,
+  /// malformado o sin nombre de club es nulo.
+  static PendingClubMembership? _parsePendingClubMembership(dynamic value) {
+    if (value is! Map) return null;
+    final name = value['club_name']?.toString().trim();
+    if (name == null || name.isEmpty) return null;
+    final type = value['club_type_name']?.toString().trim();
+    return PendingClubMembership(
+      clubName: name,
+      clubTypeName: (type == null || type.isEmpty) ? null : type,
+      clubSectionId: int.tryParse(value['club_section_id']?.toString() ?? ''),
+      requestedAt: _parseDateTime(value['requested_at']),
     );
   }
 
@@ -430,6 +450,7 @@ class UserModel extends UserEntity {
     FamilyFeatures? familyFeatures,
     bool? analyticsAnonymous,
     AccountMode? serverMode,
+    PendingClubMembership? pendingClubMembership,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -450,6 +471,8 @@ class UserModel extends UserEntity {
       familyFeatures: familyFeatures ?? this.familyFeatures,
       analyticsAnonymous: analyticsAnonymous ?? this.analyticsAnonymous,
       serverMode: serverMode ?? this.serverMode,
+      pendingClubMembership:
+          pendingClubMembership ?? this.pendingClubMembership,
     );
   }
 }

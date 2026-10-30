@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import 'acting_for_info.dart';
 import 'authorization_snapshot.dart';
+import 'pending_club_membership.dart';
 import 'principal_info.dart';
 
 /// Entidad de usuario para la capa de dominio
@@ -51,6 +52,12 @@ class UserEntity extends Equatable {
   /// Modo que el servidor declaró de forma explícita (`/auth/me.mode`).
   final AccountMode? serverMode;
 
+  /// Solicitud de ingreso pendiente de un teléfono vinculado o de un
+  /// adolescente supervisado sin club (`/auth/me.pending_club_membership`).
+  /// Nulo = ausente (servidor anterior) o sin solicitud. Se deriva en cada
+  /// carga y nunca se cachea.
+  final PendingClubMembership? pendingClubMembership;
+
   const UserEntity({
     required this.id,
     this.email,
@@ -69,6 +76,7 @@ class UserEntity extends Equatable {
     this.familyFeatures,
     this.analyticsAnonymous,
     this.serverMode,
+    this.pendingClubMembership,
   });
 
   /// Copia con otro [principal]. Todo lo demás se conserva.
@@ -90,6 +98,7 @@ class UserEntity extends Equatable {
         familyFeatures: familyFeatures,
         analyticsAnonymous: analyticsAnonymous,
         serverMode: serverMode,
+        pendingClubMembership: pendingClubMembership,
       );
 
   /// Modo de la cuenta para enrutar (FP3-31). Falla cerrado:
@@ -181,5 +190,6 @@ class UserEntity extends Equatable {
         familyFeatures,
         analyticsAnonymous,
         serverMode,
+        pendingClubMembership,
       ];
 }
