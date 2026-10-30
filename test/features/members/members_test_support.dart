@@ -9,6 +9,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/consent/consent_evidence.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
+// ignore: unnecessary_import
+import 'package:sacdia_app/core/providers/riverpod_aliases.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/features/members/domain/entities/annual_continuation.dart';
 import 'package:sacdia_app/features/members/domain/entities/assignable_role.dart';

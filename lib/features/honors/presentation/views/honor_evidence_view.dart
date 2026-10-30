@@ -496,7 +496,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
     final localPath = stagedFile.localPath;
     if (localPath == null) return;
 
-    final userId = ref.read(authNotifierProvider).value?.id;
+    final userId = ref.read(authNotifierProvider).valueOrNull?.id;
     if (userId == null) {
       if (mounted) {
         SacSnackBar.show(context, 'honors.evidence.no_session'.tr(),
@@ -523,7 +523,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
   }
 
   Future<void> _deleteEvidenceFile(UserHonor userHonor, String imageUrl) async {
-    final userId = ref.read(authNotifierProvider).value?.id;
+    final userId = ref.read(authNotifierProvider).valueOrNull?.id;
     if (userId == null) return;
 
     setState(() => _isUploading = true);

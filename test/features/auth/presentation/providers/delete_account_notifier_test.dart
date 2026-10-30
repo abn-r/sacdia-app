@@ -59,7 +59,7 @@ void main() {
 
     expect(error, isNull);
     expect(repo.received, same(socialReauth));
-    expect(container.read(authNotifierProvider).value, isNull);
+    expect(container.read(authNotifierProvider).valueOrNull, isNull);
   });
 
   test('deleteAccount returns the failure message', () async {

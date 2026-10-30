@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+// ignore: unnecessary_import
+import 'riverpod_aliases.dart';
 
 import '../../features/auth/domain/entities/principal_info.dart';
 import '../../features/auth/domain/entities/user_entity.dart';

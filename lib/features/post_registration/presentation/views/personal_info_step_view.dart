@@ -309,7 +309,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
               title: tr(
                   'post_registration.personal_info.emergency_contacts.section_title'),
               isCompleted: contactsAsync.hasValue &&
-                  (contactsAsync.value?.isNotEmpty ?? false),
+                  (contactsAsync.valueOrNull?.isNotEmpty ?? false),
             ),
             const SizedBox(height: 8),
             Text(

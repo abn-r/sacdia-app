@@ -45,13 +45,13 @@ void main() {
     await container.read(allHonorsProvider.future);
 
     expect(
-      container.read(filteredHonorsProvider).value!.map((h) => h.id),
+      container.read(filteredHonorsProvider).requireValue.map((h) => h.id),
       [1, 2, 3],
     );
 
     container.read(selectedCategoryProvider.notifier).state = 7;
     expect(
-      container.read(filteredHonorsProvider).value!.map((h) => h.id),
+      container.read(filteredHonorsProvider).requireValue.map((h) => h.id),
       [2],
     );
   });
@@ -64,7 +64,7 @@ void main() {
     container.read(selectedCategoryProvider.notifier).state = 7;
 
     expect(
-      container.read(filteredHonorsProvider).value!.map((h) => h.id),
+      container.read(filteredHonorsProvider).requireValue.map((h) => h.id),
       [1],
     );
   });
@@ -76,7 +76,7 @@ void main() {
     await container.read(allHonorsProvider.future);
 
     expect(
-      container.read(filteredHonorsProvider).value!.map((h) => h.id),
+      container.read(filteredHonorsProvider).requireValue.map((h) => h.id),
       [2],
     );
   });
@@ -89,7 +89,7 @@ void main() {
     await container.read(allHonorsProvider.future);
 
     expect(
-      container.read(filteredHonorsProvider).value!.map((h) => h.id),
+      container.read(filteredHonorsProvider).requireValue.map((h) => h.id),
       [2, 3],
     );
   });
@@ -131,7 +131,7 @@ void main() {
     addTearDown(container.dispose);
 
     await container.read(userHonorsProvider.future);
-    final honors = container.read(sectionScopedUserHonorsProvider).value!;
+    final honors = container.read(sectionScopedUserHonorsProvider).requireValue;
     expect(honors.map((h) => h.honorId), [2, 3]);
   });
 }

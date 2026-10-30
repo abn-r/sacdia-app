@@ -166,9 +166,9 @@ class _Body extends ConsumerWidget {
             const SizedBox(height: 280, child: Center(child: SacLoading()));
       }
     } else if (isHistory) {
-      content = _HistoryList(entries: historyAsync.value!);
+      content = _HistoryList(entries: historyAsync.requireValue);
     } else {
-      content = _YearbookList(entries: yearbookAsync.value!);
+      content = _YearbookList(entries: yearbookAsync.requireValue);
     }
 
     return RefreshIndicator(

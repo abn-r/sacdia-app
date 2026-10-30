@@ -64,7 +64,10 @@ void main() {
 
     expect(birthdayKeys(), isEmpty);
     expect(
-      container.read(birthdayCelebrationProvider).value?.dismissedForToday,
+      container
+          .read(birthdayCelebrationProvider)
+          .valueOrNull
+          ?.dismissedForToday,
       isTrue,
       reason: 'the entry point is still dismissed for the session',
     );
