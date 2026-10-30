@@ -12,6 +12,7 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../investiture_requests/presentation/utils/investiture_notification_routes.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import '../../../members/presentation/utils/member_requests_notification_route.dart';
 import '../../domain/entities/notification_item.dart';
@@ -232,9 +233,24 @@ class NotificationCard extends ConsumerWidget {
     // pendiente): lleva a Miembros > Solicitudes si el usuario puede verlas; si
     // no, queda el detalle informativo.
     if (isMembershipRequestSource(notification.source)) {
-      final route = memberRequestsRouteFor(
-        ref.read(authNotifierProvider).valueOrNull,
+      // El contenedor se toma antes del `await`: el cambio de sección
+      // reconstruye la sesión y este widget podría desmontarse mientras tanto.
+      final container = ProviderScope.containerOf(context, listen: false);
+      final route = await resolveMemberRequestsRoute(
+        readUser: () => container.read(authNotifierProvider).valueOrNull,
+        switchContext: (assignmentId) async {
+          final switched = await container
+              .read(authNotifierProvider.notifier)
+              .switchContext(assignmentId);
+          if (switched) container.invalidate(dashboardNotifierProvider);
+          return switched;
+        },
+        clubSectionId: clubSectionIdOfInboxTarget(
+          targetType: notification.targetType,
+          targetId: notification.targetId,
+        ),
       );
+      if (!context.mounted) return;
       if (route != null) {
         // `go`, not `push`: the inbox is a root route and Members lives in the
         // shell, so a push would land underneath the inbox.

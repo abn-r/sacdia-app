@@ -14,10 +14,42 @@ class _FakeAuth extends AuthNotifier {
   _FakeAuth(this.user);
 
   final UserEntity user;
+  final switchCalls = <String>[];
 
   @override
   Future<UserEntity?> build() async => user;
+
+  @override
+  Future<bool> switchContext(String assignmentId) async {
+    switchCalls.add(assignmentId);
+    return true;
+  }
 }
+
+UserEntity _userWithSections() => const UserEntity(
+      id: 'u-1',
+      email: 'a@b.c',
+      name: 'Laura',
+      postRegisterComplete: true,
+      authorization: AuthorizationSnapshot(
+        effectivePermissions: ['club_members:approve'],
+        activeAssignmentId: 'a-1',
+        clubAssignments: [
+          AuthorizationGrant(
+            assignmentId: 'a-1',
+            permissions: ['club_members:approve'],
+            clubId: 1,
+            sectionId: 166,
+          ),
+          AuthorizationGrant(
+            assignmentId: 'a-2',
+            permissions: ['club_members:approve'],
+            clubId: 1,
+            sectionId: 167,
+          ),
+        ],
+      ),
+    );
 
 UserEntity _userWith(List<String> permissions) => UserEntity(
       id: 'u-1',
@@ -31,6 +63,7 @@ void main() {
   group('PushNotificationService membership requests', () {
     late GlobalKey<NavigatorState> navigatorKey;
     late List<String> visited;
+    late _FakeAuth auth;
 
     setUp(() {
       navigatorKey = GlobalKey<NavigatorState>();
@@ -41,8 +74,9 @@ void main() {
       WidgetTester tester,
       UserEntity user,
     ) async {
+      auth = _FakeAuth(user);
       final container = ProviderContainer(
-        overrides: [authNotifierProvider.overrideWith(() => _FakeAuth(user))],
+        overrides: [authNotifierProvider.overrideWith(() => auth)],
       );
       addTearDown(container.dispose);
       await container.read(authNotifierProvider.future);
@@ -119,6 +153,58 @@ void main() {
 
       expect(visited, isEmpty);
       expect(find.text('start'), findsOneWidget);
+    });
+
+    RemoteMessage messageFor(Object? sectionId) => RemoteMessage(
+          data: {
+            'type': 'membership_request_created',
+            'userId': 'u-9',
+            'assignmentId': 'a-1',
+            if (sectionId != null) 'clubSectionId': '$sectionId',
+          },
+        );
+
+    testWidgets('a push of another granted section switches context first',
+        (tester) async {
+      final service = await pumpApp(tester, _userWithSections());
+
+      service.handleNotificationTapForTesting(messageFor(167));
+      await tester.pumpAndSettle();
+
+      expect(auth.switchCalls, ['a-2']);
+      expect(visited, [RouteNames.homeMemberRequests]);
+    });
+
+    testWidgets('a push of the active section does not switch', (tester) async {
+      final service = await pumpApp(tester, _userWithSections());
+
+      service.handleNotificationTapForTesting(messageFor(166));
+      await tester.pumpAndSettle();
+
+      expect(auth.switchCalls, isEmpty);
+      expect(visited, [RouteNames.homeMemberRequests]);
+    });
+
+    testWidgets('a push of a section without grant does not switch',
+        (tester) async {
+      final service = await pumpApp(tester, _userWithSections());
+
+      service.handleNotificationTapForTesting(messageFor(999));
+      await tester.pumpAndSettle();
+
+      expect(auth.switchCalls, isEmpty);
+      expect(visited, [RouteNames.homeMemberRequests]);
+    });
+
+    testWidgets('a push without clubSectionId keeps the current context',
+        (tester) async {
+      final service = await pumpApp(tester, _userWithSections());
+
+      service.handleNotificationTapForTesting(messageFor(null));
+      await tester.pumpAndSettle();
+
+      expect(auth.switchCalls, isEmpty);
+      expect(visited, [RouteNames.homeMemberRequests]);
     });
   });
 }

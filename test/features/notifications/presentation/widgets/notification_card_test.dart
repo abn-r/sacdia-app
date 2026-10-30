@@ -13,10 +13,42 @@ class _FakeAuth extends AuthNotifier {
   _FakeAuth(this.user);
 
   final UserEntity? user;
+  final switchCalls = <String>[];
 
   @override
   Future<UserEntity?> build() async => user;
+
+  @override
+  Future<bool> switchContext(String assignmentId) async {
+    switchCalls.add(assignmentId);
+    return true;
+  }
 }
+
+UserEntity _userWithSections() => const UserEntity(
+      id: 'u-1',
+      email: 'a@b.c',
+      name: 'Laura',
+      postRegisterComplete: true,
+      authorization: AuthorizationSnapshot(
+        effectivePermissions: ['club_members:approve'],
+        activeAssignmentId: 'a-1',
+        clubAssignments: [
+          AuthorizationGrant(
+            assignmentId: 'a-1',
+            permissions: ['club_members:approve'],
+            clubId: 1,
+            sectionId: 166,
+          ),
+          AuthorizationGrant(
+            assignmentId: 'a-2',
+            permissions: ['club_members:approve'],
+            clubId: 1,
+            sectionId: 167,
+          ),
+        ],
+      ),
+    );
 
 UserEntity _userWith(List<String> permissions) => UserEntity(
       id: 'u-1',
@@ -41,17 +73,21 @@ NotificationItem _consentNotification() => NotificationItem(
       isRead: true,
     );
 
-Future<void> _pumpConsentCard(
+Future<_FakeAuth> _pumpConsentCard(
   WidgetTester tester,
-  UserEntity user,
-) async {
+  UserEntity user, {
+  NotificationItem? notification,
+}) async {
+  final auth = _FakeAuth(user);
   final router = GoRouter(
     initialLocation: '/inbox',
     routes: [
       GoRoute(
         path: '/inbox',
         builder: (context, state) => Scaffold(
-          body: NotificationCard(notification: _consentNotification()),
+          body: NotificationCard(
+            notification: notification ?? _consentNotification(),
+          ),
         ),
       ),
       GoRoute(
@@ -64,7 +100,7 @@ Future<void> _pumpConsentCard(
   addTearDown(router.dispose);
 
   final container = ProviderContainer(
-    overrides: [authNotifierProvider.overrideWith(() => _FakeAuth(user))],
+    overrides: [authNotifierProvider.overrideWith(() => auth)],
   );
   addTearDown(container.dispose);
   // La sesión ya está cargada cuando se toca una notificación en la app real.
@@ -77,6 +113,7 @@ Future<void> _pumpConsentCard(
     ),
   );
   await tester.pumpAndSettle();
+  return auth;
 }
 
 void main() {
@@ -224,5 +261,69 @@ void main() {
 
     expect(find.textContaining('members-screen'), findsNothing);
     expect(find.text('notifications.inbox.detail_accept'), findsOneWidget);
+  });
+
+  testWidgets('membership request of another granted section switches first',
+      (tester) async {
+    // `_consentNotification` apunta a la sección 167; el contexto activo es la
+    // 166.
+    final auth = await _pumpConsentCard(tester, _userWithSections());
+
+    await tester.tap(find.text('Menor · consentimiento pendiente'));
+    await tester.pumpAndSettle();
+
+    expect(auth.switchCalls, ['a-2']);
+    expect(
+      find.text('members-screen ${RouteNames.homeMemberRequests}'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('membership request of a section without grant does not switch',
+      (tester) async {
+    final auth = await _pumpConsentCard(
+      tester,
+      _userWithSections(),
+      notification: _consentNotification().copyWith(targetId: '999'),
+    );
+
+    await tester.tap(find.text('Menor · consentimiento pendiente'));
+    await tester.pumpAndSettle();
+
+    expect(auth.switchCalls, isEmpty);
+    expect(
+      find.text('members-screen ${RouteNames.homeMemberRequests}'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('membership request without target_id (old server) keeps going',
+      (tester) async {
+    final auth = await _pumpConsentCard(
+      tester,
+      _userWithSections(),
+      notification: NotificationItem(
+        logId: 10,
+        title: 'Solicitud sin sección',
+        body: 'Servidor anterior.',
+        type: 'SECTION_ROLE',
+        source: 'membership_requests:new_request',
+        targetType: NotificationTargetType.sectionRole,
+        sentBy: 'system',
+        tokensSent: 1,
+        tokensFailed: 0,
+        createdAt: DateTime(2026, 6, 1, 9),
+        isRead: true,
+      ),
+    );
+
+    await tester.tap(find.text('Solicitud sin sección'));
+    await tester.pumpAndSettle();
+
+    expect(auth.switchCalls, isEmpty);
+    expect(
+      find.text('members-screen ${RouteNames.homeMemberRequests}'),
+      findsOneWidget,
+    );
   });
 }
