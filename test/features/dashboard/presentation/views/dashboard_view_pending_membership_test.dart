@@ -56,6 +56,32 @@ class _TeenWithPendingRequestAuth extends AuthNotifier {
       );
 }
 
+class _TeenWithPendingGrantAuth extends AuthNotifier {
+  @override
+  Future<UserEntity?> build() async => const UserEntity(
+        id: 'teen-2',
+        principal: PrincipalInfo(
+          kind: PrincipalKind.supervisedUser,
+          supervision: SupervisionInfo(status: SupervisionStatus.active),
+        ),
+        authorization: AuthorizationSnapshot(
+          clubAssignments: [
+            AuthorizationGrant(
+              assignmentId: 'a-teen',
+              status: 'pending',
+              roleName: 'member',
+              clubId: 13,
+              sectionId: 167,
+            ),
+          ],
+        ),
+        pendingClubMembership: PendingClubMembership(
+          clubName: 'Club Panteras',
+          clubTypeName: 'Conquistadores',
+        ),
+      );
+}
+
 class _NullProfileNotifier extends ProfileNotifier {
   @override
   Future<UserDetail?> build() async => null;
@@ -156,6 +182,16 @@ void main() {
     expect(find.text('dashboard.pending_state.title'), findsOneWidget);
     expect(find.text('dashboard.pending_state.body_club'), findsOneWidget);
     expect(find.text('dashboard.load_null_error'), findsNothing);
+  });
+
+  testWidgets(
+      'a supervised teen whose grant is pending still sees the club name',
+      (tester) async {
+    await pumpTeen(tester, _TeenWithPendingGrantAuth.new);
+
+    expect(find.text('dashboard.pending_state.title'), findsOneWidget);
+    expect(find.text('dashboard.pending_state.body_club'), findsOneWidget);
+    expect(find.text('dashboard.pending_state.body'), findsNothing);
   });
 
   testWidgets('a supervised teen without a pending request keeps the error',

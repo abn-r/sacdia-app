@@ -149,6 +149,7 @@ import '../../features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/core/authorization/access_subject.dart';
 import 'package:sacdia_app/core/authorization/screen_catalog.dart';
 import 'coordinator_route_access.dart';
+import 'dashboard_drill_in.dart';
 import 'route_names.dart';
 import 'package:sacdia_app/core/widgets/sac_nav_icon.dart';
 import 'package:sacdia_app/core/widgets/sac_shell_nav.dart';
@@ -1752,7 +1753,9 @@ final routerProvider = Provider<GoRouter>((ref) {
     )) {
       return;
     }
-    if (pending.replace) {
+    if (isDashboardDrillIn(pending.route)) {
+      openDashboardDrillIn(router, pending.route);
+    } else if (pending.replace) {
       router.go(pending.route);
     } else {
       router.push(pending.route);
@@ -1990,8 +1993,15 @@ class _MainShell extends ConsumerWidget {
           label: item.label,
         ),
     ];
-    void select(int uiIndex) =>
-        navigationShell.goBranch(filteredItems[uiIndex].branchIndex);
+    // Tapping the active tab again returns to its root (same as the device
+    // shell), so a drill-in like Members is never a dead end.
+    void select(int uiIndex) {
+      final branch = filteredItems[uiIndex].branchIndex;
+      navigationShell.goBranch(
+        branch,
+        initialLocation: branch == navigationShell.currentIndex,
+      );
+    }
 
     if (useRail) {
       return Scaffold(

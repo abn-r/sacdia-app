@@ -16,6 +16,7 @@ import '../auth/acting_for_session.dart';
 import '../auth/session_mode.dart';
 import '../config/pending_navigation.dart';
 import '../config/route_names.dart';
+import '../config/dashboard_drill_in.dart';
 import '../realtime/feature_flags.dart';
 import '../realtime/realtime_invalidation_handler.dart';
 import '../realtime/realtime_ref.dart';
@@ -977,6 +978,11 @@ class PushNotificationService {
     // vez apilaría un duplicado y un deep link a la ruta vigente no reconstruye
     // la vista. Quien llama ya refrescó los datos.
     if (skipIfCurrent && location == route) return;
+
+    if (isDashboardDrillIn(route)) {
+      unawaited(openDashboardDrillIn(router, route));
+      return;
+    }
 
     if (_shouldUseGoNavigation(route)) {
       router.go(route);

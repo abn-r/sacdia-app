@@ -91,6 +91,11 @@ Future<_FakeAuth> _pumpConsentCard(
         ),
       ),
       GoRoute(
+        path: RouteNames.homeDashboard,
+        builder: (context, state) =>
+            const Scaffold(body: Text('dashboard-screen')),
+      ),
+      GoRoute(
         path: RouteNames.homeMembers,
         builder: (context, state) =>
             Scaffold(body: Text('members-screen ${state.uri}')),

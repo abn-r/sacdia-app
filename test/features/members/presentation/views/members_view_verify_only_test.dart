@@ -152,7 +152,6 @@ void main() {
         'with approve a pending adult keeps the approve and reject actions',
         (tester) async {
       repo.requests = [adultRequest()];
-      // The approve/reject icons are gated on a club role manager too.
       await pumpMembersApp(
         tester,
         overrides: [
@@ -171,6 +170,18 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Solicitudes').first);
       await tester.pumpAndSettle();
+
+      expect(find.bySemanticsLabel('Aprobar'), findsOneWidget);
+      expect(find.bySemanticsLabel('Rechazar'), findsOneWidget);
+    });
+  });
+
+  group('approve without role management', () {
+    testWidgets(
+        'a deputy director (approve, no club_roles) can approve and reject',
+        (tester) async {
+      repo.requests = [adultRequest()];
+      await openRequests(tester, ['club_members:approve']);
 
       expect(find.bySemanticsLabel('Aprobar'), findsOneWidget);
       expect(find.bySemanticsLabel('Rechazar'), findsOneWidget);
