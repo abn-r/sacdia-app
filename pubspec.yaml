@@ -68,11 +68,11 @@ dependencies:
   equatable: ^2.0.7
   intl: ^0.20.1
   url_launcher: ^6.3.1
-  go_router: ^15.2.0
+  go_router: ^17.5.0
   package_info_plus: ^8.3.0
   mime: ^2.0.0
   http_parser: ^4.0.0
-  flutter_markdown: ^0.7.4
+  flutter_markdown_plus: ^1.0.0
   device_info_plus: ^10.1.2
   local_auth: ^2.3.0
   local_auth_android: ^1.0.56
@@ -100,6 +100,11 @@ dependency_overrides:
   # 2.5.1 reverted to the safe plugin-based implementation (no objective_c dep).
   # Remove this override once flutter/packages fixes the simulator build for 2.6.x.
   path_provider_foundation: 2.5.1
+  # image 4.11.0 declares archive ^4.0.9 but calls ZLibDecoder.decodeLazy, which only
+  # exists in archive >= 4.1.0; pdf 3.12.0 caps archive < 4.1.0, so 4.11.0 fails to
+  # compile. 4.11.1+ require archive >= 4.4.0 (still blocked by pdf).
+  # Remove once pdf allows archive >= 4.4.0.
+  image: '>=4.8.0 <4.11.0'
 
 dev_dependencies:
   sentry_dart_plugin: ^3.3.0

@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 /// Ítem individual del FAQ. Se carga desde `assets/support/faq.json` (bundled).
 ///
 /// `answer` admite sintaxis Markdown simple (negritas, listas, saltos de
-/// línea) — se renderiza con `flutter_markdown` en el detalle.
+/// línea) — se renderiza con `flutter_markdown_plus` en el detalle.
 class FaqItem extends Equatable {
   final String id;
   final String category;

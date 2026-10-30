@@ -60,7 +60,7 @@ Future<void> disableAnalyticsForDevice() async {
     return;
   }
   await Posthog().reset();
-  await Posthog().disable();
+  await Posthog().optOut();
 }
 
 /// La sesión de dispositivo terminó: esta instalación vuelve a ser de cuentas.
@@ -71,7 +71,7 @@ Future<void> enableAnalyticsAfterDevice() async {
   }
   _blockedForDevice = false;
   if (_ready) {
-    await Posthog().enable();
+    await Posthog().optIn();
     return;
   }
   await setupPosthog();

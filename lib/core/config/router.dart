@@ -515,6 +515,9 @@ final routerProvider = Provider<GoRouter>((ref) {
             context, state, const DeviceRegistrationPendingView()),
       ),
       StatefulShellRoute.indexedStack(
+        // go_router 17 notifies root observers (PostHog) of shell navigations
+        // by default; keep the previous behaviour (no extra screen events).
+        notifyRootObserver: false,
         builder: (context, state, navigationShell) =>
             DeviceShell(navigationShell: navigationShell),
         branches: [
@@ -612,6 +615,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       // The four primary nav-bar tabs are modelled as individual branches.
       // Quick-access modules are dashboard drill-ins pushed onto its branch.
       StatefulShellRoute.indexedStack(
+        // go_router 17 notifies root observers (PostHog) of shell navigations
+        // by default; keep the previous behaviour (no extra screen events).
+        notifyRootObserver: false,
         builder: (context, state, navigationShell) =>
             _MainShell(navigationShell: navigationShell),
         branches: [
