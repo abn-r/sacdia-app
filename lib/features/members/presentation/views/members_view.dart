@@ -221,7 +221,7 @@ class _MembersViewState extends ConsumerState<MembersView> {
                         if (canRequests)
                           _JoinRequestsTab(
                             clubContext: ctx,
-                            isDirector: isDirector,
+                            canApprove: canContinue,
                             membersAsync: membersAsync,
                             verifyOnly: verifyOnly,
                           ),
@@ -436,7 +436,10 @@ class _MembersTab extends ConsumerWidget {
 
 class _JoinRequestsTab extends ConsumerStatefulWidget {
   final ClubContext clubContext;
-  final bool isDirector;
+
+  /// `club_members:approve`: approving and rejecting is a member permission,
+  /// not a role-management one (a deputy director holds it too).
+  final bool canApprove;
   final AsyncValue<MembersData> membersAsync;
 
   /// Solo `consent:verify`: el servidor entrega solo los menores con la ficha
@@ -445,7 +448,7 @@ class _JoinRequestsTab extends ConsumerStatefulWidget {
 
   const _JoinRequestsTab({
     required this.clubContext,
-    required this.isDirector,
+    required this.canApprove,
     required this.membersAsync,
     this.verifyOnly = false,
   });
@@ -558,7 +561,7 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
                                   onVerify: verify,
                                 );
                               }
-                              final canAct = widget.isDirector &&
+                              final canAct = widget.canApprove &&
                                   request.status == JoinRequestStatus.pending &&
                                   !isProcessing;
                               return JoinRequestCard(
