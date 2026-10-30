@@ -324,13 +324,11 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
   }
 
   Future<void> _pickCompletedFormat() async {
-    final result = await FilePicker.platform.pickFiles(
+    final pickedFile = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: ['pdf'],
-      allowMultiple: false,
     );
 
-    final pickedFile = result?.files.single;
     if (pickedFile?.path == null) return;
 
     await _uploadPickedFiles(

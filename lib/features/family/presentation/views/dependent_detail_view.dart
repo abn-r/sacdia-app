@@ -133,7 +133,7 @@ class _DependentDetailViewState extends ConsumerState<DependentDetailView> {
             style: SacDialogActionStyle.success,
             onPressed: () async {
               Navigator.of(dialogContext).pop();
-              await Share.share(message);
+              await SharePlus.instance.share(ShareParams(text: message));
             },
           ),
         ],

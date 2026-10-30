@@ -406,12 +406,11 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
   }
 
   Future<void> _pickRequirementPdf(HonorRequirement requirement) async {
-    final result = await FilePicker.platform.pickFiles(
+    final picked = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: ['pdf'],
-      allowMultiple: false,
     );
-    final path = result?.files.single.path;
+    final path = picked?.path;
     if (path == null) return;
     await _uploadRequirementEvidence(requirement, File(path));
   }

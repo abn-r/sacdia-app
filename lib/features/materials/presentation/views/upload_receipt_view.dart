@@ -62,19 +62,16 @@ class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
   // ── File picker ─────────────────────────────────────────────────────────────
 
   Future<void> _pickFile() async {
-    final result = await FilePicker.platform.pickFiles(
+    final pickedFile = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: _allowedExtensions,
-      allowMultiple: false,
     );
 
-    if (result == null || result.files.isEmpty) return;
-
-    final pickedFile = result.files.first;
-    if (pickedFile.path == null) return;
+    if (pickedFile == null || pickedFile.path == null) return;
 
     final file = File(pickedFile.path!);
-    final sizeBytes = pickedFile.size;
+    final sizeBytes = await pickedFile.length() ?? 0;
+    if (!mounted) return;
 
     // Client-side size validation (mirrors backend REQ-CMP-002)
     if (sizeBytes > _maxFileSizeBytes) {

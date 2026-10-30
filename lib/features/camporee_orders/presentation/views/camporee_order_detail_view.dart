@@ -120,18 +120,16 @@ class CamporeeOrderDetailView extends ConsumerWidget {
   }
 
   Future<void> _pickAndUploadProof(BuildContext context, WidgetRef ref) async {
-    final result = await FilePicker.platform.pickFiles(
+    final picked = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: _proofAllowedExtensions,
-      allowMultiple: false,
     );
-    if (result == null || result.files.isEmpty) return;
+    if (picked == null) return;
 
-    final picked = result.files.first;
     final path = picked.path;
     if (path == null) return;
 
-    if (picked.size > _proofMaxSizeBytes) {
+    if ((await picked.length() ?? 0) > _proofMaxSizeBytes) {
       if (context.mounted) {
         _showSnack(
           context,

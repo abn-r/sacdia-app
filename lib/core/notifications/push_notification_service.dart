@@ -84,7 +84,7 @@ class PushNotificationService {
 
   final Dio _dio;
   final _secureStorage = const FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    aOptions: AndroidOptions(),
   );
 
   /// Riverpod Ref — used to read/mutate notification providers from FCM events.

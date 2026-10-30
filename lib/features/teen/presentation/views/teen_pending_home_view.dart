@@ -27,7 +27,7 @@ import '../teen_error_messages.dart';
 typedef ShareText = Future<void> Function(String text);
 
 Future<void> _defaultShare(String text) async {
-  await Share.share(text);
+  await SharePlus.instance.share(ShareParams(text: text));
 }
 
 /// Pantalla única del modo restringido de un adolescente sin tutor verificado

@@ -306,18 +306,25 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
   Future<void> _pickPdfs(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final picked = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
-        allowMultiple: true,
       );
-      if (result == null || result.files.isEmpty || !mounted) return;
+      if (picked.isEmpty || !mounted) return;
 
-      // Validate file sizes before staging.
-      final validPdfs = result.files.where((pf) => pf.path != null).toList();
-      final oversized = validPdfs.where((pf) => pf.size > _maxFileSizeBytes);
-      final acceptedPdfs =
-          validPdfs.where((pf) => pf.size <= _maxFileSizeBytes).toList();
+      // Validate file sizes before staging. A size that cannot be read counts
+      // as 0; the server still enforces the limit.
+      final validPdfs = picked.where((pf) => pf.path != null).toList();
+      final sizes = [for (final pf in validPdfs) await pf.length() ?? 0];
+      if (!mounted) return;
+      final oversized = [
+        for (var i = 0; i < validPdfs.length; i++)
+          if (sizes[i] > _maxFileSizeBytes) validPdfs[i],
+      ];
+      final acceptedPdfs = [
+        for (var i = 0; i < validPdfs.length; i++)
+          if (sizes[i] <= _maxFileSizeBytes) validPdfs[i],
+      ];
 
       if (oversized.isNotEmpty && mounted) {
         final count = oversized.length;

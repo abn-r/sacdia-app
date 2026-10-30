@@ -191,10 +191,10 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
       // Plain Dio on purpose: the URL is a pre-signed R2 link, no auth header.
       await Dio().download(result.url!, file.path);
       if (!mounted) return;
-      await Share.shareXFiles(
-        [XFile(file.path, name: fileName, mimeType: 'application/json')],
+      await SharePlus.instance.share(ShareParams(
+        files: [XFile(file.path, name: fileName, mimeType: 'application/json')],
         sharePositionOrigin: origin,
-      );
+      ));
     } catch (_) {
       if (mounted) {
         _showSnackBar('profile.data_export.ui.download_file_error'.tr(),
