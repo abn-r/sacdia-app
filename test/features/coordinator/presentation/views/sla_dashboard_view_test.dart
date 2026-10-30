@@ -121,6 +121,39 @@ void main() {
       await _dispose(tester);
     });
 
+    testWidgets('keeps the same rod values, colors and tooltip text',
+        (tester) async {
+      await _pumpSla(tester, () => _full);
+
+      final data = tester.widget<BarChart>(find.byType(BarChart)).data;
+      expect(data.minY, 0);
+      // Highest value is 5 -> step 2 -> maxY 8 (4 grid intervals).
+      expect(data.maxY, 8);
+      expect(data.gridData.horizontalInterval, 2);
+      expect(
+        [for (final g in data.barGroups) g.barRods.map((r) => r.toY).toList()],
+        [
+          [4.0, 1.0],
+          [5.0, 2.0],
+        ],
+      );
+      final rod = data.barGroups[1].barRods.first;
+      expect(rod.width, 10);
+      expect(rod.color, isNotNull);
+      expect(rod.color, isNot(data.barGroups[1].barRods.last.color));
+
+      final item = data.barTouchData.touchTooltipData.getTooltipItem(
+        data.barGroups[1],
+        1,
+        rod,
+        0,
+      );
+      expect(item!.text, '5');
+      expect(item.textStyle.color, rod.color);
+
+      await _dispose(tester);
+    });
+
     testWidgets('hides the chart and shows a note with fewer than 2 weeks',
         (tester) async {
       await _pumpSla(
