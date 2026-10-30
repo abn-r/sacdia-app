@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/auth/data/models/user_model.dart';
+import 'package:sacdia_app/features/auth/domain/entities/pending_club_membership.dart';
 import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 
@@ -334,5 +335,73 @@ void main() {
     final copy = user.copyWith(name: 'Ana');
     expect(copy.principal, user.principal);
     expect(copy.analyticsAnonymous, isTrue);
+  });
+
+  group('pending_club_membership', () {
+    test('absent field (older server) is null', () {
+      expect(UserModel.fromCustomApi(_payload()).pendingClubMembership, isNull);
+    });
+
+    test('explicit null is null', () {
+      final user = UserModel.fromCustomApi(
+        _payload({'pending_club_membership': null}),
+      );
+      expect(user.pendingClubMembership, isNull);
+    });
+
+    test('a full payload is parsed', () {
+      final user = UserModel.fromCustomApi(_payload({
+        'pending_club_membership': {
+          'club_name': 'Club Panteras',
+          'club_type_name': 'Aventureros',
+          'club_section_id': 166,
+          'requested_at': '2026-10-28T15:04:00.000Z',
+        },
+      }));
+      expect(
+        user.pendingClubMembership,
+        PendingClubMembership(
+          clubName: 'Club Panteras',
+          clubTypeName: 'Aventureros',
+          clubSectionId: 166,
+          requestedAt: DateTime.utc(2026, 10, 28, 15, 4),
+        ),
+      );
+    });
+
+    test('missing optional fields stay null', () {
+      final user = UserModel.fromCustomApi(_payload({
+        'pending_club_membership': {'club_name': 'Club Panteras'},
+      }));
+      final pending = user.pendingClubMembership!;
+      expect(pending.clubName, 'Club Panteras');
+      expect(pending.clubTypeName, isNull);
+      expect(pending.clubSectionId, isNull);
+      expect(pending.requestedAt, isNull);
+    });
+
+    test('malformed or nameless payloads are ignored', () {
+      for (final bad in <Object?>[
+        'Club Panteras',
+        42,
+        <int>[],
+        <String, dynamic>{},
+        {'club_name': '  '},
+      ]) {
+        final user =
+            UserModel.fromCustomApi(_payload({'pending_club_membership': bad}));
+        expect(user.pendingClubMembership, isNull, reason: '$bad');
+      }
+    });
+
+    test('it takes part in equality (router/UI refresh)', () {
+      const a = UserEntity(id: 'u');
+      const b = UserEntity(
+        id: 'u',
+        pendingClubMembership: PendingClubMembership(clubName: 'X'),
+      );
+      expect(a == b, isFalse);
+      expect(b.withPrincipal(null).pendingClubMembership, isNotNull);
+    });
   });
 }

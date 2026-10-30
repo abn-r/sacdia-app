@@ -805,6 +805,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       familyFeatures: current.familyFeatures,
       analyticsAnonymous: current.analyticsAnonymous,
       serverMode: current.serverMode,
+      pendingClubMembership: current.pendingClubMembership,
     );
     state = AsyncValue.data(updatedUser);
     _cacheUser(updatedUser);
@@ -836,6 +837,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       familyFeatures: current.familyFeatures,
       analyticsAnonymous: current.analyticsAnonymous,
       serverMode: current.serverMode,
+      pendingClubMembership: current.pendingClubMembership,
     );
     state = AsyncValue.data(
         updatedUser); // Aceptó los documentos: si ya terminó el registro, pide el permiso.
@@ -862,6 +864,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       familyFeatures: current.familyFeatures,
       analyticsAnonymous: current.analyticsAnonymous,
       serverMode: current.serverMode,
+      pendingClubMembership: current.pendingClubMembership,
     );
     state = AsyncValue.data(updatedUser);
     _cacheUser(updatedUser);

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/features/activities/domain/entities/activity.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
+import 'package:sacdia_app/features/auth/domain/entities/pending_club_membership.dart';
 import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
@@ -16,6 +17,7 @@ UserEntity deviceUser({
   bool legalPending = false,
   bool postRegisterComplete = true,
   int? clubId = 7,
+  PendingClubMembership? pendingClubMembership,
 }) =>
     UserEntity(
       id: 'kid-1',
@@ -35,6 +37,7 @@ UserEntity deviceUser({
         ),
       ),
       authorization: const AuthorizationSnapshot(effectivePermissions: []),
+      pendingClubMembership: pendingClubMembership,
     );
 
 /// `AuthNotifier` fijo que registra el emparejado y el cierre de sesión.

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
+import 'package:sacdia_app/features/auth/domain/entities/pending_club_membership.dart';
+import 'package:sacdia_app/features/auth/domain/entities/principal_info.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/dashboard/domain/entities/dashboard_summary.dart';
@@ -34,6 +36,24 @@ class _FakeAuthNotifier extends AuthNotifier {
       ),
     );
   }
+}
+
+class _TeenWithPendingRequestAuth extends AuthNotifier {
+  _TeenWithPendingRequestAuth({this.pending});
+
+  final PendingClubMembership? pending;
+
+  @override
+  Future<UserEntity?> build() async => UserEntity(
+        id: 'teen-1',
+        email: 'teen@example.com',
+        principal: const PrincipalInfo(
+          kind: PrincipalKind.supervisedUser,
+          supervision: SupervisionInfo(status: SupervisionStatus.active),
+        ),
+        authorization: const AuthorizationSnapshot(),
+        pendingClubMembership: pending,
+      );
 }
 
 class _NullProfileNotifier extends ProfileNotifier {
@@ -105,4 +125,44 @@ void main() {
       expect(profileBuilds, 0);
     },
   );
+
+  Future<void> pumpTeen(
+      WidgetTester tester, AuthNotifier Function() auth) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          dashboardNotifierProvider.overrideWith(_NullDashboardNotifier.new),
+          authNotifierProvider.overrideWith(auth),
+          profileNotifierProvider.overrideWith(_NullProfileNotifier.new),
+        ],
+        child: const MaterialApp(home: DashboardView()),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('a supervised teen with a pending request sees the club body',
+      (tester) async {
+    await pumpTeen(
+      tester,
+      () => _TeenWithPendingRequestAuth(
+        pending: const PendingClubMembership(
+          clubName: 'Club Panteras',
+          clubTypeName: 'Aventureros',
+        ),
+      ),
+    );
+
+    expect(find.text('dashboard.pending_state.title'), findsOneWidget);
+    expect(find.text('dashboard.pending_state.body_club'), findsOneWidget);
+    expect(find.text('dashboard.load_null_error'), findsNothing);
+  });
+
+  testWidgets('a supervised teen without a pending request keeps the error',
+      (tester) async {
+    await pumpTeen(tester, _TeenWithPendingRequestAuth.new);
+
+    expect(find.text('dashboard.pending_state.title'), findsNothing);
+    expect(find.text('dashboard.load_null_error'), findsOneWidget);
+  });
 }
